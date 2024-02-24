@@ -49,11 +49,9 @@ struct Song {
 	int length = 0;
 	std::vector<PartIcon> partIcons{ PartIcon::None,PartIcon::None,PartIcon::None,PartIcon::None };
 	std::vector<SongPart*> parts{ new SongPart,new SongPart,new SongPart,new SongPart ,new SongPart ,new SongPart ,new SongPart };
-	bool is10Channel = false;
 	std::vector<std::string> stemsPath{ "","","","","" };
-	std::string audio10CPath = "";
 	std::filesystem::path midiPath = "";
-	void loadSong(std::filesystem::path jsonPath) {
+	void LoadSong(std::filesystem::path jsonPath) {
 		std::ifstream ifs(jsonPath);
 		if (!ifs.is_open()) {
 			std::cerr << "Failed to open JSON file." << std::endl;
@@ -134,10 +132,6 @@ struct Song {
 						stemsPath[3] = (jsonPath.parent_path() / itr->value.GetString()).string();
 					else if (stem == "backing")
 						stemsPath[4] = (jsonPath.parent_path() / itr->value.GetString()).string();
-					else if (stem == "10channel") {
-						is10Channel = true;
-						audio10CPath = (jsonPath.parent_path() / itr->value.GetString()).string();
-					}
 				}					
 			}
 			if (document.HasMember("art") && document["art"].IsString()) {

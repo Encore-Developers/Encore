@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unordered_map>
 #include "song/song.h"
+#include "audio/audio.h"
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
@@ -28,16 +29,8 @@ int main(int argc, char* argv[])
 	std::filesystem::path directory = executablePath.parent_path();
 	std::filesystem::path lovedontdiepath = directory / "Songs/The Fray - Love Don't Die";
 	Song lovedontdie;
-	lovedontdie.loadSong(lovedontdiepath / "info.json");
-	std::vector<Music> loadedStreams;
-	if (lovedontdie.is10Channel) {
-		loadedStreams.push_back(LoadMusicStream(lovedontdie.audio10CPath.c_str()));
-	}
-	else {
-		for (std::string& path : lovedontdie.stemsPath) {
-			loadedStreams.push_back(LoadMusicStream(path.c_str()));
-		}
-	}
+	lovedontdie.LoadSong(lovedontdiepath / "info.json");
+	std::vector<Music> loadedStreams = LoadStems(lovedontdie.stemsPath);
 	
 	while (!WindowShouldClose())
 	{
