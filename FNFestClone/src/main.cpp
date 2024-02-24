@@ -13,7 +13,6 @@ int main(int argc, char* argv[])
 #endif
 	InitWindow(800, 600, "FNFestClone");
 	InitAudioDevice();
-	SetMasterVolume(0.5f);
 	SetTargetFPS(60);
 
 	Camera3D camera = { 0 };
