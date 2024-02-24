@@ -11,7 +11,10 @@ bool AudioInit() {
 std::vector<Music> LoadStems(std::vector<std::string> paths) {
 	std::vector<Music> loadedStreams;
 	for (std::string& path : paths) {
-		loadedStreams.push_back(LoadMusicStream(path.c_str()));
+		if (path != "") {
+			loadedStreams.push_back(LoadMusicStream(path.c_str()));
+		}
+		
 	}
 	return loadedStreams;
 }

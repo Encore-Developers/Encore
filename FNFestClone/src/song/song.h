@@ -122,16 +122,18 @@ struct Song {
 				std::cout << "stems" << std::endl;
 				for (rapidjson::Value::ConstMemberIterator itr = document["stems"].MemberBegin(); itr != document["stems"].MemberEnd(); ++itr) {
 					std::string stem = std::string(itr->name.GetString());
-					if (stem == "drums")
-						stemsPath[0] = (jsonPath.parent_path() / itr->value.GetString()).string();
-					else if (stem == "bass")
-						stemsPath[1] = (jsonPath.parent_path() / itr->value.GetString()).string();
-					else if (stem == "lead")
-						stemsPath[2] = (jsonPath.parent_path() / itr->value.GetString()).string();
-					else if (stem == "vocals")
-						stemsPath[3] = (jsonPath.parent_path() / itr->value.GetString()).string();
-					else if (stem == "backing")
-						stemsPath[4] = (jsonPath.parent_path() / itr->value.GetString()).string();
+					if (std::filesystem::exists(jsonPath.parent_path() / itr->value.GetString())) {
+						if (stem == "drums")
+							stemsPath[0] = (jsonPath.parent_path() / itr->value.GetString()).string();
+						else if (stem == "bass")
+							stemsPath[1] = (jsonPath.parent_path() / itr->value.GetString()).string();
+						else if (stem == "lead")
+							stemsPath[2] = (jsonPath.parent_path() / itr->value.GetString()).string();
+						else if (stem == "vocals")
+							stemsPath[3] = (jsonPath.parent_path() / itr->value.GetString()).string();
+						else if (stem == "backing")
+							stemsPath[4] = (jsonPath.parent_path() / itr->value.GetString()).string();
+					}
 				}					
 			}
 			if (document.HasMember("art") && document["art"].IsString()) {
