@@ -8,6 +8,8 @@
 #include "song/song.h"
 #include "song/songlist.h"
 #include "audio/audio.h"
+#include "raygui.h"
+
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
@@ -25,7 +27,6 @@ int main(int argc, char* argv[])
 	camera.projection = CAMERA_PERSPECTIVE;
 	Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
 
-	//TESTING LOADING FILES
 	std::filesystem::path executablePath(GetApplicationDirectory());
 	std::filesystem::path directory = executablePath.parent_path();
 	std::filesystem::path songsPath = directory / "Songs";
@@ -33,7 +34,8 @@ int main(int argc, char* argv[])
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
-		ClearBackground(RAYWHITE);
+		ClearBackground(DARKGRAY);
+		
 		float curSong = 0.0f;
 		for (Song song : songList) {
 			DrawTextureEx(song.albumArt, Vector2{ 0,50*curSong }, 0.0f, 0.1f, RAYWHITE);
