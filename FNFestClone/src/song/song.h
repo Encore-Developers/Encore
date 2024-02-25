@@ -1,3 +1,4 @@
+#pragma once
 #include "rapidjson/document.h"
 #include "raylib.h"
 #include "chart.h"
@@ -6,7 +7,6 @@
 #include <fstream>
 #include <unordered_map>
 #include <filesystem>
-
 enum PartIcon {
 	Drum,
 	Bass,

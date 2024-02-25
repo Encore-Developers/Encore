@@ -6,6 +6,7 @@
 #include <fstream>
 #include <unordered_map>
 #include "song/song.h"
+#include "song/songlist.h"
 #include "audio/audio.h"
 int main(int argc, char* argv[])
 {
@@ -27,27 +28,22 @@ int main(int argc, char* argv[])
 	//TESTING LOADING FILES
 	std::filesystem::path executablePath(GetApplicationDirectory());
 	std::filesystem::path directory = executablePath.parent_path();
-	std::filesystem::path lovedontdiepath = directory / "Songs/The Fray - Love Don't Die";
-	Song lovedontdie;
-	lovedontdie.LoadSong(lovedontdiepath / "info.json");
-	std::vector<Music> loadedStreams = LoadStems(lovedontdie.stemsPath);
-	
+	std::filesystem::path songsPath = directory / "Songs";
+	SongList songList = LoadSongs(songsPath);
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
 		ClearBackground(RAYWHITE);
-		DrawTextureEx(lovedontdie.albumArt, Vector2{ 200,200 }, 0.0f, 0.35f, RAYWHITE);
-		DrawText(lovedontdie.title.c_str(),400,200,20,BLACK);
-		DrawText(lovedontdie.artist.c_str(), 400, 230, 20, BLACK);
-		for (Music& stream : loadedStreams) {
-			UpdateMusicStream(stream);
-			PlayMusicStream(stream);
+		float curSong = 0.0f;
+		for (Song song : songList) {
+			DrawTextureEx(song.albumArt, Vector2{ 0,50*curSong }, 0.0f, 0.1f, RAYWHITE);
+			DrawText(song.title.c_str(), 50, 50 * curSong, 20, BLACK);
+			DrawText(song.artist.c_str(), 50, (50*curSong)+20, 16, BLACK);
+			curSong++;
 		}
 		BeginMode3D(camera);
 
 		EndMode3D();
-
-		DrawFPS(10, 10);
 
 		EndDrawing();
 	}
