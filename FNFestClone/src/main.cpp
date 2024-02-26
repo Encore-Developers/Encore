@@ -67,6 +67,7 @@ int main(int argc, char* argv[])
 	std::filesystem::path songsPath = directory / "Songs";
 
 	SongList songList = LoadSongs(songsPath);
+	bool midiLoaded = false;
 	bool isPlaying = false;
 	bool streamsLoaded = false;
 	std::vector<Music> loadedStreams;
@@ -100,6 +101,40 @@ int main(int argc, char* argv[])
 					UpdateMusicStream(stream);
 					PlayMusicStream(stream);
 				}
+			}
+			if (!midiLoaded) {
+				smf::MidiFile midiFile;
+				midiFile.read(songList.songs[curPlayingSong].midiPath.string());
+				for (int i = 0; i < midiFile.getTrackCount(); i++)
+				{
+					std::string trackName = "";
+					midiFile.sortTrack(i);
+					for (int j = 0; j < midiFile[i].getSize(); j++) {
+						if (midiFile[i][j].isMeta()) {
+							if ((int)midiFile[i][j][1] == 3) {
+								for (int k = 3; k < midiFile[i][j].getSize(); k++) {
+									trackName+=midiFile[i][j][k];
+								}
+								SongParts songPart= partFromString(trackName);
+								std::cout << "TRACKNAME "<<trackName << ": " << int(songPart) << std::endl;
+								if (songPart != SongParts::Invalid) {
+									songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+									std::string diffstr = "ESY: ";
+									for (int diff = 0; diff < 4; diff++) {
+										Chart newChart;
+										newChart.parseNotes(midiFile, i, midiFile[i], diff);
+										if (diff == 1) diffstr = "MED: ";
+										else if (diff == 2) diffstr = "HRD: ";
+										else if (diff == 3) diffstr = "EXP: ";
+										songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+										std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
+									}
+								}
+							}
+						}
+					}
+				}
+				midiLoaded = true;
 			}
 			DrawText(songList.songs[curPlayingSong].title.c_str(), 5,5, 30, WHITE);
 			DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 40, 24, WHITE);

@@ -2,33 +2,33 @@
 #include "rapidjson/document.h"
 #include "raylib.h"
 #include "chart.h"
+#include "midifile/MidiFile.h"
 #include <vector>
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
 #include <filesystem>
 enum PartIcon {
-	Drum,
-	Bass,
-	Guitar,
-	Vocals,
-	Keyboard,
-	None
+	IconDrum,
+	IconBass,
+	IconGuitar,
+	IconVocals,
+	IconKeyboard,
+	IconNone
 };
 
 std::unordered_map<std::string, PartIcon> stringToEnum = {
 
-	{"Drum",PartIcon::Drum},
-	{"Bass",PartIcon::Bass},
-	{"Guitar",PartIcon::Guitar},
-	{"Vocals",PartIcon::Vocals},
-	{"Keyboard",PartIcon::Keyboard},
-	{"None",PartIcon::None},
-	{"",PartIcon::None}
+	{"Drum",PartIcon::IconDrum},
+	{"Bass",PartIcon::IconBass},
+	{"Guitar",PartIcon::IconGuitar},
+	{"Vocals",PartIcon::IconVocals},
+	{"Keyboard",PartIcon::IconKeyboard},
+	{"None",PartIcon::IconNone},
+	{"",PartIcon::IconNone}
 
 };
 
-// Function to convert string to enum
 static PartIcon iconFromString(const std::string& str) 
 {
 	auto it = stringToEnum.find(str);
@@ -38,15 +38,59 @@ static PartIcon iconFromString(const std::string& str)
 	}
 	else 
 	{
-		// Handle error: String doesn't match any enum value
 		throw std::runtime_error("Invalid enum string");
 	}
 }
+
+enum SongParts {
+	PartDrums,
+	PartBass,
+	PartGuitar,
+	PartVocals,
+	PlasticDrums,
+	PlasticBass,
+	PlasticGuitar,
+	Invalid
+};
+
+
+std::unordered_map<std::string, SongParts> midiNameToEnum = {
+
+	{"PART DRUMS",SongParts::PartDrums},
+	{"PART BASS",SongParts::PartBass},
+	{"PART GUITAR",SongParts::PartGuitar},
+	{"PART VOCALS",SongParts::PartVocals},
+	{"PLASTIC DRUMS",SongParts::PlasticDrums},
+	{"PLASTIC BASS",SongParts::PlasticBass},
+	{"PLASTIC GUITAR",SongParts::PlasticGuitar},
+
+};
+static SongParts partFromString(const std::string& str)
+{
+	auto it = midiNameToEnum.find(str);
+	if (it != midiNameToEnum.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		return SongParts::Invalid;
+	}
+}
+
+enum Difficulty {
+	Easy,
+	Medium,
+	Hard,
+	Expert
+};
+
 
 struct SongPart 
 {
 	int diff = -1;
 	bool hasPart = false;
+	std::vector<Chart> charts;
 };
 
 class Song 
@@ -60,8 +104,8 @@ public:
 
 	int length = 0;
 
-	std::vector<PartIcon> partIcons{ PartIcon::None,PartIcon::None,PartIcon::None,PartIcon::None };
-
+	std::vector<PartIcon> partIcons{ PartIcon::IconNone,PartIcon::IconNone,PartIcon::IconNone,PartIcon::IconNone };
+	//Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic Bass, Plastic Guitar
 	std::vector<SongPart*> parts{ new SongPart,new SongPart,new SongPart,new SongPart ,new SongPart ,new SongPart ,new SongPart };
 
 	std::vector<std::string> stemsPath{ "","","","","" };
