@@ -75,14 +75,13 @@ int main(int argc, char* argv[])
 		ClearBackground(DARKGRAY);
 
 		float curSong = 0.0f;
-
 		for (Song song : songList.songs) {
-
-			DrawTextureEx(song.albumArt, Vector2{ 0,50 * curSong }, 0.0f, 0.1f, RAYWHITE);
-
-			DrawText(song.title.c_str(), 50, 50 * curSong, 20, BLACK);
-
-			DrawText(song.artist.c_str(), 50, (50 * curSong) + 20, 16, BLACK);
+			if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
+				std::cout << "Clicked song: '" << song.artist << " - " << song.title << "'" << std::endl;
+			}
+			DrawTextureEx(song.albumArt, Vector2{ 5,(60*curSong)+5 }, 0.0f, 0.1f, RAYWHITE);
+			DrawText(song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
+			DrawText(song.artist.c_str(), 60, (60*curSong)+25, 16, BLACK);
 
 			curSong++;
 		}
