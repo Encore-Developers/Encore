@@ -15,6 +15,9 @@
 
 vector<std::string> ArgumentList::arguments;
 
+bool compareNotes(const Note& a, const Note& b) {
+	return a.time < b.time;
+}
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
@@ -72,6 +75,10 @@ int main(int argc, char* argv[])
 	bool streamsLoaded = false;
 	std::vector<Music> loadedStreams;
 	int curPlayingSong = 0;
+	int curNoteIdx = 0;
+
+	
+
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
@@ -123,6 +130,7 @@ int main(int argc, char* argv[])
 									for (int diff = 0; diff < 4; diff++) {
 										Chart newChart;
 										newChart.parseNotes(midiFile, i, midiFile[i], diff);
+										std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
 										if (diff == 1) diffstr = "MED: ";
 										else if (diff == 2) diffstr = "HRD: ";
 										else if (diff == 3) diffstr = "EXP: ";
@@ -135,6 +143,28 @@ int main(int argc, char* argv[])
 					}
 				}
 				midiLoaded = true;
+			}
+			else {
+				double musicTime = (double)GetMusicTimePlayed(loadedStreams[0]);
+				Chart& dmsExpert = songList.songs[curPlayingSong].parts[0]->charts[3];
+				for (int i = curNoteIdx; i < dmsExpert.notes.size(); i++) {
+					Note& curNote=dmsExpert.notes[i];
+					double relTime = curNote.time - musicTime;
+					if (relTime>4.0) {
+						break;
+					}
+					else {
+						if (curNote.lift==true) {
+							DrawRectangle(350 + (50 * curNote.lane), 150 + (relTime * 150), 40, 15, ORANGE);
+						}
+						else {
+							DrawRectangle(350 + (50 * curNote.lane), 150 + (relTime * 150), 40, 15, GREEN);
+						}
+					}
+
+					if (relTime < 0.0 && curNoteIdx<dmsExpert.notes.size()) curNoteIdx = i+1;
+
+				}
 			}
 			DrawText(songList.songs[curPlayingSong].title.c_str(), 5,5, 30, WHITE);
 			DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 40, 24, WHITE);
