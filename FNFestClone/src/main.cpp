@@ -8,46 +8,109 @@
 #include "song/song.h"
 #include "song/songlist.h"
 #include "audio/audio.h"
+#include "game/arguments.h"
+#include "game/utility.h"
 #include "raygui.h"
+#include <stdlib.h>
+
+vector<std::string> ArgumentList::arguments;
 
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
 	ShowWindow(GetConsoleWindow(), 0);
 #endif
-	InitWindow(800, 600, "FNFestClone");
+
+	InitWindow(800, 600, "Encore");
+
+	ArgumentList::InitArguments(argc, argv);
+
+	std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
+	int targetFPSArg = 0;
+
+	if (FPSCapStringVal != "")
+	{
+		assert(str2int(&targetFPSArg, FPSCapStringVal.c_str()) == STR2INT_SUCCESS);
+		TraceLog(LOG_INFO, "Argument overridden target FPS: %d", targetFPSArg);
+	}
+
+	//https://www.raylib.com/examples/core/loader.html?name=core_custom_frame_control
+
+	double previousTime = GetTime();
+	double currentTime = 0.0;
+	double updateDrawTime = 0.0;
+	double waitTime = 0.0;
+	float deltaTime = 0.0f;
+
+	float timeCounter = 0.0f;
+	
+	int targetFPS = targetFPSArg == 0 ? 60 : targetFPSArg;
+
+	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
+
 	InitAudioDevice();
-	SetTargetFPS(60);
 
 	Camera3D camera = { 0 };
+
 	camera.position = Vector3{ 0.0f, 10.0f, 10.0f };
 	camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
 	camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
 	camera.fovy = 45.0f;
 	camera.projection = CAMERA_PERSPECTIVE;
+
 	Vector3 cubePosition = { 0.0f, 0.0f, 0.0f };
 
 	std::filesystem::path executablePath(GetApplicationDirectory());
+
 	std::filesystem::path directory = executablePath.parent_path();
+
 	std::filesystem::path songsPath = directory / "Songs";
+
 	SongList songList = LoadSongs(songsPath);
+
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
+
 		ClearBackground(DARKGRAY);
-		
+
 		float curSong = 0.0f;
-		for (Song song : songList) {
-			DrawTextureEx(song.albumArt, Vector2{ 0,50*curSong }, 0.0f, 0.1f, RAYWHITE);
+
+		for (Song song : songList.songs) {
+
+			DrawTextureEx(song.albumArt, Vector2{ 0,50 * curSong }, 0.0f, 0.1f, RAYWHITE);
+
 			DrawText(song.title.c_str(), 50, 50 * curSong, 20, BLACK);
-			DrawText(song.artist.c_str(), 50, (50*curSong)+20, 16, BLACK);
+
+			DrawText(song.artist.c_str(), 50, (50 * curSong) + 20, 16, BLACK);
+
 			curSong++;
 		}
+
 		BeginMode3D(camera);
 
 		EndMode3D();
 
 		EndDrawing();
+
+		//SwapScreenBuffer();
+
+		currentTime = GetTime();
+		updateDrawTime = currentTime - previousTime;
+
+		if (targetFPS > 0)
+		{
+			waitTime = (1.0f / (float)targetFPS) - updateDrawTime;
+			if (waitTime > 0.0)
+			{
+				WaitTime((float)waitTime);
+				currentTime = GetTime();
+				deltaTime = (float)(currentTime - previousTime);
+			}
+		}
+		else deltaTime = (float)updateDrawTime;
+
+		previousTime = currentTime;
 	}
 	CloseWindow();
 	return 0;

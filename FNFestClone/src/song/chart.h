@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
-struct Note {
+struct Note 
+{
 	float time;
 	float len;
 	bool lift;
@@ -9,12 +10,16 @@ struct Note {
 	bool forceHopo;
 };
 
-struct odPhrase {
+struct odPhrase 
+{
 	float start;
 	float end;
 	bool missed = false;
 };
-struct Chart {
+
+class Chart 
+{
+public:
 	std::vector<Note> notes;
 	std::vector<odPhrase> odPhrases;
 };
