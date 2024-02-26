@@ -67,25 +67,43 @@ int main(int argc, char* argv[])
 	std::filesystem::path songsPath = directory / "Songs";
 
 	SongList songList = LoadSongs(songsPath);
-
+	bool isPlaying = false;
+	bool streamsLoaded = false;
+	std::vector<Music> loadedStreams;
+	int curPlayingSong = 0;
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
 
 		ClearBackground(DARKGRAY);
-
-		float curSong = 0.0f;
-		for (Song song : songList.songs) {
-			if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
-				std::cout << "Clicked song: '" << song.artist << " - " << song.title << "'" << std::endl;
+		if(!isPlaying){
+			float curSong = 0.0f;
+			for (Song song : songList.songs) {
+				if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
+					std::cout << "Clicked song: '" << song.artist << " - " << song.title << "'" << std::endl;
+					curPlayingSong = (int)curSong;
+					isPlaying = true;
+				}
+				DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
+				DrawText(song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
+				DrawText(song.artist.c_str(), 60, (60 * curSong) + 25, 16, BLACK);
+				curSong++;
 			}
-			DrawTextureEx(song.albumArt, Vector2{ 5,(60*curSong)+5 }, 0.0f, 0.1f, RAYWHITE);
-			DrawText(song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
-			DrawText(song.artist.c_str(), 60, (60*curSong)+25, 16, BLACK);
-
-			curSong++;
 		}
-
+		else{
+			if (!streamsLoaded) {
+				loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
+				streamsLoaded = true;
+			}
+			else {
+				for (Music& stream : loadedStreams) {
+					UpdateMusicStream(stream);
+					PlayMusicStream(stream);
+				}
+			}
+			DrawText(songList.songs[curPlayingSong].title.c_str(), 5,5, 30, WHITE);
+			DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 40, 24, WHITE);
+		}
 		BeginMode3D(camera);
 
 		EndMode3D();
