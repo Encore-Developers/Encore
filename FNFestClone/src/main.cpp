@@ -11,8 +11,7 @@
 #include "game/arguments.h"
 #include "game/utility.h"
 #include "raygui.h"
-#include <stdlib.h>
-
+#include <stdlib.h>=
 vector<std::string> ArgumentList::arguments;
 
 bool compareNotes(const Note& a, const Note& b) {
@@ -127,7 +126,6 @@ int main(int argc, char* argv[])
 			if (!midiLoaded) {
 				smf::MidiFile midiFile;
 				midiFile.read(songList.songs[curPlayingSong].midiPath.string());
-				std::cout << midiFile.linkNotePairs() << std::endl;
 				for (int i = 0; i < midiFile.getTrackCount(); i++)
 				{
 					std::string trackName = "";
@@ -164,28 +162,47 @@ int main(int argc, char* argv[])
 				DrawTriangle3D(Vector3{ 2.0f,0.0f,0.0f }, Vector3{ -2.0f,0.0f,0.0f }, Vector3{ -2.0f,0.0f,20.0f }, BLACK);
 				DrawTriangle3D(Vector3{ 2.0f,0.0f,0.0f }, Vector3{ -2.0f,0.0f,20.0f }, Vector3{ 2.0f,0.0f,20.0f }, BLACK);
 				double musicTime = (double)GetMusicTimePlayed(loadedStreams[0]);
-				Chart& dmsExpert = songList.songs[curPlayingSong].parts[2]->charts[3];
+				Chart& dmsExpert = songList.songs[curPlayingSong].parts[3]->charts[3];
+				if (dmsExpert.odPhrases.size() > 0) {
+					if (dmsExpert.notes[curNoteIdx].time+dmsExpert.notes[curNoteIdx].len > dmsExpert.odPhrases[curODPhrase].end && curODPhrase < dmsExpert.odPhrases.size()) curODPhrase++;
+				}
+				
 				for (int i = curNoteIdx; i < dmsExpert.notes.size(); i++) {
 					Note& curNote = dmsExpert.notes[i];
 					double relTime = curNote.time - musicTime;
 					double relEnd = (curNote.time+curNote.len) - musicTime;
+					bool od = false;
+					if (dmsExpert.odPhrases.size() > 0) {
+						if (curNote.time >= dmsExpert.odPhrases[curODPhrase].start && curNote.time <= dmsExpert.odPhrases[curODPhrase].end) {
+							od = true;
+						}
+						
+					}
+					if (relTime < 0.0) relTime = 0.0;
 					if (relTime > 4.0) {
 						break;
 					}
 					else {
 						if (curNote.lift == true) {
-							DrawModel(liftModel, Vector3{ 1.6f - (0.8f * curNote.lane),0.125f,2.5f + (12.5f * (float)relTime) },1.0f, WHITE);
+							if(od==true)
+								DrawModel(liftModelOD, Vector3{ 1.6f - (0.8f * curNote.lane),0,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
+							else
+								DrawModel(liftModel, Vector3{ 1.6f - (0.8f * curNote.lane),0,2.5f + (12.5f * (float)relTime) },1.0f, WHITE);
 						}
 						else {
-							if (curNote.len > 0.125) {
-								DrawLine3D(Vector3{ 1.6f - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ 1.6f - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
+							if (curNote.len > 0.2) {
+								if (od == true)
+									DrawLine3D(Vector3{ 1.6f - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ 1.6f - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 217, 183, 82 ,255 });
+								else
+									DrawLine3D(Vector3{ 1.6f - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ 1.6f - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 							}
-							DrawModel(noteModel, Vector3{ 1.6f - (0.8f * curNote.lane),0.125f,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
-							
+							if (od == true)
+								DrawModel(noteModelOD, Vector3{ 1.6f - (0.8f * curNote.lane),0,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
+							else
+								DrawModel(noteModel, Vector3{ 1.6f - (0.8f * curNote.lane),0,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
 						}
 					}
-
-					if (relTime < 0.0 && curNoteIdx < dmsExpert.notes.size()) curNoteIdx = i + 1;
+					if (relEnd < 0.0 && curNoteIdx < dmsExpert.notes.size()) curNoteIdx = i + 1;
 
 				}
 				EndMode3D();
