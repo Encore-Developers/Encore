@@ -2859,7 +2859,7 @@ public:
         return true;
     }
 
-private:
+public:
     //! Prohibit copying
     GenericDocument(const GenericDocument&);
     //! Prohibit assignment

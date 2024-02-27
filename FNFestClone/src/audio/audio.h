@@ -4,15 +4,19 @@
 #include <vector>
 #include <string>
 
-bool AudioInit() {
+bool AudioInit() 
+{
 	InitAudioDevice();
 	return IsAudioDeviceReady();
 }
 
-std::vector<Music> LoadStems(std::vector<std::string> paths) {
+std::vector<Music> LoadStems(std::vector<std::string> paths) 
+{
 	std::vector<Music> loadedStreams;
-	for (std::string& path : paths) {
-		if (path != "") {
+	for (std::string& path : paths) 
+	{
+		if (path != "") 
+		{
 			loadedStreams.push_back(LoadMusicStream(path.c_str()));
 		}
 		

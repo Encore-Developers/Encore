@@ -29,7 +29,7 @@ endif()
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 file(GLOB_RECURSE INC_FILES "include/*.h" "src/*.h")
 # Add source files to the executable
-add_executable(FNFestClone ${SRC_FILES} ${INC_FILES})
+add_executable(FNFestClone ${SRC_FILES} ${INC_FILES} "src/game/arguments.h" "src/game/utility.h")
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/FNFestClone)
 # Set the include directory for the executable
 target_include_directories(FNFestClone PRIVATE "include")
