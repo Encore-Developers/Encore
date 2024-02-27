@@ -7,6 +7,9 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 
 ### External libraries used
 [raylib](https://github.com/raysan5/raylib)
+
 [raygui](https://github.com/raysan5/raygui)
+
 [RapidJSON](https://github.com/Tencent/rapidjson)
+
 [midifile](https://github.com/craigsapp/midifile)
