@@ -72,8 +72,9 @@ public:
 				}
 				else if ((int)events[i][1] == odNote) {
 					odPhrase newPhrase;
-					newPhrase.start= midiFile.getTimeInSeconds(trkidx, i);
+					newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
 					newPhrase.end = newPhrase.start+events[i].getDurationInSeconds();
+					odPhrases.push_back(newPhrase);
 				}
 			}
 		}
