@@ -1,4 +1,6 @@
 .vs/
+.idea/
+CMakeFiles/
 out
 FNFestClone/Songs/E*/
 FNFestClone/Songs/S*/
