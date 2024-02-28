@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
 #endif
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 			// 800 , 600
-	InitWindow(1920, 1080, "Encore");
-	ToggleBorderlessWindowed();
+	InitWindow(800,600, "Encore");
+	//ToggleBorderlessWindowed();
 	ArgumentList::InitArguments(argc, argv);
 
 	std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 
 	float timeCounter = 0.0f;
 	
-	int targetFPS = targetFPSArg == 0 ? 180 : targetFPSArg;
+	int targetFPS = targetFPSArg == 0 ? 60 : targetFPSArg;
 
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
@@ -86,9 +86,8 @@ int main(int argc, char* argv[])
 	int curPlayingSong = 0;
 	int curNoteIdx = 0;
 	int curODPhrase = 0;
-	Model expertHighway = LoadModel((directory / "Assets/expert.obj").string().c_str());
+    Model expertHighway = LoadModel((directory / "Assets/expert.obj").string().c_str());
 	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway.png").string().c_str());
-	Texture2D sidesTexture = LoadTexture((directory / "Assets/sides.png").string().c_str());
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	// expertHighway.materials[1].maps[MATERIAL_MAP_ALBEDO].texture = sidesTexture;
@@ -110,6 +109,7 @@ int main(int argc, char* argv[])
 	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
 	Model liftModelOD = LoadModel((directory / "Assets/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
+
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
 						
 					}
 					if (relTime < 0.0) relTime = 0.0;
-					if (relTime > 4.0) {
+					if (relTime > 1.5) {
 						break;
 					}
 					else {
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 							// sustains
 							if (curNote.len > 0.2) {
 								if (od == true)
-									DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ diffDistance - (0.8f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 217, 183, 82 ,255 });
+									DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 217, 183, 82 ,255 });
 								
 								else
 									DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
