@@ -272,7 +272,10 @@ int main(int argc, char* argv[])
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-
+	Model smasherPressed = LoadModel((directory / "Assets/smasher.obj").string().c_str());
+	Texture2D smasherPressTex = LoadTexture((directory / "Assets/smasher_press.png").string().c_str());
+	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
+	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
 	Model expertHighway = LoadModel((directory / "Assets/expert.obj").string().c_str());
 	Model emhHighway = LoadModel((directory / "Assets/emh.obj").string().c_str());
@@ -516,11 +519,12 @@ int main(int argc, char* argv[])
 					DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 					for (int i = 0; i < 5; i++) {
 						if (heldFrets[i] == true) {
-							DrawModel(smasherReg, Vector3{ diffDistance - i, 0.1f, 0.25f}, 1.0f, WHITE);
+							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, -0.3f}, 1.0f, WHITE);
 							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
 						}
 						else {
-							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
+							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, -0.3f}, 1.0f, WHITE);
+							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
 						}
 					}
 					for (int i = 0; i < 4; i++) {
