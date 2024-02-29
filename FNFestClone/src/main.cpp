@@ -20,7 +20,7 @@ bool compareNotes(const Note& a, const Note& b) {
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
-	ShowWindow(GetConsoleWindow(), 0);
+	
 #endif
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	// 800 , 600
@@ -45,15 +45,15 @@ int main(int argc, char* argv[])
 	double updateDrawTime = 0.0;
 	double waitTime = 0.0;
 	float deltaTime = 0.0f;
-
-	bool expert = true;
-	float diffDistance = expert ? 2.0f : 1.5f;
-	float lineDistance = expert ? 1.5f : 1.0f;
+	int instrument = 0;
+	int diff = 0;
+	
 
 	float timeCounter = 0.0f;
 
 	int targetFPS = targetFPSArg == 0 ? 60 : targetFPSArg;
-
+	std::vector<string> songPartsList{ "Drums","Bass","Guitar","Vocals" };
+	std::vector<string> diffList{ "Easy","Medium","Hard","Expert"};
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
 	InitAudioDevice();
@@ -82,14 +82,18 @@ int main(int argc, char* argv[])
 	bool midiLoaded = false;
 	bool isPlaying = false;
 	bool streamsLoaded = false;
+	int selectStage = 0;
 	std::vector<Music> loadedStreams;
 	int curPlayingSong = 0;
 	int curNoteIdx = 0;
 	int curODPhrase = 0;
 	Model expertHighway = LoadModel((directory / "Assets/expert.obj").string().c_str());
+	Model emhHighway = LoadModel((directory / "Assets/emh.obj").string().c_str());
 	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway.png").string().c_str());
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
+	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	// expertHighway.materials[1].maps[MATERIAL_MAP_ALBEDO].texture = sidesTexture;
 	// expertHighway.materials[1].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	Model noteModel = LoadModel((directory / "Assets/note.obj").string().c_str());
@@ -114,7 +118,9 @@ int main(int argc, char* argv[])
 	std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
 	std::vector<bool> heldFrets = { false,false,false,false,false };
 	while (!WindowShouldClose())
-	{
+	{ 
+		float diffDistance = diff == 3 ? 2.0f : 1.5f;
+		float lineDistance = diff == 3 ? 1.5f : 1.0f;
 		if (isPlaying) {
 			if (IsKeyPressed(KEY_A)) {
 				laneTimes[0] = (double)GetMusicTimePlayed(loadedStreams[0]);
@@ -174,21 +180,91 @@ int main(int argc, char* argv[])
 		
 		
 		if (!isPlaying) {
-			float curSong = 0.0f;
-			for (Song song : songList.songs) {
-				if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
-					std::cout << "Clicked song: '" << song.artist << " - " << song.title << "'" << std::endl;
-					curPlayingSong = (int)curSong;
-					isPlaying = true;
+			if (selectStage == 0) {
+				midiLoaded = false;
+				float curSong = 0.0f;
+				for (Song song : songList.songs) {
+					if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
+						curPlayingSong = (int)curSong;
+						selectStage = 1;
+					}
+					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
+
+					DrawText(song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
+					DrawText(song.artist.c_str(), 60, (60 * curSong) + 25, 16, BLACK);
+					curSong++;
 				}
-				DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
+			}
+			else if (selectStage == 1) {
+				if (!midiLoaded) {
+					smf::MidiFile midiFile;
+					midiFile.read(songList.songs[curPlayingSong].midiPath.string());
+					for (int i = 0; i < midiFile.getTrackCount(); i++)
+					{
+						std::string trackName = "";
+						for (int j = 0; j < midiFile[i].getSize(); j++) {
+							if (midiFile[i][j].isMeta()) {
+								if ((int)midiFile[i][j][1] == 3) {
+									for (int k = 3; k < midiFile[i][j].getSize(); k++) {
+										trackName += midiFile[i][j][k];
+									}
+									SongParts songPart = partFromString(trackName);
+									std::cout << "TRACKNAME " << trackName << ": " << int(songPart) << std::endl;
+									if (songPart != SongParts::Invalid) {
+										songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+										std::string diffstr = "ESY: ";
+										for (int diff = 0; diff < 4; diff++) {
+											Chart newChart;
+											newChart.parseNotes(midiFile, i, midiFile[i], diff);
+											std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
+											if (diff == 1) diffstr = "MED: ";
+											else if (diff == 2) diffstr = "HRD: ";
+											else if (diff == 3) diffstr = "EXP: ";
+											songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+											std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
+										}
+									}
+								}
+							}
+						}
+					}
+					midiLoaded = true;
+				}
+				else {
+					if (GuiButton({ 0,0,60,60 }, "<")) {
+						selectStage = 0;
+					}
+					for (int i = 0; i < 4; i++) {
+						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
+							if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, songPartsList[i].c_str())) {
+								instrument = i;
+								selectStage = 2;
+							}
+						}
+					}
+				}
 				
-				DrawText( song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
-				DrawText( song.artist.c_str(),  60, (60 * curSong) + 25, 16, BLACK);
-				curSong++;
+			}
+			else if (selectStage == 2) {
+				for (int i = 0; i < 4; i++) {
+					if (GuiButton({ 0,0,60,60 }, "<")) {
+						selectStage = 1;
+					}
+					if (songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.size()>0) {
+						if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, diffList[i].c_str())) {
+							diff = i;
+							selectStage = 0;
+							isPlaying = true;
+						}
+					}
+				}
 			}
 		}
 		else {
+			if (GuiButton({ 0,0,60,60 }, "<")) {
+				isPlaying = false;
+				streamsLoaded = false;
+			}
 			if (!streamsLoaded) {
 				loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
 				streamsLoaded = true;
@@ -199,60 +275,48 @@ int main(int argc, char* argv[])
 					PlayMusicStream(stream);
 				}
 			}
-			if (!midiLoaded) {
-				smf::MidiFile midiFile;
-				midiFile.read(songList.songs[curPlayingSong].midiPath.string());
-				for (int i = 0; i < midiFile.getTrackCount(); i++)
-				{
-					std::string trackName = "";
-					for (int j = 0; j < midiFile[i].getSize(); j++) {
-						if (midiFile[i][j].isMeta()) {
-							if ((int)midiFile[i][j][1] == 3) {
-								for (int k = 3; k < midiFile[i][j].getSize(); k++) {
-									trackName += midiFile[i][j][k];
-								}
-								SongParts songPart = partFromString(trackName);
-								std::cout << "TRACKNAME " << trackName << ": " << int(songPart) << std::endl;
-								if (songPart != SongParts::Invalid) {
-									songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
-									std::string diffstr = "ESY: ";
-									for (int diff = 0; diff < 4; diff++) {
-										Chart newChart;
-										newChart.parseNotes(midiFile, i, midiFile[i], diff);
-										std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
-										if (diff == 1) diffstr = "MED: ";
-										else if (diff == 2) diffstr = "HRD: ";
-										else if (diff == 3) diffstr = "EXP: ";
-										songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
-										std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
-									}
-								}
-							}
+			if(midiLoaded==true){
+				double musicTime = (double)GetMusicTimePlayed(loadedStreams[0]);
+				if (musicTime < 5.0) {
+					DrawText(songList.songs[curPlayingSong].title.c_str(), 5, 65, 30, WHITE);
+					DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 100, 24, WHITE);
+				}
+				BeginMode3D(camera);
+				if (diff == 3) {
+					DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+					for (int i = 0; i < 5; i++) {
+						if (heldFrets[i] == true) {
+							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
+						}
+						else {
+							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
 						}
 					}
+					for (int i = 0; i < 4; i++) {
+						DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
+					}
 				}
-				midiLoaded = true;
-			}
-			else {
+				else {
+					DrawModel(emhHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+					for (int i = 0; i < 4; i++) {
+						if (heldFrets[i] == true) {
+							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
+						}
+						else {
+							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
+						}
+					}
+					for (int i = 0; i < 3; i++) {
+						DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
+					}
+				}
 				
-				BeginMode3D(camera);
-				DrawModel(expertHighway, Vector3{0,0,0}, 1.0f, WHITE);
-				for (int i = 0; i < 5; i++) {
-					if (heldFrets[i]==true) {
-						DrawCube(Vector3{diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
-					}
-					else {
-						DrawCube(Vector3{diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
-					}
-				}
+				
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
-				for (int i = 0; i < 4; i++) {
-					DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
-				}
+				
 				DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
-				double musicTime = (double)GetMusicTimePlayed(loadedStreams[0]);
-				Chart& dmsExpert = songList.songs[curPlayingSong].parts[0]->charts[3];
+				Chart& dmsExpert = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
 				if (dmsExpert.odPhrases.size() > 0) {
 					if (dmsExpert.notes[curNoteIdx].time+dmsExpert.notes[curNoteIdx].len > dmsExpert.odPhrases[curODPhrase].end && curODPhrase < dmsExpert.odPhrases.size()) curODPhrase++;
 				}
@@ -332,8 +396,7 @@ int main(int argc, char* argv[])
 				}
 				EndMode3D();
 			}
-			DrawText(songList.songs[curPlayingSong].title.c_str(), 5, 5, 30, WHITE);
-			DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 40, 24, WHITE);
+			
 			
 			DrawFPS(5, 60);
 		}
