@@ -2,6 +2,5 @@
 .idea/
 CMakeFiles/
 out
-FNFestClone/Songs/E*/
-FNFestClone/Songs/S*/
-FNFestClone/Songs/The Fray*/
+FNFestClone/Songs/*
+FNFestClone/Songs/*/*
