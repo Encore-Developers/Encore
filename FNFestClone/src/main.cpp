@@ -1,4 +1,6 @@
 ﻿#include "rapidjson/document.h"
+#include "rapidjson/filewritestream.h"
+#include "rapidjson/writer.h"
 #include "raylib.h"
 #include <vector>
 #include <iostream>
@@ -12,10 +14,117 @@
 #include "game/utility.h"
 #include "raygui.h"
 #include <stdlib.h>
+
+#include <cstdio>
 vector<std::string> ArgumentList::arguments;
 
 bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
+}
+std::vector<int> KEYBINDS_5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
+std::vector<int> KEYBINDS_4K{ KEY_D,KEY_F,KEY_J,KEY_K };
+std::vector<int> prev4k = KEYBINDS_4K;
+std::vector<int> prev5k = KEYBINDS_5K;
+rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
+	rapidjson::Value array(rapidjson::kArrayType);
+	for (const auto& value : vec) {
+		array.PushBack(value, allocator);
+	}
+	return array;
+}
+
+static void saveKeyBinds() {
+	rapidjson::Document document;
+	document.SetObject();
+	rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+	rapidjson::Value keybinds4k = vectorToJsonArray(KEYBINDS_4K, allocator);
+	rapidjson::Value keybinds5k = vectorToJsonArray(KEYBINDS_5K, allocator);
+	document.AddMember("4k", keybinds4k, allocator);
+	document.AddMember("5k", keybinds5k, allocator);
+	char writeBuffer[2048];
+	FILE* fp = fopen("keybinds.json","wb");
+	rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+
+	rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
+	document.Accept(writer);
+	fclose(fp);
+}
+
+
+std::unordered_map<int, std::string> keymap{
+
+		{KEY_SPACE,"Space"},
+		{KEY_ESCAPE,"Esc"},
+		{KEY_ENTER,"Enter"},
+		{KEY_TAB,"Tab"},
+		{KEY_BACKSPACE,"Backspace"},
+		{KEY_INSERT,"Insert"},
+		{KEY_DELETE,"Del"},
+		{KEY_RIGHT,"Right"},
+		{KEY_LEFT,"Left"},
+		{KEY_DOWN,"Down"},
+		{KEY_UP,"Up"},
+		{KEY_PAGE_UP,"PgUp"},
+		{KEY_PAGE_DOWN,"PgDown"},
+		{KEY_HOME,"Home"},
+		{KEY_END,"End"},
+		{KEY_CAPS_LOCK,"CapsLk"},
+		{KEY_SCROLL_LOCK,"ScrLk"},
+		{KEY_NUM_LOCK,"NumLk"},
+		{KEY_PRINT_SCREEN,"PrtSc"},
+		{KEY_PAUSE,"Pause"},
+		{KEY_F1,"F1"},
+		{KEY_F2,"F2"},
+		{KEY_F3,"F3"},
+		{KEY_F4,"F4"},
+		{KEY_F5,"F5"},
+		{KEY_F6,"F6"},
+		{KEY_F7,"F7"},
+		{KEY_F8,"F8"},
+		{KEY_F9,"F9"},
+		{KEY_F10,"F10"},
+		{KEY_F11,"F11"},
+		{KEY_F12,"F12"},
+		{KEY_LEFT_SHIFT,"LShift"},
+		{KEY_LEFT_CONTROL,"LCtrl"},
+		{KEY_LEFT_ALT,"LShift"},
+		{KEY_LEFT_SUPER,"LWin"},
+		{KEY_RIGHT_SHIFT,"RShift"},
+		{KEY_RIGHT_CONTROL,"RCtrl"},
+		{KEY_RIGHT_ALT,"RShift"},
+		{KEY_RIGHT_SUPER,"RWin"},
+		{KEY_KB_MENU,"Menu"},
+		{KEY_KP_0,"Num 0"},
+		{KEY_KP_1,"Num 1"},
+		{KEY_KP_2,"Num 2"},
+		{KEY_KP_3,"Num 3"},
+		{KEY_KP_4,"Num 4"},
+		{KEY_KP_5,"Num 5"},
+		{KEY_KP_6,"Num 6"},
+		{KEY_KP_7,"Num 7"},
+		{KEY_KP_8,"Num 8"},
+		{KEY_KP_9,"Num 9"},
+		{KEY_KP_DECIMAL,"Num ."},
+		{KEY_KP_DIVIDE,"Num /"},
+		{KEY_KP_MULTIPLY,"Num *"},
+		{KEY_KP_SUBTRACT,"Num -"},
+		{KEY_KP_ADD,"Num +"},
+		{KEY_KP_ENTER,"Num Enter"},
+		{KEY_KP_EQUAL,"Num ="}
+
+};
+
+std::string getKeyStr(int keycode)
+{
+	auto it = keymap.find(keycode);
+	if (it != keymap.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		return "UNKNOWN";
+	}
 }
 int main(int argc, char* argv[])
 {
@@ -70,13 +179,83 @@ int main(int argc, char* argv[])
 	camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
 	camera.fovy = 34.5f;
 	camera.projection = CAMERA_PERSPECTIVE;
-
+	
 
 	std::filesystem::path executablePath(GetApplicationDirectory());
 
 	std::filesystem::path directory = executablePath.parent_path();
 
 	std::filesystem::path songsPath = directory / "Songs";
+	bool keybindsError = false;
+	if (std::filesystem::exists(directory / "keybinds.json")) {
+		std::ifstream ifs(directory / "keybinds.json");
+
+		if (!ifs.is_open()) {
+			std::cerr << "Failed to open JSON file." << std::endl;
+		}
+
+		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+		ifs.close();
+		rapidjson::Document document;
+		document.Parse(jsonString.c_str());
+		
+		if (document.IsObject())
+		{
+			if (document.HasMember("4k") && document["4k"].IsArray()) {
+				const rapidjson::Value& arr = document["4k"];
+				if (arr.Size() == 4) {
+					for (int i = 0; i < 4; i++) {
+						if (arr[i].IsInt()) {
+							KEYBINDS_4K[i] = arr[i].GetInt();
+						}
+						else {
+							keybindsError = true;
+						}
+					}
+				}
+				else {
+					keybindsError = true;
+				}
+			}
+			else {
+				keybindsError = true;
+			}
+			if (document.HasMember("5k") && document["5k"].IsArray()) {
+				const rapidjson::Value& arr = document["5k"]; 
+				if (arr.Size() == 5) {
+					for (int i = 0; i < 5; i++) {
+						if (arr[i].IsInt()) {
+							KEYBINDS_5K[i] = arr[i].GetInt();
+						}
+						else {
+							keybindsError = true;
+						}
+					}
+				}
+				else {
+					keybindsError = true;
+				}
+			}
+			else {
+				keybindsError = true;
+			}
+		}
+	}
+	else {
+		keybindsError = true;
+	}
+	if (keybindsError == true) {
+		std::ofstream defaultbinds(directory / "keybinds.json");
+		if (defaultbinds.is_open()) {
+			// Write text to the file
+			defaultbinds << "{\n    \"4k\":[68, 70, 74, 75],\n    \"5k\":[68, 70, 74, 75, 76]\n}";
+			// Close the file
+			defaultbinds.close();
+		}
+		else {
+			std::cerr << "Error: Unable to open keybinds file for writing.\n";
+		}
+	}
 
 	SongList songList = LoadSongs(songsPath);
 	bool midiLoaded = false;
@@ -113,64 +292,43 @@ int main(int argc, char* argv[])
 	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
 	Model liftModelOD = LoadModel((directory / "Assets/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
-
 	std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
 	std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
 	std::vector<bool> heldFrets = { false,false,false,false,false };
+	bool changing4k = false;
+	
 	while (!WindowShouldClose())
 	{ 
 		float diffDistance = diff == 3 ? 2.0f : 1.5f;
 		float lineDistance = diff == 3 ? 1.5f : 1.0f;
 		if (isPlaying) {
-			if (IsKeyPressed(KEY_A)) {
-				laneTimes[0] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				liftTimes[0] = 0.0;
-				heldFrets[0] = true;
+			if (diff == 3) {
+				for (int i = 0; i < 5; i++) {
+					if (IsKeyPressed(KEYBINDS_5K[i])) {
+						laneTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
+						liftTimes[i] = 0.0;
+						heldFrets[i] = true;
+					}
+					if (IsKeyReleased(KEYBINDS_5K[i])) {
+						laneTimes[i] = 0.0;
+						liftTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
+						heldFrets[i] = false;
+					}
+				}
 			}
-			if (IsKeyReleased(KEY_A)) {
-				laneTimes[0] = 0.0;
-				liftTimes[0] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				heldFrets[0] = false;
-			}
-			if (IsKeyPressed(KEY_S)) {
-				laneTimes[1] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				liftTimes[1] = 0.0;
-				heldFrets[1] = true;
-			}
-			if (IsKeyReleased(KEY_S)) {
-				laneTimes[1] = 0.0;
-				liftTimes[1] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				heldFrets[1] = false;
-			}
-			if (IsKeyPressed(KEY_J)) {
-				laneTimes[2] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				liftTimes[2] = 0.0;
-				heldFrets[2] = true;
-			}
-			if (IsKeyReleased(KEY_J)) {
-				laneTimes[2] = 0.0;
-				liftTimes[2] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				heldFrets[2] = false;
-			}
-			if (IsKeyPressed(KEY_K)) {
-				laneTimes[3] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				liftTimes[3] = 0.0;
-				heldFrets[3] = true;
-			}
-			if (IsKeyReleased(KEY_K)) {
-				laneTimes[3] = 0.0;
-				liftTimes[3] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				heldFrets[3] = false;
-			}
-			if (IsKeyPressed(KEY_L)) {
-				laneTimes[4] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				liftTimes[4] = 0.0;
-				heldFrets[4] = true;
-			}
-			if (IsKeyReleased(KEY_L)) {
-				laneTimes[4] = 0.0;
-				liftTimes[4] = (double)GetMusicTimePlayed(loadedStreams[0]);
-				heldFrets[4] = false;
+			else {
+				for (int i = 0; i < 4; i++) {
+					if (IsKeyPressed(KEYBINDS_4K[i])) {
+						laneTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
+						liftTimes[i] = 0.0;
+						heldFrets[i] = true;
+					}
+					if (IsKeyReleased(KEYBINDS_4K[i])) {
+						laneTimes[i] = 0.0;
+						liftTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
+						heldFrets[i] = false;
+					}
+				}
 			}
 		}
 		BeginDrawing();
@@ -180,10 +338,74 @@ int main(int argc, char* argv[])
 		
 		
 		if (!isPlaying) {
-			if (selectStage == 0) {
+			if (selectStage == -1) {
+				if (GuiButton({ ((float)GetScreenWidth()/2)-150,((float)GetScreenHeight()-60),100,60}, "Cancel")) {
+					selectStage = 0;
+					KEYBINDS_4K = prev4k;
+					KEYBINDS_5K = prev5k;
+				}
+				if (GuiButton({ ((float)GetScreenWidth() / 2) + 150,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+					selectStage = 0;
+					prev4k = KEYBINDS_4K;
+					prev5k = KEYBINDS_5K;
+					saveKeyBinds();
+				}
+				for (int i = 0; i < 5; i++) {
+					int j = i - 2;
+					std::string charStr = "UNKNOWN";
+					if (KEYBINDS_5K[i] >= 39 && KEYBINDS_5K[i] < 96 && KEYBINDS_5K[i] != KEY_MENU) {
+						charStr=static_cast<char>(KEYBINDS_5K[i]);
+					}
+					else {
+						charStr = getKeyStr(KEYBINDS_5K[i]);
+					}
+					if (GuiButton({ (float)(GetScreenWidth() / 2) + (60 * j),(float)(GetScreenHeight() / 2) - 120,60,60 }, charStr.c_str())) {
+						changing4k = false;
+						heldFrets[i] = true;
+					}
+					if (!changing4k && heldFrets[i]) {
+						std::string changeString = "Press a key for 5k lane " + std::to_string(i);
+						DrawText(changeString.c_str(), (GetScreenWidth()-MeasureText(changeString.c_str(),20))/2, (GetScreenHeight()/2)+40, 20, BLACK);
+						int pressedKey = GetKeyPressed();
+						if (pressedKey != 0) {
+							KEYBINDS_5K[i] = pressedKey;
+							heldFrets[i] = false;
+						}
+					}
+				}
+				for (int i = 0; i < 4; i++) {
+					float j = i - 1.5f; 
+					std::string charStr = "UNKNOWN";
+					if (KEYBINDS_4K[i] >= 39 && KEYBINDS_4K[i] < 96 && KEYBINDS_4K[i] != KEY_MENU) {
+						charStr = static_cast<char>(KEYBINDS_4K[i]);
+					}
+					else {
+						charStr = getKeyStr(KEYBINDS_4K[i]);
+					}
+					if (GuiButton({ (float)(GetScreenWidth() / 2) + (60 * j),(float)(GetScreenHeight() / 2) - 40,60,60 }, charStr.c_str())) {
+						heldFrets[i] = true;
+						changing4k = true;
+					}
+					if (changing4k && heldFrets[i]) {
+						std::string changeString = "Press a key for 4k lane " + std::to_string(i);
+						DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, (GetScreenHeight() / 2) + 40, 20, BLACK);
+						int pressedKey = GetKeyPressed();
+						if (pressedKey != 0) {
+							KEYBINDS_4K[i] = pressedKey;
+							heldFrets[i] = false;
+						}
+					}
+				}
+
+			}
+			else if (selectStage == 0) {
+
 				midiLoaded = false;
 				float curSong = 0.0f;
 				for (Song song : songList.songs) {
+					if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60}, "Keybinds")) {
+						selectStage = -1;
+					}
 					if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
 						curPlayingSong = (int)curSong;
 						selectStage = 1;

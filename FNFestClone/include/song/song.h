@@ -255,6 +255,7 @@ public:
 				UnloadImage(albumImage);
 			}
 		}
+		ifs.close();
 	}
 
 };
