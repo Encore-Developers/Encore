@@ -129,11 +129,14 @@ std::string getKeyStr(int keycode)
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
-	
+
 #endif
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	SetConfigFlags(FLAG_VSYNC_HINT);
 	// 800 , 600
 	InitWindow(1920, 1080, "Encore");
+	bool windowToggle = false;
 	ToggleBorderlessWindowed();
 	ArgumentList::InitArguments(argc, argv);
 
@@ -421,6 +424,17 @@ int main(int argc, char* argv[])
 					if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
 						curPlayingSong = (int)curSong;
 						selectStage = 1;
+					}
+					if (GuiButton({ (float)GetScreenWidth() - 100,60,100,60 }, "Fullscreen")) {
+						windowToggle = !windowToggle;
+						ToggleBorderlessWindowed();
+						if (windowToggle) {
+							SetWindowPosition(50, 50);
+							SetWindowSize(1600, 800);
+						}
+						else {
+							SetWindowSize(1920, 1080);
+						};
 					}
 					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
 
