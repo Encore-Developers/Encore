@@ -133,8 +133,8 @@ int main(int argc, char* argv[])
 #endif
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	// 800 , 600
-	InitWindow(1600, 900, "Encore");
-	//ToggleBorderlessWindowed();
+	InitWindow(1920, 1080, "Encore");
+	ToggleBorderlessWindowed();
 	ArgumentList::InitArguments(argc, argv);
 
 	std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 
 	float timeCounter = 0.0f;
 
-	int targetFPS = targetFPSArg == 0 ? 60 : targetFPSArg;
+	int targetFPS = targetFPSArg == 0 ? 180 : targetFPSArg;
 	std::vector<string> songPartsList{ "Drums","Bass","Guitar","Vocals" };
 	std::vector<string> diffList{ "Easy","Medium","Hard","Expert"};
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
@@ -172,9 +172,10 @@ int main(int argc, char* argv[])
 	// Y UP!!!! REMEMBER!!!!!!
 	//							  x,    y,     z
 							// 0.0f, 5.0f, -3.5f
-	camera.position = Vector3{ 0.0f, 7.0f, -12.0f };
+	//								 6.5f
+	camera.position = Vector3{ 0.0f, 7.0f, -9.5f };
 	// 0.0f, 0.0f, 6.5f
-	camera.target = Vector3{ 0.0f, 0.0f, 13.6f };
+	camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
 
 	camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
 	camera.fovy = 34.5f;
@@ -519,11 +520,11 @@ int main(int argc, char* argv[])
 					DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 					for (int i = 0; i < 5; i++) {
 						if (heldFrets[i] == true) {
-							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, -0.3f}, 1.0f, WHITE);
+							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, 0}, 1.0f, WHITE);
 							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
 						}
 						else {
-							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, -0.3f}, 1.0f, WHITE);
+							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0}, 1.0f, WHITE);
 							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
 						}
 					}
@@ -535,10 +536,11 @@ int main(int argc, char* argv[])
 					DrawModel(emhHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 					for (int i = 0; i < 4; i++) {
 						if (heldFrets[i] == true) {
-							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
+							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, 0 }, 1.0f, WHITE);
 						}
 						else {
-							DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
+							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0 }, 1.0f, WHITE);
+							
 						}
 					}
 					for (int i = 0; i < 3; i++) {
