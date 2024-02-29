@@ -568,7 +568,7 @@ int main(int argc, char* argv[])
 				
 				DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
 				Chart& dmsExpert = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-				if (dmsExpert.odPhrases.size() > 0) {
+				if (dmsExpert.odPhrases.size() > 0 && curODPhrase < dmsExpert.odPhrases.size()) {
 					if (dmsExpert.notes[curNoteIdx].time+dmsExpert.notes[curNoteIdx].len > dmsExpert.odPhrases[curODPhrase].end && curODPhrase < dmsExpert.odPhrases.size()) curODPhrase++;
 				}
 				for (int i = curNoteIdx; i < dmsExpert.notes.size(); i++) {
@@ -593,7 +593,7 @@ int main(int argc, char* argv[])
 					double relTime = curNote.time - musicTime;
 					double relEnd = (curNote.time + curNote.len) - musicTime;
 					bool od = false;
-					if (dmsExpert.odPhrases.size() > 0) {
+					if (dmsExpert.odPhrases.size() > 0 && curODPhrase < dmsExpert.odPhrases.size()) {
 						if (curNote.time >= dmsExpert.odPhrases[curODPhrase].start && curNote.time <= dmsExpert.odPhrases[curODPhrase].end) {
 							od = true;
 						}
