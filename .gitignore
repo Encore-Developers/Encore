@@ -3,4 +3,5 @@
 CMakeFiles/
 out
 FNFestClone/Songs/*
-FNFestClone/Songs/*/*
+!FNFestClone/Songs/Synthfox Soundworks - Untitled Chords Thing/
+!FNFestClone/Songs/Synthfox Soundworks - Untitled Chords Thing/*
