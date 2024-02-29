@@ -1,0 +1,24 @@
+{
+    "title":"Untitled Chords Thing",
+    "artist":"Synthfox Soundworks",
+    "length":189,
+    "sid":"Drum",
+    "sib":"Bass",
+    "sig":"Guitar",
+    "siv":"Vocals",
+    "diff":{
+        "ds":3,
+        "ba":2,
+        "gr":3,
+        "vl":2
+    },
+    "midi":"notes.mid",
+    "stems":{
+        "drums":"drums.ogg",
+        "bass":"bass.ogg",
+        "lead":"lead.ogg",
+        "vocals":"vocals.ogg",
+        "backing":"backing.ogg"
+    },
+    "art":"cover.png"
+}

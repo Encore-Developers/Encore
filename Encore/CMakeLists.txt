@@ -1,4 +1,4 @@
-﻿# CMakeList.txt : CMake project for FNFestClone, include source and define
+﻿# CMakeList.txt : CMake project for Encore, include source and define
 # project specific logic here.
 #
 
@@ -29,11 +29,11 @@ endif()
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 file(GLOB_RECURSE INC_FILES "include/*.h" "src/*.h")
 # Add source files to the executable
-add_executable(FNFestClone ${SRC_FILES} ${INC_FILES})
-file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/FNFestClone)
-file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/FNFestClone)
+add_executable(Encore ${SRC_FILES} ${INC_FILES})
+file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
-target_include_directories(FNFestClone PRIVATE "include")
+target_include_directories(Encore PRIVATE "include")
 # Link against the DLLs in the lib directory
-target_link_libraries(FNFestClone raylib)
+target_link_libraries(Encore raylib)
 # TODO: Add tests and install targets if needed.

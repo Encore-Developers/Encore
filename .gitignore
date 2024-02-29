@@ -2,5 +2,6 @@
 .idea/
 CMakeFiles/
 out
-FNFestClone/Songs/*
-FNFestClone/Songs/*/*
+Encore/Songs/*
+!Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/
+!Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/*
