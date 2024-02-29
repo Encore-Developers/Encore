@@ -6,8 +6,11 @@ struct Note
 {
 	double time;
 	double len;
+	double heldTime=0.0;
 	int lane;
 	bool lift;
+	bool hit = false;
+	bool held = false;
 	bool valid = false;
 	//For plastic support later
 	bool forceStrum;
