@@ -109,6 +109,8 @@ public:
 	//Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic Bass, Plastic Guitar
 	std::vector<SongPart*> parts{ new SongPart,new SongPart,new SongPart,new SongPart ,new SongPart ,new SongPart ,new SongPart };
 
+	std::vector<std::pair<double, bool>> beatLines; //double time, bool downbeat
+
 	std::vector<std::string> stemsPath{ "","","","","" };
 
 	std::filesystem::path midiPath = "";
@@ -258,5 +260,12 @@ public:
 		}
 		ifs.close();
 	}
-
+	void parseBeatLines(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events) {
+		for (int i = 0; i < events.getSize(); i++) {
+			if (events[i].isNoteOn()) {
+				double time = midiFile.getTimeInSeconds(trkidx, i);
+				beatLines.push_back({ time, (int)events[i][1] == 12 });
+			}
+		}
+	}
 };

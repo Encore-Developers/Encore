@@ -21,10 +21,13 @@ vector<std::string> ArgumentList::arguments;
 bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
 }
+
 std::vector<int> KEYBINDS_5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
 std::vector<int> KEYBINDS_4K{ KEY_D,KEY_F,KEY_J,KEY_K };
 std::vector<int> prev4k = KEYBINDS_4K;
 std::vector<int> prev5k = KEYBINDS_5K;
+bool changing4k = false;
+
 rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
 	rapidjson::Value array(rapidjson::kArrayType);
 	for (const auto& value : vec) {
@@ -126,6 +129,29 @@ std::string getKeyStr(int keycode)
 		return "UNKNOWN";
 	}
 }
+
+int instrument = 0;
+int diff = 0;
+bool midiLoaded = false;
+bool isPlaying = false;
+bool streamsLoaded = false;
+int selectStage = 0;
+std::vector<Music> loadedStreams;
+int curPlayingSong = 0;
+int curNoteIdx = 0;
+int curODPhrase = 0;
+int curBeatLine = 0;
+
+std::vector<float> bns = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
+int bn = 4;
+std::string bnsButton = "Track Speed 1.5x";
+
+
+std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
+std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
+std::vector<bool> heldFrets = { false,false,false,false,false };
+
+
 int main(int argc, char* argv[])
 {
 #ifdef NDEBUG
@@ -158,8 +184,7 @@ int main(int argc, char* argv[])
 	double updateDrawTime = 0.0;
 	double waitTime = 0.0;
 	float deltaTime = 0.0f;
-	int instrument = 0;
-	int diff = 0;
+	
 
 
 	float timeCounter = 0.0f;
@@ -263,23 +288,6 @@ int main(int argc, char* argv[])
 	}
 
 	SongList songList = LoadSongs(songsPath);
-	bool midiLoaded = false;
-	bool isPlaying = false;
-	bool streamsLoaded = false;
-	int selectStage = 0;
-	std::vector<Music> loadedStreams;
-	int curPlayingSong = 0;
-	int curNoteIdx = 0;
-	int curODPhrase = 0;
-
-	////////////////////////////////////
-	//
-	//        BREAKNECK SPEED
-	//
-
-	float bns = 2.0f;
-	bool bn = true;
-	const char* bnsButton = "Breakneck On";
 
 	ChangeDirectory(GetApplicationDirectory());
 
@@ -305,8 +313,6 @@ int main(int argc, char* argv[])
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	// expertHighway.materials[1].maps[MATERIAL_MAP_ALBEDO].texture = sidesTexture;
-	// expertHighway.materials[1].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	Model noteModel = LoadModel((directory / "Assets/note.obj").string().c_str());
 	Texture2D noteTexture = LoadTexture((directory / "Assets/note_d.png").string().c_str());
 	Texture2D emitTexture = LoadTexture((directory / "Assets/note_e.png").string().c_str());
@@ -325,10 +331,7 @@ int main(int argc, char* argv[])
 	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
 	Model liftModelOD = LoadModel((directory / "Assets/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
-	std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
-	std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
-	std::vector<bool> heldFrets = { false,false,false,false,false };
-	bool changing4k = false;
+	
 	
 	while (!WindowShouldClose())
 	{ 
@@ -432,40 +435,31 @@ int main(int argc, char* argv[])
 
 			}
 			else if (selectStage == 0) {
-
+				streamsLoaded = false;
 				midiLoaded = false;
 				float curSong = 0.0f;
-				for (Song song : songList.songs) {
-					if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60}, "Keybinds")) {
-						selectStage = -1;
+				if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60 }, "Keybinds")) {
+					selectStage = -1;
+				}
+				if (GuiButton({ (float)GetScreenWidth() - 100,60,100,60 }, "Fullscreen")) {
+					windowToggle = !windowToggle;
+					ToggleBorderlessWindowed();
+					if (windowToggle) {
+						SetWindowPosition(50, 50);
+						SetWindowSize(1600, 800);
 					}
+					else {
+						SetWindowSize(1920, 1080);
+					};
+				}
+				if (GuiButton({ (float)GetScreenWidth() - 150,120,150,60 }, bnsButton.c_str())) {
+					if (bn == 6) bn = 0; else bn++;
+					bnsButton = "Track Speed "+std::to_string(bns[bn])+"x";
+				}
+				for (Song song : songList.songs) {
 					if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
 						curPlayingSong = (int)curSong;
 						selectStage = 1;
-					}
-					if (GuiButton({ (float)GetScreenWidth() - 100,60,100,60 }, "Fullscreen")) {
-						windowToggle = !windowToggle;
-						ToggleBorderlessWindowed();
-						if (windowToggle) {
-							SetWindowPosition(50, 50);
-							SetWindowSize(1600, 800);
-						}
-						else {
-							SetWindowSize(1920, 1080);
-						};
-					}
-					if (GuiButton({ (float)GetScreenWidth() - 100,120,100,60}, bnsButton)) {
-						if (!bn) {
-							bns = 2.0f;
-							bn = true;
-							bnsButton = "Breakneck On";
-						}
-						else
-						{
-							bns = 1.0f;
-							bn = false;
-							bnsButton = "Breakneck Off";
-						};
 					}
 					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
 
@@ -490,18 +484,22 @@ int main(int argc, char* argv[])
 										}
 										SongParts songPart = partFromString(trackName);
 										std::cout << "TRACKNAME " << trackName << ": " << int(songPart) << std::endl;
-										if (songPart != SongParts::Invalid) {
-											songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
-											std::string diffstr = "ESY: ";
-											for (int diff = 0; diff < 4; diff++) {
-												Chart newChart;
-												newChart.parseNotes(midiFile, i, midiFile[i], diff);
-												std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
-												if (diff == 1) diffstr = "MED: ";
-												else if (diff == 2) diffstr = "HRD: ";
-												else if (diff == 3) diffstr = "EXP: ";
-												songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
-												std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
+										if (trackName == "BEAT")
+											songList.songs[curPlayingSong].parseBeatLines(midiFile, i, midiFile[i]);
+										else {
+											if (songPart != SongParts::Invalid) {
+												songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+												std::string diffstr = "ESY: ";
+												for (int diff = 0; diff < 4; diff++) {
+													Chart newChart;
+													newChart.parseNotes(midiFile, i, midiFile[i], diff);
+													std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
+													if (diff == 1) diffstr = "MED: ";
+													else if (diff == 2) diffstr = "HRD: ";
+													else if (diff == 3) diffstr = "EXP: ";
+													songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+													std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
+												}
 											}
 										}
 									}
@@ -591,25 +589,36 @@ int main(int argc, char* argv[])
 						}
 						else {
 							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0 }, 1.0f, WHITE);
-							
+
 						}
 					}
 					for (int i = 0; i < 3; i++) {
 						DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
 					}
 				}
-				
-				
+				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
+					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
+						double relTime = (songList.songs[curPlayingSong].beatLines[i].first - musicTime) * bns[bn];
+						if (relTime > 1.5)
+							break;
+						float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.025f;
+						DrawCylinderEx(Vector3{ -diffDistance-0.5f,0,2.5f + (12.5f * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,2.5f + (12.5f * (float)relTime) }, radius, radius, 4, WHITE);
+
+						if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size())
+							curBeatLine++;
+
+					}
+				}
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 				
 				// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
-				Chart& dmsExpert = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-				if (dmsExpert.odPhrases.size() > 0 && curODPhrase < dmsExpert.odPhrases.size()) {
-					if (dmsExpert.notes[curNoteIdx].time+dmsExpert.notes[curNoteIdx].len > dmsExpert.odPhrases[curODPhrase].end && curODPhrase < dmsExpert.odPhrases.size()) curODPhrase++;
+				Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+				if (curChart.odPhrases.size() > 0) {
+					if (curChart.notes[curNoteIdx].time+curChart.notes[curNoteIdx].len > curChart.odPhrases[curODPhrase].end && curODPhrase < curChart.odPhrases.size()-1) curODPhrase++;
 				}
-				for (int i = curNoteIdx; i < dmsExpert.notes.size(); i++) {
-					Note& curNote = dmsExpert.notes[i];
+				for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
+					Note& curNote = curChart.notes[i];
 					if (curNote.lift == true) {
 						if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
 							curNote.hit = true;
@@ -618,20 +627,20 @@ int main(int argc, char* argv[])
 					else {
 						if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
 							curNote.hit = true;
-							if ((curNote.len * bns) > 0.25) {
+							if ((curNote.len * bns[bn]) > 0.25) {
 								curNote.held = true;
 							}
 						}
-						if (laneTimes[curNote.lane] == 0.0 && (curNote.len * bns) > 0.25) {
+						if (laneTimes[curNote.lane] == 0.0 && (curNote.len * bns[bn]) > 0.25) {
 							curNote.held = false;
 						}
 					}
 					
-					double relTime = (curNote.time - musicTime) * bns;
-					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns;
+					double relTime = (curNote.time - musicTime) * bns[bn];
+					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
 					bool od = false;
-					if (dmsExpert.odPhrases.size() > 0 && curODPhrase < dmsExpert.odPhrases.size()) {
-						if (curNote.time >= dmsExpert.odPhrases[curODPhrase].start && curNote.time <= dmsExpert.odPhrases[curODPhrase].end) {
+					if (curChart.odPhrases.size() > 0) {
+						if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end) {
 							od = true;
 						}
 
@@ -651,9 +660,9 @@ int main(int argc, char* argv[])
 					}
 					else {
 						// sustains
-						if ((curNote.len * bns)> 0.25) {
+						if ((curNote.len * bns[bn])> 0.25) {
 							if (curNote.hit == true && curNote.held == true) {
-								if (curNote.heldTime < (curNote.len * bns)) {
+								if (curNote.heldTime < (curNote.len * bns[bn])) {
 									curNote.heldTime = 0.0 - relTime;
 									if (relTime < 0.0) relTime = 0.0;
 								}
@@ -672,16 +681,19 @@ int main(int argc, char* argv[])
 								DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 						}
 						// regular notes
-						if (((curNote.len * bns) >=0.25 && (curNote.held==true||curNote.hit==false)) || ((curNote.len * bns)<0.25 && curNote.hit==false)) {
+						if (((curNote.len * bns[bn]) >=0.25 && (curNote.held==true||curNote.hit==false)) || ((curNote.len * bns[bn])<0.25 && curNote.hit==false)) {
 							if (od == true)
 								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
 							else
 								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
 						}
 					}
-					if (relEnd < -1 && curNoteIdx < dmsExpert.notes.size()) curNoteIdx = i + 1;
+					if (relEnd < -1 && curNoteIdx < curChart.notes.size()) curNoteIdx = i + 1;
 
 				}
+				DrawLine3D(Vector3{ -diffDistance - 0.5f,0,2.5f + (12.5f * 0.075f*bns[bn])}, Vector3{diffDistance + 0.5f,0,2.5f + (12.5f * 0.075f * bns[bn] )}, Color{0,255,0,255});
+				DrawLine3D(Vector3{ -diffDistance - 0.5f,0,2.5f - (12.5f * 0.075f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,2.5f - (12.5f * 0.075f * bns[bn] )}, Color{ 0,255,0,255 });
+				
 				EndMode3D();
 			}
 			

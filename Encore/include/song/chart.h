@@ -8,7 +8,7 @@ struct Note
 	double len;
 	double heldTime=0.0;
 	int lane;
-	bool lift;
+	bool lift = false;
 	bool hit = false;
 	bool held = false;
 	bool valid = false;
