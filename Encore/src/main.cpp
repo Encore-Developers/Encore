@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
 				
 				// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
 				Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-				if (curChart.odPhrases.size() > 0) {
+				if (curChart.odPhrases.size() > 0 && curODPhrase < curChart.odPhrases.size()) {
 					if (curChart.notes[curNoteIdx].time+curChart.notes[curNoteIdx].len > curChart.odPhrases[curODPhrase].end && curODPhrase < curChart.odPhrases.size()-1) curODPhrase++;
 				}
 				for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
@@ -643,7 +643,7 @@ int main(int argc, char* argv[])
 					double relTime = (curNote.time - musicTime) * bns[bn];
 					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
 					bool od = false;
-					if (curChart.odPhrases.size() > 0) {
+					if (curChart.odPhrases.size() > 0 && curODPhrase < curChart.odPhrases.size()) {
 						if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end) {
 							od = true;
 						}
