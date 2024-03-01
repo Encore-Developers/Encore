@@ -12,6 +12,8 @@ struct Note
 	bool hit = false;
 	bool held = false;
 	bool valid = false;
+	bool miss = false;
+	bool accounted = false;
 	//For plastic support later
 	bool forceStrum;
 	bool forceHopo;

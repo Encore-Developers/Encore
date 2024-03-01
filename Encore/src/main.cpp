@@ -186,6 +186,8 @@ int main(int argc, char* argv[])
 	float deltaTime = 0.0f;
 	float smasherPos = 2.7f;
 
+	int notesHit = 0;
+	int notesMissed = 0;
 
 	float timeCounter = 0.0f;
 
@@ -476,6 +478,9 @@ int main(int argc, char* argv[])
 				
 				if (!midiLoaded) {
 					if (!songList.songs[curPlayingSong].midiParsed) {
+						
+						
+
 						smf::MidiFile midiFile;
 						midiFile.read(songList.songs[curPlayingSong].midiPath.string());
 						for (int i = 0; i < midiFile.getTrackCount(); i++)
@@ -546,6 +551,8 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
+			DrawText(TextFormat("Notes Hit: %03i", notesHit), 5, GetScreenHeight() - 200, 24, WHITE);
+			DrawText(TextFormat("Notes Missed: %03i", notesMissed), 5, GetScreenHeight() - 250, 24, WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
 				streamsLoaded = false;
@@ -553,19 +560,23 @@ int main(int argc, char* argv[])
 			if (!streamsLoaded) {
 				loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
 				streamsLoaded = true;
+				// notesHit = 0;
 			}
 			else {
 				for (Music& stream : loadedStreams) {
 					UpdateMusicStream(stream);
 					PlayMusicStream(stream);
+					
 				}
 			}
 			if(midiLoaded==true){
+				// notesHit = 0;
 				double musicTime = (double)GetMusicTimePlayed(loadedStreams[0]);
 				if (musicTime < 5.0) {
 					DrawText(songList.songs[curPlayingSong].title.c_str(), 5, 65, 30, WHITE);
 					DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 100, 24, WHITE);
 				}
+				
 				BeginMode3D(camera);
 				if (diff == 3) {
 					DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
@@ -582,7 +593,7 @@ int main(int argc, char* argv[])
 					for (int i = 0; i < 4; i++) {
 						// DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
 						float radius = (i == 1) ? 0.02 : 0.01;
-
+						
 						DrawCylinderEx(Vector3{ lineDistance - i, 0, 3 }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 4.0f, Color{128,128,128,128});
 					}
 					
@@ -617,9 +628,9 @@ int main(int argc, char* argv[])
 						double relTime = (songList.songs[curPlayingSong].beatLines[i].first - musicTime) * bns[bn];
 						if (relTime > 1.5)
 							break;
-						float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.005f : 0.015f;
+						float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.025f : 0.005f;
 						DrawCylinderEx(Vector3{ -diffDistance-0.5f,0,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * (float)relTime) }, radius, radius, 4, Color{128,128,128,128});
-
+						
 						if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size()-1)
 							curBeatLine++;
 
@@ -628,6 +639,8 @@ int main(int argc, char* argv[])
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 				
+				
+
 				// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
 				Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
 				if (curChart.odPhrases.size() > 0 && curODPhrase < curChart.odPhrases.size()) {
@@ -637,21 +650,41 @@ int main(int argc, char* argv[])
 					Note& curNote = curChart.notes[i];
 					if (curNote.lift == true) {
 						if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
-							curNote.hit = true;
+							curNote.hit = true;				
 						}
+						else if (curNote.time + 0.075 < liftTimes[curNote.lane] && !curNote.hit) {
+							curNote.miss = true;
+						}
+							
+						
 					}
 					else {
 						if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
 							curNote.hit = true;
+							
 							if ((curNote.len * bns[bn]) > 0.25) {
 								curNote.held = true;
 							}
+						}
+						else if (curNote.time + 0.075 < laneTimes[curNote.lane] && !curNote.hit) {
+							curNote.miss = true;
 						}
 						if (laneTimes[curNote.lane] == 0.0 && (curNote.len * bns[bn]) > 0.25) {
 							curNote.held = false;
 						}
 					}
+
+					if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
+						notesHit += 1;
+						curNote.accounted = true;
+					}
+
+					else if (!curNote.accounted && curNote.miss) {
+						notesMissed += 1;
+						curNote.accounted = true;
+					}
 					
+
 					double relTime = (curNote.time - musicTime) * bns[bn];
 					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
 					bool od = false;
@@ -702,11 +735,13 @@ int main(int argc, char* argv[])
 								if (!curNote.held || !curNote.hit) {
 									DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
 								};
+								
 							}
 							else {
 								if (!curNote.held || !curNote.hit) {
 									DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
 								};
+								
 							}
 						}
 					}
