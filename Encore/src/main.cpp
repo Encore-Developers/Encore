@@ -12,6 +12,7 @@
 #include "audio/audio.h"
 #include "game/arguments.h"
 #include "game/utility.h"
+#include "game/player.h"
 #include "raygui.h"
 #include <stdlib.h>
 
@@ -186,8 +187,7 @@ int main(int argc, char* argv[])
 	float deltaTime = 0.0f;
 	float smasherPos = 2.7f;
 
-	int notesHit = 0;
-	int notesMissed = 0;
+	
 
 	float timeCounter = 0.0f;
 
