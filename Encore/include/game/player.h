@@ -3,6 +3,7 @@
 int notesHit = 0;
 int notesMissed = 0;
 int combo = 0;
+int score = 0;
 
 int multiplier = 1;
 
