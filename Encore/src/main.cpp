@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 	float deltaTime = 0.0f;
 	int instrument = 0;
 	int diff = 0;
-	
+
 
 	float timeCounter = 0.0f;
 
@@ -271,6 +271,15 @@ int main(int argc, char* argv[])
 	int curPlayingSong = 0;
 	int curNoteIdx = 0;
 	int curODPhrase = 0;
+
+	////////////////////////////////////
+	//
+	//        BREAKNECK SPEED
+	//
+
+	float bns = 2.0f;
+	bool bn = true;
+	const char* bnsButton = "Breakneck On";
 
 	ChangeDirectory(GetApplicationDirectory());
 
@@ -445,6 +454,19 @@ int main(int argc, char* argv[])
 							SetWindowSize(1920, 1080);
 						};
 					}
+					if (GuiButton({ (float)GetScreenWidth() - 100,120,100,60}, bnsButton)) {
+						if (!bn) {
+							bns = 2.0f;
+							bn = true;
+							bnsButton = "Breakneck On";
+						}
+						else
+						{
+							bns = 1.0f;
+							bn = false;
+							bnsButton = "Breakneck Off";
+						};
+					}
 					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
 
 					DrawText(song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
@@ -593,17 +615,17 @@ int main(int argc, char* argv[])
 					else {
 						if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
 							curNote.hit = true;
-							if (curNote.len > 0.2) {
+							if ((curNote.len * bns) > 0.25) {
 								curNote.held = true;
 							}
 						}
-						if (laneTimes[curNote.lane] == 0.0 && curNote.len > 0.2) {
+						if (laneTimes[curNote.lane] == 0.0 && (curNote.len * bns) > 0.25) {
 							curNote.held = false;
 						}
 					}
 					
-					double relTime = curNote.time - musicTime;
-					double relEnd = (curNote.time + curNote.len) - musicTime;
+					double relTime = (curNote.time - musicTime) * bns;
+					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns;
 					bool od = false;
 					if (dmsExpert.odPhrases.size() > 0 && curODPhrase < dmsExpert.odPhrases.size()) {
 						if (curNote.time >= dmsExpert.odPhrases[curODPhrase].start && curNote.time <= dmsExpert.odPhrases[curODPhrase].end) {
@@ -626,9 +648,9 @@ int main(int argc, char* argv[])
 					}
 					else {
 						// sustains
-						if (curNote.len > 0.2) {
+						if ((curNote.len * bns)> 0.25) {
 							if (curNote.hit == true && curNote.held == true) {
-								if (curNote.heldTime < curNote.len) {
+								if (curNote.heldTime < (curNote.len * bns)) {
 									curNote.heldTime = 0.0 - relTime;
 									if (relTime < 0.0) relTime = 0.0;
 								}
@@ -647,7 +669,7 @@ int main(int argc, char* argv[])
 								DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,2.5f + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 						}
 						// regular notes
-						if ((curNote.len>=0.2 && (curNote.held==true||curNote.hit==false)) || (curNote.len<0.2 && curNote.hit==false)) {
+						if (((curNote.len * bns) >=0.25 && (curNote.held==true||curNote.hit==false)) || ((curNote.len * bns)<0.25 && curNote.hit==false)) {
 							if (od == true)
 								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,2.5f + (12.5f * (float)relTime) }, 1.0f, WHITE);
 							else
