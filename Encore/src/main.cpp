@@ -620,7 +620,7 @@ int main(int argc, char* argv[])
 						float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.005f : 0.015f;
 						DrawCylinderEx(Vector3{ -diffDistance-0.5f,0,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * (float)relTime) }, radius, radius, 4, Color{128,128,128,128});
 
-						if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size())
+						if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size()-1)
 							curBeatLine++;
 
 					}
@@ -710,7 +710,7 @@ int main(int argc, char* argv[])
 							}
 						}
 					}
-					if (relEnd < -1 && curNoteIdx < curChart.notes.size()) curNoteIdx = i + 1;
+					if (relEnd < -1 && curNoteIdx < curChart.notes.size()-1) curNoteIdx = i + 1;
 
 				}
 				DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.075f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.075f * bns[bn] )}, Color{0,255,0,255});
