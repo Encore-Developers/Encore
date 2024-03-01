@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
+
 	// 800 , 600
 	InitWindow(1920, 1080, "Encore");
 	bool windowToggle = false;
@@ -271,15 +272,22 @@ int main(int argc, char* argv[])
 	int curNoteIdx = 0;
 	int curODPhrase = 0;
 
+	ChangeDirectory(GetApplicationDirectory());
+
 	Model smasherReg = LoadModel((directory / "Assets/smasher.obj").string().c_str());
 	Texture2D smasherRegTex = LoadTexture((directory / "Assets/smasher_reg.png").string().c_str());
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+	
 
 	Model smasherPressed = LoadModel((directory / "Assets/smasher.obj").string().c_str());
 	Texture2D smasherPressTex = LoadTexture((directory / "Assets/smasher_press.png").string().c_str());
 	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
 	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
+	Texture2D overdriveBackground = LoadTexture((directory / "Assets/overdrivebar.png").string().c_str());
+	Texture2D overdriveFill = LoadTexture((directory / "Assets/overdrivefill.png").string().c_str());
+	Texture2D multiplierEmpty = LoadTexture((directory / "Assets/multiplierempty.png").string().c_str());
 
 	Model expertHighway = LoadModel((directory / "Assets/expert.obj").string().c_str());
 	Model emhHighway = LoadModel((directory / "Assets/emh.obj").string().c_str());
@@ -299,9 +307,10 @@ int main(int argc, char* argv[])
 	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
 	Model noteModelOD = LoadModel((directory / "Assets/note.obj").string().c_str());
 	Texture2D noteTextureOD = LoadTexture((directory / "Assets/note_od_d.png").string().c_str());
+	Texture2D emitTextureOD = LoadTexture((directory / "Assets/note_od_e.png").string().c_str());
 	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
 	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
+	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
 	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
 	Model liftModel = LoadModel((directory / "Assets/lift.obj").string().c_str());
 	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
@@ -534,17 +543,20 @@ int main(int argc, char* argv[])
 					DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 					for (int i = 0; i < 5; i++) {
 						if (heldFrets[i] == true) {
-							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, 0}, 1.0f, WHITE);
+							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, 0.1f}, 1.0f, WHITE);
 							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
 						}
 						else {
-							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0}, 1.0f, WHITE);
+							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0.1f}, 1.0f, WHITE);
 							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
 						}
 					}
 					for (int i = 0; i < 4; i++) {
 						DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
 					}
+					DrawBillboard(camera, overdriveBackground, Vector3 { 0.0f, 1.0f, 0.55f}, 0.26f, WHITE);
+					DrawBillboard(camera, overdriveFill, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
+					DrawBillboard(camera, multiplierEmpty, Vector3{ 0.0f, 1.0f, 0.025f }, 0.825f, WHITE);
 				}
 				else {
 					DrawModel(emhHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
@@ -566,7 +578,7 @@ int main(int argc, char* argv[])
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 				
-				DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
+				// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
 				Chart& dmsExpert = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
 				if (dmsExpert.odPhrases.size() > 0 && curODPhrase < dmsExpert.odPhrases.size()) {
 					if (dmsExpert.notes[curNoteIdx].time+dmsExpert.notes[curNoteIdx].len > dmsExpert.odPhrases[curODPhrase].end && curODPhrase < dmsExpert.odPhrases.size()) curODPhrase++;
