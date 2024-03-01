@@ -96,6 +96,7 @@ struct SongPart
 class Song 
 {
 public:
+	bool midiParsed=false;
 	std::string title;
 
 	std::string artist;

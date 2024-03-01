@@ -476,36 +476,39 @@ int main(int argc, char* argv[])
 			}
 			else if (selectStage == 1) {
 				if (!midiLoaded) {
-					smf::MidiFile midiFile;
-					midiFile.read(songList.songs[curPlayingSong].midiPath.string());
-					for (int i = 0; i < midiFile.getTrackCount(); i++)
-					{
-						std::string trackName = "";
-						for (int j = 0; j < midiFile[i].getSize(); j++) {
-							if (midiFile[i][j].isMeta()) {
-								if ((int)midiFile[i][j][1] == 3) {
-									for (int k = 3; k < midiFile[i][j].getSize(); k++) {
-										trackName += midiFile[i][j][k];
-									}
-									SongParts songPart = partFromString(trackName);
-									std::cout << "TRACKNAME " << trackName << ": " << int(songPart) << std::endl;
-									if (songPart != SongParts::Invalid) {
-										songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
-										std::string diffstr = "ESY: ";
-										for (int diff = 0; diff < 4; diff++) {
-											Chart newChart;
-											newChart.parseNotes(midiFile, i, midiFile[i], diff);
-											std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
-											if (diff == 1) diffstr = "MED: ";
-											else if (diff == 2) diffstr = "HRD: ";
-											else if (diff == 3) diffstr = "EXP: ";
-											songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
-											std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
+					if (!songList.songs[curPlayingSong].midiParsed) {
+						smf::MidiFile midiFile;
+						midiFile.read(songList.songs[curPlayingSong].midiPath.string());
+						for (int i = 0; i < midiFile.getTrackCount(); i++)
+						{
+							std::string trackName = "";
+							for (int j = 0; j < midiFile[i].getSize(); j++) {
+								if (midiFile[i][j].isMeta()) {
+									if ((int)midiFile[i][j][1] == 3) {
+										for (int k = 3; k < midiFile[i][j].getSize(); k++) {
+											trackName += midiFile[i][j][k];
+										}
+										SongParts songPart = partFromString(trackName);
+										std::cout << "TRACKNAME " << trackName << ": " << int(songPart) << std::endl;
+										if (songPart != SongParts::Invalid) {
+											songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+											std::string diffstr = "ESY: ";
+											for (int diff = 0; diff < 4; diff++) {
+												Chart newChart;
+												newChart.parseNotes(midiFile, i, midiFile[i], diff);
+												std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
+												if (diff == 1) diffstr = "MED: ";
+												else if (diff == 2) diffstr = "HRD: ";
+												else if (diff == 3) diffstr = "EXP: ";
+												songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+												std::cout << trackName << " " << diffstr << newChart.notes.size() << std::endl;
+											}
 										}
 									}
 								}
 							}
 						}
+						songList.songs[curPlayingSong].midiParsed = true;
 					}
 					midiLoaded = true;
 				}
