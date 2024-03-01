@@ -296,6 +296,10 @@ int main(int argc, char* argv[])
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	
+	Model smasherBoard = LoadModel((directory / "Assets/board.obj").string().c_str());
+	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/smasherBoard.png").string().c_str());
+	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
+	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
 	Model smasherPressed = LoadModel((directory / "Assets/smasher.obj").string().c_str());
 	Texture2D smasherPressTex = LoadTexture((directory / "Assets/smasher_press.png").string().c_str());
@@ -469,6 +473,7 @@ int main(int argc, char* argv[])
 				}
 			}
 			else if (selectStage == 1) {
+				
 				if (!midiLoaded) {
 					if (!songList.songs[curPlayingSong].midiParsed) {
 						smf::MidiFile midiFile;
@@ -580,9 +585,16 @@ int main(int argc, char* argv[])
 
 						DrawCylinderEx(Vector3{ lineDistance - i, 0, 3 }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 4.0f, Color{128,128,128,128});
 					}
+					
+					
 					DrawBillboard(camera, overdriveBackground, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
 					DrawBillboard(camera, overdriveFill, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
 					DrawBillboard(camera, multiplierEmpty, Vector3{ 0.0f, 1.0f, 0.025f }, 0.825f, WHITE);
+					
+					DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
+
+					// DrawTriangle3D(Vector3{ diffDistance + 0.6f,					    0.005f, smasherPos + 0.5f }, Vector3{ diffDistance + 0.6f, 0.005f, 0 }, Vector3{ (diffDistance - (diffDistance * 2)) - 0.6f, 0.005f, smasherPos + 0.5f }, Color{ 255,255,255,16 });
+					// DrawTriangle3D(Vector3{ (diffDistance - (diffDistance * 2)) - 0.6f, 0.005f, smasherPos + 0.5f }, Vector3{ diffDistance + 0.6f, 0.005f, 0 }, Vector3{ (diffDistance - (diffDistance * 2)) - 0.6f, 0.005f, 0},				  Color{ 255,255,255,16 });
 					
 				}
 				else {
@@ -685,11 +697,17 @@ int main(int argc, char* argv[])
 								DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 						}
 						// regular notes
-						if (((curNote.len * bns[bn]) >=0.25 && (curNote.held==true||curNote.hit==false)) || ((curNote.len * bns[bn])<0.25 && curNote.hit==false)) {
-							if (od == true)
-								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
-							else
-								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+						if (((curNote.len * bns[bn]) >= 0.25 && (curNote.held == true || curNote.hit == false)) || ((curNote.len * bns[bn]) < 0.25 && curNote.hit == false)) {
+							if (od == true) {
+								if (!curNote.held || !curNote.hit) {
+									DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+								};
+							}
+							else {
+								if (!curNote.held || !curNote.hit) {
+									DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+								};
+							}
 						}
 					}
 					if (relEnd < -1 && curNoteIdx < curChart.notes.size()) curNoteIdx = i + 1;
