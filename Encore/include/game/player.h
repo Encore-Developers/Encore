@@ -20,4 +20,14 @@ float starThreshold[7] = { 0.3f, 0.7f, 1.0f, 2.0f, 2.8f, 3.6f, 4.4f };
 
 bool FC = true;
 
+class player {
+	void reset() {
+		notesHit = 0;
+		notesMissed = 0;
+
+		combo = 0;
+		score = 0;
+		FC = true;
+	};
+};
 
