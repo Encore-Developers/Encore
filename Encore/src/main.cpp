@@ -659,13 +659,10 @@ int main(int argc, char* argv[])
 						else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
 							curNote.miss = true;
 						}
-							
-						
 					}
 					else {
 						if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
 							curNote.hit = true;
-							
 							if ((curNote.len * bns[bn]) > 0.25) {
 								curNote.held = true;
 							}
@@ -677,19 +674,11 @@ int main(int argc, char* argv[])
 							curNote.held = false;
 						}
 					}
-
 					if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
-						notesHit += 1;
-						combo += 1;
-						curNote.accounted = true;
-						score += 25 * multiplier();
+						player::HitNote(curNote, false);
 					}
-
 					else if (!curNote.accounted && curNote.miss) {
-						notesMissed += 1;
-						curNote.accounted = true;
-						combo = 0;
-						FC = false;
+						player::MissNote(curNote);
 					}
 					
 
