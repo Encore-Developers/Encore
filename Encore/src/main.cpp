@@ -564,7 +564,7 @@ int main(int argc, char* argv[])
 			if (!streamsLoaded) {
 				loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
 				streamsLoaded = true;
-				notesHit = 0;
+				player::resetPlayerStats();
 			}
 			else {
 				for (Music& stream : loadedStreams) {
