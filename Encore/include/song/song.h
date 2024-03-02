@@ -93,6 +93,16 @@ struct SongPart
 	std::vector<Chart> charts;
 };
 
+struct TimeSig {
+	double time;
+	int numer;
+	int denom;
+};
+struct BPM {
+	double time;
+	double bpm;
+};
+
 class Song 
 {
 public:
@@ -104,7 +114,12 @@ public:
 	Texture albumArt;
 
 	int length = 0;
+	
+	std::vector<BPM> bpms;
+	std::vector<TimeSig> timesigs;
 
+	double music_start=0.0;
+	double end=0.0;
 	std::vector<PartIcon> partIcons{ PartIcon::IconNone,PartIcon::IconNone,PartIcon::IconNone,PartIcon::IconNone };
 	//Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic Bass, Plastic Guitar
 	std::vector<SongPart*> parts{ new SongPart,new SongPart,new SongPart,new SongPart ,new SongPart ,new SongPart ,new SongPart };
@@ -263,8 +278,41 @@ public:
 	void parseBeatLines(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events) {
 		for (int i = 0; i < events.getSize(); i++) {
 			if (events[i].isNoteOn()) {
+				beatLines.push_back({ midiFile.getTimeInSeconds(trkidx, i) , (int)events[i][1] == 12 });
+			}
+		}
+	}
+	void getTiming(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events) {
+		for (int i = 0; i < events.getSize(); i++) {
+			if (events[i].isTempo()) {
+				bpms.push_back({ midiFile.getTimeInSeconds(trkidx, i) , events[i].getTempoBPM() });
+				std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": " << events[i].getTempoBPM() << std::endl;
+			}
+			else if (events[i].isMeta() && events[i][1] == 0x58) {
+				int numer = (int)events[i][3];
+				int denom = pow(2,(int)events[i][4]);
+				timesigs.push_back({ midiFile.getTimeInSeconds(trkidx, i), numer,denom });
+				std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ": " << numer <<"/"<<denom<< std::endl;
+			}
+		}
+		if (timesigs.size() == 0) {
+			timesigs.push_back({ 4,4 }); //midi always assumed to be 4/4 if time sig event isn't found
+		}
+	}
+
+	void getStartEnd(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events) {
+		for (int i = 0; i < events.getSize(); i++) {
+			if (events[i].isMeta() && (int)events[i][1] == 1) {
 				double time = midiFile.getTimeInSeconds(trkidx, i);
-				beatLines.push_back({ time, (int)events[i][1] == 12 });
+				std::string evt_string = "";
+				for (int k = 3; k < events[i].getSize(); k++) {
+					evt_string += events[i][k];
+				}
+				std::cout << evt_string << std::endl;
+				if (evt_string == "[music_start]")
+					music_start = time;
+				else if (evt_string == "[end]")
+					end = time;
 			}
 		}
 	}
