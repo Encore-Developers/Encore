@@ -551,8 +551,12 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
-			DrawText(TextFormat("Notes Hit: %03i", notesHit), 5, GetScreenHeight() - 200, 24, WHITE);
-			DrawText(TextFormat("Notes Missed: %03i", notesMissed), 5, GetScreenHeight() - 250, 24, WHITE);
+			DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
+			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
+			DrawText(TextFormat("Score: %06i", score), 5, GetScreenHeight() - 190, 24, WHITE);
+			DrawText(TextFormat("Combo: %03i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
+			DrawText(TextFormat("Muliplier: %01i", multiplier()), 5, GetScreenHeight() - 130, 24, (multiplier() == 5) ? SKYBLUE : WHITE);
+			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
 				streamsLoaded = false;
@@ -560,7 +564,7 @@ int main(int argc, char* argv[])
 			if (!streamsLoaded) {
 				loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
 				streamsLoaded = true;
-				// notesHit = 0;
+				notesHit = 0;
 			}
 			else {
 				for (Music& stream : loadedStreams) {
@@ -652,7 +656,7 @@ int main(int argc, char* argv[])
 						if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane]) {
 							curNote.hit = true;				
 						}
-						else if (curNote.time + 0.075 < liftTimes[curNote.lane] && !curNote.hit) {
+						else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
 							curNote.miss = true;
 						}
 							
@@ -666,7 +670,7 @@ int main(int argc, char* argv[])
 								curNote.held = true;
 							}
 						}
-						else if (curNote.time + 0.075 < laneTimes[curNote.lane] && !curNote.hit) {
+						else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
 							curNote.miss = true;
 						}
 						if (laneTimes[curNote.lane] == 0.0 && (curNote.len * bns[bn]) > 0.25) {
@@ -676,12 +680,16 @@ int main(int argc, char* argv[])
 
 					if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
 						notesHit += 1;
+						combo += 1;
 						curNote.accounted = true;
+						score += 25 * multiplier();
 					}
 
 					else if (!curNote.accounted && curNote.miss) {
 						notesMissed += 1;
 						curNote.accounted = true;
+						combo = 0;
+						FC = false;
 					}
 					
 
