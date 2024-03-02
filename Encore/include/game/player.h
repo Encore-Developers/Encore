@@ -39,7 +39,7 @@ public:
 		FC = true;
 	};
 
-	static int HitNote(Note note, bool perfect) {
+	static void HitNote(Note note, bool perfect) {
 		notesHit += 1;
 		combo += 1;
 		note.accounted = true;
@@ -47,7 +47,7 @@ public:
 		score += (int)((30 * multiplier()) * perfectMult);
 		perfectHit += perfect ? 1 : 0;
 	}
-	static int MissNote(Note note) {
+	static void MissNote(Note note) {
 		notesMissed += 1;
 		note.accounted = true;
 		combo = 0;
