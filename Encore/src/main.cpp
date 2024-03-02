@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 	SetConfigFlags(FLAG_VSYNC_HINT);
 
 	// 800 , 600
-	InitWindow(1920, 1080, "Encore");
+	InitWindow(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()), "Encore");
 	bool windowToggle = false;
 	ToggleBorderlessWindowed();
 	ArgumentList::InitArguments(argc, argv);
@@ -191,12 +191,14 @@ int main(int argc, char* argv[])
 
 	float timeCounter = 0.0f;
 
-	int targetFPS = targetFPSArg == 0 ? 180 : targetFPSArg;
+	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
 	std::vector<string> songPartsList{ "Drums","Bass","Guitar","Vocals" };
 	std::vector<string> diffList{ "Easy","Medium","Hard","Expert"};
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
 	InitAudioDevice();
+
+	SetExitKey(NULL);
 
 	Camera3D camera = { 0 };
 
@@ -444,6 +446,9 @@ int main(int argc, char* argv[])
 				streamsLoaded = false;
 				midiLoaded = false;
 				float curSong = 0.0f;
+				if (GuiButton({ (float)GetScreenWidth() - 160,0,60,60 }, "Exit")) {
+					exit(0);
+				}
 				if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60 }, "Keybinds")) {
 					selectStage = -1;
 				}
