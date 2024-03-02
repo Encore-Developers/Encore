@@ -7,6 +7,7 @@ struct Note
 	double time;
 	double len;
 	double heldTime=0.0;
+	double sustainThreshold = 0.2;
 	int lane;
 	bool lift = false;
 	bool hit = false;
@@ -40,17 +41,19 @@ public:
 		return -1;
 	}
 	std::vector<odPhrase> odPhrases;
-	void parseNotes(smf::MidiFile &midiFile, int trkidx, smf::MidiEventList events, int diff) {
+	void parseNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff) {
 		std::vector<bool> notesOn{ false,false,false,false,false};
 		bool odOn = false;
 		std::vector<double> noteOnTime{ 0.0, 0.0, 0.0, 0.0, 0.0};
 		std::vector<int> notePitches = diffNotes[diff];
 		int odNote = 116;
 		int curODPhrase = -1;
+		int curBPM = 0;
+		
 		for (int i = 0; i < events.getSize(); i++) {
 			if (events[i].isNoteOn()) {
+				double time = midiFile.getTimeInSeconds(trkidx, i);
 				if ((int)events[i][1] >= notePitches[0] && (int)events[i][1] <= notePitches[1]) {
-					double time = midiFile.getTimeInSeconds(trkidx, i);
 					int lane = (int)events[i][1] - notePitches[0];
 					if (!notesOn[lane]) {
 						noteOnTime[lane] = time;
@@ -69,7 +72,6 @@ public:
 					}
 				}
 				else if ((int)events[i][1] >= notePitches[2] && (int)events[i][1] <= notePitches[3]) {
-					double time = midiFile.getTimeInSeconds(trkidx, i);
 					int lane = (int)events[i][1] - notePitches[2];
 					int noteIdx = findNoteIdx(time, lane);
 					if (noteIdx != -1) {
@@ -97,9 +99,8 @@ public:
 				}
 			}
 			else if (events[i].isNoteOff()) {
+				double time = midiFile.getTimeInSeconds(trkidx, i);
 				if ((int)events[i][1] >= notePitches[0] && (int)events[i][1] <= notePitches[1]) {
-					
-					double time = midiFile.getTimeInSeconds(trkidx, i);
 					int lane = (int)events[i][1] - notePitches[0];
 					if (notesOn[lane] == true) {
 						int noteIdx = findNoteIdx(noteOnTime[lane], lane);
@@ -111,7 +112,7 @@ public:
 				}
 				else if ((int)events[i][1] == odNote) {
 					if (odOn == true) {
-						odPhrases[curODPhrase].end = midiFile.getTimeInSeconds(trkidx, i);
+						odPhrases[curODPhrase].end = time;
 						odOn = false;
 					}
 				}
