@@ -555,7 +555,7 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Score: %06i", score), 5, GetScreenHeight() - 190, 24, WHITE);
 			DrawText(TextFormat("Combo: %03i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Muliplier: %01i", multiplier()), 5, GetScreenHeight() - 130, 24, (multiplier() == 5) ? SKYBLUE : WHITE);
+			DrawText(TextFormat("Muliplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
@@ -675,10 +675,12 @@ int main(int argc, char* argv[])
 						}
 					}
 					if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
-						player::HitNote(curNote, false);
+						player::HitNote(false, instrument);
+						curNote.accounted = true;
 					}
 					else if (!curNote.accounted && curNote.miss) {
-						player::MissNote(curNote);
+						player::MissNote();
+						curNote.accounted = true;
 					}
 					
 

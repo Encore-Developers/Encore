@@ -14,14 +14,30 @@ bool FC = true;
 
 float health = 100.0f;
 
-int multiplier() {
-	int od = overdrive ? 2 : 1;
-	if (combo < 11)			{ return 1 * od; }
-	else if (combo < 21)	{ return 2 * od; }
-	else if (combo < 31)	{ return 3 * od; }
-	else if (combo > 31)	{ return 4 * od; }
-	else					{ return 1 * od; }
+int multiplier(int instrument) {
+		int od = overdrive ? 2 : 1;
+	
+	if (instrument == 1 || instrument == 3){ 
+
+		if (combo < 11) { return 1 * od; }
+		else if (combo < 21) { return 2 * od; }
+		else if (combo < 31) { return 3 * od; }
+		else if (combo < 41) { return 4 * od; }
+		else if (combo < 51) { return 5 * od; }
+		else if (combo > 50) { return 6 * od; }
+		else { return 1 * od; };
+	}
+	else {
+		if (combo < 11) { return 1 * od; }
+		else if (combo < 21) { return 2 * od; }
+		else if (combo < 31) { return 3 * od; }
+		else if (combo > 30) { return 4 * od; }
+		else { return 1 * od; }
+	};
 }
+
+
+
 
 // clone hero defaults
 float starThreshold[7] = { 0.3f, 0.7f, 1.0f, 2.0f, 2.8f, 3.6f, 4.4f };
@@ -39,17 +55,15 @@ public:
 		FC = true;
 	};
 
-	static void HitNote(Note note, bool perfect) {
+	static void HitNote(bool perfect, int instrument) {
 		notesHit += 1;
 		combo += 1;
-		note.accounted = true;
 		float perfectMult = perfect ? 1.2f : 1.0f;
-		score += (int)((30 * multiplier()) * perfectMult);
+		score += (int)((30 * (multiplier(instrument)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
 	}
-	static void MissNote(Note note) {
+	static void MissNote() {
 		notesMissed += 1;
-		note.accounted = true;
 		combo = 0;
 		FC = false;
 	}
