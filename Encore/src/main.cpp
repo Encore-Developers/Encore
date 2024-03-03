@@ -166,6 +166,7 @@ int main(int argc, char* argv[])
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
 
+
 	// 800 , 600
 	InitWindow(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()), "Encore");
 	bool windowToggle = false;
@@ -299,8 +300,8 @@ int main(int argc, char* argv[])
 
 	ChangeDirectory(GetApplicationDirectory());
 
-	Font RedHatDisplayBlack = LoadFontEx((directory / "Assets/RedHatDisplay-Black.fnt").string().c_str(), 128, NULL, 191);
-	Font RedHatDisplayBlackItalic = LoadFontEx((directory / "Assets/RedHatDisplay-BlackItalic.fnt").string().c_str(), 128, NULL, 191);
+	// Font RedHatDisplayBlack = LoadFontEx((directory / "Assets/RedHatDisplay-Black.fnt").string().c_str(), 128, NULL, 191);
+	// Font RedHatDisplayBlackItalic = LoadFontEx((directory / "Assets/RedHatDisplay-BlackItalic.fnt").string().c_str(), 128, NULL, 191);
 
 	Model smasherReg = LoadModel((directory / "Assets/smasher.obj").string().c_str());
 	Texture2D smasherRegTex = LoadTexture((directory / "Assets/smasher_reg.png").string().c_str());
@@ -610,12 +611,12 @@ int main(int argc, char* argv[])
 					
 				}
 			}
-			if(midiLoaded==true){
+			if (midiLoaded){
 				
 
 
 				// notesHit = 0;
-				double musicTime = (double)GetMusicTimePlayed(loadedStreams[0]);
+				double musicTime = GetMusicTimePlayed(loadedStreams[0]);
 
 				for (int i = curBPM; i < songList.songs[curPlayingSong].bpms.size(); i++) {
 					if (musicTime > songList.songs[curPlayingSong].bpms[i].time && i < songList.songs[curPlayingSong].bpms.size() - 1)
@@ -623,7 +624,7 @@ int main(int argc, char* argv[])
 				}
 
 				if (musicTime < 5.0) {
-					DrawTextEx(RedHatDisplayBlackItalic, songList.songs[curPlayingSong].title.c_str(), Vector2{ 5, 65 }, 30, 0.5, WHITE);
+					DrawText(songList.songs[curPlayingSong].title.c_str(),  5, 65 , 30, WHITE);
 					DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 100, 24, WHITE);
 				}
 				
@@ -631,48 +632,41 @@ int main(int argc, char* argv[])
 				if (diff == 3) {
 					DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 					for (int i = 0; i < 5; i++) {
-						if (heldFrets[i] == true) {
-							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, 0.1f }, 1.0f, WHITE);
-							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 84,8,207,255 });
+						if (heldFrets[i]) {
+							DrawModel(smasherPressed, Vector3{ diffDistance - (float)(i + 2), 0, 0.1f }, 1.0f, WHITE);
 						}
 						else {
-							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0.1f }, 1.0f, WHITE);
-							// DrawCube(Vector3{ diffDistance - (1.0f * i),0,2.5f }, 0.75, 0.125, 0.25, Color{ 35,21,69,255 });
+							DrawModel(smasherReg, Vector3{ diffDistance - (float)(i + 2), 0, 0.1f }, 1.0f, WHITE);
 						}
 					}
 					for (int i = 0; i < 4; i++) {
-						// DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
-						float radius = (i == 1) ? 0.02 : 0.01;
+						float radius = (i == 1) ? 0.03 : 0.01;
 						
 						DrawCylinderEx(Vector3{ lineDistance - i, 0, 3 }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 4.0f, Color{128,128,128,128});
 					}
-					
-					
 					DrawBillboard(camera, overdriveBackground, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
 					DrawBillboard(camera, overdriveFill, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
 					DrawBillboard(camera, multiplierEmpty, Vector3{ 0.0f, 1.0f, 0.025f }, 0.825f, WHITE);
 					
 					DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
-
-					// DrawTriangle3D(Vector3{ diffDistance + 0.6f,					    0.005f, smasherPos + 0.5f }, Vector3{ diffDistance + 0.6f, 0.005f, 0 }, Vector3{ (diffDistance - (diffDistance * 2)) - 0.6f, 0.005f, smasherPos + 0.5f }, Color{ 255,255,255,16 });
-					// DrawTriangle3D(Vector3{ (diffDistance - (diffDistance * 2)) - 0.6f, 0.005f, smasherPos + 0.5f }, Vector3{ diffDistance + 0.6f, 0.005f, 0 }, Vector3{ (diffDistance - (diffDistance * 2)) - 0.6f, 0.005f, 0},				  Color{ 255,255,255,16 });
-					
 				}
 				else {
-					DrawModel(emhHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
-					for (int i = 0; i < 4; i++) {
-						if (heldFrets[i] == true) {
-							DrawModel(smasherPressed, Vector3{ diffDistance - (i + 2), 0, 0 }, 1.0f, WHITE);
-						}
-						else {
-							DrawModel(smasherReg, Vector3{ diffDistance - (i + 2), 0, 0 }, 1.0f, WHITE);
+                    DrawModel(emhHighway, Vector3{0, 0, 0}, 1.0f, WHITE);
+                    for (int i = 0; i < 4; i++) {
+                        if (heldFrets[i]) {
+                            DrawModel(smasherPressed, Vector3{diffDistance - (float)(i + 2), 0, 0}, 1.0f, WHITE);
+                        } else {
+                            DrawModel(smasherReg, Vector3{diffDistance - (float)(i + 2), 0, 0}, 1.0f, WHITE);
 
-						}
-					}
-					for (int i = 0; i < 3; i++) {
-						DrawLine3D(Vector3{ lineDistance - i, 0.05f, 0 }, Vector3{ lineDistance - i, 0.05f, 20 }, Color{ 255,255,255,255 });
-					}
-				}
+                        }
+                    }
+                    for (int i = 0; i < 3; i++) {
+                        float radius = (i == 1) ? 0.03 : 0.01;
+                        DrawCylinderEx(Vector3{lineDistance - (float)i, 0, 3}, Vector3{lineDistance - (float)i, 0, 20}, radius,
+                                       radius, 4.0f, Color{128, 128, 128, 128});
+                    }
+                    DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
+                }
 					if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 						for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
 							if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
@@ -699,7 +693,7 @@ int main(int argc, char* argv[])
 				}
 				for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 					Note& curNote = curChart.notes[i];
-					if (curNote.lift == true) {
+					if (curNote.lift) {
 						if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
 							curNote.hit = true;				
 							liftRegistered[curNote.lane] = true;
@@ -750,7 +744,7 @@ int main(int argc, char* argv[])
 					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
 					bool od = false;
 					if (curChart.odPhrases.size() > 0 && curODPhrase < curChart.odPhrases.size()) {
-						if (curNote.miss==true) {
+						if (curNote.miss) {
 							curChart.odPhrases[curODPhrase].missed = true;
 						}
 						if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
@@ -761,10 +755,10 @@ int main(int argc, char* argv[])
 						break;
 					}
 					if (relEnd > 1.5) relEnd = 1.5;
-					if (curNote.lift == true && !curNote.hit) {
+					if (curNote.lift && !curNote.hit) {
 						// lifts						//  distance between notes 
 						//									(furthest left - lane distance)
-						if (od == true)					//  1.6f	0.8
+						if (od)					//  1.6f	0.8
 							DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
 						// energy phrase
 						else
@@ -774,7 +768,7 @@ int main(int argc, char* argv[])
 					else {
 						// sustains
 						if ((curNote.len)> curNote.sustainThreshold) {
-							if (curNote.hit == true && curNote.held == true) {
+							if (curNote.hit && curNote.held) {
 								if (curNote.heldTime < (curNote.len * bns[bn])) {
 									curNote.heldTime = 0.0 - relTime;
 									if (relTime < 0.0) relTime = 0.0;
@@ -784,18 +778,18 @@ int main(int argc, char* argv[])
 									curNote.held = false;
 								}
 							}
-							else if (curNote.hit == true && curNote.held == false) {
+							else if (curNote.hit && !curNote.held) {
 								relTime = relTime + curNote.heldTime;
 							}
-							if (od == true)
+							if (od)
 								DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 217, 183, 82 ,255 });
 
 							else
 								DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 						}
 						// regular notes
-						if (((curNote.len) >= curNote.sustainThreshold && (curNote.held == true || curNote.hit == false)) || ((curNote.len ) < curNote.sustainThreshold && curNote.hit == false)) {
-							if (od == true) {
+						if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
+							if (od) {
 								if (!curNote.held || !curNote.hit) {
 									DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
 								};
@@ -814,8 +808,13 @@ int main(int argc, char* argv[])
 				}
 				DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.075f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.075f * bns[bn] )}, Color{0,255,0,255});
 				DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.075f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos - (12.5f * 0.075f * bns[bn] )}, Color{ 0,255,0,255 });
-				
-				EndMode3D();
+                // DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn] )}, GOLD);
+                // DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn] )}, GOLD);
+
+                DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{  diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn] )}, GOLD);
+                DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn] )}, GOLD);
+
+                EndMode3D();
 			}
 			
 			
