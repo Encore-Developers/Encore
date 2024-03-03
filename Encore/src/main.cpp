@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <unordered_map>
+#include <algorithm>
 #include "song/song.h"
 #include "song/songlist.h"
 #include "audio/audio.h"
@@ -201,7 +202,7 @@ int main(int argc, char* argv[])
 
 	InitAudioDevice();
 
-	SetExitKey(NULL);
+	SetExitKey(0);
 
 	Camera3D camera = { 0 };
 
@@ -297,6 +298,9 @@ int main(int argc, char* argv[])
 	SongList songList = LoadSongs(songsPath);
 
 	ChangeDirectory(GetApplicationDirectory());
+
+	Font RedHatDisplayBlack = LoadFontEx((directory / "Assets/RedHatDisplay-Black.fnt").string().c_str(), 128, NULL, 191);
+	Font RedHatDisplayBlackItalic = LoadFontEx((directory / "Assets/RedHatDisplay-BlackItalic.fnt").string().c_str(), 128, NULL, 191);
 
 	Model smasherReg = LoadModel((directory / "Assets/smasher.obj").string().c_str());
 	Texture2D smasherRegTex = LoadTexture((directory / "Assets/smasher_reg.png").string().c_str());
@@ -475,16 +479,17 @@ int main(int argc, char* argv[])
 					bnsButton = "Track Speed "+std::to_string(bns[bn])+"x";
 				}
 				for (Song song : songList.songs) {
-					if (GuiButton({ 0,0 + (60 * curSong),300,60 }, "")) {
+
+					if (GuiButton(Rectangle { 0,0 + (60 * curSong),((float)GetScreenWidth() * (3.0f/5.0f)) , 60 }, "")) {
 						curPlayingSong = (int)curSong;
 						selectStage = 1;
 					}
 					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
-
-					DrawText(song.title.c_str(), 60, (60 * curSong) + 5, 20, BLACK);
-					DrawText(song.artist.c_str(), 60, (60 * curSong) + 25, 16, BLACK);
+					DrawTextEx(RedHatDisplayBlackItalic, song.title.c_str(), Vector2{65, (60 * curSong) + 15}, 30, 0, BLACK);
+					DrawTextEx(RedHatDisplayBlack, song.artist.c_str(), Vector2{((float)GetScreenWidth()*(1.5f/4.0f)), (60 * curSong) + 20}, 20, 0, BLACK);
 					curSong++;
 				}
+
 			}
 			else if (selectStage == 1) {
 				
@@ -498,7 +503,7 @@ int main(int argc, char* argv[])
 						songList.songs[curPlayingSong].getTiming(midiFile, 0, midiFile[0]);
 						for (int i = 0; i < midiFile.getTrackCount(); i++)
 						{
-							std::string trackName = "";
+							std::string trackName;
 							for (int j = 0; j < midiFile[i].getSize(); j++) {
 								if (midiFile[i][j].isMeta()) {
 									if ((int)midiFile[i][j][1] == 3) {
@@ -586,7 +591,7 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Score: %06i", score), 5, GetScreenHeight() - 190, 24, WHITE);
 			DrawText(TextFormat("Combo: %03i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Muliplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
+			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
@@ -617,7 +622,7 @@ int main(int argc, char* argv[])
 				}
 
 				if (musicTime < 5.0) {
-					DrawText(songList.songs[curPlayingSong].title.c_str(), 5, 65, 30, WHITE);
+					DrawTextEx(RedHatDisplayBlackItalic, songList.songs[curPlayingSong].title.c_str(), Vector2{ 5, 65 }, 30, 0.5, WHITE);
 					DrawText(songList.songs[curPlayingSong].artist.c_str(), 5, 100, 24, WHITE);
 				}
 				

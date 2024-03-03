@@ -8,6 +8,8 @@
 #include <fstream>
 #include <unordered_map>
 #include <filesystem>
+#include <cmath>
+
 enum PartIcon {
 	IconDrum,
 	IconBass,
@@ -16,6 +18,7 @@ enum PartIcon {
 	IconKeyboard,
 	IconNone
 };
+
 
 std::unordered_map<std::string, PartIcon> stringToEnum = {
 
