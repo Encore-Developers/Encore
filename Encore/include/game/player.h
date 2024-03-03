@@ -49,7 +49,7 @@ public:
 	static void resetPlayerStats() {
 		notesHit = 0;
 		notesMissed = 0;
-
+        perfectHit = 0;
 		combo = 0;
 		score = 0;
 		FC = true;

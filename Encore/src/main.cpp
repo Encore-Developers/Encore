@@ -485,8 +485,8 @@ int main(int argc, char* argv[])
 						selectStage = 1;
 					}
 					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
-					DrawTextEx(RedHatDisplayBlackItalic, song.title.c_str(), Vector2{65, (60 * curSong) + 15}, 30, 0, BLACK);
-					DrawTextEx(RedHatDisplayBlack, song.artist.c_str(), Vector2{((float)GetScreenWidth()*(1.5f/4.0f)), (60 * curSong) + 20}, 20, 0, BLACK);
+					DrawText(song.title.c_str(), 65, (60 * curSong) + 15, 30, BLACK);
+					DrawText(song.artist.c_str(), ((float)GetScreenWidth()*(1.5f/4.0f)), (60 * curSong) + 20, 20, BLACK);
 					curSong++;
 				}
 
@@ -589,10 +589,11 @@ int main(int argc, char* argv[])
 		else {
 			DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Score: %06i", score), 5, GetScreenHeight() - 190, 24, WHITE);
-			DrawText(TextFormat("Combo: %03i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
+			DrawText(TextFormat("Score: %01i", score), 5, GetScreenHeight() - 190, 24, WHITE);
+			DrawText(TextFormat("Combo: %01i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
+            DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
 				streamsLoaded = false;
@@ -702,10 +703,16 @@ int main(int argc, char* argv[])
 						if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
 							curNote.hit = true;				
 							liftRegistered[curNote.lane] = true;
+                            if (curNote.time - 0.0125 < liftTimes[curNote.lane] && curNote.time + 0.0125 > liftTimes[curNote.lane]) {
+                                curNote.perfect = true;
+                            }
 						}
 						else if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
 							curNote.hit = true;
 							tapRegistered[curNote.lane] = true;
+                            if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
+                                curNote.perfect = true;
+                            }
 						}
 						else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
 							curNote.miss = true;
@@ -718,6 +725,9 @@ int main(int argc, char* argv[])
 							if ((curNote.len) > curNote.sustainThreshold) {
 								curNote.held = true;
 							}
+                            if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
+                                curNote.perfect = true;
+                            }
 						}
 						else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
 							curNote.miss = true;
@@ -727,7 +737,7 @@ int main(int argc, char* argv[])
 						}
 					}
 					if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
-						player::HitNote(false, instrument);
+						player::HitNote(curNote.perfect, instrument);
 						curNote.accounted = true;
 					}
 					else if (!curNote.accounted && curNote.miss) {

@@ -15,6 +15,7 @@ struct Note
 	bool valid = false;
 	bool miss = false;
 	bool accounted = false;
+    bool perfect = false;
 	//For plastic support later
 	bool forceStrum;
 	bool forceHopo;
