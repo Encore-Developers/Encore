@@ -415,7 +415,7 @@ int main(int argc, char* argv[])
 					else {
 						charStr = getKeyStr(KEYBINDS_5K[i]);
 					}
-					if (GuiButton({ (float)(GetScreenWidth() / 2) + (60 * j),(float)(GetScreenHeight() / 2) - 120,60,60 }, charStr.c_str())) {
+					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * (float)j),((float)GetScreenHeight() / 2) - 120,60,60 }, charStr.c_str())) {
 						changing4k = false;
 						heldFrets[i] = true;
 					}
@@ -438,7 +438,7 @@ int main(int argc, char* argv[])
 					else {
 						charStr = getKeyStr(KEYBINDS_4K[i]);
 					}
-					if (GuiButton({ (float)(GetScreenWidth() / 2) + (60 * j),(float)(GetScreenHeight() / 2) - 40,60,60 }, charStr.c_str())) {
+					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * j),((float)GetScreenHeight() / 2) - 40,60,60 }, charStr.c_str())) {
 						heldFrets[i] = true;
 						changing4k = true;
 					}
@@ -662,7 +662,7 @@ int main(int argc, char* argv[])
                     }
                     for (int i = 0; i < 3; i++) {
                         float radius = (i == 1) ? 0.03 : 0.01;
-                        DrawCylinderEx(Vector3{lineDistance - (float)i, 0, 3}, Vector3{lineDistance - (float)i, 0, 20}, radius,
+                        DrawCylinderEx(Vector3{lineDistance - (float)i, 0, 3.5}, Vector3{lineDistance - (float)i, 0, 20}, radius,
                                        radius, 4.0f, Color{128, 128, 128, 128});
                     }
                     DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
@@ -738,7 +738,6 @@ int main(int argc, char* argv[])
 						player::MissNote();
 						curNote.accounted = true;
 					}
-					
 
 					double relTime = (curNote.time - musicTime) * bns[bn];
 					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
@@ -790,19 +789,32 @@ int main(int argc, char* argv[])
 						// regular notes
 						if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
 							if (od) {
-								if (!curNote.held || !curNote.hit) {
+								if (!curNote.held || !curNote.hit || !curNote.miss) {
 									DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
 								};
 								
 							}
 							else {
-								if (!curNote.held || !curNote.hit) {
+								if (!curNote.held || !curNote.hit || !curNote.miss) {
 									DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
 								};
 								
 							}
+
 						}
+
+
+
 					}
+                    if (curNote.miss) {
+                        DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, RED);
+                    }
+                    if (curNote.hit && GetMusicTimePlayed(loadedStreams[0]) < curNote.time + 0.05f) {
+                        DrawCube(Vector3{diffDistance - (1.0f * curNote.lane), 0, smasherPos}, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{255,215,0,128} : Color{255,255,255,64});
+                    }
+
+
+
 					if (relEnd < -1 && curNoteIdx < curChart.notes.size()-1) curNoteIdx = i + 1;
 
 				}
