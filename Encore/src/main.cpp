@@ -300,52 +300,77 @@ int main(int argc, char* argv[])
 
 	ChangeDirectory(GetApplicationDirectory());
 
-	// Font RedHatDisplayBlack = LoadFontEx((directory / "Assets/RedHatDisplay-Black.fnt").string().c_str(), 128, NULL, 191);
-	// Font RedHatDisplayBlackItalic = LoadFontEx((directory / "Assets/RedHatDisplay-BlackItalic.fnt").string().c_str(), 128, NULL, 191);
-
-	Model smasherReg = LoadModel((directory / "Assets/smasher.obj").string().c_str());
-	Texture2D smasherRegTex = LoadTexture((directory / "Assets/smasher_reg.png").string().c_str());
+	Model smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
+	Texture2D smasherRegTex = LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	
-	Model smasherBoard = LoadModel((directory / "Assets/board.obj").string().c_str());
-	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/smasherBoard.png").string().c_str());
+	Model smasherBoard = LoadModel((directory / "Assets/highway/board.obj").string().c_str());
+	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/hightway/smasherBoard.png").string().c_str());
 	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
 	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-	Model smasherPressed = LoadModel((directory / "Assets/smasher.obj").string().c_str());
-	Texture2D smasherPressTex = LoadTexture((directory / "Assets/smasher_press.png").string().c_str());
+	Model smasherPressed = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
+	Texture2D smasherPressTex = LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
 	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
 	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
 	Texture2D overdriveBackground = LoadTexture((directory / "Assets/overdrivebar.png").string().c_str());
 	Texture2D overdriveFill = LoadTexture((directory / "Assets/overdrivefill.png").string().c_str());
 	Texture2D multiplierEmpty = LoadTexture((directory / "Assets/multiplierempty.png").string().c_str());
+	Model odFrame = LoadModel((directory / "Assets/ui/od_frame.obj").string().c_str());
+	Model odBar = LoadModel((directory / "Assets/ui/od_fill.obj").string().c_str());
+	Model multFrame = LoadModel((directory / "Assets/ui/multcircle_frame.obj").string().c_str());
+	Model multBar = LoadModel((directory / "Assets/ui/multcircle_fill.obj").string().c_str());
+	Model multCtr3 = LoadModel((directory / "Assets/ui/multbar_3.obj").string().c_str());
+	Model multCtr5 = LoadModel((directory / "Assets/ui/multbar_5.obj").string().c_str());
+	Texture2D odMultFrame = LoadTexture((directory / "Assets/ui/mult_base.png").string().c_str());
+	Texture2D odMultFill = LoadTexture((directory / "Assets/ui/mult_fill.png").string().c_str());
+	Shader odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
+	odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+	odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+	multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+	multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+	multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+	multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+	odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+	multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+	multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+	multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+	odBar.materials[0].shader = odMultShader;
+	multBar.materials[0].shader = odMultShader;
+	multCtr3.materials[0].shader = odMultShader;
+	multCtr5.materials[0].shader = odMultShader;
+	int odLoc= GetShaderLocation(odMultShader, "overdrive");
+	int comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
+	int multLoc = GetShaderLocation(odMultShader, "multBar");
+	int isBassOrVocalLoc = GetShaderLocation(odMultShader, "isBassOrVocal");
+	odMultShader.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(odMultShader, "fillTex");
 
-	Model expertHighway = LoadModel((directory / "Assets/expert.obj").string().c_str());
-	Model emhHighway = LoadModel((directory / "Assets/emh.obj").string().c_str());
-	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway.png").string().c_str());
+	Model expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
+	Model emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
+	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway/highway.png").string().c_str());
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	Model noteModel = LoadModel((directory / "Assets/note.obj").string().c_str());
-	Texture2D noteTexture = LoadTexture((directory / "Assets/note_d.png").string().c_str());
-	Texture2D emitTexture = LoadTexture((directory / "Assets/note_e.png").string().c_str());
+	Model noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
+	Texture2D noteTexture = LoadTexture((directory / "Assets/notes/note_d.png").string().c_str()); 
+	Texture2D emitTexture = LoadTexture((directory / "Assets/notes/note_e.png").string().c_str());
 	noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
 	noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
 	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-	Model noteModelOD = LoadModel((directory / "Assets/note.obj").string().c_str());
-	Texture2D noteTextureOD = LoadTexture((directory / "Assets/note_od_d.png").string().c_str());
-	Texture2D emitTextureOD = LoadTexture((directory / "Assets/note_od_e.png").string().c_str());
+	Model noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
+	Texture2D noteTextureOD = LoadTexture((directory / "Assets/notes/note_od_d.png").string().c_str());
+	Texture2D emitTextureOD = LoadTexture((directory / "Assets/notes/note_od_e.png").string().c_str());
 	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
 	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
 	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-	Model liftModel = LoadModel((directory / "Assets/lift.obj").string().c_str());
+	Model liftModel = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
-	Model liftModelOD = LoadModel((directory / "Assets/lift.obj").string().c_str());
+	Model liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
 	
 	
@@ -411,6 +436,7 @@ int main(int argc, char* argv[])
 					std::string charStr = "UNKNOWN";
 					if (KEYBINDS_5K[i] >= 39 && KEYBINDS_5K[i] < 96 && KEYBINDS_5K[i] != KEY_MENU) {
 						charStr=static_cast<char>(KEYBINDS_5K[i]);
+						charStr=static_cast<char>(KEYBINDS_5K[i]);
 					}
 					else {
 						charStr = getKeyStr(KEYBINDS_5K[i]);
@@ -457,6 +483,7 @@ int main(int argc, char* argv[])
 			else if (selectStage == 0) {
 				streamsLoaded = false;
 				midiLoaded = false;
+				isPlaying = false;
 				float curSong = 0.0f;
 				if (GuiButton({ (float)GetScreenWidth() - 160,0,60,60 }, "Exit")) {
 					exit(0);
@@ -565,6 +592,11 @@ int main(int argc, char* argv[])
 						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
 							if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, songPartsList[i].c_str())) {
 								instrument = i;
+								int isBassOrVocal = 0;
+								if (instrument == 1 || instrument == 3) {
+									isBassOrVocal = 1;
+								}
+								SetShaderValue(odMultShader, isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
 								selectStage = 2;
 							}
 						}
@@ -594,6 +626,11 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("Combo: %01i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
+			float multFill = (float)(multiplier(instrument)-1) / (float)maxMultForMeter(instrument);
+			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
+			float comboFill = comboFillCalc(instrument);
+			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
+			//SetShaderValue(odMultShader, odLoc, &odFill, SHADER_UNIFORM_FLOAT);  -- odFill should be a float, 0-1, 0 being empty, 1 being full.
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
@@ -644,9 +681,6 @@ int main(int argc, char* argv[])
 						
 						DrawCylinderEx(Vector3{ lineDistance - i, 0, 3 }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 4.0f, Color{128,128,128,128});
 					}
-					DrawBillboard(camera, overdriveBackground, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
-					DrawBillboard(camera, overdriveFill, Vector3{ 0.0f, 1.0f, 0.55f }, 0.26f, WHITE);
-					DrawBillboard(camera, multiplierEmpty, Vector3{ 0.0f, 1.0f, 0.025f }, 0.825f, WHITE);
 					
 					DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
 				}
@@ -683,6 +717,17 @@ int main(int argc, char* argv[])
 					}
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
+
+				DrawModel(odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				if (instrument == 1 || instrument == 3) {
+					DrawModel(multCtr5, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				}
+				else {
+					DrawModel(multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				}
 				
 				
 
@@ -742,13 +787,11 @@ int main(int argc, char* argv[])
 					double relTime = (curNote.time - musicTime) * bns[bn];
 					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
 					bool od = false;
-					if (curChart.odPhrases.size() > 0 && curODPhrase < curChart.odPhrases.size()) {
-						if (curNote.miss) {
+					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time+curNote.len <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
+						if (curNote.miss == true) {
 							curChart.odPhrases[curODPhrase].missed = true;
 						}
-						if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-							od = true;
-						}
+						od = true;
 					}
 					if (relTime > 1.5) {
 						break;

@@ -19,24 +19,50 @@ int multiplier(int instrument) {
 	
 	if (instrument == 1 || instrument == 3){ 
 
-		if (combo < 11) { return 1 * od; }
-		else if (combo < 21) { return 2 * od; }
-		else if (combo < 31) { return 3 * od; }
-		else if (combo < 41) { return 4 * od; }
-		else if (combo < 51) { return 5 * od; }
-		else if (combo > 50) { return 6 * od; }
+		if (combo < 10) { return 1 * od; }
+		else if (combo < 20) { return 2 * od; }
+		else if (combo < 30) { return 3 * od; }
+		else if (combo < 40) { return 4 * od; }
+		else if (combo < 50) { return 5 * od; }
+		else if (combo >= 50) { return 6 * od; }
 		else { return 1 * od; };
 	}
 	else {
-		if (combo < 11) { return 1 * od; }
-		else if (combo < 21) { return 2 * od; }
-		else if (combo < 31) { return 3 * od; }
-		else if (combo > 30) { return 4 * od; }
+		if (combo < 10) { return 1 * od; }
+		else if (combo < 20) { return 2 * od; }
+		else if (combo < 30) { return 3 * od; }
+		else if (combo >= 30) { return 4 * od; }
 		else { return 1 * od; }
 	};
 }
 
+int maxMultForMeter(int instrument) {
+	if (instrument == 1 || instrument == 3)
+		return 5;
+	else
+		return 3;
+}
 
+float comboFillCalc(int instrument) {
+	if (instrument == 2 || instrument == 4) {
+		// For instruments 2 and 4, limit the float value to 0.0 to 0.4
+		if (combo >= 40) {
+			return 1.0f; // If combo is 40 or more, set float value to 1.0
+		}
+		else {
+			return static_cast<float>(combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
+		}
+	}
+	else {
+		// For instruments 1 and 3, limit the float value to 0.0 to 0.6
+		if (combo >= 60) {
+			return 1.0f; // If combo is 60 or more, set float value to 1.0
+		}
+		else {
+			return static_cast<float>(combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
+		}
+	}
+}
 
 
 // clone hero defaults
