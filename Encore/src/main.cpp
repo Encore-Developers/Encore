@@ -634,6 +634,7 @@ int main(int argc, char* argv[])
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				isPlaying = false;
+				midiLoaded = false;
 				streamsLoaded = false;
 			}
 			if (!streamsLoaded) {
@@ -787,11 +788,13 @@ int main(int argc, char* argv[])
 					double relTime = (curNote.time - musicTime) * bns[bn];
 					double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
 					bool od = false;
-					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time+curNote.len <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-						if (curNote.miss == true) {
-							curChart.odPhrases[curODPhrase].missed = true;
+					if (curChart.odPhrases.size() > 0) {
+						if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time + curNote.len <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
+							if (curNote.miss == true) {
+								curChart.odPhrases[curODPhrase].missed = true;
+							}
+							od = true;
 						}
-						od = true;
 					}
 					if (relTime > 1.5) {
 						break;
