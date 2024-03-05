@@ -481,6 +481,12 @@ int main(int argc, char* argv[])
 				streamsLoaded = false;
 				midiLoaded = false;
 				isPlaying = false;
+				curNoteIdx = 0;
+				curODPhrase = 0;
+				curBeatLine = 0;
+				curBPM = 0;
+				instrument = 0;
+				diff = 0;
 				float curSong = 0.0f;
 				if (GuiButton({ (float)GetScreenWidth() - 160,0,60,60 }, "Exit")) {
 					exit(0);
