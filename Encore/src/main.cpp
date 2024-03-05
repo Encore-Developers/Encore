@@ -315,9 +315,6 @@ int main(int argc, char* argv[])
 	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
 	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-	Texture2D overdriveBackground = LoadTexture((directory / "Assets/overdrivebar.png").string().c_str());
-	Texture2D overdriveFill = LoadTexture((directory / "Assets/overdrivefill.png").string().c_str());
-	Texture2D multiplierEmpty = LoadTexture((directory / "Assets/multiplierempty.png").string().c_str());
 	Model odFrame = LoadModel((directory / "Assets/ui/od_frame.obj").string().c_str());
 	Model odBar = LoadModel((directory / "Assets/ui/od_fill.obj").string().c_str());
 	Model multFrame = LoadModel((directory / "Assets/ui/multcircle_frame.obj").string().c_str());
