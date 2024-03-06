@@ -560,6 +560,17 @@ int main(int argc, char* argv[])
 			//SetShaderValue(odMultShader, odLoc, &odFill, SHADER_UNIFORM_FLOAT);  -- odFill should be a float, 0-1, 0 being empty, 1 being full.
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
+				for (Note &note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
+					note.accounted = false;
+					note.hit = false;
+					note.miss = false;
+					note.held = false;
+					note.heldTime = 0;
+					note.perfect = false;
+				}
+				for (odPhrase &phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
+					phrase.missed = false;
+				}
 				selectStage = 0;
 				isPlaying = false;
 				midiLoaded = false;
