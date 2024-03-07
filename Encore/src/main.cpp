@@ -548,6 +548,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
+            DrawText(TextFormat("Stars: %01i", stars()), 5, GetScreenHeight() - 310, 24, goldStars ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Score: %01i", score), 5, GetScreenHeight() - 190, 24, WHITE);
@@ -560,6 +561,8 @@ int main(int argc, char* argv[])
 			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
+
+
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				for (Note &note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 					note.accounted = false;
@@ -568,7 +571,10 @@ int main(int argc, char* argv[])
 					note.held = false;
 					note.heldTime = 0;
 					note.perfect = false;
+
 				}
+                // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
+                // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
 				for (odPhrase &phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
 					phrase.missed = false;
 				}
@@ -603,7 +609,9 @@ int main(int argc, char* argv[])
 					note.held = false;
 					note.heldTime = 0;
 					note.perfect = false;
+                    // notes += 1;
 				}
+                // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
 				for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
 					phrase.missed = false;
 				}
@@ -697,6 +705,8 @@ int main(int argc, char* argv[])
 			// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 			// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
+            notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
+            std::cout<<endl <<endl<<endl<< "notes in difficulty" << songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()<<endl<<endl<<endl;
 			DrawModel(odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			DrawModel(odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			DrawModel(multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);

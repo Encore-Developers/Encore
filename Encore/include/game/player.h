@@ -5,8 +5,12 @@ int notesHit = 0;
 int notesMissed = 0;
 int perfectHit = 0;
 
+
+int notes = 0;
 int combo = 0;
 int score = 0;
+
+bool goldStars = false;
 
 bool overdrive = false;
 
@@ -14,9 +18,29 @@ bool FC = true;
 
 float health = 100.0f;
 
+
+float xStarThreshold[6] = { 0.05f, 0.175f, 0.325f, 0.5f, 0.7f,  1.0f };
+
 float overdriveFill = 0.0f;
 float overdriveActiveFill=0.0f;
 double overdriveActiveTime = 0.0;
+
+int stars() {
+    int baseScore = notes * 30;
+
+    float starPercent = (float)score/(float)baseScore;
+
+    if (starPercent < xStarThreshold[0]) {return 0;}
+    else if (starPercent < xStarThreshold[1]) {return 1;}
+    else if (starPercent < xStarThreshold[2]) {return 2;}
+    else if (starPercent < xStarThreshold[3]) {return 3;}
+    else if (starPercent < xStarThreshold[4]) {return 4;}
+    else if (starPercent < xStarThreshold[5]) {return 5;}
+    else if (starPercent > xStarThreshold[5]) {goldStars = true;}
+    else return 5;
+
+    return 0;
+}
 
 int multiplier(int instrument) {
 		int od = overdrive ? 2 : 1;
@@ -73,7 +97,8 @@ float comboFillCalc(int instrument) {
 
 
 // clone hero defaults
-float starThreshold[6] = { 0.3f, 0.7f, 1.0f, 2.0f, 2.8f,  4.4f };
+
+
 
 
 
@@ -86,6 +111,8 @@ public:
 		combo = 0;
 		score = 0;
 		FC = true;
+        notes = 0;
+        goldStars = false;
 	};
 
 	static void HitNote(bool perfect, int instrument) {
@@ -100,5 +127,7 @@ public:
 		combo = 0;
 		FC = false;
 	}
+
+
 };
 
