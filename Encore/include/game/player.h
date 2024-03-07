@@ -73,7 +73,7 @@ float comboFillCalc(int instrument) {
 
 
 // clone hero defaults
-float starThreshold[7] = { 0.3f, 0.7f, 1.0f, 2.0f, 2.8f, 3.6f, 4.4f };
+float starThreshold[6] = { 0.3f, 0.7f, 1.0f, 2.0f, 2.8f,  4.4f };
 
 
 
