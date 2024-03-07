@@ -679,7 +679,7 @@ int main(int argc, char* argv[])
 			for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 				Note& curNote = curChart.notes[i];
 				if (curNote.lift) {
-					if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
+					if (curNote.time - 0.1 < liftTimes[curNote.lane] && curNote.time + 0.1 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
 						curNote.hit = true;				
 						liftRegistered[curNote.lane] = true;
                         if (curNote.time - 0.0125 < liftTimes[curNote.lane] && curNote.time + 0.0125 > liftTimes[curNote.lane]) {
@@ -693,7 +693,7 @@ int main(int argc, char* argv[])
                             curNote.perfect = true;
                         }
 					}
-					else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+					else if (curNote.time + 0.11 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
 						curNote.miss = true;
 					}
 				}
