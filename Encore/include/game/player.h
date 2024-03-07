@@ -14,6 +14,10 @@ bool FC = true;
 
 float health = 100.0f;
 
+float overdriveFill = 0.0f;
+float overdriveActiveFill=0.0f;
+double overdriveActiveTime = 0.0;
+
 int multiplier(int instrument) {
 		int od = overdrive ? 2 : 1;
 	

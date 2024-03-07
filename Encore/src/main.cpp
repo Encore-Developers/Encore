@@ -272,6 +272,7 @@ int main(int argc, char* argv[])
 	Model expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
 	Model emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
 	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway/highway.png").string().c_str());
+	Texture2D highwayTextureOD = LoadTexture((directory / "Assets/highway/highway_od.png").string().c_str());
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
@@ -557,7 +558,7 @@ int main(int argc, char* argv[])
 			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
 			float comboFill = comboFillCalc(instrument);
 			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
-			//SetShaderValue(odMultShader, odLoc, &odFill, SHADER_UNIFORM_FLOAT);  -- odFill should be a float, 0-1, 0 being empty, 1 being full.
+			SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 			if (GuiButton({ 0,0,60,60 }, "<")) {
 				for (Note &note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
@@ -572,6 +573,11 @@ int main(int argc, char* argv[])
 					phrase.missed = false;
 				}
 				selectStage = 0;
+
+				overdrive = false;
+				overdriveFill = 0.0f;
+				overdriveActiveFill = 0.0f;
+				overdriveActiveTime = 0.0;
 				isPlaying = false;
 				midiLoaded = false;
 				streamsLoaded = false;
@@ -588,13 +594,46 @@ int main(int argc, char* argv[])
 				}
 			}
 			double musicTime = GetMusicTimePlayed(loadedStreams[0]);
+			
 			if (musicTime >= songList.songs[curPlayingSong].end) {
+				for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
+					note.accounted = false;
+					note.hit = false;
+					note.miss = false;
+					note.held = false;
+					note.heldTime = 0;
+					note.perfect = false;
+				}
+				for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
+					phrase.missed = false;
+				}
 				selectStage = 0;
+				overdrive = false;
+				overdriveFill = 0.0f;
+				overdriveActiveFill = 0.0f;
+				overdriveActiveTime = 0.0;
 				isPlaying = false;
 				midiLoaded = false;
 				streamsLoaded = false;
 			}
+			if (IsKeyPressed(KEY_SPACE) && overdriveFill > 0 && !overdrive) {
+				overdriveActiveTime = musicTime;
+				overdriveActiveFill = overdriveFill;
+				overdrive = true;
+				expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+				emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+			}
+			if (overdrive) {
 				
+				overdriveFill = overdriveActiveFill-((musicTime-overdriveActiveTime)/(1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
+				if (overdriveFill <= 0) { 
+					overdrive = false; 
+					overdriveActiveFill = 0;
+					overdriveActiveTime = 0.0;
+					expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
+					emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
+				}
+			}
 			for (int i = curBPM; i < songList.songs[curPlayingSong].bpms.size(); i++) {
 				if (musicTime > songList.songs[curPlayingSong].bpms[i].time && i < songList.songs[curPlayingSong].bpms.size() - 1)
 					curBPM++;
@@ -715,6 +754,31 @@ int main(int argc, char* argv[])
 						curNote.held = false;
 					}
 				}
+				bool od = false;
+				if (curChart.odPhrases.size() > 0) {
+					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
+						if (curNote.miss == true) {
+							curChart.odPhrases[curODPhrase].missed = true;
+						}
+						else {
+							if (curNote.hit && !curNote.countedForODPhrase) {
+								curChart.odPhrases[curODPhrase].notesHit++;
+								std::cout << "ODPHRASE " << curODPhrase << ": " << curChart.odPhrases[curODPhrase].notesHit << "/" << curChart.odPhrases[curODPhrase].noteCount << std::endl;
+								curNote.countedForODPhrase = true;
+							}
+						}
+						od = true;
+					}
+					if (curChart.odPhrases[curODPhrase].notesHit == curChart.odPhrases[curODPhrase].noteCount && !curChart.odPhrases[curODPhrase].added && overdriveFill < 1.0f) {
+						overdriveFill += 0.25f;
+						if (overdriveFill > 1.0f) overdriveFill = 1.0f;
+						if (overdrive) {
+							overdriveActiveFill = overdriveFill;
+							overdriveActiveTime = musicTime;
+						}
+						curChart.odPhrases[curODPhrase].added = true;
+					}
+				}
 				if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
 					player::HitNote(curNote.perfect, instrument);
 					curNote.accounted = true;
@@ -726,15 +790,6 @@ int main(int argc, char* argv[])
 
 				double relTime = (curNote.time - musicTime) * bns[bn];
 				double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
-				bool od = false;
-				if (curChart.odPhrases.size() > 0) {
-					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time + curNote.len <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-						if (curNote.miss == true) {
-							curChart.odPhrases[curODPhrase].missed = true;
-						}
-						od = true;
-					}
-				}
 				if (relTime > 1.5) {
 					break;
 				}

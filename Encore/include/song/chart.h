@@ -15,6 +15,7 @@ struct Note
 	bool valid = false;
 	bool miss = false;
 	bool accounted = false;
+	bool countedForODPhrase = false;
     bool perfect = false;
 	//For plastic support later
 	bool forceStrum;
@@ -25,7 +26,10 @@ struct odPhrase
 {
 	double start;
 	double end;
+	int noteCount=0;
+	int notesHit = 0;
 	bool missed = false;
+	bool added = false;
 };
 
 class Chart 
@@ -117,6 +121,15 @@ public:
 						odOn = false;
 					}
 				}
+			}
+		}
+		curODPhrase = 0;
+		if (odPhrases.size() > 0) {
+			for (Note &note : notes) {
+				if (note.time > odPhrases[curODPhrase].end && curODPhrase<odPhrases.size()-1)
+					curODPhrase++;
+				if (note.time >= odPhrases[curODPhrase].start && note.time <= odPhrases[curODPhrase].end)
+					odPhrases[curODPhrase].noteCount++;
 			}
 		}
 	}
