@@ -743,10 +743,10 @@ int main(int argc, char* argv[])
 					// lifts						//  distance between notes 
 					//									(furthest left - lane distance)
 					if (od)					//  1.6f	0.8
-						DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+						DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
 					// energy phrase
 					else
-						DrawModel(liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+						DrawModel(liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
 					// regular 
 				}
 				else {
@@ -775,13 +775,13 @@ int main(int argc, char* argv[])
 					if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
 						if (od) {
 							if (!curNote.held || !curNote.hit || !curNote.miss) {
-								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
 							};
 								
 						}
 						else {
 							if (!curNote.held || !curNote.hit || !curNote.miss) {
-								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, WHITE);
+								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
 							};
 								
 						}
