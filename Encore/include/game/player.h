@@ -44,9 +44,12 @@ int maxMultForMeter(int instrument) {
 }
 
 float comboFillCalc(int instrument) {
-	if (instrument == 2 || instrument == 4) {
+	if (instrument == 0 || instrument == 2) {
+        // conversation mbr
+        // shouldve been 0 and 2 :sob:
+        // also also it stops at the max combo, it doesnt do it one more time
 		// For instruments 2 and 4, limit the float value to 0.0 to 0.4
-		if (combo >= 40) {
+		if (combo >= 30) {
 			return 1.0f; // If combo is 40 or more, set float value to 1.0
 		}
 		else {
@@ -55,7 +58,7 @@ float comboFillCalc(int instrument) {
 	}
 	else {
 		// For instruments 1 and 3, limit the float value to 0.0 to 0.6
-		if (combo >= 60) {
+		if (combo >= 50) {
 			return 1.0f; // If combo is 60 or more, set float value to 1.0
 		}
 		else {
