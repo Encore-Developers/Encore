@@ -740,43 +740,44 @@ int main(int argc, char* argv[])
 			}
 			for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 				Note& curNote = curChart.notes[i];
-				if (curNote.lift) {
-					if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
-						curNote.hit = true;				
-						liftRegistered[curNote.lane] = true;
+                if (!curNote.lift) {
+                    if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
+                        curNote.hit = true;
+                        tapRegistered[curNote.lane] = true;
+                        if ((curNote.len) > curNote.sustainThreshold) {
+                            curNote.held = true;
+                        }
+                        if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
+                            curNote.perfect = true;
+                        }
+                    }
+                    else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+                        curNote.miss = true;
+                    }
+                    if (laneTimes[curNote.lane] == 0.0 && (curNote.len) > curNote.sustainThreshold) {
+                        curNote.held = false;
+                    }
+                } else {
+                    if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
+                        curNote.hit = true;
+                        liftRegistered[curNote.lane] = true;
                         if (curNote.time - 0.025 < liftTimes[curNote.lane] && curNote.time + 0.025 > liftTimes[curNote.lane]) {
                             curNote.perfect = true;
                         }
-					}
-					else if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
-						curNote.hit = true;
-						tapRegistered[curNote.lane] = true;
+                    }
+                    else if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
+                        curNote.hit = true;
+                        tapRegistered[curNote.lane] = true;
                         if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
                             curNote.perfect = true;
                         }
-					}
-					else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-						curNote.miss = true;
-					}
-				}
-				else {
-					if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
-						curNote.hit = true;
-						tapRegistered[curNote.lane] = true;
-						if ((curNote.len) > curNote.sustainThreshold) {
-							curNote.held = true;
-						}
-                        if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
-                            curNote.perfect = true;
-                        }
-					}
-					else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-						curNote.miss = true;
-					}
-					if (laneTimes[curNote.lane] == 0.0 && (curNote.len) > curNote.sustainThreshold) {
-						curNote.held = false;
-					}
-				}
+                    }
+                    else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+                        curNote.miss = true;
+                    }
+                }
+
+
 				bool od = false;
 				if (curChart.odPhrases.size() > 0) {
 					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
