@@ -68,7 +68,8 @@ int curNoteIdx = 0;
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
-
+Vector2 viewScroll = { 0,0 };
+Rectangle view = { 0 };
 
 std::vector<float> bns = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
 int bn = 4;
@@ -231,7 +232,7 @@ int main(int argc, char* argv[])
 	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 	
 	Model smasherBoard = LoadModel((directory / "Assets/highway/board.obj").string().c_str());
-	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/hightway/smasherBoard.png").string().c_str());
+	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/highway/smasherBoard.png").string().c_str());
 	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
 	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
@@ -246,9 +247,12 @@ int main(int argc, char* argv[])
 	Model multBar = LoadModel((directory / "Assets/ui/multcircle_fill.obj").string().c_str());
 	Model multCtr3 = LoadModel((directory / "Assets/ui/multbar_3.obj").string().c_str());
 	Model multCtr5 = LoadModel((directory / "Assets/ui/multbar_5.obj").string().c_str());
+	Model multNumber = LoadModel((directory / "Assets/ui/mult_number_plane.obj").string().c_str());
 	Texture2D odMultFrame = LoadTexture((directory / "Assets/ui/mult_base.png").string().c_str());
 	Texture2D odMultFill = LoadTexture((directory / "Assets/ui/mult_fill.png").string().c_str());
+	Texture2D multNumberTex = LoadTexture((directory / "Assets/ui/mult_number.png").string().c_str());
 	Shader odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
+	Shader multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 	odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
 	odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
 	multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
@@ -269,6 +273,11 @@ int main(int argc, char* argv[])
 	int isBassOrVocalLoc = GetShaderLocation(odMultShader, "isBassOrVocal");
 	odMultShader.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(odMultShader, "fillTex");
 
+	multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
+	multNumber.materials[0].shader = multNumberShader;
+	int uvOffsetXLoc= GetShaderLocation(multNumberShader, "uvOffsetX");
+	int uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
+	
 	Model expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
 	Model emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
 	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway/highway.png").string().c_str());
@@ -436,15 +445,17 @@ int main(int argc, char* argv[])
 					if (bn == 6) bn = 0; else bn++;
 					bnsButton = "Track Speed "+std::to_string(bns[bn])+"x";
 				}
+				GuiSetStyle(0, 19, 0x505050ff);
+				GuiScrollPanel({ 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f)+15, (float)GetScreenHeight()}, NULL, { 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f), 60.0f * songList.songs.size()}, &viewScroll, &view);
 				for (Song song : songList.songs) {
 
-					if (GuiButton(Rectangle { 0,0 + (60 * curSong),((float)GetScreenWidth() * (3.0f/5.0f)) , 60 }, "")) {
+					if (GuiButton(Rectangle { 0,viewScroll.y + (60 * curSong),((float)GetScreenWidth() * (3.0f/5.0f))+2 , 60 }, "")) {
 						curPlayingSong = (int)curSong;
 						selectStage = 1;
 					}
-					DrawTextureEx(song.albumArt, Vector2{ 5,(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
-					DrawText(song.title.c_str(), 65, (60 * curSong) + 15, 30, BLACK);
-					DrawText(song.artist.c_str(), ((float)GetScreenWidth()*(1.5f/4.0f)), (60 * curSong) + 20, 20, BLACK);
+					DrawTextureEx(song.albumArt, Vector2{ 5,viewScroll.y+(60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
+					DrawText(song.title.c_str(), 65, viewScroll.y + (60 * curSong) + 15, 30, BLACK);
+					DrawText(song.artist.c_str(), ((float)GetScreenWidth()*(1.5f/4.0f)), viewScroll.y + (60 * curSong) + 20, 20, BLACK);
 					curSong++;
 				}
 
@@ -548,7 +559,8 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
-            DrawText(TextFormat("Stars: %01i", stars()), 5, GetScreenHeight() - 310, 24, goldStars ? GOLD : WHITE);
+			int starsval = stars();
+            DrawText(TextFormat("Stars: %01i", starsval), 5, GetScreenHeight() - 310, 24, goldStars ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Score: %01i", score), 5, GetScreenHeight() - 190, 24, WHITE);
@@ -557,6 +569,8 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
 			float multFill = (float)(multiplier(instrument)-1) / (float)maxMultForMeter(instrument);
 			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(multNumberShader, uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(multNumberShader, uvOffsetYLoc, &uvOffsetY, SHADER_UNIFORM_FLOAT);
 			float comboFill = comboFillCalc(instrument);
 			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
@@ -706,8 +720,7 @@ int main(int argc, char* argv[])
 			// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
             notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-            std::cout<<endl <<endl<<endl<< "notes in difficulty" << songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()<<endl<<endl<<endl;
-			DrawModel(odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+            DrawModel(odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			DrawModel(odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			DrawModel(multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			DrawModel(multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
@@ -717,7 +730,7 @@ int main(int argc, char* argv[])
 			else {
 				DrawModel(multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
-				
+			DrawModel(multNumber, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 				
 
 			// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
@@ -773,7 +786,6 @@ int main(int argc, char* argv[])
 						else {
 							if (curNote.hit && !curNote.countedForODPhrase) {
 								curChart.odPhrases[curODPhrase].notesHit++;
-								std::cout << "ODPHRASE " << curODPhrase << ": " << curChart.odPhrases[curODPhrase].notesHit << "/" << curChart.odPhrases[curODPhrase].noteCount << std::endl;
 								curNote.countedForODPhrase = true;
 							}
 						}

@@ -1,6 +1,5 @@
 # Blender 4.0.2
 # www.blender.org
-mtllib od_fill.mtl
 o Overdrive_Background.001
 v -2.100395 0.082072 0.582621
 v 2.100395 0.082072 0.582621
@@ -64,7 +63,6 @@ vt 0.000354 0.982751
 vt 0.000000 0.985630
 vt 0.001404 0.979982
 s 1
-usemtl Energy_Meter_Empty
 f 29/1/1 30/2/1 18/3/1
 f 30/2/1 1/4/1 17/5/1
 f 1/4/1 2/6/1 16/7/1

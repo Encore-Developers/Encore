@@ -1,6 +1,7 @@
 //look this is the first header file ive ever created
 
 
+#include <iostream>
 int notesHit = 0;
 int notesMissed = 0;
 int perfectHit = 0;
@@ -25,18 +26,20 @@ float overdriveFill = 0.0f;
 float overdriveActiveFill=0.0f;
 double overdriveActiveTime = 0.0;
 
+float uvOffsetX = 0;
+float uvOffsetY = 0;
+
 int stars() {
-    int baseScore = notes * 30;
+    int baseScore = 1080+720+360+((notes-30) * 144);
 
     float starPercent = (float)score/(float)baseScore;
-
     if (starPercent < xStarThreshold[0]) {return 0;}
-    else if (starPercent < xStarThreshold[1]) {return 1;}
+	else if (starPercent < xStarThreshold[1]) { return 1; }
     else if (starPercent < xStarThreshold[2]) {return 2;}
     else if (starPercent < xStarThreshold[3]) {return 3;}
     else if (starPercent < xStarThreshold[4]) {return 4;}
     else if (starPercent < xStarThreshold[5]) {return 5;}
-    else if (starPercent > xStarThreshold[5]) {goldStars = true;}
+	else if (starPercent >= xStarThreshold[5]) { goldStars = true; return 5; }
     else return 5;
 
     return 0;
@@ -44,22 +47,22 @@ int stars() {
 
 int multiplier(int instrument) {
 		int od = overdrive ? 2 : 1;
-	
+		
 	if (instrument == 1 || instrument == 3){ 
 
-		if (combo < 10) { return 1 * od; }
-		else if (combo < 20) { return 2 * od; }
-		else if (combo < 30) { return 3 * od; }
-		else if (combo < 40) { return 4 * od; }
-		else if (combo < 50) { return 5 * od; }
-		else if (combo >= 50) { return 6 * od; }
+		if (combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (overdrive ? 0.5f:0); return 1 * od; }
+		else if (combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (overdrive ? 0.5f : 0);  return 2 * od; }
+		else if (combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (overdrive ? 0.5f : 0);  return 3 * od; }
+		else if (combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0 + (overdrive ? 0.5f : 0); return 4 * od; }
+		else if (combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f + (overdrive ? 0.5f : 0); return 5 * od; }
+		else if (combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f + (overdrive ? 0.5f : 0); return 6 * od; }
 		else { return 1 * od; };
 	}
 	else {
-		if (combo < 10) { return 1 * od; }
-		else if (combo < 20) { return 2 * od; }
-		else if (combo < 30) { return 3 * od; }
-		else if (combo >= 30) { return 4 * od; }
+		if (combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (overdrive ? 0.5 : 0); return 1 * od; }
+		else if (combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (overdrive ? 0.5 : 0); return 2 * od; }
+		else if (combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (overdrive ? 0.5 : 0); return 3 * od; }
+		else if (combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0 + (overdrive ? 0.5 : 0); return 4 * od; }
 		else { return 1 * od; }
 	};
 }
@@ -73,12 +76,9 @@ int maxMultForMeter(int instrument) {
 
 float comboFillCalc(int instrument) {
 	if (instrument == 0 || instrument == 2) {
-        // conversation mbr
-        // shouldve been 0 and 2 :sob:
-        // also also it stops at the max combo, it doesnt do it one more time
-		// For instruments 2 and 4, limit the float value to 0.0 to 0.4
+		// For instruments 0 and 2, limit the float value to 0.0 to 0.4
 		if (combo >= 30) {
-			return 1.0f; // If combo is 40 or more, set float value to 1.0
+			return 1.0f; // If combo is 30 or more, set float value to 1.0
 		}
 		else {
 			return static_cast<float>(combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
@@ -87,7 +87,7 @@ float comboFillCalc(int instrument) {
 	else {
 		// For instruments 1 and 3, limit the float value to 0.0 to 0.6
 		if (combo >= 50) {
-			return 1.0f; // If combo is 60 or more, set float value to 1.0
+			return 1.0f; // If combo is 50 or more, set float value to 1.0
 		}
 		else {
 			return static_cast<float>(combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
