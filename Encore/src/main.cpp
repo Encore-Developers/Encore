@@ -127,7 +127,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 			if (curNote.time > eventTime + 0.125) break;
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if (curNote.time - 0.125 < eventTime && curNote.time + 0.125 > eventTime) {
+				if (curNote.time - 0.125 < eventTime && curNote.time + 0.125 > eventTime && !curNote.hit) {
 					curNote.hit = true;
 					if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
 						curNote.held = true;
