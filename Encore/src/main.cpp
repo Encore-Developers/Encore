@@ -16,8 +16,9 @@
 #include "game/player.h"
 #include "game/keybinds.h"
 #include "raygui.h"
-#include <stdlib.h>
 
+#include <stdlib.h>
+#include "GLFW/glfw3.h"
 #include <cstdio>
 vector<std::string> ArgumentList::arguments;
 
@@ -75,12 +76,79 @@ std::vector<float> bns = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
 int bn = 4;
 std::string bnsButton = "Track Speed 1.5x";
 
-
 std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
 std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
 std::vector<bool> heldFrets = { false,false,false,false,false };
 std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
+SongList songList;
+static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
+
+	if (action < 2){
+
+		Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+		float eventTime = GetMusicTimePlayed(loadedStreams[0]);
+		if (key == KEY_SPACE && overdriveFill > 0 && !overdrive) {
+			overdriveActiveTime = eventTime;
+			overdriveActiveFill = overdriveFill;
+			overdrive = true;
+		}
+		int lane = -1;
+		if (diff == 3) {
+			for (int i = 0; i < 5; i++) {
+				if (key == KEYBINDS_5K[i]) {
+					if (action == GLFW_PRESS) {
+						heldFrets[i] = true;
+					}
+					else if (action == GLFW_RELEASE) {
+						heldFrets[i] = false;
+					}
+					lane = i;
+				}
+				
+			}
+		}
+		else {
+			for (int i = 0; i < 4; i++) {
+				if (key == KEYBINDS_4K[i]) {
+					if (action == GLFW_PRESS) {
+						heldFrets[i] = true;
+					}
+					else if (action == GLFW_RELEASE) {
+						heldFrets[i] = false;
+					}
+					lane = i;
+				}
+			}
+		}
+
+		for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
+			Note& curNote = curChart.notes[i];
+			if (curNote.time > eventTime + 0.125) break;
+			if (lane != curNote.lane) continue;
+			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
+				if (curNote.time - 0.125 < eventTime && curNote.time + 0.125 > eventTime) {
+					curNote.hit = true;
+					if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
+						curNote.held = true;
+					}
+					if (curNote.time - 0.025 < eventTime && curNote.time + 0.025 > eventTime) {
+						curNote.perfect = true;
+					}
+					break;
+				}
+			}
+			if (curNote.time + 0.125 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+				curNote.miss = true;
+			}
+			if (action==GLFW_RELEASE && curNote.held && (curNote.len) > curNote.sustainThreshold) {
+				curNote.held = false;
+			}
+			
+		}
+	}
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -100,7 +168,7 @@ int main(int argc, char* argv[])
 	int targetFPSArg = 0;
 
 	if (FPSCapStringVal != "")
-	{
+	{	
 #ifdef NDEBUG
 		str2int(&targetFPSArg, FPSCapStringVal.c_str());
 #else		
@@ -225,7 +293,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	SongList songList = LoadSongs(songsPath);
+	songList = LoadSongs(songsPath);
 
 	ChangeDirectory(GetApplicationDirectory());
 	//assets loading
@@ -308,45 +376,14 @@ int main(int argc, char* argv[])
 	Model liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
 	
+
+	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
+
 	
 	while (!WindowShouldClose())
 	{ 
 		float diffDistance = diff == 3 ? 2.0f : 1.5f;
 		float lineDistance = diff == 3 ? 1.5f : 1.0f;
-		if (isPlaying) {
-			if (diff == 3) {
-				for (int i = 0; i < 5; i++) {
-					if (IsKeyPressed(KEYBINDS_5K[i])) {
-						laneTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
-						liftTimes[i] = 0.0;
-						heldFrets[i] = true;
-						liftRegistered[i] = false;
-					}
-					if (IsKeyReleased(KEYBINDS_5K[i])) {
-						laneTimes[i] = 0.0;
-						liftTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
-						heldFrets[i] = false;
-						tapRegistered[i] = false;
-					}
-				}
-			}
-			else {
-				for (int i = 0; i < 4; i++) {
-					if (IsKeyPressed(KEYBINDS_4K[i])) {
-						laneTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
-						liftTimes[i] = 0.0;
-						heldFrets[i] = true;
-						liftRegistered[i] = false;
-					}
-					if (IsKeyReleased(KEYBINDS_4K[i])) {
-						laneTimes[i] = 0.0;
-						liftTimes[i] = (double)GetMusicTimePlayed(loadedStreams[0]);
-						heldFrets[i] = false;
-						tapRegistered[i] = false;
-					}
-				}
-			}
-		}
 		BeginDrawing();
 
 		ClearBackground(DARKGRAY);
@@ -371,7 +408,6 @@ int main(int argc, char* argv[])
 					int j = i - 2;
 					std::string charStr = "UNKNOWN";
 					if (KEYBINDS_5K[i] >= 39 && KEYBINDS_5K[i] < 96 && KEYBINDS_5K[i] != KEY_MENU) {
-						charStr=static_cast<char>(KEYBINDS_5K[i]);
 						charStr=static_cast<char>(KEYBINDS_5K[i]);
 					}
 					else {
@@ -556,6 +592,7 @@ int main(int argc, char* argv[])
 							diff = i;
 							selectStage = 3;
 							isPlaying = true;
+							glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 						}
 					}
 				}
@@ -590,10 +627,13 @@ int main(int argc, char* argv[])
 					note.perfect = false;
 
 				}
+				glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
                 // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
                 // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
 				for (odPhrase &phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
 					phrase.missed = false;
+					phrase.notesHit = 0;
+					phrase.added = false;
 				}
 				selectStage = 0;
 
@@ -617,7 +657,6 @@ int main(int argc, char* argv[])
 				}
 			}
 			double musicTime = GetMusicTimePlayed(loadedStreams[0]);
-			
 			if (musicTime >= songList.songs[curPlayingSong].end) {
 				for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 					note.accounted = false;
@@ -628,9 +667,12 @@ int main(int argc, char* argv[])
 					note.perfect = false;
                     // notes += 1;
 				}
+				glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
                 // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
 				for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
 					phrase.missed = false;
+					phrase.notesHit = 0;
+					phrase.added = false;
 				}
 				selectStage = 0;
 				overdrive = false;
@@ -641,15 +683,9 @@ int main(int argc, char* argv[])
 				midiLoaded = false;
 				streamsLoaded = false;
 			}
-			if (IsKeyPressed(KEY_SPACE) && overdriveFill > 0 && !overdrive) {
-				overdriveActiveTime = musicTime;
-				overdriveActiveFill = overdriveFill;
-				overdrive = true;
+			if (overdrive) {
 				expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
 				emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
-			}
-			if (overdrive) {
-				
 				overdriveFill = overdriveActiveFill-((musicTime-overdriveActiveTime)/(1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
 				if (overdriveFill <= 0) { 
 					overdrive = false; 
@@ -743,44 +779,6 @@ int main(int argc, char* argv[])
 			}
 			for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 				Note& curNote = curChart.notes[i];
-                if (!curNote.lift) {
-                    if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
-                        curNote.hit = true;
-                        tapRegistered[curNote.lane] = true;
-                        if ((curNote.len) > curNote.sustainThreshold) {
-                            curNote.held = true;
-                        }
-                        if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
-                            curNote.perfect = true;
-                        }
-                    }
-                    else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-                        curNote.miss = true;
-                    }
-                    if (laneTimes[curNote.lane] == 0.0 && (curNote.len) > curNote.sustainThreshold) {
-                        curNote.held = false;
-                    }
-                } else {
-                    if (curNote.time - 0.075 < liftTimes[curNote.lane] && curNote.time + 0.075 > liftTimes[curNote.lane] && !liftRegistered[curNote.lane]) {
-                        curNote.hit = true;
-                        liftRegistered[curNote.lane] = true;
-                        if (curNote.time - 0.025 < liftTimes[curNote.lane] && curNote.time + 0.025 > liftTimes[curNote.lane]) {
-                            curNote.perfect = true;
-                        }
-                    }
-                    else if (curNote.time - 0.075 < laneTimes[curNote.lane] && curNote.time + 0.075 > laneTimes[curNote.lane] && !tapRegistered[curNote.lane]) {
-                        curNote.hit = true;
-                        tapRegistered[curNote.lane] = true;
-                        if (curNote.time - 0.025 < laneTimes[curNote.lane] && curNote.time + 0.025 > laneTimes[curNote.lane]) {
-                            curNote.perfect = true;
-                        }
-                    }
-                    else if (curNote.time + 0.075 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-                        curNote.miss = true;
-                    }
-                }
-
-
 				bool od = false;
 				if (curChart.odPhrases.size() > 0) {
 					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
@@ -805,7 +803,7 @@ int main(int argc, char* argv[])
 						curChart.odPhrases[curODPhrase].added = true;
 					}
 				}
-				if (curNote.hit && IsKeyPressed(KEYBINDS_5K[curNote.lane]) && !curNote.accounted) {
+				if (curNote.hit && !curNote.accounted) {
 					player::HitNote(curNote.perfect, instrument);
 					curNote.accounted = true;
 				}
@@ -884,14 +882,13 @@ int main(int argc, char* argv[])
 				if (relEnd < -1 && curNoteIdx < curChart.notes.size()-1) curNoteIdx = i + 1;
 
 			}
-			DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.075f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.075f * bns[bn] )}, Color{0,255,0,255});
-			DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.075f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos - (12.5f * 0.075f * bns[bn] )}, Color{ 0,255,0,255 });
-            // DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn] )}, GOLD);
-            // DrawLine3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn] )}, GOLD);
+#ifndef NDEBUG
+			DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.125f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (12.5f * 0.125f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.125f * bns[bn]) }, Color{ 0,255,0,80 });
+			DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.125f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (12.5f * 0.125f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.125f * bns[bn]) }, Color{ 0,255,0,80 });
 
-            DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{  diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn] )}, GOLD);
-            DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * 0.025f * bns[bn] )}, GOLD);
-
+            DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.025f * bns[bn]) }, Color{ 190,255,0,80 });
+            DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.025f * bns[bn]) }, Color{ 190,255,0,80 });
+#endif
             EndMode3D();
 		
 			
