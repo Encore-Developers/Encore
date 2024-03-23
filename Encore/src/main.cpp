@@ -84,9 +84,6 @@ std::vector<bool> liftRegistered{ false,false,false,false,false };
 
 int main(int argc, char* argv[])
 {
-#ifdef NDEBUG
-
-#endif
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
@@ -104,7 +101,11 @@ int main(int argc, char* argv[])
 
 	if (FPSCapStringVal != "")
 	{
+#ifdef NDEBUG
+		str2int(&targetFPSArg, FPSCapStringVal.c_str());
+#else		
 		assert(str2int(&targetFPSArg, FPSCapStringVal.c_str()) == STR2INT_SUCCESS);
+#endif
 		TraceLog(LOG_INFO, "Argument overridden target FPS: %d", targetFPSArg);
 	}
 
@@ -177,6 +178,7 @@ int main(int argc, char* argv[])
 							keybindsError = true;
 						}
 					}
+					prev4k = KEYBINDS_4K;
 				}
 				else {
 					keybindsError = true;
@@ -196,6 +198,7 @@ int main(int argc, char* argv[])
 							keybindsError = true;
 						}
 					}
+					prev5k = KEYBINDS_5K;
 				}
 				else {
 					keybindsError = true;
