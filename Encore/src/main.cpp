@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
-
+	SetTraceLogLevel(LOG_NONE);
 
 	// 800 , 600
 	InitWindow(1,1, "Encore");
@@ -583,7 +583,7 @@ int main(int argc, char* argv[])
 					}
 					for (int i = 0; i < 4; i++) {
 						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
-							if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, songPartsList[i].c_str())) {
+							if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, "")) {
 								instrument = i;
 								int isBassOrVocal = 0;
 								if (instrument == 1 || instrument == 3) {
@@ -592,6 +592,8 @@ int main(int argc, char* argv[])
 								SetShaderValue(odMultShader, isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
 								selectStage = 2;
 							}
+							DrawText(songPartsList[i].c_str(), 20, 75 + (60 * (float)i), 30, BLACK);
+							DrawText((std::to_string(songList.songs[curPlayingSong].parts[i]->diff+1)+"/7").c_str(), 220, 75 + (60 * (float)i), 30, BLACK);
 						}
 					}
 				}
@@ -603,13 +605,14 @@ int main(int argc, char* argv[])
 						selectStage = 1;
 					}
 					if (songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.size()>0) {
-						if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, diffList[i].c_str())) {
+						if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, "")) {
 							diff = i;
 							selectStage = 3;
 							isPlaying = true;
 							glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 						}
 					}
+					DrawText(diffList[i].c_str(), 150-(MeasureText(diffList[i].c_str(),30)/2), 75 + (60 * (float)i), 30, BLACK);
 				}
 			}
 		}
