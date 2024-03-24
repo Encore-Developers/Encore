@@ -63,7 +63,7 @@ bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
 int selectStage = 0;
-std::vector<Music> loadedStreams;
+std::vector<std::pair<Music,int>> loadedStreams;
 int curPlayingSong = 0;
 int curNoteIdx = 0;
 int curODPhrase = 0;
@@ -82,6 +82,7 @@ std::string bnsButton = "Track Speed 1.5x";
 std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
 std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
 std::vector<bool> heldFrets = { false,false,false,false,false };
+std::vector<bool> overhitFrets = { false,false,false,false,false };
 std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
 SongList songList;
@@ -90,7 +91,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 	if (action < 2){
 
 		Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-		float eventTime = GetMusicTimePlayed(loadedStreams[0]);
+		float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
 		if (key == KEY_SPACE && overdriveFill > 0 && !overdrive) {
 			overdriveActiveTime = eventTime;
 			overdriveActiveFill = overdriveFill;
@@ -105,6 +106,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 					}
 					else if (action == GLFW_RELEASE) {
 						heldFrets[i] = false;
+						overhitFrets[i] = false;
 					}
 					lane = i;
 				}
@@ -119,6 +121,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 					}
 					else if (action == GLFW_RELEASE) {
 						heldFrets[i] = false;
+						overhitFrets[i] = false;
 					}
 					lane = i;
 				}
@@ -150,8 +153,9 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                 mute = true;
                 // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
 			}
-            if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && curNote.time - 0.1 > eventTime) {
-               player::OverHit(loadedStreams[instrument].stream);
+            if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && curNote.time - 0.1 > eventTime && !overhitFrets[lane]) {
+				player::OverHit();
+				overhitFrets[lane] = true;
             }
 
 		}
@@ -385,8 +389,8 @@ int main(int argc, char* argv[])
 	Model liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
 
-    Sound clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
-    SetSoundVolume(clapOD, 0.375);
+    //Sound clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
+    //SetSoundVolume(clapOD, 0.375);
 
 	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 
@@ -663,15 +667,16 @@ int main(int argc, char* argv[])
 				player::resetPlayerStats();
 			}
 			else {
-				for (Music& stream : loadedStreams) {
-					UpdateMusicStream(stream);
-					PlayMusicStream(stream);
-                    SetAudioStreamVolume(stream.stream, otherInstVolume);
-                    SetAudioStreamVolume(loadedStreams[instrument].stream, mute ? missVolume : selInstVolume);
+				for (auto& stream : loadedStreams) {
+					UpdateMusicStream(stream.first);
+					PlayMusicStream(stream.first);
+					if(instrument==stream.second)
+						SetAudioStreamVolume(stream.first.stream, mute ? missVolume : selInstVolume);
+					else
+						SetAudioStreamVolume(stream.first.stream, otherInstVolume);
 				}
-
 			}
-			double musicTime = GetMusicTimePlayed(loadedStreams[0]);
+			double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
 			if (musicTime >= songList.songs[curPlayingSong].end) {
 				for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 					note.accounted = false;
@@ -821,12 +826,12 @@ int main(int argc, char* argv[])
 					}
 				}
 				if (curNote.hit && !curNote.accounted) {
-					player::HitNote(curNote.perfect, instrument, loadedStreams[instrument].stream);
+					player::HitNote(curNote.perfect, instrument);
 					curNote.accounted = true;
 				}
 				else if (!curNote.accounted && !curNote.hit && curNote.time + 0.1 < musicTime) {
                     curNote.miss = true;
-					player::MissNote(loadedStreams[instrument].stream);
+					player::MissNote();
 					curNote.accounted = true;
 				}
 
@@ -891,7 +896,7 @@ int main(int argc, char* argv[])
                 if (curNote.miss) {
                     DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, RED);
                 }
-                if (curNote.hit && GetMusicTimePlayed(loadedStreams[0]) < curNote.time + 0.05f) {
+                if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.05f) {
                     DrawCube(Vector3{diffDistance - (1.0f * curNote.lane), 0, smasherPos}, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{255,215,0,128} : Color{255,255,255,64});
                 }
 

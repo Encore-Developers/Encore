@@ -122,27 +122,32 @@ public:
         playerOverhits = 0;
 	};
 
-	static void HitNote(bool perfect, int instrument, AudioStream stream) {
+	static void HitNote(bool perfect, int instrument) {
 		notesHit += 1;
 		combo += 1;
 		float perfectMult = perfect ? 1.2f : 1.0f;
 		score += (int)((30 * (multiplier(instrument)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
-        // SetAudioStreamVolume(stream, selInstVolume);
         mute = false;
 	}
-	static void MissNote(AudioStream stream) {
+	static void HitNoteAudio(bool perfect, int instrument) {
+		notesHit += 1;
+		combo += 1;
+		float perfectMult = perfect ? 1.2f : 1.0f;
+		score += (int)((30 * (multiplier(instrument)) * perfectMult));
+		perfectHit += perfect ? 1 : 0;
+		mute = false;
+	}
+	static void MissNote() {
 		notesMissed += 1;
 		combo = 0;
 		FC = false;
         mute = true;
-        // SetAudioStreamVolume(stream, missVolume);
 	}
-    static void OverHit(AudioStream stream) {
+    static void OverHit() {
         combo = 0;
         playerOverhits += 1;
         FC = false;
-        // SetAudioStreamVolume(stream, missVolume);
         mute = true;
     }
 };

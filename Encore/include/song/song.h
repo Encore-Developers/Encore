@@ -129,7 +129,7 @@ public:
 
 	std::vector<std::pair<double, bool>> beatLines; //double time, bool downbeat
 
-	std::vector<std::string> stemsPath{ "","","","","" };
+	std::vector<std::pair<std::string, int>> stemsPath{ {"",0},{"",1},{"",2},{"",3},{"",4} };
 
 	std::filesystem::path midiPath = "";
 
@@ -247,19 +247,19 @@ public:
 					if (std::filesystem::exists(jsonPath.parent_path() / itr->value.GetString())) 
 					{
 						if (stem == "drums")
-							stemsPath[0] = (jsonPath.parent_path() / itr->value.GetString()).string();
+							stemsPath[0].first = (jsonPath.parent_path() / itr->value.GetString()).string();
 
 						else if (stem == "bass")
-							stemsPath[1] = (jsonPath.parent_path() / itr->value.GetString()).string();
+							stemsPath[1].first = (jsonPath.parent_path() / itr->value.GetString()).string();
 
 						else if (stem == "lead")
-							stemsPath[2] = (jsonPath.parent_path() / itr->value.GetString()).string();
+							stemsPath[2].first = (jsonPath.parent_path() / itr->value.GetString()).string();
 
 						else if (stem == "vocals")
-							stemsPath[3] = (jsonPath.parent_path() / itr->value.GetString()).string();
+							stemsPath[3].first = (jsonPath.parent_path() / itr->value.GetString()).string();
 
 						else if (stem == "backing")
-							stemsPath[4] = (jsonPath.parent_path() / itr->value.GetString()).string();
+							stemsPath[4].first = (jsonPath.parent_path() / itr->value.GetString()).string();
 					}
 				}					
 			}
