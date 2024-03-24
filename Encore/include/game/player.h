@@ -6,10 +6,14 @@ int notesHit = 0;
 int notesMissed = 0;
 int perfectHit = 0;
 
+float selInstVolume = 0.5;
+float otherInstVolume = 0.375;
+float missVolume = 0;
 
 int notes = 0;
 int combo = 0;
 int score = 0;
+int playerOverhits = 0;
 
 bool goldStars = false;
 
@@ -19,6 +23,7 @@ bool FC = true;
 
 float health = 100.0f;
 
+bool mute = false;
 
 float xStarThreshold[6] = { 0.05f, 0.175f, 0.325f, 0.5f, 0.7f,  1.0f };
 
@@ -104,6 +109,7 @@ float comboFillCalc(int instrument) {
 
 class player {
 public:
+
 	static void resetPlayerStats() {
 		notesHit = 0;
 		notesMissed = 0;
@@ -113,21 +119,31 @@ public:
 		FC = true;
         notes = 0;
         goldStars = false;
+        playerOverhits = 0;
 	};
 
-	static void HitNote(bool perfect, int instrument) {
+	static void HitNote(bool perfect, int instrument, AudioStream stream) {
 		notesHit += 1;
 		combo += 1;
 		float perfectMult = perfect ? 1.2f : 1.0f;
 		score += (int)((30 * (multiplier(instrument)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
+        // SetAudioStreamVolume(stream, selInstVolume);
+        mute = false;
 	}
-	static void MissNote() {
+	static void MissNote(AudioStream stream) {
 		notesMissed += 1;
 		combo = 0;
 		FC = false;
+        mute = true;
+        // SetAudioStreamVolume(stream, missVolume);
 	}
-
-
+    static void OverHit(AudioStream stream) {
+        combo = 0;
+        playerOverhits += 1;
+        FC = false;
+        // SetAudioStreamVolume(stream, missVolume);
+        mute = true;
+    }
 };
 

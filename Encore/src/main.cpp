@@ -69,6 +69,9 @@ int curNoteIdx = 0;
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
+
+
+
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
@@ -124,27 +127,33 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 
 		for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 			Note& curNote = curChart.notes[i];
-			if (curNote.time > eventTime + 0.125) break;
+
+			// if (curNote.time > eventTime + 0.1) break;
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if (curNote.time - 0.125 < eventTime && curNote.time + 0.125 > eventTime && !curNote.hit) {
+				if (curNote.time - 0.1 < eventTime && curNote.time + 0.1 > eventTime && !curNote.hit) {
 					curNote.hit = true;
 					if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
 						curNote.held = true;
 					}
-					if (curNote.time - 0.025 < eventTime && curNote.time + 0.025 > eventTime) {
+					if (curNote.time - 0.03 < eventTime && curNote.time + 0.03 > eventTime) {
 						curNote.perfect = true;
 					}
 					break;
 				}
 			}
-			if (curNote.time + 0.125 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-				curNote.miss = true;
-			}
+			// if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+			//	    curNote.miss = true;
+			// }
 			if (action==GLFW_RELEASE && curNote.held && (curNote.len) > curNote.sustainThreshold) {
 				curNote.held = false;
+                mute = true;
+                // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
 			}
-			
+            if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && curNote.time - 0.1 > eventTime) {
+               player::OverHit(loadedStreams[instrument].stream);
+            }
+
 		}
 	}
 }
@@ -375,7 +384,9 @@ int main(int argc, char* argv[])
 	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
 	Model liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
-	
+
+    Sound clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
+    SetSoundVolume(clapOD, 0.375);
 
 	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 
@@ -607,6 +618,7 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("Combo: %01i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
+            DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
 			float multFill = (float)(multiplier(instrument)-1) / (float)maxMultForMeter(instrument);
 			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(multNumberShader, uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
@@ -654,7 +666,10 @@ int main(int argc, char* argv[])
 				for (Music& stream : loadedStreams) {
 					UpdateMusicStream(stream);
 					PlayMusicStream(stream);
+                    SetAudioStreamVolume(stream.stream, otherInstVolume);
+                    SetAudioStreamVolume(loadedStreams[instrument].stream, mute ? missVolume : selInstVolume);
 				}
+
 			}
 			double musicTime = GetMusicTimePlayed(loadedStreams[0]);
 			if (musicTime >= songList.songs[curPlayingSong].end) {
@@ -682,6 +697,7 @@ int main(int argc, char* argv[])
 				isPlaying = false;
 				midiLoaded = false;
 				streamsLoaded = false;
+
 			}
 			if (overdrive) {
 				expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
@@ -745,14 +761,15 @@ int main(int argc, char* argv[])
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
 						if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
 							double relTime = (songList.songs[curPlayingSong].beatLines[i].first - musicTime) * bns[bn];
-							if (relTime > 1.5)
-								break;
+							if (relTime > 1.5) break;
 							float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.025f : 0.005f;
 							DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
+							if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size() - 1) {
+                                curBeatLine++;
 
-							if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size() - 1)
-								curBeatLine++;
+                            }
 						}
+
 					}
 				}
 			// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
@@ -804,11 +821,12 @@ int main(int argc, char* argv[])
 					}
 				}
 				if (curNote.hit && !curNote.accounted) {
-					player::HitNote(curNote.perfect, instrument);
+					player::HitNote(curNote.perfect, instrument, loadedStreams[instrument].stream);
 					curNote.accounted = true;
 				}
-				else if (!curNote.accounted && curNote.miss) {
-					player::MissNote();
+				else if (!curNote.accounted && !curNote.hit && curNote.time + 0.1 < musicTime) {
+                    curNote.miss = true;
+					player::MissNote(loadedStreams[instrument].stream);
 					curNote.accounted = true;
 				}
 
