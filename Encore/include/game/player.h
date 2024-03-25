@@ -10,6 +10,22 @@ float selInstVolume = 0.5;
 float otherInstVolume = 0.375;
 float missVolume = 0;
 
+// time in seconds
+float goodFrontend = 0.1f;
+float goodBackend = 0.1f;
+float perfectFrontend = 0.025f;
+float perfectBackend = 0.025f;
+
+float VideoOffset = (0);
+
+bool lastNotePerfect = false;
+
+// make the hitwindow bigger for properly doing lifts
+float liftTimingMult = 1.25f;
+
+float highwayLength = 11.5f;
+float smasherPos = 2.7f;
+
 int notes = 0;
 int combo = 0;
 int score = 0;
@@ -120,6 +136,8 @@ public:
         notes = 0;
         goldStars = false;
         playerOverhits = 0;
+        overdrive = false;
+        lastNotePerfect = false;
 	};
 
 	static void HitNote(bool perfect, int instrument) {

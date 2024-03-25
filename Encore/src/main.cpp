@@ -71,7 +71,6 @@ int curBeatLine = 0;
 int curBPM = 0;
 
 
-
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
@@ -87,79 +86,88 @@ std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
 SongList songList;
 static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
+    // if (selectStage == 2) {
+        if (action < 2) {
 
-	if (action < 2){
+            Chart &curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+            float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
+            if (key == KEY_SPACE && overdriveFill > 0 && !overdrive) {
+                overdriveActiveTime = eventTime;
+                overdriveActiveFill = overdriveFill;
+                overdrive = true;
 
-		Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-		float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
-		if (key == KEY_SPACE && overdriveFill > 0 && !overdrive) {
-			overdriveActiveTime = eventTime;
-			overdriveActiveFill = overdriveFill;
-			overdrive = true;
-		}
-		int lane = -1;
-		if (diff == 3) {
-			for (int i = 0; i < 5; i++) {
-				if (key == KEYBINDS_5K[i]) {
-					if (action == GLFW_PRESS) {
-						heldFrets[i] = true;
-					}
-					else if (action == GLFW_RELEASE) {
-						heldFrets[i] = false;
-						overhitFrets[i] = false;
-					}
-					lane = i;
-				}
-				
-			}
-		}
-		else {
-			for (int i = 0; i < 4; i++) {
-				if (key == KEYBINDS_4K[i]) {
-					if (action == GLFW_PRESS) {
-						heldFrets[i] = true;
-					}
-					else if (action == GLFW_RELEASE) {
-						heldFrets[i] = false;
-						overhitFrets[i] = false;
-					}
-					lane = i;
-				}
-			}
-		}
+            }
+            int lane = -1;
+            if (diff == 3) {
+                for (int i = 0; i < 5; i++) {
+                    if (key == KEYBINDS_5K[i]) {
+                        if (action == GLFW_PRESS) {
+                            heldFrets[i] = true;
+                        } else if (action == GLFW_RELEASE) {
+                            heldFrets[i] = false;
+                            overhitFrets[i] = false;
+                        }
+                        lane = i;
+                    }
 
-		for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
-			Note& curNote = curChart.notes[i];
-
-			// if (curNote.time > eventTime + 0.1) break;
-			if (lane != curNote.lane) continue;
-			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if (curNote.time - 0.1 < eventTime && curNote.time + 0.1 > eventTime && !curNote.hit) {
-					curNote.hit = true;
-					if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
-						curNote.held = true;
-					}
-					if (curNote.time - 0.03 < eventTime && curNote.time + 0.03 > eventTime) {
-						curNote.perfect = true;
-					}
-					break;
-				}
-			}
-			// if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-			//	    curNote.miss = true;
-			// }
-			if (action==GLFW_RELEASE && curNote.held && (curNote.len) > curNote.sustainThreshold) {
-				curNote.held = false;
-                mute = true;
-                // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
-			}
-            if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && curNote.time - 0.1 > eventTime && !overhitFrets[lane]) {
-				player::OverHit();
-				overhitFrets[lane] = true;
+                }
+            } else {
+                for (int i = 0; i < 4; i++) {
+                    if (key == KEYBINDS_4K[i]) {
+                        if (action == GLFW_PRESS) {
+                            heldFrets[i] = true;
+                        } else if (action == GLFW_RELEASE) {
+                            heldFrets[i] = false;
+                            overhitFrets[i] = false;
+                        }
+                        lane = i;
+                    }
+                }
             }
 
-		}
-	}
+            for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
+                Note &curNote = curChart.notes[i];
+
+                // if (curNote.time > eventTime + 0.1) break;
+                if (lane != curNote.lane) continue;
+                if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
+                    if ((curNote.time + VideoOffset)- (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) < eventTime &&
+                            (curNote.time + VideoOffset) + (action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) > eventTime &&
+                            !curNote.hit) {
+
+                        curNote.hit = true;
+                        if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
+                            curNote.held = true;
+                        }
+                        if ((curNote.time + VideoOffset) - perfectBackend < eventTime && curNote.time + perfectFrontend > eventTime) {
+                            curNote.perfect = true;
+
+                        }
+                        if (curNote.perfect) lastNotePerfect = true;
+                        else lastNotePerfect = false;
+
+                        break;
+                    }
+                    if (curNote.miss) lastNotePerfect = false;
+                }
+                // if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+                //	    curNote.miss = true;
+                // }
+                if (action == GLFW_RELEASE && curNote.held && (curNote.len) > curNote.sustainThreshold) {
+                    curNote.held = false;
+                    mute = true;
+                    lastNotePerfect = false;
+                    // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
+                }
+                if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && (curNote.time + VideoOffset) - perfectBackend > eventTime &&
+                    !overhitFrets[lane]) {
+                    player::OverHit();
+                    overhitFrets[lane] = true;
+                }
+
+            }
+        }
+    //}
 }
 
 
@@ -198,7 +206,7 @@ int main(int argc, char* argv[])
 	double updateDrawTime = 0.0;
 	double waitTime = 0.0;
 	float deltaTime = 0.0f;
-	float smasherPos = 2.7f;
+
 
 	
 
@@ -288,6 +296,10 @@ int main(int argc, char* argv[])
 			else {
 				keybindsError = true;
 			}
+            if (document.HasMember("avOffset")) {
+                const rapidjson::Value& offset = document["avOffset"];
+                VideoOffset = offset.GetFloat();
+            }
 		}
 	}
 	else {
@@ -334,6 +346,7 @@ int main(int argc, char* argv[])
 	Model multNumber = LoadModel((directory / "Assets/ui/mult_number_plane.obj").string().c_str());
 	Texture2D odMultFrame = LoadTexture((directory / "Assets/ui/mult_base.png").string().c_str());
 	Texture2D odMultFill = LoadTexture((directory / "Assets/ui/mult_fill.png").string().c_str());
+    Texture2D odMultFillActive = LoadTexture((directory / "Assets/ui/mult_fill_od.png").string().c_str());
 	Texture2D multNumberTex = LoadTexture((directory / "Assets/ui/mult_number.png").string().c_str());
 	Shader odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
 	Shader multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
@@ -344,9 +357,9 @@ int main(int argc, char* argv[])
 	multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
 	multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
 	odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-	multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-	multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-	multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+    multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+    multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+    multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
 	odBar.materials[0].shader = odMultShader;
 	multBar.materials[0].shader = odMultShader;
 	multCtr3.materials[0].shader = odMultShader;
@@ -626,7 +639,8 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
             DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
-			float multFill = (float)(multiplier(instrument)-1) / (float)maxMultForMeter(instrument);
+            DrawText(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight()-370), 48, GOLD);
+			float multFill = (!overdrive ? (float)(multiplier(instrument)-1) : ((float)(multiplier(instrument)/2)-1)) / (float)maxMultForMeter(instrument);
 			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(multNumberShader, uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(multNumberShader, uvOffsetYLoc, &uvOffsetY, SHADER_UNIFORM_FLOAT);
@@ -634,6 +648,7 @@ int main(int argc, char* argv[])
 			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
+
 
 
 			if (GuiButton({ 0,0,60,60 }, "<")) {
@@ -677,7 +692,9 @@ int main(int argc, char* argv[])
 						SetAudioStreamVolume(stream.first.stream, mute ? missVolume : selInstVolume);
 					else
 						SetAudioStreamVolume(stream.first.stream, otherInstVolume);
+
 				}
+
 			}
 			double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
 			if (musicTime >= songList.songs[curPlayingSong].end) {
@@ -710,6 +727,11 @@ int main(int argc, char* argv[])
 			if (overdrive) {
 				expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
 				emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+                multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
+                multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
+                multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
+
+
 				overdriveFill = overdriveActiveFill-((musicTime-overdriveActiveTime)/(1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
 				if (overdriveFill <= 0) { 
 					overdrive = false; 
@@ -717,6 +739,10 @@ int main(int argc, char* argv[])
 					overdriveActiveTime = 0.0;
 					expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 					emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
+                    multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+                    multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+                    multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+
 				}
 			}
 			for (int i = curBPM; i < songList.songs[curPlayingSong].bpms.size(); i++) {
@@ -734,16 +760,16 @@ int main(int argc, char* argv[])
 				DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 				for (int i = 0; i < 5; i++) {
 					if (heldFrets[i]) {
-						DrawModel(smasherPressed, Vector3{ diffDistance - (float)(i + 2), 0, 0.1f }, 1.0f, WHITE);
+						DrawModel(smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 					}
 					else {
-						DrawModel(smasherReg, Vector3{ diffDistance - (float)(i + 2), 0, 0.1f }, 1.0f, WHITE);
+						DrawModel(smasherReg, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 					}
 				}
 				for (int i = 0; i < 4; i++) {
-					float radius = (i == 1) ? 0.03 : 0.01;
+					float radius = (i == 1) ? 0.05 : 0.02;
 						
-					DrawCylinderEx(Vector3{ lineDistance - i, 0, 3 }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 4.0f, Color{128,128,128,128});
+					DrawCylinderEx(Vector3{ lineDistance - i, 0, smasherPos + 0.5f}, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 15, Color{128,128,128,128});
 				}
 					
 				DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
@@ -752,15 +778,15 @@ int main(int argc, char* argv[])
                 DrawModel(emhHighway, Vector3{0, 0, 0}, 1.0f, WHITE);
                 for (int i = 0; i < 4; i++) {
                     if (heldFrets[i]) {
-                        DrawModel(smasherPressed, Vector3{diffDistance - (float)(i + 2), 0, 0}, 1.0f, WHITE);
+                        DrawModel(smasherPressed, Vector3{diffDistance - (float)(i), 0, smasherPos}, 1.0f, WHITE);
                     } else {
-                        DrawModel(smasherReg, Vector3{diffDistance - (float)(i + 2), 0, 0}, 1.0f, WHITE);
+                        DrawModel(smasherReg, Vector3{diffDistance - (float)(i), 0, smasherPos}, 1.0f, WHITE);
 
                     }
                 }
                 for (int i = 0; i < 3; i++) {
                     float radius = (i == 1) ? 0.03 : 0.01;
-                    DrawCylinderEx(Vector3{lineDistance - (float)i, 0, 3.5}, Vector3{lineDistance - (float)i, 0, 20}, radius,
+                    DrawCylinderEx(Vector3{lineDistance - (float)i, 0, smasherPos}, Vector3{lineDistance - (float)i, 0, highwayLength}, radius,
                                     radius, 4.0f, Color{128, 128, 128, 128});
                 }
                 DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
@@ -768,10 +794,10 @@ int main(int argc, char* argv[])
 				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
 						if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-							double relTime = (songList.songs[curPlayingSong].beatLines[i].first - musicTime) * bns[bn];
+							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * bns[bn];
 							if (relTime > 1.5) break;
-							float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.025f : 0.005f;
-							DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (12.5f * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
+							float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.03f : 0.0075f;
+							DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
 							if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size() - 1) {
                                 curBeatLine++;
 
@@ -789,9 +815,11 @@ int main(int argc, char* argv[])
 			DrawModel(multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			DrawModel(multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			if (instrument == 1 || instrument == 3) {
+
 				DrawModel(multCtr5, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
 			else {
+
 				DrawModel(multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
 			DrawModel(multNumber, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
@@ -838,8 +866,8 @@ int main(int argc, char* argv[])
 					curNote.accounted = true;
 				}
 
-				double relTime = (curNote.time - musicTime) * bns[bn];
-				double relEnd = ((curNote.time + curNote.len) - musicTime) * bns[bn];
+				double relTime = ((curNote.time - musicTime) + VideoOffset) * bns[bn];
+				double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * bns[bn];
 				if (relTime > 1.5) {
 					break;
 				}
@@ -848,10 +876,10 @@ int main(int argc, char* argv[])
 					// lifts						//  distance between notes 
 					//									(furthest left - lane distance)
 					if (od)					//  1.6f	0.8
-						DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// energy phrase
 					else
-						DrawModel(liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// regular 
 				}
 				else {
@@ -870,23 +898,50 @@ int main(int argc, char* argv[])
 						else if (curNote.hit && !curNote.held) {
 							relTime = relTime + curNote.heldTime;
 						}
-						if (od)
-							DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 217, 183, 82 ,255 });
 
-						else
-							DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
+                        /*Color SustainColor = Color{ 69,69,69,255 };
+                        if (curNote.held) {
+                            if (od) {
+                                Color SustainColor = Color{ 217, 183, 82 ,255 };
+                            }
+                            Color SustainColor = Color{ 172,82,217,255 };
+                        }*/
+
+                        if (curNote.held && !od) {
+                            DrawCylinderEx(Vector3{diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime)}, Vector3{diffDistance-(1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd)}, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
+                        }
+                        if (od && curNote.held) {
+                            DrawCylinderEx(Vector3{diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime)}, Vector3{diffDistance-(1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd)}, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
+                        }
+                        if (!curNote.held && curNote.hit || curNote.miss) {
+                            DrawCylinderEx(Vector3{diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime)}, Vector3{diffDistance-(1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd)}, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+                        }
+                        if (!curNote.hit && !curNote.accounted && !curNote.miss) {
+                            if (od) {
+                                DrawCylinderEx(Vector3{diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime)}, Vector3{diffDistance-(1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd)}, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
+                            } else {
+                                DrawCylinderEx(Vector3{diffDistance - (1.0f * curNote.lane), 0.05f,
+                                                       smasherPos + (highwayLength * (float) relTime)},
+                                               Vector3{diffDistance - (1.0f * curNote.lane), 0.05f,
+                                                       smasherPos + (highwayLength * (float) relEnd)}, 0.1f, 0.1f, 15,
+                                               Color{150, 19, 150, 255});
+                            }
+                        }
+
+
+							// DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 					}
 					// regular notes
 					if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
 						if (od) {
-							if (!curNote.held || !curNote.hit || !curNote.miss) {
-								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
+							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
+								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
 								
 						}
 						else {
-							if (!curNote.held || !curNote.hit || !curNote.miss) {
-								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.1f, WHITE);
+							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
+								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
 								
 						}
@@ -897,7 +952,7 @@ int main(int argc, char* argv[])
 
 				}
                 if (curNote.miss) {
-                    DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (12.5f * (float)relTime) }, 1.0f, RED);
+                    DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
                 }
                 if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.05f) {
                     DrawCube(Vector3{diffDistance - (1.0f * curNote.lane), 0, smasherPos}, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{255,215,0,128} : Color{255,255,255,64});
@@ -909,11 +964,11 @@ int main(int argc, char* argv[])
 
 			}
 #ifndef NDEBUG
-			DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.125f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (12.5f * 0.125f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.125f * bns[bn]) }, Color{ 0,255,0,80 });
-			DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.125f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (12.5f * 0.125f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.125f * bns[bn]) }, Color{ 0,255,0,80 });
+			// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Color{ 0,255,0,80 });
+			// DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Color{ 0,255,0,80 });
 
-            DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (12.5f * 0.025f * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.025f * bns[bn]) }, Color{ 190,255,0,80 });
-            DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (12.5f * 0.025f * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (12.5f * 0.025f * bns[bn]) }, Color{ 190,255,0,80 });
+            // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Color{ 190,255,0,80 });
+            // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Color{ 190,255,0,80 });
 #endif
             EndMode3D();
 		
