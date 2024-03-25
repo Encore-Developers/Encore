@@ -17,6 +17,7 @@ float perfectFrontend = 0.025f;
 float perfectBackend = 0.025f;
 
 float VideoOffset = (0);
+float InputOffset = 0;
 
 bool lastNotePerfect = false;
 

@@ -131,15 +131,15 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                 // if (curNote.time > eventTime + 0.1) break;
                 if (lane != curNote.lane) continue;
                 if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-                    if ((curNote.time + VideoOffset)- (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) < eventTime &&
-                            (curNote.time + VideoOffset) + (action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) > eventTime &&
+                    if ((curNote.time)- (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) < eventTime+InputOffset &&
+                            (curNote.time) + (action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) > eventTime+InputOffset &&
                             !curNote.hit) {
 
                         curNote.hit = true;
                         if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
                             curNote.held = true;
                         }
-                        if ((curNote.time + VideoOffset) - perfectBackend < eventTime && curNote.time + perfectFrontend > eventTime) {
+                        if ((curNote.time) - perfectBackend < eventTime + InputOffset&& curNote.time + perfectFrontend > eventTime+InputOffset) {
                             curNote.perfect = true;
 
                         }
@@ -159,7 +159,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                     lastNotePerfect = false;
                     // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
                 }
-                if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && (curNote.time + VideoOffset) - perfectBackend > eventTime &&
+                if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
                     !overhitFrets[lane]) {
                     player::OverHit();
                     overhitFrets[lane] = true;
@@ -299,6 +299,10 @@ int main(int argc, char* argv[])
             if (document.HasMember("avOffset")) {
                 const rapidjson::Value& offset = document["avOffset"];
                 VideoOffset = -(float)(offset.GetInt()/1000);
+            }
+            if (document.HasMember("inputOffset")) {
+                const rapidjson::Value& offset = document["inputOffset"];
+                InputOffset = (float)(offset.GetInt()/1000);
             }
 		}
 	}
