@@ -298,7 +298,7 @@ int main(int argc, char* argv[])
 			}
             if (document.HasMember("avOffset")) {
                 const rapidjson::Value& offset = document["avOffset"];
-                VideoOffset = offset.GetFloat();
+                VideoOffset = -(float)(offset.GetInt()/1000);
             }
 		}
 	}
