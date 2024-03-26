@@ -2,6 +2,12 @@
 #include "raylib.h"
 #include <filesystem>
 class Assets {
+private:
+	Texture2D LoadTextureFilter(std::filesystem::path texturePath) {
+		Texture2D tex = LoadTexture(texturePath.string().c_str());
+		SetTextureFilter(tex, TEXTURE_FILTER_ANISOTROPIC_4X);
+		return tex;
+	}
 public:
 	Model smasherReg;
 	Texture2D smasherRegTex;
@@ -47,19 +53,19 @@ public:
 	//Sound clapOD;
 	void loadAssets(std::filesystem::path directory) {
 		smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-		smasherRegTex = LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
+		smasherRegTex = LoadTextureFilter(directory / "Assets/highway/smasher_reg.png");
 		smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 		smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 		smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
 		smasherBoard = LoadModel((directory / "Assets/highway/board.obj").string().c_str());
-		smasherBoardTex = LoadTexture((directory / "Assets/highway/smasherBoard.png").string().c_str());
+		smasherBoardTex = LoadTextureFilter(directory / "Assets/highway/smasherBoard.png");
 		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
 		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
 		smasherPressed = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-		smasherPressTex = LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
+		smasherPressTex = LoadTextureFilter(directory / "Assets/highway/smasher_press.png");
 		smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
 		smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
@@ -70,10 +76,10 @@ public:
 		multCtr3 = LoadModel((directory / "Assets/ui/multbar_3.obj").string().c_str());
 		multCtr5 = LoadModel((directory / "Assets/ui/multbar_5.obj").string().c_str());
 		multNumber = LoadModel((directory / "Assets/ui/mult_number_plane.obj").string().c_str());
-		odMultFrame = LoadTexture((directory / "Assets/ui/mult_base.png").string().c_str());
-		odMultFill = LoadTexture((directory / "Assets/ui/mult_fill.png").string().c_str());
-		odMultFillActive = LoadTexture((directory / "Assets/ui/mult_fill_od.png").string().c_str());
-		multNumberTex = LoadTexture((directory / "Assets/ui/mult_number.png").string().c_str());
+		odMultFrame = LoadTextureFilter(directory / "Assets/ui/mult_base.png");
+		odMultFill = LoadTextureFilter(directory / "Assets/ui/mult_fill.png");
+		odMultFillActive = LoadTextureFilter(directory / "Assets/ui/mult_fill_od.png");
+		multNumberTex = LoadTextureFilter(directory / "Assets/ui/mult_number.png");
 		odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
 		multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 		odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
@@ -103,22 +109,22 @@ public:
 
 		expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
 		emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
-		highwayTexture = LoadTexture((directory / "Assets/highway/highway.png").string().c_str());
-		highwayTextureOD = LoadTexture((directory / "Assets/highway/highway_od.png").string().c_str());
+		highwayTexture = LoadTextureFilter(directory / "Assets/highway/highway.png");
+		highwayTextureOD = LoadTextureFilter(directory / "Assets/highway/highway_od.png");
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-		noteTexture = LoadTexture((directory / "Assets/notes/note_d.png").string().c_str());
-		emitTexture = LoadTexture((directory / "Assets/notes/note_e.png").string().c_str());
+		noteTexture = LoadTextureFilter(directory / "Assets/notes/note_d.png");
+		emitTexture = LoadTextureFilter(directory / "Assets/notes/note_e.png");
 		noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
 		noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
 		noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
 		noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-		noteTextureOD = LoadTexture((directory / "Assets/notes/note_od_d.png").string().c_str());
-		emitTextureOD = LoadTexture((directory / "Assets/notes/note_od_e.png").string().c_str());
+		noteTextureOD = LoadTextureFilter(directory / "Assets/notes/note_od_d.png");
+		emitTextureOD = LoadTextureFilter(directory / "Assets/notes/note_od_e.png");
 		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
