@@ -267,6 +267,13 @@ int main(int argc, char* argv[])
 				if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 60,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
 					settings.avOffsetMS = (int)avOffsetFloat;
 				}
+				if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20)-60,(float)GetScreenHeight() / 2 - 80,60,60 }, "-1")) {
+					settings.avOffsetMS--;
+				}
+				if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureText(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 80,60,60 }, "+1")) {
+					settings.avOffsetMS++;
+				}
+
 				DrawText(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureText(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 50, 20, BLACK);
 				float inputOffsetFloat = (float)settings.inputOffsetMS;
 				DrawText("Input Offset", (float)GetScreenWidth() / 2 - MeasureText("Input Offset", 20) / 2, (float)GetScreenHeight() / 2, 20, WHITE);
@@ -274,6 +281,12 @@ int main(int argc, char* argv[])
 				DrawText(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
 				if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 + 20,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
 					settings.inputOffsetMS = (int)inputOffsetFloat;
+				}
+				if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20) - 60,(float)GetScreenHeight() / 2,60,60 }, "-1")) {
+					settings.inputOffsetMS--;
+				}
+				if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureText(" -500 ", 20) ,(float)GetScreenHeight() / 2,60,60 }, "+1")) {
+					settings.inputOffsetMS++;
 				}
 				DrawText(std::to_string(settings.inputOffsetMS).c_str(), (float)GetScreenWidth()/2 - (MeasureText(std::to_string(settings.inputOffsetMS).c_str(), 20)/2), (float)GetScreenHeight() / 2 + 30, 20, BLACK);
 				for (int i = 0; i < 5; i++) {
