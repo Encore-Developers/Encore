@@ -15,6 +15,8 @@
 #include "game/utility.h"
 #include "game/player.h"
 #include "game/keybinds.h"
+#include "game/assets.h"
+#include "game/settings.h"
 #include "raygui.h"
 
 #include <stdlib.h>
@@ -24,37 +26,6 @@ vector<std::string> ArgumentList::arguments;
 
 bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
-}
-
-std::vector<int> KEYBINDS_5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
-std::vector<int> KEYBINDS_4K{ KEY_D,KEY_F,KEY_J,KEY_K };
-std::vector<int> prev4k = KEYBINDS_4K;
-std::vector<int> prev5k = KEYBINDS_5K;
-bool changing4k = false;
-
-rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
-	rapidjson::Value array(rapidjson::kArrayType);
-	for (const auto& value : vec) {
-		array.PushBack(value, allocator);
-	}
-	return array;
-}
-
-static void saveKeyBinds() {
-	rapidjson::Document document;
-	document.SetObject();
-	rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
-	rapidjson::Value keybinds4k = vectorToJsonArray(KEYBINDS_4K, allocator);
-	rapidjson::Value keybinds5k = vectorToJsonArray(KEYBINDS_5K, allocator);
-	document.AddMember("4k", keybinds4k, allocator);
-	document.AddMember("5k", keybinds5k, allocator);
-	char writeBuffer[2048];
-	FILE* fp = fopen("keybinds.json","wb");
-	rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-
-	rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
-	document.Accept(writer);
-	fclose(fp);
 }
 
 int instrument = 0;
@@ -69,14 +40,15 @@ int curNoteIdx = 0;
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
-
+int selLane = 0;
+bool changingKey = false;
 
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
-std::vector<float> bns = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
-int bn = 4;
-std::string bnsButton = "Track Speed 1.5x";
+
+std::string trackSpeedButton = "Track Speed 1.50x";
+
 
 std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
 std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
@@ -85,22 +57,23 @@ std::vector<bool> overhitFrets = { false,false,false,false,false };
 std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
 SongList songList;
+Settings settings;
+Assets assets;
+
 static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
     // if (selectStage == 2) {
         if (action < 2) {
-
             Chart &curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
             float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
             if (key == KEY_SPACE && overdriveFill > 0 && !overdrive) {
                 overdriveActiveTime = eventTime;
                 overdriveActiveFill = overdriveFill;
                 overdrive = true;
-
             }
             int lane = -1;
             if (diff == 3) {
                 for (int i = 0; i < 5; i++) {
-                    if (key == KEYBINDS_5K[i]) {
+                    if (key == settings.keybinds5K[i]) {
                         if (action == GLFW_PRESS) {
                             heldFrets[i] = true;
                         } else if (action == GLFW_RELEASE) {
@@ -113,7 +86,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                 }
             } else {
                 for (int i = 0; i < 4; i++) {
-                    if (key == KEYBINDS_4K[i]) {
+                    if (key == settings.keybinds4K[i]) {
                         if (action == GLFW_PRESS) {
                             heldFrets[i] = true;
                         } else if (action == GLFW_RELEASE) {
@@ -159,7 +132,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                     lastNotePerfect = false;
                     // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
                 }
-                if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
+				if (action == GLFW_PRESS && eventTime<songList.songs[curPlayingSong].music_start && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
                     !overhitFrets[lane]) {
                     player::OverHit();
                     overhitFrets[lane] = true;
@@ -241,177 +214,20 @@ int main(int argc, char* argv[])
 	std::filesystem::path directory = executablePath.parent_path();
 
 	std::filesystem::path songsPath = directory / "Songs";
-	bool keybindsError = false;
 	if (std::filesystem::exists(directory / "keybinds.json")) {
-		std::ifstream ifs(directory / "keybinds.json");
-
-		if (!ifs.is_open()) {
-			std::cerr << "Failed to open JSON file." << std::endl;
-		}
-
-		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-		ifs.close();
-		rapidjson::Document document;
-		document.Parse(jsonString.c_str());
-		
-		if (document.IsObject())
-		{
-			if (document.HasMember("4k") && document["4k"].IsArray()) {
-				const rapidjson::Value& arr = document["4k"];
-				if (arr.Size() == 4) {
-					for (int i = 0; i < 4; i++) {
-						if (arr[i].IsInt()) {
-							KEYBINDS_4K[i] = arr[i].GetInt();
-						}
-						else {
-							keybindsError = true;
-						}
-					}
-					prev4k = KEYBINDS_4K;
-				}
-				else {
-					keybindsError = true;
-				}
-			}
-			else {
-				keybindsError = true;
-			}
-			if (document.HasMember("5k") && document["5k"].IsArray()) {
-				const rapidjson::Value& arr = document["5k"]; 
-				if (arr.Size() == 5) {
-					for (int i = 0; i < 5; i++) {
-						if (arr[i].IsInt()) {
-							KEYBINDS_5K[i] = arr[i].GetInt();
-						}
-						else {
-							keybindsError = true;
-						}
-					}
-					prev5k = KEYBINDS_5K;
-				}
-				else {
-					keybindsError = true;
-				}
-			}
-			else {
-				keybindsError = true;
-			}
-            if (document.HasMember("avOffset")) {
-                const rapidjson::Value& offset = document["avOffset"];
-                VideoOffset = -(float)(offset.GetInt()/1000);
-            }
-            if (document.HasMember("inputOffset")) {
-                const rapidjson::Value& offset = document["inputOffset"];
-                InputOffset = (float)(offset.GetInt()/1000);
-            }
-		}
+		settings.migrateSettings(directory / "keybinds.json",directory / "settings.json");
 	}
-	else {
-		keybindsError = true;
-	}
-	if (keybindsError == true) {
-		std::ofstream defaultbinds(directory / "keybinds.json");
-		if (defaultbinds.is_open()) {
-			// Write text to the file
-			defaultbinds << "{\"4k\":[68, 70, 74, 75],\"5k\":[68, 70, 74, 75, 76]\n}";
-			// Close the file
-			defaultbinds.close();
-		}
-		else {
-			std::cerr << "Error: Unable to open keybinds file for writing.\n";
-		}
-	}
+	settings.loadSettings(directory / "settings.json");
 
 	songList = LoadSongs(songsPath);
 
 	ChangeDirectory(GetApplicationDirectory());
-	//assets loading
-	Model smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-	Texture2D smasherRegTex = LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
-	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	
-	Model smasherBoard = LoadModel((directory / "Assets/highway/board.obj").string().c_str());
-	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/highway/smasherBoard.png").string().c_str());
-	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
-	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-
-	Model smasherPressed = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-	Texture2D smasherPressTex = LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
-	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
-	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-
-	Model odFrame = LoadModel((directory / "Assets/ui/od_frame.obj").string().c_str());
-	Model odBar = LoadModel((directory / "Assets/ui/od_fill.obj").string().c_str());
-	Model multFrame = LoadModel((directory / "Assets/ui/multcircle_frame.obj").string().c_str());
-	Model multBar = LoadModel((directory / "Assets/ui/multcircle_fill.obj").string().c_str());
-	Model multCtr3 = LoadModel((directory / "Assets/ui/multbar_3.obj").string().c_str());
-	Model multCtr5 = LoadModel((directory / "Assets/ui/multbar_5.obj").string().c_str());
-	Model multNumber = LoadModel((directory / "Assets/ui/mult_number_plane.obj").string().c_str());
-	Texture2D odMultFrame = LoadTexture((directory / "Assets/ui/mult_base.png").string().c_str());
-	Texture2D odMultFill = LoadTexture((directory / "Assets/ui/mult_fill.png").string().c_str());
-    Texture2D odMultFillActive = LoadTexture((directory / "Assets/ui/mult_fill_od.png").string().c_str());
-	Texture2D multNumberTex = LoadTexture((directory / "Assets/ui/mult_number.png").string().c_str());
-	Shader odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
-	Shader multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
-	odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-    multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-    multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-    multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-	odBar.materials[0].shader = odMultShader;
-	multBar.materials[0].shader = odMultShader;
-	multCtr3.materials[0].shader = odMultShader;
-	multCtr5.materials[0].shader = odMultShader;
-	int odLoc= GetShaderLocation(odMultShader, "overdrive");
-	int comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
-	int multLoc = GetShaderLocation(odMultShader, "multBar");
-	int isBassOrVocalLoc = GetShaderLocation(odMultShader, "isBassOrVocal");
-	odMultShader.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(odMultShader, "fillTex");
-
-	multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
-	multNumber.materials[0].shader = multNumberShader;
-	int uvOffsetXLoc= GetShaderLocation(multNumberShader, "uvOffsetX");
-	int uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
-	
-	Model expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
-	Model emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
-	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway/highway.png").string().c_str());
-	Texture2D highwayTextureOD = LoadTexture((directory / "Assets/highway/highway_od.png").string().c_str());
-	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	Model noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-	Texture2D noteTexture = LoadTexture((directory / "Assets/notes/note_d.png").string().c_str()); 
-	Texture2D emitTexture = LoadTexture((directory / "Assets/notes/note_e.png").string().c_str());
-	noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
-	noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
-	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-	Model noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-	Texture2D noteTextureOD = LoadTexture((directory / "Assets/notes/note_od_d.png").string().c_str());
-	Texture2D emitTextureOD = LoadTexture((directory / "Assets/notes/note_od_e.png").string().c_str());
-	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-	Model liftModel = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
-	Model liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
-
-    //Sound clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
-    //SetSoundVolume(clapOD, 0.375);
+	assets.loadAssets(directory);
 
 	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
-
-	
+	glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
+	GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 	while (!WindowShouldClose())
 	{ 
 		float diffDistance = diff == 3 ? 2.0f : 1.5f;
@@ -420,66 +236,87 @@ int main(int argc, char* argv[])
 
 		ClearBackground(DARKGRAY);
 
-		
-		
 		if (!isPlaying) {
-			//keybinds:
 			if (selectStage == -1) {
-				if (GuiButton({ ((float)GetScreenWidth()/2)-150,((float)GetScreenHeight()-60),100,60}, "Cancel")) {
+				if (GuiButton({ ((float)GetScreenWidth()/2)-350,((float)GetScreenHeight()-60),100,60}, "Cancel")) {
 					selectStage = 0;
-					KEYBINDS_4K = prev4k;
-					KEYBINDS_5K = prev5k;
+					settings.keybinds4K = settings.prev4k;
+					settings.keybinds5K = settings.prev5k;
+					settings.trackSpeed = settings.prevTrackSpeed;
+					settings.inputOffsetMS = settings.prevInputOffsetMS;
+					settings.avOffsetMS = settings.prevAvOffsetMS;
 				}
-				if (GuiButton({ ((float)GetScreenWidth() / 2) + 150,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
 					selectStage = 0;
-					prev4k = KEYBINDS_4K;
-					prev5k = KEYBINDS_5K;
-					saveKeyBinds();
+					settings.prev4k = settings.keybinds4K;
+					settings.prev5k = settings.keybinds5K;
+					settings.prevTrackSpeed = settings.trackSpeed;
+					settings.prevInputOffsetMS = settings.inputOffsetMS;
+					settings.prevAvOffsetMS = settings.avOffsetMS;
+					settings.saveSettings(directory / "settings.json");
 				}
+				if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2-160,250,60 }, "")) {
+					if (settings.trackSpeed == settings.trackSpeedOptions.size()-1) settings.trackSpeed = 0; else settings.trackSpeed++;
+					trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+				}
+				DrawText(trackSpeedButton.c_str(), (float)GetScreenWidth()/2 - MeasureText(trackSpeedButton.c_str(),20)/2, (float)GetScreenHeight() / 2 - 140,20,BLACK);
+				float avOffsetFloat = (float)settings.avOffsetMS;
+				DrawText("A/V Offset", (float)GetScreenWidth()/2 - MeasureText("A/V Offset",20) / 2, (float)GetScreenHeight() / 2 - 80, 20, WHITE);
+				DrawText(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20), (float)GetScreenHeight() / 2 - 50, 20, WHITE);
+				DrawText(" 500 ", (float)GetScreenWidth() / 2 + 125 , (float)GetScreenHeight() / 2 - 50, 20, WHITE);
+				if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 60,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
+					settings.avOffsetMS = (int)avOffsetFloat;
+				}
+				DrawText(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureText(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 50, 20, BLACK);
+				float inputOffsetFloat = (float)settings.inputOffsetMS;
+				DrawText("Input Offset", (float)GetScreenWidth() / 2 - MeasureText("Input Offset", 20) / 2, (float)GetScreenHeight() / 2, 20, WHITE);
+				DrawText(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20), (float)GetScreenHeight() / 2 + 30, 20, WHITE);
+				DrawText(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
+				if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 + 20,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
+					settings.inputOffsetMS = (int)inputOffsetFloat;
+				}
+				DrawText(std::to_string(settings.inputOffsetMS).c_str(), (float)GetScreenWidth()/2 - (MeasureText(std::to_string(settings.inputOffsetMS).c_str(), 20)/2), (float)GetScreenHeight() / 2 + 30, 20, BLACK);
 				for (int i = 0; i < 5; i++) {
-					int j = i - 2;
-					std::string charStr = "UNKNOWN";
-					if (KEYBINDS_5K[i] >= 39 && KEYBINDS_5K[i] < 96 && KEYBINDS_5K[i] != KEY_MENU) {
-						charStr=static_cast<char>(KEYBINDS_5K[i]);
+					float j = i - 2.0f;
+					std::string charStr = "UNK";
+					if (settings.keybinds5K[i] >= 39 && settings.keybinds5K[i] < 96) {
+						charStr=static_cast<char>(settings.keybinds5K[i]);
 					}
 					else {
-						charStr = getKeyStr(KEYBINDS_5K[i]);
+						charStr = getKeyStr(settings.keybinds5K[i]);
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * (float)j),((float)GetScreenHeight() / 2) - 120,60,60 }, charStr.c_str())) {
-						changing4k = false;
-						heldFrets[i] = true;
-					}
-					if (!changing4k && heldFrets[i]) {
-						std::string changeString = "Press a key for 5k lane " + std::to_string(i);
-						DrawText(changeString.c_str(), (GetScreenWidth()-MeasureText(changeString.c_str(),20))/2, (GetScreenHeight()/2)+40, 20, BLACK);
-						int pressedKey = GetKeyPressed();
-						if (pressedKey != 0) {
-							KEYBINDS_5K[i] = pressedKey;
-							heldFrets[i] = false;
-						}
+					if (GuiButton({ ((float)GetScreenWidth() / 2)-40 + (80 * j),(float)GetScreenHeight()/2 + 80,80,60 }, charStr.c_str())) {
+						settings.changing4k = false;
+						selLane = i;
+						changingKey = true;
 					}
 				}
 				for (int i = 0; i < 4; i++) {
 					float j = i - 1.5f; 
-					std::string charStr = "UNKNOWN";
-					if (KEYBINDS_4K[i] >= 39 && KEYBINDS_4K[i] < 96 && KEYBINDS_4K[i] != KEY_MENU) {
-						charStr = static_cast<char>(KEYBINDS_4K[i]);
+					std::string charStr = "UNK";
+					if (settings.keybinds4K[i] >= 39 && settings.keybinds4K[i] < 96) {
+						charStr = static_cast<char>(settings.keybinds4K[i]);
 					}
 					else {
-						charStr = getKeyStr(KEYBINDS_4K[i]);
+						charStr = getKeyStr(settings.keybinds4K[i]);
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * j),((float)GetScreenHeight() / 2) - 40,60,60 }, charStr.c_str())) {
-						heldFrets[i] = true;
-						changing4k = true;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),(float)GetScreenHeight() / 2 + 160,80,60 }, charStr.c_str())) {
+						changingKey = true;
+						selLane = i;
+						settings.changing4k = true;
 					}
-					if (changing4k && heldFrets[i]) {
-						std::string changeString = "Press a key for 4k lane " + std::to_string(i);
-						DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, (GetScreenHeight() / 2) + 40, 20, BLACK);
-						int pressedKey = GetKeyPressed();
-						if (pressedKey != 0) {
-							KEYBINDS_4K[i] = pressedKey;
-							heldFrets[i] = false;
-						}
+				}
+				if (changingKey) {
+					std::vector<int>& bindsToChange = settings.changing4k ? settings.keybinds4K : settings.keybinds5K;
+					DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
+					std::string keyString = settings.changing4k ? "4k" : "5k";
+					std::string changeString = "Press a key for " + keyString + " lane " + std::to_string(selLane+1);
+					DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 10, 20, WHITE);
+					int pressedKey = GetKeyPressed();
+					if (pressedKey != 0) {
+						bindsToChange[selLane] = pressedKey;
+						selLane = 0;
+						changingKey = false;
 					}
 				}
 			}
@@ -495,13 +332,13 @@ int main(int argc, char* argv[])
 				instrument = 0;
 				diff = 0;
 				float curSong = 0.0f;
-				if (GuiButton({ (float)GetScreenWidth() - 160,0,60,60 }, "Exit")) {
+				if (GuiButton({ (float)GetScreenWidth() - 260,0,60,60 }, "Exit")) {
 					exit(0);
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60 }, "Keybinds")) {
+				if (GuiButton({ (float)GetScreenWidth() - 200,0,200,60 }, "Settings")) {
 					selectStage = -1;
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 100,60,100,60 }, "Fullscreen")) {
+				if (GuiButton({ (float)GetScreenWidth() - 200,60,200,60 }, "Fullscreen")) {
 					windowToggle = !windowToggle;
 					ToggleBorderlessWindowed();
 					if (windowToggle) {
@@ -512,11 +349,7 @@ int main(int argc, char* argv[])
 						SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 					};
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 150,120,150,60 }, bnsButton.c_str())) {
-					if (bn == 6) bn = 0; else bn++;
-					bnsButton = "Track Speed "+std::to_string(bns[bn])+"x";
-				}
-				GuiSetStyle(0, 19, 0x505050ff);
+				
 				GuiScrollPanel({ 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f)+15, (float)GetScreenHeight()}, NULL, { 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f), 60.0f * songList.songs.size()}, &viewScroll, &view);
 				for (Song song : songList.songs) {
 
@@ -606,7 +439,7 @@ int main(int argc, char* argv[])
 								if (instrument == 1 || instrument == 3) {
 									isBassOrVocal = 1;
 								}
-								SetShaderValue(odMultShader, isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
+								SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
 								selectStage = 2;
 							}
 							DrawText(songPartsList[i].c_str(), 20, 75 + (60 * (float)i), 30, BLACK);
@@ -645,12 +478,12 @@ int main(int argc, char* argv[])
             DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
             DrawText(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight()-370), 48, GOLD);
 			float multFill = (!overdrive ? (float)(multiplier(instrument)-1) : ((float)(multiplier(instrument)/2)-1)) / (float)maxMultForMeter(instrument);
-			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
-			SetShaderValue(multNumberShader, uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
-			SetShaderValue(multNumberShader, uvOffsetYLoc, &uvOffsetY, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.multNumberShader, assets.uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.multNumberShader, assets.uvOffsetYLoc, &uvOffsetY, SHADER_UNIFORM_FLOAT);
 			float comboFill = comboFillCalc(instrument);
-			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
-			SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.odMultShader, assets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.odMultShader, assets.odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 
 
@@ -701,7 +534,7 @@ int main(int argc, char* argv[])
 
 			}
 			double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
-			if (musicTime >= songList.songs[curPlayingSong].end) {
+			if (musicTime >= songList.songs[curPlayingSong].length) {
 				for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 					note.accounted = false;
 					note.hit = false;
@@ -729,11 +562,11 @@ int main(int argc, char* argv[])
 
 			}
 			if (overdrive) {
-				expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
-				emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
-                multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
-                multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
-                multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
+				assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
+				assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
+				assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
+                assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
+                assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
 
 
 				overdriveFill = overdriveActiveFill-((musicTime-overdriveActiveTime)/(1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
@@ -741,11 +574,11 @@ int main(int argc, char* argv[])
 					overdrive = false; 
 					overdriveActiveFill = 0;
 					overdriveActiveTime = 0.0;
-					expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-					emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-                    multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-                    multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-                    multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+					assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                    assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                    assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                    assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 
 				}
 			}
@@ -761,13 +594,13 @@ int main(int argc, char* argv[])
 				
 			BeginMode3D(camera);
 			if (diff == 3) {
-				DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+				DrawModel(assets.expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 				for (int i = 0; i < 5; i++) {
 					if (heldFrets[i]) {
-						DrawModel(smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
+						DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 					}
 					else {
-						DrawModel(smasherReg, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
+						DrawModel(assets.smasherReg, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 					}
 				}
 				for (int i = 0; i < 4; i++) {
@@ -776,29 +609,30 @@ int main(int argc, char* argv[])
 					DrawCylinderEx(Vector3{ lineDistance - i, 0, smasherPos + 0.5f}, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 15, Color{128,128,128,128});
 				}
 					
-				DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
+				DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.04f, WHITE);
 			}
 			else {
-                DrawModel(emhHighway, Vector3{0, 0, 0}, 1.0f, WHITE);
-                for (int i = 0; i < 4; i++) {
-                    if (heldFrets[i]) {
-                        DrawModel(smasherPressed, Vector3{diffDistance - (float)(i), 0, smasherPos}, 1.0f, WHITE);
-                    } else {
-                        DrawModel(smasherReg, Vector3{diffDistance - (float)(i), 0, smasherPos}, 1.0f, WHITE);
+				DrawModel(assets.emhHighway, Vector3{ 0, 0, 0 }, 1.0f, WHITE);
+				for (int i = 0; i < 4; i++) {
+					if (heldFrets[i]) {
+						DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0, smasherPos }, 1.0f, WHITE);
+					}
+					else {
+						DrawModel(assets.smasherReg, Vector3{ diffDistance - (float)(i), 0, smasherPos }, 1.0f, WHITE);
 
-                    }
-                }
-                for (int i = 0; i < 3; i++) {
-                    float radius = (i == 1) ? 0.03 : 0.01;
-                    DrawCylinderEx(Vector3{lineDistance - (float)i, 0, smasherPos}, Vector3{lineDistance - (float)i, 0, highwayLength}, radius,
-                                    radius, 4.0f, Color{128, 128, 128, 128});
-                }
-                DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
+					}
+				}
+				for (int i = 0; i < 3; i++) {
+					float radius = (i == 1) ? 0.03 : 0.01;
+					DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, smasherPos }, Vector3{ lineDistance - (float)i, 0, highwayLength }, radius,
+						radius, 4.0f, Color{ 128, 128, 128, 128 });
+				}
+				DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
             }
 				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
 						if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * bns[bn];
+							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
 							if (relTime > 1.5) break;
 							float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.03f : 0.0075f;
 							DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
@@ -814,19 +648,19 @@ int main(int argc, char* argv[])
 			// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
             notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-            DrawModel(odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
-			DrawModel(odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
-			DrawModel(multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
-			DrawModel(multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+            DrawModel(assets.odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			if (instrument == 1 || instrument == 3) {
 
-				DrawModel(multCtr5, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(assets.multCtr5, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
 			else {
 
-				DrawModel(multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(assets.multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
-			DrawModel(multNumber, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.multNumber, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 				
 
 			// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
@@ -870,8 +704,8 @@ int main(int argc, char* argv[])
 					curNote.accounted = true;
 				}
 
-				double relTime = ((curNote.time - musicTime) + VideoOffset) * bns[bn];
-				double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * bns[bn];
+				double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+				double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
 				if (relTime > 1.5) {
 					break;
 				}
@@ -880,17 +714,17 @@ int main(int argc, char* argv[])
 					// lifts						//  distance between notes 
 					//									(furthest left - lane distance)
 					if (od)					//  1.6f	0.8
-						DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(assets.liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// energy phrase
 					else
-						DrawModel(liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(assets.liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// regular 
 				}
 				else {
 					// sustains
 					if ((curNote.len)> curNote.sustainThreshold) {
 						if (curNote.hit && curNote.held) {
-							if (curNote.heldTime < (curNote.len * bns[bn])) {
+							if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
 								curNote.heldTime = 0.0 - relTime;
 								if (relTime < 0.0) relTime = 0.0;
 							}
@@ -939,13 +773,13 @@ int main(int argc, char* argv[])
 					if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
 						if (od) {
 							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
-								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+								DrawModel(assets.noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
-								
+
 						}
 						else {
-							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
-								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+							if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+								DrawModel(assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
 								
 						}
@@ -956,7 +790,7 @@ int main(int argc, char* argv[])
 
 				}
                 if (curNote.miss) {
-                    DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
+                    DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
                 }
                 if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.05f) {
                     DrawCube(Vector3{diffDistance - (1.0f * curNote.lane), 0, smasherPos}, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{255,215,0,128} : Color{255,255,255,64});
@@ -968,11 +802,11 @@ int main(int argc, char* argv[])
 
 			}
 #ifndef NDEBUG
-			// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Color{ 0,255,0,80 });
-			// DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Color{ 0,255,0,80 });
+			// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
+			// DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
 
-            // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Color{ 190,255,0,80 });
-            // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Color{ 190,255,0,80 });
+            // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
+            // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
 #endif
             EndMode3D();
 		

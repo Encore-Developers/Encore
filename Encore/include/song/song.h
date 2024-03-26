@@ -191,43 +191,36 @@ public:
 					if (part == "ds")
 					{
 						parts[0]->diff = itr->value.GetInt();
-						parts[0]->hasPart = true;
 					}
 
 					else if (part == "ba")
 					{
 						parts[1]->diff = itr->value.GetInt();
-						parts[1]->hasPart = true;
 					}
 
 					else if (part == "gr")
 					{
 						parts[2]->diff = itr->value.GetInt();
-						parts[2]->hasPart = true;
 					}
 
 					else if (part == "vl")
 					{
 						parts[3]->diff = itr->value.GetInt();
-						parts[3]->hasPart = true;
 					}
 
 					else if (part == "pd")
 					{
 						parts[4]->diff = itr->value.GetInt();
-						parts[4]->hasPart = true;
 					}
 
 					else if (part == "pb")
 					{
 						parts[5]->diff = itr->value.GetInt();
-						parts[5]->hasPart = true;
 					}
 
 					else if (part == "pg")
 					{
 						parts[6]->diff = itr->value.GetInt();
-						parts[6]->hasPart = true;
 					}
 				}
 			}
