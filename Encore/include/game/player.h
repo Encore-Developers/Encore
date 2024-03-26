@@ -7,7 +7,7 @@ int perfectHit = 0;
 
 float selInstVolume = 0.5;
 float otherInstVolume = 0.375;
-float missVolume = 0;
+float missVolume = 0.1;
 
 // time in seconds
 float goodFrontend = 0.1f;
