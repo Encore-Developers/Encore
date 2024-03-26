@@ -1,5 +1,4 @@
-//look this is the first header file ive ever created
-
+#pragma once
 
 #include <iostream>
 int notesHit = 0;

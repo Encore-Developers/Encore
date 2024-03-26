@@ -16,6 +16,7 @@
 #include "game/player.h"
 #include "game/keybinds.h"
 #include "game/assets.h"
+#include "game/settings.h"
 #include "raygui.h"
 
 #include <stdlib.h>
@@ -25,37 +26,6 @@ vector<std::string> ArgumentList::arguments;
 
 bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
-}
-
-std::vector<int> KEYBINDS_5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
-std::vector<int> KEYBINDS_4K{ KEY_D,KEY_F,KEY_J,KEY_K };
-std::vector<int> prev4k = KEYBINDS_4K;
-std::vector<int> prev5k = KEYBINDS_5K;
-bool changing4k = false;
-
-rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
-	rapidjson::Value array(rapidjson::kArrayType);
-	for (const auto& value : vec) {
-		array.PushBack(value, allocator);
-	}
-	return array;
-}
-
-static void saveKeyBinds() {
-	rapidjson::Document document;
-	document.SetObject();
-	rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
-	rapidjson::Value keybinds4k = vectorToJsonArray(KEYBINDS_4K, allocator);
-	rapidjson::Value keybinds5k = vectorToJsonArray(KEYBINDS_5K, allocator);
-	document.AddMember("4k", keybinds4k, allocator);
-	document.AddMember("5k", keybinds5k, allocator);
-	char writeBuffer[2048];
-	FILE* fp = fopen("keybinds.json","wb");
-	rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-
-	rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
-	document.Accept(writer);
-	fclose(fp);
 }
 
 int instrument = 0;
@@ -75,9 +45,9 @@ int curBPM = 0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
-std::vector<float> bns = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
-int bn = 4;
-std::string bnsButton = "Track Speed 1.5x";
+
+std::string trackSpeedButton = "Track Speed 1.5x";
+
 
 std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
 std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
@@ -86,24 +56,23 @@ std::vector<bool> overhitFrets = { false,false,false,false,false };
 std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
 SongList songList;
-
+Settings settings;
 Assets assets;
+
 static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
     // if (selectStage == 2) {
         if (action < 2) {
-
             Chart &curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
             float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
             if (key == KEY_SPACE && overdriveFill > 0 && !overdrive) {
                 overdriveActiveTime = eventTime;
                 overdriveActiveFill = overdriveFill;
                 overdrive = true;
-
             }
             int lane = -1;
             if (diff == 3) {
                 for (int i = 0; i < 5; i++) {
-                    if (key == KEYBINDS_5K[i]) {
+                    if (key == settings.keybinds5K[i]) {
                         if (action == GLFW_PRESS) {
                             heldFrets[i] = true;
                         } else if (action == GLFW_RELEASE) {
@@ -116,7 +85,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                 }
             } else {
                 for (int i = 0; i < 4; i++) {
-                    if (key == KEYBINDS_4K[i]) {
+                    if (key == settings.keybinds4K[i]) {
                         if (action == GLFW_PRESS) {
                             heldFrets[i] = true;
                         } else if (action == GLFW_RELEASE) {
@@ -162,7 +131,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                     lastNotePerfect = false;
                     // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
                 }
-                if (action == GLFW_PRESS && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
+				if (action == GLFW_PRESS && eventTime<songList.songs[curPlayingSong].music_start && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
                     !overhitFrets[lane]) {
                     player::OverHit();
                     overhitFrets[lane] = true;
@@ -244,86 +213,8 @@ int main(int argc, char* argv[])
 	std::filesystem::path directory = executablePath.parent_path();
 
 	std::filesystem::path songsPath = directory / "Songs";
-	bool keybindsError = false;
-	if (std::filesystem::exists(directory / "keybinds.json")) {
-		std::ifstream ifs(directory / "keybinds.json");
 
-		if (!ifs.is_open()) {
-			std::cerr << "Failed to open JSON file." << std::endl;
-		}
-
-		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-		ifs.close();
-		rapidjson::Document document;
-		document.Parse(jsonString.c_str());
-		
-		if (document.IsObject())
-		{
-			if (document.HasMember("4k") && document["4k"].IsArray()) {
-				const rapidjson::Value& arr = document["4k"];
-				if (arr.Size() == 4) {
-					for (int i = 0; i < 4; i++) {
-						if (arr[i].IsInt()) {
-							KEYBINDS_4K[i] = arr[i].GetInt();
-						}
-						else {
-							keybindsError = true;
-						}
-					}
-					prev4k = KEYBINDS_4K;
-				}
-				else {
-					keybindsError = true;
-				}
-			}
-			else {
-				keybindsError = true;
-			}
-			if (document.HasMember("5k") && document["5k"].IsArray()) {
-				const rapidjson::Value& arr = document["5k"]; 
-				if (arr.Size() == 5) {
-					for (int i = 0; i < 5; i++) {
-						if (arr[i].IsInt()) {
-							KEYBINDS_5K[i] = arr[i].GetInt();
-						}
-						else {
-							keybindsError = true;
-						}
-					}
-					prev5k = KEYBINDS_5K;
-				}
-				else {
-					keybindsError = true;
-				}
-			}
-			else {
-				keybindsError = true;
-			}
-            if (document.HasMember("avOffset")) {
-                const rapidjson::Value& offset = document["avOffset"];
-                VideoOffset = -(float)(offset.GetInt()/1000);
-            }
-            if (document.HasMember("inputOffset")) {
-                const rapidjson::Value& offset = document["inputOffset"];
-                InputOffset = (float)(offset.GetInt()/1000);
-            }
-		}
-	}
-	else {
-		keybindsError = true;
-	}
-	if (keybindsError == true) {
-		std::ofstream defaultbinds(directory / "keybinds.json");
-		if (defaultbinds.is_open()) {
-			// Write text to the file
-			defaultbinds << "{\"4k\":[68, 70, 74, 75],\"5k\":[68, 70, 74, 75, 76]\n}";
-			// Close the file
-			defaultbinds.close();
-		}
-		else {
-			std::cerr << "Error: Unable to open keybinds file for writing.\n";
-		}
-	}
+	settings.loadSettings(directory / "settings.json");
 
 	songList = LoadSongs(songsPath);
 
@@ -341,41 +232,42 @@ int main(int argc, char* argv[])
 
 		ClearBackground(DARKGRAY);
 
-		
-		
 		if (!isPlaying) {
-			//keybinds:
 			if (selectStage == -1) {
 				if (GuiButton({ ((float)GetScreenWidth()/2)-150,((float)GetScreenHeight()-60),100,60}, "Cancel")) {
 					selectStage = 0;
-					KEYBINDS_4K = prev4k;
-					KEYBINDS_5K = prev5k;
+					settings.keybinds4K = settings.prev4k;
+					settings.keybinds5K = settings.prev5k;
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) + 150,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
 					selectStage = 0;
-					prev4k = KEYBINDS_4K;
-					prev5k = KEYBINDS_5K;
-					saveKeyBinds();
+					settings.prev4k = settings.keybinds4K;
+					settings.prev5k = settings.keybinds5K;
+					settings.saveSettings(directory / "settings.json");
+				}
+				if (GuiButton({ (float)GetScreenWidth() - 150,120,150,60 }, trackSpeedButton.c_str())) {
+					if (settings.trackSpeed == settings.trackSpeedOptions.size()-1) settings.trackSpeed = 0; else settings.trackSpeed++;
+					trackSpeedButton = "Track Speed " + std::to_string(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
 				}
 				for (int i = 0; i < 5; i++) {
 					int j = i - 2;
 					std::string charStr = "UNKNOWN";
-					if (KEYBINDS_5K[i] >= 39 && KEYBINDS_5K[i] < 96 && KEYBINDS_5K[i] != KEY_MENU) {
-						charStr=static_cast<char>(KEYBINDS_5K[i]);
+					if (settings.keybinds5K[i] >= 39 && settings.keybinds5K[i] < 96 && settings.keybinds5K[i] != KEY_MENU) {
+						charStr=static_cast<char>(settings.keybinds5K[i]);
 					}
 					else {
-						charStr = getKeyStr(KEYBINDS_5K[i]);
+						charStr = getKeyStr(settings.keybinds5K[i]);
 					}
 					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * (float)j),((float)GetScreenHeight() / 2) - 120,60,60 }, charStr.c_str())) {
-						changing4k = false;
+						settings.changing4k = false;
 						heldFrets[i] = true;
 					}
-					if (!changing4k && heldFrets[i]) {
+					if (!settings.changing4k && heldFrets[i]) {
 						std::string changeString = "Press a key for 5k lane " + std::to_string(i);
 						DrawText(changeString.c_str(), (GetScreenWidth()-MeasureText(changeString.c_str(),20))/2, (GetScreenHeight()/2)+40, 20, BLACK);
 						int pressedKey = GetKeyPressed();
 						if (pressedKey != 0) {
-							KEYBINDS_5K[i] = pressedKey;
+							settings.keybinds5K[i] = pressedKey;
 							heldFrets[i] = false;
 						}
 					}
@@ -383,22 +275,22 @@ int main(int argc, char* argv[])
 				for (int i = 0; i < 4; i++) {
 					float j = i - 1.5f; 
 					std::string charStr = "UNKNOWN";
-					if (KEYBINDS_4K[i] >= 39 && KEYBINDS_4K[i] < 96 && KEYBINDS_4K[i] != KEY_MENU) {
-						charStr = static_cast<char>(KEYBINDS_4K[i]);
+					if (settings.keybinds4K[i] >= 39 && settings.keybinds4K[i] < 96 && settings.keybinds4K[i] != KEY_MENU) {
+						charStr = static_cast<char>(settings.keybinds4K[i]);
 					}
 					else {
-						charStr = getKeyStr(KEYBINDS_4K[i]);
+						charStr = getKeyStr(settings.keybinds4K[i]);
 					}
 					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * j),((float)GetScreenHeight() / 2) - 40,60,60 }, charStr.c_str())) {
 						heldFrets[i] = true;
-						changing4k = true;
+						settings.changing4k = true;
 					}
-					if (changing4k && heldFrets[i]) {
+					if (settings.changing4k && heldFrets[i]) {
 						std::string changeString = "Press a key for 4k lane " + std::to_string(i);
 						DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, (GetScreenHeight() / 2) + 40, 20, BLACK);
 						int pressedKey = GetKeyPressed();
 						if (pressedKey != 0) {
-							KEYBINDS_4K[i] = pressedKey;
+							settings.keybinds4K[i] = pressedKey;
 							heldFrets[i] = false;
 						}
 					}
@@ -419,7 +311,7 @@ int main(int argc, char* argv[])
 				if (GuiButton({ (float)GetScreenWidth() - 160,0,60,60 }, "Exit")) {
 					exit(0);
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60 }, "Keybinds")) {
+				if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60 }, "Settings")) {
 					selectStage = -1;
 				}
 				if (GuiButton({ (float)GetScreenWidth() - 100,60,100,60 }, "Fullscreen")) {
@@ -432,10 +324,6 @@ int main(int argc, char* argv[])
 					else {
 						SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 					};
-				}
-				if (GuiButton({ (float)GetScreenWidth() - 150,120,150,60 }, bnsButton.c_str())) {
-					if (bn == 6) bn = 0; else bn++;
-					bnsButton = "Track Speed "+std::to_string(bns[bn])+"x";
 				}
 				GuiSetStyle(0, 19, 0x505050ff);
 				GuiScrollPanel({ 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f)+15, (float)GetScreenHeight()}, NULL, { 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f), 60.0f * songList.songs.size()}, &viewScroll, &view);
@@ -720,7 +608,7 @@ int main(int argc, char* argv[])
 				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
 						if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * bns[bn];
+							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
 							if (relTime > 1.5) break;
 							float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.03f : 0.0075f;
 							DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
@@ -792,8 +680,8 @@ int main(int argc, char* argv[])
 					curNote.accounted = true;
 				}
 
-				double relTime = ((curNote.time - musicTime) + VideoOffset) * bns[bn];
-				double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * bns[bn];
+				double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+				double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
 				if (relTime > 1.5) {
 					break;
 				}
@@ -812,7 +700,7 @@ int main(int argc, char* argv[])
 					// sustains
 					if ((curNote.len)> curNote.sustainThreshold) {
 						if (curNote.hit && curNote.held) {
-							if (curNote.heldTime < (curNote.len * bns[bn])) {
+							if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
 								curNote.heldTime = 0.0 - relTime;
 								if (relTime < 0.0) relTime = 0.0;
 							}
@@ -890,11 +778,11 @@ int main(int argc, char* argv[])
 
 			}
 #ifndef NDEBUG
-			// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Color{ 0,255,0,80 });
-			// DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * bns[bn]) }, Color{ 0,255,0,80 });
+			// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
+			// DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
 
-            // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Color{ 190,255,0,80 });
-            // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * bns[bn]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * bns[bn]) }, Color{ 190,255,0,80 });
+            // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
+            // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
 #endif
             EndMode3D();
 		

@@ -1,4 +1,7 @@
+#pragma once
 #include "raylib.h"
+#include <unordered_map>
+#include <string>
 
 std::unordered_map<int, std::string> keymap{
 		{KEY_SPACE,"Space"},
