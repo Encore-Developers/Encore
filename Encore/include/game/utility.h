@@ -5,7 +5,8 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string>
+#include <iostream>
 //https://stackoverflow.com/questions/7021725/how-to-convert-a-string-to-integer-in-c
 
 typedef enum {
@@ -49,4 +50,13 @@ str2int_errno str2int(int* out, const char* s, int base = 10) {
         return STR2INT_INCONVERTIBLE;
     *out = l;
     return STR2INT_SUCCESS;
+}
+
+std::string truncateFloatString(float& input) {
+    std::string inputStr = std::to_string(input);
+    size_t dotPos = inputStr.find('.');
+    if (dotPos != std::string::npos && dotPos + 3 < inputStr.length()) {
+        return inputStr.substr(0,dotPos + 3);
+    }
+    return "";
 }
