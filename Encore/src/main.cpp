@@ -15,6 +15,7 @@
 #include "game/utility.h"
 #include "game/player.h"
 #include "game/keybinds.h"
+#include "game/assets.h"
 #include "raygui.h"
 
 #include <stdlib.h>
@@ -85,6 +86,8 @@ std::vector<bool> overhitFrets = { false,false,false,false,false };
 std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
 SongList songList;
+
+Assets assets;
 static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
     // if (selectStage == 2) {
         if (action < 2) {
@@ -325,89 +328,7 @@ int main(int argc, char* argv[])
 	songList = LoadSongs(songsPath);
 
 	ChangeDirectory(GetApplicationDirectory());
-	//assets loading
-	Model smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-	Texture2D smasherRegTex = LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
-	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-	smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	
-	Model smasherBoard = LoadModel((directory / "Assets/highway/board.obj").string().c_str());
-	Texture2D smasherBoardTex = LoadTexture((directory / "Assets/highway/smasherBoard.png").string().c_str());
-	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
-	smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-
-	Model smasherPressed = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-	Texture2D smasherPressTex = LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
-	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
-	smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-
-	Model odFrame = LoadModel((directory / "Assets/ui/od_frame.obj").string().c_str());
-	Model odBar = LoadModel((directory / "Assets/ui/od_fill.obj").string().c_str());
-	Model multFrame = LoadModel((directory / "Assets/ui/multcircle_frame.obj").string().c_str());
-	Model multBar = LoadModel((directory / "Assets/ui/multcircle_fill.obj").string().c_str());
-	Model multCtr3 = LoadModel((directory / "Assets/ui/multbar_3.obj").string().c_str());
-	Model multCtr5 = LoadModel((directory / "Assets/ui/multbar_5.obj").string().c_str());
-	Model multNumber = LoadModel((directory / "Assets/ui/mult_number_plane.obj").string().c_str());
-	Texture2D odMultFrame = LoadTexture((directory / "Assets/ui/mult_base.png").string().c_str());
-	Texture2D odMultFill = LoadTexture((directory / "Assets/ui/mult_fill.png").string().c_str());
-    Texture2D odMultFillActive = LoadTexture((directory / "Assets/ui/mult_fill_od.png").string().c_str());
-	Texture2D multNumberTex = LoadTexture((directory / "Assets/ui/mult_number.png").string().c_str());
-	Shader odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
-	Shader multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
-	odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-	odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-    multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-    multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-    multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-	odBar.materials[0].shader = odMultShader;
-	multBar.materials[0].shader = odMultShader;
-	multCtr3.materials[0].shader = odMultShader;
-	multCtr5.materials[0].shader = odMultShader;
-	int odLoc= GetShaderLocation(odMultShader, "overdrive");
-	int comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
-	int multLoc = GetShaderLocation(odMultShader, "multBar");
-	int isBassOrVocalLoc = GetShaderLocation(odMultShader, "isBassOrVocal");
-	odMultShader.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(odMultShader, "fillTex");
-
-	multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
-	multNumber.materials[0].shader = multNumberShader;
-	int uvOffsetXLoc= GetShaderLocation(multNumberShader, "uvOffsetX");
-	int uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
-	
-	Model expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
-	Model emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
-	Texture2D highwayTexture = LoadTexture((directory / "Assets/highway/highway.png").string().c_str());
-	Texture2D highwayTextureOD = LoadTexture((directory / "Assets/highway/highway_od.png").string().c_str());
-	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-	expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-	emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	Model noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-	Texture2D noteTexture = LoadTexture((directory / "Assets/notes/note_d.png").string().c_str()); 
-	Texture2D emitTexture = LoadTexture((directory / "Assets/notes/note_e.png").string().c_str());
-	noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
-	noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
-	noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-	Model noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-	Texture2D noteTextureOD = LoadTexture((directory / "Assets/notes/note_od_d.png").string().c_str());
-	Texture2D emitTextureOD = LoadTexture((directory / "Assets/notes/note_od_e.png").string().c_str());
-	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
-	noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-	Model liftModel = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-	liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
-	Model liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-	liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
-
-    //Sound clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
-    //SetSoundVolume(clapOD, 0.375);
+	assets.loadAssets(directory);
 
 	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 
@@ -606,7 +527,7 @@ int main(int argc, char* argv[])
 								if (instrument == 1 || instrument == 3) {
 									isBassOrVocal = 1;
 								}
-								SetShaderValue(odMultShader, isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
+								SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
 								selectStage = 2;
 							}
 							DrawText(songPartsList[i].c_str(), 20, 75 + (60 * (float)i), 30, BLACK);
@@ -645,12 +566,12 @@ int main(int argc, char* argv[])
             DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
             DrawText(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight()-370), 48, GOLD);
 			float multFill = (!overdrive ? (float)(multiplier(instrument)-1) : ((float)(multiplier(instrument)/2)-1)) / (float)maxMultForMeter(instrument);
-			SetShaderValue(odMultShader, multLoc, &multFill, SHADER_UNIFORM_FLOAT);
-			SetShaderValue(multNumberShader, uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
-			SetShaderValue(multNumberShader, uvOffsetYLoc, &uvOffsetY, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.multNumberShader, assets.uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.multNumberShader, assets.uvOffsetYLoc, &uvOffsetY, SHADER_UNIFORM_FLOAT);
 			float comboFill = comboFillCalc(instrument);
-			SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
-			SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.odMultShader, assets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
+			SetShaderValue(assets.odMultShader, assets.odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
             DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
 
 
@@ -701,7 +622,7 @@ int main(int argc, char* argv[])
 
 			}
 			double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
-			if (musicTime >= songList.songs[curPlayingSong].end) {
+			if (musicTime >= songList.songs[curPlayingSong].length) {
 				for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 					note.accounted = false;
 					note.hit = false;
@@ -729,11 +650,11 @@ int main(int argc, char* argv[])
 
 			}
 			if (overdrive) {
-				expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
-				emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
-                multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
-                multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
-                multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFillActive;
+				assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
+				assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
+				assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
+                assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
+                assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
 
 
 				overdriveFill = overdriveActiveFill-((musicTime-overdriveActiveTime)/(1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
@@ -741,11 +662,11 @@ int main(int argc, char* argv[])
 					overdrive = false; 
 					overdriveActiveFill = 0;
 					overdriveActiveTime = 0.0;
-					expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-					emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-                    multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-                    multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-                    multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
+					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+					assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                    assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                    assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                    assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 
 				}
 			}
@@ -761,13 +682,13 @@ int main(int argc, char* argv[])
 				
 			BeginMode3D(camera);
 			if (diff == 3) {
-				DrawModel(expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+				DrawModel(assets.expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
 				for (int i = 0; i < 5; i++) {
 					if (heldFrets[i]) {
-						DrawModel(smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
+						DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 					}
 					else {
-						DrawModel(smasherReg, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
+						DrawModel(assets.smasherReg, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 					}
 				}
 				for (int i = 0; i < 4; i++) {
@@ -776,24 +697,25 @@ int main(int argc, char* argv[])
 					DrawCylinderEx(Vector3{ lineDistance - i, 0, smasherPos + 0.5f}, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 15, Color{128,128,128,128});
 				}
 					
-				DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
+				DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.04f, WHITE);
 			}
 			else {
-                DrawModel(emhHighway, Vector3{0, 0, 0}, 1.0f, WHITE);
-                for (int i = 0; i < 4; i++) {
-                    if (heldFrets[i]) {
-                        DrawModel(smasherPressed, Vector3{diffDistance - (float)(i), 0, smasherPos}, 1.0f, WHITE);
-                    } else {
-                        DrawModel(smasherReg, Vector3{diffDistance - (float)(i), 0, smasherPos}, 1.0f, WHITE);
+				DrawModel(assets.emhHighway, Vector3{ 0, 0, 0 }, 1.0f, WHITE);
+				for (int i = 0; i < 4; i++) {
+					if (heldFrets[i]) {
+						DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0, smasherPos }, 1.0f, WHITE);
+					}
+					else {
+						DrawModel(assets.smasherReg, Vector3{ diffDistance - (float)(i), 0, smasherPos }, 1.0f, WHITE);
 
-                    }
-                }
-                for (int i = 0; i < 3; i++) {
-                    float radius = (i == 1) ? 0.03 : 0.01;
-                    DrawCylinderEx(Vector3{lineDistance - (float)i, 0, smasherPos}, Vector3{lineDistance - (float)i, 0, highwayLength}, radius,
-                                    radius, 4.0f, Color{128, 128, 128, 128});
-                }
-                DrawModel(smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
+					}
+				}
+				for (int i = 0; i < 3; i++) {
+					float radius = (i == 1) ? 0.03 : 0.01;
+					DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, smasherPos }, Vector3{ lineDistance - (float)i, 0, highwayLength }, radius,
+						radius, 4.0f, Color{ 128, 128, 128, 128 });
+				}
+				DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0}, 1.04f, WHITE);
             }
 				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
@@ -814,19 +736,19 @@ int main(int argc, char* argv[])
 			// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
             notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-            DrawModel(odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
-			DrawModel(odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
-			DrawModel(multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
-			DrawModel(multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+            DrawModel(assets.odFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.odBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.multFrame, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.multBar, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			if (instrument == 1 || instrument == 3) {
 
-				DrawModel(multCtr5, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(assets.multCtr5, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
 			else {
 
-				DrawModel(multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+				DrawModel(assets.multCtr3, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 			}
-			DrawModel(multNumber, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
+			DrawModel(assets.multNumber, Vector3{ 0,1.0f,0 }, 0.75f, WHITE);
 				
 
 			// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
@@ -880,10 +802,10 @@ int main(int argc, char* argv[])
 					// lifts						//  distance between notes 
 					//									(furthest left - lane distance)
 					if (od)					//  1.6f	0.8
-						DrawModel(liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(assets.liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// energy phrase
 					else
-						DrawModel(liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(assets.liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// regular 
 				}
 				else {
@@ -939,13 +861,13 @@ int main(int argc, char* argv[])
 					if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
 						if (od) {
 							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
-								DrawModel(noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+								DrawModel(assets.noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
-								
+
 						}
 						else {
-							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
-								DrawModel(noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+							if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+								DrawModel(assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
 								
 						}
@@ -956,7 +878,7 @@ int main(int argc, char* argv[])
 
 				}
                 if (curNote.miss) {
-                    DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
+                    DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
                 }
                 if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.05f) {
                     DrawCube(Vector3{diffDistance - (1.0f * curNote.lane), 0, smasherPos}, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{255,215,0,128} : Color{255,255,255,64});
