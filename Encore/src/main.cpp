@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
 	assets.loadAssets(directory);
 
 	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
-
+	glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
 	
 	while (!WindowShouldClose())
 	{ 
@@ -238,11 +238,13 @@ int main(int argc, char* argv[])
 					selectStage = 0;
 					settings.keybinds4K = settings.prev4k;
 					settings.keybinds5K = settings.prev5k;
+					settings.trackSpeed = settings.prevTrackSpeed;
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) + 150,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
 					selectStage = 0;
 					settings.prev4k = settings.keybinds4K;
 					settings.prev5k = settings.keybinds5K;
+					settings.prevTrackSpeed = settings.trackSpeed;
 					settings.saveSettings(directory / "settings.json");
 				}
 				if (GuiButton({ (float)GetScreenWidth() - 150,120,150,60 }, trackSpeedButton.c_str())) {
