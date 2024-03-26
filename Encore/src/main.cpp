@@ -40,13 +40,14 @@ int curNoteIdx = 0;
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
-
+int selLane = 0;
+bool changingKey = false;
 
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
 
-std::string trackSpeedButton = "Track Speed 1.5x";
+std::string trackSpeedButton = "Track Speed 1.50x";
 
 
 std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
@@ -223,7 +224,8 @@ int main(int argc, char* argv[])
 
 	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 	glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
-	
+	GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 	while (!WindowShouldClose())
 	{ 
 		float diffDistance = diff == 3 ? 2.0f : 1.5f;
@@ -234,67 +236,85 @@ int main(int argc, char* argv[])
 
 		if (!isPlaying) {
 			if (selectStage == -1) {
-				if (GuiButton({ ((float)GetScreenWidth()/2)-150,((float)GetScreenHeight()-60),100,60}, "Cancel")) {
+				if (GuiButton({ ((float)GetScreenWidth()/2)-350,((float)GetScreenHeight()-60),100,60}, "Cancel")) {
 					selectStage = 0;
 					settings.keybinds4K = settings.prev4k;
 					settings.keybinds5K = settings.prev5k;
 					settings.trackSpeed = settings.prevTrackSpeed;
+					settings.inputOffsetMS = settings.prevInputOffsetMS;
+					settings.avOffsetMS = settings.prevAvOffsetMS;
 				}
-				if (GuiButton({ ((float)GetScreenWidth() / 2) + 150,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
 					selectStage = 0;
 					settings.prev4k = settings.keybinds4K;
 					settings.prev5k = settings.keybinds5K;
 					settings.prevTrackSpeed = settings.trackSpeed;
+					settings.prevInputOffsetMS = settings.inputOffsetMS;
+					settings.prevAvOffsetMS = settings.avOffsetMS;
 					settings.saveSettings(directory / "settings.json");
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 150,120,150,60 }, trackSpeedButton.c_str())) {
+				if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2-160,250,60 }, "")) {
 					if (settings.trackSpeed == settings.trackSpeedOptions.size()-1) settings.trackSpeed = 0; else settings.trackSpeed++;
-					trackSpeedButton = "Track Speed " + std::to_string(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+					trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
 				}
+				DrawText(trackSpeedButton.c_str(), (float)GetScreenWidth()/2 - MeasureText(trackSpeedButton.c_str(),20)/2, (float)GetScreenHeight() / 2 - 140,20,BLACK);
+				float avOffsetFloat = (float)settings.avOffsetMS;
+				DrawText("A/V Offset", (float)GetScreenWidth()/2 - MeasureText("A/V Offset",20) / 2, (float)GetScreenHeight() / 2 - 80, 20, WHITE);
+				DrawText(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20), (float)GetScreenHeight() / 2 - 50, 20, WHITE);
+				DrawText(" 500 ", (float)GetScreenWidth() / 2 + 125 , (float)GetScreenHeight() / 2 - 50, 20, WHITE);
+				if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 60,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
+					settings.avOffsetMS = (int)avOffsetFloat;
+				}
+				DrawText(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureText(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 50, 20, BLACK);
+				float inputOffsetFloat = (float)settings.inputOffsetMS;
+				DrawText("Input Offset", (float)GetScreenWidth() / 2 - MeasureText("Input Offset", 20) / 2, (float)GetScreenHeight() / 2, 20, WHITE);
+				DrawText(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20), (float)GetScreenHeight() / 2 + 30, 20, WHITE);
+				DrawText(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
+				if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 + 20,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
+					settings.inputOffsetMS = (int)inputOffsetFloat;
+				}
+				DrawText(std::to_string(settings.inputOffsetMS).c_str(), (float)GetScreenWidth()/2 - (MeasureText(std::to_string(settings.inputOffsetMS).c_str(), 20)/2), (float)GetScreenHeight() / 2 + 30, 20, BLACK);
 				for (int i = 0; i < 5; i++) {
-					int j = i - 2;
-					std::string charStr = "UNKNOWN";
-					if (settings.keybinds5K[i] >= 39 && settings.keybinds5K[i] < 96 && settings.keybinds5K[i] != KEY_MENU) {
+					float j = i - 2.0f;
+					std::string charStr = "UNK";
+					if (settings.keybinds5K[i] >= 39 && settings.keybinds5K[i] < 96) {
 						charStr=static_cast<char>(settings.keybinds5K[i]);
 					}
 					else {
 						charStr = getKeyStr(settings.keybinds5K[i]);
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * (float)j),((float)GetScreenHeight() / 2) - 120,60,60 }, charStr.c_str())) {
+					if (GuiButton({ ((float)GetScreenWidth() / 2)-40 + (80 * j),(float)GetScreenHeight()/2 + 80,80,60 }, charStr.c_str())) {
 						settings.changing4k = false;
-						heldFrets[i] = true;
-					}
-					if (!settings.changing4k && heldFrets[i]) {
-						std::string changeString = "Press a key for 5k lane " + std::to_string(i);
-						DrawText(changeString.c_str(), (GetScreenWidth()-MeasureText(changeString.c_str(),20))/2, (GetScreenHeight()/2)+40, 20, BLACK);
-						int pressedKey = GetKeyPressed();
-						if (pressedKey != 0) {
-							settings.keybinds5K[i] = pressedKey;
-							heldFrets[i] = false;
-						}
+						selLane = i;
+						changingKey = true;
 					}
 				}
 				for (int i = 0; i < 4; i++) {
 					float j = i - 1.5f; 
-					std::string charStr = "UNKNOWN";
-					if (settings.keybinds4K[i] >= 39 && settings.keybinds4K[i] < 96 && settings.keybinds4K[i] != KEY_MENU) {
+					std::string charStr = "UNK";
+					if (settings.keybinds4K[i] >= 39 && settings.keybinds4K[i] < 96) {
 						charStr = static_cast<char>(settings.keybinds4K[i]);
 					}
 					else {
 						charStr = getKeyStr(settings.keybinds4K[i]);
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) + (60 * j),((float)GetScreenHeight() / 2) - 40,60,60 }, charStr.c_str())) {
-						heldFrets[i] = true;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),(float)GetScreenHeight() / 2 + 160,80,60 }, charStr.c_str())) {
+						changingKey = true;
+						selLane = i;
 						settings.changing4k = true;
 					}
-					if (settings.changing4k && heldFrets[i]) {
-						std::string changeString = "Press a key for 4k lane " + std::to_string(i);
-						DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, (GetScreenHeight() / 2) + 40, 20, BLACK);
-						int pressedKey = GetKeyPressed();
-						if (pressedKey != 0) {
-							settings.keybinds4K[i] = pressedKey;
-							heldFrets[i] = false;
-						}
+				}
+				if (changingKey) {
+					std::vector<int>& bindsToChange = settings.changing4k ? settings.keybinds4K : settings.keybinds5K;
+					DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
+					std::string keyString = settings.changing4k ? "4k" : "5k";
+					std::string changeString = "Press a key for " + keyString + " lane " + std::to_string(selLane+1);
+					DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 10, 20, WHITE);
+					int pressedKey = GetKeyPressed();
+					if (pressedKey != 0) {
+						bindsToChange[selLane] = pressedKey;
+						selLane = 0;
+						changingKey = false;
 					}
 				}
 			}
@@ -310,13 +330,13 @@ int main(int argc, char* argv[])
 				instrument = 0;
 				diff = 0;
 				float curSong = 0.0f;
-				if (GuiButton({ (float)GetScreenWidth() - 160,0,60,60 }, "Exit")) {
+				if (GuiButton({ (float)GetScreenWidth() - 260,0,60,60 }, "Exit")) {
 					exit(0);
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 100,0,100,60 }, "Settings")) {
+				if (GuiButton({ (float)GetScreenWidth() - 200,0,200,60 }, "Settings")) {
 					selectStage = -1;
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 100,60,100,60 }, "Fullscreen")) {
+				if (GuiButton({ (float)GetScreenWidth() - 200,60,200,60 }, "Fullscreen")) {
 					windowToggle = !windowToggle;
 					ToggleBorderlessWindowed();
 					if (windowToggle) {
@@ -327,7 +347,7 @@ int main(int argc, char* argv[])
 						SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 					};
 				}
-				GuiSetStyle(0, 19, 0x505050ff);
+				
 				GuiScrollPanel({ 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f)+15, (float)GetScreenHeight()}, NULL, { 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f), 60.0f * songList.songs.size()}, &viewScroll, &view);
 				for (Song song : songList.songs) {
 

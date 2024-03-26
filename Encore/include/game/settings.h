@@ -30,6 +30,10 @@ public:
 	std::vector<float> trackSpeedOptions = defaultTrackSpeedOptions;
 	int trackSpeed = 4;
 	int prevTrackSpeed = trackSpeed;
+	int avOffsetMS = 0;
+	int prevAvOffsetMS = avOffsetMS;
+	int inputOffsetMS = 0;
+	int prevInputOffsetMS = inputOffsetMS;
 	bool changing4k = false;
 	void writeDefaultSettings(std::filesystem::path settingsFile) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
@@ -120,15 +124,17 @@ public:
 				}
 
 				if (settings.HasMember("avOffset") && settings["avOffset"].IsInt()) {
-					const rapidjson::Value& offset = settings["avOffset"];
-					VideoOffset = -(float)(offset.GetInt() / 1000);
+					avOffsetMS = settings["avOffset"].GetInt();
+					prevAvOffsetMS = avOffsetMS;
+					VideoOffset = -(float)(avOffsetMS / 1000);
 				}
 				else {
 					avError = true;
 				}
 				if (settings.HasMember("inputOffset") && settings["inputOffset"].IsInt()) {
-					const rapidjson::Value& offset = settings["inputOffset"];
-					InputOffset = (float)(offset.GetInt() / 1000);
+					inputOffsetMS = settings["inputOffset"].GetInt();
+					prevInputOffsetMS = inputOffsetMS;
+					InputOffset = (float)(inputOffsetMS / 1000);
 				}
 				else {
 					inputError = true;
@@ -233,6 +239,21 @@ public:
 		}
 	}
 	const void saveSettings(std::filesystem::path settingsFile) {
+		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+		rapidjson::Value::MemberIterator trackSpeedMember = settings.FindMember("trackspeed");
+		trackSpeedMember->value.SetInt(trackSpeed);
+		rapidjson::Value::MemberIterator avOffsetMember = settings.FindMember("trackspeed");
+		avOffsetMember->value.SetInt(avOffsetMS);
+		rapidjson::Value::MemberIterator inputOffsetMember = settings.FindMember("trackspeed");
+		inputOffsetMember->value.SetInt(inputOffsetMS);
+		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
+		keybinds4KMember->value.Clear();
+		for (int& key : keybinds4K)
+			keybinds4KMember->value.PushBack(rapidjson::Value().SetInt(key), allocator);
+		rapidjson::Value::MemberIterator keybinds5KMember = settings["keybinds"].FindMember("5k");
+		keybinds5KMember->value.Clear();
+		for (int& key : keybinds5K)
+			keybinds5KMember->value.PushBack(rapidjson::Value().SetInt(key), allocator);
 		char writeBuffer[8192];
 		FILE* fp = fopen(settingsFile.string().c_str(), "wb");
 		rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
