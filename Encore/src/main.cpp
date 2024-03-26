@@ -109,7 +109,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                             !curNote.hit) {
 
                         curNote.hit = true;
-                        if ((curNote.len) > curNote.sustainThreshold && !curNote.lift) {
+                        if ((curNote.len) > 0 && !curNote.lift) {
                             curNote.held = true;
                         }
                         if ((curNote.time) - perfectBackend < eventTime + InputOffset&& curNote.time + perfectFrontend > eventTime+InputOffset) {
@@ -126,10 +126,11 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
                 // if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
                 //	    curNote.miss = true;
                 // }
-                if (action == GLFW_RELEASE && curNote.held && (curNote.len) > curNote.sustainThreshold) {
+                if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
                     curNote.held = false;
+					score += sustainScoreBuffer[curNote.lane];
+					sustainScoreBuffer[curNote.lane] = 0;
                     mute = true;
-                    lastNotePerfect = false;
                     // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
                 }
 				if (action == GLFW_PRESS && eventTime<songList.songs[curPlayingSong].music_start && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
@@ -375,7 +376,6 @@ int main(int argc, char* argv[])
 					DrawText(song.artist.c_str(), ((float)GetScreenWidth()*(1.5f/4.0f)), viewScroll.y + (60 * curSong) + 20, 20, BLACK);
 					curSong++;
 				}
-
 			}
 			//instrument select
 			else if (selectStage == 1) {
@@ -407,26 +407,6 @@ int main(int argc, char* argv[])
 													newChart.parseNotes(midiFile, i, midiFile[i], diff);
 													std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
 													std::vector<BPM>& bpms = songList.songs[curPlayingSong].bpms;
-													int curNoteOut = 0;
-													for (Note& note : newChart.notes) {
-														if (curBPM < bpms.size() - 1) {
-															int nextBPM = curBPM + 1;
-															if (note.time >= bpms[curBPM].time && note.time < bpms[nextBPM].time) {
-																note.sustainThreshold = 20 / bpms[curBPM].bpm;
-															}
-															else if (note.time >= bpms[nextBPM].time) {
-																note.sustainThreshold = 20 / bpms[nextBPM].bpm;
-																curBPM++;
-															}
-														}
-														else {
-															if (note.time >= bpms[curBPM].time) {
-																note.sustainThreshold = 20 / bpms[curBPM].bpm;
-															}
-														}
-														curNoteOut++;
-													}
-													curBPM = 0;
 													songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
 												}
 											}
@@ -484,7 +464,7 @@ int main(int argc, char* argv[])
             DrawText(TextFormat("Stars: %01i", starsval), 5, GetScreenHeight() - 310, 24, goldStars ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Score: %01i", score), 5, GetScreenHeight() - 190, 24, WHITE);
+			DrawText(TextFormat("Score: %01i", score+sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 190, 24, WHITE);
 			DrawText(TextFormat("Combo: %01i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
 			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
@@ -735,14 +715,17 @@ int main(int argc, char* argv[])
 				}
 				else {
 					// sustains
-					if ((curNote.len)> curNote.sustainThreshold) {
+					if ((curNote.len)>0) {
 						if (curNote.hit && curNote.held) {
 							if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
 								curNote.heldTime = 0.0 - relTime;
+								sustainScoreBuffer[curNote.lane] = (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) * multiplier(instrument);
 								if (relTime < 0.0) relTime = 0.0;
 							}
 							if (relEnd <=0.0) {
 								if (relTime < 0.0) relTime = relEnd;
+								score += sustainScoreBuffer[curNote.lane];
+								sustainScoreBuffer[curNote.lane] = 0;
 								curNote.held = false;
 							}
 						}
@@ -783,7 +766,7 @@ int main(int argc, char* argv[])
 							// DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 					}
 					// regular notes
-					if (((curNote.len) >= curNote.sustainThreshold && (curNote.held || !curNote.hit)) || ((curNote.len) < curNote.sustainThreshold && !curNote.hit)) {
+					if (((curNote.len) >0 && (curNote.held || !curNote.hit)) || ((curNote.len) == 0 && !curNote.hit)) {
 						if (od) {
 							if ((!curNote.held && !curNote.miss ) || !curNote.hit) {
 								DrawModel(assets.noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);

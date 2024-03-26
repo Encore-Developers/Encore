@@ -6,6 +6,7 @@ struct Note
 {
 	double time;
 	double len;
+	double beatsLen;
 	double heldTime=0.0;
 	double sustainThreshold = 0.2;
 	int lane;
@@ -50,6 +51,7 @@ public:
 		std::vector<bool> notesOn{ false,false,false,false,false};
 		bool odOn = false;
 		std::vector<double> noteOnTime{ 0.0, 0.0, 0.0, 0.0, 0.0};
+		std::vector<int> noteOnTick{ 0,0,0,0,0 };
 		std::vector<int> notePitches = diffNotes[diff];
 		int odNote = 116;
 		int curODPhrase = -1;
@@ -58,10 +60,12 @@ public:
 		for (int i = 0; i < events.getSize(); i++) {
 			if (events[i].isNoteOn()) {
 				double time = midiFile.getTimeInSeconds(trkidx, i);
+				int tick = midiFile.getAbsoluteTickTime(time);
 				if ((int)events[i][1] >= notePitches[0] && (int)events[i][1] <= notePitches[1]) {
 					int lane = (int)events[i][1] - notePitches[0];
 					if (!notesOn[lane]) {
 						noteOnTime[lane] = time;
+						noteOnTick[lane] = tick;
 						notesOn[lane] = true;
 						int noteIdx = findNoteIdx(time, lane);
 						if (noteIdx != -1) {
@@ -105,13 +109,23 @@ public:
 			}
 			else if (events[i].isNoteOff()) {
 				double time = midiFile.getTimeInSeconds(trkidx, i);
+				int tick = midiFile.getAbsoluteTickTime(time);
 				if ((int)events[i][1] >= notePitches[0] && (int)events[i][1] <= notePitches[1]) {
 					int lane = (int)events[i][1] - notePitches[0];
 					if (notesOn[lane] == true) {
 						int noteIdx = findNoteIdx(noteOnTime[lane], lane);
 						if (noteIdx != -1) {
-							notes[noteIdx].len = time - notes[noteIdx].time;
+							notes[noteIdx].beatsLen = (tick - noteOnTick[lane]) / (float)midiFile.getTicksPerQuarterNote();
+							if (notes[noteIdx].beatsLen > 0.25) {
+								notes[noteIdx].len = time - notes[noteIdx].time;
+							}
+							else {
+								notes[noteIdx].beatsLen = 0;
+								notes[noteIdx].len = 0;
+							}
 						}
+						noteOnTick[lane] = 0;
+						noteOnTime[lane] = 0;
 						notesOn[lane] = false;
 					}
 				}

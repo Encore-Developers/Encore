@@ -29,6 +29,7 @@ float smasherPos = 2.7f;
 int notes = 0;
 int combo = 0;
 int score = 0;
+std::vector<int> sustainScoreBuffer{ 0,0,0,0,0 };
 int playerOverhits = 0;
 
 bool goldStars = false;
