@@ -35,23 +35,31 @@ public:
 	int inputOffsetMS = 0;
 	int prevInputOffsetMS = inputOffsetMS;
 	bool changing4k = false;
-	void writeDefaultSettings(std::filesystem::path settingsFile) {
+	void writeDefaultSettings(std::filesystem::path settingsFile, bool migrate = false) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		settings.SetObject();
 		rapidjson::Value array4K(rapidjson::kArrayType);
-		for (int& key : defaultKeybinds4K)
-			array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
 		rapidjson::Value array5K(rapidjson::kArrayType);
-		for (int& key : defaultKeybinds5K)
-			array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
+		if (migrate) {
+			for (int& key : keybinds4K)
+				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
+			for (int& key : keybinds5K)
+				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
+		}
+		else {
+			for (int& key : defaultKeybinds4K)
+				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
+			for (int& key : defaultKeybinds5K)
+				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
+		}
 		settings.AddMember("keybinds", rapidjson::Value(rapidjson::kObjectType), allocator);
 		settings["keybinds"].AddMember("4k", array4K, allocator);
 		settings["keybinds"].AddMember("5k", array5K, allocator);
 		rapidjson::Value avOffset;
-		avOffset.SetInt(0);
+		avOffset.SetInt(avOffsetMS);
 		settings.AddMember("avOffset", avOffset, allocator);
 		rapidjson::Value inputOffset;
-		inputOffset.SetInt(0);
+		inputOffset.SetInt(inputOffsetMS);
 		settings.AddMember("inputOffset", inputOffset, allocator);
 		rapidjson::Value trackSpeedVal;
 		trackSpeedVal.SetInt(4);
@@ -60,8 +68,6 @@ public:
 		for (float& speed : defaultTrackSpeedOptions)
 			arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
 		settings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
-		
-
 		saveSettings(settingsFile);
 	}
 	void loadSettings(std::filesystem::path settingsFile) {
@@ -237,6 +243,96 @@ public:
 		if (keybindsError || keybinds4KError || keybinds5KError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			saveSettings(settingsFile);
 		}
+	}
+	void migrateSettings(std::filesystem::path keybindsFile, std::filesystem::path settingsFile) {
+		std::ifstream ifs(keybindsFile);
+		if (!ifs.is_open()) {
+			std::cerr << "Failed to open JSON file." << std::endl;
+		}
+		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+		ifs.close();
+		rapidjson::Document keybinds;
+		keybinds.Parse(jsonString.c_str());
+		bool keybindsError = false;
+		bool keybinds4KError = false;
+		bool keybinds5KError = false;
+		bool avOffsetError = false;
+		bool inputOffsetError = false;
+		if (keybinds.IsObject())
+		{
+			if (keybinds.HasMember("4k") && keybinds["4k"].IsArray()) {
+				const rapidjson::Value& arr = keybinds["4k"];
+				if (arr.Size() == 4) {
+					for (int i = 0; i < 4; i++) {
+						if (arr[i].IsInt()) {
+							keybinds4K[i] = arr[i].GetInt();
+						}
+						else {
+							keybinds4KError = true;
+						}
+					}
+					prev4k = keybinds4K;
+				}
+				else {
+					keybinds4KError = true;
+				}
+			}
+			if (keybinds.HasMember("5k") && keybinds["5k"].IsArray()) {
+				const rapidjson::Value& arr = keybinds["5k"];
+				if (arr.Size() == 5) {
+					for (int i = 0; i < 5; i++) {
+						if (arr[i].IsInt()) {
+							keybinds5K[i] = arr[i].GetInt();
+						}
+						else {
+							keybinds5KError = true;
+						}
+					}
+					prev5k = keybinds5K;
+				}
+				else {
+					keybinds5KError = true;
+				}
+			}
+			if (keybinds.HasMember("avOffset") && keybinds["avOffset"].IsInt()) {
+				avOffsetMS = keybinds["avOffset"].GetInt();
+				prevAvOffsetMS = avOffsetMS;
+				VideoOffset = -(float)(avOffsetMS / 1000);
+				
+			}
+			else {
+				avOffsetError = true;
+			}
+			if (keybinds.HasMember("inputOffset") && keybinds["inputOffset"].IsInt()) {
+				inputOffsetMS = keybinds["inputOffset"].GetInt();
+				prevInputOffsetMS = inputOffsetMS;
+				InputOffset = (float)(inputOffsetMS / 1000);
+			}
+			else {
+				inputOffsetError = true;
+			}
+		}
+		else {
+			keybindsError = true;
+		}
+		if (keybindsError) {
+			writeDefaultSettings(settingsFile);
+		}
+		else {
+			if (keybinds4KError) {
+				for (int i = 0; i < 4; i++) {
+					keybinds4K[i] = defaultKeybinds4K[i];
+				}
+			}
+			if (keybinds5KError) {
+				for (int i = 0; i < 5; i++) {
+					keybinds5K[i] = defaultKeybinds5K[i];
+				}
+			}
+
+			writeDefaultSettings(settingsFile, true);
+		}
+		std::filesystem::remove(keybindsFile);
 	}
 	const void saveSettings(std::filesystem::path settingsFile) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();

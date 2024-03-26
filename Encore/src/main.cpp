@@ -214,7 +214,9 @@ int main(int argc, char* argv[])
 	std::filesystem::path directory = executablePath.parent_path();
 
 	std::filesystem::path songsPath = directory / "Songs";
-
+	if (std::filesystem::exists(directory / "keybinds.json")) {
+		settings.migrateSettings(directory / "keybinds.json",directory / "settings.json");
+	}
 	settings.loadSettings(directory / "settings.json");
 
 	songList = LoadSongs(songsPath);
