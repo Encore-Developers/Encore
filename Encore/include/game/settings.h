@@ -336,11 +336,11 @@ public:
 	}
 	const void saveSettings(std::filesystem::path settingsFile) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-		rapidjson::Value::MemberIterator trackSpeedMember = settings.FindMember("trackspeed");
+		rapidjson::Value::MemberIterator trackSpeedMember = settings.FindMember("trackSpeed");
 		trackSpeedMember->value.SetInt(trackSpeed);
-		rapidjson::Value::MemberIterator avOffsetMember = settings.FindMember("trackspeed");
+		rapidjson::Value::MemberIterator avOffsetMember = settings.FindMember("avOffset");
 		avOffsetMember->value.SetInt(avOffsetMS);
-		rapidjson::Value::MemberIterator inputOffsetMember = settings.FindMember("trackspeed");
+		rapidjson::Value::MemberIterator inputOffsetMember = settings.FindMember("inputOffset");
 		inputOffsetMember->value.SetInt(inputOffsetMS);
 		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
 		keybinds4KMember->value.Clear();
