@@ -42,7 +42,7 @@ int curBeatLine = 0;
 int curBPM = 0;
 int selLane = 0;
 bool changingKey = false;
-
+double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
@@ -452,10 +452,28 @@ int main(int argc, char* argv[])
 							diff = i;
 							selectStage = 3;
 							isPlaying = true;
+							startedPlayingSong = GetTime();
 							glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
 						}
+						DrawText(diffList[i].c_str(), 150-(MeasureText(diffList[i].c_str(),30)/2), 75 + (60 * (float)i), 30, BLACK);
 					}
-					DrawText(diffList[i].c_str(), 150-(MeasureText(diffList[i].c_str(),30)/2), 75 + (60 * (float)i), 30, BLACK);
+				}
+			}
+			else if (selectStage == 4) {
+				int starsval = stars();
+				DrawText("Results", GetScreenWidth() / 2 - (MeasureText("Results", 36) / 2), 0, 36, WHITE);
+				DrawText((songList.songs[curPlayingSong].artist +" - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureText((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
+				if (FC) {
+					DrawText("Flawless!", GetScreenWidth()/2-(MeasureText("Flawless!",24)/2), 84, 24, GOLD);
+				}
+				DrawText(TextFormat("%01i", score), (GetScreenWidth() / 2 - MeasureText(TextFormat("%01i", score), 24) / 2), 128, 24, WHITE);
+				DrawText(TextFormat("Stars: %01i", starsval), (GetScreenWidth() / 2 - MeasureText(TextFormat("Stars: %01i", starsval), 24) / 2), 160, 24, WHITE);
+				DrawText(TextFormat("Notes Hit: %01i", notesHit), (GetScreenWidth() / 2 - MeasureText(TextFormat("Notes Hit: %01i", notesHit), 24) / 2), 192, 24, WHITE);
+				DrawText(TextFormat("Notes Missed: %01i", notesMissed), (GetScreenWidth() / 2 - MeasureText(TextFormat("Notes Missed: %01i", notesMissed), 24) / 2), 224, 24, WHITE);
+				DrawText(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - MeasureText(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 256, 24, WHITE);
+				DrawText(TextFormat("Max Combo: %01i", maxCombo), (GetScreenWidth() / 2 - MeasureText(TextFormat("Max Combo: %01i", maxCombo), 24) / 2), 288, 24, WHITE);
+				if (GuiButton({ 0,0,60,60 }, "<")) {
+					selectStage = 0;
 				}
 			}
 		}
@@ -466,9 +484,10 @@ int main(int argc, char* argv[])
 			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
 			DrawText(TextFormat("Score: %01i", score+sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 190, 24, WHITE);
 			DrawText(TextFormat("Combo: %01i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 130, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
-			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 100, 24, FC ? GOLD : WHITE);
-            DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
+			DrawText(TextFormat("Max Combo: %01i", maxCombo), 5, GetScreenHeight() - 130, 24, WHITE);
+			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 100, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
+			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
+            DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 40, 24, FC ? GOLD : WHITE);
             DrawText(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight()-370), 48, GOLD);
 			float multFill = (!overdrive ? (float)(multiplier(instrument)-1) : ((float)(multiplier(instrument)/2)-1)) / (float)maxMultForMeter(instrument);
 			SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -500,7 +519,6 @@ int main(int argc, char* argv[])
 					phrase.added = false;
 				}
 				selectStage = 0;
-
 				overdrive = false;
 				overdriveFill = 0.0f;
 				overdriveActiveFill = 0.0f;
@@ -511,49 +529,52 @@ int main(int argc, char* argv[])
 			}
 			if (!streamsLoaded) {
 				loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
+				for (auto& stream : loadedStreams) {
+					std::cout << GetMusicTimeLength(stream.first) << std::endl;
+				}
+				
 				streamsLoaded = true;
 				player::resetPlayerStats();
 			}
 			else {
+				if (GetTime() >= GetMusicTimeLength(loadedStreams[0].first)+startedPlayingSong) {
+					for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
+						note.accounted = false;
+						note.hit = false;
+						note.miss = false;
+						note.held = false;
+						note.heldTime = 0;
+						note.perfect = false;
+						// notes += 1;
+					}
+					glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
+					// notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
+					for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
+						phrase.missed = false;
+						phrase.notesHit = 0;
+						phrase.added = false;
+					}
+					overdrive = false;
+					overdriveFill = 0.0f;
+					overdriveActiveFill = 0.0f;
+					overdriveActiveTime = 0.0;
+					isPlaying = false;
+					midiLoaded = false;
+					streamsLoaded = false;
+					selectStage = 4;
+				}
 				for (auto& stream : loadedStreams) {
 					UpdateMusicStream(stream.first);
 					PlayMusicStream(stream.first);
-					if(instrument==stream.second)
+					if (instrument == stream.second)
 						SetAudioStreamVolume(stream.first.stream, mute ? missVolume : selInstVolume);
 					else
 						SetAudioStreamVolume(stream.first.stream, otherInstVolume);
 
 				}
-
 			}
+			
 			double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
-			if (musicTime >= songList.songs[curPlayingSong].length) {
-				for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
-					note.accounted = false;
-					note.hit = false;
-					note.miss = false;
-					note.held = false;
-					note.heldTime = 0;
-					note.perfect = false;
-                    // notes += 1;
-				}
-				glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
-                // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-				for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
-					phrase.missed = false;
-					phrase.notesHit = 0;
-					phrase.added = false;
-				}
-				selectStage = 0;
-				overdrive = false;
-				overdriveFill = 0.0f;
-				overdriveActiveFill = 0.0f;
-				overdriveActiveTime = 0.0;
-				isPlaying = false;
-				midiLoaded = false;
-				streamsLoaded = false;
-
-			}
 			if (overdrive) {
 				assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
 				assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
@@ -781,9 +802,6 @@ int main(int argc, char* argv[])
 						}
 
 					}
-
-
-
 				}
                 if (curNote.miss) {
                     DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);

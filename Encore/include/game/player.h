@@ -28,6 +28,7 @@ float smasherPos = 2.7f;
 
 int notes = 0;
 int combo = 0;
+int maxCombo = 0;
 int score = 0;
 std::vector<int> sustainScoreBuffer{ 0,0,0,0,0 };
 int playerOverhits = 0;
@@ -131,6 +132,7 @@ public:
 		notesHit = 0;
 		notesMissed = 0;
         perfectHit = 0;
+		maxCombo = 0;
 		combo = 0;
 		score = 0;
 		FC = true;
@@ -144,6 +146,8 @@ public:
 	static void HitNote(bool perfect, int instrument) {
 		notesHit += 1;
 		combo += 1;
+		if (combo > maxCombo)
+			maxCombo = combo;
 		float perfectMult = perfect ? 1.2f : 1.0f;
 		score += (int)((30 * (multiplier(instrument)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
@@ -152,6 +156,8 @@ public:
 	static void HitNoteAudio(bool perfect, int instrument) {
 		notesHit += 1;
 		combo += 1;
+		if (combo > maxCombo)
+			maxCombo = combo;
 		float perfectMult = perfect ? 1.2f : 1.0f;
 		score += (int)((30 * (multiplier(instrument)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
@@ -159,11 +165,15 @@ public:
 	}
 	static void MissNote() {
 		notesMissed += 1;
+		if (combo > maxCombo)
+			maxCombo = combo;
 		combo = 0;
 		FC = false;
         mute = true;
 	}
     static void OverHit() {
+		if (combo > maxCombo)
+			maxCombo = combo;
         combo = 0;
         playerOverhits += 1;
         FC = false;
