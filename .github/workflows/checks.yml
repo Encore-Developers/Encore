@@ -31,7 +31,7 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build_x64 --config ${{env.BUILD_TYPE}}
     - name: List build files
-      working-directory: ${{github.workspace}}/build_x64
+      working-directory: ${{github.workspace}}/build_x64/Encore
       run: dir
     - name: Test
       working-directory: ${{github.workspace}}/build_x64
@@ -56,7 +56,7 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build_x86 --config ${{env.BUILD_TYPE}}
     - name: List build files
-      working-directory: ${{github.workspace}}/build_x86
+      working-directory: ${{github.workspace}}/build_x86/Encore
       run: dir
     - name: Test
       working-directory: ${{github.workspace}}/build_x86
@@ -84,7 +84,7 @@ jobs:
       run: cmake --build ${{github.workspace}}/build_linux --config ${{env.BUILD_TYPE}}
 
     - name: List build files
-      working-directory: ${{github.workspace}}/build_linux
+      working-directory: ${{github.workspace}}/build_linux/Encore
       run: ls
     - name: Test
       working-directory: ${{github.workspace}}/build_linux
