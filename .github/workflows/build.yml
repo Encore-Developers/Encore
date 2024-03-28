@@ -1,7 +1,6 @@
 # This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
-name: Build Checks
-
+name: Build Windows x86, Windows x64, Linux
 on:
   push:
     branches: [ "main" ]
@@ -91,6 +90,7 @@ jobs:
       run: rm -r -f CMakeFiles Makefile cmake_install.cmake
 
     - uses: actions/upload-artifact@v4
+
       with:
         name: Encore_Linux
-        path: Encore/*
+        path: ${{github.workspace}}/build_linux/Encore/*
