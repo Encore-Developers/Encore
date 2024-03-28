@@ -66,13 +66,20 @@ std::unordered_map<int, std::string> keymap{
 
 static std::string getKeyStr(int keycode)
 {
-	auto it = keymap.find(keycode);
-	if (it != keymap.end())
-	{
-		return it->second;
+	if (keycode >= 39 && keycode < 96) {
+		char chr = static_cast<char>(keycode);
+		return std::string(1,chr);
 	}
-	else
-	{
-		return "UNKNOWN";
+	else {
+		auto it = keymap.find(keycode);
+		if (it != keymap.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			return keycode == -1 ? "" : "UNK";
+		}
 	}
+	
 }
