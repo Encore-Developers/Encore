@@ -32,10 +32,8 @@ jobs:
       run: cmake --build ${{github.workspace}}/build_x64 --config ${{env.BUILD_TYPE}}
 
     - name: Move Assets and Songs folders
-      working-directory: ${{github.workspace}}/build_x86/Encore
-      run: 
-        move Assets Release/Assets
-        move Songs Release/Songs
+      working-directory: ${{github.workspace}}/build_x64/Encore
+      run: move Assets Release/Assets ; move Songs Release/Songs
 
     - uses: actions/upload-artifact@v4
       with:
@@ -61,9 +59,7 @@ jobs:
 
     - name: Move Assets and Songs folders
       working-directory: ${{github.workspace}}/build_x86/Encore
-      run: 
-        move Assets Release/Assets
-        move Songs Release/Songs
+      run: move Assets Release/Assets ; move Songs Release/Songs
 
     - uses: actions/upload-artifact@v4
       with:
