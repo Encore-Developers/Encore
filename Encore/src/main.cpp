@@ -436,7 +436,7 @@ int main(int argc, char* argv[])
 						selectStage = 1;
 					}
 					DrawTextureEx(song.albumArt, Vector2{ 5,viewScroll.y + (60 * curSong) + 5 }, 0.0f, 0.1f, RAYWHITE);
-					DrawText(song.title.c_str(), 65, viewScroll.y + (60 * curSong) + 15, 30, BLACK);
+                    DrawText(song.title.c_str(), 65, viewScroll.y + (60 * curSong) + 15, 30, BLACK);
 					DrawText(song.artist.c_str(), ((float)GetScreenWidth() * (1.5f / 4.0f)), viewScroll.y + (60 * curSong) + 20, 20, BLACK);
 					curSong++;
 				}
@@ -525,13 +525,27 @@ int main(int argc, char* argv[])
 			}
 			else if (selectStage == 4) {
 				int starsval = stars();
+                char* starsDisplay = "";
+                if (starsval == 5) {
+                    starsDisplay = "*****";
+                } else if (starsval == 4) {
+                    starsDisplay = "****";
+                } else if (starsval == 3) {
+                    starsDisplay = "***";
+                } else if (starsval == 2) {
+                    starsDisplay = "**";
+                } else if (starsval == 1) {
+                    starsDisplay = "*";;
+                } else {
+                    starsDisplay = "";
+                }
 				DrawText("Results", GetScreenWidth() / 2 - (MeasureText("Results", 36) / 2), 0, 36, WHITE);
 				DrawText((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureText((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
 				if (FC) {
 					DrawText("Flawless!", GetScreenWidth() / 2 - (MeasureText("Flawless!", 24) / 2), 84, 24, GOLD);
 				}
 				DrawText(TextFormat("%01i", score), (GetScreenWidth() / 2 - MeasureText(TextFormat("%01i", score), 24) / 2), 128, 24, WHITE);
-				DrawText(TextFormat("Stars: %01i", starsval), (GetScreenWidth() / 2 - MeasureText(TextFormat("Stars: %01i", starsval), 24) / 2), 160, 24, WHITE);
+				DrawText(TextFormat("%s", starsDisplay) , (GetScreenWidth() / 2 - MeasureText(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
 				DrawText(TextFormat("Notes Hit: %01i", notesHit), (GetScreenWidth() / 2 - MeasureText(TextFormat("Notes Hit: %01i", notesHit), 24) / 2), 192, 24, WHITE);
 				DrawText(TextFormat("Notes Missed: %01i", notesMissed), (GetScreenWidth() / 2 - MeasureText(TextFormat("Notes Missed: %01i", notesMissed), 24) / 2), 224, 24, WHITE);
 				DrawText(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - MeasureText(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 256, 24, WHITE);
@@ -542,17 +556,27 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
+            char* starsDisplay = "";
 			int starsval = stars();
-			DrawText(TextFormat("Stars: %01i", starsval), 5, GetScreenHeight() - 310, 24, goldStars ? GOLD : WHITE);
-			DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
-			DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24, ((combo == 0) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Score: %01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 190, 24, WHITE);
-			DrawText(TextFormat("Combo: %01i", combo), 5, GetScreenHeight() - 160, 24, ((combo <= 5) && (!FC)) ? RED : WHITE);
-			DrawText(TextFormat("Max Combo: %01i", maxCombo), 5, GetScreenHeight() - 130, 24, WHITE);
-			DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 100, 24, (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
-			DrawText(TextFormat("FC run: %s", FC ? "True" : "False"), 5, GetScreenHeight() - 70, 24, FC ? GOLD : WHITE);
-			DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 40, 24, FC ? GOLD : WHITE);
-			DrawText(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 48, GOLD);
+                if (starsval == 5) {
+                    starsDisplay = "*****";
+                } else if (starsval == 4) {
+                    starsDisplay = "****";
+                } else if (starsval == 3) {
+                    starsDisplay = "***";
+                } else if (starsval == 2) {
+                    starsDisplay = "**";
+                } else if (starsval == 1) {
+                    starsDisplay = "*";;
+                } else {
+                    starsDisplay = "";
+            }
+			DrawText(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
+            DrawText(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 420, 48, WHITE);
+			DrawText(TextFormat("%01i", combo), 5, GetScreenHeight() - 330, 30, FC ? GOLD : (combo <= 3) ? RED : WHITE);
+			DrawText(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, 36, GOLD);
+			DrawText(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
+
 			float multFill = (!overdrive ? (float)(multiplier(instrument) - 1) : ((float)(multiplier(instrument) / 2) - 1)) / (float)maxMultForMeter(instrument);
 			SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(assets.multNumberShader, assets.uvOffsetXLoc, &uvOffsetX, SHADER_UNIFORM_FLOAT);
@@ -560,8 +584,17 @@ int main(int argc, char* argv[])
 			float comboFill = comboFillCalc(instrument);
 			SetShaderValue(assets.odMultShader, assets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 			SetShaderValue(assets.odMultShader, assets.odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
-			DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24, (perfectHit > 0) ? GOLD : WHITE);
-
+            if (extraGameplayStats) {
+                DrawText(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24,
+                         (perfectHit > 0) ? GOLD : WHITE);
+                DrawText(TextFormat("Max Combo: %01i", maxCombo), 5, GetScreenHeight() - 130, 24, WHITE);
+                DrawText(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 100, 24,
+                         (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
+                DrawText(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
+                DrawText(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24,
+                         ((combo == 0) && (!FC)) ? RED : WHITE);
+                DrawText(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 40, 24, FC ? GOLD : WHITE);
+            }
 
 
 			if (GuiButton({ 0,0,60,60 }, "<")) {
@@ -572,7 +605,7 @@ int main(int argc, char* argv[])
 					note.held = false;
 					note.heldTime = 0;
 					note.perfect = false;
-
+                    note.countedForODPhrase = false;
 				}
 				glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
 				// notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
@@ -587,6 +620,7 @@ int main(int argc, char* argv[])
 				overdriveFill = 0.0f;
 				overdriveActiveFill = 0.0f;
 				overdriveActiveTime = 0.0;
+                curODPhrase = 0;
 				assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
 				assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
 				assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
@@ -614,6 +648,7 @@ int main(int argc, char* argv[])
 						note.held = false;
 						note.heldTime = 0;
 						note.perfect = false;
+                        note.countedForODPhrase = false;
 						// notes += 1;
 					}
 					glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
@@ -630,12 +665,14 @@ int main(int argc, char* argv[])
 					isPlaying = false;
 					midiLoaded = false;
 					streamsLoaded = false;
+                    curODPhrase = 0;
 					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
 					assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
 					assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					selectStage = 4;
+
 				}
 				for (auto& stream : loadedStreams) {
 					UpdateMusicStream(stream.first);

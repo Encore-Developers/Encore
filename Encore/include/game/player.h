@@ -26,6 +26,8 @@ float liftTimingMult = 1.25f;
 float highwayLength = 11.5f;
 float smasherPos = 2.7f;
 
+bool extraGameplayStats = false;
+
 int notes = 0;
 int combo = 0;
 int maxCombo = 0;
