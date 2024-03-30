@@ -129,15 +129,15 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 			
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) < eventTime + InputOffset &&
-					(curNote.time) + (action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) > eventTime + InputOffset &&
+				if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend)+ InputOffset < eventTime  &&
+					(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend)+InputOffset) > eventTime &&
 					!curNote.hit) {
 					curNote.hit = true;
 					
 					if ((curNote.len) > 0 && !curNote.lift) {
 						curNote.held = true;
 					}
-					if ((curNote.time) - perfectBackend < eventTime + InputOffset && curNote.time + perfectFrontend > eventTime + InputOffset) {
+					if ((curNote.time) - perfectBackend + InputOffset < eventTime && curNote.time + perfectFrontend + InputOffset > eventTime) {
 						curNote.perfect = true;
 
 					}
@@ -158,7 +158,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 				// SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
 			}
 			if (lane != -1) {
-				if (action == GLFW_PRESS && eventTime<songList.songs[curPlayingSong].music_start && !curNote.hit && !curNote.accounted && (curNote.time) - perfectBackend > eventTime + InputOffset &&
+				if (action == GLFW_PRESS && eventTime>songList.songs[curPlayingSong].music_start && !curNote.hit && !curNote.accounted && ((curNote.time) - perfectBackend ) + InputOffset > eventTime &&
 					!overhitFrets[lane]) {
 					player::OverHit();
 					overhitFrets[lane] = true;
