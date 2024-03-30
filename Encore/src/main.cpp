@@ -525,19 +525,19 @@ int main(int argc, char* argv[])
 			}
 			else if (selectStage == 4) {
 				int starsval = stars();
-                char* starsDisplay = "";
+                char* starsDisplay = (char*) "";
                 if (starsval == 5) {
-                    starsDisplay = "*****";
+                    starsDisplay = (char*) "*****";
                 } else if (starsval == 4) {
-                    starsDisplay = "****";
+                    starsDisplay = (char*) "****";
                 } else if (starsval == 3) {
-                    starsDisplay = "***";
+                    starsDisplay = (char*) "***";
                 } else if (starsval == 2) {
-                    starsDisplay = "**";
+                    starsDisplay = (char*) "**";
                 } else if (starsval == 1) {
-                    starsDisplay = "*";;
+                    starsDisplay = (char*) "*";;
                 } else {
-                    starsDisplay = "";
+                    starsDisplay = (char*) "";
                 }
 				DrawText("Results", GetScreenWidth() / 2 - (MeasureText("Results", 36) / 2), 0, 36, WHITE);
 				DrawText((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureText((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
@@ -556,20 +556,20 @@ int main(int argc, char* argv[])
 			}
 		}
 		else {
-            char* starsDisplay = "";
+            char* starsDisplay = (char*) "";
 			int starsval = stars();
                 if (starsval == 5) {
-                    starsDisplay = "*****";
+                    starsDisplay = (char*) "*****";
                 } else if (starsval == 4) {
-                    starsDisplay = "****";
+                    starsDisplay = (char*) "****";
                 } else if (starsval == 3) {
-                    starsDisplay = "***";
+                    starsDisplay = (char*) "***";
                 } else if (starsval == 2) {
-                    starsDisplay = "**";
+                    starsDisplay = (char*) "**";
                 } else if (starsval == 1) {
-                    starsDisplay = "*";;
+                    starsDisplay = (char*) "*";;
                 } else {
-                    starsDisplay = "";
+                    starsDisplay = (char*) "";
             }
 			DrawText(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
             DrawText(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 420, 48, WHITE);
@@ -798,7 +798,7 @@ int main(int argc, char* argv[])
 				bool od = false;
 				if (curChart.odPhrases.size() > 0) {
 					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-						if (curNote.miss == true) {
+						if (curNote.miss) {
 							curChart.odPhrases[curODPhrase].missed = true;
 						}
 						else {
