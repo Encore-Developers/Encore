@@ -18,14 +18,49 @@ private:
 		}
 		return array;
 	}
+	void ensureValuesExist() {
+		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+		if (!settings.HasMember("trackSpeed"))
+			settings.AddMember("trackSpeed", rapidjson::Value(), allocator);
+		if (!settings.HasMember("avOffset"))
+			settings.AddMember("avOffset", rapidjson::Value(), allocator);
+		if (!settings.HasMember("inputOffset"))
+			settings.AddMember("inputOffset", rapidjson::Value(), allocator);
+		if (!settings.HasMember("keybinds"))
+			settings.AddMember("keybinds", rapidjson::kObjectType, allocator);
+		if (!settings["keybinds"].HasMember("4k"))
+			settings["keybinds"].AddMember("4k", rapidjson::kArrayType, allocator);
+		if (!settings["keybinds"].HasMember("5k"))
+			settings["keybinds"].AddMember("5k", rapidjson::kArrayType, allocator);
+		if (!settings["keybinds"].HasMember("4kAlt"))
+			settings["keybinds"].AddMember("4kAlt", rapidjson::kArrayType, allocator);
+		if (!settings["keybinds"].HasMember("5kAlt"))
+			settings["keybinds"].AddMember("5kAlt", rapidjson::kArrayType, allocator);
+		if (!settings["keybinds"].HasMember("overdrive"))
+			settings["keybinds"].AddMember("overdrive", rapidjson::Value(), allocator);
+		if (!settings["keybinds"].HasMember("overdriveAlt"))
+			settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(), allocator);
+	}
 public:
 	rapidjson::Document settings;
 	std::vector<int> defaultKeybinds4K{ KEY_D,KEY_F,KEY_J,KEY_K };
 	std::vector<int> defaultKeybinds5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
+	std::vector<int> defaultKeybinds4KAlt{ -1,-1,-1,-1 };
+	std::vector<int> defaultKeybinds5KAlt{ -1,-1,-1,-1,-1 };
+	int defaultKeybindOverdrive = 32;
+	int defaultKeybindOverdriveAlt = -1;
 	std::vector<int> keybinds4K = defaultKeybinds4K;
 	std::vector<int> keybinds5K = defaultKeybinds5K;
+	std::vector<int> keybinds4KAlt = defaultKeybinds4KAlt;
+	std::vector<int> keybinds5KAlt = defaultKeybinds5KAlt;
+	int keybindOverdrive = defaultKeybindOverdrive;
+	int keybindOverdriveAlt = defaultKeybindOverdriveAlt;
 	std::vector<int> prev4k = keybinds4K;
 	std::vector<int> prev5k = keybinds5K;
+	std::vector<int> prev4kAlt = keybinds4KAlt;
+	std::vector<int> prev5kAlt = keybinds5KAlt;
+	int prevOverdrive = keybindOverdrive;
+	int prevOverdriveAlt = keybindOverdriveAlt;
 	std::vector<float> defaultTrackSpeedOptions = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
 	std::vector<float> trackSpeedOptions = defaultTrackSpeedOptions;
 	int trackSpeed = 4;
@@ -35,6 +70,7 @@ public:
 	int inputOffsetMS = 0;
 	int prevInputOffsetMS = inputOffsetMS;
 	bool changing4k = false;
+	bool changingAlt = false;
 	void writeDefaultSettings(std::filesystem::path settingsFile, bool migrate = false) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		settings.SetObject();
@@ -52,17 +88,26 @@ public:
 			for (int& key : defaultKeybinds5K)
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
 		}
+		rapidjson::Value array4KAlt(rapidjson::kArrayType);
+		rapidjson::Value array5KAlt(rapidjson::kArrayType);
+		for (int& key : defaultKeybinds4KAlt)
+			array4KAlt.PushBack(rapidjson::Value().SetInt(key), allocator);
+		for (int& key : defaultKeybinds5KAlt)
+			array5KAlt.PushBack(rapidjson::Value().SetInt(key), allocator);
 		settings.AddMember("keybinds", rapidjson::Value(rapidjson::kObjectType), allocator);
 		settings["keybinds"].AddMember("4k", array4K, allocator);
 		settings["keybinds"].AddMember("5k", array5K, allocator);
-		rapidjson::Value avOffset;
-		avOffset.SetInt(avOffsetMS);
+		settings["keybinds"].AddMember("4kAlt", array4KAlt, allocator);
+		settings["keybinds"].AddMember("5kAlt", array5KAlt, allocator);
+		rapidjson::Value overdrive(keybindOverdrive);
+		rapidjson::Value overdriveAlt(keybindOverdriveAlt);
+		settings["keybinds"].AddMember("overdrive", overdrive, allocator);
+		settings["keybinds"].AddMember("overdriveAlt", overdriveAlt, allocator);
+		rapidjson::Value avOffset(avOffsetMS);
 		settings.AddMember("avOffset", avOffset, allocator);
-		rapidjson::Value inputOffset;
-		inputOffset.SetInt(inputOffsetMS);
+		rapidjson::Value inputOffset(inputOffsetMS);
 		settings.AddMember("inputOffset", inputOffset, allocator);
-		rapidjson::Value trackSpeedVal;
-		trackSpeedVal.SetInt(4);
+		rapidjson::Value trackSpeedVal(4);
 		settings.AddMember("trackSpeed", trackSpeedVal, allocator);
 		rapidjson::Value arrayTrackSpeedOptions(rapidjson::kArrayType);
 		for (float& speed : defaultTrackSpeedOptions)
@@ -74,6 +119,10 @@ public:
 		bool keybindsError = false;
 		bool keybinds4KError = false;
 		bool keybinds5KError = false;
+		bool keybinds4KAltError = false;
+		bool keybinds5KAltError = false;
+		bool keybindsOverdriveError = false;
+		bool keybindsOverdriveAltError = false;
 		bool avError = false;
 		bool inputError = false;
 		bool trackSpeedOptionsError = false;
@@ -123,6 +172,55 @@ public:
 						else {
 							keybinds5KError = true;
 						}
+					}
+					if (settings["keybinds"].HasMember("4kAlt") && settings["keybinds"]["4kAlt"].IsArray()) {
+						const rapidjson::Value& arr = settings["keybinds"]["4kAlt"];
+						if (arr.Size() == 4) {
+							for (int i = 0; i < 4; i++) {
+								if (arr[i].IsInt()) {
+									keybinds4KAlt[i] = arr[i].GetInt();
+								}
+								else {
+									keybinds4KAltError = true;
+								}
+							}
+							prev4kAlt = keybinds4KAlt;
+						}
+						else {
+							keybinds4KAltError = true;
+						}
+					}
+					if (settings["keybinds"].HasMember("5kAlt") && settings["keybinds"]["5kAlt"].IsArray()) {
+						const rapidjson::Value& arr = settings["keybinds"]["5kAlt"];
+						if (arr.Size() == 5) {
+							for (int i = 0; i < 5; i++) {
+								if (arr[i].IsInt()) {
+									keybinds5KAlt[i] = arr[i].GetInt();
+								}
+								else {
+									keybinds5KAltError = true;
+								}
+							}
+							prev5kAlt = keybinds5KAlt;
+						}
+						else {
+							keybinds5KAltError = true;
+						}
+					}
+					if (settings["keybinds"].HasMember("overdrive") && settings["keybinds"]["overdrive"].IsInt()) {
+						keybindOverdrive = settings["keybinds"]["overdrive"].GetInt();
+						prevOverdrive = keybindOverdrive;
+					}
+					else {
+						keybindsOverdriveError = true;
+					}
+
+					if (settings["keybinds"].HasMember("overdriveAlt") && settings["keybinds"]["overdriveAlt"].IsInt()) {
+						keybindOverdriveAlt = settings["keybinds"]["overdriveAlt"].GetInt();
+						prevOverdriveAlt = keybindOverdriveAlt;
+					}
+					else {
+						keybindsOverdriveAltError = true;
 					}
 				}
 				else {
@@ -206,6 +304,38 @@ public:
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
 			settings["keybinds"].AddMember("5k", array5K, allocator);
 		}
+		if (keybinds4KAltError) {
+			if (settings["keybinds"].HasMember("4kAlt"))
+				settings["keybinds"].EraseMember("4kAlt");
+			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+			rapidjson::Value array4K(rapidjson::kArrayType);
+			for (int& key : defaultKeybinds4KAlt)
+				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
+			settings["keybinds"].AddMember("4kAlt", array4K, allocator);
+		}
+		if (keybinds5KAltError) {
+			if (settings["keybinds"].HasMember("5kAlt"))
+				settings["keybinds"].EraseMember("5kAlt");
+			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+			rapidjson::Value array5K(rapidjson::kArrayType);
+			for (int& key : defaultKeybinds5KAlt)
+				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
+			settings["keybinds"].AddMember("5kAlt", array5K, allocator);
+		}
+		if (keybindsOverdriveError) {
+			if (settings["keybinds"].HasMember("overdrive"))
+				settings["keybinds"].EraseMember("overdrive");
+			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+			rapidjson::Value overdriveKey(KEY_SPACE);
+			settings["keybinds"].AddMember("overdrive", overdriveKey, allocator);
+		}
+		if (keybindsOverdriveAltError){
+			if (settings["keybinds"].HasMember("overdriveAlt"))
+				settings["keybinds"].EraseMember("overdriveAlt");
+			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+			rapidjson::Value overdriveKeyAlt(defaultKeybindOverdriveAlt);
+			settings["keybinds"].AddMember("overdriveAlt", overdriveKeyAlt, allocator);
+		}
 		if (avError) {
 			if (settings.HasMember("avOffset"))
 				settings.EraseMember("avOffset");
@@ -240,7 +370,8 @@ public:
 				arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
 			settings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
 		}
-		if (keybindsError || keybinds4KError || keybinds5KError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if (keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
 	}
@@ -350,6 +481,18 @@ public:
 		keybinds5KMember->value.Clear();
 		for (int& key : keybinds5K)
 			keybinds5KMember->value.PushBack(rapidjson::Value().SetInt(key), allocator);
+		rapidjson::Value::MemberIterator keybinds4KAltMember = settings["keybinds"].FindMember("4kAlt");
+		keybinds4KAltMember->value.Clear();
+		for (int& key : keybinds4KAlt)
+			keybinds4KAltMember->value.PushBack(rapidjson::Value().SetInt(key), allocator);
+		rapidjson::Value::MemberIterator keybinds5KAltMember = settings["keybinds"].FindMember("5kAlt");
+		keybinds5KAltMember->value.Clear();
+		for (int& key : keybinds5KAlt)
+			keybinds5KAltMember->value.PushBack(rapidjson::Value().SetInt(key), allocator);
+		rapidjson::Value::MemberIterator overdriveKeyMember = settings["keybinds"].FindMember("overdrive");
+		overdriveKeyMember->value.SetInt(keybindOverdrive);
+		rapidjson::Value::MemberIterator overdriveKeyAltMember = settings["keybinds"].FindMember("overdriveAlt");
+		overdriveKeyAltMember->value.SetInt(keybindOverdriveAlt);
 		char writeBuffer[8192];
 		FILE* fp = fopen(settingsFile.string().c_str(), "wb");
 		rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
