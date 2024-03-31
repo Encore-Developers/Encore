@@ -133,6 +133,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 					(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend)+InputOffset) > eventTime &&
 					!curNote.hit) {
 					curNote.hit = true;
+                    curNote.hitTime = eventTime;
 					
 					if ((curNote.len) > 0 && !curNote.lift) {
 						curNote.held = true;
@@ -604,6 +605,7 @@ int main(int argc, char* argv[])
 					note.miss = false;
 					note.held = false;
 					note.heldTime = 0;
+                    note.hitTime = 0;
 					note.perfect = false;
                     note.countedForODPhrase = false;
 				}
@@ -647,6 +649,7 @@ int main(int argc, char* argv[])
 						note.miss = false;
 						note.held = false;
 						note.heldTime = 0;
+                        note.hitTime = 0;
 						note.perfect = false;
                         note.countedForODPhrase = false;
 						// notes += 1;
@@ -918,7 +921,7 @@ int main(int argc, char* argv[])
 				if (curNote.miss) {
 					DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
 				}
-				if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.05f) {
+				if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.1f) {
 					DrawCube(Vector3{ diffDistance - (1.0f * curNote.lane), 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,128 } : Color{ 255,255,255,64 });
 				}
 

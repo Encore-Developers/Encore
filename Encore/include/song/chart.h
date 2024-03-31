@@ -18,6 +18,7 @@ struct Note
 	bool accounted = false;
 	bool countedForODPhrase = false;
     bool perfect = false;
+    double hitTime = 0;
 	//For plastic support later
 	bool forceStrum;
 	bool forceHopo;
