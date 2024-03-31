@@ -18,6 +18,8 @@ float perfectBackend = 0.025f;
 float VideoOffset = (0);
 float InputOffset = 0;
 
+bool MissHighwayColor = false;
+
 bool lastNotePerfect = false;
 
 // make the hitwindow bigger for properly doing lifts

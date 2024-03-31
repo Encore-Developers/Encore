@@ -276,6 +276,7 @@ int main(int argc, char* argv[])
 					settings.trackSpeed = settings.prevTrackSpeed;
 					settings.inputOffsetMS = settings.prevInputOffsetMS;
 					settings.avOffsetMS = settings.prevAvOffsetMS;
+                    settings.missHighwayDefault = settings.prevMissHighwayColor;
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
 					selectStage = 0;
@@ -288,6 +289,7 @@ int main(int argc, char* argv[])
 					settings.prevTrackSpeed = settings.trackSpeed;
 					settings.prevInputOffsetMS = settings.inputOffsetMS;
 					settings.prevAvOffsetMS = settings.avOffsetMS;
+                    settings.prevMissHighwayColor = settings.missHighwayDefault;
 					settings.saveSettings(directory / "settings.json");
 				}
 				if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
@@ -309,6 +311,11 @@ int main(int argc, char* argv[])
 					settings.avOffsetMS++;
 				}
 				DrawText(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureText(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
+
+                if (GuiButton({(float) GetScreenWidth()/2 + 250, (float) GetScreenHeight()/2,250,60}, TextFormat("Miss Highway Color: %s", MissHighwayColor ? "True" : "False" ))) {
+                    settings.missHighwayDefault = !settings.missHighwayDefault;
+                    MissHighwayColor = settings.missHighwayDefault;
+                };
 
 				float inputOffsetFloat = (float)settings.inputOffsetMS;
 				DrawText("Input Offset", (float)GetScreenWidth() / 2 - MeasureText("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
@@ -628,6 +635,7 @@ int main(int argc, char* argv[])
 				assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 				assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 				assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 				isPlaying = false;
 				midiLoaded = false;
 				streamsLoaded = false;
@@ -674,6 +682,7 @@ int main(int argc, char* argv[])
 					assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 					selectStage = 4;
 
 				}
@@ -920,7 +929,7 @@ int main(int argc, char* argv[])
 				}
 				if (curNote.miss) {
 					DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
-                    if (GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.4) {
+                    if (GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.4 && MissHighwayColor) {
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
                     } else {
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;

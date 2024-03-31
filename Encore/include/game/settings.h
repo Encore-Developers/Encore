@@ -71,6 +71,9 @@ public:
 	int prevInputOffsetMS = inputOffsetMS;
 	bool changing4k = false;
 	bool changingAlt = false;
+    bool missHighwayDefault = false;
+    bool prevMissHighwayColor = missHighwayDefault;
+
 	void writeDefaultSettings(std::filesystem::path settingsFile, bool migrate = false) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		settings.SetObject();
@@ -113,6 +116,8 @@ public:
 		for (float& speed : defaultTrackSpeedOptions)
 			arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
 		settings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
+        settings.AddMember("missHighwayColor", missHighwayDefault, allocator);
+        rapidjson::Value missHighwayColor;
 		saveSettings(settingsFile);
 	}
 	void loadSettings(std::filesystem::path settingsFile) {
@@ -127,6 +132,7 @@ public:
 		bool inputError = false;
 		bool trackSpeedOptionsError = false;
 		bool trackSpeedError = false;
+        bool MissHighwayError = false;
 		if (std::filesystem::exists(settingsFile)) {
 			std::ifstream ifs(settingsFile);
 			if (!ifs.is_open()) {
@@ -265,6 +271,11 @@ public:
 				else {
 					trackSpeedOptionsError = true;
 				}
+                if (settings.HasMember("missHighwayColor") && settings["missHighwayColor"].IsBool()) {
+                    MissHighwayColor = settings["missHighwayColor"].GetBool();
+                } else {
+                    MissHighwayError = true;
+                }
 			}
 		}
 		else {
@@ -370,7 +381,15 @@ public:
 				arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
 			settings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
 		}
-		if (keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+        if (MissHighwayError) {
+            if (settings.HasMember("missHighwayColor"))
+                settings.EraseMember("missHighwayColor");
+            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+            rapidjson::Value missHighwayColor;
+            missHighwayColor.SetBool(false);
+            settings.AddMember("missHighwayColor", missHighwayColor, allocator);
+        }
+		if (MissHighwayError||keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -473,6 +492,8 @@ public:
 		avOffsetMember->value.SetInt(avOffsetMS);
 		rapidjson::Value::MemberIterator inputOffsetMember = settings.FindMember("inputOffset");
 		inputOffsetMember->value.SetInt(inputOffsetMS);
+        rapidjson::Value::MemberIterator missHighwayColorMember = settings.FindMember("missHighwayColor");
+        missHighwayColorMember->value.SetBool(missHighwayDefault);
 		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
 		keybinds4KMember->value.Clear();
 		for (int& key : keybinds4K)
