@@ -923,6 +923,10 @@ int main(int argc, char* argv[])
 				}
 				if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.1f) {
 					DrawCube(Vector3{ diffDistance - (1.0f * curNote.lane), 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,128 } : Color{ 255,255,255,64 });
+                    if (curNote.perfect) {
+                        DrawCube(Vector3{ 3.25, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
+
+                    }
 				}
 
 
