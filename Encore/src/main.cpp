@@ -51,13 +51,17 @@ Rectangle view = { 0 };
 std::string trackSpeedButton = "Track Speed 1.50x";
 
 
-std::vector<double> laneTimes = { 0.0,0.0,0.0,0.0,0.0 };
-std::vector<double> liftTimes = { 0.0,0.0,0.0,0.0,0.0 };
-std::vector<bool> heldFrets = { false,false,false,false,false };
-std::vector<bool> heldFretsAlt = { false,false,false,false,false };
-std::vector<bool> overhitFrets = { false,false,false,false,false };
+std::vector<bool> heldFrets{ false,false,false,false,false };
+std::vector<bool> heldFretsAlt{ false,false,false,false,false };
+std::vector<bool> overhitFrets{ false,false,false,false,false };
 std::vector<bool> tapRegistered{ false,false,false,false,false };
 std::vector<bool> liftRegistered{ false,false,false,false,false };
+bool overdriveHeld = false;
+bool overdriveAltHeld = false;
+bool overdriveHitAvailable = false;
+bool overdriveLiftAvailable = false;
+std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
+double overdriveHitTime = 0.0;
 SongList songList;
 Settings settings;
 Assets assets;
@@ -71,6 +75,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 			overdriveActiveTime = eventTime;
 			overdriveActiveFill = overdriveFill;
 			overdrive = true;
+			overdriveHitAvailable = true;
 		}
 		int lane = -1;
 		if (diff == 3) {
@@ -121,50 +126,134 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 				}
 			}
 		}
+		
 
 		for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 			Note& curNote = curChart.notes[i];
 
 			// if (curNote.time > eventTime + 0.1) break;
 			
-			if (lane != curNote.lane) continue;
-			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend)+ InputOffset < eventTime  &&
-					(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend)+InputOffset) > eventTime &&
-					!curNote.hit) {
-					curNote.hit = true;
-                    curNote.hitTime = eventTime;
-					
-					if ((curNote.len) > 0 && !curNote.lift) {
-						curNote.held = true;
-					}
-					if ((curNote.time) - perfectBackend + InputOffset < eventTime && curNote.time + perfectFrontend + InputOffset > eventTime) {
-						curNote.perfect = true;
+			if (key != settings.keybindOverdrive && key != settings.keybindOverdriveAlt) {
+				if (lane != curNote.lane) continue;
+				if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
+					if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) + InputOffset < eventTime &&
+						(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) + InputOffset) > eventTime &&
+						!curNote.hit) {
+						curNote.hit = true;
+						curNote.hitTime = eventTime;
+						if ((curNote.len) > 0 && !curNote.lift) {
+							curNote.held = true;
+						}
+						if ((curNote.time) - perfectBackend + InputOffset < eventTime && curNote.time + perfectFrontend + InputOffset > eventTime) {
+							curNote.perfect = true;
 
+						}
+						if (curNote.perfect) lastNotePerfect = true;
+						else lastNotePerfect = false;
+						player::HitNote(curNote.perfect, instrument);
+						curNote.accounted = true;
+						break;
 					}
-					if (curNote.perfect) lastNotePerfect = true;
-					else lastNotePerfect = false;
-					break;
+					if (curNote.miss) lastNotePerfect = false;
 				}
-				if (curNote.miss) lastNotePerfect = false;
-			}
-			// if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-			//	    curNote.miss = true;
-			// }
-			if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
-				curNote.held = false;
-				score += sustainScoreBuffer[curNote.lane];
-				sustainScoreBuffer[curNote.lane] = 0;
-				mute = true;
-				// SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
-			}
-			if (lane != -1) {
-				if (action == GLFW_PRESS && eventTime>songList.songs[curPlayingSong].music_start && !curNote.hit && !curNote.accounted && ((curNote.time) - perfectBackend ) + InputOffset > eventTime &&
-					!overhitFrets[lane]) {
+				if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
+					curNote.held = false;
+					score += sustainScoreBuffer[curNote.lane];
+					sustainScoreBuffer[curNote.lane] = 0;
+					mute = true;
+					// SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
+				}
+
+				if (action == GLFW_PRESS && 
+					eventTime > songList.songs[curPlayingSong].music_start && 
+					!curNote.hit && 
+					!curNote.accounted && 
+					((curNote.time) - perfectBackend) + InputOffset > eventTime &&
+					eventTime > overdriveHitTime+0.025
+					&& !overhitFrets[lane]) {
 					player::OverHit();
+					if (curChart.odPhrases.size() >= 1 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
 					overhitFrets[lane] = true;
 				}
 			}
+			else if(key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt){
+				if (action == GLFW_PRESS && !overdriveHeld) {
+					overdriveHeld = true;
+					std::cout << "overdriveHitAvailable = " << overdriveHitAvailable << std::endl;
+				}
+					
+				else if (action == GLFW_RELEASE && overdriveHeld) {
+					overdriveHeld = false;
+				}
+				if (action == GLFW_PRESS && overdriveHitAvailable==true) {
+					if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
+						(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
+						!curNote.hit) {
+						for (int lane = 0; lane < 5; lane++) {
+							int chordLane = curChart.findNoteIdx(curNote.time, lane);
+							std::cout << "lane " << lane << " at " << chordLane << std::endl;
+							if (chordLane != -1) {
+								Note& chordNote = curChart.notes[chordLane];
+								if ((chordNote.time) - (goodBackend)+InputOffset < eventTime &&
+									(chordNote.time) + (goodFrontend)+InputOffset > eventTime &&
+									!chordNote.hit) {
+									chordNote.hit = true;
+									overdriveLanesHit[lane] = true;
+									chordNote.hitTime = eventTime;
+
+									if ((chordNote.len) > 0 && !chordNote.lift) {
+										chordNote.held = true;
+									}
+									if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+										chordNote.perfect = true;
+
+									}
+									if (chordNote.perfect) lastNotePerfect = true;
+									else lastNotePerfect = false;
+									player::HitNote(curNote.perfect, instrument);
+									curNote.accounted = true;
+								}
+							}
+						}
+						overdriveHitAvailable = false;
+						overdriveLiftAvailable = true;
+					}
+				}
+				else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
+					if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
+						(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
+						!curNote.hit) {
+						for (int lane = 0; lane < 5; lane++) {
+							if (overdriveLanesHit[lane]) {
+								int chordLane = curChart.findNoteIdx(curNote.time, lane);
+								if (chordLane != -1) {
+									Note& chordNote = curChart.notes[chordLane];
+									if (chordNote.lift) {
+										chordNote.hit = true;
+										overdriveLanesHit[lane] = false;
+										chordNote.hitTime = eventTime;
+
+										if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+											chordNote.perfect = true;
+
+										}
+										if (chordNote.perfect) lastNotePerfect = true;
+										else lastNotePerfect = false;
+									}
+									
+								}
+							}
+						}
+						overdriveLiftAvailable = false;
+					}
+					
+				}
+			}
+			
+			// if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
+			//	    curNote.miss = true;
+			// }
+			
 		}
 	}
 	//}
@@ -832,11 +921,7 @@ int main(int argc, char* argv[])
 						curChart.odPhrases[curODPhrase].added = true;
 					}
 				}
-				if (curNote.hit && !curNote.accounted) {
-					player::HitNote(curNote.perfect, instrument);
-					curNote.accounted = true;
-				}
-				else if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
+				if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
 					curNote.miss = true;
 					player::MissNote();
 					curNote.accounted = true;
