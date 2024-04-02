@@ -659,10 +659,11 @@ int main(int argc, char* argv[])
 				}
 				DrawText(TextFormat("%01i", score), (GetScreenWidth() / 2 - MeasureText(TextFormat("%01i", score), 24) / 2), 128, 24, WHITE);
 				DrawText(TextFormat("%s", starsDisplay) , (GetScreenWidth() / 2 - MeasureText(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
-				DrawText(TextFormat("Notes Hit: %01i", notesHit), (GetScreenWidth() / 2 - MeasureText(TextFormat("Notes Hit: %01i", notesHit), 24) / 2), 192, 24, WHITE);
-				DrawText(TextFormat("Notes Missed: %01i", notesMissed), (GetScreenWidth() / 2 - MeasureText(TextFormat("Notes Missed: %01i", notesMissed), 24) / 2), 224, 24, WHITE);
-				DrawText(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - MeasureText(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 256, 24, WHITE);
-				DrawText(TextFormat("Max Combo: %01i", maxCombo), (GetScreenWidth() / 2 - MeasureText(TextFormat("Max Combo: %01i", maxCombo), 24) / 2), 288, 24, WHITE);
+				DrawText(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureText(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
+				DrawText(TextFormat("Good Notes : %01i/%02i", notesHit-perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureText(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
+				DrawText(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureText(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 256, 24, WHITE);
+				DrawText(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - MeasureText(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 288, 24, WHITE);
+				DrawText(TextFormat("Longest Streak: %01i", maxCombo), (GetScreenWidth() / 2 - MeasureText(TextFormat("Longest Streak: %01i", maxCombo), 24) / 2), 320, 24, WHITE);
 				if (GuiButton({ 0,0,60,60 }, "<")) {
 					selectStage = 0;
 				}
