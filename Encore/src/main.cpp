@@ -687,6 +687,7 @@ int main(int argc, char* argv[])
 
 				}
 				for (auto& stream : loadedStreams) {
+					stream.first.looping = false;
 					UpdateMusicStream(stream.first);
 					PlayMusicStream(stream.first);
 					if (instrument == stream.second)
@@ -835,7 +836,7 @@ int main(int argc, char* argv[])
 					player::HitNote(curNote.perfect, instrument);
 					curNote.accounted = true;
 				}
-				else if (!curNote.accounted && !curNote.hit && curNote.time + 0.1 < musicTime) {
+				else if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
 					curNote.miss = true;
 					player::MissNote();
 					curNote.accounted = true;
