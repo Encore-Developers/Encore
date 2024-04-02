@@ -582,9 +582,9 @@ int main(int argc, char* argv[])
 													newChart.parseNotes(midiFile, i, midiFile[i], diff,(int)songPart);
 													if (newChart.notes.size() > 0) {
 														songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
-														std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
-														songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
 													}
+													std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
+													songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
 												}
 											}
 										}
