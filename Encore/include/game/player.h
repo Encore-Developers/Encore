@@ -56,9 +56,7 @@ double overdriveActiveTime = 0.0;
 float uvOffsetX = 0;
 float uvOffsetY = 0;
 
-int stars() {
-    int baseScore = 1080+720+360+((notes-30) * 144);
-
+int stars(int baseScore) {
     float starPercent = (float)score/(float)baseScore;
     if (starPercent < xStarThreshold[0]) {return 0;}
 	else if (starPercent < xStarThreshold[1]) { return 1; }

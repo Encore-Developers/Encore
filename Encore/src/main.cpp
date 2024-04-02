@@ -191,7 +191,6 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 						!curNote.hit) {
 						for (int lane = 0; lane < 5; lane++) {
 							int chordLane = curChart.findNoteIdx(curNote.time, lane);
-							std::cout << "lane " << lane << " at " << chordLane << std::endl;
 							if (chordLane != -1) {
 								Note& chordNote = curChart.notes[chordLane];
 								if ((chordNote.time) - (goodBackend)+InputOffset < eventTime &&
@@ -245,8 +244,23 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 							}
 						}
 						overdriveLiftAvailable = false;
+					}					
+				}
+				if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
+					for (int lane = 0; lane < 5; lane++) {
+						if (overdriveLanesHit[lane]) {
+							int chordLane = curChart.findNoteIdx(curNote.time, lane);
+							if (chordLane != -1) {
+								Note& chordNote = curChart.notes[chordLane];
+								if (chordNote.held && chordNote.len > 0) {
+									chordNote.held = false;
+									score += sustainScoreBuffer[chordNote.lane];
+									sustainScoreBuffer[chordNote.lane] = 0;
+									mute = true;
+								}
+							}
+						}
 					}
-					
 				}
 			}
 			
@@ -302,8 +316,8 @@ int main(int argc, char* argv[])
 	float timeCounter = 0.0f;
 
 	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-	std::vector<string> songPartsList{ "Drums","Bass","Guitar","Vocals" };
-	std::vector<string> diffList{ "Easy","Medium","Hard","Expert" };
+	std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals" };
+	std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
 	InitAudioDevice();
@@ -563,13 +577,14 @@ int main(int argc, char* argv[])
 										}
 										else {
 											if (songPart != SongParts::Invalid) {
-												songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
 												for (int diff = 0; diff < 4; diff++) {
 													Chart newChart;
-													newChart.parseNotes(midiFile, i, midiFile[i], diff);
-													std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
-													std::vector<BPM>& bpms = songList.songs[curPlayingSong].bpms;
-													songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+													newChart.parseNotes(midiFile, i, midiFile[i], diff,(int)songPart);
+													if (newChart.notes.size() > 0) {
+														songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+														std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
+														songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+													}
 												}
 											}
 										}
@@ -622,7 +637,7 @@ int main(int argc, char* argv[])
 				}
 			}
 			else if (selectStage == 4) {
-				int starsval = stars();
+				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
                 char* starsDisplay = (char*) "";
                 if (starsval == 5) {
                     starsDisplay = (char*) "*****";
@@ -655,7 +670,7 @@ int main(int argc, char* argv[])
 		}
 		else {
             char* starsDisplay = (char*) "";
-			int starsval = stars();
+			int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
                 if (starsval == 5) {
                     starsDisplay = (char*) "*****";
                 } else if (starsval == 4) {
@@ -898,7 +913,7 @@ int main(int argc, char* argv[])
 			}
 			for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 				Note& curNote = curChart.notes[i];
-				bool od = false;
+			
 				if (curChart.odPhrases.size() > 0) {
 					if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
 						if (curNote.miss) {
@@ -910,7 +925,7 @@ int main(int argc, char* argv[])
 								curNote.countedForODPhrase = true;
 							}
 						}
-						od = true;
+						curNote.renderAsOD = true;
 					}
 					if (curChart.odPhrases[curODPhrase].notesHit == curChart.odPhrases[curODPhrase].noteCount && !curChart.odPhrases[curODPhrase].added && overdriveFill < 1.0f) {
 						overdriveFill += 0.25f;
@@ -937,7 +952,7 @@ int main(int argc, char* argv[])
 				if (curNote.lift && !curNote.hit) {
 					// lifts						//  distance between notes 
 					//									(furthest left - lane distance)
-					if (od)					//  1.6f	0.8
+					if (curNote.renderAsOD)					//  1.6f	0.8
 						DrawModel(assets.liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// energy phrase
 					else
@@ -972,17 +987,17 @@ int main(int argc, char* argv[])
 							Color SustainColor = Color{ 172,82,217,255 };
 						}*/
 
-						if (curNote.held && !od) {
+						if (curNote.held && !curNote.renderAsOD) {
 							DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
 						}
-						if (od && curNote.held) {
+						if (curNote.renderAsOD && curNote.held) {
 							DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
 						}
 						if (!curNote.held && curNote.hit || curNote.miss) {
 							DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
 						}
 						if (!curNote.hit && !curNote.accounted && !curNote.miss) {
-							if (od) {
+							if (curNote.renderAsOD) {
 								DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
 							}
 							else {
@@ -999,7 +1014,7 @@ int main(int argc, char* argv[])
 					}
 					// regular notes
 					if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) || ((curNote.len) == 0 && !curNote.hit)) {
-						if (od) {
+						if (curNote.renderAsOD) {
 							if ((!curNote.held && !curNote.miss) || !curNote.hit) {
 								DrawModel(assets.noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};

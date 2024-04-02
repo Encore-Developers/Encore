@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 #include "midifile/MidiFile.h"
 #include "song.h"
 struct Note 
@@ -18,6 +19,7 @@ struct Note
 	bool accounted = false;
 	bool countedForODPhrase = false;
     bool perfect = false;
+	bool renderAsOD = false;
     double hitTime = 0;
 	//For plastic support later
 	bool forceStrum;
@@ -40,6 +42,7 @@ private:
 	std::vector<std::vector<int>> diffNotes = { {60,63,66,69}, {72,75,78,81}, {84,87,90,93}, {96,100,102,106} };
 public:
 	std::vector<Note> notes;
+	int baseScore = 0;
 	int findNoteIdx(double time, int lane) {
 		for (int i = 0; i < notes.size();i++) {
 			if (notes[i].time == time && notes[i].lane == lane)
@@ -48,7 +51,7 @@ public:
 		return -1;
 	}
 	std::vector<odPhrase> odPhrases;
-	void parseNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff) {
+	void parseNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument) {
 		std::vector<bool> notesOn{ false,false,false,false,false};
 		bool odOn = false;
 		std::vector<double> noteOnTime{ 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -57,7 +60,6 @@ public:
 		int odNote = 116;
 		int curODPhrase = -1;
 		int curBPM = 0;
-		
 		for (int i = 0; i < events.getSize(); i++) {
 			if (events[i].isNoteOn()) {
 				double time = midiFile.getTimeInSeconds(trkidx, i);
@@ -146,6 +148,20 @@ public:
 				if (note.time >= odPhrases[curODPhrase].start && note.time <= odPhrases[curODPhrase].end)
 					odPhrases[curODPhrase].noteCount++;
 			}
+		}
+		int mult = 1;
+		int multCtr = 0;
+		int noteIdx = 0;
+		bool isBassOrVocal = (instrument == 1 || instrument == 3);
+		for (Note& note : notes) {
+			baseScore += (36 * mult);
+			baseScore += (note.beatsLen * 12) * mult;
+			if (noteIdx == 9) mult = 2;
+			else if (noteIdx == 19) mult = 3;
+			else if (noteIdx == 29) mult = 4;
+			else if (noteIdx == 39 && isBassOrVocal) mult = 5;
+			else if (noteIdx == 49 && isBassOrVocal) mult = 6;
+			noteIdx++;
 		}
 	}
 };

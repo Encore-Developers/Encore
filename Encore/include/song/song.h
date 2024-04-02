@@ -58,16 +58,15 @@ enum SongParts {
 
 
 std::unordered_map<std::string, SongParts> midiNameToEnum = {
-
 	{"PART DRUMS",SongParts::PartDrums},
 	{"PART BASS",SongParts::PartBass},
 	{"PART GUITAR",SongParts::PartGuitar},
 	{"PART VOCALS",SongParts::PartVocals},
 	{"PLASTIC DRUMS",SongParts::PlasticDrums},
 	{"PLASTIC BASS",SongParts::PlasticBass},
-	{"PLASTIC GUITAR",SongParts::PlasticGuitar},
-
+	{"PLASTIC GUITAR",SongParts::PlasticGuitar}
 };
+
 static SongParts partFromString(const std::string& str)
 {
 	auto it = midiNameToEnum.find(str);
