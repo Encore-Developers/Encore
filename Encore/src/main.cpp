@@ -48,7 +48,7 @@ Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
 
-std::string trackSpeedButton = "Track Speed 1.50x";
+std::string trackSpeedButton;
 
 
 std::vector<bool> heldFrets{ false,false,false,false,false };
@@ -335,6 +335,7 @@ int main(int argc, char* argv[])
 	}
 	settings.loadSettings(directory / "settings.json");
 
+	trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
 	songList = LoadSongs(songsPath);
 
 	ChangeDirectory(GetApplicationDirectory());
