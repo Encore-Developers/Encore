@@ -153,15 +153,22 @@ public:
 		int multCtr = 0;
 		int noteIdx = 0;
 		bool isBassOrVocal = (instrument == 1 || instrument == 3);
-		for (Note& note : notes) {
-			baseScore += (36 * mult);
-			baseScore += (note.beatsLen * 12) * mult;
-			if (noteIdx == 9) mult = 2;
-			else if (noteIdx == 19) mult = 3;
-			else if (noteIdx == 29) mult = 4;
-			else if (noteIdx == 39 && isBassOrVocal) mult = 5;
-			else if (noteIdx == 49 && isBassOrVocal) mult = 6;
-			noteIdx++;
+		for (auto it = notes.begin(); it != notes.end();) {
+			Note& note = *it;
+			if (!note.valid) {
+				it = notes.erase(it);
+			}
+			else {
+				baseScore += (36 * mult);
+				baseScore += (note.beatsLen * 12) * mult;
+				if (noteIdx == 9) mult = 2;
+				else if (noteIdx == 19) mult = 3;
+				else if (noteIdx == 29) mult = 4;
+				else if (noteIdx == 39 && isBassOrVocal) mult = 5;
+				else if (noteIdx == 49 && isBassOrVocal) mult = 6;
+				noteIdx++;
+				++it;
+			}
 		}
 	}
 };
