@@ -179,9 +179,7 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 			else if(key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt){
 				if (action == GLFW_PRESS && !overdriveHeld) {
 					overdriveHeld = true;
-					std::cout << "overdriveHitAvailable = " << overdriveHitAvailable << std::endl;
 				}
-					
 				else if (action == GLFW_RELEASE && overdriveHeld) {
 					overdriveHeld = false;
 				}
@@ -246,17 +244,19 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 						overdriveLiftAvailable = false;
 					}					
 				}
-				if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
+				if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
 					for (int lane = 0; lane < 5; lane++) {
 						if (overdriveLanesHit[lane]) {
 							int chordLane = curChart.findNoteIdx(curNote.time, lane);
 							if (chordLane != -1) {
 								Note& chordNote = curChart.notes[chordLane];
 								if (chordNote.held && chordNote.len > 0) {
-									chordNote.held = false;
-									score += sustainScoreBuffer[chordNote.lane];
-									sustainScoreBuffer[chordNote.lane] = 0;
-									mute = true;
+									if (!((diff == 3 && settings.keybinds5K[chordNote.lane]) || (diff != 3 && settings.keybinds4K[chordNote.lane]))) {
+										chordNote.held = false;
+										score += sustainScoreBuffer[chordNote.lane];
+										sustainScoreBuffer[chordNote.lane] = 0;
+										mute = true;
+									}
 								}
 							}
 						}
