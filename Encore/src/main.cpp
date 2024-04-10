@@ -65,6 +65,8 @@ double overdriveHitTime = 0.0;
 SongList songList;
 Settings settings;
 Assets assets;
+std::vector<std::pair<int,GLFWgamepadstate>> lastState;
+double lastAxesTime = 0.0;
 
 static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
 	// if (selectStage == 2) {
@@ -273,6 +275,49 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 	//}
 }
 
+std::vector<std::string> gamepadButtonNames{"A/X","B/O","X/Square","Y/Triangle","Back","Start","Guide","Left Shoulder", "Right Shoulder", "Left Stick","Right Stick","DPad Up","DPad Right","DPad Down","DPad Left"};
+std::vector<std::string> gamepadAxisNames{"LT","RT", "LS X","LS Y","RS X", "RS Y"};
+static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
+	bool buttonsUpdated = false;
+	bool axesUpdated = false;
+	double eventTime = GetTime();
+	auto it = std::find_if(lastState.begin(), lastState.end(), [jid](const std::pair<int, GLFWgamepadstate>& pair) {
+		return pair.first == jid;
+		});
+
+	if (it == lastState.end()) {
+		lastState.emplace_back(jid, state);
+		std::cout << "Initial state for id " + std::to_string(jid) + " added." << std::endl;
+		buttonsUpdated = true;
+		axesUpdated = true;
+	}
+	else {
+		if (memcmp(&it->second.buttons, &state.buttons, sizeof(state.buttons)) != 0) {
+			buttonsUpdated = true;
+		}
+		if (memcmp(&it->second.axes, &state.axes, sizeof(state.axes)) != 0) {
+			axesUpdated = true;
+		}
+		it->second = state;
+	}
+	/*if (buttonsUpdated) {
+		std::string buttonsState = "Buttons: ";
+		for (int i = 0; i < sizeof(state.buttons); i++) {
+			buttonsState = buttonsState += gamepadButtonNames[i] + ": " + std::to_string(state.buttons[i]) + (i==sizeof(state.buttons-1)?"":", ");
+		}
+		std::cout << buttonsState << std::endl;
+	}*/
+	if (axesUpdated && eventTime> lastAxesTime+1.0) {
+		lastAxesTime = eventTime;
+		std::string axesState = "("+std::to_string(sizeof(state.axes))+") Axes: ";
+		for (int i = 0; i < 6; i++) {
+			axesState = axesState += gamepadAxisNames[i] + ": " + std::to_string(state.axes[i]) + (i == sizeof(state.axes - 1) ? "" : ", ");
+		}
+		std::cout << axesState << std::endl;
+	}
+	
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -283,6 +328,7 @@ int main(int argc, char* argv[])
 
 	// 800 , 600
 	InitWindow(1, 1, "Encore");
+	glfwSetGamepadStateCallback(gamepadStateCallback);
 	SetWindowPosition(50, 50);
 	SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75, GetMonitorHeight(GetCurrentMonitor()) * 0.75);
 	bool windowToggle = true;
