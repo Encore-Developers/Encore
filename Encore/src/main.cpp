@@ -65,9 +65,10 @@ double overdriveHitTime = 0.0;
 SongList songList;
 Settings settings;
 Assets assets;
-std::vector<std::pair<int,GLFWgamepadstate>> lastState;
+std::vector<std::pair<int,std::pair<std::string,GLFWgamepadstate>>> lastState;
 double lastAxesTime = 0.0;
-
+std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+std::vector<int> buttonValues{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
 	// if (selectStage == 2) {
 	if (action < 2) {
@@ -274,31 +275,37 @@ static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, i
 	}
 	//}
 }
-
-std::vector<std::string> gamepadButtonNames{"A/X","B/O","X/Square","Y/Triangle","Back","Start","Guide","Left Shoulder", "Right Shoulder", "Left Stick","Right Stick","DPad Up","DPad Right","DPad Down","DPad Left"};
-std::vector<std::string> gamepadAxisNames{"LT","RT", "LS X","LS Y","RS X", "RS Y"};
+std::vector<std::string> gamepadButtonNames{"A/X","B/O","X/Square","Y/Triangle","Left Shoulder","Right Shoulder","Back","Start", "Guide", "Left Stick","Right Stick","DPad Up","DPad Right","DPad Down","DPad Left"};
+std::vector<std::string> gamepadAxisNames{"LS X","LS Y", "RS X","RS Y","LT", "RT"};
 static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 	bool buttonsUpdated = false;
 	bool axesUpdated = false;
 	double eventTime = GetTime();
-	auto it = std::find_if(lastState.begin(), lastState.end(), [jid](const std::pair<int, GLFWgamepadstate>& pair) {
+	auto it = std::find_if(lastState.begin(), lastState.end(), [jid](std::pair<int, std::pair<std::string, GLFWgamepadstate>>& pair) {
 		return pair.first == jid;
 		});
 
 	if (it == lastState.end()) {
-		lastState.emplace_back(jid, state);
-		std::cout << "Initial state for id " + std::to_string(jid) + " added." << std::endl;
+		std::cout << "Initial state for gamepad "<<glfwGetGamepadName(jid)<<"("<< glfwGetJoystickGUID(jid)<<") added." << std::endl;
+		lastState.emplace_back(std::pair{ jid, std::pair{std::string(glfwGetGamepadName(jid)),state} });
+
 		buttonsUpdated = true;
 		axesUpdated = true;
 	}
 	else {
-		if (memcmp(&it->second.buttons, &state.buttons, sizeof(state.buttons)) != 0) {
+		if (memcmp(&it->second.second.buttons, &state.buttons, sizeof(state.buttons)) != 0) {
 			buttonsUpdated = true;
+			for (int i = 0; i < 15; i++) {
+				buttonValues[i] = (int)state.buttons[i];
+			}
 		}
-		if (memcmp(&it->second.axes, &state.axes, sizeof(state.axes)) != 0) {
+		if (memcmp(&it->second.second.axes, &state.axes, sizeof(state.axes)) != 0) {
 			axesUpdated = true;
+			for (int i = 0; i < 6; i++) {
+				axesValues[i] = state.axes[i];
+			}
 		}
-		it->second = state;
+		it->second.second = state;
 	}
 	/*if (buttonsUpdated) {
 		std::string buttonsState = "Buttons: ";
@@ -307,14 +314,6 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		}
 		std::cout << buttonsState << std::endl;
 	}*/
-	if (axesUpdated && eventTime> lastAxesTime+1.0) {
-		lastAxesTime = eventTime;
-		std::string axesState = "("+std::to_string(sizeof(state.axes))+") Axes: ";
-		for (int i = 0; i < 6; i++) {
-			axesState = axesState += gamepadAxisNames[i] + ": " + std::to_string(state.axes[i]) + (i == sizeof(state.axes - 1) ? "" : ", ");
-		}
-		std::cout << axesState << std::endl;
-	}
 	
 }
 
@@ -394,7 +393,6 @@ int main(int argc, char* argv[])
 		settings.migrateSettings(directory / "keybinds.json", directory / "settings.json");
 	}
 	settings.loadSettings(directory / "settings.json");
-
 	trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
 	songList = LoadSongs(songsPath);
 
@@ -414,7 +412,21 @@ int main(int argc, char* argv[])
 		ClearBackground(DARKGRAY);
 
 		if (!isPlaying) {
-			if (selectStage == -1) {
+			if (selectStage == -2) {
+				if (GuiButton({ 0,0,60,60 }, "<")) {
+					midiLoaded = false;
+					selectStage = 0;
+				}
+				for (int i = 0; i < lastState.size(); i++) {
+					DrawText(lastState[i].second.first.c_str(), 200 * i, 60, 20, WHITE);
+					for (int j = 0; j < 6; j++) {
+						DrawText(std::string(gamepadAxisNames[j]+": " + std::to_string(axesValues[j])).c_str(), 200*i, 90 + (30 * j), 20, WHITE);
+					}for (int j = 0; j < 15; j++) {
+						DrawText(std::string(gamepadButtonNames[j]+ ": " + std::to_string(buttonValues[j])).c_str(), 200 * i, 270 + (20 * j), 20, WHITE);
+					}
+				}
+			}
+			else if (selectStage == -1) {
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel")) {
 					selectStage = 0;
 					settings.keybinds4K = settings.prev4k;
@@ -585,7 +597,9 @@ int main(int argc, char* argv[])
 						SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 					};
 				}
-
+				if (GuiButton({ (float)GetScreenWidth() - 200,120,200,60 }, "Controller Test")) {
+					selectStage = -2;
+				}
 				GuiScrollPanel({ 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f) + 15, (float)GetScreenHeight() }, NULL, { 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f), 60.0f * songList.songs.size() }, &viewScroll, &view);
 				for (Song song : songList.songs) {
 
