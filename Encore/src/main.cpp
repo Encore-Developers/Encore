@@ -315,8 +315,11 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 				if (state.buttons[settings.controller5K[i]] != buttonValues[settings.controller5K[i]]) {
 					if (state.buttons[settings.controller5K[i]] == 1)
 						heldFrets[i] = true;
-					else
+					else {
 						heldFrets[i] = false;
+						overhitFrets[i] = false;
+					}
+						
 					handleInputs(i, state.buttons[settings.controller5K[i]]);
 					buttonValues[settings.controller5K[i]] = state.buttons[settings.controller5K[i]];
 				}
@@ -329,6 +332,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 					}
 					else {
 						heldFrets[i] = false;
+						overhitFrets[i] = false;
 						handleInputs(i, GLFW_RELEASE);
 					}
 					axesValues[-(settings.controller5K[i] + 1)] = state.axes[-(settings.controller5K[i] + 1)];
@@ -342,8 +346,10 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 				if (state.buttons[settings.controller4K[i]] != buttonValues[settings.controller4K[i]]) {
 					if (state.buttons[settings.controller4K[i]] == 1)
 						heldFrets[i] = true;
-					else
+					else {
 						heldFrets[i] = false;
+						overhitFrets[i] = false;
+					}
 					handleInputs(i, state.buttons[settings.controller4K[i]]);
 					buttonValues[settings.controller4K[i]] = state.buttons[settings.controller4K[i]];
 				}
@@ -356,6 +362,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 					}
 					else {
 						heldFrets[i] = false;
+						overhitFrets[i] = false;
 						handleInputs(i, GLFW_RELEASE);
 					}
 					axesValues[-(settings.controller4K[i] + 1)] = state.axes[-(settings.controller4K[i] + 1)];
