@@ -24,12 +24,11 @@
 #include <cstdio>
 vector<std::string> ArgumentList::arguments;
 
-bool compareNotes(const Note& a, const Note& b) {
+static bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
 }
 
-int instrument = 0;
-int diff = 0;
+
 bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
@@ -65,259 +64,347 @@ double overdriveHitTime = 0.0;
 SongList songList;
 Settings settings;
 Assets assets;
-std::vector<std::pair<int,std::pair<std::string,GLFWgamepadstate>>> lastState;
 double lastAxesTime = 0.0;
-std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
 std::vector<int> buttonValues{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-static void notesCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
-	// if (selectStage == 2) {
-	if (action < 2) {
-		Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-		float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
-		if (action==GLFW_PRESS && (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) && overdriveFill > 0 && !overdrive) {
-			overdriveActiveTime = eventTime;
-			overdriveActiveFill = overdriveFill;
-			overdrive = true;
-			overdriveHitAvailable = true;
-		}
-		int lane = -1;
-		if (diff == 3) {
-			for (int i = 0; i < 5; i++) {
-				if (key == settings.keybinds5K[i] && !heldFretsAlt[i]) {
-					if (action == GLFW_PRESS) {
-						heldFrets[i] = true;
+std::vector<float> axesValues2{ 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
+int pressedGamepadInput = -999;
+int axisDirection = -1;
+int controllerID = -1;
+static void handleInputs(int lane, int action){
+	if (settings.mirrorMode) {
+		lane = (diff == 3 ? 4 : 3) - lane;
+	}
+	if (!streamsLoaded) {
+		return;
+	}
+	Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+	float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
+	if (action == GLFW_PRESS && (lane == -1) && overdriveFill > 0 && !overdrive) {
+		overdriveActiveTime = eventTime;
+		overdriveActiveFill = overdriveFill;
+		overdrive = true;
+		overdriveHitAvailable = true;
+	}
+	for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
+		Note& curNote = curChart.notes[i];
+
+		// if (curNote.time > eventTime + 0.1) break;
+
+		if (lane!=-1) {
+			if (lane != curNote.lane) continue;
+			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
+				if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) + InputOffset < eventTime &&
+					(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) + InputOffset) > eventTime &&
+					!curNote.hit) {
+					curNote.hit = true;
+					curNote.hitTime = eventTime;
+					if ((curNote.len) > 0 && !curNote.lift) {
+						curNote.held = true;
 					}
-					else if (action == GLFW_RELEASE) {
-						heldFrets[i] = false;
-						overhitFrets[i] = false;
+					if ((curNote.time) - perfectBackend + InputOffset < eventTime && curNote.time + perfectFrontend + InputOffset > eventTime) {
+						curNote.perfect = true;
 					}
-					lane = i;
+					if (curNote.perfect) lastNotePerfect = true;
+					else lastNotePerfect = false;
+					player::HitNote(curNote.perfect, instrument);
+					curNote.accounted = true;
+					break;
 				}
-				else if (key == settings.keybinds5KAlt[i] && !heldFrets[i]) {
-					if (action == GLFW_PRESS) {
-						heldFretsAlt[i] = true;
-					}
-					else if (action == GLFW_RELEASE) {
-						heldFretsAlt[i] = false;
-						overhitFrets[i] = false;
-					}
-					lane = i;
-				}
+				if (curNote.miss) lastNotePerfect = false;
+			}
+			if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
+				curNote.held = false;
+				score += sustainScoreBuffer[curNote.lane];
+				sustainScoreBuffer[curNote.lane] = 0;
+				mute = true;
+				// SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
+			}
+
+			if (action == GLFW_PRESS &&
+				eventTime > songList.songs[curPlayingSong].music_start &&
+				!curNote.hit &&
+				!curNote.accounted &&
+				((curNote.time) - perfectBackend) + InputOffset > eventTime &&
+				eventTime > overdriveHitTime + 0.025
+				&& !overhitFrets[lane]) {
+				player::OverHit();
+				if (curChart.odPhrases.size() >= 1 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
+				overhitFrets[lane] = true;
 			}
 		}
 		else {
-			for (int i = 0; i < 4; i++) {
-				if (key == settings.keybinds4K[i] && !heldFretsAlt[i]) {
-					if (action == GLFW_PRESS) {
-						heldFrets[i] = true;
+			if (action == GLFW_PRESS && !overdriveHeld) {
+				overdriveHeld = true;
+			}
+			else if (action == GLFW_RELEASE && overdriveHeld) {
+				overdriveHeld = false;
+			}
+			if (action == GLFW_PRESS && overdriveHitAvailable == true) {
+				if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
+					(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
+					!curNote.hit) {
+					for (int lane = 0; lane < 5; lane++) {
+						int chordLane = curChart.findNoteIdx(curNote.time, lane);
+						if (chordLane != -1) {
+							Note& chordNote = curChart.notes[chordLane];
+							if ((chordNote.time) - (goodBackend)+InputOffset < eventTime &&
+								(chordNote.time) + (goodFrontend)+InputOffset > eventTime &&
+								!chordNote.hit) {
+								chordNote.hit = true;
+								overdriveLanesHit[lane] = true;
+								chordNote.hitTime = eventTime;
+
+								if ((chordNote.len) > 0 && !chordNote.lift) {
+									chordNote.held = true;
+								}
+								if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+									chordNote.perfect = true;
+
+								}
+								if (chordNote.perfect) lastNotePerfect = true;
+								else lastNotePerfect = false;
+								player::HitNote(curNote.perfect, instrument);
+								curNote.accounted = true;
+							}
+						}
 					}
-					else if (action == GLFW_RELEASE) {
-						heldFrets[i] = false;
-						overhitFrets[i] = false;
-					}
-					lane = i;
-				}
-				else if (key == settings.keybinds4KAlt[i] && !heldFrets[i]) {
-					if (action == GLFW_PRESS) {
-						heldFretsAlt[i] = true;
-					}
-					else if (action == GLFW_RELEASE) {
-						heldFretsAlt[i] = false;
-						overhitFrets[i] = false;
-					}
-					lane = i;
+					overdriveHitAvailable = false;
+					overdriveLiftAvailable = true;
 				}
 			}
-		}
-		
-
-		for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
-			Note& curNote = curChart.notes[i];
-
-			// if (curNote.time > eventTime + 0.1) break;
-			
-			if (key != settings.keybindOverdrive && key != settings.keybindOverdriveAlt) {
-				if (lane != curNote.lane) continue;
-				if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-					if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) + InputOffset < eventTime &&
-						(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) + InputOffset) > eventTime &&
-						!curNote.hit) {
-						curNote.hit = true;
-						curNote.hitTime = eventTime;
-						if ((curNote.len) > 0 && !curNote.lift) {
-							curNote.held = true;
-						}
-						if ((curNote.time) - perfectBackend + InputOffset < eventTime && curNote.time + perfectFrontend + InputOffset > eventTime) {
-							curNote.perfect = true;
-
-						}
-						if (curNote.perfect) lastNotePerfect = true;
-						else lastNotePerfect = false;
-						player::HitNote(curNote.perfect, instrument);
-						curNote.accounted = true;
-						break;
-					}
-					if (curNote.miss) lastNotePerfect = false;
-				}
-				if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
-					curNote.held = false;
-					score += sustainScoreBuffer[curNote.lane];
-					sustainScoreBuffer[curNote.lane] = 0;
-					mute = true;
-					// SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
-				}
-
-				if (action == GLFW_PRESS && 
-					eventTime > songList.songs[curPlayingSong].music_start && 
-					!curNote.hit && 
-					!curNote.accounted && 
-					((curNote.time) - perfectBackend) + InputOffset > eventTime &&
-					eventTime > overdriveHitTime+0.025
-					&& !overhitFrets[lane]) {
-					player::OverHit();
-					if (curChart.odPhrases.size() >= 1 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
-					overhitFrets[lane] = true;
-				}
-			}
-			else if(key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt){
-				if (action == GLFW_PRESS && !overdriveHeld) {
-					overdriveHeld = true;
-				}
-				else if (action == GLFW_RELEASE && overdriveHeld) {
-					overdriveHeld = false;
-				}
-				if (action == GLFW_PRESS && overdriveHitAvailable==true) {
-					if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
-						(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
-						!curNote.hit) {
-						for (int lane = 0; lane < 5; lane++) {
+			else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
+				if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
+					(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
+					!curNote.hit) {
+					for (int lane = 0; lane < 5; lane++) {
+						if (overdriveLanesHit[lane]) {
 							int chordLane = curChart.findNoteIdx(curNote.time, lane);
 							if (chordLane != -1) {
 								Note& chordNote = curChart.notes[chordLane];
-								if ((chordNote.time) - (goodBackend)+InputOffset < eventTime &&
-									(chordNote.time) + (goodFrontend)+InputOffset > eventTime &&
-									!chordNote.hit) {
+								if (chordNote.lift) {
 									chordNote.hit = true;
-									overdriveLanesHit[lane] = true;
+									overdriveLanesHit[lane] = false;
 									chordNote.hitTime = eventTime;
 
-									if ((chordNote.len) > 0 && !chordNote.lift) {
-										chordNote.held = true;
-									}
 									if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
 										chordNote.perfect = true;
 
 									}
 									if (chordNote.perfect) lastNotePerfect = true;
 									else lastNotePerfect = false;
-									player::HitNote(curNote.perfect, instrument);
-									curNote.accounted = true;
 								}
+
 							}
 						}
-						overdriveHitAvailable = false;
-						overdriveLiftAvailable = true;
 					}
+					overdriveLiftAvailable = false;
 				}
-				else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-					if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
-						(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
-						!curNote.hit) {
-						for (int lane = 0; lane < 5; lane++) {
-							if (overdriveLanesHit[lane]) {
-								int chordLane = curChart.findNoteIdx(curNote.time, lane);
-								if (chordLane != -1) {
-									Note& chordNote = curChart.notes[chordLane];
-									if (chordNote.lift) {
-										chordNote.hit = true;
-										overdriveLanesHit[lane] = false;
-										chordNote.hitTime = eventTime;
-
-										if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
-											chordNote.perfect = true;
-
-										}
-										if (chordNote.perfect) lastNotePerfect = true;
-										else lastNotePerfect = false;
-									}
-									
-								}
-							}
-						}
-						overdriveLiftAvailable = false;
-					}					
-				}
-				if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
-					for (int lane = 0; lane < 5; lane++) {
-						if (overdriveLanesHit[lane]) {
-							int chordLane = curChart.findNoteIdx(curNote.time, lane);
-							if (chordLane != -1) {
-								Note& chordNote = curChart.notes[chordLane];
-								if (chordNote.held && chordNote.len > 0) {
-									if (!((diff == 3 && settings.keybinds5K[chordNote.lane]) || (diff != 3 && settings.keybinds4K[chordNote.lane]))) {
-										chordNote.held = false;
-										score += sustainScoreBuffer[chordNote.lane];
-										sustainScoreBuffer[chordNote.lane] = 0;
-										mute = true;
-									}
+			}
+			if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
+				for (int lane = 0; lane < 5; lane++) {
+					if (overdriveLanesHit[lane]) {
+						int chordLane = curChart.findNoteIdx(curNote.time, lane);
+						if (chordLane != -1) {
+							Note& chordNote = curChart.notes[chordLane];
+							if (chordNote.held && chordNote.len > 0) {
+								if (!((diff == 3 && settings.keybinds5K[chordNote.lane]) || (diff != 3 && settings.keybinds4K[chordNote.lane]))) {
+									chordNote.held = false;
+									score += sustainScoreBuffer[chordNote.lane];
+									sustainScoreBuffer[chordNote.lane] = 0;
+									mute = true;
 								}
 							}
 						}
 					}
 				}
 			}
-			
-			// if (curNote.time + 0.1 < GetMusicTimePlayed(loadedStreams[0]) && !curNote.hit) {
-			//	    curNote.miss = true;
-			// }
-			
 		}
 	}
-	//}
 }
-std::vector<std::string> gamepadButtonNames{"A/X","B/O","X/Square","Y/Triangle","Left Shoulder","Right Shoulder","Back","Start", "Guide", "Left Stick","Right Stick","DPad Up","DPad Right","DPad Down","DPad Left"};
-std::vector<std::string> gamepadAxisNames{"LS X","LS Y", "RS X","RS Y","LT", "RT"};
+
+static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
+	if (!streamsLoaded) {
+		return;
+	}
+	if (action < 2) {
+		int lane = -1;
+		if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
+			handleInputs(-1, action);
+		}
+		else {
+			if (diff == 3) {
+				for (int i = 0; i < 5; i++) {
+					if (key == settings.keybinds5K[i] && !heldFretsAlt[i]) {
+						if (action == GLFW_PRESS) {
+							heldFrets[i] = true;
+						}
+						else if (action == GLFW_RELEASE) {
+							heldFrets[i] = false;
+							overhitFrets[i] = false;
+						}
+						lane = i;
+					}
+					else if (key == settings.keybinds5KAlt[i] && !heldFrets[i]) {
+						if (action == GLFW_PRESS) {
+							heldFretsAlt[i] = true;
+						}
+						else if (action == GLFW_RELEASE) {
+							heldFretsAlt[i] = false;
+							overhitFrets[i] = false;
+						}
+						lane = i;
+					}
+				}
+			}
+			else {
+				for (int i = 0; i < 4; i++) {
+					if (key == settings.keybinds4K[i] && !heldFretsAlt[i]) {
+						if (action == GLFW_PRESS) {
+							heldFrets[i] = true;
+						}
+						else if (action == GLFW_RELEASE) {
+							heldFrets[i] = false;
+							overhitFrets[i] = false;
+						}
+						lane = i;
+					}
+					else if (key == settings.keybinds4KAlt[i] && !heldFrets[i]) {
+						if (action == GLFW_PRESS) {
+							heldFretsAlt[i] = true;
+						}
+						else if (action == GLFW_RELEASE) {
+							heldFretsAlt[i] = false;
+							overhitFrets[i] = false;
+						}
+						lane = i;
+					}
+				}
+			}
+			handleInputs(lane, action);
+		}
+		
+	}
+}
+
 static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
-	bool buttonsUpdated = false;
-	bool axesUpdated = false;
-	double eventTime = GetTime();
-	auto it = std::find_if(lastState.begin(), lastState.end(), [jid](std::pair<int, std::pair<std::string, GLFWgamepadstate>>& pair) {
-		return pair.first == jid;
-		});
-
-	if (it == lastState.end()) {
-		std::cout << "Initial state for gamepad "<<glfwGetGamepadName(jid)<<"("<< glfwGetJoystickGUID(jid)<<") added." << std::endl;
-		lastState.emplace_back(std::pair{ jid, std::pair{std::string(glfwGetGamepadName(jid)),state} });
-
-		buttonsUpdated = true;
-		axesUpdated = true;
+	if (!streamsLoaded) {
+		return;
+	}
+	double eventTime = GetMusicTimePlayed(loadedStreams[0].first);
+	if (settings.controllerOverdrive >= 0) {
+		if (state.buttons[settings.controllerOverdrive] != buttonValues[settings.controllerOverdrive]) {
+			buttonValues[settings.controllerOverdrive] = state.buttons[settings.controllerOverdrive];
+			handleInputs(-1, state.buttons[settings.controllerOverdrive]);
+		}
 	}
 	else {
-		if (memcmp(&it->second.second.buttons, &state.buttons, sizeof(state.buttons)) != 0) {
-			buttonsUpdated = true;
-			for (int i = 0; i < 15; i++) {
-				buttonValues[i] = (int)state.buttons[i];
+		if (state.axes[-(settings.controllerOverdrive+1)] != axesValues[-(settings.controllerOverdrive + 1)]) {
+			axesValues[-(settings.controllerOverdrive + 1)] = state.axes[-(settings.controllerOverdrive + 1)];
+			if (state.axes[-(settings.controllerOverdrive + 1)] == 1.0f*settings.controllerOverdriveAxisDirection) {
+				handleInputs(-1, GLFW_PRESS);
+			}
+			else {
+				handleInputs(-1, GLFW_RELEASE);
 			}
 		}
-		if (memcmp(&it->second.second.axes, &state.axes, sizeof(state.axes)) != 0) {
-			axesUpdated = true;
-			for (int i = 0; i < 6; i++) {
-				axesValues[i] = state.axes[i];
-			}
-		}
-		it->second.second = state;
 	}
-	/*if (buttonsUpdated) {
-		std::string buttonsState = "Buttons: ";
-		for (int i = 0; i < sizeof(state.buttons); i++) {
-			buttonsState = buttonsState += gamepadButtonNames[i] + ": " + std::to_string(state.buttons[i]) + (i==sizeof(state.buttons-1)?"":", ");
+	if (diff == 3) {
+		for (int i = 0; i < 5; i++) {
+			if (settings.controller5K[i] >= 0) {
+				if (state.buttons[settings.controller5K[i]] != buttonValues[settings.controller5K[i]]) {
+					if (state.buttons[settings.controller5K[i]] == 1)
+						heldFrets[i] = true;
+					else
+						heldFrets[i] = false;
+					handleInputs(i, state.buttons[settings.controller5K[i]]);
+					buttonValues[settings.controller5K[i]] = state.buttons[settings.controller5K[i]];
+				}
+			}
+			else {
+				if (state.axes[-(settings.controller5K[i] + 1)] != axesValues[-(settings.controller5K[i]+1)]) {
+					if (state.axes[-(settings.controller5K[i] + 1)] == 1.0f * (float)settings.controller5KAxisDirection[i]) {
+						heldFrets[i] = true;
+						handleInputs(i, GLFW_PRESS);
+					}
+					else {
+						heldFrets[i] = false;
+						handleInputs(i, GLFW_RELEASE);
+					}
+					axesValues[-(settings.controller5K[i] + 1)] = state.axes[-(settings.controller5K[i] + 1)];
+				}
+			}
 		}
-		std::cout << buttonsState << std::endl;
-	}*/
-	
+	}
+	else {
+		for (int i = 0; i < 4; i++) {
+			if (settings.controller4K[i] >= 0) {
+				if (state.buttons[settings.controller4K[i]] != buttonValues[settings.controller4K[i]]) {
+					if (state.buttons[settings.controller4K[i]] == 1)
+						heldFrets[i] = true;
+					else
+						heldFrets[i] = false;
+					handleInputs(i, state.buttons[settings.controller4K[i]]);
+					buttonValues[settings.controller4K[i]] = state.buttons[settings.controller4K[i]];
+				}
+			}
+			else {
+				if (state.axes[-(settings.controller4K[i] + 1)] != axesValues[-(settings.controller4K[i] + 1)]) {
+					if (state.axes[-(settings.controller4K[i] + 1)] == 1.0f * (float)settings.controller4KAxisDirection[i]) {
+						heldFrets[i] = true;
+						handleInputs(i, GLFW_PRESS);
+					}
+					else {
+						heldFrets[i] = false;
+						handleInputs(i, GLFW_RELEASE);
+					}
+					axesValues[-(settings.controller4K[i] + 1)] = state.axes[-(settings.controller4K[i] + 1)];
+				}
+			}
+		}
+	}
 }
-
-
+static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
+	for (int i = 0; i < 6; i++) {
+		axesValues2[i] = state.axes[i];
+	}
+	if (changingKey || changingOverdrive) {
+		for (int i = 0; i < 15; i++) {
+			if (state.buttons[i] == 1) {
+				if (buttonValues[i] == 0) {
+					controllerID = jid;
+					pressedGamepadInput = i;
+					return;
+				}
+				else {
+					buttonValues[i] = state.buttons[i];
+				}
+			}
+		}
+		for (int i = 0; i < 6; i++) {
+			if (state.axes[i] == 1.0f || (i <= 3 && state.axes[i] == -1.0f)) {
+				axesValues[i] = 0.0f;
+				if (state.axes[i] == 1.0f) axisDirection = 1;
+				else axisDirection = -1;
+				controllerID = jid;
+				pressedGamepadInput = -(1 + i);
+				return;
+			}
+			else {
+				axesValues[i] = 0.0f;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < 15; i++) {
+			buttonValues[i] = state.buttons[i];
+		}
+		for (int i = 0; i < 6; i++) {
+			axesValues[i] = state.axes[i];
+		}
+		pressedGamepadInput = -999;
+	}
+}
 int main(int argc, char* argv[])
 {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -327,7 +414,6 @@ int main(int argc, char* argv[])
 
 	// 800 , 600
 	InitWindow(1, 1, "Encore");
-	glfwSetGamepadStateCallback(gamepadStateCallback);
 	SetWindowPosition(50, 50);
 	SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75, GetMonitorHeight(GetCurrentMonitor()) * 0.75);
 	bool windowToggle = true;
@@ -399,8 +485,10 @@ int main(int argc, char* argv[])
 	ChangeDirectory(GetApplicationDirectory());
 	assets.loadAssets(directory);
 
-	GLFWkeyfun origCallback = glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
-	glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
+	GLFWkeyfun origKeyCallback = glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+	GLFWgamepadstatefun origGamepadCallback = glfwSetGamepadStateCallback(gamepadStateCallback);
+	glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
+	glfwSetGamepadStateCallback(origGamepadCallback);
 	GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 	while (!WindowShouldClose())
@@ -413,45 +501,113 @@ int main(int argc, char* argv[])
 
 		if (!isPlaying) {
 			if (selectStage == -2) {
-				if (GuiButton({ 0,0,60,60 }, "<")) {
-					midiLoaded = false;
+				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey||changingOverdrive)) {
+					glfwSetGamepadStateCallback(origGamepadCallback);
 					selectStage = 0;
+					settings.controller4K = settings.prevController4K;
+					settings.controller4KAxisDirection = settings.prevController4KAxisDirection;
+					settings.controller5K = settings.prevController5K;
+					settings.controller5KAxisDirection = settings.prevController5KAxisDirection;
+					settings.controllerOverdrive = settings.prevControllerOverdrive;
+					settings.controllerOverdriveAxisDirection = settings.prevControllerOverdriveAxisDirection;
+					settings.controllerType = settings.prevControllerType;
 				}
-				for (int i = 0; i < lastState.size(); i++) {
-					DrawText(lastState[i].second.first.c_str(), 200 * i, 60, 20, WHITE);
-					for (int j = 0; j < 6; j++) {
-						DrawText(std::string(gamepadAxisNames[j]+": " + std::to_string(axesValues[j])).c_str(), 200*i, 90 + (30 * j), 20, WHITE);
-					}for (int j = 0; j < 15; j++) {
-						DrawText(std::string(gamepadButtonNames[j]+ ": " + std::to_string(buttonValues[j])).c_str(), 200 * i, 270 + (20 * j), 20, WHITE);
+				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive)) {
+					glfwSetGamepadStateCallback(origGamepadCallback);
+					selectStage = 0;
+					settings.prevController4K = settings.controller4K;
+					settings.prevController4KAxisDirection = settings.controller4KAxisDirection;
+					settings.prevController5K = settings.controller5K;
+					settings.prevController5KAxisDirection = settings.controller5KAxisDirection;
+					settings.prevControllerOverdrive = settings.controllerOverdrive;
+					settings.prevControllerOverdriveAxisDirection = settings.controllerOverdriveAxisDirection;
+					settings.prevControllerType = settings.controllerType;
+					settings.saveSettings(directory / "settings.json");
+				}
+				if (settings.controllerType == -1 && controllerID != -1) {
+					std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
+					settings.controllerType = getControllerType(gamepadName);
+				}
+				for (int i = 0; i < 5; i++) {
+					float j = i - 2.0f;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),(float)GetScreenHeight() / 2,80,60 }, getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
+						settings.changing4k = false;
+						selLane = i;
+						changingKey = true;
+					}
+				}
+				for (int i = 0; i < 4; i++) {
+					float j = i - 1.5f;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),(float)GetScreenHeight() / 2 + 140,80,60 }, getControllerStr(controllerID, settings.controller4K[i], settings.controllerType, settings.controller4KAxisDirection[i]).c_str())) {
+						settings.changing4k = true;
+						selLane = i;
+						changingKey = true;
+					}
+				}
+				if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,(float)GetScreenHeight() / 2 + 280,80,60 }, getControllerStr(controllerID, settings.controllerOverdrive,settings.controllerType, settings.controllerOverdriveAxisDirection).c_str())) {
+					changingKey = false;
+					changingOverdrive = true;
+				}
+				if (changingKey) {
+					std::vector<int>& bindsToChange = (settings.changing4k ? settings.controller4K : settings.controller5K);
+					std::vector<int>& directionToChange = (settings.changing4k ? settings.controller4KAxisDirection : settings.controller5KAxisDirection);
+					DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
+					std::string keyString = (settings.changing4k ? "4k" : "5k");
+					std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
+					DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 10, 20, WHITE);
+					if (pressedGamepadInput != -999) {
+						bindsToChange[selLane] = pressedGamepadInput;
+						if (pressedGamepadInput < 0) {
+							directionToChange[selLane] = axisDirection;
+						}
+						selLane = 0;
+						changingKey = false;
+						pressedGamepadInput = -999;
+					}
+				}
+				if (changingOverdrive) {
+					DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
+					std::string changeString = "Press a button/axis for controller overdrive";
+					DrawText(changeString.c_str(), (GetScreenWidth() - MeasureText(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 10, 20, WHITE);
+					
+					if (pressedGamepadInput != -999) {
+						settings.controllerOverdrive = pressedGamepadInput;
+						if (pressedGamepadInput < 0) {
+							settings.controllerOverdriveAxisDirection = axisDirection;
+						}
+						changingOverdrive = false;
+						pressedGamepadInput = -999;
 					}
 				}
 			}
 			else if (selectStage == -1) {
-				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel")) {
+				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive)) {
 					selectStage = 0;
-					settings.keybinds4K = settings.prev4k;
-					settings.keybinds5K = settings.prev5k;
-					settings.keybinds4KAlt = settings.prev4kAlt;
-					settings.keybinds5KAlt = settings.prev5kAlt;
+					settings.keybinds4K = settings.prev4K;
+					settings.keybinds5K = settings.prev5K;
+					settings.keybinds4KAlt = settings.prev4KAlt;
+					settings.keybinds5KAlt = settings.prev5KAlt;
 					settings.keybindOverdrive = settings.prevOverdrive;
 					settings.keybindOverdriveAlt = settings.prevOverdriveAlt;
 					settings.trackSpeed = settings.prevTrackSpeed;
 					settings.inputOffsetMS = settings.prevInputOffsetMS;
 					settings.avOffsetMS = settings.prevAvOffsetMS;
                     settings.missHighwayDefault = settings.prevMissHighwayColor;
+					settings.mirrorMode = settings.prevMirrorMode;
 				}
-				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive)) {
 					selectStage = 0;
-					settings.prev4k = settings.keybinds4K;
-					settings.prev5k = settings.keybinds5K;
-					settings.prev4kAlt = settings.keybinds4KAlt;
-					settings.prev5kAlt = settings.keybinds5KAlt;
+					settings.prev4K = settings.keybinds4K;
+					settings.prev5K = settings.keybinds5K;
+					settings.prev4KAlt = settings.keybinds4KAlt;
+					settings.prev5KAlt = settings.keybinds5KAlt;
 					settings.prevOverdrive = settings.keybindOverdrive;
 					settings.prevOverdriveAlt = settings.keybindOverdriveAlt;
 					settings.prevTrackSpeed = settings.trackSpeed;
 					settings.prevInputOffsetMS = settings.inputOffsetMS;
 					settings.prevAvOffsetMS = settings.avOffsetMS;
                     settings.prevMissHighwayColor = settings.missHighwayDefault;
+					settings.prevMirrorMode = settings.mirrorMode;
 					settings.saveSettings(directory / "settings.json");
 				}
 				if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
@@ -478,7 +634,9 @@ int main(int argc, char* argv[])
                     settings.missHighwayDefault = !settings.missHighwayDefault;
                     MissHighwayColor = settings.missHighwayDefault;
                 };
-
+				if (GuiButton({ (float)GetScreenWidth() / 2 + 250, (float)GetScreenHeight() / 2+90,250,60 }, TextFormat("Mirror mode: %s", settings.mirrorMode ? "True" : "False"))) {
+					settings.mirrorMode = !settings.mirrorMode;
+				};
 				float inputOffsetFloat = (float)settings.inputOffsetMS;
 				DrawText("Input Offset", (float)GetScreenWidth() / 2 - MeasureText("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
 				DrawText(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureText(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
@@ -597,7 +755,8 @@ int main(int argc, char* argv[])
 						SetWindowSize(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
 					};
 				}
-				if (GuiButton({ (float)GetScreenWidth() - 200,120,200,60 }, "Controller Test")) {
+				if (GuiButton({ (float)GetScreenWidth() - 200,120,200,60 }, "Controller Binds")) {
+					glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
 					selectStage = -2;
 				}
 				GuiScrollPanel({ 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f) + 15, (float)GetScreenHeight() }, NULL, { 0, 0, (float)GetScreenWidth() * (3.0f / 5.0f), 60.0f * songList.songs.size() }, &viewScroll, &view);
@@ -690,7 +849,8 @@ int main(int argc, char* argv[])
 							selectStage = 3;
 							isPlaying = true;
 							startedPlayingSong = GetTime();
-							glfwSetKeyCallback(glfwGetCurrentContext(), notesCallback);
+							glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+							glfwSetGamepadStateCallback(gamepadStateCallback);
 						}
 						DrawText(diffList[i].c_str(), 150 - (MeasureText(diffList[i].c_str(), 30) / 2), 75 + (60 * (float)i), 30, BLACK);
 					}
@@ -782,7 +942,8 @@ int main(int argc, char* argv[])
 					note.perfect = false;
                     note.countedForODPhrase = false;
 				}
-				glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
+				glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
+				glfwSetGamepadStateCallback(origGamepadCallback);
 				// notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
 				// notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
 				for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
@@ -828,7 +989,8 @@ int main(int argc, char* argv[])
                         note.countedForODPhrase = false;
 						// notes += 1;
 					}
-					glfwSetKeyCallback(glfwGetCurrentContext(), origCallback);
+					glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
+					glfwSetGamepadStateCallback(origGamepadCallback);
 					// notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
 					for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
 						phrase.missed = false;
@@ -908,7 +1070,7 @@ int main(int argc, char* argv[])
 					}
 				}
 				for (int i = 0; i < 4; i++) {
-					float radius = (i == 1) ? 0.05 : 0.02;
+					float radius = (i == (settings.mirrorMode?2:1)) ? 0.05 : 0.02;
 
 					DrawCylinderEx(Vector3{ lineDistance - i, 0, smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 15, Color{ 128,128,128,128 });
 				}
@@ -1001,11 +1163,15 @@ int main(int argc, char* argv[])
 				if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
 					curNote.miss = true;
 					player::MissNote();
+					if (curChart.odPhrases.size() > 0) {
+						curChart.odPhrases[curODPhrase].missed = true;
+					}
 					curNote.accounted = true;
 				}
 
 				double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
 				double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+				float notePosX = diffDistance - (1.0f * (settings.mirrorMode ? (diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
 				if (relTime > 1.5) {
 					break;
 				}
@@ -1014,10 +1180,10 @@ int main(int argc, char* argv[])
 					// lifts						//  distance between notes 
 					//									(furthest left - lane distance)
 					if (curNote.renderAsOD)					//  1.6f	0.8
-						DrawModel(assets.liftModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(assets.liftModelOD, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// energy phrase
 					else
-						DrawModel(assets.liftModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+						DrawModel(assets.liftModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 					// regular 
 				}
 				else {
@@ -1049,22 +1215,22 @@ int main(int argc, char* argv[])
 						}*/
 
 						if (curNote.held && !curNote.renderAsOD) {
-							DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
+							DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
 						}
 						if (curNote.renderAsOD && curNote.held) {
-							DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
+							DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
 						}
 						if (!curNote.held && curNote.hit || curNote.miss) {
-							DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+							DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
 						}
 						if (!curNote.hit && !curNote.accounted && !curNote.miss) {
 							if (curNote.renderAsOD) {
-								DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
+								DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
 							}
 							else {
-								DrawCylinderEx(Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f,
+								DrawCylinderEx(Vector3{ notePosX, 0.05f,
 													   smasherPos + (highwayLength * (float)relTime) },
-									Vector3{ diffDistance - (1.0f * curNote.lane), 0.05f,
+									Vector3{ notePosX, 0.05f,
 											smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
 									Color{ 150, 19, 150, 255 });
 							}
@@ -1077,13 +1243,13 @@ int main(int argc, char* argv[])
 					if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) || ((curNote.len) == 0 && !curNote.hit)) {
 						if (curNote.renderAsOD) {
 							if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-								DrawModel(assets.noteModelOD, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+								DrawModel(assets.noteModelOD, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
 
 						}
 						else {
 							if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-								DrawModel(assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+								DrawModel(assets.noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
 							};
 
 						}
@@ -1091,7 +1257,7 @@ int main(int argc, char* argv[])
 					}
 				}
 				if (curNote.miss) {
-					DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ diffDistance - (1.0f * curNote.lane),0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
+					DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
                     if (GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.4 && MissHighwayColor) {
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
                     } else {
@@ -1099,7 +1265,7 @@ int main(int argc, char* argv[])
                     }
                 }
 				if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
-					DrawCube(Vector3{ diffDistance - (1.0f * curNote.lane), 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
+					DrawCube(Vector3{ notePosX, 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
                     if (curNote.perfect) {
                         DrawCube(Vector3{ 3.25, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
 

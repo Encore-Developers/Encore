@@ -1,6 +1,10 @@
 #pragma once
 
 #include <iostream>
+
+int instrument = 0;
+int diff = 0;
+
 int notesHit = 0;
 int notesMissed = 0;
 int perfectHit = 0;

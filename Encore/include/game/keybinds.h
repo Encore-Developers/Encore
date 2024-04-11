@@ -1,5 +1,7 @@
 #pragma once
 #include "raylib.h"
+#include "GLFW/glfw3.h"
+#include "game/settings.h"
 #include <unordered_map>
 #include <string>
 
@@ -81,5 +83,199 @@ static std::string getKeyStr(int keycode)
 			return keycode == -1 ? "" : "UNK";
 		}
 	}
-	
+}
+
+std::unordered_map<int, std::string> GenericNames{
+	{GLFW_GAMEPAD_BUTTON_CROSS, "A/X"},
+	{GLFW_GAMEPAD_BUTTON_CIRCLE, "B/Circle"},
+	{GLFW_GAMEPAD_BUTTON_SQUARE, "X/Square"},
+	{GLFW_GAMEPAD_BUTTON_TRIANGLE, "Y/Triangle"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "LB"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "RB"},
+	{GLFW_GAMEPAD_BUTTON_BACK, "Select"},
+	{GLFW_GAMEPAD_BUTTON_START, "Start"},
+	{GLFW_GAMEPAD_BUTTON_GUIDE, "Home"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "LS"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "RS"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_UP, "Up"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "Right"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "Down"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "Left"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_X),"LS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_Y),"LS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_X),"RS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_Y),"RS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),"LT"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),"RT"}
+};
+
+std::unordered_map<int, std::string> XBOXNames{
+	{GLFW_GAMEPAD_BUTTON_A, "A"},
+	{GLFW_GAMEPAD_BUTTON_B, "B"},
+	{GLFW_GAMEPAD_BUTTON_X, "X"},
+	{GLFW_GAMEPAD_BUTTON_Y, "Y"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "LB"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "RB"},
+	{GLFW_GAMEPAD_BUTTON_BACK, "Back"},
+	{GLFW_GAMEPAD_BUTTON_START, "Start"},
+	{GLFW_GAMEPAD_BUTTON_GUIDE, "Guide"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "LS"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "RS"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_UP, "Up"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "Right"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "Down"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "Left"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_X),"LS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_Y),"LS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_X),"RS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_Y),"RS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),"LT"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),"RT"}
+};
+
+std::unordered_map<int, std::string> PS1PS2Names{
+	{GLFW_GAMEPAD_BUTTON_CROSS, "X"},
+	{GLFW_GAMEPAD_BUTTON_CIRCLE, "Circle"},
+	{GLFW_GAMEPAD_BUTTON_SQUARE, "Square"},
+	{GLFW_GAMEPAD_BUTTON_TRIANGLE, "Triangle"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "L1"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "R1"},
+	{GLFW_GAMEPAD_BUTTON_BACK, "Select"},
+	{GLFW_GAMEPAD_BUTTON_START, "Start"},
+	{GLFW_GAMEPAD_BUTTON_GUIDE, "Analog"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "L3"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "R3"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_UP, "Up"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "Right"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "Down"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "Left"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_X),"LS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_Y),"LS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_X),"RS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_Y),"RS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),"L2"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),"R2"}
+};
+
+std::unordered_map<int, std::string> PS3Names{
+	{GLFW_GAMEPAD_BUTTON_CROSS, "X"},
+	{GLFW_GAMEPAD_BUTTON_CIRCLE, "Circle"},
+	{GLFW_GAMEPAD_BUTTON_SQUARE, "Square"},
+	{GLFW_GAMEPAD_BUTTON_TRIANGLE, "Triangle"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "L1"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "R1"},
+	{GLFW_GAMEPAD_BUTTON_BACK, "Select"},
+	{GLFW_GAMEPAD_BUTTON_START, "Start"},
+	{GLFW_GAMEPAD_BUTTON_GUIDE, "Home"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "L3"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "R3"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_UP, "Up"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "Right"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "Down"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "Left"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_X),"LS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_Y),"LS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_X),"RS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_Y),"RS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),"L2"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),"R2"}
+};
+
+std::unordered_map<int, std::string> PS4Names{
+	{GLFW_GAMEPAD_BUTTON_CROSS, "X"},
+	{GLFW_GAMEPAD_BUTTON_CIRCLE, "Circle"},
+	{GLFW_GAMEPAD_BUTTON_SQUARE, "Square"},
+	{GLFW_GAMEPAD_BUTTON_TRIANGLE, "Triangle"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "L1"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "R1"},
+	{GLFW_GAMEPAD_BUTTON_BACK, "Share"},
+	{GLFW_GAMEPAD_BUTTON_START, "Options"},
+	{GLFW_GAMEPAD_BUTTON_GUIDE, "Home"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "L3"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "R3"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_UP, "Up"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "Right"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "Down"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "Left"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_X),"LS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_Y),"LS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_X),"RS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_Y),"RS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),"L2"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),"R2"}
+};
+
+std::unordered_map<int, std::string> PS5Names{
+	{GLFW_GAMEPAD_BUTTON_CROSS, "X"},
+	{GLFW_GAMEPAD_BUTTON_CIRCLE, "Circle"},
+	{GLFW_GAMEPAD_BUTTON_SQUARE, "Square"},
+	{GLFW_GAMEPAD_BUTTON_TRIANGLE, "Triangle"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_BUMPER, "L1"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, "R1"},
+	{GLFW_GAMEPAD_BUTTON_BACK, "Create"},
+	{GLFW_GAMEPAD_BUTTON_START, "Options"},
+	{GLFW_GAMEPAD_BUTTON_GUIDE, "Home"},
+	{GLFW_GAMEPAD_BUTTON_LEFT_THUMB, "L3"},
+	{GLFW_GAMEPAD_BUTTON_RIGHT_THUMB, "R3"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_UP, "Up"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_RIGHT, "Right"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_DOWN, "Down"},
+	{GLFW_GAMEPAD_BUTTON_DPAD_LEFT, "Left"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_X),"LS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_Y),"LS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_X),"RS X"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_Y),"RS Y"},
+	{-(1 + GLFW_GAMEPAD_AXIS_LEFT_TRIGGER),"L2"},
+	{-(1 + GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER),"R2"}
+};
+std::vector<std::vector<std::string>> controllerTypeNames{
+	{},
+	{"Controller (XBOX 360 For Windows)",
+	"Controller (Xbox 360 Wireless Receiver for Windows)",
+	"Controller (Xbox One For Windows) - Wired",
+	"Controller (Xbox One For Windows) - Wireless",
+	"Xbox Adaptive Controller",
+	"Xbox Series Controller"},
+	{"PS Controller","PS1 Controller","PS2 Controller"},
+	{"PS3 Controller"},
+	{"PS4 Controller"},
+	{"PS5 Controller"}
+};
+
+int getControllerType(const std::string& searchString) {
+	for (size_t i = 0; i < controllerTypeNames.size(); ++i) {
+		for (size_t j = 0; j < controllerTypeNames[i].size(); ++j) {
+			if (controllerTypeNames[i][j] == searchString) {
+				return i;
+			}
+		}
+	}
+	return 0; //Generic type if not found
+}
+static std::string getControllerStr(int jid, int input, int type, int direction)
+{
+	std::unordered_map<int, std::string> &map = GenericNames;
+	if (type == 1) map = XBOXNames; //xbox
+	else if (type == 2) map = PS1PS2Names; //PS1/2
+	else if (type == 3) map = PS3Names; //PS3
+	else if (type == 4) map = PS4Names; //PS4
+	else if (type == 5) map = PS5Names; //PS5
+
+	auto it = map.find(input);
+	if (it != map.end())
+	{
+		if (input < 0) {
+			if (input > -5) {
+				return it->second + (direction==-1?"-":"+");
+			}
+			else return it->second;
+		}
+		else {
+			return it->second;
+		}
+	}
+	else
+	{
+		return "UNK";
+	}
 }
