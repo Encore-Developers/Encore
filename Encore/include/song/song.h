@@ -110,9 +110,13 @@ class Song
 public:
 	bool midiParsed=false;
 	std::string title;
-
+	float titleXOffset = 0;
+	float titleTextWidth = 0;
+	double titleScrollTime = 0.0;
 	std::string artist;
-
+	float artistXOffset = 0;
+	float artistTextWidth = 0;
+	double artistScrollTime = 0.0;
 	Texture albumArt;
 
 	int length = 0;
@@ -141,7 +145,7 @@ public:
 		}
 
 		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-
+		
 		rapidjson::Document document;
 		document.Parse(jsonString.c_str());
 

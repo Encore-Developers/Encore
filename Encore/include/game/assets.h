@@ -50,6 +50,9 @@ public:
 	Texture2D emitTextureOD;
 	Model liftModel;
 	Model liftModelOD;
+
+	Font rubik;
+
 	//Sound clapOD;
 	void loadAssets(std::filesystem::path directory) {
 		smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
@@ -133,6 +136,8 @@ public:
 		liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
 		liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 		liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
+
+		rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);
 	}

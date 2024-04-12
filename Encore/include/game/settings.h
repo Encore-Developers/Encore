@@ -815,6 +815,8 @@ public:
 		overdriveControllerMember->value.SetInt(controllerOverdrive);
 		rapidjson::Value::MemberIterator overdriveControllerDirMember = settings["controllerbinds"].FindMember("overdrive_direction");
 		overdriveControllerDirMember->value.SetInt(controllerOverdriveAxisDirection);
+		rapidjson::Value::MemberIterator controllerTypeMember = settings["controllerbinds"].FindMember("type");
+		controllerTypeMember->value.SetInt(controllerType);
 
 		char writeBuffer[8192];
 		FILE* fp = fopen(settingsFile.string().c_str(), "wb");
