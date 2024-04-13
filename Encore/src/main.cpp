@@ -98,7 +98,7 @@ static int MeasureTextRubik(const char* text, int fontSize) {
 }
 
 static void handleInputs(int lane, int action){
-	if (settings.mirrorMode) {
+	if (settings.mirrorMode && lane!=-1) {
 		lane = (diff == 3 ? 4 : 3) - lane;
 	}
 	if (!streamsLoaded) {
