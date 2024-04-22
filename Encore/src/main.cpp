@@ -111,6 +111,7 @@ static void handleInputs(int lane, int action){
 		overdriveActiveFill = overdriveFill;
 		overdrive = true;
 		overdriveHitAvailable = true;
+        overdriveHitTime = eventTime;
 	}
 	for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
 		Note& curNote = curChart.notes[i];
@@ -152,7 +153,7 @@ static void handleInputs(int lane, int action){
 				!curNote.hit &&
 				!curNote.accounted &&
 				((curNote.time) - perfectBackend) + InputOffset > eventTime &&
-				eventTime > overdriveHitTime + 0.025
+				eventTime > overdriveHitTime + 0.05
 				&& !overhitFrets[lane]) {
 				player::OverHit();
 				if (curChart.odPhrases.size() >= 1 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
@@ -166,7 +167,7 @@ static void handleInputs(int lane, int action){
 			else if (action == GLFW_RELEASE && overdriveHeld) {
 				overdriveHeld = false;
 			}
-			if (action == GLFW_PRESS && overdriveHitAvailable == true) {
+			if (action == GLFW_PRESS && overdriveHitAvailable) {
 				if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
 					(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
 					!curNote.hit) {
@@ -174,9 +175,9 @@ static void handleInputs(int lane, int action){
 						int chordLane = curChart.findNoteIdx(curNote.time, lane);
 						if (chordLane != -1) {
 							Note& chordNote = curChart.notes[chordLane];
-							if ((chordNote.time) - (goodBackend)+InputOffset < eventTime &&
-								(chordNote.time) + (goodFrontend)+InputOffset > eventTime &&
-								!chordNote.hit) {
+							if ((chordNote.time) - (goodBackend)+InputOffset < eventTime && //backend hitwindow
+								(chordNote.time) + (goodFrontend)+InputOffset > eventTime && //frontent hitwindow
+								!chordNote.hit) { //not hit
 								chordNote.hit = true;
 								overdriveLanesHit[lane] = true;
 								chordNote.hitTime = eventTime;
@@ -249,11 +250,12 @@ static void handleInputs(int lane, int action){
 	}
 }
 
+// what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
 static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int mods) {
 	if (!streamsLoaded) {
 		return;
 	}
-	if (action < 2) {
+	if (action < 2) {  // if the key action is NOT release
 		int lane = -1;
 		if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
 			handleInputs(-1, action);
