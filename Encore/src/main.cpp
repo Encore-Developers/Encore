@@ -1039,16 +1039,8 @@ int main(int argc, char* argv[])
 
 
 
-				if (!streamsLoaded) {
-					loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
-					for (auto& stream : loadedStreams) {
-						std::cout << GetMusicTimeLength(stream.first) << std::endl;
-					}
 
-					streamsLoaded = true;
-					player::resetPlayerStats();
-				}
-                if (GuiToggle({ 0,0,60,60 }, "<", 0) && streamsLoaded) {
+                if (GuiToggle({ 0,0,60,60 }, "<", 0)) {
 					for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 						note.accounted = false;
 						note.hit = false;
