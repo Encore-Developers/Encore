@@ -262,7 +262,7 @@ static void handleInputs(int lane, int action){
 						continue;
 				}
 				player::OverHit();
-				if (curChart.odPhrases.size() >= 1 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
+				if (curChart.odPhrases.size() > 0 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) curChart.odPhrases[curODPhrase].missed = true;
 				overhitFrets[lane] = true;
 			}
 		}
@@ -1250,16 +1250,16 @@ int main(int argc, char* argv[])
 
 						if (curChart.odPhrases.size() > 0) {
 							if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-								if (curNote.miss) {
-									curChart.odPhrases[curODPhrase].missed = true;
-								}
-								else {
+								if(curNote.hit) {
 									if (curNote.hit && !curNote.countedForODPhrase) {
 										curChart.odPhrases[curODPhrase].notesHit++;
 										curNote.countedForODPhrase = true;
 									}
 								}
 								curNote.renderAsOD = true;
+							}
+							if (curChart.odPhrases[curODPhrase].missed) {
+								curNote.renderAsOD = false;
 							}
 							if (curChart.odPhrases[curODPhrase].notesHit == curChart.odPhrases[curODPhrase].noteCount && !curChart.odPhrases[curODPhrase].added && overdriveFill < 1.0f) {
 								overdriveFill += 0.25f;
@@ -1269,12 +1269,12 @@ int main(int argc, char* argv[])
 									overdriveActiveTime = musicTime;
 								}
 								curChart.odPhrases[curODPhrase].added = true;
-								if (curODPhrase < curChart.odPhrases.size() - 1) curODPhrase++;
 							}
 						}
 						if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
 							curNote.miss = true;
 							player::MissNote();
+							if (curChart.odPhrases.size()>0 && !curChart.odPhrases[curODPhrase].missed && curNote.time>=curChart.odPhrases[curODPhrase].start && curNote.time<curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
 							curNote.accounted = true;
 						}
 
@@ -1388,6 +1388,9 @@ int main(int argc, char* argv[])
 						if (relEnd < -1 && curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1) curNoteIdx[lane] = i + 1;
 
 					}
+				}
+				if (curChart.odPhrases.size() > 0 && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
+					curODPhrase++;
 				}
 	#ifndef NDEBUG
 				// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
