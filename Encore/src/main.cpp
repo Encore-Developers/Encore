@@ -78,6 +78,7 @@ bool overdriveHitAvailable = false;
 bool overdriveLiftAvailable = false;
 std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
 double overdriveHitTime = 0.0;
+std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
 SongList songList;
 Settings settings;
 Assets assets;
@@ -216,6 +217,9 @@ static void handleInputs(int lane, int action){
 				if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) + InputOffset < eventTime &&
 					(curNote.time) + ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) + InputOffset) > eventTime &&
 					!curNote.hit) {
+					if (curNote.lift && action == GLFW_RELEASE) {
+						lastHitLifts[lane] = curChart.notes_perlane[lane][i];
+					}
 					curNote.hit = true;
 					curNote.hitTime = eventTime;
 					if ((curNote.len) > 0 && !curNote.lift) {
@@ -247,6 +251,10 @@ static void handleInputs(int lane, int action){
 				((curNote.time) - perfectBackend) + InputOffset > eventTime &&
 				eventTime > overdriveHitTime + 0.05
 				&& !overhitFrets[lane]) {
+				if (lastHitLifts[lane] != -1) {
+					if (eventTime > curChart.notes[lastHitLifts[lane]].time - 0.1 && eventTime < curChart.notes[lastHitLifts[lane]].time + 0.1)
+						continue;
+				}
 				player::OverHit();
 				if (curChart.odPhrases.size() >= 1 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
 				overhitFrets[lane] = true;
@@ -261,8 +269,8 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 	if (!streamsLoaded) {
 		return;
 	}
-	if (action < 2) {  // if the key action is NOT release
-		int lane = -1;
+	if (action < 2) {  // if the key action is NOT repeat (release is 0, press is 1)
+		int lane = -2;
 		if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
 			handleInputs(-1, action);
 		}
@@ -315,9 +323,11 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 					}
 				}
 			}
-			handleInputs(lane, action);
+			if (lane > -1) {
+				handleInputs(lane, action);
+			}
+			
 		}
-		
 	}
 }
 
@@ -1208,7 +1218,6 @@ int main(int argc, char* argv[])
 
 							}
 						}
-
 					}
 				}
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
@@ -1263,9 +1272,6 @@ int main(int argc, char* argv[])
 						if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
 							curNote.miss = true;
 							player::MissNote();
-							if (curChart.odPhrases.size() > 0) {
-								curChart.odPhrases[curODPhrase].missed = true;
-							}
 							curNote.accounted = true;
 						}
 
