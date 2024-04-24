@@ -1071,7 +1071,7 @@ int main(int argc, char* argv[])
 					assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 					isPlaying = false;
 					midiLoaded = false;
 					streamsLoaded = false;
@@ -1373,7 +1373,7 @@ int main(int argc, char* argv[])
 								assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
 							}
 							else {
-								assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+								assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 							}
 						}
 						if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
