@@ -1007,7 +1007,7 @@ int main(int argc, char* argv[])
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
                 for (int i = 0; i < 5; i++) {
-                    DrawTextureEx(assets.emptyStar, {5+((float)i*35),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
+                    DrawTextureEx(assets.emptyStar, {5+((float)i*40),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
                 }
                 for (int i = 0; i < starsval; i++) {
                     DrawTextureEx(goldStars? assets.goldStar : assets.star, {5+((float)i*40),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
@@ -1429,7 +1429,7 @@ int main(int argc, char* argv[])
 				if (FC) {
 					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 84, 24, GOLD);
 				}
-				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score)), 24, Color{107, 161, 222,255});
+				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score))/2, 160, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
 				DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
 				DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
