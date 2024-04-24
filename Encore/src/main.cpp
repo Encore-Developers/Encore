@@ -999,27 +999,14 @@ int main(int argc, char* argv[])
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
-				char* starsDisplay = (char*)"";
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
-				if (starsval == 5) {
-					starsDisplay = (char*)"*****";
-				}
-				else if (starsval == 4) {
-					starsDisplay = (char*)"****";
-				}
-				else if (starsval == 3) {
-					starsDisplay = (char*)"***";
-				}
-				else if (starsval == 2) {
-					starsDisplay = (char*)"**";
-				}
-				else if (starsval == 1) {
-					starsDisplay = (char*)"*";;
-				}
-				else {
-					starsDisplay = (char*)"";
-				}
-				DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
+                for (int i = 0; i < 5; i++) {
+                    DrawTextureEx(assets.emptyStar, {5+((float)i*35),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
+                }
+                for (int i = 0; i < starsval; i++) {
+                    DrawTextureEx(goldStars? assets.goldStar : assets.star, {5+((float)i*40),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
+                }
+				// DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
 				DrawTextRubik(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 420, 48, WHITE);
 				DrawTextRubik(TextFormat("%01i", combo), 5, GetScreenHeight() - 330, 30, FC ? GOLD : (combo <= 3) ? RED : WHITE);
 				DrawTextRubik(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, 36, GOLD);
@@ -1408,6 +1395,10 @@ int main(int argc, char* argv[])
 			}
 			case RESULTS: {
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
+                for (int i = 0; i < starsval; i++) {
+                    DrawTextureEx(goldStars? assets.goldStar : assets.star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
+                }
+/*
 				char* starsDisplay = (char*)"";
 				if (starsval == 5) {
 					starsDisplay = (char*)"*****";
@@ -1426,14 +1417,14 @@ int main(int argc, char* argv[])
 				}
 				else {
 					starsDisplay = (char*)"";
-				}
+				}*/
 				DrawTextRubik("Results", GetScreenWidth() / 2 - (MeasureTextRubik("Results", 36) / 2), 0, 36, WHITE);
 				DrawTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
 				if (FC) {
 					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 84, 24, GOLD);
 				}
 				DrawTextRubik(TextFormat("%01i", score), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%01i", score), 24) / 2), 128, 24, WHITE);
-				DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
+				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
 				DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
 				DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
 				DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 256, 24, WHITE);

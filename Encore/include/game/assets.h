@@ -9,7 +9,7 @@ class Assets {
 private:
 	Texture2D LoadTextureFilter(std::filesystem::path texturePath) {
 		Texture2D tex = LoadTexture(texturePath.string().c_str());
-		SetTextureFilter(tex, TEXTURE_FILTER_ANISOTROPIC_4X);
+		SetTextureFilter(tex, TEXTURE_FILTER_ANISOTROPIC_16X);
 		return tex;
 	}
 public:
@@ -62,6 +62,10 @@ public:
 	Model liftModel;
 	Model liftModelOD;
 
+    Texture2D emptyStar;
+    Texture2D star;
+    Texture2D goldStar;
+
 	Font rubik;
 
 	//Sound clapOD;
@@ -87,6 +91,10 @@ public:
 		smasherPressTex = LoadTextureFilter(directory / "Assets/highway/smasher_press.png");
 		smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
 		smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
+        star = LoadTextureFilter(directory/ "Assets/ui/star.png");
+        goldStar = LoadTextureFilter(directory/ "Assets/ui/gold-star.png");
+        emptyStar = LoadTextureFilter(directory/ "Assets/ui/empty-star.png");
 
 		odFrame = LoadModel((directory / "Assets/ui/od_frame.obj").string().c_str());
 		odBar = LoadModel((directory / "Assets/ui/od_fill.obj").string().c_str());
