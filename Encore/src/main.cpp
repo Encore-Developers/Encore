@@ -1025,9 +1025,6 @@ int main(int argc, char* argv[])
 				float comboFill = comboFillCalc(instrument);
 				SetShaderValue(assets.odMultShader, assets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 				SetShaderValue(assets.odMultShader, assets.odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
-				for (int i = 0; i < 5; i++) {
-					DrawTextRubik(TextFormat("Lane %01i index: %01i", i+1, curNoteIdx[i]), 5, (GetScreenHeight() - 280)+(30*i), 24, WHITE);
-				}
 				if (extraGameplayStats) {
 					DrawTextRubik(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24,
 						(perfectHit > 0) ? GOLD : WHITE);
