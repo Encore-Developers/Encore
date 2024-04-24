@@ -1040,7 +1040,7 @@ int main(int argc, char* argv[])
 
 
 
-                if (GuiToggle({ 0,0,60,60 }, "<", 0)) {
+                if (GuiButton({ 0,0,60,60 }, "<")) {
 					for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 						note.accounted = false;
 						note.hit = false;
