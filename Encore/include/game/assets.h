@@ -1,6 +1,10 @@
 #pragma once
 #include "raylib.h"
 #include <filesystem>
+#include "player.h"
+
+player player;
+
 class Assets {
 private:
 	Texture2D LoadTextureFilter(std::filesystem::path texturePath) {
@@ -12,12 +16,17 @@ public:
 	Model smasherReg;
 	Texture2D smasherRegTex;
 
+    Image icon;
+    Texture2D encoreWhiteLogo;
+    Texture2D songBackground;
 	Model smasherBoard;
 	Texture2D smasherBoardTex;
 
 	Model smasherPressed;
 	Texture2D smasherPressTex;
 
+    Model lanes;
+    Texture2D lanesTex;
 	Model odFrame;
 	Model odBar;
 	Model multFrame;
@@ -38,8 +47,10 @@ public:
 	int uvOffsetXLoc;
 	int uvOffsetYLoc;
 
+    Model expertHighwaySides;
 	Model expertHighway;
 	Model emhHighway;
+    Texture2D highwaySidesTexture;
 	Texture2D highwayTexture;
 	Texture2D highwayTextureOD;
 	Model noteModel;
@@ -62,10 +73,15 @@ public:
 		smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
 		smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-		smasherBoard = LoadModel((directory / "Assets/highway/board.obj").string().c_str());
-		smasherBoardTex = LoadTextureFilter(directory / "Assets/highway/smasherBoard.png");
+		smasherBoard = LoadModel((directory / "Assets/highway/new_board.obj").string().c_str());
+		smasherBoardTex = LoadTextureFilter(directory / "Assets/highway/smasher_board_new.png");
 		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
-		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+
+        lanes = LoadModel((directory / "Assets/highway/lanes.obj").string().c_str());
+        lanesTex = LoadTextureFilter(directory / "Assets/highway/lanes.png");
+        lanes.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = lanesTex;
+        lanes.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
 		smasherPressed = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
 		smasherPressTex = LoadTextureFilter(directory / "Assets/highway/smasher_press.png");
@@ -110,24 +126,28 @@ public:
 		uvOffsetXLoc = GetShaderLocation(multNumberShader, "uvOffsetX");
 		uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
+        expertHighwaySides = LoadModel(((directory / "Assets/highway/sides.obj").string().c_str()));
 		expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
 		emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
-		highwayTexture = LoadTextureFilter(directory / "Assets/highway/highway.png");
+		highwayTexture = LoadTextureFilter(directory / "Assets/highway/highway_new.png");
 		highwayTextureOD = LoadTextureFilter(directory / "Assets/highway/highway_od.png");
+        highwaySidesTexture = LoadTextureFilter(directory/"Assets/highway/highwaysides_new.png");
+        expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
+        expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-		noteTexture = LoadTextureFilter(directory / "Assets/notes/note_d.png");
-		emitTexture = LoadTextureFilter(directory / "Assets/notes/note_e.png");
+		noteTexture = LoadTextureFilter(directory / "Assets/notes/note.png");
+		emitTexture = LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
 		noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
-		noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
 		noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
 		noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-		noteTextureOD = LoadTextureFilter(directory / "Assets/notes/note_od_d.png");
-		emitTextureOD = LoadTextureFilter(directory / "Assets/notes/note_od_e.png");
+		noteTextureOD = LoadTextureFilter(directory / "Assets/notes/note.png");
+		emitTextureOD = LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
 		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
@@ -136,6 +156,10 @@ public:
 		liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
 		liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
 		liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
+
+        icon = LoadImage((directory / "Assets/encore_favicon-NEW.png").string().c_str());
+        encoreWhiteLogo = LoadTexture((directory / "Assets/encore-white.png").string().c_str());
+        songBackground = LoadTexture((directory / "Assets/background.png").string().c_str());
 
 		rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());

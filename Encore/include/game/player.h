@@ -9,6 +9,8 @@ int notesHit = 0;
 int notesMissed = 0;
 int perfectHit = 0;
 
+
+
 float selInstVolume = 0.5;
 float otherInstVolume = 0.375;
 float missVolume = 0.15;
@@ -30,7 +32,7 @@ bool lastNotePerfect = false;
 float liftTimingMult = 1.25f;
 
 float highwayLength = 11.5f;
-float smasherPos = 2.7f;
+float smasherPos = 2.4f; // used to be 2.7
 
 bool extraGameplayStats = false;
 
@@ -134,6 +136,9 @@ float comboFillCalc(int instrument) {
 class player {
 public:
 
+
+    Color accentColor = Color{255,0,255,255};
+    Color highwayColor = Color{255-64, 0, 255-64,255};
 	static void resetPlayerStats() {
 		notesHit = 0;
 		notesMissed = 0;
