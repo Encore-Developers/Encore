@@ -40,7 +40,7 @@ bool streamsLoaded = false;
 
 std::vector<std::pair<Music, int>> loadedStreams;
 int curPlayingSong = 0;
-int curNoteIdx = 0;
+std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
@@ -113,12 +113,104 @@ static void handleInputs(int lane, int action){
 		overdriveHitAvailable = true;
         overdriveHitTime = eventTime;
 	}
-	for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
-		Note& curNote = curChart.notes[i];
+	if (lane == -1) {
+		Note& curNote = curChart.notes[0];
+		for (int i = 0; i < curChart.notes.size(); i++) {
+			if ((curChart.notes[i].time) - (goodBackend)+InputOffset < eventTime &&
+				(curChart.notes[i].time) + (goodFrontend)+InputOffset > eventTime)
+				curNote = curChart.notes[i];
+			break;
+		}
+		if (action == GLFW_PRESS && !overdriveHeld) {
+			overdriveHeld = true;
+		}
+		else if (action == GLFW_RELEASE && overdriveHeld) {
+			overdriveHeld = false;
+		}
+		if (action == GLFW_PRESS && overdriveHitAvailable) {
+			if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
+				(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
+				!curNote.hit) {
+				for (int lane = 0; lane < 5; lane++) {
+					int chordLane = curChart.findNoteIdx(curNote.time, lane);
+					if (chordLane != -1) {
+						Note& chordNote = curChart.notes[chordLane];
+						if ((chordNote.time) - (goodBackend)+InputOffset < eventTime && //backend hitwindow
+							(chordNote.time) + (goodFrontend)+InputOffset > eventTime && //frontent hitwindow
+							!chordNote.hit) { //not hit
+							chordNote.hit = true;
+							overdriveLanesHit[lane] = true;
+							chordNote.hitTime = eventTime;
 
-		// if (curNote.time > eventTime + 0.1) break;
+							if ((chordNote.len) > 0 && !chordNote.lift) {
+								chordNote.held = true;
+							}
+							if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+								chordNote.perfect = true;
 
-		if (lane!=-1) {
+							}
+							if (chordNote.perfect) lastNotePerfect = true;
+							else lastNotePerfect = false;
+							player::HitNote(curNote.perfect, instrument);
+							curNote.accounted = true;
+						}
+					}
+				}
+				overdriveHitAvailable = false;
+				overdriveLiftAvailable = true;
+			}
+		}
+		else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
+			if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
+				(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
+				!curNote.hit) {
+				for (int lane = 0; lane < 5; lane++) {
+					if (overdriveLanesHit[lane]) {
+						int chordLane = curChart.findNoteIdx(curNote.time, lane);
+						if (chordLane != -1) {
+							Note& chordNote = curChart.notes[chordLane];
+							if (chordNote.lift) {
+								chordNote.hit = true;
+								overdriveLanesHit[lane] = false;
+								chordNote.hitTime = eventTime;
+
+								if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+									chordNote.perfect = true;
+
+								}
+								if (chordNote.perfect) lastNotePerfect = true;
+								else lastNotePerfect = false;
+							}
+
+						}
+					}
+				}
+				overdriveLiftAvailable = false;
+			}
+		}
+		if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
+			for (int lane = 0; lane < 5; lane++) {
+				if (overdriveLanesHit[lane]) {
+					int chordLane = curChart.findNoteIdx(curNote.time, lane);
+					if (chordLane != -1) {
+						Note& chordNote = curChart.notes[chordLane];
+						if (chordNote.held && chordNote.len > 0) {
+							if (!((diff == 3 && settings.keybinds5K[chordNote.lane]) || (diff != 3 && settings.keybinds4K[chordNote.lane]))) {
+								chordNote.held = false;
+								score += sustainScoreBuffer[chordNote.lane];
+								sustainScoreBuffer[chordNote.lane] = 0;
+								mute = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
+			Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
+
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
 				if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) + InputOffset < eventTime &&
@@ -160,94 +252,8 @@ static void handleInputs(int lane, int action){
 				overhitFrets[lane] = true;
 			}
 		}
-		else {
-			if (action == GLFW_PRESS && !overdriveHeld) {
-				overdriveHeld = true;
-			}
-			else if (action == GLFW_RELEASE && overdriveHeld) {
-				overdriveHeld = false;
-			}
-			if (action == GLFW_PRESS && overdriveHitAvailable) {
-				if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
-					(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
-					!curNote.hit) {
-					for (int lane = 0; lane < 5; lane++) {
-						int chordLane = curChart.findNoteIdx(curNote.time, lane);
-						if (chordLane != -1) {
-							Note& chordNote = curChart.notes[chordLane];
-							if ((chordNote.time) - (goodBackend)+InputOffset < eventTime && //backend hitwindow
-								(chordNote.time) + (goodFrontend)+InputOffset > eventTime && //frontent hitwindow
-								!chordNote.hit) { //not hit
-								chordNote.hit = true;
-								overdriveLanesHit[lane] = true;
-								chordNote.hitTime = eventTime;
-
-								if ((chordNote.len) > 0 && !chordNote.lift) {
-									chordNote.held = true;
-								}
-								if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
-									chordNote.perfect = true;
-
-								}
-								if (chordNote.perfect) lastNotePerfect = true;
-								else lastNotePerfect = false;
-								player::HitNote(curNote.perfect, instrument);
-								curNote.accounted = true;
-							}
-						}
-					}
-					overdriveHitAvailable = false;
-					overdriveLiftAvailable = true;
-				}
-			}
-			else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-				if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
-					(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
-					!curNote.hit) {
-					for (int lane = 0; lane < 5; lane++) {
-						if (overdriveLanesHit[lane]) {
-							int chordLane = curChart.findNoteIdx(curNote.time, lane);
-							if (chordLane != -1) {
-								Note& chordNote = curChart.notes[chordLane];
-								if (chordNote.lift) {
-									chordNote.hit = true;
-									overdriveLanesHit[lane] = false;
-									chordNote.hitTime = eventTime;
-
-									if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
-										chordNote.perfect = true;
-
-									}
-									if (chordNote.perfect) lastNotePerfect = true;
-									else lastNotePerfect = false;
-								}
-
-							}
-						}
-					}
-					overdriveLiftAvailable = false;
-				}
-			}
-			if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
-				for (int lane = 0; lane < 5; lane++) {
-					if (overdriveLanesHit[lane]) {
-						int chordLane = curChart.findNoteIdx(curNote.time, lane);
-						if (chordLane != -1) {
-							Note& chordNote = curChart.notes[chordLane];
-							if (chordNote.held && chordNote.len > 0) {
-								if (!((diff == 3 && settings.keybinds5K[chordNote.lane]) || (diff != 3 && settings.keybinds4K[chordNote.lane]))) {
-									chordNote.held = false;
-									score += sustainScoreBuffer[chordNote.lane];
-									sustainScoreBuffer[chordNote.lane] = 0;
-									mute = true;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
 	}
+	
 }
 
 // what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
@@ -823,7 +829,7 @@ int main(int argc, char* argv[])
 				midiLoaded = false;
 				isPlaying = false;
 				overdrive = false;
-				curNoteIdx = 0;
+				curNoteIdx = { 0,0,0,0,0 };
 				curODPhrase = 0;
 				curBeatLine = 0;
 				curBPM = 0;
@@ -917,6 +923,11 @@ int main(int argc, char* argv[])
 														songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
 													}
 													std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
+													int noteIdx = 0;
+													for (Note& note : newChart.notes) {
+														newChart.notes_perlane[note.lane].push_back(noteIdx);
+														noteIdx++;
+													}
 													songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
 												}
 											}
@@ -1005,6 +1016,9 @@ int main(int argc, char* argv[])
 				float comboFill = comboFillCalc(instrument);
 				SetShaderValue(assets.odMultShader, assets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 				SetShaderValue(assets.odMultShader, assets.odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
+				for (int i = 0; i < 5; i++) {
+					DrawTextRubik(TextFormat("Lane %01i index: %01i", i+1, curNoteIdx[i]), 5, (GetScreenHeight() - 280)+(30*i), 24, WHITE);
+				}
 				if (extraGameplayStats) {
 					DrawTextRubik(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24,
 						(perfectHit > 0) ? GOLD : WHITE);
@@ -1218,152 +1232,152 @@ int main(int argc, char* argv[])
 
 				// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
 				Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-				if (curChart.odPhrases.size() > 0 && curODPhrase < curChart.odPhrases.size()) {
-					if (curChart.notes[curNoteIdx].time + curChart.notes[curNoteIdx].len > curChart.odPhrases[curODPhrase].end && curODPhrase < curChart.odPhrases.size() - 1) curODPhrase++;
-				}
-				for (int i = curNoteIdx; i < curChart.notes.size(); i++) {
-					Note& curNote = curChart.notes[i];
+				for (int lane = 0; lane < (diff == 3 ? 5 : 4); lane++) {
+					for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
+						Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
 
-					if (curChart.odPhrases.size() > 0) {
-						if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-							if (curNote.miss) {
-								curChart.odPhrases[curODPhrase].missed = true;
-							}
-							else {
-								if (curNote.hit && !curNote.countedForODPhrase) {
-									curChart.odPhrases[curODPhrase].notesHit++;
-									curNote.countedForODPhrase = true;
-								}
-							}
-							curNote.renderAsOD = true;
-						}
-						if (curChart.odPhrases[curODPhrase].notesHit == curChart.odPhrases[curODPhrase].noteCount && !curChart.odPhrases[curODPhrase].added && overdriveFill < 1.0f) {
-							overdriveFill += 0.25f;
-							if (overdriveFill > 1.0f) overdriveFill = 1.0f;
-							if (overdrive) {
-								overdriveActiveFill = overdriveFill;
-								overdriveActiveTime = musicTime;
-							}
-							curChart.odPhrases[curODPhrase].added = true;
-						}
-					}
-					if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
-						curNote.miss = true;
-						player::MissNote();
 						if (curChart.odPhrases.size() > 0) {
-							curChart.odPhrases[curODPhrase].missed = true;
-						}
-						curNote.accounted = true;
-					}
-
-					double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
-					double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
-					float notePosX = diffDistance - (1.0f * (settings.mirrorMode ? (diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
-					if (relTime > 1.5) {
-						break;
-					}
-					if (relEnd > 1.5) relEnd = 1.5;
-					if (curNote.lift && !curNote.hit) {
-						// lifts						//  distance between notes 
-						//									(furthest left - lane distance)
-						if (curNote.renderAsOD)					//  1.6f	0.8
-							DrawModel(assets.liftModelOD, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-						// energy phrase
-						else
-							DrawModel(assets.liftModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-						// regular 
-					}
-					else {
-						// sustains
-						if ((curNote.len) > 0) {
-							if (curNote.hit && curNote.held) {
-								if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
-									curNote.heldTime = 0.0 - relTime;
-									sustainScoreBuffer[curNote.lane] = (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) * multiplier(instrument);
-									if (relTime < 0.0) relTime = 0.0;
-								}
-								if (relEnd <= 0.0) {
-									if (relTime < 0.0) relTime = relEnd;
-									score += sustainScoreBuffer[curNote.lane];
-									sustainScoreBuffer[curNote.lane] = 0;
-									curNote.held = false;
-								}
-							}
-							else if (curNote.hit && !curNote.held) {
-								relTime = relTime + curNote.heldTime;
-							}
-
-							/*Color SustainColor = Color{ 69,69,69,255 };
-							if (curNote.held) {
-								if (od) {
-									Color SustainColor = Color{ 217, 183, 82 ,255 };
-								}
-								Color SustainColor = Color{ 172,82,217,255 };
-							}*/
-
-							if (curNote.held && !curNote.renderAsOD) {
-								DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
-							}
-							if (curNote.renderAsOD && curNote.held) {
-								DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
-							}
-							if (!curNote.held && curNote.hit || curNote.miss) {
-								DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
-							}
-							if (!curNote.hit && !curNote.accounted && !curNote.miss) {
-								if (curNote.renderAsOD) {
-									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
+							if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
+								if (curNote.miss) {
+									curChart.odPhrases[curODPhrase].missed = true;
 								}
 								else {
-									DrawCylinderEx(Vector3{ notePosX, 0.05f,
-														   smasherPos + (highwayLength * (float)relTime) },
-										Vector3{ notePosX, 0.05f,
-												smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-										Color{ 150, 19, 150, 255 });
+									if (curNote.hit && !curNote.countedForODPhrase) {
+										curChart.odPhrases[curODPhrase].notesHit++;
+										curNote.countedForODPhrase = true;
+									}
 								}
+								curNote.renderAsOD = true;
 							}
-
-
-							// DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
+							if (curChart.odPhrases[curODPhrase].notesHit == curChart.odPhrases[curODPhrase].noteCount && !curChart.odPhrases[curODPhrase].added && overdriveFill < 1.0f) {
+								overdriveFill += 0.25f;
+								if (overdriveFill > 1.0f) overdriveFill = 1.0f;
+								if (overdrive) {
+									overdriveActiveFill = overdriveFill;
+									overdriveActiveTime = musicTime;
+								}
+								curChart.odPhrases[curODPhrase].added = true;
+								if (curODPhrase < curChart.odPhrases.size() - 1) curODPhrase++;
+							}
 						}
-						// regular notes
-						if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) || ((curNote.len) == 0 && !curNote.hit)) {
-							if (curNote.renderAsOD) {
-								if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-									DrawModel(assets.noteModelOD, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-								};
-
+						if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
+							curNote.miss = true;
+							player::MissNote();
+							if (curChart.odPhrases.size() > 0) {
+								curChart.odPhrases[curODPhrase].missed = true;
 							}
-							else {
-								if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-									DrawModel(assets.noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-								};
-
-							}
-
+							curNote.accounted = true;
 						}
-					}
-					if (curNote.miss) {
-						DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
-						if (GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.4 && MissHighwayColor) {
-							assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+
+						double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+						double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+						float notePosX = diffDistance - (1.0f * (settings.mirrorMode ? (diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
+						if (relTime > 1.5) {
+							break;
+						}
+						if (relEnd > 1.5) relEnd = 1.5;
+						if (curNote.lift && !curNote.hit) {
+							// lifts						//  distance between notes 
+							//									(furthest left - lane distance)
+							if (curNote.renderAsOD)					//  1.6f	0.8
+								DrawModel(assets.liftModelOD, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+							// energy phrase
+							else
+								DrawModel(assets.liftModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+							// regular 
 						}
 						else {
-							assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+							// sustains
+							if ((curNote.len) > 0) {
+								if (curNote.hit && curNote.held) {
+									if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
+										curNote.heldTime = 0.0 - relTime;
+										sustainScoreBuffer[curNote.lane] = (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) * multiplier(instrument);
+										if (relTime < 0.0) relTime = 0.0;
+									}
+									if (relEnd <= 0.0) {
+										if (relTime < 0.0) relTime = relEnd;
+										score += sustainScoreBuffer[curNote.lane];
+										sustainScoreBuffer[curNote.lane] = 0;
+										curNote.held = false;
+									}
+								}
+								else if (curNote.hit && !curNote.held) {
+									relTime = relTime + curNote.heldTime;
+								}
+
+								/*Color SustainColor = Color{ 69,69,69,255 };
+								if (curNote.held) {
+									if (od) {
+										Color SustainColor = Color{ 217, 183, 82 ,255 };
+									}
+									Color SustainColor = Color{ 172,82,217,255 };
+								}*/
+
+								if (curNote.held && !curNote.renderAsOD) {
+									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
+								}
+								if (curNote.renderAsOD && curNote.held) {
+									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
+								}
+								if (!curNote.held && curNote.hit || curNote.miss) {
+									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+								}
+								if (!curNote.hit && !curNote.accounted && !curNote.miss) {
+									if (curNote.renderAsOD) {
+										DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
+									}
+									else {
+										DrawCylinderEx(Vector3{ notePosX, 0.05f,
+															   smasherPos + (highwayLength * (float)relTime) },
+											Vector3{ notePosX, 0.05f,
+													smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
+											Color{ 150, 19, 150, 255 });
+									}
+								}
+
+
+								// DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
+							}
+							// regular notes
+							if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) || ((curNote.len) == 0 && !curNote.hit)) {
+								if (curNote.renderAsOD) {
+									if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+										DrawModel(assets.noteModelOD, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+									};
+
+								}
+								else {
+									if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+										DrawModel(assets.noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+									};
+
+								}
+
+							}
 						}
-					}
-					if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
-						DrawCube(Vector3{ notePosX, 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
-						if (curNote.perfect) {
-							DrawCube(Vector3{ 3.25, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
-
+						if (curNote.miss) {
+							DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
+							if (GetMusicTimePlayed(loadedStreams[0].first) < curNote.time + 0.4 && MissHighwayColor) {
+								assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+							}
+							else {
+								assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+							}
 						}
+						if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
+							DrawCube(Vector3{ notePosX, 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
+							if (curNote.perfect) {
+								DrawCube(Vector3{ 3.25, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
+
+							}
+						}
+
+
+
+						if (relEnd < -1 && curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1) curNoteIdx[lane] = i + 1;
+
 					}
-
-
-
-					if (relEnd < -1 && curNoteIdx < curChart.notes.size() - 1) curNoteIdx = i + 1;
-
 				}
 	#ifndef NDEBUG
 				// DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });

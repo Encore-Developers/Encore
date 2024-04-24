@@ -42,6 +42,7 @@ private:
 	std::vector<std::vector<int>> diffNotes = { {60,63,66,69}, {72,75,78,81}, {84,87,90,93}, {96,100,102,106} };
 public:
 	std::vector<Note> notes;
+	std::vector <std::vector<int>> notes_perlane{ {},{},{},{},{} };
 	int baseScore = 0;
 	int findNoteIdx(double time, int lane) {
 		for (int i = 0; i < notes.size();i++) {
