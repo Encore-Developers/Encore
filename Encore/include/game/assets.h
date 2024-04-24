@@ -67,6 +67,7 @@ public:
     Texture2D goldStar;
 
 	Font rubik;
+    Font redHatDisplayItalic;
 
 	//Sound clapOD;
 	void loadAssets(std::filesystem::path directory) {
@@ -169,6 +170,7 @@ public:
         encoreWhiteLogo = LoadTexture((directory / "Assets/encore-white.png").string().c_str());
         songBackground = LoadTexture((directory / "Assets/background.png").string().c_str());
 
+        redHatDisplayItalic = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 48,0,0);
 		rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);

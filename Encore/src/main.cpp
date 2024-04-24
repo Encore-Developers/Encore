@@ -93,9 +93,15 @@ int controllerID = -1;
 static void DrawTextRubik(const char* text, float posX, float posY, int fontSize, Color color) {
 	DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 2, color);
 }
+static void DrawTextRHDI(const char* text, float posX, float posY, Color color) {
+    DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 2, color);
+}
 
 static int MeasureTextRubik(const char* text, int fontSize) {
 	return MeasureTextEx(assets.rubik, text, fontSize, 2).x;
+}
+static int MeasureTextRHDI(const char* text) {
+    return MeasureTextEx(assets.rubik, text, 48, 2).x;
 }
 
 static void handleInputs(int lane, int action){
@@ -1007,7 +1013,7 @@ int main(int argc, char* argv[])
                     DrawTextureEx(goldStars? assets.goldStar : assets.star, {5+((float)i*40),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
                 }
 				// DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
-				DrawTextRubik(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 420, 48, WHITE);
+				DrawTextRHDI(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 420,  Color{107, 161, 222,255});
 				DrawTextRubik(TextFormat("%01i", combo), 5, GetScreenHeight() - 330, 30, FC ? GOLD : (combo <= 3) ? RED : WHITE);
 				DrawTextRubik(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, 36, GOLD);
 				DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
@@ -1423,7 +1429,7 @@ int main(int argc, char* argv[])
 				if (FC) {
 					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 84, 24, GOLD);
 				}
-				DrawTextRubik(TextFormat("%01i", score), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%01i", score), 24) / 2), 128, 24, WHITE);
+				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score)), 24, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
 				DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
 				DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
