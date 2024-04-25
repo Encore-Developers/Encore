@@ -66,6 +66,7 @@ public:
     Texture2D star;
     Texture2D goldStar;
 
+    Font rubik32;
 	Font rubik;
     Font redHatDisplayItalic;
 
@@ -157,14 +158,14 @@ public:
 		noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
 		noteTextureOD = LoadTextureFilter(directory / "Assets/notes/note.png");
 		emitTextureOD = LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
-		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
+		// noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
 		liftModel = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-		liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 172,82,217,127 };
+		liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-		liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = Color{ 217, 183, 82 ,127 };
+		liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
         icon = LoadImage((directory / "Assets/encore_favicon-NEW.png").string().c_str());
         encoreWhiteLogo = LoadTexture((directory / "Assets/encore-white.png").string().c_str());
@@ -172,6 +173,7 @@ public:
 
         redHatDisplayItalic = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 48,0,0);
 		rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
+        rubik32 = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 32, 0, 0);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);
 	}

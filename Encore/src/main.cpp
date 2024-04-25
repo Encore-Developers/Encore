@@ -90,13 +90,18 @@ int pressedGamepadInput = -999;
 int axisDirection = -1;
 int controllerID = -1;
 
+static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
+    DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 2, color);
+}
 static void DrawTextRubik(const char* text, float posX, float posY, int fontSize, Color color) {
 	DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 2, color);
 }
 static void DrawTextRHDI(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 2, color);
 }
-
+static int MeasureTextRubik32(const char* text) {
+    return MeasureTextEx(assets.rubik, text, 32, 2).x;
+}
 static int MeasureTextRubik(const char* text, int fontSize) {
 	return MeasureTextEx(assets.rubik, text, fontSize, 2).x;
 }
@@ -1004,6 +1009,7 @@ int main(int argc, char* argv[])
 			case GAMEPLAY: {
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
+
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
                 for (int i = 0; i < 5; i++) {
@@ -1086,6 +1092,17 @@ int main(int argc, char* argv[])
                     player::resetPlayerStats();
                 }
                 else {
+                    float songPlayed = GetMusicTimePlayed(loadedStreams[0].first);
+                    int songLength = GetMusicTimeLength(loadedStreams[0].first);
+                    int playedMinutes = GetMusicTimePlayed(loadedStreams[0].first)/60;
+                    int playedSeconds = (int)GetMusicTimePlayed(loadedStreams[0].first) % 60;
+                    int songMinutes = GetMusicTimeLength(loadedStreams[0].first)/60;
+                    int songSeconds = (int)GetMusicTimeLength(loadedStreams[0].first) % 60;
+
+                    const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
+                    int textLength = MeasureTextRubik32(textTime);
+
+                    DrawTextRubik32(textTime,GetScreenWidth() - textLength,GetScreenHeight()-40,WHITE);
 					if (GetTime() >= GetMusicTimeLength(loadedStreams[0].first) + startedPlayingSong) {
 						for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
 							note.accounted = false;
@@ -1321,24 +1338,24 @@ int main(int argc, char* argv[])
 								}*/
 
 								if (curNote.held && !curNote.renderAsOD) {
-									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 230,100,230,255 });
+									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
 								}
 								if (curNote.renderAsOD && curNote.held) {
-									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 180 ,255 });
+									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
 								}
 								if (!curNote.held && curNote.hit || curNote.miss) {
 									DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
 								}
 								if (!curNote.hit && !curNote.accounted && !curNote.miss) {
 									if (curNote.renderAsOD) {
-										DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 170, 70 ,255 });
+										DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
 									}
 									else {
 										DrawCylinderEx(Vector3{ notePosX, 0.05f,
 															   smasherPos + (highwayLength * (float)relTime) },
 											Vector3{ notePosX, 0.05f,
 													smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-											Color{ 150, 19, 150, 255 });
+											player.accentColor);
 									}
 								}
 
@@ -1397,7 +1414,19 @@ int main(int argc, char* argv[])
 				// DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
 	#endif
 				EndMode3D();
-				break;
+
+                float songPlayed = GetMusicTimePlayed(loadedStreams[0].first);
+                int songLength = GetMusicTimeLength(loadedStreams[0].first);
+                int playedMinutes = GetMusicTimePlayed(loadedStreams[0].first)/60;
+                int playedSeconds = (int)GetMusicTimePlayed(loadedStreams[0].first) % 60;
+                int songMinutes = GetMusicTimeLength(loadedStreams[0].first)/60;
+                int songSeconds = (int)GetMusicTimeLength(loadedStreams[0].first) % 60;
+                const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
+                int textLength = MeasureTextRubik32(textTime);
+
+                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),7}, "", "", &songPlayed, 0, songLength);
+
+                break;
 			}
 			case RESULTS: {
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
