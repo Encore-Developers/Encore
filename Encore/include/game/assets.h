@@ -47,6 +47,9 @@ public:
 	int uvOffsetXLoc;
 	int uvOffsetYLoc;
 
+    Model odHighwayX;
+    Model odHighwayEMH;
+
     Model expertHighwaySides;
 	Model expertHighway;
 	Model emhHighway;
@@ -145,9 +148,15 @@ public:
         expertHighwaySides = LoadModel(((directory / "Assets/highway/sides.obj").string().c_str()));
 		expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
 		emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
+        odHighwayEMH = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
+        odHighwayX = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
 		highwayTexture = LoadTextureFilter(directory / "Assets/highway/highway_new.png");
 		highwayTextureOD = LoadTextureFilter(directory / "Assets/highway/highway_od.png");
         highwaySidesTexture = LoadTextureFilter(directory/"Assets/highway/highwaysides_new.png");
+        odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+        odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+        odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
+        odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
         expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
         expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;

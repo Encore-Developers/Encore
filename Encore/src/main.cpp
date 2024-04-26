@@ -859,6 +859,7 @@ int main(int argc, char* argv[])
 				curBPM = 0;
 				instrument = 0;
 				diff = 0;
+                DrawTextRHDI("Song Select", 70,7, WHITE);
 				if (GuiButton({ 0,0,60,60 }, "<")) {
 					for (Song& song : songList.songs) {
 						song.titleXOffset = 0;
@@ -969,6 +970,7 @@ int main(int argc, char* argv[])
 						midiLoaded = false;
 						currentScreen = SONG_SELECT;
 					}
+                    DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					for (int i = 0; i < 4; i++) {
 						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
 							if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, "")) {
@@ -992,6 +994,7 @@ int main(int argc, char* argv[])
 					if (GuiButton({ 0,0,60,60 }, "<")) {
 						currentScreen = SONG_SELECT;
 					}
+                    DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					if (songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.size() > 0) {
 						if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, "")) {
 							diff = i;
@@ -1131,8 +1134,8 @@ int main(int argc, char* argv[])
 						midiLoaded = false;
 						streamsLoaded = false;
 						curODPhrase = 0;
-						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
-						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
 						assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
@@ -1154,8 +1157,9 @@ int main(int argc, char* argv[])
 
 				double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
 				if (overdrive) {
-					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
-					assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
+
+					// assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
+					// assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
 					assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
 					assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
 					assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
@@ -1166,8 +1170,9 @@ int main(int argc, char* argv[])
 						overdrive = false;
 						overdriveActiveFill = 0;
 						overdriveActiveTime = 0.0;
-						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
-						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+
+                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
 						assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
@@ -1186,8 +1191,10 @@ int main(int argc, char* argv[])
 
 				BeginMode3D(camera);
 				if (diff == 3) {
-					DrawModel(assets.expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
                     DrawModel(assets.expertHighwaySides, Vector3{ 0,0,0 }, 1.0f, WHITE);
+                    if (overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
+
 					for (int i = 0; i < 5; i++) {
 						if (heldFrets[i] || heldFretsAlt[i]) {
 							DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
@@ -1197,6 +1204,7 @@ int main(int argc, char* argv[])
 						}
 					}
                     //DrawModel(assets.lanes, Vector3 {0,0.1f,0}, 1.0f, WHITE);
+
 					for (int i = 0; i < 4; i++) {
 						float radius = (i == (settings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
 
@@ -1262,8 +1270,17 @@ int main(int argc, char* argv[])
 					for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 						Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
 
-						if (curChart.odPhrases.size() > 0) {
-							if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
+                        float odStart = ((curChart.odPhrases[curODPhrase].start - musicTime)+VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+                        float odEnd = ((curChart.odPhrases[curODPhrase].end - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+
+                        // horrifying.
+
+                        DrawCylinderEx(Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.1,0.1,10,player.overdriveColor);
+                        DrawCylinderEx(Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.1,0.1,10,player.overdriveColor);
+
+                        if (curChart.odPhrases.size() > 0) {
+
+                           if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
 								if(curNote.hit) {
 									if (curNote.hit && !curNote.countedForODPhrase) {
 										curChart.odPhrases[curODPhrase].notesHit++;
@@ -1271,6 +1288,7 @@ int main(int argc, char* argv[])
 									}
 								}
 								curNote.renderAsOD = true;
+
 							}
 							if (curChart.odPhrases[curODPhrase].missed) {
 								curNote.renderAsOD = false;
@@ -1291,6 +1309,7 @@ int main(int argc, char* argv[])
 							if (curChart.odPhrases.size()>0 && !curChart.odPhrases[curODPhrase].missed && curNote.time>=curChart.odPhrases[curODPhrase].start && curNote.time<curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
 							curNote.accounted = true;
 						}
+
 
 						double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
 						double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
@@ -1453,10 +1472,10 @@ int main(int argc, char* argv[])
 				else {
 					starsDisplay = (char*)"";
 				}*/
-				DrawTextRubik("Results", GetScreenWidth() / 2 - (MeasureTextRubik("Results", 36) / 2), 0, 36, WHITE);
+                DrawTextRHDI("Results", 70,7, WHITE);
 				DrawTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
 				if (FC) {
-					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 84, 24, GOLD);
+					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
 				}
 				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score))/2, 160, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);

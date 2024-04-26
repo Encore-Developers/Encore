@@ -138,6 +138,8 @@ public:
 
 
     Color accentColor = Color{255,0,255,255};
+    Color overdriveColor = Color{255,200,0,255};
+
     Color highwayColor = Color{255-64, 0, 255-64,255};
 	static void resetPlayerStats() {
 		notesHit = 0;
