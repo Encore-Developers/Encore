@@ -264,10 +264,11 @@ public:
 				std::string artPath = (jsonPath.parent_path() / document["art"].GetString()).string();
 				Image albumImage = LoadImage(artPath.c_str());
 
-				if (albumImage.height > 512) 
-					ImageResize(&albumImage, 512, 512);
-
+				if (albumImage.height > 512) {
+                    ImageResize(&albumImage, 512, 512);
+                }
 				albumArt = LoadTextureFromImage(albumImage);
+                SetTextureFilter(albumArt, TEXTURE_FILTER_ANISOTROPIC_16X);
 				UnloadImage(albumImage);
 			}
 		}

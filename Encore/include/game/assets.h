@@ -7,9 +7,9 @@ player player;
 
 class Assets {
 private:
-	Texture2D LoadTextureFilter(std::filesystem::path texturePath) {
+	static Texture2D LoadTextureFilter(const std::filesystem::path& texturePath) {
 		Texture2D tex = LoadTexture(texturePath.string().c_str());
-		SetTextureFilter(tex, TEXTURE_FILTER_ANISOTROPIC_16X);
+		SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
 		return tex;
 	}
 public:
@@ -112,11 +112,17 @@ public:
 		odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
 		multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 		odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+        odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+        odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+        multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+        multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+        multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
+        multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
 		multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
 		multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
@@ -168,12 +174,15 @@ public:
 		liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
         icon = LoadImage((directory / "Assets/encore_favicon-NEW.png").string().c_str());
-        encoreWhiteLogo = LoadTexture((directory / "Assets/encore-white.png").string().c_str());
-        songBackground = LoadTexture((directory / "Assets/background.png").string().c_str());
+        encoreWhiteLogo = LoadTextureFilter((directory / "Assets/encore-white.png"));
+        songBackground = LoadTextureFilter((directory / "Assets/background.png"));
 
         redHatDisplayItalic = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 48,0,0);
+        SetTextureFilter(redHatDisplayItalic.texture, TEXTURE_FILTER_TRILINEAR);
 		rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
+        SetTextureFilter(rubik.texture, TEXTURE_FILTER_TRILINEAR);
         rubik32 = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 32, 0, 0);
+        SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);
 	}
