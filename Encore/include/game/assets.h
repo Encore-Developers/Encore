@@ -171,10 +171,11 @@ public:
 		noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
 		noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
+        noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].value = 1;
 		noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
 		noteTextureOD = LoadTextureFilter(directory / "Assets/notes/note.png");
 		emitTextureOD = LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
-		// noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
+		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
 		noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
