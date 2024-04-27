@@ -27,6 +27,8 @@ private:
 			settings.AddMember("avOffset", rapidjson::Value(), allocator);
 		if (!settings.HasMember("inputOffset"))
 			settings.AddMember("inputOffset", rapidjson::Value(), allocator);
+        if (!settings.HasMember("length"))
+            settings.AddMember("length", rapidjson::Value(), allocator);
 		if (!settings.HasMember("mirror"))
 			settings.AddMember("mirror", rapidjson::Value(), allocator);
 		if (!settings.HasMember("keybinds"))
@@ -117,6 +119,9 @@ public:
     bool missHighwayDefault = false;
     bool prevMissHighwayColor = missHighwayDefault;
 
+    float highwayLengthMult = 1.0f;
+    float prevHighwayLengthMult = highwayLengthMult;
+
 	void writeDefaultSettings(std::filesystem::path settingsFile, bool migrate = false) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		settings.SetObject();
@@ -178,6 +183,8 @@ public:
 		settings.AddMember("mirror",mirrorValue, allocator);
 		rapidjson::Value trackSpeedVal(4);
 		settings.AddMember("trackSpeed", trackSpeedVal, allocator);
+        rapidjson::Value length(1.0f);
+        settings.AddMember("length", highwayLengthMult, allocator);
 		rapidjson::Value arrayTrackSpeedOptions(rapidjson::kArrayType);
 		for (float& speed : defaultTrackSpeedOptions)
 			arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
@@ -206,6 +213,7 @@ public:
 		bool inputError = false;
 		bool mirrorError = false;
 		bool trackSpeedOptionsError = false;
+        bool highwayLengthError = false;
 		bool trackSpeedError = false;
         bool MissHighwayError = false;
 		if (std::filesystem::exists(settingsFile)) {
@@ -441,6 +449,11 @@ public:
 				else {
 					trackSpeedOptionsError = true;
 				}
+                if (settings.HasMember("length") && settings["length"].IsFloat()){
+                    highwayLengthMult = settings["length"].GetFloat();
+                } else {
+                    highwayLengthError = true;
+                }
                 if (settings.HasMember("missHighwayColor") && settings["missHighwayColor"].IsBool()) {
                     MissHighwayColor = settings["missHighwayColor"].GetBool();
                 } else {
@@ -659,6 +672,12 @@ public:
             missHighwayColor.SetBool(false);
             settings.AddMember("missHighwayColor", missHighwayColor, allocator);
         }
+        if (highwayLengthError) {
+            if (settings.HasMember("length"))
+                settings.EraseMember("length");
+            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+            settings.AddMember("length", highwayLengthMult, allocator);
+        }
 		if (mirrorError) {
 			if (settings.HasMember("mirror"))
 				settings.EraseMember("mirror");
@@ -667,7 +686,7 @@ public:
 			mirrorValue .SetBool(defaultMirrorMode);
 			settings.AddMember("mirror", mirrorValue, allocator);
 		}
-		if (mirrorError|| MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if (highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -725,7 +744,7 @@ public:
 			if (keybinds.HasMember("avOffset") && keybinds["avOffset"].IsInt()) {
 				avOffsetMS = keybinds["avOffset"].GetInt();
 				prevAvOffsetMS = avOffsetMS;
-				VideoOffset = -(float)(avOffsetMS / 1000);
+                VideoOffset = -(float)(avOffsetMS / 1000);
 				
 			}
 			else {
@@ -734,7 +753,7 @@ public:
 			if (keybinds.HasMember("inputOffset") && keybinds["inputOffset"].IsInt()) {
 				inputOffsetMS = keybinds["inputOffset"].GetInt();
 				prevInputOffsetMS = inputOffsetMS;
-				InputOffset = (float)(inputOffsetMS / 1000);
+                InputOffset = (float)(inputOffsetMS / 1000);
 			}
 			else {
 				inputOffsetError = true;
@@ -764,6 +783,8 @@ public:
 	}
 	const void saveSettings(std::filesystem::path settingsFile) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+        rapidjson::Value::MemberIterator lengthMember = settings.FindMember("length");
+        lengthMember->value.SetFloat(highwayLengthMult);
 		rapidjson::Value::MemberIterator trackSpeedMember = settings.FindMember("trackSpeed");
 		trackSpeedMember->value.SetInt(trackSpeed);
 		rapidjson::Value::MemberIterator avOffsetMember = settings.FindMember("avOffset");

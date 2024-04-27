@@ -31,7 +31,9 @@ bool lastNotePerfect = false;
 // make the hitwindow bigger for properly doing lifts
 float liftTimingMult = 1.25f;
 
-float highwayLength = 11.5f;
+// 11.5f default --   23.0f 2x
+float defaultHighwayLength = 11.5f;
+
 float smasherPos = 2.4f; // used to be 2.7
 
 bool extraGameplayStats = false;

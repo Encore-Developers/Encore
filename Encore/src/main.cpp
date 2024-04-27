@@ -90,6 +90,7 @@ int pressedGamepadInput = -999;
 int axisDirection = -1;
 int controllerID = -1;
 
+
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 2, color);
 }
@@ -1155,7 +1156,7 @@ int main(int argc, char* argv[])
 
 					}
 				}
-
+                float highwayLength = defaultHighwayLength * settings.highwayLengthMult;
 				double musicTime = GetMusicTimePlayed(loadedStreams[0].first);
 				if (overdrive) {
 
@@ -1192,8 +1193,22 @@ int main(int argc, char* argv[])
 
 				BeginMode3D(camera);
 				if (diff == 3) {
+
                     DrawModel(assets.expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+                    if (highwayLength > 11.5f) {
+                        DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
+                        DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
+                        if (highwayLength > 23.0f) {
+                            DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40 }, 1.0f, WHITE);
+                            DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40 }, 1.0f, WHITE);
+                        }
+                    }
+
+
+
                     DrawModel(assets.expertHighwaySides, Vector3{ 0,0,0 }, 1.0f, WHITE);
+
+
                     if (overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
 
 					for (int i = 0; i < 5; i++) {
@@ -1209,7 +1224,7 @@ int main(int argc, char* argv[])
 					for (int i = 0; i < 4; i++) {
 						float radius = (i == (settings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
 
-						DrawCylinderEx(Vector3{ lineDistance - i, 0, smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, 20 }, radius, radius, 15, Color{ 128,128,128,128 });
+						DrawCylinderEx(Vector3{ lineDistance - i, 0, smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
 					}
 
 					DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
@@ -1235,7 +1250,7 @@ int main(int argc, char* argv[])
 				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
 						if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+							double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
 							if (relTime > 1.5) break;
 							float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.03f : 0.0075f;
 							DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
@@ -1271,13 +1286,13 @@ int main(int argc, char* argv[])
 					for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 						Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
 
-                        float odStart = ((curChart.odPhrases[curODPhrase].start - musicTime)+VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
-                        float odEnd = ((curChart.odPhrases[curODPhrase].end - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+                        float odStart = ((curChart.odPhrases[curODPhrase].start - musicTime)+VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
+                        float odEnd = ((curChart.odPhrases[curODPhrase].end - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
 
                         // horrifying.
 
-                        DrawCylinderEx(Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
-                        DrawCylinderEx(Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
+                        DrawCylinderEx(Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odStart))  >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos: (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
+                        DrawCylinderEx(Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odStart))  >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos : (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
 
                         if (curChart.odPhrases.size() > 0) {
 
@@ -1312,8 +1327,8 @@ int main(int argc, char* argv[])
 						}
 
 
-						double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
-						double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed];
+						double relTime = ((curNote.time - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * ( 11.5f / highwayLength);
+						double relEnd = (((curNote.time + curNote.len) - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * ( 11.5f / highwayLength);
 						float notePosX = diffDistance - (1.0f * (settings.mirrorMode ? (diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
 						if (relTime > 1.5) {
 							break;
