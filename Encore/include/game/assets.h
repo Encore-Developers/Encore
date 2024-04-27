@@ -72,6 +72,7 @@ public:
     Font rubik32;
 	Font rubik;
     Font redHatDisplayItalic;
+    Font rubikBoldItalic32;
 
 	//Sound clapOD;
 	void loadAssets(std::filesystem::path directory) {

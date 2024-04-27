@@ -1013,19 +1013,20 @@ int main(int argc, char* argv[])
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
 
+                int scorePos = (GetScreenWidth()/4)* 3;
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
                 for (int i = 0; i < 5; i++) {
-                    DrawTextureEx(assets.emptyStar, {5+((float)i*40),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
+                    DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),80},0,0.15f,WHITE);
                 }
                 for (int i = 0; i < starsval; i++) {
-                    DrawTextureEx(goldStars? assets.goldStar : assets.star, {5+((float)i*40),(float)GetScreenHeight() - 470},0,0.15f,WHITE);
+                    DrawTextureEx(goldStars? assets.goldStar : assets.star, {scorePos+((float)i*40),80},0,0.15f,WHITE);
                 }
 				// DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
-				DrawTextRHDI(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), 5, GetScreenHeight() - 420,  Color{107, 161, 222,255});
-				DrawTextRubik(TextFormat("%01i", combo), 5, GetScreenHeight() - 330, 30, FC ? GOLD : (combo <= 3) ? RED : WHITE);
-				DrawTextRubik(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, 36, GOLD);
-				DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
+				DrawTextRHDI(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), (scorePos + 200) - MeasureTextRHDI(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4])), 30,  Color{107, 161, 222,255});
+                DrawTextRHDI(TextFormat("%01i", combo), (scorePos + 200) - MeasureTextRHDI(TextFormat("%01i", combo)), 125, FC ? GOLD : (combo <= 3) ? RED : WHITE);
+                DrawTextRubik32(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
+				// DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
 				float multFill = (!overdrive ? (float)(multiplier(instrument) - 1) : ((float)(multiplier(instrument) / 2) - 1)) / (float)maxMultForMeter(instrument);
 				SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -1185,8 +1186,8 @@ int main(int argc, char* argv[])
 				}
 
 				if (musicTime < 5.0) {
-					DrawTextRubik(songList.songs[curPlayingSong].title.c_str(), 5, 65, 30, WHITE);
-					DrawTextRubik(songList.songs[curPlayingSong].artist.c_str(), 5, 100, 24, WHITE);
+					DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 5, 65, WHITE);
+					DrawTextRubik(songList.songs[curPlayingSong].artist.c_str(), 5, 130, 24, WHITE);
 				}
 
 				BeginMode3D(camera);
@@ -1275,8 +1276,8 @@ int main(int argc, char* argv[])
 
                         // horrifying.
 
-                        DrawCylinderEx(Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.1,0.1,10,player.overdriveColor);
-                        DrawCylinderEx(Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.1,0.1,10,player.overdriveColor);
+                        DrawCylinderEx(Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
+                        DrawCylinderEx(Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odStart)) >= 20 ? 20 :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= 20 ? 20 : (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
 
                         if (curChart.odPhrases.size() > 0) {
 
@@ -1411,10 +1412,11 @@ int main(int argc, char* argv[])
 						if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
 							DrawCube(Vector3{ notePosX, 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
 							if (curNote.perfect) {
-								DrawCube(Vector3{ 3.25, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
+								DrawCube(Vector3{ 3.3, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
 
 							}
 						}
+                        // DrawText3D(assets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
 
 
 
