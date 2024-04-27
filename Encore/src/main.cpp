@@ -1194,7 +1194,7 @@ int main(int argc, char* argv[])
 				BeginMode3D(camera);
 				if (diff == 3) {
 
-                    DrawModel(assets.expertHighway, Vector3{ 0,0,0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayLength * 1.5f) : 0 }, 1.0f, WHITE);
                     if (highwayLength > 11.5f) {
                         DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
@@ -1206,7 +1206,7 @@ int main(int argc, char* argv[])
 
 
 
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayLength * 1.5f) : 0 }, 1.0f, WHITE);
 
 
                     if (overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
