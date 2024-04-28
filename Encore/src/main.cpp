@@ -1291,18 +1291,20 @@ int main(int argc, char* argv[])
 
 				// DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
 				Chart& curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+				if (curChart.odPhrases.size() > 0) {
+
+					float odStart = ((curChart.odPhrases[curODPhrase].start - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+					float odEnd = ((curChart.odPhrases[curODPhrase].end - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+
+					// horrifying.
+
+					DrawCylinderEx(Vector3{ diff == 3 ? 2.7f : 2.2f,0,(float)(smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odStart)) }, Vector3{ diff == 3 ? 2.7f : 2.2f,0,(float)(smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player.overdriveColor);
+					DrawCylinderEx(Vector3{ diff == 3 ? -2.7f : -2.2f,0,(float)(smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odStart)) }, Vector3{ diff == 3 ? -2.7f : -2.2f,0,(float)(smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player.overdriveColor);
+
+				}
 				for (int lane = 0; lane < (diff == 3 ? 5 : 4); lane++) {
 					for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 						Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
-
-                        float odStart = ((curChart.odPhrases[curODPhrase].start - musicTime)+VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
-                        float odEnd = ((curChart.odPhrases[curODPhrase].end - musicTime) + VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
-
-                        // horrifying.
-
-                        DrawCylinderEx(Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odStart))  >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? 2.7f: 2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos: (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
-                        DrawCylinderEx(Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odStart))  >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos :(float)(smasherPos+(highwayLength * odStart))},Vector3{diff == 3 ? -2.7f: -2.2f,0,(float)(smasherPos+(highwayLength * odEnd)) >= (highwayLength *1.5f) + smasherPos ? (highwayLength *1.5f)+smasherPos : (float)(smasherPos+(highwayLength * odEnd))},0.075,0.075,10,player.overdriveColor);
-
                         if (curChart.odPhrases.size() > 0) {
 
                            if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
