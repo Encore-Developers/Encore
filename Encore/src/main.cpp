@@ -18,6 +18,7 @@
 #include "game/arguments.h"
 #include "game/utility.h"
 #include "game/player.h"
+#include "game/lerp.h"
 #include "game/keybinds.h"
 #include "game/assets.h"
 #include "game/settings.h"
@@ -31,8 +32,6 @@ vector<std::string> ArgumentList::arguments;
 static bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
 }
-
-
 
 bool midiLoaded = false;
 bool isPlaying = false;
@@ -90,6 +89,7 @@ int pressedGamepadInput = -999;
 int axisDirection = -1;
 int controllerID = -1;
 
+Lerp lerpCtrl = Lerp();
 
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 2, color);
@@ -101,13 +101,26 @@ static void DrawTextRHDI(const char* text, float posX, float posY, Color color) 
     DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 2, color);
 }
 static int MeasureTextRubik32(const char* text) {
-    return MeasureTextEx(assets.rubik, text, 32, 2).x;
+    return MeasureTextEx(assets.rubik32, text, 32, 2).x;
 }
 static int MeasureTextRubik(const char* text, int fontSize) {
 	return MeasureTextEx(assets.rubik, text, fontSize, 2).x;
 }
 static int MeasureTextRHDI(const char* text) {
-    return MeasureTextEx(assets.rubik, text, 48, 2).x;
+    return MeasureTextEx(assets.redHatDisplayItalic, text, 48, 2).x;
+}
+
+static void SwitchScreen(Screens screen) {
+	currentScreen = screen;
+	switch (screen) {
+		case MENU:
+			// reset lerps
+			lerpCtrl.removeLerp("MENU_LOGO");
+			break;
+
+		case SONG_SELECT:
+			break;
+	}
 }
 
 static void handleInputs(int lane, int action){
@@ -512,9 +525,6 @@ int main(int argc, char* argv[])
 	double waitTime = 0.0;
 	float deltaTime = 0.0f;
 
-
-
-
 	float timeCounter = 0.0f;
 
 	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
@@ -563,6 +573,7 @@ int main(int argc, char* argv[])
 	GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 	GuiSetFont(assets.rubik);
+
 	while (!WindowShouldClose())
 	{
 		double curTime = GetTime();
@@ -584,10 +595,12 @@ int main(int argc, char* argv[])
 
 		ClearBackground(DARKGRAY);
 
+		lerpCtrl.updateStates();
+
 		switch (currentScreen) {
 			case MENU: {
-
-                DrawTextureEx(assets.encoreWhiteLogo, {(float)GetScreenWidth()/2 - assets.encoreWhiteLogo.width/4, ((float)GetScreenHeight()/5 - assets.encoreWhiteLogo.height/4)},0,0.5, WHITE);
+				lerpCtrl.createLerp("MENU_LOGO", EaseOutCubic, 1.5f);
+                DrawTextureEx(assets.encoreWhiteLogo, {(float)GetScreenWidth()/2 - assets.encoreWhiteLogo.width/4, (float)lerpCtrl.getState("MENU_LOGO").value * ((float)GetScreenHeight()/5 - assets.encoreWhiteLogo.height/4)},0,0.5, WHITE);
 
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) - 120,200, 60 }, "Play")) {
 					for (Song& song : songList.songs) {
@@ -596,11 +609,11 @@ int main(int argc, char* argv[])
 						song.artistScrollTime = GetTime();
 						song.artistTextWidth = MeasureTextRubik(song.artist.c_str(), 20);
 					}
-					currentScreen = SONG_SELECT;
+					SwitchScreen(SONG_SELECT);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) - 30,200, 60 }, "Options")) {
 					glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
-					currentScreen = SETTINGS;
+					SwitchScreen(SETTINGS);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) + 60,200, 60 }, "Quit")) {
 					exit(0);
@@ -637,7 +650,7 @@ int main(int argc, char* argv[])
 
 					settings.saveSettings(directory / "settings.json");
 
-					currentScreen = MENU;
+					SwitchScreen(MENU);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive)) {
 					glfwSetGamepadStateCallback(origGamepadCallback);
@@ -664,7 +677,7 @@ int main(int argc, char* argv[])
 
 					settings.saveSettings(directory / "settings.json");
 
-					currentScreen = MENU;
+					SwitchScreen(MENU);
 				}
 				static int selectedTab = 0;
 				GuiToggleGroup({ 0,0,(float)GetScreenWidth() / 3,60 }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
@@ -866,7 +879,7 @@ int main(int argc, char* argv[])
 						song.titleXOffset = 0;
 						song.artistXOffset = 0;
 					}
-					currentScreen = MENU;
+					SwitchScreen(MENU);
 				}
 				Vector2 mouseWheel = GetMouseWheelMoveV();
 				if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
@@ -884,7 +897,7 @@ int main(int argc, char* argv[])
 					float songYPos = 60 + (60 * (i - songSelectOffset));
 					if (GuiButton(Rectangle{ 0, songYPos,((float)GetScreenWidth() * (3.0f / 5.0f)) , 60 }, "")) {
 						curPlayingSong = i;
-						currentScreen = INSTRUMENT_SELECT;
+						SwitchScreen(INSTRUMENT_SELECT);
 					}
 					DrawTexturePro(song.albumArt, Rectangle{ 0,0,(float)song.albumArt.width,(float)song.albumArt.height }, { 5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
 					int songTitleWidth = (GetScreenWidth() * (2.0 / 5.0) - 100);
@@ -969,7 +982,7 @@ int main(int argc, char* argv[])
 				else {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
 						midiLoaded = false;
-						currentScreen = SONG_SELECT;
+						SwitchScreen(SONG_SELECT);
 					}
                     DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					for (int i = 0; i < 4; i++) {
@@ -981,7 +994,7 @@ int main(int argc, char* argv[])
 									isBassOrVocal = 1;
 								}
 								SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
-								currentScreen = DIFFICULTY_SELECT;
+								SwitchScreen(DIFFICULTY_SELECT);
 							}
 							DrawTextRubik(songPartsList[i].c_str(), 20, 75 + (60 * (float)i), 30, BLACK);
 							DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), 220, 75 + (60 * (float)i), 30, BLACK);
@@ -993,13 +1006,13 @@ int main(int argc, char* argv[])
 			case DIFFICULTY_SELECT: {
 				for (int i = 0; i < 4; i++) {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
-						currentScreen = SONG_SELECT;
+						SwitchScreen(SONG_SELECT);
 					}
                     DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					if (songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.size() > 0) {
 						if (GuiButton({ 0,60 + (60 * (float)i),300,60 }, "")) {
 							diff = i;
-							currentScreen = GAMEPLAY;
+							SwitchScreen(GAMEPLAY);
 							isPlaying = true;
 							startedPlayingSong = GetTime();
 							glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
@@ -1080,7 +1093,7 @@ int main(int argc, char* argv[])
 						phrase.notesHit = 0;
 						phrase.added = false;
 					}
-					currentScreen = SONG_SELECT;
+					SwitchScreen(SONG_SELECT);
 					overdrive = false;
 					overdriveFill = 0.0f;
 					overdriveActiveFill = 0.0f;
@@ -1151,7 +1164,7 @@ int main(int argc, char* argv[])
 						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-						currentScreen = RESULTS;
+						SwitchScreen(RESULTS);
 
 					}
 					for (auto& stream : loadedStreams) {
@@ -1511,7 +1524,7 @@ int main(int argc, char* argv[])
 				DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 288, 24, WHITE);
 				DrawTextRubik(TextFormat("Longest Streak: %01i", maxCombo), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Longest Streak: %01i", maxCombo), 24) / 2), 320, 24, WHITE);
 				if (GuiButton({ 0,0,60,60 }, "<")) {
-					currentScreen = SONG_SELECT;
+					SwitchScreen(SONG_SELECT);
 				}
 				break;
 			}
