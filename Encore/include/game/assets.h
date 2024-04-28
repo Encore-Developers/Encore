@@ -86,7 +86,7 @@ public:
 		smasherBoard = LoadModel((directory / "Assets/highway/new_board.obj").string().c_str());
 		smasherBoardTex = LoadTextureFilter(directory / "Assets/highway/smasher_board_new.png");
 		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
-		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 
         lanes = LoadModel((directory / "Assets/highway/lanes.obj").string().c_str());
         lanesTex = LoadTextureFilter(directory / "Assets/highway/lanes.png");
@@ -161,9 +161,9 @@ public:
         expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
         expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 		noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
 		noteTexture = LoadTextureFilter(directory / "Assets/notes/note.png");
 		emitTexture = LoadTextureFilter(directory / "Assets/notes/note_e_new.png");

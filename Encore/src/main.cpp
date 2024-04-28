@@ -1048,6 +1048,15 @@ int main(int argc, char* argv[])
 					DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 40, 24, FC ? GOLD : WHITE);
 				}
 
+                if ((overdrive ? multiplier(instrument) / 2 : multiplier(instrument))>= (instrument == 1 || instrument == 3 ? 6 : 4)) {
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                    assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                } else {
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                }
 
 
 
@@ -1082,7 +1091,7 @@ int main(int argc, char* argv[])
 					assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 					isPlaying = false;
 					midiLoaded = false;
 					streamsLoaded = false;
