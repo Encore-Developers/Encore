@@ -647,6 +647,7 @@ int main(int argc, char* argv[])
 					settings.controllerOverdriveAxisDirection = settings.prevControllerOverdriveAxisDirection;
 					settings.controllerType = settings.prevControllerType;
 
+                    settings.highwayLengthMult = settings.prevHighwayLengthMult;
 					settings.trackSpeed = settings.prevTrackSpeed;
 					settings.inputOffsetMS = settings.prevInputOffsetMS;
 					settings.avOffsetMS = settings.prevAvOffsetMS;
@@ -674,6 +675,7 @@ int main(int argc, char* argv[])
 					settings.prevControllerOverdriveAxisDirection = settings.controllerOverdriveAxisDirection;
 					settings.prevControllerType = settings.controllerType;
 
+                    settings.prevHighwayLengthMult = settings.highwayLengthMult;
 					settings.prevTrackSpeed = settings.trackSpeed;
 					settings.prevInputOffsetMS = settings.inputOffsetMS;
 					settings.prevAvOffsetMS = settings.avOffsetMS;
@@ -693,21 +695,40 @@ int main(int argc, char* argv[])
 					}
 					DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, BLACK);
 					float avOffsetFloat = (float)settings.avOffsetMS;
+                    float lengthSetting = settings.highwayLengthMult;
 					DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
 					DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
 					DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 210, 20, WHITE);
 					if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 220,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
 						settings.avOffsetMS = (int)avOffsetFloat;
 					}
+
 					if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 230,60,60 }, "-1")) {
 						settings.avOffsetMS--;
 					}
 					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
 						settings.avOffsetMS++;
 					}
-					DrawTextRubik(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureTextRubik(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
+                    DrawTextRubik(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureTextRubik(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
 
-					if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", MissHighwayColor ? "True" : "False"))) {
+
+                    float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
+                    DrawTextRubik("Highway Length", (float)GetScreenWidth() / 2 - MeasureTextRubik("Highway Length", 20) / 2, lengthHeight - 20, 20, WHITE);
+                    DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
+                    DrawTextRubik(" 2.5 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
+                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,lengthHeight,250,40 }, "", "", &lengthSetting, 0.25f, 2.5f)) {
+                        settings.highwayLengthMult = lengthSetting;
+                    }
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
+                        settings.highwayLengthMult-= 0.25;
+                    }
+                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" +0.25 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
+                        settings.highwayLengthMult+=0.25;
+                    }
+                    DrawTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
+
+
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", MissHighwayColor ? "True" : "False"))) {
 						settings.missHighwayDefault = !settings.missHighwayDefault;
 						MissHighwayColor = settings.missHighwayDefault;
 					};
@@ -1221,6 +1242,7 @@ int main(int argc, char* argv[])
 				BeginMode3D(camera);
 				if (diff == 3) {
                     float highwayPos = ((20) * (1 - settings.highwayLengthMult));
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
                     DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
                     if (highwayLength > 11.5f) {
                         DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
@@ -1230,11 +1252,6 @@ int main(int argc, char* argv[])
                             DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40 }, 1.0f, WHITE);
                         }
                     }
-
-
-
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
-
 
                     if (overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
 
