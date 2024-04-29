@@ -9,12 +9,13 @@ double clamp(double x, double upper, double lower)
     return std::min(upper, std::max(x, lower));
 }
 
-void Lerp::createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically)
+LerpState Lerp::createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically)
 {
     if (this->activeLerps.contains(key))
-        return;
+        return this->activeLerps[key];
 
     this->activeLerps[key] = { duration, 0, 0, ease, startAutomatically };
+    return this->activeLerps[key];
 }
 
 void Lerp::removeLerp(std::string key) {

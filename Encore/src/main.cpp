@@ -921,35 +921,45 @@ int main(int argc, char* argv[])
 				if (songSelectOffset >= songList.songs.size()) songSelectOffset = songList.songs.size() - 1;
 
 				for (int i = songSelectOffset; i < songSelectOffset + (GetScreenHeight() / 60) - 2; i++) {
-					if (i == songList.songs.size()) {
+					if (i == songList.songs.size())
 						break;
-					}
+
 					Song& song = songList.songs[i];
+					//LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
+					float songXPos = 0;//state.value * 500;
 					float songYPos = 60 + (60 * (i - songSelectOffset));
+
 					if (GuiButton(Rectangle{ 0, songYPos,((float)GetScreenWidth() * (3.0f / 5.0f)) , 60 }, "")) {
 						curPlayingSong = i;
 						SwitchScreen(INSTRUMENT_SELECT);
 					}
-					DrawTexturePro(song.albumArt, Rectangle{ 0,0,(float)song.albumArt.width,(float)song.albumArt.height }, { 5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
+
+					DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { 5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
 					int songTitleWidth = (GetScreenWidth() * (2.0 / 5.0) - 100);
 					int songArtistWidth = (GetScreenWidth() * (1.0 / 5.0) - 65);
+
 					if (song.titleTextWidth >= songTitleWidth) {
 						if (curTime > song.titleScrollTime && curTime < song.titleScrollTime + 3.0)
 							song.titleXOffset = 0;
+
 						if (curTime > song.titleScrollTime + 3.0) {
 							song.titleXOffset -= 1;
+
 							if (song.titleXOffset < -(song.titleTextWidth - songTitleWidth)) {
 								song.titleXOffset = -(song.titleTextWidth - songTitleWidth);
 								song.titleScrollTime = curTime + 3.0;
 							}
 						}
 					}
-					BeginScissorMode(65, songYPos + 15, songTitleWidth, 30);
-					DrawTextRubik(song.title.c_str(), song.titleXOffset + 65, songYPos + 15, 30, BLACK);
+
+					BeginScissorMode(songXPos + 65, songYPos + 15, songTitleWidth, 30);
+					DrawTextRubik(song.title.c_str(), songXPos + song.titleXOffset + 65, songYPos + 15, 30, BLACK);
 					EndScissorMode();
+
 					if (song.artistTextWidth > songArtistWidth) {
 						if (curTime > song.artistScrollTime && curTime < song.artistScrollTime + 3.0)
 							song.artistXOffset = 0;
+
 						if (curTime > song.artistScrollTime + 3.0) {
 							song.artistXOffset -= 1;
 							if (song.artistXOffset < -(song.artistTextWidth - songArtistWidth)) {
@@ -957,8 +967,9 @@ int main(int argc, char* argv[])
 							}
 						}
 					}
-					BeginScissorMode(65 + songTitleWidth + 20, songYPos + 20, songArtistWidth, 20);
-					DrawTextRubik(song.artist.c_str(), 65 + songTitleWidth + song.artistXOffset + 20, songYPos + 20, 20, BLACK);
+
+					BeginScissorMode(songXPos + 85 + songTitleWidth, songYPos + 20, songArtistWidth, 20);
+					DrawTextRubik(song.artist.c_str(), songXPos + 85 + songTitleWidth + song.artistXOffset, songYPos + 20, 20, BLACK);
 					EndScissorMode();
 				}
 				break;
