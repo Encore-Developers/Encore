@@ -21,6 +21,7 @@ public:
     Texture2D songBackground;
 	Model smasherBoard;
 	Texture2D smasherBoardTex;
+    Model smasherBoardEMH;
 
 	Model smasherPressed;
 	Texture2D smasherPressTex;
@@ -52,6 +53,7 @@ public:
 
     Model expertHighwaySides;
 	Model expertHighway;
+    Model emhHighwaySides;
 	Model emhHighway;
     Texture2D highwaySidesTexture;
 	Texture2D highwayTexture;
@@ -87,6 +89,9 @@ public:
 		smasherBoardTex = LoadTextureFilter(directory / "Assets/highway/smasher_board_new.png");
 		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
 		smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+        smasherBoardEMH = LoadModel((directory / "Assets/highway/board_emh.obj").string().c_str());
+        smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
+        smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 
         lanes = LoadModel((directory / "Assets/highway/lanes.obj").string().c_str());
         lanesTex = LoadTextureFilter(directory / "Assets/highway/lanes.png");
@@ -148,6 +153,7 @@ public:
 
         expertHighwaySides = LoadModel(((directory / "Assets/highway/sides.obj").string().c_str()));
 		expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
+        emhHighwaySides = LoadModel((directory / "Assets/highway/sides_emh.obj").string().c_str());
 		emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
         odHighwayEMH = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
         odHighwayX = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
@@ -162,6 +168,8 @@ public:
         expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 		expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+        emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
+        emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
 		emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 		noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());

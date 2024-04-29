@@ -104,7 +104,7 @@ static void DrawTextRubik(const char* text, float posX, float posY, int fontSize
 	DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 2, color);
 }
 static void DrawTextRHDI(const char* text, float posX, float posY, Color color) {
-    DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 2, color);
+    DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
 }
 static int MeasureTextRubik32(const char* text) {
     return MeasureTextEx(assets.rubik32, text, 32, 2).x;
@@ -1071,7 +1071,7 @@ int main(int argc, char* argv[])
 
                 int scorePos = (GetScreenWidth()/4)* 3;
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
-				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
+				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore,diff);
                 for (int i = 0; i < 5; i++) {
                     DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),80},0,0.15f,WHITE);
                 }
@@ -1107,10 +1107,12 @@ int main(int argc, char* argv[])
                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                     assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                     assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                    assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                 } else {
                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
                     assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
                     assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
                 }
 
 
@@ -1147,6 +1149,7 @@ int main(int argc, char* argv[])
 					assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 					assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
 					isPlaying = false;
 					midiLoaded = false;
 					streamsLoaded = false;
@@ -1206,6 +1209,7 @@ int main(int argc, char* argv[])
 						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
 						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
 						SwitchScreen(RESULTS);
 
 					}
@@ -1251,16 +1255,17 @@ int main(int argc, char* argv[])
 				}
 
 				if (musicTime < 5.0) {
-					DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 5, 65, WHITE);
-					DrawTextRubik(songList.songs[curPlayingSong].artist.c_str(), 5, 130, 24, WHITE);
+					DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 5, ((GetScreenHeight()/3)) - 20, WHITE);
+                    DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {5, ((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
+					//DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
 				}
 
 				BeginMode3D(camera);
 				if (diff == 3) {
-                    float highwayPos = ((20) * (1 - settings.highwayLengthMult));
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
-                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
-                    if (highwayLength > 11.5f) {
+                    float highwayPosShit = ((20) * (1 - settings.highwayLengthMult));
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    if (settings.highwayLengthMult > 1.0f) {
                         DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
@@ -1290,22 +1295,34 @@ int main(int argc, char* argv[])
 					DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
 				}
 				else {
-					DrawModel(assets.emhHighway, Vector3{ 0, 0, 0 }, 1.0f, WHITE);
+                    float highwayPosShit = ((20) * (1 - settings.highwayLengthMult));
+                    DrawModel(assets.emhHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.emhHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    if (settings.highwayLengthMult > 1.0f) {
+                        DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
+                        DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
+                        if (highwayLength > 23.0f) {
+                            DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40 }, 1.0f, WHITE);
+                            DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40 }, 1.0f, WHITE);
+                        }
+                    }
+                    if (overdrive) {DrawModel(assets.odHighwayEMH, Vector3{0,0.001f,0},1,WHITE);}
+
 					for (int i = 0; i < 4; i++) {
 						if (heldFrets[i] || heldFretsAlt[i]) {
-							DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0, smasherPos }, 1.0f, WHITE);
+							DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 						}
 						else {
-							DrawModel(assets.smasherReg, Vector3{ diffDistance - (float)(i), 0, smasherPos }, 1.0f, WHITE);
+							DrawModel(assets.smasherReg, Vector3{ diffDistance - (float)(i), 0.01f, smasherPos }, 1.0f, WHITE);
 
 						}
 					}
 					for (int i = 0; i < 3; i++) {
 						float radius = (i == 1) ? 0.03 : 0.01;
-						DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, smasherPos }, Vector3{ lineDistance - (float)i, 0, highwayLength }, radius,
+						DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, smasherPos + 0.5f }, Vector3{ lineDistance - (float)i, 0, (highwayLength *1.5f) + smasherPos }, radius,
 							radius, 4.0f, Color{ 128, 128, 128, 128 });
 					}
-					DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 3 }, 1.0f, WHITE);
+					DrawModel(assets.smasherBoardEMH, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
 				}
 				if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
 					for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
@@ -1321,6 +1338,7 @@ int main(int argc, char* argv[])
 						}
 					}
 				}
+
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
 				// DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
@@ -1489,7 +1507,7 @@ int main(int argc, char* argv[])
 						if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
 							DrawCube(Vector3{ notePosX, 0, smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
 							if (curNote.perfect) {
-								DrawCube(Vector3{ 3.3, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
+								DrawCube(Vector3{ diff == 3 ? 3.3f : 2.8f, 0, smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
 
 							}
 						}
@@ -1533,7 +1551,7 @@ int main(int argc, char* argv[])
                 break;
 			}
 			case RESULTS: {
-				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore);
+				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore,diff);
                 for (int i = 0; i < starsval; i++) {
                     DrawTextureEx(goldStars? assets.goldStar : assets.star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
                 }
@@ -1562,7 +1580,7 @@ int main(int argc, char* argv[])
 				if (FC) {
 					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
 				}
-				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score))/2, 160, Color{107, 161, 222,255});
+				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score))/2, 120, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
 				DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
 				DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);

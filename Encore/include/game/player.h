@@ -64,7 +64,7 @@ double overdriveActiveTime = 0.0;
 float uvOffsetX = 0;
 float uvOffsetY = 0;
 
-int stars(int baseScore) {
+int stars(int baseScore, int difficulty) {
     float starPercent = (float)score/(float)baseScore;
     if (starPercent < xStarThreshold[0]) {return 0;}
 	else if (starPercent < xStarThreshold[1]) { return 1; }
@@ -72,7 +72,7 @@ int stars(int baseScore) {
     else if (starPercent < xStarThreshold[3]) {return 3;}
     else if (starPercent < xStarThreshold[4]) {return 4;}
     else if (starPercent < xStarThreshold[5]) {return 5;}
-	else if (starPercent >= xStarThreshold[5]) { goldStars = true; return 5; }
+	else if (starPercent >= xStarThreshold[5] && difficulty == 3) { goldStars = true; return 5; }
     else return 5;
 
     return 0;
