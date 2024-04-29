@@ -96,6 +96,7 @@ void startLerp(std::string key);
 void updateStates();
 LerpState getState(std::string key);
 
+
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 2, color);
 }
@@ -537,6 +538,7 @@ int main(int argc, char* argv[])
 	std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
+
 	InitAudioDevice();
 
 	SetExitKey(0);
@@ -575,9 +577,12 @@ int main(int argc, char* argv[])
 	GLFWgamepadstatefun origGamepadCallback = glfwSetGamepadStateCallback(gamepadStateCallback);
 	glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
 	glfwSetGamepadStateCallback(origGamepadCallback);
+    // GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
+
 	GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-	GuiSetFont(assets.rubik);
+	GuiSetFont(assets.rubik32);
+
 
 	while (!WindowShouldClose())
 	{
@@ -1505,8 +1510,14 @@ int main(int argc, char* argv[])
                 int songSeconds = (int)GetMusicTimeLength(loadedStreams[0].first) % 60;
                 const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
                 int textLength = MeasureTextRubik32(textTime);
+                GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
+                GuiSetStyle(PROGRESSBAR, BASE, ColorToInt(FC ? GOLD : player.accentColor));
+                GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(FC ? GOLD : player.accentColor));
+                GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED, ColorToInt(FC ? GOLD : player.accentColor));
+                GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED, ColorToInt(FC ? GOLD : player.accentColor));
+                GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(FC ? GOLD : player.accentColor));
 
-                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),7}, "", "", &songPlayed, 0, songLength);
+                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),8}, "", "", &songPlayed, 0, songLength);
 
                 break;
 			}
