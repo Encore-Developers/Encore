@@ -709,7 +709,7 @@ int main(int argc, char* argv[])
 					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
 						settings.avOffsetMS++;
 					}
-                    DrawTextRubik(std::to_string(settings.avOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureTextRubik(std::to_string(settings.avOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
+                    DrawTextRubik(TextFormat("%01i ms",settings.avOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
 
 
                     float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
@@ -725,7 +725,7 @@ int main(int argc, char* argv[])
                     if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" +0.25 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
                         settings.highwayLengthMult+=0.25;
                     }
-                    DrawTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
+                    DrawTextRubik(TextFormat("%1.2fx",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
 
 
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", MissHighwayColor ? "True" : "False"))) {
@@ -748,7 +748,7 @@ int main(int argc, char* argv[])
 					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20),(float)GetScreenHeight() / 2 - 150,60,60 }, "+1")) {
 						settings.inputOffsetMS++;
 					}
-					DrawTextRubik(std::to_string(settings.inputOffsetMS).c_str(), (float)GetScreenWidth() / 2 - (MeasureTextRubik(std::to_string(settings.inputOffsetMS).c_str(), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
+					DrawTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
 				}
 				else if (selectedTab == 1) { //Keyboard bindings tab
 					for (int i = 0; i < 5; i++) {
