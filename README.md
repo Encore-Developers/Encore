@@ -2,8 +2,46 @@
 
 A *4k/5k rhythm game* based around jamming to the songs you play, with _cool_ mechanics from **familiar** games.
 
-### Credits    
+Encore supports controllers and keyboard. Songs formatted for other games will NOT work with Encore.
+
+## Installation
+
+### Stable releases
+
+Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Raylib/releases). 
+
+### Nightly releases
+
+*Sign in to GitHub to be able to access nightly releases.*
+Go to the Actions tab on GitHub, which can be [found here](https://github.com/Encore-Developers/Encore-Raylib/actions) and select the latest commit. Then, scroll under Artifacts, and download the one made for your platform. If you are on Windows, `Encore_Win_x64` is the most likely the Artifact that can be installed on your computer. `Encore_Win_x86` is for 32 bit Windows computers.
+
+### Running Encore
+
+Extract the .zip file that you downloaded, either Nightly or Stable, and extract it into a folder that you will be able to remember. If Windows Defender SmartScreen appears, click Read More, and Run. Encore is not a malicious program, and removing the SmartScreen popup would cost us (the developers) more than we're willing to pay.
+
+## Songs
+
+Extract songs into the `/Songs` folder in your Encore folder. They should consist of several files:
+- info.json - the information file required for Encore to read audio, difficulties, the name, and file names.
+- lead.ogg (or similar)
+- bass.ogg (or similar)
+- drums.ogg (or similar)
+- vocals.ogg (or similar)
+- backing.ogg (or similar)
+- notes.mid (typically named after the song's name)
+
+### IMPORTANT!
+Encore ***will not*** read songs without an info.json. Encore will also only read Ogg Vorbis (.ogg) audio files. 
+
+### Contributing
+
+If you have any bugs or suggestions for Encore, please consider making an issue.
+For code contributions, you'll need the latest version of Visual Studio or CLion. It's possible that you can use VSCode, but none of us develop with it. These IDEs should install the C++ development toolchains.
+
+## Credits    
 Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](https://fontawesome.com/icons/crown?f=classic&s=solid))
+
+
 
 ### External libraries used
 [raylib](https://github.com/raysan5/raylib)
@@ -13,3 +51,5 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 [RapidJSON](https://github.com/Tencent/rapidjson)
 
 [midifile](https://github.com/craigsapp/midifile)
+
+[nicolausYes's easing-functions](https://github.com/nicolausYes/easing-functions)
