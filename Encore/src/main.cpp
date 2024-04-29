@@ -90,6 +90,11 @@ int axisDirection = -1;
 int controllerID = -1;
 
 Lerp lerpCtrl = Lerp();
+void createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically = true);
+void removeLerp(std::string key);
+void startLerp(std::string key);
+void updateStates();
+LerpState getState(std::string key);
 
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 2, color);
@@ -1215,8 +1220,8 @@ int main(int argc, char* argv[])
 
 				BeginMode3D(camera);
 				if (diff == 3) {
-
-                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayLength * 1.5f) : 0 }, 1.0f, WHITE);
+                    float highwayPos = ((20) * (1 - settings.highwayLengthMult));
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
                     if (highwayLength > 11.5f) {
                         DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20 }, 1.0f, WHITE);
@@ -1228,7 +1233,7 @@ int main(int argc, char* argv[])
 
 
 
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayLength * 1.5f) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPos* (0.875f)) : 0 }, 1.0f, WHITE);
 
 
                     if (overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
