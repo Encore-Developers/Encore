@@ -150,6 +150,7 @@ static void SwitchScreen(Screens screen) {
 }
 
 static void handleInputs(int lane, int action){
+	if (lane == -2) return;
 	if (settings.mirrorMode && lane!=-1) {
 		lane = (diff == 3 ? 4 : 3) - lane;
 	}
@@ -166,64 +167,65 @@ static void handleInputs(int lane, int action){
         overdriveHitTime = eventTime;
 	}
 	if (lane == -1) {
+		std::cout << "OVERDRIVE EVENT" << std::endl;
 		Note& curNote = curChart.notes[0];
 		for (int i = 0; i < curChart.notes.size(); i++) {
-			if ((curChart.notes[i].time) - (goodBackend)+InputOffset < eventTime &&
-				(curChart.notes[i].time) + (goodFrontend)+InputOffset > eventTime)
+			if (curChart.notes[i].time - (goodBackend+InputOffset) < eventTime &&
+				curChart.notes[i].time + (goodFrontend+InputOffset) > eventTime &&
+				!curChart.notes[i].hit) {
 				curNote = curChart.notes[i];
-			break;
+				std::cout << "START NOTE INDEX " << i << std::endl;
+				break;
+			}
 		}
 		if (action == GLFW_PRESS && !overdriveHeld) {
+			std::cout << "overdrive held" << std::endl;
 			overdriveHeld = true;
 		}
 		else if (action == GLFW_RELEASE && overdriveHeld) {
+			std::cout << "overdrive released" << std::endl;
 			overdriveHeld = false;
 		}
 		if (action == GLFW_PRESS && overdriveHitAvailable) {
-			if ((curNote.time) - (goodBackend)+InputOffset < eventTime &&
-				(curNote.time) + (goodFrontend)+InputOffset > eventTime &&
-				!curNote.hit) {
-				for (int lane = 0; lane < 5; lane++) {
-					int chordLane = curChart.findNoteIdx(curNote.time, lane);
-					if (chordLane != -1) {
-						Note& chordNote = curChart.notes[chordLane];
-						if ((chordNote.time) - (goodBackend)+InputOffset < eventTime && //backend hitwindow
-							(chordNote.time) + (goodFrontend)+InputOffset > eventTime && //frontent hitwindow
-							!chordNote.hit) { //not hit
-							chordNote.hit = true;
-							overdriveLanesHit[lane] = true;
-							chordNote.hitTime = eventTime;
+			for (int newlane = 0; newlane < 5; newlane++) {
+				int chordLane = curChart.findNoteIdx(curNote.time, newlane);
+				if (chordLane != -1) {
+					std::cout << "HITTING NOTE AT " << chordLane << ", " << curChart.notes[chordLane].time << ", " << curChart.notes[chordLane].lane << std::endl;
+					Note& chordNote = curChart.notes[chordLane];
+					if (!chordNote.accounted) {
+						chordNote.hit = true;
+						overdriveLanesHit[newlane] = true;
+						chordNote.hitTime = eventTime;
 
-							if ((chordNote.len) > 0 && !chordNote.lift) {
-								chordNote.held = true;
-							}
-							if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
-								chordNote.perfect = true;
-
-							}
-							if (chordNote.perfect) lastNotePerfect = true;
-							else lastNotePerfect = false;
-							player::HitNote(curNote.perfect, instrument);
-							curNote.accounted = true;
+						if ((chordNote.len) > 0 && !chordNote.lift) {
+							chordNote.held = true;
 						}
+						if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+							chordNote.perfect = true;
+
+						}
+						if (chordNote.perfect) lastNotePerfect = true;
+						else lastNotePerfect = false;
+						player::HitNote(chordNote.perfect, instrument);
+						chordNote.accounted = true;
 					}
 				}
-				overdriveHitAvailable = false;
-				overdriveLiftAvailable = true;
 			}
+			overdriveHitAvailable = false;
+			overdriveLiftAvailable = true;
 		}
 		else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
 			if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
 				(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
 				!curNote.hit) {
-				for (int lane = 0; lane < 5; lane++) {
-					if (overdriveLanesHit[lane]) {
-						int chordLane = curChart.findNoteIdx(curNote.time, lane);
+				for (int newlane = 0; newlane < 5; newlane++) {
+					if (overdriveLanesHit[newlane]) {
+						int chordLane = curChart.findNoteIdx(curNote.time, newlane);
 						if (chordLane != -1) {
 							Note& chordNote = curChart.notes[chordLane];
 							if (chordNote.lift) {
 								chordNote.hit = true;
-								overdriveLanesHit[lane] = false;
+								overdriveLanesHit[newlane] = false;
 								chordNote.hitTime = eventTime;
 
 								if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
@@ -241,9 +243,9 @@ static void handleInputs(int lane, int action){
 			}
 		}
 		if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
-			for (int lane = 0; lane < 5; lane++) {
-				if (overdriveLanesHit[lane]) {
-					int chordLane = curChart.findNoteIdx(curNote.time, lane);
+			for (int newlane = 0; newlane < 5; newlane++) {
+				if (overdriveLanesHit[newlane]) {
+					int chordLane = curChart.findNoteIdx(curNote.time, newlane);
 					if (chordLane != -1) {
 						Note& chordNote = curChart.notes[chordLane];
 						if (chordNote.held && chordNote.len > 0) {
@@ -628,6 +630,16 @@ int main(int argc, char* argv[])
     GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
     GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
+
+
+	GuiSetStyle(TOGGLE, BASE, 0x181827FF);
+	GuiSetStyle(TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
+	GuiSetStyle(TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+	GuiSetStyle(TOGGLE, BORDER, 0xFFFFFFFF);
+	GuiSetStyle(TOGGLE, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
+	GuiSetStyle(TOGGLE, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
+	GuiSetStyle(TOGGLE, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
+	GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
 	GuiSetFont(assets.rubik32);
 
 
@@ -754,7 +766,9 @@ int main(int argc, char* argv[])
 						if (settings.trackSpeed == settings.trackSpeedOptions.size() - 1) settings.trackSpeed = 0; else settings.trackSpeed++;
 						trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
 					}
-					DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, BLACK);
+					DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
+
+					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					float avOffsetFloat = (float)settings.avOffsetMS;
                     float lengthSetting = settings.highwayLengthMult;
 					DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
@@ -776,14 +790,14 @@ int main(int argc, char* argv[])
                     float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
                     DrawTextRubik("Highway Length", (float)GetScreenWidth() / 2 - MeasureTextRubik("Highway Length", 20) / 2, lengthHeight - 20, 20, WHITE);
                     DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
-                    DrawTextRubik(" 2.5 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
+                    DrawTextRubik(" 2.50 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
                     if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,lengthHeight,250,40 }, "", "", &lengthSetting, 0.25f, 2.5f)) {
                         settings.highwayLengthMult = lengthSetting;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
                         settings.highwayLengthMult-= 0.25;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" +0.25 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
+                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" 2.50 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
                         settings.highwayLengthMult+=0.25;
                     }
                     DrawTextRubik(TextFormat("%1.2fx",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
@@ -810,8 +824,10 @@ int main(int argc, char* argv[])
 						settings.inputOffsetMS++;
 					}
 					DrawTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
+					GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 				}
 				else if (selectedTab == 1) { //Keyboard bindings tab
+					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					for (int i = 0; i < 5; i++) {
 						float j = i - 2.0f;
 						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, getKeyStr(settings.keybinds5K[i]).c_str())) {
@@ -886,8 +902,10 @@ int main(int argc, char* argv[])
 							changingOverdrive = false;
 						}
 					}
+					GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 				}
 				else if (selectedTab == 2) { //Controller bindings tab
+					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					for (int i = 0; i < 5; i++) {
 						float j = i - 2.0f;
 						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
@@ -946,6 +964,7 @@ int main(int argc, char* argv[])
 						changingKey = false;
 						changingOverdrive = false;
 					}
+					GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 				}
 				break;
 			}
@@ -1020,7 +1039,7 @@ int main(int argc, char* argv[])
                     float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
 					//LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
 					float songXPos = LeftSide;//state.value * 500;
-					float songYPos = (TopOvershell+6) + (43 * (i - songSelectOffset));
+					float songYPos = (TopOvershell+6) + (45 * (i - songSelectOffset));
 
 					if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
 						curPlayingSong = i;
@@ -1170,8 +1189,8 @@ int main(int argc, char* argv[])
 								SwitchScreen(DIFFICULTY_SELECT);
 							}
 
-							DrawTextRubik(songPartsList[i].c_str(), LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, BLACK);
-							DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, BLACK);
+							DrawTextRubik(songPartsList[i].c_str(), LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
+							DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
 						}
 					}
 				}
@@ -1217,7 +1236,7 @@ int main(int argc, char* argv[])
 							glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 							glfwSetGamepadStateCallback(gamepadStateCallback);
 						}
-						DrawTextRubik(diffList[i].c_str(), LeftSide + 150 - (MeasureTextRubik(diffList[i].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)i), 30, BLACK);
+						DrawTextRubik(diffList[i].c_str(), LeftSide + 150 - (MeasureTextRubik(diffList[i].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
 					}
 				}
                 DrawBottomOvershell();
