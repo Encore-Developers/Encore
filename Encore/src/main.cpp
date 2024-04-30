@@ -167,13 +167,14 @@ static void handleInputs(int lane, int action){
         overdriveHitTime = eventTime;
 	}
 	if (lane == -1) {
+		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
 		std::cout << "OVERDRIVE EVENT" << std::endl;
-		Note& curNote = curChart.notes[0];
+		Note* curNote = &curChart.notes[0];
 		for (int i = 0; i < curChart.notes.size(); i++) {
 			if (curChart.notes[i].time - (goodBackend+InputOffset) < eventTime &&
 				curChart.notes[i].time + (goodFrontend+InputOffset) > eventTime &&
 				!curChart.notes[i].hit) {
-				curNote = curChart.notes[i];
+				curNote = &curChart.notes[i];
 				std::cout << "START NOTE INDEX " << i << std::endl;
 				break;
 			}
@@ -187,40 +188,44 @@ static void handleInputs(int lane, int action){
 			overdriveHeld = false;
 		}
 		if (action == GLFW_PRESS && overdriveHitAvailable) {
-			for (int newlane = 0; newlane < 5; newlane++) {
-				int chordLane = curChart.findNoteIdx(curNote.time, newlane);
-				if (chordLane != -1) {
-					std::cout << "HITTING NOTE AT " << chordLane << ", " << curChart.notes[chordLane].time << ", " << curChart.notes[chordLane].lane << std::endl;
-					Note& chordNote = curChart.notes[chordLane];
-					if (!chordNote.accounted) {
-						chordNote.hit = true;
-						overdriveLanesHit[newlane] = true;
-						chordNote.hitTime = eventTime;
+			if (curNote->time - (goodBackend + InputOffset) < eventTime &&
+				curNote->time + (goodFrontend + InputOffset) > eventTime &&
+				!curNote->hit) {
+				for (int newlane = 0; newlane < 5; newlane++) {
+					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
+					if (chordLane != -1) {
+						std::cout << "HITTING NOTE AT " << chordLane << ", " << curChart.notes[chordLane].time << ", " << curChart.notes[chordLane].lane << std::endl;
+						Note& chordNote = curChart.notes[chordLane];
+						if (!chordNote.accounted) {
+							chordNote.hit = true;
+							overdriveLanesHit[newlane] = true;
+							chordNote.hitTime = eventTime;
 
-						if ((chordNote.len) > 0 && !chordNote.lift) {
-							chordNote.held = true;
-						}
-						if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
-							chordNote.perfect = true;
+							if ((chordNote.len) > 0 && !chordNote.lift) {
+								chordNote.held = true;
+							}
+							if ((chordNote.time) - perfectBackend + InputOffset < eventTime && chordNote.time + perfectFrontend + InputOffset > eventTime) {
+								chordNote.perfect = true;
 
+							}
+							if (chordNote.perfect) lastNotePerfect = true;
+							else lastNotePerfect = false;
+							player::HitNote(chordNote.perfect, instrument);
+							chordNote.accounted = true;
 						}
-						if (chordNote.perfect) lastNotePerfect = true;
-						else lastNotePerfect = false;
-						player::HitNote(chordNote.perfect, instrument);
-						chordNote.accounted = true;
 					}
 				}
+				overdriveHitAvailable = false;
+				overdriveLiftAvailable = true;
 			}
-			overdriveHitAvailable = false;
-			overdriveLiftAvailable = true;
 		}
 		else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-			if ((curNote.time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
-				(curNote.time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
-				!curNote.hit) {
+			if ((curNote->time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
+				(curNote->time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
+				!curNote->hit) {
 				for (int newlane = 0; newlane < 5; newlane++) {
 					if (overdriveLanesHit[newlane]) {
-						int chordLane = curChart.findNoteIdx(curNote.time, newlane);
+						int chordLane = curChart.findNoteIdx(curNote->time, newlane);
 						if (chordLane != -1) {
 							Note& chordNote = curChart.notes[chordLane];
 							if (chordNote.lift) {
@@ -242,10 +247,10 @@ static void handleInputs(int lane, int action){
 				overdriveLiftAvailable = false;
 			}
 		}
-		if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0 && overdriveLiftAvailable) {
+		if (action == GLFW_RELEASE && curNote->held && (curNote->len) > 0 && overdriveLiftAvailable) {
 			for (int newlane = 0; newlane < 5; newlane++) {
 				if (overdriveLanesHit[newlane]) {
-					int chordLane = curChart.findNoteIdx(curNote.time, newlane);
+					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
 					if (chordLane != -1) {
 						Note& chordNote = curChart.notes[chordLane];
 						if (chordNote.held && chordNote.len > 0) {
