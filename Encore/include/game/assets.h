@@ -208,6 +208,8 @@ public:
         SetTextureFilter(rubik.texture, TEXTURE_FILTER_TRILINEAR);
         rubik32 = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 32, 0, 0);
         SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
+        rubikBoldItalic32 = LoadFontEx((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 40, 0, 0);
+        SetTextureFilter(rubikBoldItalic32.texture, TEXTURE_FILTER_TRILINEAR);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);
 
