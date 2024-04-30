@@ -117,6 +117,7 @@ public:
 	float artistXOffset = 0;
 	float artistTextWidth = 0;
 	double artistScrollTime = 0.0;
+    Texture albumArtBlur;
 	Texture albumArt;
 
 	int length = 0;
@@ -269,6 +270,8 @@ public:
                 }
 				albumArt = LoadTextureFromImage(albumImage);
                 SetTextureFilter(albumArt, TEXTURE_FILTER_ANISOTROPIC_16X);
+                ImageBlurGaussian(&albumImage, 5);
+                albumArtBlur = LoadTextureFromImage(albumImage);
 				UnloadImage(albumImage);
 			}
 		}

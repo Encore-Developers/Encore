@@ -979,18 +979,19 @@ int main(int argc, char* argv[])
 				curBPM = 0;
 				instrument = 0;
 				diff = 0;
+                int selectedSongInt = curPlayingSong;
+                Song selectedSong = songList.songs[selectedSongInt];
 
                 //DrawTextRHDI("Song Select", 70,7, WHITE);
-
-				Vector2 mouseWheel = GetMouseWheelMoveV();
+                DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {0, 0,(float)GetScreenWidth(),(float)GetScreenHeight()}, {0,0}, 0, WHITE);
+                Vector2 mouseWheel = GetMouseWheelMoveV();
 				if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
 					songSelectOffset -= mouseWheel.y;
 				}
 				if (songSelectOffset < 0) songSelectOffset = 0;
 				if (songSelectOffset > songList.songs.size() + 2 - (GetScreenHeight() / 60)) songSelectOffset = songList.songs.size() + 2 - (GetScreenHeight() / 60);
 				if (songSelectOffset >= songList.songs.size()) songSelectOffset = songList.songs.size() - 1;
-                int selectedSongInt = curPlayingSong;
-                Song selectedSong = songList.songs[selectedSongInt];
+
 
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
                 float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
@@ -1103,6 +1104,8 @@ int main(int argc, char* argv[])
 			case INSTRUMENT_SELECT: {
                 selSong = false;
                 Song selectedSong = songList.songs[curPlayingSong];
+                DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {0, 0,(float)GetScreenWidth(),(float)GetScreenHeight()}, {0,0}, 0, WHITE);
+
                 DrawTopOvershell(160);
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
                 float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
@@ -1114,6 +1117,7 @@ int main(int argc, char* argv[])
                 float AlbumArtRight = (LeftSide + 120)-6;
                 float AlbumArtBottom = (LeftSide + 120
                         )-6;
+
                 DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
                 DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
                 DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {LeftSide + 6, AlbumArtTop+6,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);
@@ -1200,7 +1204,9 @@ int main(int argc, char* argv[])
 			}
 			case DIFFICULTY_SELECT: {
                 Song selectedSong = songList.songs[curPlayingSong];
-                DrawTopOvershell(160);
+                DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {0, 0,(float)GetScreenWidth(),(float)GetScreenHeight()}, {0,0}, 0, WHITE);
+
+
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
                 float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
                 float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.25f);
@@ -1211,6 +1217,8 @@ int main(int argc, char* argv[])
                 float AlbumArtRight = (LeftSide + 120)-6;
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
+                DrawRectangle(LeftSide,0, RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawTopOvershell(160);
                 DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
                 DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
                 DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {LeftSide + 6, AlbumArtTop+6,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);
