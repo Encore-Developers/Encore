@@ -76,6 +76,9 @@ public:
     Font redHatDisplayItalic;
     Font rubikBoldItalic32;
 
+    Texture2D discord;
+    Texture2D github;
+
 	//Sound clapOD;
 	void loadAssets(std::filesystem::path directory) {
 		smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
@@ -204,5 +207,8 @@ public:
         SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);
+
+        discord = LoadTextureFilter(directory/"Assets/ui/discord-mark-black.png");
+        github = LoadTextureFilter(directory/"Assets/ui/github-mark.png");
 	}
 };

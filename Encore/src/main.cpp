@@ -23,6 +23,8 @@
 #include "game/assets.h"
 #include "game/settings.h"
 #include "raygui.h"
+#include <locale>
+#include <iomanip>
 
 #include <stdlib.h>
 #include "GLFW/glfw3.h"
@@ -114,6 +116,23 @@ static int MeasureTextRubik(const char* text, int fontSize) {
 }
 static int MeasureTextRHDI(const char* text) {
     return MeasureTextEx(assets.redHatDisplayItalic, text, 48, 2).x;
+}
+
+template<typename CharT>
+struct Separators : public std::numpunct<CharT>
+{
+    virtual std::string do_grouping()
+    const
+    {
+        return "\003";
+    }
+};
+
+std::string scoreCommaFormatter(int value) {
+    std::stringstream ss;
+    ss.imbue(std::locale(std::cout.getloc(), new Separators <char>()));
+    ss << std::fixed << value;
+    return ss.str();
 }
 
 static void SwitchScreen(Screens screen) {
@@ -628,6 +647,15 @@ int main(int argc, char* argv[])
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) + 60,200, 60 }, "Quit")) {
 					exit(0);
 				}
+                if (GuiButton({(float)GetScreenWidth()-60, (float)GetScreenHeight()-60, 60,60}, "")) {
+                    OpenURL("https://github.com/Encore-Developers/Encore-Raylib");
+                }
+
+                if (GuiButton({(float)GetScreenWidth()-120, (float)GetScreenHeight()-60, 60,60}, "")) {
+                    OpenURL("https://discord.gg/GhkgVUAC9v");
+                }
+                DrawTextureEx(assets.github, {(float)GetScreenWidth()-54, (float)GetScreenHeight()-54}, 0, 0.2, WHITE);
+                DrawTextureEx(assets.discord, {(float)GetScreenWidth()-113, (float)GetScreenHeight()-48}, 0, 0.075, WHITE);
 				break;
 			}
 			case SETTINGS: {
@@ -1079,8 +1107,11 @@ int main(int argc, char* argv[])
                     DrawTextureEx(goldStars? assets.goldStar : assets.star, {scorePos+((float)i*40),80},0,0.15f,WHITE);
                 }
 				// DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
-				DrawTextRHDI(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4]), (scorePos + 200) - MeasureTextRHDI(TextFormat("%01i", score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4])), 30,  Color{107, 161, 222,255});
-                DrawTextRHDI(TextFormat("%01i", combo), (scorePos + 200) - MeasureTextRHDI(TextFormat("%01i", combo)), 125, FC ? GOLD : (combo <= 3) ? RED : WHITE);
+                int totalScore = score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4];
+
+
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str()), 30,  Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(combo).c_str()), 125, FC ? GOLD : (combo <= 3) ? RED : WHITE);
                 DrawTextRubik32(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
 				// DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
@@ -1254,9 +1285,9 @@ int main(int argc, char* argv[])
 						curBPM++;
 				}
 
-				if (musicTime < 5.0) {
-					DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 5, ((GetScreenHeight()/3)) - 20, WHITE);
-                    DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {5, ((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
+				if (musicTime < 7.5) {
+					DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, ((GetScreenHeight()/3)) - 20, WHITE);
+                    DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {45, ((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
 					//DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
 				}
 
@@ -1580,7 +1611,7 @@ int main(int argc, char* argv[])
 				if (FC) {
 					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
 				}
-				DrawTextRHDI(TextFormat("%01i", score), (GetScreenWidth() / 2) - MeasureTextRHDI(TextFormat("%01i", score))/2, 120, Color{107, 161, 222,255});
+				DrawTextRHDI(scoreCommaFormatter(score).c_str(), (GetScreenWidth() / 2) - MeasureTextRHDI(scoreCommaFormatter(score).c_str())/2, 120, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
 				DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
 				DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
