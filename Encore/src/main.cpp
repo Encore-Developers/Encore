@@ -1224,7 +1224,7 @@ int main(int argc, char* argv[])
                 DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
 				for (int i = 0; i < 4; i++) {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
-						SwitchScreen(SONG_SELECT);
+						SwitchScreen(INSTRUMENT_SELECT);
 					}
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					if (songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.size() > 0) {
@@ -1695,10 +1695,12 @@ int main(int argc, char* argv[])
                         // DrawText3D(assets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
 
 
-
 						if (relEnd < -1 && curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1) curNoteIdx[lane] = i + 1;
 
+
+
 					}
+
 				}
 				if (curChart.odPhrases.size() > 0 && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
 					curODPhrase++;
