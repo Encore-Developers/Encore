@@ -46,6 +46,7 @@ int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
 int selLane = 0;
+bool selSong = false;
 int songSelectOffset = 0;
 bool changingKey = false;
 bool changingOverdrive = false;
@@ -1002,6 +1003,7 @@ int main(int argc, char* argv[])
 
 					if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
 						curPlayingSong = i;
+                        selSong = true;
 					}
 
 					// DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
@@ -1044,15 +1046,24 @@ int main(int argc, char* argv[])
 					EndScissorMode();
 				}
                 // hehe
+
                 float BottomOvershell = (float)GetScreenHeight() - 120;
                 DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
                 DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),BLACK);
+                if (selSong) {
+                    if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
+                        curPlayingSong = selectedSongInt;
+                        SwitchScreen(INSTRUMENT_SELECT);
+
+                    }
+                }
                 float BottomBottomOvershell = (float)GetScreenHeight() - 80;
                 DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
                 DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),BLACK);
 				break;
 			}
 			case INSTRUMENT_SELECT: {
+                selSong = false;
 				if (!midiLoaded) {
 					if (!songList.songs[curPlayingSong].midiParsed) {
 						smf::MidiFile midiFile;
