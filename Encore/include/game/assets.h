@@ -74,6 +74,7 @@ public:
     Font rubik32;
 	Font rubik;
     Font redHatDisplayItalic;
+    Font redHatDisplayLarge;
     Font rubikBoldItalic32;
 
     Texture2D discord;
@@ -201,6 +202,8 @@ public:
 
         redHatDisplayItalic = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 48,0,0);
         SetTextureFilter(redHatDisplayItalic.texture, TEXTURE_FILTER_TRILINEAR);
+        redHatDisplayLarge = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-Black.ttf").string().c_str(), 128,0,0);
+        SetTextureFilter(redHatDisplayLarge.texture, TEXTURE_FILTER_TRILINEAR);
 		rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
         SetTextureFilter(rubik.texture, TEXTURE_FILTER_TRILINEAR);
         rubik32 = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 32, 0, 0);

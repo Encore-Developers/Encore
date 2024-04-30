@@ -100,22 +100,22 @@ LerpState getState(std::string key);
 
 
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
-    DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 2, color);
+    DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 1, color);
 }
 static void DrawTextRubik(const char* text, float posX, float posY, int fontSize, Color color) {
-	DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 2, color);
+	DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 1, color);
 }
 static void DrawTextRHDI(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
 }
 static int MeasureTextRubik32(const char* text) {
-    return MeasureTextEx(assets.rubik32, text, 32, 2).x;
+    return MeasureTextEx(assets.rubik32, text, 32, 1).x;
 }
 static int MeasureTextRubik(const char* text, int fontSize) {
-	return MeasureTextEx(assets.rubik, text, fontSize, 2).x;
+	return MeasureTextEx(assets.rubik, text, fontSize, 1).x;
 }
 static int MeasureTextRHDI(const char* text) {
-    return MeasureTextEx(assets.redHatDisplayItalic, text, 48, 2).x;
+    return MeasureTextEx(assets.redHatDisplayItalic, text, 48, 1).x;
 }
 
 template<typename CharT>
@@ -512,6 +512,10 @@ int minWidth = 640;
 int minHeight = 480;
 
 
+// void DrawTopOvershell(const char *string) {
+
+// }
+
 int main(int argc, char* argv[])
 {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -634,7 +638,7 @@ int main(int argc, char* argv[])
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) - 120,200, 60 }, "Play")) {
 					for (Song& song : songList.songs) {
 						song.titleScrollTime = GetTime();
-						song.titleTextWidth = MeasureTextRubik(song.title.c_str(), 30);
+						song.titleTextWidth = MeasureTextRubik(song.title.c_str(), 24);
 						song.artistScrollTime = GetTime();
 						song.artistTextWidth = MeasureTextRubik(song.artist.c_str(), 20);
 					}
@@ -932,14 +936,9 @@ int main(int argc, char* argv[])
 				curBPM = 0;
 				instrument = 0;
 				diff = 0;
-                DrawTextRHDI("Song Select", 70,7, WHITE);
-				if (GuiButton({ 0,0,60,60 }, "<")) {
-					for (Song& song : songList.songs) {
-						song.titleXOffset = 0;
-						song.artistXOffset = 0;
-					}
-					SwitchScreen(MENU);
-				}
+
+                //DrawTextRHDI("Song Select", 70,7, WHITE);
+
 				Vector2 mouseWheel = GetMouseWheelMoveV();
 				if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
 					songSelectOffset -= mouseWheel.y;
@@ -947,24 +946,68 @@ int main(int argc, char* argv[])
 				if (songSelectOffset < 0) songSelectOffset = 0;
 				if (songSelectOffset > songList.songs.size() + 2 - (GetScreenHeight() / 60)) songSelectOffset = songList.songs.size() + 2 - (GetScreenHeight() / 60);
 				if (songSelectOffset >= songList.songs.size()) songSelectOffset = songList.songs.size() - 1;
+                int selectedSongInt = curPlayingSong;
+                Song selectedSong = songList.songs[selectedSongInt];
 
-				for (int i = songSelectOffset; i < songSelectOffset + (GetScreenHeight() / 60) - 2; i++) {
+                float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
+                float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
+                float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.25f);
+                float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
+
+                float AlbumArtLeft = RightSide - 400 >= (float)GetScreenWidth()/2 ? RightSide - 300 :RightSide*0.72f;
+                float AlbumArtTop = 65;
+                float AlbumArtRight = (RightSide - AlbumArtLeft)-6;
+                float AlbumArtBottom = (RightSide - AlbumArtLeft)-6;
+                float TopOvershell = 110;
+
+                //float TopOvershell = (float)GetScreenHeight()*0.14f;
+                float TextPlacementTB = (float)GetScreenHeight()*0.005f;
+                float TextPlacementLR = (float)GetScreenWidth()*0.10f;
+                DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell+6,WHITE);
+                DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell,BLACK);
+                DrawTextEx(assets.redHatDisplayLarge, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
+
+                if (GuiButton({ 0,0,60,60 }, "<")) {
+                    for (Song& song : songList.songs) {
+                        song.titleXOffset = 0;
+                        song.artistXOffset = 0;
+                    }
+                    SwitchScreen(MENU);
+                }
+                DrawRectangle(AlbumArtLeft-6,AlbumArtBottom+12,AlbumArtRight+12, GetScreenHeight()-AlbumArtBottom,WHITE);
+                DrawRectangle(AlbumArtLeft,AlbumArtBottom,AlbumArtRight, GetScreenHeight()-AlbumArtBottom,GetColor(0x181827FF));
+                DrawRectangle(AlbumArtLeft-6,AlbumArtTop-6,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
+                DrawRectangle(AlbumArtLeft,AlbumArtTop,AlbumArtRight, AlbumArtBottom,BLACK);
+
+
+                // right side
+                DrawLine(RightSide,0,RightSide,(float)GetScreenHeight(), WHITE);
+
+                // left side
+                DrawLine(LeftSide,0,LeftSide,(float)GetScreenHeight(), WHITE);
+
+                // bottom
+                DrawLine(0,((float)GetScreenHeight()*0.85),0,((float)GetScreenHeight()*0.85), WHITE);
+
+                DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {AlbumArtLeft, AlbumArtTop,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);
+				for (int i = songSelectOffset; i < songSelectOffset + (GetScreenHeight() / 50) - 2; i++) {
 					if (i == songList.songs.size())
 						break;
 
 					Song& song = songList.songs[i];
+                    float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
 					//LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
-					float songXPos = 0;//state.value * 500;
-					float songYPos = 60 + (60 * (i - songSelectOffset));
+					float songXPos = LeftSide;//state.value * 500;
+					float songYPos = (TopOvershell+6) + (43 * (i - songSelectOffset));
 
-					if (GuiButton(Rectangle{ 0, songYPos,((float)GetScreenWidth() * (3.0f / 5.0f)) , 60 }, "")) {
+					if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
 						curPlayingSong = i;
-						SwitchScreen(INSTRUMENT_SELECT);
 					}
 
-					DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { 5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
-					int songTitleWidth = (GetScreenWidth() * (2.0 / 5.0) - 100);
-					int songArtistWidth = (GetScreenWidth() * (1.0 / 5.0) - 65);
+					// DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
+					int songTitleWidth = (MeasureText(song.title.c_str(), 24));
+
+					int songArtistWidth = (((AlbumArtLeft-LeftSide)-6 )/3)-15;
 
 					if (song.titleTextWidth >= songTitleWidth) {
 						if (curTime > song.titleScrollTime && curTime < song.titleScrollTime + 3.0)
@@ -980,8 +1023,8 @@ int main(int argc, char* argv[])
 						}
 					}
 
-					BeginScissorMode(songXPos + 65, songYPos + 15, songTitleWidth, 30);
-					DrawTextRubik(song.title.c_str(), songXPos + song.titleXOffset + 65, songYPos + 15, 30, BLACK);
+					BeginScissorMode(songXPos + 15, songYPos + 10, songTitleWidth, 45);
+					DrawTextRubik(song.title.c_str(), songXPos + 15 + song.titleXOffset, songYPos + 10, 24, BLACK);
 					EndScissorMode();
 
 					if (song.artistTextWidth > songArtistWidth) {
@@ -996,10 +1039,17 @@ int main(int argc, char* argv[])
 						}
 					}
 
-					BeginScissorMode(songXPos + 85 + songTitleWidth, songYPos + 20, songArtistWidth, 20);
-					DrawTextRubik(song.artist.c_str(), songXPos + 85 + songTitleWidth + song.artistXOffset, songYPos + 20, 20, BLACK);
+					BeginScissorMode(songXPos + 30 + songTitleWidth, songYPos + 12, songArtistWidth, 45);
+					DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, BLACK);
 					EndScissorMode();
 				}
+                // hehe
+                float BottomOvershell = (float)GetScreenHeight() - 120;
+                DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
+                DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),BLACK);
+                float BottomBottomOvershell = (float)GetScreenHeight() - 80;
+                DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
+                DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),BLACK);
 				break;
 			}
 			case INSTRUMENT_SELECT: {
