@@ -168,23 +168,19 @@ static void handleInputs(int lane, int action){
 	}
 	if (lane == -1) {
 		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
-		std::cout << "OVERDRIVE EVENT" << std::endl;
 		Note* curNote = &curChart.notes[0];
 		for (int i = 0; i < curChart.notes.size(); i++) {
 			if (curChart.notes[i].time - (goodBackend+InputOffset) < eventTime &&
 				curChart.notes[i].time + (goodFrontend+InputOffset) > eventTime &&
 				!curChart.notes[i].hit) {
 				curNote = &curChart.notes[i];
-				std::cout << "START NOTE INDEX " << i << std::endl;
 				break;
 			}
 		}
 		if (action == GLFW_PRESS && !overdriveHeld) {
-			std::cout << "overdrive held" << std::endl;
 			overdriveHeld = true;
 		}
 		else if (action == GLFW_RELEASE && overdriveHeld) {
-			std::cout << "overdrive released" << std::endl;
 			overdriveHeld = false;
 		}
 		if (action == GLFW_PRESS && overdriveHitAvailable) {
@@ -194,7 +190,6 @@ static void handleInputs(int lane, int action){
 				for (int newlane = 0; newlane < 5; newlane++) {
 					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
 					if (chordLane != -1) {
-						std::cout << "HITTING NOTE AT " << chordLane << ", " << curChart.notes[chordLane].time << ", " << curChart.notes[chordLane].lane << std::endl;
 						Note& chordNote = curChart.notes[chordLane];
 						if (!chordNote.accounted) {
 							chordNote.hit = true;
