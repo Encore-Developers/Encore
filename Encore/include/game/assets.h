@@ -76,6 +76,7 @@ public:
     Font redHatDisplayItalic;
     Font redHatDisplayLarge;
     Font rubikBoldItalic32;
+    Font rubikBold32;
 
     Texture2D discord;
     Texture2D github;
@@ -210,10 +211,12 @@ public:
         SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
         rubikBoldItalic32 = LoadFontEx((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 40, 0, 0);
         SetTextureFilter(rubikBoldItalic32.texture, TEXTURE_FILTER_TRILINEAR);
+        rubikBold32 = LoadFontEx((directory / "Assets/fonts/Rubik-Bold.ttf").string().c_str(), 40, 0, 0);
+        SetTextureFilter(rubikBold32.texture, TEXTURE_FILTER_TRILINEAR);
 		//clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
 		//SetSoundVolume(clapOD, 0.375);
 
-        discord = LoadTextureFilter(directory/"Assets/ui/discord-mark-black.png");
-        github = LoadTextureFilter(directory/"Assets/ui/github-mark.png");
+        discord = LoadTextureFilter(directory/"Assets/ui/discord-mark-white.png");
+        github = LoadTextureFilter(directory/"Assets/ui/github-mark-white.png");
 	}
 };

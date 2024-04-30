@@ -617,8 +617,17 @@ int main(int argc, char* argv[])
 	glfwSetGamepadStateCallback(origGamepadCallback);
     // GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
 
+    GuiSetStyle(BUTTON, BASE, 0x181827FF);
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+    GuiSetStyle(BUTTON, BORDER, 0xFFFFFFFF);
+    GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
+    GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
 	GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
-	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
+    GuiSetStyle(DEFAULT, TEXT, 0xcbcbcbFF);
+    GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
+    GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 	GuiSetFont(assets.rubik32);
 
 
@@ -1016,10 +1025,11 @@ int main(int argc, char* argv[])
 					if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
 						curPlayingSong = i;
                         selSong = true;
+
 					}
 
 					// DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
-					int songTitleWidth = (MeasureText(song.title.c_str(), 24));
+					int songTitleWidth = (((AlbumArtLeft-LeftSide)-6)/5)*2;
 
 					int songArtistWidth = (((AlbumArtLeft-LeftSide)-6 )/3)-15;
 
@@ -1036,9 +1046,9 @@ int main(int argc, char* argv[])
 							}
 						}
 					}
-
+                    Color LightText = Color{203, 203, 203, 255};
 					BeginScissorMode(songXPos + 15, songYPos + 10, songTitleWidth, 45);
-					DrawTextRubik(song.title.c_str(), songXPos + 15 + song.titleXOffset, songYPos + 10, 24, BLACK);
+					DrawTextEx(assets.rubikBold32,song.title.c_str(), {songXPos + 15 + song.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong ? WHITE : LightText);
 					EndScissorMode();
 
 					if (song.artistTextWidth > songArtistWidth) {
@@ -1053,8 +1063,9 @@ int main(int argc, char* argv[])
 						}
 					}
 
+                    Color SelectedText = WHITE;
 					BeginScissorMode(songXPos + 30 + songTitleWidth, songYPos + 12, songArtistWidth, 45);
-					DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, BLACK);
+					DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, i == curPlayingSong ? WHITE : LightText);
 					EndScissorMode();
 				}
                 // hehe
