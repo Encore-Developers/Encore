@@ -270,7 +270,7 @@ public:
                 }
 				albumArt = LoadTextureFromImage(albumImage);
                 SetTextureFilter(albumArt, TEXTURE_FILTER_ANISOTROPIC_16X);
-                ImageBlurGaussian(&albumImage, 5);
+                ImageBlurGaussian(&albumImage, 10);
                 albumArtBlur = LoadTextureFromImage(albumImage);
 				UnloadImage(albumImage);
 			}

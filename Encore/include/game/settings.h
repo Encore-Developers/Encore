@@ -61,9 +61,14 @@ private:
 			settings["controllerbinds"].AddMember("overdrive", rapidjson::Value(), allocator);
 		if (!settings["controllerbinds"].HasMember("type"))
 			settings["controllerbinds"].AddMember("type", rapidjson::Value(), allocator);
+        if (!settings.HasMember("songDirectories"))
+            settings.AddMember("songDirectories", rapidjson::Value(), allocator);
 	}
+    std::filesystem::path executablePath = GetApplicationDirectory();
+    std::filesystem::path directory = executablePath.parent_path();
 public:
 	rapidjson::Document settings;
+
 	std::vector<int> defaultKeybinds4K{ KEY_D,KEY_F,KEY_J,KEY_K };
 	std::vector<int> defaultKeybinds5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
 	std::vector<int> defaultKeybinds4KAlt{ -1,-1,-1,-1 };
@@ -105,6 +110,9 @@ public:
 	int prevControllerType = controllerType;
 	std::vector<float> defaultTrackSpeedOptions = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
 	std::vector<float> trackSpeedOptions = defaultTrackSpeedOptions;
+    std::vector<std::filesystem::path> defaultSongPaths{ directory  / "Songs" };
+    std::vector<std::filesystem::path> songPaths = defaultSongPaths;
+    std::vector<std::filesystem::path> prevSongPaths = songPaths;
 	int trackSpeed = 4;
 	int prevTrackSpeed = trackSpeed;
 	int avOffsetMS = 0;
@@ -191,6 +199,13 @@ public:
 		settings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
         settings.AddMember("missHighwayColor", missHighwayDefault, allocator);
         rapidjson::Value missHighwayColor;
+
+        rapidjson::Value arraySongDirs(rapidjson::kArrayType);
+        for (filesystem::path &path: defaultSongPaths)
+            arraySongDirs.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
+
+        settings.AddMember("songDirectories", arraySongDirs, allocator);
+
 		saveSettings(settingsFile);
 	}
 	void loadSettings(std::filesystem::path settingsFile) {
@@ -209,6 +224,7 @@ public:
 		bool controller5KDirectionError = false;
 		bool controllerOverdriveError = false;
 		bool controllerOverdriveDirectionError = false;
+        bool songDirectoryError = false;
 		bool avError = false;
 		bool inputError = false;
 		bool mirrorError = false;
@@ -465,11 +481,22 @@ public:
 				else {
 					mirrorError = true;
 				}
+                if (settings.HasMember("songDirectories") && settings["songDirectories"].IsArray()){
+
+                        for (auto& songPath : settings["songDirectories"].GetArray()) {
+                            songPaths.push_back(songPath.GetString());
+                        }
+
+
+                } else {
+                    songDirectoryError = true;
+                }
 			}
 		}
 		else {
 			writeDefaultSettings(settingsFile);
 		}
+
 
 		if (keybindsError) {
 			if (settings.HasMember("keybinds"))
@@ -664,6 +691,15 @@ public:
 				arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
 			settings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
 		}
+        if (songDirectoryError) {
+            if (settings.HasMember("songDirectories"))
+                settings.EraseMember("songDirectories");
+            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+            rapidjson::Value arraySongDir(rapidjson::kArrayType);
+            for (filesystem::path &path: defaultSongPaths)
+                arraySongDir.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
+            settings.AddMember("songDirectories", arraySongDir, allocator);
+        }
         if (MissHighwayError) {
             if (settings.HasMember("missHighwayColor"))
                 settings.EraseMember("missHighwayColor");
@@ -686,7 +722,7 @@ public:
 			mirrorValue .SetBool(defaultMirrorMode);
 			settings.AddMember("mirror", mirrorValue, allocator);
 		}
-		if (highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if (songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -795,6 +831,10 @@ public:
         missHighwayColorMember->value.SetBool(missHighwayDefault);
 		rapidjson::Value::MemberIterator mirrorMember = settings.FindMember("mirror");
 		mirrorMember->value.SetBool(mirrorMode);
+        rapidjson::Value::MemberIterator songDirMember = settings.FindMember("songDirectories");
+        songDirMember->value.Clear();
+        for (filesystem::path &path: songPaths)
+            songDirMember->value.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
 		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
 		keybinds4KMember->value.Clear();
 		for (int& key : keybinds4K)
