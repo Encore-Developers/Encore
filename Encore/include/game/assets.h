@@ -5,7 +5,8 @@
 #include "raylib.h"
 #include <filesystem>
 
-
+#ifndef ASSETS_H
+#define ASSETS_H
 
 Model smasherReg;
 Texture2D smasherRegTex;
@@ -75,4 +76,16 @@ Font rubikBold32;
 Texture2D discord;
 Texture2D github;
 
-static void loadAssets(const std::filesystem::path& directory);
+class Assets {
+public:
+    static void DrawTextRubik32(const char* text, float posX, float posY, Color color);
+    static void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color);
+    static void DrawTextRHDI(const char* text, float posX, float posY, Color color);
+    static float MeasureTextRubik32(const char* text);
+    static float MeasureTextRubik(const char* text, float fontSize);
+    static float MeasureTextRHDI(const char* text);
+    static Texture2D LoadTextureFilter(const std::filesystem::path& texturePath);
+    static void loadAssets(const std::filesystem::path& directory);
+};
+
+#endif

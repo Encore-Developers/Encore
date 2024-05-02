@@ -25,16 +25,31 @@ bool overdriveLiftAvailable = false;
 std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
 double overdriveHitTime = 0.0;
 std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
+std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+std::vector<int> buttonValues{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+std::vector<float> axesValues2{ 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
+int pressedGamepadInput = -999;
+int axisDirection = -1;
+int controllerID = -1;
+int curODPhrase = 0;
+int curBeatLine = 0;
+int curBPM = 0;
+int selLane = 0;
+bool selSong = false;
+bool songsLoaded= false;
+int songSelectOffset = 0;
+bool changingKey = false;
+bool changingOverdrive = false;
+double startedPlayingSong = 0.0;
 
 class rhythmLogic {
-public:
+    static void handleInputs(int lane, int action);
 
+    static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);
 
-    void handleInputs(int lane, int action);
-    void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int mods);
-    void gamepadStateCallback(int jid, GLFWgamepadstate state);
-    void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state);
-};
+    static void gamepadStateCallback(int jid, GLFWgamepadstate state);
 
+    static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state);
+}
 
 #endif //ENCORE_RHYTHMLOGIC_H

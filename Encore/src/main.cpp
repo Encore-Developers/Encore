@@ -19,6 +19,7 @@
 #include "game/assets.cpp"
 #include "game/settings.h"
 #include "game/gameplay.cpp"
+#include "game/rhythmLogic.h"
 #include "raygui.h"
 #include <thread>
 #include <cstdlib>
@@ -35,17 +36,8 @@ static bool compareNotes(const Note& a, const Note& b) {
 bool midiLoaded = false;
 bool isPlaying = false;
 
+rhythmLogic rhythmLogic;
 
-int curODPhrase = 0;
-int curBeatLine = 0;
-int curBPM = 0;
-int selLane = 0;
-bool selSong = false;
-bool songsLoaded= false;
-int songSelectOffset = 0;
-bool changingKey = false;
-bool changingOverdrive = false;
-double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
@@ -65,17 +57,7 @@ enum Screens {
 
 int currentScreen = MENU;
 
-
-SongList songList;
-Settings settings;
-Assets assets;
 double lastAxesTime = 0.0;
-std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-std::vector<int> buttonValues{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-std::vector<float> axesValues2{ 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
-int pressedGamepadInput = -999;
-int axisDirection = -1;
-int controllerID = -1;
 
 Lerp lerpCtrl = Lerp();
 void createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically = true);
@@ -210,11 +192,10 @@ int main(int argc, char* argv[])
 
 	ChangeDirectory(GetApplicationDirectory());
 	assets.loadAssets(directory);
-    SetWindowIcon(assets.icon);
-	GLFWkeyfun origKeyCallback = glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-	GLFWgamepadstatefun origGamepadCallback = glfwSetGamepadStateCallback(gamepadStateCallback);
-	glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-	glfwSetGamepadStateCallback(origGamepadCallback);
+    SetWindowIcon(icon);
+
+	glfwSetKeyCallback(glfwGetCurrentContext(), rhythmLogic.origKeyCallback);
+	glfwSetGamepadStateCallback(rhythmLogic.origGamepadCallback);
     // GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
 
     GuiSetStyle(BUTTON, BASE, 0x181827FF);
@@ -229,7 +210,6 @@ int main(int argc, char* argv[])
     GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 
-
 	GuiSetStyle(TOGGLE, BASE, 0x181827FF);
 	GuiSetStyle(TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
 	GuiSetStyle(TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
@@ -238,7 +218,7 @@ int main(int argc, char* argv[])
 	GuiSetStyle(TOGGLE, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
 	GuiSetStyle(TOGGLE, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
 	GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
-	GuiSetFont(assets.rubik32);
+	GuiSetFont(rubik32);
 
 
 	while (!WindowShouldClose())
