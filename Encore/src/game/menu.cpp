@@ -31,11 +31,11 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 
                 songsLoaded = true;
             }
-            for (Song &song: songList.songs) {
-                song.titleScrollTime = GetTime();
-                song.titleTextWidth = assets.MeasureTextRubik(song.title.c_str(), 24);
-                song.artistScrollTime = GetTime();
-                song.artistTextWidth = assets.MeasureTextRubik(song.artist.c_str(), 20);
+            for (Song &songi: songList.songs) {
+                songi.titleScrollTime = GetTime();
+                songi.titleTextWidth = assets.MeasureTextRubik(songi.title.c_str(), 24);
+                songi.artistScrollTime = GetTime();
+                songi.artistTextWidth = assets.MeasureTextRubik(songi.artist.c_str(), 20);
             }
             currentScreen = SONG_SELECT;
         }
