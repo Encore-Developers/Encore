@@ -116,7 +116,7 @@ public:
 				int tick = midiFile.getAbsoluteTickTime(time);
 				if ((int)events[i][1] >= notePitches[0] && (int)events[i][1] <= notePitches[1]) {
 					int lane = (int)events[i][1] - notePitches[0];
-					if (notesOn[lane] == true) {
+					if (notesOn[lane]) {
 						int noteIdx = findNoteIdx(noteOnTime[lane], lane);
 						if (noteIdx != -1) {
 							notes[noteIdx].beatsLen = (tick - noteOnTick[lane]) / (float)midiFile.getTicksPerQuarterNote();
@@ -134,7 +134,7 @@ public:
 					}
 				}
 				else if ((int)events[i][1] == odNote) {
-					if (odOn == true) {
+					if (odOn) {
 						odPhrases[curODPhrase].end = time;
 						odOn = false;
 					}

@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include "game/player.h"
+#include "game/player.cpp"
 
 class Settings {
 private:
@@ -484,7 +484,7 @@ public:
                 if (settings.HasMember("songDirectories") && settings["songDirectories"].IsArray()){
 
                         for (auto& songPath : settings["songDirectories"].GetArray()) {
-                            songPaths.push_back(songPath.GetString());
+                            songPaths.emplace_back(songPath.GetString());
                         }
 
 

@@ -13,3 +13,4 @@ project ("Encore" LANGUAGES C CXX)
 
 # Include sub-projects.
 add_subdirectory ("Encore")
+

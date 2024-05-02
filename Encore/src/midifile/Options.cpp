@@ -12,7 +12,7 @@
 
 #include "midifile/Options.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <cctype>
@@ -250,7 +250,7 @@ std::ostream& Option_register::print(std::ostream& out) {
 	out << "modifiedQ:\t\t"    << m_modifiedQ      << std::endl;
 	out << "type:\t\t"         << m_type           << std::endl;
 	return out;
-};
+}
 
 
 
