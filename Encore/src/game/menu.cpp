@@ -37,7 +37,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
                 songi.artistScrollTime = GetTime();
                 songi.artistTextWidth = assets.MeasureTextRubik(songi.artist.c_str(), 20);
             }
-            currentScreen = SONG_SELECT;
+            Menu::SwitchScreen(SONG_SELECT);
         }
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 30, 200, 60},
                       "Options")) {

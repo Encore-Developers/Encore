@@ -20,7 +20,7 @@ Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath) {
 
 
 void Assets::MaterialMapper() {
-    player player;
+    Player player;
     smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
     smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png");
 
