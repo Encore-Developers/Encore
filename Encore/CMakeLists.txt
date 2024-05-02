@@ -37,3 +37,4 @@ target_include_directories(Encore PRIVATE "include")
 # Link against the DLLs in the lib directory
 target_link_libraries(Encore raylib)
 # TODO: Add tests and install targets if needed.
+

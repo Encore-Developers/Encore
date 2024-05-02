@@ -10,7 +10,10 @@
 #include <iostream>
 #include "game/player.h"
 
+
+
 class Settings {
+    player player;
 private:
 	rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
 		rapidjson::Value array(rapidjson::kArrayType);
@@ -201,7 +204,7 @@ public:
         rapidjson::Value missHighwayColor;
 
         rapidjson::Value arraySongDirs(rapidjson::kArrayType);
-        for (filesystem::path &path: defaultSongPaths)
+        for (std::filesystem::path &path: defaultSongPaths)
             arraySongDirs.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
 
         settings.AddMember("songDirectories", arraySongDirs, allocator);
@@ -430,7 +433,7 @@ public:
 				if (settings.HasMember("avOffset") && settings["avOffset"].IsInt()) {
 					avOffsetMS = settings["avOffset"].GetInt();
 					prevAvOffsetMS = avOffsetMS;
-					VideoOffset = -(float)(avOffsetMS / 1000);
+                    player.VideoOffset = -(float)(avOffsetMS / 1000);
 				}
 				else {
 					avError = true;
@@ -438,7 +441,7 @@ public:
 				if (settings.HasMember("inputOffset") && settings["inputOffset"].IsInt()) {
 					inputOffsetMS = settings["inputOffset"].GetInt();
 					prevInputOffsetMS = inputOffsetMS;
-					InputOffset = (float)(inputOffsetMS / 1000);
+                    player.InputOffset = (float)(inputOffsetMS / 1000);
 				}
 				else {
 					inputError = true;
@@ -471,7 +474,7 @@ public:
                     highwayLengthError = true;
                 }
                 if (settings.HasMember("missHighwayColor") && settings["missHighwayColor"].IsBool()) {
-                    MissHighwayColor = settings["missHighwayColor"].GetBool();
+                    player.MissHighwayColor = settings["missHighwayColor"].GetBool();
                 } else {
                     MissHighwayError = true;
                 } 
@@ -696,7 +699,7 @@ public:
                 settings.EraseMember("songDirectories");
             rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
             rapidjson::Value arraySongDir(rapidjson::kArrayType);
-            for (filesystem::path &path: defaultSongPaths)
+            for (std::filesystem::path &path: defaultSongPaths)
                 arraySongDir.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
             settings.AddMember("songDirectories", arraySongDir, allocator);
         }
@@ -780,7 +783,7 @@ public:
 			if (keybinds.HasMember("avOffset") && keybinds["avOffset"].IsInt()) {
 				avOffsetMS = keybinds["avOffset"].GetInt();
 				prevAvOffsetMS = avOffsetMS;
-                VideoOffset = -(float)(avOffsetMS / 1000);
+                player.VideoOffset = -(float)(avOffsetMS / 1000);
 				
 			}
 			else {
@@ -789,7 +792,7 @@ public:
 			if (keybinds.HasMember("inputOffset") && keybinds["inputOffset"].IsInt()) {
 				inputOffsetMS = keybinds["inputOffset"].GetInt();
 				prevInputOffsetMS = inputOffsetMS;
-                InputOffset = (float)(inputOffsetMS / 1000);
+                player.InputOffset = (float)(inputOffsetMS / 1000);
 			}
 			else {
 				inputOffsetError = true;
@@ -833,7 +836,7 @@ public:
 		mirrorMember->value.SetBool(mirrorMode);
         rapidjson::Value::MemberIterator songDirMember = settings.FindMember("songDirectories");
         songDirMember->value.Clear();
-		for (filesystem::path& path : songPaths)
+		for (std::filesystem::path& path : songPaths)
 			songDirMember->value.PushBack(rapidjson::Value().SetString(path.string(), allocator), allocator);
 		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
 		keybinds4KMember->value.Clear();

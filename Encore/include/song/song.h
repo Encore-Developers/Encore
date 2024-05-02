@@ -20,30 +20,7 @@ enum PartIcon {
 };
 
 
-std::unordered_map<std::string, PartIcon> stringToEnum = {
 
-	{"Drum",PartIcon::IconDrum},
-	{"Bass",PartIcon::IconBass},
-	{"Guitar",PartIcon::IconGuitar},
-	{"Vocals",PartIcon::IconVocals},
-	{"Keyboard",PartIcon::IconKeyboard},
-	{"None",PartIcon::IconNone},
-	{"",PartIcon::IconNone}
-
-};
-
-static PartIcon iconFromString(const std::string& str) 
-{
-	auto it = stringToEnum.find(str);
-	if (it != stringToEnum.end()) 
-	{
-		return it->second;
-	}
-	else 
-	{
-		throw std::runtime_error("Invalid enum string");
-	}
-}
 
 enum SongParts {
 	PartDrums,
@@ -57,28 +34,7 @@ enum SongParts {
 };
 
 
-std::unordered_map<std::string, SongParts> midiNameToEnum = {
-	{"PART DRUMS",SongParts::PartDrums},
-	{"PART BASS",SongParts::PartBass},
-	{"PART GUITAR",SongParts::PartGuitar},
-	{"PART VOCALS",SongParts::PartVocals},
-	{"PLASTIC DRUMS",SongParts::PlasticDrums},
-	{"PLASTIC BASS",SongParts::PlasticBass},
-	{"PLASTIC GUITAR",SongParts::PlasticGuitar}
-};
 
-static SongParts partFromString(const std::string& str)
-{
-	auto it = midiNameToEnum.find(str);
-	if (it != midiNameToEnum.end())
-	{
-		return it->second;
-	}
-	else
-	{
-		return SongParts::Invalid;
-	}
-}
 
 enum Difficulty {
 	Easy,
@@ -108,6 +64,54 @@ struct BPM {
 class Song 
 {
 public:
+    std::unordered_map<std::string, PartIcon> stringToEnum = {
+
+            {"Drum",PartIcon::IconDrum},
+            {"Bass",PartIcon::IconBass},
+            {"Guitar",PartIcon::IconGuitar},
+            {"Vocals",PartIcon::IconVocals},
+            {"Keyboard",PartIcon::IconKeyboard},
+            {"None",PartIcon::IconNone},
+            {"",PartIcon::IconNone}
+
+    };
+
+    PartIcon iconFromString(const std::string& str)
+    {
+        auto it = stringToEnum.find(str);
+        if (it != stringToEnum.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            throw std::runtime_error("Invalid enum string");
+        }
+    }
+
+    std::unordered_map<std::string, SongParts> midiNameToEnum = {
+            {"PART DRUMS",SongParts::PartDrums},
+            {"PART BASS",SongParts::PartBass},
+            {"PART GUITAR",SongParts::PartGuitar},
+            {"PART VOCALS",SongParts::PartVocals},
+            {"PLASTIC DRUMS",SongParts::PlasticDrums},
+            {"PLASTIC BASS",SongParts::PlasticBass},
+            {"PLASTIC GUITAR",SongParts::PlasticGuitar}
+    };
+
+    SongParts partFromString(const std::string& str)
+    {
+        auto it = midiNameToEnum.find(str);
+        if (it != midiNameToEnum.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            return SongParts::Invalid;
+        }
+    }
+
 	bool midiParsed=false;
 	std::string title;
 	float titleXOffset = 0;

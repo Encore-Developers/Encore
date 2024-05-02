@@ -320,7 +320,7 @@
 #define RAYGUI_VERSION_MINOR 0
 #define RAYGUI_VERSION_PATCH 0
 #define RAYGUI_VERSION  "4.0"
-#define RAYGUI_IMPLEMENTATION
+
 
 #if !defined(RAYGUI_STANDALONE)
     #include "raylib.h"
