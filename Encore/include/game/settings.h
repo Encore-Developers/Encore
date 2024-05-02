@@ -13,7 +13,7 @@
 
 
 class Settings {
-    player player;
+    Player player;
 private:
 	rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
 		rapidjson::Value array(rapidjson::kArrayType);

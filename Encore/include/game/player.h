@@ -5,7 +5,7 @@
 
 // clone hero defaults
 
-class player {
+class Player {
 public:
     int instrument = 0;
     int diff = 0;

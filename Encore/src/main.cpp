@@ -32,7 +32,7 @@
 #include "game/assets.h"
 
 Menu menu;
-player player;
+Player player;
 
 vector<std::string> ArgumentList::arguments;
 
