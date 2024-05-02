@@ -6,7 +6,17 @@
 #define ENCORE_GAMEPLAY_H
 
 #include <cstdlib>
-#include <string>
+#include "song/song.h"
+#include "song/songlist.h"
+#include "game/assets.h"
+#include "game/settings.h"
+#include "keybinds.h"
+#include "game/utility.h"
+#include "rhythmLogic.h"
+#include "raygui.h"
+#include "game/scenes.h"
+#include <algorithm>
+
 
 class Gameplay {
 public:

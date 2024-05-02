@@ -2,25 +2,8 @@
 #if defined(WIN32) && defined(NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
-#include "rapidjson/filewritestream.h"
-#include "raylib.h"
-#include <vector>
-#include <filesystem>
-#include <algorithm>
-#include "song/song.h"
-#include "song/songlist.h"
 #include "game/arguments.h"
-#include "game/utility.h"
-#include "game/player.cpp"
-#include "game/keybinds.h"
-#include "game/assets.h"
-#include "game/settings.h"
 #include "game/gameplay.h"
-#include "game/rhythmLogic.h"
-#include "raygui.h"
-#include <thread>
-#include <cstdlib>
-#include "game/scenes.h"
 
 Assets assets;
 

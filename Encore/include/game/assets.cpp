@@ -1,7 +1,5 @@
 #pragma once
-#include "raylib.h"
-#include <filesystem>
-#include "player.cpp"
+
 #include "assets.h"
 
 player player;
@@ -75,17 +73,17 @@ void Assets::loadAssets(const std::filesystem::path &directory) {
     odMultShader = LoadShader(nullptr, "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(nullptr, "Assets/ui/multnumber.fs");
     odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
     multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
     multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
@@ -116,21 +114,21 @@ void Assets::loadAssets(const std::filesystem::path &directory) {
     highwaySidesTexture = LoadTextureFilter(directory/"Assets/highway/highwaysides_new.png");
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
-    odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
-    odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
+    odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::overdriveColor;
+    odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::overdriveColor;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
-    expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
-    emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
     noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
     noteTexture = LoadTextureFilter(directory / "Assets/notes/note.png");
     emitTexture = LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
     noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
-    noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
     noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
     noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].value = 1;
@@ -142,7 +140,7 @@ void Assets::loadAssets(const std::filesystem::path &directory) {
     noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
     noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
     liftModel = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-    liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 

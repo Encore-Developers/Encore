@@ -4,15 +4,6 @@
 
 #include "gameplay.h"
 
-#include "song/song.h"
-#include "song/songlist.h"
-#include "game/assets.h"
-#include "game/settings.h"
-#include "game/player.cpp"
-#include "rhythmLogic.h"
-#include "raygui.h"
-#include "scenes.h"
-
 Assets assets;
 SongList songList;
 
@@ -45,7 +36,7 @@ void Gameplay::gameplay() {
 
     player::accentColor = Color{255, 0, 255, 255};
     player::overdriveColor = Color{255, 200, 0, 255};
-    
+
     // Y UP!!!! REMEMBER!!!!!!
     //						    	  x,    y,     z
     // 0.0f, 5.0f, -3.5f

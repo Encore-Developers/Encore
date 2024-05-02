@@ -2,13 +2,11 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
-#include "GLFW/glfw3.h"
-#include "keybinds.h"
-#include "raylib.h"
 #include <filesystem>
-#include <fstream>
+#include "GLFW/glfw3.h"
+#include "raylib.h"
 #include <iostream>
-#include "game/player.cpp"
+#include <fstream>
 
 #ifndef ENCORE_SETTINGS_H
 #define ENCORE_SETTINGS_H

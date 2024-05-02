@@ -2,8 +2,8 @@
 // Created by marie on 02/05/2024.
 //
 
-#include "raylib.h"
 #include <filesystem>
+#include "player.cpp"
 
 #ifndef ASSETS_H
 #define ASSETS_H

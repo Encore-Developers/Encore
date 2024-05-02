@@ -1,10 +1,11 @@
 #pragma once
+
+
 #include "settings.h"
 
-#include <utility>
 
 
-	rapidjson::Value Settings::vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
+rapidjson::Value Settings::vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
 		rapidjson::Value array(rapidjson::kArrayType);
 		for (const auto& value : vec) {
 			array.PushBack(value, allocator);

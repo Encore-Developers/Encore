@@ -8,6 +8,10 @@
 #include <vector>
 #include "GLFW/glfw3.h"
 #include "audio/audio.h"
+#include "raylib.h"
+#include "song/songlist.h"
+#include "settings.h"
+#include "song/song.h"
 
 bool streamsLoaded = false;
 std::vector<std::pair<Music, int>> loadedStreams;

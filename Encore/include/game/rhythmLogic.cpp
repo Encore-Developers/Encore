@@ -3,12 +3,7 @@
 //
 
 #include "rhythmLogic.h"
-#include "raylib.h"
-#include "player.cpp"
-#include "song/songlist.h"
-#include "settings.h"
-#include "song/song.h"
-#include "assets.h"
+
 
 SongList songList;
 Settings settings;
