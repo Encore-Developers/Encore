@@ -14,8 +14,7 @@ SongList songList;
 Settings settings;
 
 
-class rhythmLogic {
-    static void handleInputs(int lane, int action) {
+void RhythmLogic::handleInputs(int lane, int action) {
         if (lane == -2) return;
         if (settings.mirrorMode && lane != -1) {
             lane = (diff == 3 ? 4 : 3) - lane;
@@ -190,10 +189,11 @@ class rhythmLogic {
             }
         }
 
-    }
+};
+
 
 // what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
-    static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
+void RhythmLogic::keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
         if (!streamsLoaded) {
             return;
         }
@@ -249,9 +249,9 @@ class rhythmLogic {
 
             }
         }
-    }
+    };
 
-    static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
+void RhythmLogic::gamepadStateCallback(int jid, GLFWgamepadstate state) {
         if (!streamsLoaded) {
             return;
         }
@@ -330,9 +330,9 @@ class rhythmLogic {
                 }
             }
         }
-    }
+    };
 
-    static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
+void RhythmLogic::gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
         for (int i = 0; i < 6; i++) {
             axesValues2[i] = state.axes[i];
         }
@@ -369,8 +369,10 @@ class rhythmLogic {
             }
             pressedGamepadInput = -999;
         }
-    }
-
-    GLFWkeyfun origKeyCallback = glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-    GLFWgamepadstatefun origGamepadCallback = glfwSetGamepadStateCallback(gamepadStateCallback);
 };
+
+GLFWkeyfun RhythmLogic::origKeyCallback = glfwSetKeyCallback(glfwGetCurrentContext(), RhythmLogic::keyCallback);
+GLFWgamepadstatefun RhythmLogic::origGamepadCallback = glfwSetGamepadStateCallback(RhythmLogic::gamepadStateCallback);
+
+
+

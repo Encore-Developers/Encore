@@ -5,26 +5,24 @@
 #include "rapidjson/filewritestream.h"
 #include "raylib.h"
 #include <vector>
-#include <iostream>
 #include <filesystem>
 #include <algorithm>
 #include "song/song.h"
 #include "song/songlist.h"
-#include "audio/audio.h"
 #include "game/arguments.h"
 #include "game/utility.h"
 #include "game/player.cpp"
-#include "game/lerp.h"
 #include "game/keybinds.h"
-#include "game/assets.cpp"
+#include "game/assets.h"
 #include "game/settings.h"
-#include "game/gameplay.cpp"
+#include "game/gameplay.h"
 #include "game/rhythmLogic.h"
 #include "raygui.h"
 #include <thread>
 #include <cstdlib>
+#include "game/scenes.h"
 
-
+Assets assets;
 
 
 vector<std::string> ArgumentList::arguments;
@@ -33,10 +31,12 @@ static bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
 }
 
-bool midiLoaded = false;
-bool isPlaying = false;
 
-rhythmLogic rhythmLogic;
+Scenes scenes;
+RhythmLogic rhythmLogic;
+Gameplay gameplay;
+player player;
+SongList songList;
 
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
@@ -44,52 +44,7 @@ Rectangle view = { 0 };
 
 std::string trackSpeedButton;
 
-enum Screens {
-    SONG_LOADING_SCREEN,
-	MENU,
-	SONG_SELECT,
-	INSTRUMENT_SELECT,
-	DIFFICULTY_SELECT,
-	GAMEPLAY,
-	RESULTS,
-	SETTINGS
-};
-
-int currentScreen = MENU;
-
 double lastAxesTime = 0.0;
-
-Lerp lerpCtrl = Lerp();
-void createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically = true);
-void removeLerp(std::string key);
-void startLerp(std::string key);
-void updateStates();
-LerpState getState(std::string key);
-
-static void SwitchScreen(Screens screen) {
-	currentScreen = screen;
-	switch (screen) {
-		case MENU:
-			// reset lerps
-			lerpCtrl.removeLerp("MENU_LOGO");
-			break;
-
-		case SONG_SELECT:
-			break;
-        case SONG_LOADING_SCREEN:
-            break;
-        case INSTRUMENT_SELECT:
-            break;
-        case DIFFICULTY_SELECT:
-            break;
-        case GAMEPLAY:
-            break;
-        case RESULTS:
-            break;
-        case SETTINGS:
-            break;
-    }
-}
 
 int minWidth = 640;
 int minHeight = 480;
@@ -163,19 +118,7 @@ int main(int argc, char* argv[])
 
 	SetExitKey(0);
 
-	Camera3D camera = { 0 };
 
-	// Y UP!!!! REMEMBER!!!!!!
-	//							  x,    y,     z
-							// 0.0f, 5.0f, -3.5f
-	//								 6.5f
-	camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
-	// 0.0f, 0.0f, 6.5f
-	camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
-
-	camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
-	camera.fovy = 34.5f;
-	camera.projection = CAMERA_PERSPECTIVE;
 
 
 	std::filesystem::path executablePath(GetApplicationDirectory());
@@ -183,19 +126,20 @@ int main(int argc, char* argv[])
 	std::filesystem::path directory = executablePath.parent_path();
 
 
-	if (std::filesystem::exists(directory / "keybinds.json")) {
-		settings.migrateSettings(directory / "keybinds.json", directory / "settings.json");
-	}
-	settings.loadSettings(directory / "settings.json");
-	trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+    if (std::filesystem::exists(directory / "keybinds.json")) {
+        Settings::migrateSettings((const std::filesystem::path)(directory / "keybinds.json"), (const std::filesystem::path)(directory / "Settings::json"));
+    }
+
+    Settings::loadSettings(directory / "Settings::json");
+	trackSpeedButton = "Track Speed " + truncateFloatString(Settings::trackSpeedOptions[Settings::trackSpeed]) + "x";
 
 
 	ChangeDirectory(GetApplicationDirectory());
-	assets.loadAssets(directory);
+	Assets::loadAssets(directory);
     SetWindowIcon(icon);
 
-	glfwSetKeyCallback(glfwGetCurrentContext(), rhythmLogic.origKeyCallback);
-	glfwSetGamepadStateCallback(rhythmLogic.origGamepadCallback);
+	glfwSetKeyCallback(glfwGetCurrentContext(), RhythmLogic::origKeyCallback);
+	glfwSetGamepadStateCallback(RhythmLogic::origGamepadCallback);
     // GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
 
     GuiSetStyle(BUTTON, BASE, 0x181827FF);
@@ -236,59 +180,58 @@ int main(int argc, char* argv[])
 			else
 				SetWindowSize(GetScreenWidth(), minHeight);
 		}
-		float diffDistance = diff == 3 ? 2.0f : 1.5f;
-		float lineDistance = diff == 3 ? 1.5f : 1.0f;
+
 		BeginDrawing();
 
 		ClearBackground(DARKGRAY);
 
 		lerpCtrl.updateStates();
 
-		switch (currentScreen) {
+		switch (Scenes::currentScreen) {
             case SONG_LOADING_SCREEN : {
                 if (!songsLoaded) {
-                    DrawTextRHDI(TextFormat("Songs Loaded: %01i", songList.songCount), (float) GetScreenWidth() / 2 -
-                                                                                       MeasureTextRHDI(TextFormat(
+                    Assets::DrawTextRHDI(TextFormat("Songs Loaded: %01i", songList.songCount), (float) GetScreenWidth() / 2 -
+                                                 Assets::MeasureTextRHDI(TextFormat(
                                                                                                "Songs Loaded: %01i",
                                                                                                songList.songCount)) / 2,
                                  (float) GetScreenHeight() / 2, WHITE);
-                    DrawTextRHDI(TextFormat("Bad Songs: %01i", songList.badSongCount), (float) GetScreenWidth() / 2 -
-                                                                                       MeasureTextRHDI(TextFormat(
+                    Assets::DrawTextRHDI(TextFormat("Bad Songs: %01i", songList.badSongCount), (float) GetScreenWidth() / 2 -
+                                                 Assets::MeasureTextRHDI(TextFormat(
                                                                                                "Bad Songs: %01i",
                                                                                                songList.badSongCount)) /
                                                                                        2,
                                  (float) GetScreenHeight() / 2 + 50, WHITE);
-                    DrawTextRHDI(TextFormat("Folders: %01i", songList.directoryCount), (float) GetScreenWidth() / 2 -
-                                                                                       MeasureTextRHDI(TextFormat(
+                    Assets::DrawTextRHDI(TextFormat("Folders: %01i", songList.directoryCount), (float) GetScreenWidth() / 2 -
+                                                 Assets::MeasureTextRHDI(TextFormat(
                                                                                                "Folders: %01i",
                                                                                                songList.directoryCount)) /
                                                                                        2,
                                  (float) GetScreenHeight() / 2 - 50, WHITE);
 
-                    LoadSongs(settings.songPaths);
+                    LoadSongs(Settings::songPaths);
 
                     songsLoaded = true;
                 }
                 for (Song& song : songList.songs) {
                     song.titleScrollTime = GetTime();
-                    song.titleTextWidth = MeasureTextRubik(song.title.c_str(), 24);
+                    song.titleTextWidth = Assets::MeasureTextRubik(song.title.c_str(), 24);
                     song.artistScrollTime = GetTime();
-                    song.artistTextWidth = MeasureTextRubik(song.artist.c_str(), 20);
+                    song.artistTextWidth = Assets::MeasureTextRubik(song.artist.c_str(), 20);
                 }
 
-                currentScreen = SONG_SELECT;
+                Scenes::currentScreen = SONG_SELECT;
                 break;
             }
 			case MENU: {
 				lerpCtrl.createLerp("MENU_LOGO", EaseOutCubic, 1.5f);
-                DrawTextureEx(assets.encoreWhiteLogo, {(float)GetScreenWidth()/2 - assets.encoreWhiteLogo.width/4, (float)lerpCtrl.getState("MENU_LOGO").value * ((float)GetScreenHeight()/5 - assets.encoreWhiteLogo.height/4)},0,0.5, WHITE);
+                DrawTextureEx(encoreWhiteLogo, {(float)GetScreenWidth()/2 - encoreWhiteLogo.width/4, (float)lerpCtrl.getState("MENU_LOGO").value * ((float)GetScreenHeight()/5 - encoreWhiteLogo.height/4)},0,0.5, WHITE);
 
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) - 120,200, 60 }, "Play")) {
-					SwitchScreen(SONG_LOADING_SCREEN);
+					Scenes::SwitchScreen(SONG_LOADING_SCREEN);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) - 30,200, 60 }, "Options")) {
-					glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
-					SwitchScreen(SETTINGS);
+					glfwSetGamepadStateCallback(RhythmLogic::gamepadStateCallbackSetControls);
+                    Scenes::SwitchScreen(SETTINGS);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,((float)GetScreenHeight() / 2) + 60,200, 60 }, "Quit")) {
 					exit(0);
@@ -303,188 +246,188 @@ int main(int argc, char* argv[])
                 if (GuiButton({(float)GetScreenWidth()-180, (float)GetScreenHeight()-120, 180,60}, "Rescan Songs")) {
                     songsLoaded = false;
                 }
-                DrawTextureEx(assets.github, {(float)GetScreenWidth()-54, (float)GetScreenHeight()-54}, 0, 0.2, WHITE);
-                DrawTextureEx(assets.discord, {(float)GetScreenWidth()-113, (float)GetScreenHeight()-48}, 0, 0.075, WHITE);
+                DrawTextureEx(github, {(float)GetScreenWidth()-54, (float)GetScreenHeight()-54}, 0, 0.2, WHITE);
+                DrawTextureEx(discord, {(float)GetScreenWidth()-113, (float)GetScreenHeight()-48}, 0, 0.075, WHITE);
 				break;
 			}
 			case SETTINGS: {
-				if (settings.controllerType == -1 && controllerID != -1) {
+				if (Settings::controllerType == -1 && controllerID != -1) {
 					std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
-					settings.controllerType = getControllerType(gamepadName);
+					Settings::controllerType = getControllerType(gamepadName);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive)) {
-					glfwSetGamepadStateCallback(origGamepadCallback);
-					settings.keybinds4K = settings.prev4K;
-					settings.keybinds5K = settings.prev5K;
-					settings.keybinds4KAlt = settings.prev4KAlt;
-					settings.keybinds5KAlt = settings.prev5KAlt;
-					settings.keybindOverdrive = settings.prevOverdrive;
-					settings.keybindOverdriveAlt = settings.prevOverdriveAlt;
+					glfwSetGamepadStateCallback(RhythmLogic::origGamepadCallback);
+                    Settings::keybinds4K = Settings::prev4K;
+                    Settings::keybinds5K = Settings::prev5K;
+                    Settings::keybinds4KAlt = Settings::prev4KAlt;
+                    Settings::keybinds5KAlt = Settings::prev5KAlt;
+					Settings::keybindOverdrive = Settings::prevOverdrive;
+					Settings::keybindOverdriveAlt = Settings::prevOverdriveAlt;
 
-					settings.controller4K = settings.prevController4K;
-					settings.controller4KAxisDirection = settings.prevController4KAxisDirection;
-					settings.controller5K = settings.prevController5K;
-					settings.controller5KAxisDirection = settings.prevController5KAxisDirection;
-					settings.controllerOverdrive = settings.prevControllerOverdrive;
-					settings.controllerOverdriveAxisDirection = settings.prevControllerOverdriveAxisDirection;
-					settings.controllerType = settings.prevControllerType;
+					Settings::controller4K = Settings::prevController4K;
+					Settings::controller4KAxisDirection = Settings::prevController4KAxisDirection;
+					Settings::controller5K = Settings::prevController5K;
+					Settings::controller5KAxisDirection = Settings::prevController5KAxisDirection;
+					Settings::controllerOverdrive = Settings::prevControllerOverdrive;
+					Settings::controllerOverdriveAxisDirection = Settings::prevControllerOverdriveAxisDirection;
+					Settings::controllerType = Settings::prevControllerType;
 
-                    settings.highwayLengthMult = settings.prevHighwayLengthMult;
-					settings.trackSpeed = settings.prevTrackSpeed;
-					settings.inputOffsetMS = settings.prevInputOffsetMS;
-					settings.avOffsetMS = settings.prevAvOffsetMS;
-					settings.missHighwayDefault = settings.prevMissHighwayColor;
-					settings.mirrorMode = settings.prevMirrorMode;
+                    Settings::highwayLengthMult = Settings::prevHighwayLengthMult;
+					Settings::trackSpeed = Settings::prevTrackSpeed;
+					Settings::inputOffsetMS = Settings::prevInputOffsetMS;
+					Settings::avOffsetMS = Settings::prevAvOffsetMS;
+					Settings::missHighwayDefault = Settings::prevMissHighwayColor;
+					Settings::mirrorMode = Settings::prevMirrorMode;
 
-					settings.saveSettings(directory / "settings.json");
+					Settings::saveSettings(directory / "Settings::json");
 
-					SwitchScreen(MENU);
+					Scenes::SwitchScreen(MENU);
 				}
 				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive)) {
-					glfwSetGamepadStateCallback(origGamepadCallback);
-					settings.prev4K = settings.keybinds4K;
-					settings.prev5K = settings.keybinds5K;
-					settings.prev4KAlt = settings.keybinds4KAlt;
-					settings.prev5KAlt = settings.keybinds5KAlt;
-					settings.prevOverdrive = settings.keybindOverdrive;
-					settings.prevOverdriveAlt = settings.keybindOverdriveAlt;
+					glfwSetGamepadStateCallback(RhythmLogic::origGamepadCallback);
+					Settings::prev4K = Settings::keybinds4K;
+					Settings::prev5K = Settings::keybinds5K;
+					Settings::prev4KAlt = Settings::keybinds4KAlt;
+					Settings::prev5KAlt = Settings::keybinds5KAlt;
+					Settings::prevOverdrive = Settings::keybindOverdrive;
+					Settings::prevOverdriveAlt = Settings::keybindOverdriveAlt;
 
-					settings.prevController4K = settings.controller4K;
-					settings.prevController4KAxisDirection = settings.controller4KAxisDirection;
-					settings.prevController5K = settings.controller5K;
-					settings.prevController5KAxisDirection = settings.controller5KAxisDirection;
-					settings.prevControllerOverdrive = settings.controllerOverdrive;
-					settings.prevControllerOverdriveAxisDirection = settings.controllerOverdriveAxisDirection;
-					settings.prevControllerType = settings.controllerType;
+					Settings::prevController4K = Settings::controller4K;
+					Settings::prevController4KAxisDirection = Settings::controller4KAxisDirection;
+					Settings::prevController5K = Settings::controller5K;
+					Settings::prevController5KAxisDirection = Settings::controller5KAxisDirection;
+					Settings::prevControllerOverdrive = Settings::controllerOverdrive;
+					Settings::prevControllerOverdriveAxisDirection = Settings::controllerOverdriveAxisDirection;
+					Settings::prevControllerType = Settings::controllerType;
 
-                    settings.prevHighwayLengthMult = settings.highwayLengthMult;
-					settings.prevTrackSpeed = settings.trackSpeed;
-					settings.prevInputOffsetMS = settings.inputOffsetMS;
-					settings.prevAvOffsetMS = settings.avOffsetMS;
-					settings.prevMissHighwayColor = settings.missHighwayDefault;
-					settings.prevMirrorMode = settings.mirrorMode;
+                    Settings::prevHighwayLengthMult = Settings::highwayLengthMult;
+					Settings::prevTrackSpeed = Settings::trackSpeed;
+					Settings::prevInputOffsetMS = Settings::inputOffsetMS;
+					Settings::prevAvOffsetMS = Settings::avOffsetMS;
+					Settings::prevMissHighwayColor = Settings::missHighwayDefault;
+					Settings::prevMirrorMode = Settings::mirrorMode;
 
-					settings.saveSettings(directory / "settings.json");
+					Settings::saveSettings(directory / "Settings::json");
 
-					SwitchScreen(MENU);
+					Scenes::SwitchScreen(MENU);
 				}
 				static int selectedTab = 0;
 				GuiToggleGroup({ 0,0,(float)GetScreenWidth() / 3,60 }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
 				if (selectedTab == 0) { //Main settings tab
 					if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
-						if (settings.trackSpeed == settings.trackSpeedOptions.size() - 1) settings.trackSpeed = 0; else settings.trackSpeed++;
-						trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+						if (Settings::trackSpeed == Settings::trackSpeedOptions.size() - 1) Settings::trackSpeed = 0; else Settings::trackSpeed++;
+						trackSpeedButton = "Track Speed " + truncateFloatString(Settings::trackSpeedOptions[Settings::trackSpeed]) + "x";
 					}
-					DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
+					Assets::DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - Assets::MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
 
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-					float avOffsetFloat = (float)settings.avOffsetMS;
-                    float lengthSetting = settings.highwayLengthMult;
-					DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
-					DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
-					DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 210, 20, WHITE);
+					float avOffsetFloat = (float)Settings::avOffsetMS;
+                    float lengthSetting = Settings::highwayLengthMult;
+                    Assets::DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - Assets::MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
+                    Assets::DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - Assets::MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
+                    Assets::DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 210, 20, WHITE);
 					if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 220,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
-						settings.avOffsetMS = (int)avOffsetFloat;
+						Settings::avOffsetMS = (int)avOffsetFloat;
 					}
 
-					if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 230,60,60 }, "-1")) {
-						settings.avOffsetMS--;
+					if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - Assets::MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 230,60,60 }, "-1")) {
+						Settings::avOffsetMS--;
 					}
-					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
-						settings.avOffsetMS++;
+					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + Assets::MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
+						Settings::avOffsetMS++;
 					}
-                    DrawTextRubik(TextFormat("%01i ms",settings.avOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
+                    Assets::DrawTextRubik(TextFormat("%01i ms",Settings::avOffsetMS), (float)GetScreenWidth() / 2 - (Assets::MeasureTextRubik(TextFormat("%01i ms",Settings::avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
 
 
                     float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
-                    DrawTextRubik("Highway Length", (float)GetScreenWidth() / 2 - MeasureTextRubik("Highway Length", 20) / 2, lengthHeight - 20, 20, WHITE);
-                    DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
-                    DrawTextRubik(" 2.50 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
+                    Assets::DrawTextRubik("Highway Length", (float)GetScreenWidth() / 2 - Assets::MeasureTextRubik("Highway Length", 20) / 2, lengthHeight - 20, 20, WHITE);
+                    Assets::DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - Assets::MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
+                    Assets::DrawTextRubik(" 2.50 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
                     if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,lengthHeight,250,40 }, "", "", &lengthSetting, 0.25f, 2.5f)) {
-                        settings.highwayLengthMult = lengthSetting;
+                        Settings::highwayLengthMult = lengthSetting;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
-                        settings.highwayLengthMult-= 0.25;
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - Assets::MeasureTextRubik(" 0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
+                        Settings::highwayLengthMult-= 0.25;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" 2.50 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
-                        settings.highwayLengthMult+=0.25;
+                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + Assets::MeasureTextRubik(" 2.50 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
+                        Settings::highwayLengthMult+=0.25;
                     }
-                    DrawTextRubik(TextFormat("%1.2fx",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
+                    Assets::DrawTextRubik(TextFormat("%1.2fx",Settings::highwayLengthMult), (float)GetScreenWidth() / 2 - (Assets::MeasureTextRubik(TextFormat("%1.2f",Settings::highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
 
 
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", MissHighwayColor ? "True" : "False"))) {
-						settings.missHighwayDefault = !settings.missHighwayDefault;
-						MissHighwayColor = settings.missHighwayDefault;
+						Settings::missHighwayDefault = !Settings::missHighwayDefault;
+						MissHighwayColor = Settings::missHighwayDefault;
                     }
-					if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", settings.mirrorMode ? "True" : "False"))) {
-						settings.mirrorMode = !settings.mirrorMode;
+					if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", Settings::mirrorMode ? "True" : "False"))) {
+						Settings::mirrorMode = !Settings::mirrorMode;
 					}
-					float inputOffsetFloat = (float)settings.inputOffsetMS;
-					DrawTextRubik("Input Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
-					DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
-					DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 130, 20, WHITE);
+					float inputOffsetFloat = (float)Settings::inputOffsetMS;
+                    Assets::DrawTextRubik("Input Offset", (float)GetScreenWidth() / 2 - Assets::MeasureTextRubik("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
+                    Assets::DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - Assets::MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
+                    Assets::DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 130, 20, WHITE);
 					if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 140,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
-						settings.inputOffsetMS = (int)inputOffsetFloat;
+						Settings::inputOffsetMS = (int)inputOffsetFloat;
 					}
-					if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 150,60,60 }, "-1")) {
-						settings.inputOffsetMS--;
+					if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - Assets::MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 150,60,60 }, "-1")) {
+						Settings::inputOffsetMS--;
 					}
-					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20),(float)GetScreenHeight() / 2 - 150,60,60 }, "+1")) {
-						settings.inputOffsetMS++;
+					if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + Assets::MeasureTextRubik(" -500 ", 20),(float)GetScreenHeight() / 2 - 150,60,60 }, "+1")) {
+						Settings::inputOffsetMS++;
 					}
-					DrawTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
+                    Assets::DrawTextRubik(TextFormat("%01i ms",Settings::inputOffsetMS), (float)GetScreenWidth() / 2 - (Assets::MeasureTextRubik(TextFormat("%01i ms",Settings::inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 				}
 				else if (selectedTab == 1) { //Keyboard bindings tab
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					for (int i = 0; i < 5; i++) {
 						float j = i - 2.0f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, getKeyStr(settings.keybinds5K[i]).c_str())) {
-							settings.changing4k = false;
-							settings.changingAlt = false;
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, getKeyStr(Settings::keybinds5K[i]).c_str())) {
+							Settings::changing4k = false;
+							Settings::changingAlt = false;
 							selLane = i;
 							changingKey = true;
 						}
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, getKeyStr(settings.keybinds5KAlt[i]).c_str())) {
-							settings.changing4k = false;
-							settings.changingAlt = true;
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, getKeyStr(Settings::keybinds5KAlt[i]).c_str())) {
+							Settings::changing4k = false;
+							Settings::changingAlt = true;
 							selLane = i;
 							changingKey = true;
 						}
 					}
 					for (int i = 0; i < 4; i++) {
 						float j = i - 1.5f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, getKeyStr(settings.keybinds4K[i]).c_str())) {
-							settings.changingAlt = false;
-							settings.changing4k = true;
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, getKeyStr(Settings::keybinds4K[i]).c_str())) {
+							Settings::changingAlt = false;
+							Settings::changing4k = true;
 							selLane = i;
 							changingKey = true;
 						}
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, getKeyStr(settings.keybinds4KAlt[i]).c_str())) {
-							settings.changingAlt = true;
-							settings.changing4k = true;
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, getKeyStr(Settings::keybinds4KAlt[i]).c_str())) {
+							Settings::changingAlt = true;
+							Settings::changing4k = true;
 							selLane = i;
 							changingKey = true;
 						}
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,480,80,60 }, getKeyStr(settings.keybindOverdrive).c_str())) {
-						settings.changingAlt = false;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,480,80,60 }, getKeyStr(Settings::keybindOverdrive).c_str())) {
+						Settings::changingAlt = false;
 						changingKey = false;
 						changingOverdrive = true;
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) + 20,480,80,60 }, getKeyStr(settings.keybindOverdriveAlt).c_str())) {
-						settings.changingAlt = true;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) + 20,480,80,60 }, getKeyStr(Settings::keybindOverdriveAlt).c_str())) {
+						Settings::changingAlt = true;
 						changingKey = false;
 						changingOverdrive = true;
 					}
 					if (changingKey) {
-						std::vector<int>& bindsToChange = settings.changingAlt ? (settings.changing4k ? settings.keybinds4KAlt : settings.keybinds5KAlt) : (settings.changing4k ? settings.keybinds4K : settings.keybinds5K);
+						std::vector<int>& bindsToChange = Settings::changingAlt ? (Settings::changing4k ? Settings::keybinds4KAlt : Settings::keybinds5KAlt) : (Settings::changing4k ? Settings::keybinds4K : Settings::keybinds5K);
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-						std::string keyString = (settings.changing4k ? "4k" : "5k");
-						std::string altString = (settings.changingAlt ? " alt" : "");
+						std::string keyString = (Settings::changing4k ? "4k" : "5k");
+						std::string altString = (Settings::changingAlt ? " alt" : "");
 						std::string changeString = "Press a key for " + keyString + altString + " lane ";
-						DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-						DrawTextRubik("Or press escape to remove bound key", (GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        Assets::DrawTextRubik(changeString.c_str(), (GetScreenWidth() - Assets::MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        Assets::DrawTextRubik("Or press escape to remove bound key", (GetScreenWidth() - Assets::MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
 						int pressedKey = GetKeyPressed();
 						if (pressedKey != 0) {
 							if (pressedKey == KEY_ESCAPE)
@@ -496,18 +439,18 @@ int main(int argc, char* argv[])
 					}
 					if (changingOverdrive) {
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-						std::string altString = (settings.changingAlt ? " alt" : "");
+						std::string altString = (Settings::changingAlt ? " alt" : "");
 						std::string changeString = "Press a key for " + altString + " overdrive";
-						DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-						DrawTextRubik("Or press escape to remove bound key", (GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        Assets::DrawTextRubik(changeString.c_str(), (GetScreenWidth() - Assets::MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        Assets::DrawTextRubik("Or press escape to remove bound key", (GetScreenWidth() - Assets::MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
 						int pressedKey = GetKeyPressed();
 						if (pressedKey != 0) {
 							if (pressedKey == KEY_ESCAPE)
 								pressedKey = -1;
-							if (settings.changingAlt)
-								settings.keybindOverdriveAlt = pressedKey;
+							if (Settings::changingAlt)
+								Settings::keybindOverdriveAlt = pressedKey;
 							else
-								settings.keybindOverdrive = pressedKey;
+								Settings::keybindOverdrive = pressedKey;
 							changingOverdrive = false;
 						}
 					}
@@ -517,32 +460,32 @@ int main(int argc, char* argv[])
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					for (int i = 0; i < 5; i++) {
 						float j = i - 2.0f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
-							settings.changing4k = false;
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, getControllerStr(controllerID, Settings::controller5K[i], Settings::controllerType, Settings::controller5KAxisDirection[i]).c_str())) {
+							Settings::changing4k = false;
 							selLane = i;
 							changingKey = true;
 						}
 					}
 					for (int i = 0; i < 4; i++) {
 						float j = i - 1.5f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, getControllerStr(controllerID, settings.controller4K[i], settings.controllerType, settings.controller4KAxisDirection[i]).c_str())) {
-							settings.changing4k = true;
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, getControllerStr(controllerID, Settings::controller4K[i], Settings::controllerType, Settings::controller4KAxisDirection[i]).c_str())) {
+							Settings::changing4k = true;
 							selLane = i;
 							changingKey = true;
 						}
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, getControllerStr(controllerID, settings.controllerOverdrive, settings.controllerType, settings.controllerOverdriveAxisDirection).c_str())) {
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, getControllerStr(controllerID, Settings::controllerOverdrive, Settings::controllerType, Settings::controllerOverdriveAxisDirection).c_str())) {
 						changingKey = false;
 						changingOverdrive = true;
 					}
 					if (changingKey) {
-						std::vector<int>& bindsToChange = (settings.changing4k ? settings.controller4K : settings.controller5K);
-						std::vector<int>& directionToChange = (settings.changing4k ? settings.controller4KAxisDirection : settings.controller5KAxisDirection);
+						std::vector<int>& bindsToChange = (Settings::changing4k ? Settings::controller4K : Settings::controller5K);
+						std::vector<int>& directionToChange = (Settings::changing4k ? Settings::controller4KAxisDirection : Settings::controller5KAxisDirection);
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-						std::string keyString = (settings.changing4k ? "4k" : "5k");
+						std::string keyString = (Settings::changing4k ? "4k" : "5k");
 						std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
-						DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-						DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        Assets::DrawTextRubik(changeString.c_str(), (GetScreenWidth() - Assets::MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        Assets::DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - Assets::MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
 						if (pressedGamepadInput != -999) {
 							bindsToChange[selLane] = pressedGamepadInput;
 							if (pressedGamepadInput < 0) {
@@ -556,13 +499,13 @@ int main(int argc, char* argv[])
 					if (changingOverdrive) {
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
 						std::string changeString = "Press a button/axis for controller overdrive";
-						DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-						DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        Assets::DrawTextRubik(changeString.c_str(), (GetScreenWidth() - Assets::MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        Assets::DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - Assets::MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
 
 						if (pressedGamepadInput != -999) {
-							settings.controllerOverdrive = pressedGamepadInput;
+							Settings::controllerOverdrive = pressedGamepadInput;
 							if (pressedGamepadInput < 0) {
-								settings.controllerOverdriveAxisDirection = axisDirection;
+								Settings::controllerOverdriveAxisDirection = axisDirection;
 							}
 							changingOverdrive = false;
 							pressedGamepadInput = -999;
@@ -634,14 +577,14 @@ int main(int argc, char* argv[])
                 DrawTopOvershell(110);
                 float TextPlacementTB = (float)GetScreenHeight()*0.005f;
                 float TextPlacementLR = (float)GetScreenWidth()*0.10f;
-                DrawTextEx(assets.redHatDisplayLarge, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
+                DrawTextEx(redHatDisplayLarge, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
 
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     for (Song& song : songList.songs) {
                         song.titleXOffset = 0;
                         song.artistXOffset = 0;
                     }
-                    SwitchScreen(MENU);
+                    Scenes::SwitchScreen(MENU);
                 }
                 DrawRectangle(AlbumArtLeft-6,AlbumArtBottom+12,AlbumArtRight+12, GetScreenHeight()-AlbumArtBottom,WHITE);
                 DrawRectangle(AlbumArtLeft,AlbumArtBottom,AlbumArtRight, GetScreenHeight()-AlbumArtBottom,GetColor(0x181827FF));
@@ -706,7 +649,7 @@ int main(int argc, char* argv[])
 					}
                     Color LightText = Color{203, 203, 203, 255};
 					BeginScissorMode(songXPos + 15, songYPos + 10, songTitleWidth, 45);
-					DrawTextEx(assets.rubikBold32,song.title.c_str(), {songXPos + 15 + song.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
+					DrawTextEx(rubikBold32,song.title.c_str(), {songXPos + 15 + song.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
 					EndScissorMode();
 
 					if (song.artistTextWidth > songArtistWidth) {
@@ -723,7 +666,7 @@ int main(int argc, char* argv[])
 
                     Color SelectedText = WHITE;
 					BeginScissorMode(songXPos + 30 + songTitleWidth, songYPos + 12, songArtistWidth, 45);
-					DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
+                    Assets::DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
 					EndScissorMode();
 				}
                 // hehe
@@ -732,7 +675,7 @@ int main(int argc, char* argv[])
                 if (selSong) {
                     if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
-                        SwitchScreen(INSTRUMENT_SELECT);
+                        Scenes::SwitchScreen(INSTRUMENT_SELECT);
 
                     }
                 }
@@ -769,8 +712,8 @@ int main(int argc, char* argv[])
                 float BottomOvershell = GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(assets.redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
-                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
+                DrawTextEx(redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
+                DrawTextEx(rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
 				if (!midiLoaded) {
 					if (!songList.songs[curPlayingSong].midiParsed) {
 						smf::MidiFile midiFile;
@@ -820,7 +763,7 @@ int main(int argc, char* argv[])
 				else {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
 						midiLoaded = false;
-						SwitchScreen(SONG_SELECT);
+                        Scenes::SwitchScreen(SONG_SELECT);
 					}
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					for (int i = 0; i < 4; i++) {
@@ -831,12 +774,12 @@ int main(int argc, char* argv[])
 								if (instrument == 1 || instrument == 3) {
 									isBassOrVocal = 1;
 								}
-								SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
-								SwitchScreen(DIFFICULTY_SELECT);
+								SetShaderValue(odMultShader, isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
+                                Scenes::SwitchScreen(DIFFICULTY_SELECT);
 							}
 
-							DrawTextRubik(songPartsList[i].c_str(), LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
-							DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
+                            Assets::DrawTextRubik(songPartsList[i].c_str(), LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
+                            Assets::DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
 						}
 					}
 				}
@@ -872,23 +815,23 @@ int main(int argc, char* argv[])
                 float BottomOvershell = GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(assets.redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
-                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
+                DrawTextEx(redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
+                DrawTextEx(rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
 				for (int i = 0; i < 4; i++) {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
-						SwitchScreen(INSTRUMENT_SELECT);
+                        Scenes::SwitchScreen(INSTRUMENT_SELECT);
 					}
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					if (!songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.empty()) {
 						if (GuiButton({ LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "")) {
 							diff = i;
-							SwitchScreen(GAMEPLAY);
+                            Scenes::SwitchScreen(GAMEPLAY);
 							isPlaying = true;
 							startedPlayingSong = GetTime();
-							glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-							glfwSetGamepadStateCallback(gamepadStateCallback);
+							glfwSetKeyCallback(glfwGetCurrentContext(), RhythmLogic::keyCallback);
+							glfwSetGamepadStateCallback(RhythmLogic::gamepadStateCallback);
 						}
-						DrawTextRubik(diffList[i].c_str(), LeftSide + 150 - (MeasureTextRubik(diffList[i].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
+                        Assets::DrawTextRubik(diffList[i].c_str(), LeftSide + 150 - (Assets::MeasureTextRubik(diffList[i].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
 					}
 				}
                 DrawBottomOvershell();
@@ -896,12 +839,12 @@ int main(int argc, char* argv[])
 				break;
 			}
 			case GAMEPLAY: {
-                gameplay();
+                gameplay.gameplay();
 			}
 			case RESULTS: {
 				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore,diff);
                 for (int i = 0; i < starsval; i++) {
-                    DrawTextureEx(goldStars? assets.goldStar : assets.star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
+                    DrawTextureEx(goldStars? goldStar : star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
                 }
 /*
 				char* starsDisplay = (char*)"";
@@ -923,25 +866,26 @@ int main(int argc, char* argv[])
 				else {
 					starsDisplay = (char*)"";
 				}*/
-                DrawTextRHDI("Results", 70,7, WHITE);
-				DrawTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
+                Assets::DrawTextRHDI("Results", 70,7, WHITE);
+                Assets::DrawTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (Assets::MeasureTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
 				if (FC) {
-					DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
+                    Assets::DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (Assets::MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
 				}
-				DrawTextRHDI(scoreCommaFormatter(score).c_str(), (GetScreenWidth() / 2) - MeasureTextRHDI(scoreCommaFormatter(score).c_str())/2, 120, Color{107, 161, 222,255});
+
+				Assets::DrawTextRHDI(Gameplay::scoreCommaFormatter(score).c_str(), (GetScreenWidth() / 2) - Assets::MeasureTextRHDI(Gameplay::scoreCommaFormatter(score).c_str())/2, 120, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
-				DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
-				DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
-				DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 256, 24, WHITE);
-				DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 288, 24, WHITE);
-				DrawTextRubik(TextFormat("Longest Streak: %01i", maxCombo), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Longest Streak: %01i", maxCombo), 24) / 2), 320, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 256, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 288, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Longest Streak: %01i", maxCombo), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Longest Streak: %01i", maxCombo), 24) / 2), 320, 24, WHITE);
 				if (GuiButton({ 0,0,60,60 }, "<")) {
-					SwitchScreen(SONG_SELECT);
+                    Scenes::SwitchScreen(SONG_SELECT);
 				}
 				break;
 			}
             default: {
-                SwitchScreen(MENU);
+                Scenes::SwitchScreen(MENU);
             }
 		}
 		EndDrawing();

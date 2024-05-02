@@ -41,8 +41,11 @@ int songSelectOffset = 0;
 bool changingKey = false;
 bool changingOverdrive = false;
 double startedPlayingSong = 0.0;
+bool midiLoaded = false;
+bool isPlaying = false;
 
-class rhythmLogic {
+class RhythmLogic {
+public:
     static void handleInputs(int lane, int action);
 
     static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);
@@ -50,6 +53,10 @@ class rhythmLogic {
     static void gamepadStateCallback(int jid, GLFWgamepadstate state);
 
     static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state);
-}
+
+    static GLFWkeyfun origKeyCallback;
+    static GLFWgamepadstatefun origGamepadCallback;
+
+};
 
 #endif //ENCORE_RHYTHMLOGIC_H

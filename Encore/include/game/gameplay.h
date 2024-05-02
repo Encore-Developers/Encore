@@ -5,8 +5,13 @@
 #ifndef ENCORE_GAMEPLAY_H
 #define ENCORE_GAMEPLAY_H
 
+#include <cstdlib>
+#include <string>
 
-class gameplay {
+class Gameplay {
+public:
+    static std::string scoreCommaFormatter(int value);
+    static void gameplay();
 
 };
 

@@ -6,11 +6,12 @@
 
 #include "song/song.h"
 #include "song/songlist.h"
-#include "game/assets.cpp"
+#include "game/assets.h"
 #include "game/settings.h"
 #include "game/player.cpp"
-#include "game/settings.h"
+#include "rhythmLogic.h"
 #include "raygui.h"
+#include "scenes.h"
 
 Assets assets;
 SongList songList;
@@ -27,14 +28,35 @@ struct Separators : public std::numpunct<CharT>
     }
 };
 
-std::string scoreCommaFormatter(int value) {
+std::string Gameplay::scoreCommaFormatter(int value) {
     std::stringstream ss;
     ss.imbue(std::locale(std::cout.getloc(), new Separators <char>()));
     ss << std::fixed << value;
     return ss.str();
 }
 
-static void gameplay() {
+float diffDistance = diff == 3 ? 2.0f : 1.5f;
+float lineDistance = diff == 3 ? 1.5f : 1.0f;
+Camera3D camera = { 0 };
+
+
+
+void Gameplay::gameplay() {
+
+    player::accentColor = Color{255, 0, 255, 255};
+    player::overdriveColor = Color{255, 200, 0, 255};
+    
+    // Y UP!!!! REMEMBER!!!!!!
+    //						    	  x,    y,     z
+    // 0.0f, 5.0f, -3.5f
+    //							    	 6.5f
+    camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
+    // 0.0f, 0.0f, 6.5f
+    camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
+
+    camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
+    camera.fovy = 34.5f;
+    camera.projection = CAMERA_PERSPECTIVE;
     // IMAGE BACKGROUNDS??????
     ClearBackground(BLACK);
 
@@ -51,9 +73,9 @@ static void gameplay() {
     int totalScore = score + sustainScoreBuffer[0] + sustainScoreBuffer[1] + sustainScoreBuffer[2] + sustainScoreBuffer[3] + sustainScoreBuffer[4];
 
 
-    DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str()), 30,  Color{107, 161, 222,255});
-    DrawTextRHDI(scoreCommaFormatter(combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(combo).c_str()), 125, FC ? GOLD : (combo <= 3) ? RED : WHITE);
-    DrawTextRubik32(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
+    Assets::DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - Assets::MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str()), 30,  Color{107, 161, 222,255});
+    Assets::DrawTextRHDI(scoreCommaFormatter(combo).c_str(), (scorePos + 200) - Assets::MeasureTextRHDI(scoreCommaFormatter(combo).c_str()), 125, FC ? GOLD : (combo <= 3) ? RED : WHITE);
+    Assets::DrawTextRubik32(TextFormat("%s", FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
     // DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
     float multFill = (!overdrive ? (float)(multiplier(instrument) - 1) : ((float)(multiplier(instrument) / 2) - 1)) / (float)maxMultForMeter(instrument);
@@ -64,22 +86,22 @@ static void gameplay() {
     SetShaderValue(odMultShader, comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
     SetShaderValue(odMultShader, odLoc, &overdriveFill, SHADER_UNIFORM_FLOAT);
     if (extraGameplayStats) {
-        DrawTextRubik(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24,
+        Assets::DrawTextRubik(TextFormat("Perfect Hit: %01i", perfectHit), 5, GetScreenHeight() - 280, 24,
                       (perfectHit > 0) ? GOLD : WHITE);
-        DrawTextRubik(TextFormat("Max Combo: %01i", maxCombo), 5, GetScreenHeight() - 130, 24, WHITE);
-        DrawTextRubik(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 100, 24,
+        Assets::DrawTextRubik(TextFormat("Max Combo: %01i", maxCombo), 5, GetScreenHeight() - 130, 24, WHITE);
+        Assets::DrawTextRubik(TextFormat("Multiplier: %01i", multiplier(instrument)), 5, GetScreenHeight() - 100, 24,
                       (multiplier(instrument) >= 4) ? SKYBLUE : WHITE);
-        DrawTextRubik(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
-        DrawTextRubik(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24,
+        Assets::DrawTextRubik(TextFormat("Notes Hit: %01i", notesHit), 5, GetScreenHeight() - 250, 24, FC ? GOLD : WHITE);
+        Assets::DrawTextRubik(TextFormat("Notes Missed: %01i", notesMissed), 5, GetScreenHeight() - 220, 24,
                       ((combo == 0) && (!FC)) ? RED : WHITE);
-        DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 40, 24, FC ? GOLD : WHITE);
+        Assets::DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), 5, GetScreenHeight() - 40, 24, FC ? GOLD : WHITE);
     }
 
     if ((overdrive ? multiplier(instrument) / 2 : multiplier(instrument))>= (instrument == 1 || instrument == 3 ? 6 : 4)) {
-        expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-        emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-        smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-        smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+        expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
+        emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
+        smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
+        smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
     } else {
         expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
         emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
@@ -100,8 +122,8 @@ static void gameplay() {
             note.perfect = false;
             note.countedForODPhrase = false;
         }
-        glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-        glfwSetGamepadStateCallback(origGamepadCallback);
+        glfwSetKeyCallback(glfwGetCurrentContext(), RhythmLogic::origKeyCallback);
+        glfwSetGamepadStateCallback( RhythmLogic::origGamepadCallback);
         // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
         // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
         for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
@@ -109,7 +131,7 @@ static void gameplay() {
             phrase.notesHit = 0;
             phrase.added = false;
         }
-        SwitchScreen(SONG_SELECT);
+        Scenes::SwitchScreen(SONG_SELECT);
         overdrive = false;
         overdriveFill = 0.0f;
         overdriveActiveFill = 0.0f;
@@ -144,9 +166,9 @@ static void gameplay() {
         int songSeconds = (int)GetMusicTimeLength(loadedStreams[0].first) % 60;
 
         const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
-        int textLength = MeasureTextRubik32(textTime);
+        int textLength = Assets::MeasureTextRubik32(textTime);
 
-        DrawTextRubik32(textTime,GetScreenWidth() - textLength,GetScreenHeight()-40,WHITE);
+        Assets::DrawTextRubik32(textTime,GetScreenWidth() - textLength,GetScreenHeight()-40,WHITE);
         if (GetTime() >= GetMusicTimeLength(loadedStreams[0].first) + startedPlayingSong) {
             for (Note& note : songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes) {
                 note.accounted = false;
@@ -159,8 +181,8 @@ static void gameplay() {
                 note.countedForODPhrase = false;
                 // notes += 1;
             }
-            glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-            glfwSetGamepadStateCallback(origGamepadCallback);
+            glfwSetKeyCallback(glfwGetCurrentContext(),  RhythmLogic::origKeyCallback);
+            glfwSetGamepadStateCallback(RhythmLogic::origGamepadCallback);
             // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
             for (odPhrase& phrase : songList.songs[curPlayingSong].parts[instrument]->charts[diff].odPhrases) {
                 phrase.missed = false;
@@ -180,9 +202,9 @@ static void gameplay() {
             multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
             multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
             multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
-            expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-            emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-            SwitchScreen(RESULTS);
+            expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
+            emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
+            Scenes::SwitchScreen(RESULTS);
 
         }
         for (auto& stream : loadedStreams) {
@@ -227,7 +249,7 @@ static void gameplay() {
     }
 
     if (musicTime < 7.5) {
-        DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, ((GetScreenHeight()/3)) - 20, WHITE);
+        Assets::DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, ((GetScreenHeight()/3)) - 20, WHITE);
         DrawTextEx(redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {45, ((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
         //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
     }
@@ -339,8 +361,8 @@ static void gameplay() {
 
         // horrifying.
 
-        DrawCylinderEx(Vector3{ diff == 3 ? 2.7f : 2.2f,0,(float)(smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odStart)) }, Vector3{ diff == 3 ? 2.7f : 2.2f,0,(float)(smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player.overdriveColor);
-        DrawCylinderEx(Vector3{ diff == 3 ? -2.7f : -2.2f,0,(float)(smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odStart)) }, Vector3{ diff == 3 ? -2.7f : -2.2f,0,(float)(smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player.overdriveColor);
+        DrawCylinderEx(Vector3{ diff == 3 ? 2.7f : 2.2f,0,(float)(smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odStart)) }, Vector3{ diff == 3 ? 2.7f : 2.2f,0,(float)(smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player::overdriveColor);
+        DrawCylinderEx(Vector3{ diff == 3 ? -2.7f : -2.2f,0,(float)(smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odStart)) }, Vector3{ diff == 3 ? -2.7f : -2.2f,0,(float)(smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + smasherPos ? (highwayLength * 1.5f) + smasherPos : (float)(smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player::overdriveColor);
 
     }
     for (int lane = 0; lane < (diff == 3 ? 5 : 4); lane++) {
@@ -425,7 +447,7 @@ static void gameplay() {
                     }*/
 
                     if (curNote.held && !curNote.renderAsOD) {
-                        DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
+                        DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player::accentColor);
                     }
                     if (curNote.renderAsOD && curNote.held) {
                         DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
@@ -442,7 +464,7 @@ static void gameplay() {
                                                     smasherPos + (highwayLength * (float)relTime) },
                                            Vector3{ notePosX, 0.05f,
                                                     smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-                                           player.accentColor);
+                                           player::accentColor);
                         }
                     }
 
@@ -465,7 +487,7 @@ static void gameplay() {
                     }
 
                 }
-                expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
             }
             if (curNote.miss) {
                 DrawModel(curNote.lift ? liftModel : noteModel, Vector3{ notePosX,0,smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
@@ -473,7 +495,7 @@ static void gameplay() {
                     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
                 }
                 else {
-                    expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                    expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player::accentColor;
                 }
             }
             if (curNote.hit && GetMusicTimePlayed(loadedStreams[0].first) < curNote.hitTime + 0.15f) {
@@ -512,15 +534,14 @@ static void gameplay() {
     int songMinutes = GetMusicTimeLength(loadedStreams[0].first)/60;
     int songSeconds = (int)GetMusicTimeLength(loadedStreams[0].first) % 60;
     const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
-    int textLength = MeasureTextRubik32(textTime);
+    int textLength = Assets::MeasureTextRubik32(textTime);
     GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
-    GuiSetStyle(PROGRESSBAR, BASE, ColorToInt(FC ? GOLD : player.accentColor));
-    GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(FC ? GOLD : player.accentColor));
-    GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED, ColorToInt(FC ? GOLD : player.accentColor));
-    GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED, ColorToInt(FC ? GOLD : player.accentColor));
-    GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(FC ? GOLD : player.accentColor));
+    GuiSetStyle(PROGRESSBAR, BASE, ColorToInt(FC ? GOLD : player::accentColor));
+    GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(FC ? GOLD : player::accentColor));
+    GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED, ColorToInt(FC ? GOLD : player::accentColor));
+    GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED, ColorToInt(FC ? GOLD : player::accentColor));
+    GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(FC ? GOLD : player::accentColor));
 
     GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),8}, "", "", &songPlayed, 0, songLength);
 
-    break;
 };

@@ -26,15 +26,10 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
 endif()
 
 # Add all subdirectories of src
-file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp")
 file(GLOB_RECURSE INC_FILES "include/*.h" "src/*.h")
 # Add source files to the executable
-add_executable(Encore ${SRC_FILES} ${INC_FILES}
-        include/game/gameplay.cpp
-        include/game/gameplay.h
-        include/game/assets.h
-        include/game/rhythmLogic.cpp
-        include/game/rhythmLogic.h)
+add_executable(Encore ${SRC_FILES} ${INC_FILES})
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
