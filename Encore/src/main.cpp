@@ -1016,7 +1016,7 @@ int main(int argc, char* argv[])
 				curBPM = 0;
 				instrument = 0;
 				diff = 0;
-                int randSong = rand()%(songList.songCount-0+1)+0;
+                static int randSong = rand()%songList.songCount;
                 int selectedSongInt = curPlayingSong;
                 Song selectedSong = songList.songs[selectedSongInt];
 
@@ -1165,7 +1165,7 @@ int main(int argc, char* argv[])
                     }
                 }
                 DrawBottomBottomOvershell();
-                break
+				break;
 			}
 			case INSTRUMENT_SELECT: {
                 selSong = false;

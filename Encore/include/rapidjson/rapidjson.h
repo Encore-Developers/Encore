@@ -14,7 +14,7 @@
 
 #ifndef RAPIDJSON_RAPIDJSON_H_
 #define RAPIDJSON_RAPIDJSON_H_
-
+#define RAPIDJSON_HAS_STDSTRING 1
 /*!\file rapidjson.h
     \brief common definitions and configuration
 

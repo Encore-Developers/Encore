@@ -833,8 +833,8 @@ public:
 		mirrorMember->value.SetBool(mirrorMode);
         rapidjson::Value::MemberIterator songDirMember = settings.FindMember("songDirectories");
         songDirMember->value.Clear();
-        for (filesystem::path &path: songPaths)
-            songDirMember->value.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
+		for (filesystem::path& path : songPaths)
+			songDirMember->value.PushBack(rapidjson::Value().SetString(path.string(), allocator), allocator);
 		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
 		keybinds4KMember->value.Clear();
 		for (int& key : keybinds4K)
