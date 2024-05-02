@@ -18,7 +18,7 @@ static bool compareNotes(const Note& a, const Note& b) {
 Scenes scenes;
 RhythmLogic rhythmLogic;
 Gameplay gameplay;
-player player;
+Player player;
 SongList songList;
 
 Vector2 viewScroll = { 0,0 };
@@ -126,8 +126,8 @@ int main(int argc, char* argv[])
     // GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
 
     GuiSetStyle(BUTTON, BASE, 0x181827FF);
-    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(Player::accentColor, -0.5)));
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(Player::accentColor, -0.25)));
     GuiSetStyle(BUTTON, BORDER, 0xFFFFFFFF);
     GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
@@ -138,8 +138,8 @@ int main(int argc, char* argv[])
 	GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 
 	GuiSetStyle(TOGGLE, BASE, 0x181827FF);
-	GuiSetStyle(TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-	GuiSetStyle(TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+	GuiSetStyle(TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(Player::accentColor, -0.5)));
+	GuiSetStyle(TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(Player::accentColor, -0.25)));
 	GuiSetStyle(TOGGLE, BORDER, 0xFFFFFFFF);
 	GuiSetStyle(TOGGLE, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
 	GuiSetStyle(TOGGLE, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
 
 		switch (Scenes::currentScreen) {
             case SONG_LOADING_SCREEN : {
-                if (!songsLoaded) {
+                if (!RhythmLogic::songsLoaded) {
                     Assets::DrawTextRHDI(TextFormat("Songs Loaded: %01i", songList.songCount), (float) GetScreenWidth() / 2 -
                                                  Assets::MeasureTextRHDI(TextFormat(
                                                                                                "Songs Loaded: %01i",
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
 
                     LoadSongs(Settings::songPaths);
 
-                    songsLoaded = true;
+                    RhythmLogic::songsLoaded = true;
                 }
                 for (Song& song : songList.songs) {
                     song.titleScrollTime = GetTime();
@@ -227,18 +227,18 @@ int main(int argc, char* argv[])
                     OpenURL("https://discord.gg/GhkgVUAC9v");
                 }
                 if (GuiButton({(float)GetScreenWidth()-180, (float)GetScreenHeight()-120, 180,60}, "Rescan Songs")) {
-                    songsLoaded = false;
+                    RhythmLogic::songsLoaded = false;
                 }
                 DrawTextureEx(github, {(float)GetScreenWidth()-54, (float)GetScreenHeight()-54}, 0, 0.2, WHITE);
                 DrawTextureEx(discord, {(float)GetScreenWidth()-113, (float)GetScreenHeight()-48}, 0, 0.075, WHITE);
 				break;
 			}
 			case SETTINGS: {
-				if (Settings::controllerType == -1 && controllerID != -1) {
-					std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
-					Settings::controllerType = getControllerType(gamepadName);
+				if (Settings::controllerType == -1 && RhythmLogic::controllerID != -1) {
+					std::string gamepadName = std::string(glfwGetGamepadName(RhythmLogic::controllerID));
+					Settings::controllerType = Keybinds::getControllerType(gamepadName);
 				}
-				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive)) {
+				if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(RhythmLogic::changingKey || RhythmLogic::changingOverdrive)) {
 					glfwSetGamepadStateCallback(RhythmLogic::origGamepadCallback);
                     Settings::keybinds4K = Settings::prev4K;
                     Settings::keybinds5K = Settings::prev5K;
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
 
 					Scenes::SwitchScreen(MENU);
 				}
-				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive)) {
+				if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(RhythmLogic::changingKey || RhythmLogic::changingOverdrive)) {
 					glfwSetGamepadStateCallback(RhythmLogic::origGamepadCallback);
 					Settings::prev4K = Settings::keybinds4K;
 					Settings::prev5K = Settings::keybinds5K;
@@ -338,9 +338,9 @@ int main(int argc, char* argv[])
                     Assets::DrawTextRubik(TextFormat("%1.2fx",Settings::highwayLengthMult), (float)GetScreenWidth() / 2 - (Assets::MeasureTextRubik(TextFormat("%1.2f",Settings::highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
 
 
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", MissHighwayColor ? "True" : "False"))) {
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", Player::MissHighwayColor ? "True" : "False"))) {
 						Settings::missHighwayDefault = !Settings::missHighwayDefault;
-						MissHighwayColor = Settings::missHighwayDefault;
+                        Player::MissHighwayColor = Settings::missHighwayDefault;
                     }
 					if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", Settings::mirrorMode ? "True" : "False"))) {
 						Settings::mirrorMode = !Settings::mirrorMode;
@@ -365,45 +365,45 @@ int main(int argc, char* argv[])
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					for (int i = 0; i < 5; i++) {
 						float j = i - 2.0f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, getKeyStr(Settings::keybinds5K[i]).c_str())) {
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, Keybinds::getKeyStr(Settings::keybinds5K[i]).c_str())) {
 							Settings::changing4k = false;
 							Settings::changingAlt = false;
-							selLane = i;
-							changingKey = true;
+							RhythmLogic::selLane = i;
+							RhythmLogic::changingKey = true;
 						}
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, getKeyStr(Settings::keybinds5KAlt[i]).c_str())) {
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, Keybinds::getKeyStr(Settings::keybinds5KAlt[i]).c_str())) {
 							Settings::changing4k = false;
 							Settings::changingAlt = true;
-							selLane = i;
-							changingKey = true;
+							RhythmLogic::selLane = i;
+							RhythmLogic::changingKey = true;
 						}
 					}
 					for (int i = 0; i < 4; i++) {
 						float j = i - 1.5f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, getKeyStr(Settings::keybinds4K[i]).c_str())) {
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, Keybinds::getKeyStr(Settings::keybinds4K[i]).c_str())) {
 							Settings::changingAlt = false;
 							Settings::changing4k = true;
-							selLane = i;
-							changingKey = true;
+							RhythmLogic::selLane = i;
+							RhythmLogic::changingKey = true;
 						}
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, getKeyStr(Settings::keybinds4KAlt[i]).c_str())) {
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, Keybinds::getKeyStr(Settings::keybinds4KAlt[i]).c_str())) {
 							Settings::changingAlt = true;
 							Settings::changing4k = true;
-							selLane = i;
-							changingKey = true;
+							RhythmLogic::selLane = i;
+							RhythmLogic::changingKey = true;
 						}
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,480,80,60 }, getKeyStr(Settings::keybindOverdrive).c_str())) {
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,480,80,60 }, Keybinds::getKeyStr(Settings::keybindOverdrive).c_str())) {
 						Settings::changingAlt = false;
-						changingKey = false;
-						changingOverdrive = true;
+						RhythmLogic::changingKey = false;
+						RhythmLogic::changingOverdrive = true;
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) + 20,480,80,60 }, getKeyStr(Settings::keybindOverdriveAlt).c_str())) {
+					if (GuiButton({ ((float)GetScreenWidth() / 2) + 20,480,80,60 }, Keybinds::getKeyStr(Settings::keybindOverdriveAlt).c_str())) {
 						Settings::changingAlt = true;
-						changingKey = false;
-						changingOverdrive = true;
+						RhythmLogic::changingKey = false;
+						RhythmLogic::changingOverdrive = true;
 					}
-					if (changingKey) {
+					if (RhythmLogic::changingKey) {
 						std::vector<int>& bindsToChange = Settings::changingAlt ? (Settings::changing4k ? Settings::keybinds4KAlt : Settings::keybinds5KAlt) : (Settings::changing4k ? Settings::keybinds4K : Settings::keybinds5K);
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
 						std::string keyString = (Settings::changing4k ? "4k" : "5k");
@@ -415,12 +415,12 @@ int main(int argc, char* argv[])
 						if (pressedKey != 0) {
 							if (pressedKey == KEY_ESCAPE)
 								pressedKey = -1;
-							bindsToChange[selLane] = pressedKey;
-							selLane = 0;
-							changingKey = false;
+							bindsToChange[RhythmLogic::selLane] = pressedKey;
+							RhythmLogic::selLane = 0;
+							RhythmLogic::changingKey = false;
 						}
 					}
-					if (changingOverdrive) {
+					if (RhythmLogic::changingOverdrive) {
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
 						std::string altString = (Settings::changingAlt ? " alt" : "");
 						std::string changeString = "Press a key for " + altString + " overdrive";
@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
 								Settings::keybindOverdriveAlt = pressedKey;
 							else
 								Settings::keybindOverdrive = pressedKey;
-							changingOverdrive = false;
+							RhythmLogic::changingOverdrive = false;
 						}
 					}
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
@@ -443,84 +443,84 @@ int main(int argc, char* argv[])
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 					for (int i = 0; i < 5; i++) {
 						float j = i - 2.0f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, getControllerStr(controllerID, Settings::controller5K[i], Settings::controllerType, Settings::controller5KAxisDirection[i]).c_str())) {
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, Keybinds::getControllerStr(RhythmLogic::controllerID, Settings::controller5K[i], Settings::controllerType, Settings::controller5KAxisDirection[i]).c_str())) {
 							Settings::changing4k = false;
-							selLane = i;
-							changingKey = true;
+							RhythmLogic::selLane = i;
+							RhythmLogic::changingKey = true;
 						}
 					}
 					for (int i = 0; i < 4; i++) {
 						float j = i - 1.5f;
-						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, getControllerStr(controllerID, Settings::controller4K[i], Settings::controllerType, Settings::controller4KAxisDirection[i]).c_str())) {
+						if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, Keybinds::getControllerStr(RhythmLogic::controllerID, Settings::controller4K[i], Settings::controllerType, Settings::controller4KAxisDirection[i]).c_str())) {
 							Settings::changing4k = true;
-							selLane = i;
-							changingKey = true;
+							RhythmLogic::selLane = i;
+							RhythmLogic::changingKey = true;
 						}
 					}
-					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, getControllerStr(controllerID, Settings::controllerOverdrive, Settings::controllerType, Settings::controllerOverdriveAxisDirection).c_str())) {
-						changingKey = false;
-						changingOverdrive = true;
+					if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, Keybinds::getControllerStr(RhythmLogic::controllerID, Settings::controllerOverdrive, Settings::controllerType, Settings::controllerOverdriveAxisDirection).c_str())) {
+						RhythmLogic::changingKey = false;
+						RhythmLogic::changingOverdrive = true;
 					}
-					if (changingKey) {
+					if (RhythmLogic::changingKey) {
 						std::vector<int>& bindsToChange = (Settings::changing4k ? Settings::controller4K : Settings::controller5K);
 						std::vector<int>& directionToChange = (Settings::changing4k ? Settings::controller4KAxisDirection : Settings::controller5KAxisDirection);
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
 						std::string keyString = (Settings::changing4k ? "4k" : "5k");
-						std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
+						std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(RhythmLogic::selLane + 1);
                         Assets::DrawTextRubik(changeString.c_str(), (GetScreenWidth() - Assets::MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
                         Assets::DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - Assets::MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
-						if (pressedGamepadInput != -999) {
-							bindsToChange[selLane] = pressedGamepadInput;
-							if (pressedGamepadInput < 0) {
-								directionToChange[selLane] = axisDirection;
+						if (RhythmLogic::pressedGamepadInput != -999) {
+							bindsToChange[RhythmLogic::selLane] = RhythmLogic::pressedGamepadInput;
+							if (RhythmLogic::pressedGamepadInput < 0) {
+								directionToChange[RhythmLogic::selLane] = RhythmLogic::axisDirection;
 							}
-							selLane = 0;
-							changingKey = false;
-							pressedGamepadInput = -999;
+                            RhythmLogic::selLane = 0;
+                            RhythmLogic::changingKey = false;
+                            RhythmLogic::pressedGamepadInput = -999;
 						}
 					}
-					if (changingOverdrive) {
+					if (RhythmLogic::changingOverdrive) {
 						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
 						std::string changeString = "Press a button/axis for controller overdrive";
                         Assets::DrawTextRubik(changeString.c_str(), (GetScreenWidth() - Assets::MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
                         Assets::DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - Assets::MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
 
-						if (pressedGamepadInput != -999) {
-							Settings::controllerOverdrive = pressedGamepadInput;
-							if (pressedGamepadInput < 0) {
-								Settings::controllerOverdriveAxisDirection = axisDirection;
+						if (RhythmLogic::pressedGamepadInput != -999) {
+							Settings::controllerOverdrive = RhythmLogic::pressedGamepadInput;
+							if (RhythmLogic::pressedGamepadInput < 0) {
+								Settings::controllerOverdriveAxisDirection = RhythmLogic::axisDirection;
 							}
-							changingOverdrive = false;
-							pressedGamepadInput = -999;
+                            RhythmLogic::changingOverdrive = false;
+                            RhythmLogic::pressedGamepadInput = -999;
 						}
 					}
 					if (IsKeyPressed(KEY_ESCAPE)) {
-						pressedGamepadInput = -999;
-						changingKey = false;
-						changingOverdrive = false;
+                        RhythmLogic::pressedGamepadInput = -999;
+                        RhythmLogic::changingKey = false;
+                        RhythmLogic::changingOverdrive = false;
 					}
 					GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
 				}
 				break;
 			}
 			case SONG_SELECT: {
-				streamsLoaded = false;
-				midiLoaded = false;
-				isPlaying = false;
-				overdrive = false;
-				curNoteIdx = { 0,0,0,0,0 };
-				curODPhrase = 0;
-				curBeatLine = 0;
-				curBPM = 0;
-				instrument = 0;
-				diff = 0;
+                RhythmLogic::streamsLoaded = false;
+                RhythmLogic::midiLoaded = false;
+                RhythmLogic::isPlaying = false;
+                Player::overdrive = false;
+                RhythmLogic::curNoteIdx = { 0,0,0,0,0 };
+                RhythmLogic::curODPhrase = 0;
+                RhythmLogic::curBeatLine = 0;
+                RhythmLogic::curBPM = 0;
+                Player::instrument = 0;
+                Player::diff = 0;
                 int randSong = rand()%(songList.songCount-0+1)+0;
-                int selectedSongInt = curPlayingSong;
+                int selectedSongInt = RhythmLogic::curPlayingSong;
                 Song selectedSong = songList.songs[selectedSongInt];
 
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
-                if (selSong){
+                if (RhythmLogic::selSong){
                     DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0, 0, (float) selectedSong.albumArt.width,
                                                                         (float) selectedSong.albumArt.width},
                                    Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
@@ -538,12 +538,12 @@ int main(int argc, char* argv[])
                 }
 
                 Vector2 mouseWheel = GetMouseWheelMoveV();
-				if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
-					songSelectOffset -= mouseWheel.y;
+				if (RhythmLogic::songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && RhythmLogic::songSelectOffset >= 0) {
+                    RhythmLogic::songSelectOffset -= mouseWheel.y;
 				}
-				if (songSelectOffset < 0) songSelectOffset = 0;
-				if (songSelectOffset > songList.songCount + 2 - (GetScreenHeight() / 60)) songSelectOffset = songList.songs.size() + 2 - (GetScreenHeight() / 60);
-				if (songSelectOffset >= songList.songCount) songSelectOffset = songList.songCount - 1;
+				if (RhythmLogic::songSelectOffset < 0) RhythmLogic::songSelectOffset = 0;
+				if (RhythmLogic::songSelectOffset > songList.songCount + 2 - (GetScreenHeight() / 60)) RhythmLogic::songSelectOffset = songList.songs.size() + 2 - (GetScreenHeight() / 60);
+				if (RhythmLogic::songSelectOffset >= songList.songCount) RhythmLogic::songSelectOffset = songList.songCount - 1;
 
 
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
@@ -583,7 +583,7 @@ int main(int argc, char* argv[])
 
                 // bottom
                 DrawLine(0,((float)GetScreenHeight()*0.85),0,((float)GetScreenHeight()*0.85), WHITE);
-                if (selSong) {
+                if (RhythmLogic::selSong) {
                     DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
                                                                     (float) selectedSong.albumArt.width},
                                    Rectangle{AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtBottom}, {0, 0}, 0,
@@ -596,7 +596,7 @@ int main(int argc, char* argv[])
                                    WHITE);
                 }
 
-                for (int i = songSelectOffset; i < songSelectOffset + (GetScreenHeight() / 50) - 2; i++) {
+                for (int i = RhythmLogic::songSelectOffset; i < RhythmLogic::songSelectOffset + (GetScreenHeight() / 50) - 2; i++) {
 					if (songList.songCount-1 < i)
 						break;
 
@@ -604,11 +604,11 @@ int main(int argc, char* argv[])
                     float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
 					//LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
 					float songXPos = LeftSide;//state.value * 500;
-					float songYPos = (TopOvershell+6) + (45 * (i - songSelectOffset));
+					float songYPos = (TopOvershell+6) + (45 * (i - RhythmLogic::songSelectOffset));
 
 					if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
-						curPlayingSong = i;
-                        selSong = true;
+                        RhythmLogic::curPlayingSong = i;
+                        RhythmLogic::selSong = true;
 
 					}
 
@@ -632,7 +632,7 @@ int main(int argc, char* argv[])
 					}
                     Color LightText = Color{203, 203, 203, 255};
 					BeginScissorMode(songXPos + 15, songYPos + 10, songTitleWidth, 45);
-					DrawTextEx(rubikBold32,song.title.c_str(), {songXPos + 15 + song.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
+					DrawTextEx(rubikBold32,song.title.c_str(), {songXPos + 15 + song.titleXOffset, songYPos + 10}, 24,1, i == RhythmLogic::curPlayingSong && RhythmLogic::selSong ? WHITE : LightText);
 					EndScissorMode();
 
 					if (song.artistTextWidth > songArtistWidth) {
@@ -649,15 +649,15 @@ int main(int argc, char* argv[])
 
                     Color SelectedText = WHITE;
 					BeginScissorMode(songXPos + 30 + songTitleWidth, songYPos + 12, songArtistWidth, 45);
-                    Assets::DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
+                    Assets::DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, i == RhythmLogic::curPlayingSong && RhythmLogic::selSong ? WHITE : LightText);
 					EndScissorMode();
 				}
                 // hehe
                 DrawBottomOvershell();
                 float BottomOvershell = GetScreenHeight() - 120;
-                if (selSong) {
+                if (RhythmLogic::selSong) {
                     if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
-                        curPlayingSong = selectedSongInt;
+                        RhythmLogic::curPlayingSong = selectedSongInt;
                         Scenes::SwitchScreen(INSTRUMENT_SELECT);
 
                     }
@@ -666,8 +666,8 @@ int main(int argc, char* argv[])
                 break;
 			}
 			case INSTRUMENT_SELECT: {
-                selSong = false;
-                Song selectedSong = songList.songs[curPlayingSong];
+                RhythmLogic::selSong = false;
+                Song selectedSong = songList.songs[RhythmLogic::curPlayingSong];
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
                 DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
@@ -695,13 +695,13 @@ int main(int argc, char* argv[])
                 float BottomOvershell = GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
+                DrawTextEx(redHatDisplayLarge, songList.songs[RhythmLogic::curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
                 DrawTextEx(rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
-				if (!midiLoaded) {
-					if (!songList.songs[curPlayingSong].midiParsed) {
+				if (!RhythmLogic::midiLoaded) {
+					if (!songList.songs[RhythmLogic::curPlayingSong].midiParsed) {
 						smf::MidiFile midiFile;
-						midiFile.read(songList.songs[curPlayingSong].midiPath.string());
-						songList.songs[curPlayingSong].getTiming(midiFile, 0, midiFile[0]);
+						midiFile.read(songList.songs[RhythmLogic::curPlayingSong].midiPath.string());
+						songList.songs[RhythmLogic::curPlayingSong].getTiming(midiFile, 0, midiFile[0]);
 						for (int i = 0; i < midiFile.getTrackCount(); i++)
 						{
 							std::string trackName;
@@ -713,9 +713,9 @@ int main(int argc, char* argv[])
 										}
 										SongParts songPart = partFromString(trackName);
 										if (trackName == "BEAT")
-											songList.songs[curPlayingSong].parseBeatLines(midiFile, i, midiFile[i]);
+											songList.songs[RhythmLogic::curPlayingSong].parseBeatLines(midiFile, i, midiFile[i]);
 										else if (trackName == "EVENTS") {
-											songList.songs[curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
+											songList.songs[RhythmLogic::curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
 										}
 										else {
 											if (songPart != SongParts::Invalid) {
@@ -723,7 +723,7 @@ int main(int argc, char* argv[])
 													Chart newChart;
 													newChart.parseNotes(midiFile, i, midiFile[i], loadDiff, (int)songPart);
 													if (!newChart.notes.empty()) {
-														songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+														songList.songs[RhythmLogic::curPlayingSong].parts[(int)songPart]->hasPart = true;
 													}
 													std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
 													int noteIdx = 0;
@@ -731,7 +731,7 @@ int main(int argc, char* argv[])
 														newChart.notes_perlane[note.lane].push_back(noteIdx);
 														noteIdx++;
 													}
-													songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
+													songList.songs[RhythmLogic::curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
 												}
 											}
 										}
@@ -739,22 +739,22 @@ int main(int argc, char* argv[])
 								}
 							}
 						}
-						songList.songs[curPlayingSong].midiParsed = true;
+						songList.songs[RhythmLogic::curPlayingSong].midiParsed = true;
 					}
-					midiLoaded = true;
+                    RhythmLogic::midiLoaded = true;
 				}
 				else {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
-						midiLoaded = false;
+                        RhythmLogic::midiLoaded = false;
                         Scenes::SwitchScreen(SONG_SELECT);
 					}
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
 					for (int i = 0; i < 4; i++) {
-						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
+						if (songList.songs[RhythmLogic::curPlayingSong].parts[i]->hasPart) {
 							if (GuiButton({ LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "")) {
-								instrument = i;
+                                Player::instrument = i;
 								int isBassOrVocal = 0;
-								if (instrument == 1 || instrument == 3) {
+								if (Player::instrument == 1 || Player::instrument == 3) {
 									isBassOrVocal = 1;
 								}
 								SetShaderValue(odMultShader, isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
@@ -762,7 +762,7 @@ int main(int argc, char* argv[])
 							}
 
                             Assets::DrawTextRubik(songPartsList[i].c_str(), LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
-                            Assets::DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
+                            Assets::DrawTextRubik((std::to_string(songList.songs[RhythmLogic::curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
 						}
 					}
 				}
@@ -771,7 +771,7 @@ int main(int argc, char* argv[])
 				break;
 			}
 			case DIFFICULTY_SELECT: {
-                Song selectedSong = songList.songs[curPlayingSong];
+                Song selectedSong = songList.songs[RhythmLogic::curPlayingSong];
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
                 DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
@@ -798,19 +798,19 @@ int main(int argc, char* argv[])
                 float BottomOvershell = GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
+                DrawTextEx(redHatDisplayLarge, songList.songs[RhythmLogic::curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
                 DrawTextEx(rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
 				for (int i = 0; i < 4; i++) {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
                         Scenes::SwitchScreen(INSTRUMENT_SELECT);
 					}
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-					if (!songList.songs[curPlayingSong].parts[instrument]->charts[i].notes.empty()) {
+					if (!songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[i].notes.empty()) {
 						if (GuiButton({ LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "")) {
-							diff = i;
+							Player::diff = i;
                             Scenes::SwitchScreen(GAMEPLAY);
-							isPlaying = true;
-							startedPlayingSong = GetTime();
+							RhythmLogic::isPlaying = true;
+							RhythmLogic::startedPlayingSong = GetTime();
 							glfwSetKeyCallback(glfwGetCurrentContext(), RhythmLogic::keyCallback);
 							glfwSetGamepadStateCallback(RhythmLogic::gamepadStateCallback);
 						}
@@ -825,9 +825,9 @@ int main(int argc, char* argv[])
                 gameplay.gameplay();
 			}
 			case RESULTS: {
-				int starsval = stars(songList.songs[curPlayingSong].parts[instrument]->charts[diff].baseScore,diff);
+				int starsval = Player::stars(songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].baseScore,Player::diff);
                 for (int i = 0; i < starsval; i++) {
-                    DrawTextureEx(goldStars? goldStar : star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
+                    DrawTextureEx(Player::goldStars? goldStar : star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
                 }
 /*
 				char* starsDisplay = (char*)"";
@@ -850,18 +850,18 @@ int main(int argc, char* argv[])
 					starsDisplay = (char*)"";
 				}*/
                 Assets::DrawTextRHDI("Results", 70,7, WHITE);
-                Assets::DrawTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (Assets::MeasureTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
-				if (FC) {
+                Assets::DrawTextRubik((songList.songs[RhythmLogic::curPlayingSong].artist + " - " + songList.songs[RhythmLogic::curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (Assets::MeasureTextRubik((songList.songs[RhythmLogic::curPlayingSong].artist + " - " + songList.songs[RhythmLogic::curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
+				if (Player::FC) {
                     Assets::DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (Assets::MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
 				}
 
-				Assets::DrawTextRHDI(Gameplay::scoreCommaFormatter(score).c_str(), (GetScreenWidth() / 2) - Assets::MeasureTextRHDI(Gameplay::scoreCommaFormatter(score).c_str())/2, 120, Color{107, 161, 222,255});
+				Assets::DrawTextRHDI(Gameplay::scoreCommaFormatter(Player::score).c_str(), (GetScreenWidth() / 2) - Assets::MeasureTextRHDI(Gameplay::scoreCommaFormatter(Player::score).c_str())/2, 120, Color{107, 161, 222,255});
 				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
-                Assets::DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 192, 24, WHITE);
-                Assets::DrawTextRubik(TextFormat("Good Notes : %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", notesHit - perfectHit, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 224, 24, WHITE);
-                Assets::DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", notesMissed, songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size()), 24) / 2), 256, 24, WHITE);
-                Assets::DrawTextRubik(TextFormat("Strikes: %01i", playerOverhits), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Strikes: %01i", playerOverhits), 24) / 2), 288, 24, WHITE);
-                Assets::DrawTextRubik(TextFormat("Longest Streak: %01i", maxCombo), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Longest Streak: %01i", maxCombo), 24) / 2), 320, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", Player::perfectHit, songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", Player::perfectHit, songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].notes.size()), 24) / 2), 192, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Good Notes : %01i/%02i", Player::notesHit - Player::perfectHit, songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", Player::notesHit - Player::perfectHit, songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].notes.size()), 24) / 2), 224, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", Player::notesMissed, songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].notes.size()), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", Player::notesMissed, songList.songs[RhythmLogic::curPlayingSong].parts[Player::instrument]->charts[Player::diff].notes.size()), 24) / 2), 256, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Strikes: %01i", Player::playerOverhits), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Strikes: %01i", Player::playerOverhits), 24) / 2), 288, 24, WHITE);
+                Assets::DrawTextRubik(TextFormat("Longest Streak: %01i", Player::maxCombo), (GetScreenWidth() / 2 - Assets::MeasureTextRubik(TextFormat("Longest Streak: %01i", Player::maxCombo), 24) / 2), 320, 24, WHITE);
 				if (GuiButton({ 0,0,60,60 }, "<")) {
                     Scenes::SwitchScreen(SONG_SELECT);
 				}

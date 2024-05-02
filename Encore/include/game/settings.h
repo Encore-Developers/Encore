@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "GLFW/glfw3.h"
 #include "raylib.h"
+#include "player.h"
 #include <iostream>
 #include <fstream>
 

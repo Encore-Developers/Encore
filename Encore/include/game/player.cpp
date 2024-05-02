@@ -1,71 +1,68 @@
-#pragma once
-
-#include <vector>
-#include "raylib.h"
-
-int instrument = 0;
-int diff = 0;
-
-int notesHit = 0;
-int notesMissed = 0;
-int perfectHit = 0;
 
 
+#include "player.h"
 
-float selInstVolume = 0.5;
-float otherInstVolume = 0.375;
-float missVolume = 0.15;
+int Player::instrument = 0;
+int Player::diff = 0;
+
+int Player::notesHit = 0;
+int Player::notesMissed = 0;
+int Player::perfectHit = 0;
+
+float Player::selInstVolume = 0.5;
+float Player::otherInstVolume = 0.375;
+float Player::missVolume = 0.15;
 
 // time in seconds
-float goodFrontend = 0.1f;
-float goodBackend = 0.1f;
-float perfectFrontend = 0.025f;
-float perfectBackend = 0.025f;
+float Player::goodFrontend = 0.1f;
+float Player::goodBackend = 0.1f;
+float Player::perfectFrontend = 0.025f;
+float Player::perfectBackend = 0.025f;
 
-float VideoOffset = (0);
-float InputOffset = 0;
+float Player::VideoOffset = (0);
+float Player::InputOffset = 0;
 
-bool MissHighwayColor = false;
+bool Player::MissHighwayColor = false;
 
 bool lastNotePerfect = false;
 
 // make the hitwindow bigger for properly doing lifts
-float liftTimingMult = 1.25f;
+float Player::liftTimingMult = 1.25f;
 
 // 11.5f default --   23.0f 2x
-float defaultHighwayLength = 11.5f;
+float Player::defaultHighwayLength = 11.5f;
 
-float smasherPos = 2.4f; // used to be 2.7
+float Player::smasherPos = 2.4f; // used to be 2.7
 
-bool extraGameplayStats = false;
+bool Player::extraGameplayStats = false;
 
-int notes = 0;
-int combo = 0;
-int maxCombo = 0;
-int score = 0;
-std::vector<int> sustainScoreBuffer{ 0,0,0,0,0 };
-int playerOverhits = 0;
+int Player::notes = 0;
+int Player::combo = 0;
+int Player::maxCombo = 0;
+int Player::score = 0;
+std::vector<int> Player::sustainScoreBuffer{ 0,0,0,0,0 };
+int Player::playerOverhits = 0;
 
-bool goldStars = false;
+bool Player::goldStars = false;
 
-bool overdrive = false;
+bool Player::overdrive = false;
 
-bool FC = true;
+bool Player::FC = true;
 
-float health = 100.0f;
+float Player::health = 100.0f;
 
-bool mute = false;
+bool Player::mute = false;
 
-float xStarThreshold[6] = { 0.05f, 0.175f, 0.325f, 0.5f, 0.7f,  1.0f };
+float Player::xStarThreshold[6] = { 0.05f, 0.175f, 0.325f, 0.5f, 0.7f,  1.0f };
 
-float overdriveFill = 0.0f;
-float overdriveActiveFill=0.0f;
-double overdriveActiveTime = 0.0;
+float Player::overdriveFill = 0.0f;
+float Player::overdriveActiveFill=0.0f;
+double Player::overdriveActiveTime = 0.0;
 
-float uvOffsetX = 0;
-float uvOffsetY = 0;
+float Player::uvOffsetX = 0;
+float Player::uvOffsetY = 0;
 
-int stars(int baseScore, int difficulty) {
+int Player::stars(int baseScore, int difficulty) {
     float starPercent = (float)score/(float)baseScore;
     if (starPercent < xStarThreshold[0]) {return 0;}
 	else if (starPercent < xStarThreshold[1]) { return 1; }
@@ -79,7 +76,7 @@ int stars(int baseScore, int difficulty) {
     return 0;
 }
 
-int multiplier(int instrument) {
+int Player::multiplier(int instrument) {
 		int od = overdrive ? 2 : 1;
 		
 	if (instrument == 1 || instrument == 3){ 
@@ -101,14 +98,14 @@ int multiplier(int instrument) {
 	};
 }
 
-int maxMultForMeter(int instrument) {
+int Player::maxMultForMeter(int instrument) {
 	if (instrument == 1 || instrument == 3)
 		return 5;
 	else
 		return 3;
 }
 
-float comboFillCalc(int instrument) {
+float Player::comboFillCalc(int instrument) {
 	if (instrument == 0 || instrument == 2) {
 		// For instruments 0 and 2, limit the float value to 0.0 to 0.4
 		if (combo >= 30) {
@@ -129,72 +126,61 @@ float comboFillCalc(int instrument) {
 	}
 }
 
-
 // clone hero defaults
 
+Color Player::accentColor = Color(255,0,255,255);
 
+Color Player::overdriveColor = Color{255,200,0,255};
 
-
-
-class player {
-public:
-
-
-    static Color accentColor;
-
-    static Color overdriveColor;
-
-    Color highwayColor = Color{255-64, 0, 255-64,255};
-	static void resetPlayerStats() {
-		notesHit = 0;
-		notesMissed = 0;
-        perfectHit = 0;
-		maxCombo = 0;
-		combo = 0;
-		score = 0;
-		FC = true;
-        notes = 0;
-        goldStars = false;
-        playerOverhits = 0;
-        overdrive = false;
-        lastNotePerfect = false;
-	};
-
-	static void HitNote(bool perfect, int instrument) {
-		notesHit += 1;
-		combo += 1;
-		if (combo > maxCombo)
-			maxCombo = combo;
-		float perfectMult = perfect ? 1.2f : 1.0f;
-		score += (int)((30 * (multiplier(instrument)) * perfectMult));
-		perfectHit += perfect ? 1 : 0;
-        mute = false;
-	}
-	static void HitNoteAudio(bool perfect, int instrument) {
-		notesHit += 1;
-		combo += 1;
-		if (combo > maxCombo)
-			maxCombo = combo;
-		float perfectMult = perfect ? 1.2f : 1.0f;
-		score += (int)((30 * (multiplier(instrument)) * perfectMult));
-		perfectHit += perfect ? 1 : 0;
-		mute = false;
-	}
-	static void MissNote() {
-		notesMissed += 1;
-		if (combo > maxCombo)
-			maxCombo = combo;
-		combo = 0;
-		FC = false;
-        mute = true;
-	}
-    static void OverHit() {
-		if (combo > maxCombo)
-			maxCombo = combo;
-        combo = 0;
-        playerOverhits += 1;
-        FC = false;
-        mute = true;
-    }
+void Player::resetPlayerStats() {
+    notesHit = 0;
+    notesMissed = 0;
+    perfectHit = 0;
+    maxCombo = 0;
+    combo = 0;
+    score = 0;
+    FC = true;
+    notes = 0;
+    goldStars = false;
+    playerOverhits = 0;
+    overdrive = false;
+    lastNotePerfect = false;
 };
+void Player::HitNote(bool perfect, int instrument) {
+    notesHit += 1;
+    combo += 1;
+    if (combo > maxCombo)
+        maxCombo = combo;
+    float perfectMult = perfect ? 1.2f : 1.0f;
+    score += (int)((30 * (multiplier(instrument)) * perfectMult));
+    perfectHit += perfect ? 1 : 0;
+    mute = false;
+}
+void Player::HitNoteAudio(bool perfect, int instrument) {
+    notesHit += 1;
+    combo += 1;
+    if (combo > maxCombo)
+        maxCombo = combo;
+    float perfectMult = perfect ? 1.2f : 1.0f;
+    score += (int)((30 * (multiplier(instrument)) * perfectMult));
+    perfectHit += perfect ? 1 : 0;
+    mute = false;
+}
+void Player::MissNote() {
+    notesMissed += 1;
+    if (combo > maxCombo)
+        maxCombo = combo;
+    combo = 0;
+    FC = false;
+    mute = true;
+}
+void Player::OverHit() {
+    if (combo > maxCombo)
+        maxCombo = combo;
+    combo = 0;
+    playerOverhits += 1;
+    FC = false;
+    mute = true;
+}
+
 

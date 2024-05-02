@@ -10,46 +10,49 @@
 #include "audio/audio.h"
 #include "raylib.h"
 #include "song/songlist.h"
+#include "player.h"
 #include "settings.h"
 #include "song/song.h"
 
-bool streamsLoaded = false;
-std::vector<std::pair<Music, int>> loadedStreams;
-int curPlayingSong = 0;
-std::vector<int> curNoteIdx = { 0,0,0,0,0 };
-std::vector<bool> heldFrets{ false,false,false,false,false };
-std::vector<bool> heldFretsAlt{ false,false,false,false,false };
-std::vector<bool> overhitFrets{ false,false,false,false,false };
-std::vector<bool> tapRegistered{ false,false,false,false,false };
-std::vector<bool> liftRegistered{ false,false,false,false,false };
-bool overdriveHeld = false;
-bool overdriveAltHeld = false;
-bool overdriveHitAvailable = false;
-bool overdriveLiftAvailable = false;
-std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
-double overdriveHitTime = 0.0;
-std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
-std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
-std::vector<int> buttonValues{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-std::vector<float> axesValues2{ 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
-int pressedGamepadInput = -999;
-int axisDirection = -1;
-int controllerID = -1;
-int curODPhrase = 0;
-int curBeatLine = 0;
-int curBPM = 0;
-int selLane = 0;
-bool selSong = false;
-bool songsLoaded= false;
-int songSelectOffset = 0;
-bool changingKey = false;
-bool changingOverdrive = false;
-double startedPlayingSong = 0.0;
-bool midiLoaded = false;
-bool isPlaying = false;
+
 
 class RhythmLogic {
 public:
+    static bool streamsLoaded;
+    static std::vector<std::pair<Music, int>> loadedStreams;
+    static int curPlayingSong;
+    static std::vector<int> curNoteIdx;
+    static std::vector<bool> heldFrets;
+    static std::vector<bool> heldFretsAlt;
+    static std::vector<bool> overhitFrets;
+    static std::vector<bool> tapRegistered;
+    static std::vector<bool> liftRegistered;
+    static bool overdriveHeld;
+    static bool overdriveAltHeld;
+    static bool overdriveHitAvailable;
+    static bool overdriveLiftAvailable;
+    static std::vector<bool> overdriveLanesHit;
+    static double overdriveHitTime;
+    static std::vector<int> lastHitLifts;
+    static std::vector<float> axesValues;
+    static std::vector<int> buttonValues;
+    static std::vector<float> axesValues2;
+    static int pressedGamepadInput;
+    static int axisDirection;
+    static int controllerID;
+    static int curODPhrase;
+    static int curBeatLine;
+    static int curBPM;
+    static int selLane;
+    static bool selSong;
+    static bool songsLoaded;
+    static int songSelectOffset;
+    static bool changingKey;
+    static bool changingOverdrive;
+    static double startedPlayingSong;
+    static bool midiLoaded;
+    static bool isPlaying;
+
     static void handleInputs(int lane, int action);
 
     static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);

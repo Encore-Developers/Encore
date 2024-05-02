@@ -8,21 +8,56 @@
 SongList songList;
 Settings settings;
 
+bool RhythmLogic::streamsLoaded = false;
+std::vector<std::pair<Music, int>> RhythmLogic::loadedStreams;
+int RhythmLogic::curPlayingSong = 0;
+std::vector<int> RhythmLogic::curNoteIdx = { 0,0,0,0,0 };
+std::vector<bool> RhythmLogic::heldFrets{ false,false,false,false,false };
+std::vector<bool> RhythmLogic::heldFretsAlt{ false,false,false,false,false };
+std::vector<bool> RhythmLogic::overhitFrets{ false,false,false,false,false };
+std::vector<bool> RhythmLogic::tapRegistered{ false,false,false,false,false };
+std::vector<bool> RhythmLogic::liftRegistered{ false,false,false,false,false };
+bool RhythmLogic::overdriveHeld = false;
+bool RhythmLogic::overdriveAltHeld = false;
+bool RhythmLogic::overdriveHitAvailable = false;
+bool RhythmLogic::overdriveLiftAvailable = false;
+std::vector<bool> RhythmLogic::overdriveLanesHit{ false,false,false,false,false };
+double RhythmLogic::overdriveHitTime = 0.0;
+std::vector<int> RhythmLogic::lastHitLifts{-1, -1, -1, -1, -1};
+std::vector<float> RhythmLogic::axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
+std::vector<int> RhythmLogic::buttonValues{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+std::vector<float> RhythmLogic::axesValues2{ 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f };
+int RhythmLogic::pressedGamepadInput = -999;
+int RhythmLogic::axisDirection = -1;
+int RhythmLogic::controllerID = -1;
+int RhythmLogic::curODPhrase = 0;
+int RhythmLogic::curBeatLine = 0;
+int RhythmLogic::curBPM = 0;
+int RhythmLogic::selLane = 0;
+bool RhythmLogic::selSong = false;
+bool RhythmLogic::songsLoaded= false;
+int RhythmLogic::songSelectOffset = 0;
+bool RhythmLogic::changingKey = false;
+bool RhythmLogic::changingOverdrive = false;
+double RhythmLogic::startedPlayingSong = 0.0;
+bool RhythmLogic::midiLoaded = false;
+bool RhythmLogic::isPlaying = false;
 
 void RhythmLogic::handleInputs(int lane, int action) {
+
         if (lane == -2) return;
         if (settings.mirrorMode && lane != -1) {
-            lane = (diff == 3 ? 4 : 3) - lane;
+            lane = (Player::diff == 3 ? 4 : 3) - lane;
         }
         if (!streamsLoaded) {
             return;
         }
-        Chart &curChart = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+        Chart &curChart = songList.songs[curPlayingSong].parts[Player::instrument]->charts[Player::diff];
         float eventTime = GetMusicTimePlayed(loadedStreams[0].first);
-        if (action == GLFW_PRESS && (lane == -1) && overdriveFill > 0 && !overdrive) {
-            overdriveActiveTime = eventTime;
-            overdriveActiveFill = overdriveFill;
-            overdrive = true;
+        if (action == GLFW_PRESS && (lane == -1) && Player::overdriveFill > 0 && !Player::overdrive) {
+            Player::overdriveActiveTime = eventTime;
+            Player::overdriveActiveFill = Player::overdriveFill;
+            Player::overdrive = true;
             overdriveHitAvailable = true;
             overdriveHitTime = eventTime;
         }
@@ -32,8 +67,8 @@ void RhythmLogic::handleInputs(int lane, int action) {
                 return;
             Note *curNote = &curChart.notes[0];
             for (auto &note: curChart.notes) {
-                if (note.time - (goodBackend + InputOffset) < eventTime &&
-                    note.time + (goodFrontend + InputOffset) > eventTime &&
+                if (note.time - (Player::goodBackend + Player::InputOffset) < eventTime &&
+                    note.time + (Player::goodFrontend + Player::InputOffset) > eventTime &&
                     !note.hit) {
                     curNote = &note;
                     break;
@@ -45,8 +80,8 @@ void RhythmLogic::handleInputs(int lane, int action) {
                 overdriveHeld = false;
             }
             if (action == GLFW_PRESS && overdriveHitAvailable) {
-                if (curNote->time - (goodBackend + InputOffset) < eventTime &&
-                    curNote->time + (goodFrontend + InputOffset) > eventTime &&
+                if (curNote->time - (Player::goodBackend + Player::InputOffset) < eventTime &&
+                    curNote->time + (Player::goodFrontend + Player::InputOffset) > eventTime &&
                     !curNote->hit) {
                     for (int newlane = 0; newlane < 5; newlane++) {
                         int chordLane = curChart.findNoteIdx(curNote->time, newlane);
@@ -60,14 +95,14 @@ void RhythmLogic::handleInputs(int lane, int action) {
                                 if ((chordNote.len) > 0 && !chordNote.lift) {
                                     chordNote.held = true;
                                 }
-                                if ((chordNote.time) - perfectBackend + InputOffset < eventTime &&
-                                    chordNote.time + perfectFrontend + InputOffset > eventTime) {
+                                if ((chordNote.time) - Player::perfectBackend + Player::InputOffset < eventTime &&
+                                    chordNote.time + Player::perfectFrontend + Player::InputOffset > eventTime) {
                                     chordNote.perfect = true;
 
                                 }
-                                if (chordNote.perfect) lastNotePerfect = true;
-                                else lastNotePerfect = false;
-                                player::HitNote(chordNote.perfect, instrument);
+                                if (chordNote.perfect) Player::lastNotePerfect = true;
+                                else Player::lastNotePerfect = false;
+                                Player::HitNote(chordNote.perfect, Player::instrument);
                                 chordNote.accounted = true;
                             }
                         }
@@ -76,8 +111,8 @@ void RhythmLogic::handleInputs(int lane, int action) {
                     overdriveLiftAvailable = true;
                 }
             } else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-                if ((curNote->time) - (goodBackend * liftTimingMult) + InputOffset < eventTime &&
-                    (curNote->time) + (goodFrontend * liftTimingMult) + InputOffset > eventTime &&
+                if ((curNote->time) - (Player::goodBackend * Player::liftTimingMult) + Player::InputOffset < eventTime &&
+                    (curNote->time) + (Player::goodFrontend * Player::liftTimingMult) + Player::InputOffset > eventTime &&
                     !curNote->hit) {
                     for (int newlane = 0; newlane < 5; newlane++) {
                         if (overdriveLanesHit[newlane]) {
@@ -89,13 +124,13 @@ void RhythmLogic::handleInputs(int lane, int action) {
                                     overdriveLanesHit[newlane] = false;
                                     chordNote.hitTime = eventTime;
 
-                                    if ((chordNote.time) - perfectBackend + InputOffset < eventTime &&
-                                        chordNote.time + perfectFrontend + InputOffset > eventTime) {
+                                    if ((chordNote.time) - Player::perfectBackend + Player::InputOffset < eventTime &&
+                                        chordNote.time + Player::perfectFrontend + Player::InputOffset > eventTime) {
                                         chordNote.perfect = true;
 
                                     }
-                                    if (chordNote.perfect) lastNotePerfect = true;
-                                    else lastNotePerfect = false;
+                                    if (chordNote.perfect) Player::lastNotePerfect = true;
+                                    else Player::lastNotePerfect = false;
                                 }
 
                             }
@@ -111,12 +146,12 @@ void RhythmLogic::handleInputs(int lane, int action) {
                         if (chordLane != -1) {
                             Note &chordNote = curChart.notes[chordLane];
                             if (chordNote.held && chordNote.len > 0) {
-                                if (!((diff == 3 && settings.keybinds5K[chordNote.lane]) ||
-                                      (diff != 3 && settings.keybinds4K[chordNote.lane]))) {
+                                if (!((Player::diff == 3 && settings.keybinds5K[chordNote.lane]) ||
+                                      (Player::diff != 3 && settings.keybinds4K[chordNote.lane]))) {
                                     chordNote.held = false;
-                                    score += sustainScoreBuffer[chordNote.lane];
-                                    sustainScoreBuffer[chordNote.lane] = 0;
-                                    mute = true;
+                                    Player::score += Player::sustainScoreBuffer[chordNote.lane];
+                                    Player::sustainScoreBuffer[chordNote.lane] = 0;
+                                    Player::mute = true;
                                 }
                             }
                         }
@@ -129,10 +164,10 @@ void RhythmLogic::handleInputs(int lane, int action) {
 
                 if (lane != curNote.lane) continue;
                 if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-                    if ((curNote.time) - (action == GLFW_RELEASE ? goodBackend * liftTimingMult : goodBackend) +
-                        InputOffset < eventTime &&
+                    if ((curNote.time) - (action == GLFW_RELEASE ? Player::goodBackend * Player::liftTimingMult : Player::goodBackend) +
+                                Player::InputOffset < eventTime &&
                         (curNote.time) +
-                        ((action == GLFW_RELEASE ? goodFrontend * liftTimingMult : goodFrontend) + InputOffset) >
+                        ((action == GLFW_RELEASE ? Player::goodFrontend * Player::liftTimingMult : Player::goodFrontend) + Player::InputOffset) >
                         eventTime &&
                         !curNote.hit) {
                         if (curNote.lift && action == GLFW_RELEASE) {
@@ -143,23 +178,23 @@ void RhythmLogic::handleInputs(int lane, int action) {
                         if ((curNote.len) > 0 && !curNote.lift) {
                             curNote.held = true;
                         }
-                        if ((curNote.time) - perfectBackend + InputOffset < eventTime &&
-                            curNote.time + perfectFrontend + InputOffset > eventTime) {
+                        if ((curNote.time) - Player::perfectBackend + Player::InputOffset < eventTime &&
+                            curNote.time + Player::perfectFrontend + Player::InputOffset > eventTime) {
                             curNote.perfect = true;
                         }
-                        if (curNote.perfect) lastNotePerfect = true;
-                        else lastNotePerfect = false;
-                        player::HitNote(curNote.perfect, instrument);
+                        if (curNote.perfect) Player::lastNotePerfect = true;
+                        else Player::lastNotePerfect = false;
+                        Player::HitNote(curNote.perfect, Player::instrument);
                         curNote.accounted = true;
                         break;
                     }
-                    if (curNote.miss) lastNotePerfect = false;
+                    if (curNote.miss) Player::lastNotePerfect = false;
                 }
                 if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
                     curNote.held = false;
-                    score += sustainScoreBuffer[curNote.lane];
-                    sustainScoreBuffer[curNote.lane] = 0;
-                    mute = true;
+                    Player::score += Player::sustainScoreBuffer[curNote.lane];
+                    Player::sustainScoreBuffer[curNote.lane] = 0;
+                    Player::mute = true;
                     // SetAudioStreamVolume(loadedStreams[instrument].stream, missVolume);
                 }
 
@@ -167,7 +202,7 @@ void RhythmLogic::handleInputs(int lane, int action) {
                     eventTime > songList.songs[curPlayingSong].music_start &&
                     !curNote.hit &&
                     !curNote.accounted &&
-                    ((curNote.time) - perfectBackend) + InputOffset > eventTime &&
+                    ((curNote.time) - Player::perfectBackend) + Player::InputOffset > eventTime &&
                     eventTime > overdriveHitTime + 0.05
                     && !overhitFrets[lane]) {
                     if (lastHitLifts[lane] != -1) {
@@ -175,7 +210,7 @@ void RhythmLogic::handleInputs(int lane, int action) {
                             eventTime < curChart.notes[lastHitLifts[lane]].time + 0.1)
                             continue;
                     }
-                    player::OverHit();
+                    Player::OverHit();
                     if (curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[curODPhrase].start &&
                         eventTime < curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed)
                         curChart.odPhrases[curODPhrase].missed = true;
@@ -197,7 +232,7 @@ void RhythmLogic::keyCallback(GLFWwindow *wind, int key, int scancode, int actio
             if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
                 handleInputs(-1, action);
             } else {
-                if (diff == 3) {
+                if (Player::diff == 3) {
                     for (int i = 0; i < 5; i++) {
                         if (key == settings.keybinds5K[i] && !heldFretsAlt[i]) {
                             if (action == GLFW_PRESS) {
@@ -267,7 +302,7 @@ void RhythmLogic::gamepadStateCallback(int jid, GLFWgamepadstate state) {
                 }
             }
         }
-        if (diff == 3) {
+        if (Player::diff == 3) {
             for (int i = 0; i < 5; i++) {
                 if (settings.controller5K[i] >= 0) {
                     if (state.buttons[settings.controller5K[i]] != buttonValues[settings.controller5K[i]]) {
