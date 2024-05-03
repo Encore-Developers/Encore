@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string>
 
-class keybinds {
+class Keybinds {
 public:
     std::unordered_map<int, std::string> keymap{
             {KEY_SPACE,         "Space"},
