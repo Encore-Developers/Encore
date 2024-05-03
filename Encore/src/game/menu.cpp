@@ -25,12 +25,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
                       0.5, WHITE);
 
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
-            if (!songsLoaded) {
 
-                songList = songList.LoadSongs(settings.songPaths);
-
-                songsLoaded = true;
-            }
             for (Song &songi: songList.songs) {
                 songi.titleScrollTime = GetTime();
                 songi.titleTextWidth = assets.MeasureTextRubik(songi.title.c_str(), 24);

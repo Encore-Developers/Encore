@@ -78,7 +78,9 @@ bool overdriveLiftAvailable = false;
 std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
 double overdriveHitTime = 0.0;
 std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
+
 SongList songList;
+
 Settings settings;
 Assets assets;
 double lastAxesTime = 0.0;
@@ -524,7 +526,7 @@ void DrawBottomBottomOvershell() {
 
 int main(int argc, char* argv[])
 {
-    menu.currentScreen = MENU;
+
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
@@ -648,7 +650,6 @@ int main(int argc, char* argv[])
 			else
 				SetWindowSize(GetScreenWidth(), minHeight);
 		}
-        menu.currentScreen = MENU;
 
 		float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
 		float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
@@ -663,6 +664,7 @@ int main(int argc, char* argv[])
 		switch (menu.currentScreen) {
 			case MENU: {
                 menu.loadMenu(songList,gamepadStateCallbackSetControls, assets);
+                break;
 			}
 			case SETTINGS: {
 				if (settings.controllerType == -1 && controllerID != -1) {
@@ -935,6 +937,12 @@ int main(int argc, char* argv[])
 				break;
 			}
 			case SONG_SELECT: {
+                if (!menu.songsLoaded) {
+
+                    songList = songList.LoadSongs(settings.songPaths);
+
+                    menu.songsLoaded = true;
+                }
 				streamsLoaded = false;
 				midiLoaded = false;
 				isPlaying = false;
@@ -945,8 +953,19 @@ int main(int argc, char* argv[])
 				curBPM = 0;
                 player.instrument = 0;
                 player.diff = 0;
-                static int randSong = rand()%songList.songCount;
-                int selectedSongInt = curPlayingSong;
+                std::random_device noise;
+                std::mt19937 worker(noise());
+                std::uniform_int_distribution<int> weezer(0, songList.songs.size());
+
+                int selectedSongInt;
+
+                static int randSong = weezer(worker);
+
+                if (selSong) {
+                    selectedSongInt = curPlayingSong;
+                } else
+                    selectedSongInt = randSong;
+
                 Song selectedSong = songList.songs[selectedSongInt];
 
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
@@ -1028,7 +1047,7 @@ int main(int argc, char* argv[])
                 }
 
                 for (int i = songSelectOffset; i < songSelectOffset + (GetScreenHeight() / 50) - 2; i++) {
-					if (songList.songCount-1 <= i)
+					if (songList.songs.size() == i)
 						break;
 
 					Song& songi = songList.songs[i];
@@ -1050,7 +1069,7 @@ int main(int argc, char* argv[])
 
 					if (songi.titleTextWidth >= songTitleWidth) {
 						if (curTime > songi.titleScrollTime && curTime < songi.titleScrollTime + 3.0)
-							song.titleXOffset = 0;
+							songi.titleXOffset = 0;
 
 						if (curTime > songi.titleScrollTime + 3.0) {
 							songi.titleXOffset -= 1;
@@ -1063,7 +1082,7 @@ int main(int argc, char* argv[])
 					}
                     Color LightText = Color{203, 203, 203, 255};
 					BeginScissorMode(songXPos + 15, songYPos + 10, songTitleWidth, 45);
-					DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + song.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
+					DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + songi.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
 					EndScissorMode();
 
 					if (songi.artistTextWidth > songArtistWidth) {
@@ -1080,7 +1099,7 @@ int main(int argc, char* argv[])
 
                     Color SelectedText = WHITE;
 					BeginScissorMode(songXPos + 30 + songTitleWidth, songYPos + 12, songArtistWidth, 45);
-                    DrawTextRubik(song.artist.c_str(), songXPos + 30 + songTitleWidth + song.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + songTitleWidth + songi.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
 					EndScissorMode();
 				}
                 // hehe
