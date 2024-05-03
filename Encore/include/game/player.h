@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include "song/song.h"
 
 // clone hero defaults
 
@@ -10,11 +11,13 @@ public:
     int instrument = 0;
     int diff = 0;
 
+    Song songToBeJudged;
+
     int notesHit = 0;
     int notesMissed = 0;
     int perfectHit = 0;
 
-
+    bool quit = false;
 
     float selInstVolume = 0.5;
     float otherInstVolume = 0.375;

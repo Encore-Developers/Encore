@@ -64,20 +64,71 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
                       WHITE);
 }
 
-void Menu::showResults(Player player) {
-    float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.16f);
+void Menu::showResults(Player player, Assets assets) {
+
+    Song songToBeJudged = player.songToBeJudged;
+    float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
 
 
-    float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.16f);
+    float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.20f);
     float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
 
-    float PlayerWidth = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.40f);
+    float ResultsWidth = (RightSide - LeftSide);
+    float PlayerWidth = (ResultsWidth*0.2275f);
+
+    float InnerMargins = (ResultsWidth*0.03f);
+
+    float Player2 = LeftSide + PlayerWidth + InnerMargins;
+
+    float Player4 = RightSide - PlayerWidth;
+    float Player3 = Player4 - PlayerWidth - InnerMargins;
+
+    float middle = (PlayerWidth/2) + LeftSide;
+
 
     DrawRectangle(LeftSide-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
     DrawRectangle(LeftSide, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
+    // renderStars(player, 0,0);
+
+    //assets.DrawTextRHDI("Results", 70,7, WHITE);
+    assets.DrawTextRubik(songToBeJudged.artist.c_str(), middle - (assets.MeasureTextRubik(songToBeJudged.artist.c_str(), 24) / 2), 48, 24, WHITE);
+    // if (player.FC) {
+    //    assets.DrawTextRubik("Flawless!", middle- (assets.MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
+    // }
+    float scorePos = middle - MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), 64, 1).x /2;
+    DrawTextEx(
+            assets.redHatDisplayItalic,
+            scoreCommaFormatter(player.score).c_str(),
+            {
+                scorePos,
+                (float)GetScreenHeight()/2},
+            64,
+            1,
+            Color{
+                107,
+                161,
+                222,
+                255});
+
+    assets.DrawTextRHDI(scoreCommaFormatter(player.score).c_str(), middle - assets.MeasureTextRHDI(scoreCommaFormatter(player.score).c_str())/2, 120, Color{107, 161, 222,255});
+    assets.DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 192, 24, WHITE);
+    assets.DrawTextRubik(TextFormat("Good Notes : %01i/%02i", player.notesHit - player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", player.notesHit - player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 224, 24, WHITE);
+    assets.DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (GetScreenWidth() / 2 - assets.MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 256, 24, WHITE);
+    assets.DrawTextRubik(TextFormat("Strikes: %01i", player.playerOverhits), (middle - assets.MeasureTextRubik(TextFormat("Strikes: %01i", player.playerOverhits), 24) / 2), 288, 24, WHITE);
+    assets.DrawTextRubik(TextFormat("Longest Streak: %01i", player.maxCombo), (middle - assets.MeasureTextRubik(TextFormat("Longest Streak: %01i", player.maxCombo), 24) / 2), 320, 24, WHITE);
+    renderStars(player, middle, 90);
+
+    //DrawRectangle(Player2-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
+    //DrawRectangle(Player2, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
+
+    //DrawRectangle(Player3-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
+    //DrawRectangle(Player3, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
+
+    //DrawRectangle(Player4-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
+    //DrawRectangle(Player4, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
     // DrawLine(LeftSide, 0, LeftSide, (float)GetScreenHeight(), WHITE);
-    renderStars(player, 0,0);
+
 }
 
 void Menu::SwitchScreen(Screens screen){

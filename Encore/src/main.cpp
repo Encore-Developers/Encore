@@ -1274,7 +1274,7 @@ int main(int argc, char* argv[])
 			case GAMEPLAY: {
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
-
+                player.songToBeJudged = songList.songs[curPlayingSong];
                 int scorePos = (GetScreenWidth()/4)* 3;
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
 				int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
@@ -1362,6 +1362,7 @@ int main(int argc, char* argv[])
 					isPlaying = false;
 					midiLoaded = false;
 					streamsLoaded = false;
+                    player.quit = true;
                 }
                 if (!streamsLoaded) {
                     loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
@@ -1761,7 +1762,7 @@ int main(int argc, char* argv[])
                 break;
 			}
 			case RESULTS: {
-                menu.showResults(player);
+                menu.showResults(player, assets);
                 DrawTopOvershell(160);
                 DrawBottomOvershell();
                 DrawBottomBottomOvershell();
@@ -1787,19 +1788,8 @@ int main(int argc, char* argv[])
 				else {
 					starsDisplay = (char*)"";
 				}*/
-                DrawTextRHDI("Results", 70,7, WHITE);
-                DrawTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), GetScreenWidth() / 2 - (MeasureTextRubik((songList.songs[curPlayingSong].artist + " - " + songList.songs[curPlayingSong].title).c_str(), 24) / 2), 48, 24, WHITE);
-				if (player.FC) {
-                    DrawTextRubik("Flawless!", GetScreenWidth() / 2 - (MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
-				}
-                DrawTextRHDI(scoreCommaFormatter(player.score).c_str(), (GetScreenWidth() / 2) - MeasureTextRHDI(scoreCommaFormatter(player.score).c_str())/2, 120, Color{107, 161, 222,255});
-				// DrawTextRubik(TextFormat("%s", starsDisplay), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("%s", starsDisplay), 24) / 2), 160, 24, goldStars ? GOLD : WHITE);
-                DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", player.perfectHit, songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", player.perfectHit, songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 192, 24, WHITE);
-                DrawTextRubik(TextFormat("Good Notes : %01i/%02i", player.notesHit - player.perfectHit, songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", player.notesHit - player.perfectHit, songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 224, 24, WHITE);
-                DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size()), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 256, 24, WHITE);
-                DrawTextRubik(TextFormat("Strikes: %01i", player.playerOverhits), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Strikes: %01i", player.playerOverhits), 24) / 2), 288, 24, WHITE);
-                DrawTextRubik(TextFormat("Longest Streak: %01i", player.maxCombo), (GetScreenWidth() / 2 - MeasureTextRubik(TextFormat("Longest Streak: %01i", player.maxCombo), 24) / 2), 320, 24, WHITE);
-				if (GuiButton({ 0,0,60,60 }, "<")) {
+                if (GuiButton({ 0,0,60,60 }, "<")) {
+                    player.quit = false;
                     menu.SwitchScreen(SONG_SELECT);
 				}
 				break;

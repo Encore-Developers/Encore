@@ -20,11 +20,28 @@ enum Screens {
 
 class Menu {
 private:
+    template<typename CharT>
+    struct Separators : public std::numpunct<CharT>
+    {
+        virtual std::string do_grouping()
+        const
+        {
+            return "\003";
+        }
+    };
+
+    std::string scoreCommaFormatter(int value) {
+        std::stringstream ss;
+        ss.imbue(std::locale(std::cout.getloc(), new Separators <char>()));
+        ss << std::fixed << value;
+        return ss.str();
+    }
+
     void renderStars(Player player, float xPos, float yPos);
 public:
     Screens currentScreen;
     bool songsLoaded;
-    void showResults(Player player);
+    void showResults(Player player, Assets assets);
     void loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
 
