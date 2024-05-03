@@ -509,19 +509,19 @@ Song song;
 void DrawTopOvershell(float TopOvershell) {
 
     DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell+6,WHITE);
-    DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell,BLACK);
+    DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell,GetColor(0x181827FF));
 }
 
 void DrawBottomOvershell() {
     float BottomOvershell = (float)GetScreenHeight() - 120;
     DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),BLACK);
+    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 void DrawBottomBottomOvershell() {
     float BottomBottomOvershell = (float)GetScreenHeight() - 80;
     DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),BLACK);
+    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 int main(int argc, char* argv[])
@@ -1346,7 +1346,7 @@ int main(int argc, char* argv[])
 						phrase.notesHit = 0;
 						phrase.added = false;
 					}
-                    menu.SwitchScreen(SONG_SELECT);
+                    menu.SwitchScreen(RESULTS);
                     player.overdrive = false;
                     player.overdriveFill = 0.0f;
                     player.overdriveActiveFill = 0.0f;
@@ -1761,10 +1761,12 @@ int main(int argc, char* argv[])
                 break;
 			}
 			case RESULTS: {
-				int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
-                for (int i = 0; i < starsval; i++) {
-                    DrawTextureEx(player.goldStars? assets.goldStar : assets.star, {((float)GetScreenWidth()/2)+(i*40)-100,84},0,0.15f,WHITE);
-                }
+                menu.showResults(player);
+                DrawTopOvershell(160);
+                DrawBottomOvershell();
+                DrawBottomBottomOvershell();
+
+
 /*
 				char* starsDisplay = (char*)"";
 				if (starsval == 5) {

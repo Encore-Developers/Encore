@@ -6,6 +6,7 @@
 #include "GLFW/glfw3.h"
 #include "song/songlist.h"
 #include "assets.h"
+#include "player.h"
 
 enum Screens {
     MENU,
@@ -18,10 +19,12 @@ enum Screens {
 };
 
 class Menu {
+private:
+    void renderStars(Player player, float xPos, float yPos);
 public:
     Screens currentScreen;
     bool songsLoaded;
-
+    void showResults(Player player);
     void loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
 
