@@ -24,6 +24,8 @@ private:
 	}
 	void ensureValuesExist() {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+        if (!settings.HasMember("fullscreen"))
+            settings.AddMember("fullscreen", rapidjson::Value(), allocator);
 		if (!settings.HasMember("trackSpeed"))
 			settings.AddMember("trackSpeed", rapidjson::Value(), allocator);
 		if (!settings.HasMember("avOffset"))
@@ -129,6 +131,9 @@ public:
 	bool changingAlt = false;
     bool missHighwayDefault = false;
     bool prevMissHighwayColor = missHighwayDefault;
+    bool fullscreenDefault = true;
+    bool fullscreen = fullscreenDefault;
+    bool fullscreenPrev = fullscreen;
 
     float highwayLengthMult = 1.0f;
     float prevHighwayLengthMult = highwayLengthMult;
@@ -136,6 +141,7 @@ public:
 	void writeDefaultSettings(std::filesystem::path settingsFile, bool migrate = false) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		settings.SetObject();
+
 		rapidjson::Value array4K(rapidjson::kArrayType);
 		rapidjson::Value array5K(rapidjson::kArrayType);
 		if (migrate) {
@@ -190,6 +196,8 @@ public:
 		settings.AddMember("avOffset", avOffset, allocator);
 		rapidjson::Value inputOffset(inputOffsetMS);
 		settings.AddMember("inputOffset", inputOffset, allocator);
+        rapidjson::Value fullscreenVal(fullscreenDefault);
+        settings.AddMember("fullscreen", fullscreenVal, allocator);
 		rapidjson::Value mirrorValue(defaultMirrorMode);
 		settings.AddMember("mirror",mirrorValue, allocator);
 		rapidjson::Value trackSpeedVal(4);
@@ -235,6 +243,7 @@ public:
         bool highwayLengthError = false;
 		bool trackSpeedError = false;
         bool MissHighwayError = false;
+        bool fullscreenError = false;
 		if (std::filesystem::exists(settingsFile)) {
 			std::ifstream ifs(settingsFile);
 			if (!ifs.is_open()) {
@@ -246,6 +255,7 @@ public:
 
 			if (settings.IsObject())
 			{
+
 				if (settings.HasMember("keybinds") && settings["keybinds"].IsObject()) {
 					if (settings["keybinds"].HasMember("4k") && settings["keybinds"]["4k"].IsArray()) {
 						const rapidjson::Value& arr = settings["keybinds"]["4k"];
@@ -484,6 +494,11 @@ public:
 				else {
 					mirrorError = true;
 				}
+                if (settings.HasMember("fullscreen") && settings["fullscreen"].IsBool()) {
+                    fullscreen = settings["fullscreen"].GetBool();
+                } else {
+                    fullscreenError = true;
+                }
                 if (settings.HasMember("songDirectories") && settings["songDirectories"].IsArray()){
 
                         for (auto& songPath : settings["songDirectories"].GetArray()) {
@@ -725,7 +740,15 @@ public:
 			mirrorValue .SetBool(defaultMirrorMode);
 			settings.AddMember("mirror", mirrorValue, allocator);
 		}
-		if (songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+        if (fullscreenError) {
+            if (settings.HasMember("fullscreen"))
+                settings.EraseMember("fullscreen");
+            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+            rapidjson::Value fullscreenVal;
+            fullscreenVal.SetBool(fullscreenDefault);
+            settings.AddMember("fullscreen", fullscreenVal, allocator);
+        }
+		if (fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -822,6 +845,8 @@ public:
 	}
 	const void saveSettings(std::filesystem::path settingsFile) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+        rapidjson::Value::MemberIterator fullscreenMember = settings.FindMember("fullscreen");
+        fullscreenMember->value.SetBool(fullscreen);
         rapidjson::Value::MemberIterator lengthMember = settings.FindMember("length");
         lengthMember->value.SetFloat(highwayLengthMult);
 		rapidjson::Value::MemberIterator trackSpeedMember = settings.FindMember("trackSpeed");
