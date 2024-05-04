@@ -502,7 +502,7 @@ int minWidth = 640;
 int minHeight = 480;
 
 
-Keybinds keybinds;
+keybinds keybinds;
 
 Song song;
 
