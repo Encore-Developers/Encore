@@ -158,6 +158,8 @@ void Menu::showResults(const Player& player, Assets assets) {
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
 
+
+
     float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), SongNameFontSize, 1).x/2;
     float bigScorePos = (float)GetScreenWidth()/2 - 15 - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), ScoreFontSize, 1).x;
     float bigStarPos = (float)GetScreenWidth()/2 + 140;

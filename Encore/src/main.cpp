@@ -595,8 +595,7 @@ int main(int argc, char* argv[])
                           (GetMonitorHeight(GetCurrentMonitor()) * 0.5) -
                           (GetMonitorHeight(GetCurrentMonitor()) * 0.375));
     } else {
-        SetWindowState(FLAG_WINDOW_UNDECORATED);
-        SetWindowState(FLAG_MSAA_4X_HINT);
+        SetWindowState(FLAG_WINDOW_UNDECORATED + FLAG_MSAA_4X_HINT);
         int CurrentMonitor = GetCurrentMonitor();
         SetWindowPosition(0, 0);
         SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
