@@ -77,6 +77,8 @@ public:
     Font redHatDisplayItalic;
     Font redHatDisplayBlack;
     Font redHatDisplayItalicLarge;
+    Font josefinSansItalic;
+
 
     Font rubik;
 

@@ -21,6 +21,7 @@ enum Screens {
 class Menu {
 private:
 
+    bool stringChosen = false;
 
     template<typename CharT>
     struct Separators : public std::numpunct<CharT>
