@@ -12,6 +12,8 @@
 #include "game/settings.h"
 #include "game/assets.h"
 
+
+
 void Menu::DrawTopOvershell(float TopOvershell) {
 
     DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell+6,WHITE);
@@ -36,18 +38,32 @@ void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
         DrawTextureEx(assets.emptyStar, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
     }
     for (int i = 0; i < starsval; i++) {
-        DrawTextureEx(player.goldStars? assets.goldStar : assets.star, {(xPos+(i*50)-125),yPos},0,0.15f,WHITE);
+        DrawTextureEx(player.goldStars? assets.goldStar : assets.star, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
     }
 };
 
 void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
     Lerp lerpCtrl;
     Settings settings;
-        lerpCtrl.createLerp("MENU_LOGO", EaseOutCubic, 1.5f);
-        DrawTextureEx(assets.encoreWhiteLogo, {(float) GetScreenWidth() / 2 - assets.encoreWhiteLogo.width / 4,
-                                               (float) lerpCtrl.getState("MENU_LOGO").value *
-                                               ((float) GetScreenHeight() / 5 - assets.encoreWhiteLogo.height / 4)}, 0,
+    float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
+    float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
+
+
+    // char splashes = (LoadUTF8())
+
+
+    float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.20f);
+    float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
+
+    lerpCtrl.createLerp("MENU_LOGO", EaseOutCubic, 1.5f);
+    float TopOvershellHeight = (float)GetScreenHeight() * 0.2f;
+    DrawTopOvershell(TopOvershellHeight);
+    DrawBottomOvershell();
+    DrawBottomBottomOvershell();
+    DrawTextureEx(assets.encoreWhiteLogo, {LeftSide,
+                                               (TopOvershellHeight/2 - assets.encoreWhiteLogo.height / 4)}, 0,
                       0.5, WHITE);
+    // DrawTextEx(assets.rubik32, );
 
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
 
@@ -83,14 +99,16 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 }
 
 void Menu::showResults(const Player& player, Assets assets) {
-
-    Song songToBeJudged = player.songToBeJudged;
     float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
 
 
     float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.20f);
     float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
+
+
+    Song songToBeJudged = player.songToBeJudged;
+
 
     float ResultsWidth = (RightSide - LeftSide);
     float PlayerWidth = (ResultsWidth*0.2275f);
