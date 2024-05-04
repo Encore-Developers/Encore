@@ -88,8 +88,9 @@ void Assets::MaterialMapper() {
     songBackground = Assets::LoadTextureFilter((directory / "Assets/background.png"));
 
     redHatDisplayItalic = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 48,0,0);
+    redHatDisplayItalicLarge = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 128,0,0);
 
-    redHatDisplayLarge = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-Black.ttf").string().c_str(), 128,0,0);
+    redHatDisplayBlack = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-Black.ttf").string().c_str(), 128,0,0);
 
     rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
 
@@ -98,6 +99,7 @@ void Assets::MaterialMapper() {
     rubikBoldItalic32 = LoadFontEx((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 40, 0, 0);
 
     rubikBold32 = LoadFontEx((directory / "Assets/fonts/Rubik-Bold.ttf").string().c_str(), 40, 0, 0);
+
 
     //clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
     //SetSoundVolume(clapOD, 0.375);
@@ -176,7 +178,8 @@ void Assets::MaterialMapper() {
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     SetTextureFilter(redHatDisplayItalic.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(redHatDisplayLarge.texture, TEXTURE_FILTER_TRILINEAR);
+    SetTextureFilter(redHatDisplayBlack.texture, TEXTURE_FILTER_TRILINEAR);
+    SetTextureFilter(redHatDisplayItalicLarge.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(rubik.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(rubikBoldItalic32.texture, TEXTURE_FILTER_TRILINEAR);

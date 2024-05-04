@@ -20,6 +20,8 @@ enum Screens {
 
 class Menu {
 private:
+
+
     template<typename CharT>
     struct Separators : public std::numpunct<CharT>
     {
@@ -37,11 +39,15 @@ private:
         return ss.str();
     }
 
-    void renderStars(Player player, float xPos, float yPos);
+    void renderStars(Player player, float xPos, float yPos, Assets assets);
 public:
+    void DrawTopOvershell(float TopOvershell);
+    void DrawBottomOvershell();
+    void DrawBottomBottomOvershell();
+
     Screens currentScreen;
     bool songsLoaded;
-    void showResults(Player player, Assets assets);
+    void showResults(const Player& player, Assets assets);
     void loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
 
