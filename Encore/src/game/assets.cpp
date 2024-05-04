@@ -98,6 +98,8 @@ void Assets::MaterialMapper() {
 
     rubikBoldItalic32 = LoadFontEx((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 40, 0, 0);
 
+    josefinSansItalic = LoadFontEx((directory / "Assets/fonts/JosefinSans-Italic.ttf").string().c_str(), 32, 0, 0);
+
     rubikBold32 = LoadFontEx((directory / "Assets/fonts/Rubik-Bold.ttf").string().c_str(), 40, 0, 0);
 
 
@@ -184,5 +186,6 @@ void Assets::MaterialMapper() {
     SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(rubikBoldItalic32.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(rubikBold32.texture, TEXTURE_FILTER_TRILINEAR);
+    SetTextureFilter(josefinSansItalic.texture, TEXTURE_FILTER_TRILINEAR);
 }
 

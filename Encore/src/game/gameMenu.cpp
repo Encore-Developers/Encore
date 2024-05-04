@@ -4,6 +4,7 @@
 
 
 #include <functional>
+#include <random>
 #include "game/gameMenu.h"
 #include "raylib.h"
 #include "raygui.h"
@@ -47,23 +48,41 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
     Settings settings;
     float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
-
-
-    // char splashes = (LoadUTF8())
-
-
     float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.20f);
     float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
 
+
+
+    std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
+
+    std::ifstream splashes;
+    splashes.open((directory / "Assets/ui/splashes.txt"));
+
     lerpCtrl.createLerp("MENU_LOGO", EaseOutCubic, 1.5f);
     float TopOvershellHeight = (float)GetScreenHeight() * 0.2f;
+
+    static std::string result;
+    std::string line;
+    if (!stringChosen) {
+        std::random_device seed;
+        std::mt19937 prng(seed());
+        for (std::size_t n = 0; std::getline(splashes, line); n++) {
+            std::uniform_int_distribution<> dist(0, n);
+            if (dist(prng) < 1)
+                result = line;
+        }
+        stringChosen = true;
+    }
+
+    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  TopOvershellHeight/2 - 16};
     DrawTopOvershell(TopOvershellHeight);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
+    DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 1, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, {LeftSide,
                                                (TopOvershellHeight/2 - assets.encoreWhiteLogo.height / 4)}, 0,
                       0.5, WHITE);
-    // DrawTextEx(assets.rubik32, );
+
 
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
 
@@ -87,9 +106,13 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
             OpenURL("https://github.com/Encore-Developers/Encore-Raylib");
         }
 
+
         if (GuiButton({(float) GetScreenWidth() - 120, (float) GetScreenHeight() - 60, 60, 60}, "")) {
             OpenURL("https://discord.gg/GhkgVUAC9v");
         }
+    if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - 60, 60, 60}, "")) {
+        stringChosen = false;
+    }
         if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - 120, 180, 60}, "Rescan Songs")) {
             songsLoaded = false;
         }
@@ -196,6 +219,7 @@ void Menu::SwitchScreen(Screens screen){
         case MENU:
             // reset lerps
             lerpCtrl.removeLerp("MENU_LOGO");
+            stringChosen = false;
             break;
         case SONG_SELECT:
             break;
