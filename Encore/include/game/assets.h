@@ -75,8 +75,8 @@ public:
     Texture2D songBackground;
 
     Font redHatDisplayItalic;
-
-    Font redHatDisplayLarge;
+    Font redHatDisplayBlack;
+    Font redHatDisplayItalicLarge;
 
     Font rubik;
 

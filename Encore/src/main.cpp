@@ -506,23 +506,7 @@ keybinds keybinds;
 
 Song song;
 
-void DrawTopOvershell(float TopOvershell) {
 
-    DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell+6,WHITE);
-    DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell,GetColor(0x181827FF));
-}
-
-void DrawBottomOvershell() {
-    float BottomOvershell = (float)GetScreenHeight() - 120;
-    DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
-}
-
-void DrawBottomBottomOvershell() {
-    float BottomBottomOvershell = (float)GetScreenHeight() - 80;
-    DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
-}
 
 int main(int argc, char* argv[])
 {
@@ -955,7 +939,7 @@ int main(int argc, char* argv[])
                 player.diff = 0;
                 std::random_device noise;
                 std::mt19937 worker(noise());
-                std::uniform_int_distribution<int> weezer(0, songList.songs.size());
+                std::uniform_int_distribution<int> weezer(0, songList.songs.size()-1);
 
                 int selectedSongInt;
 
@@ -1007,10 +991,10 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (RightSide - AlbumArtLeft)-6;
                 float TopOvershell = 110;
                 DrawRectangle(LeftSide,0, RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
-                DrawTopOvershell(110);
+                menu.DrawTopOvershell(110);
                 float TextPlacementTB = (float)GetScreenHeight()*0.005f;
                 float TextPlacementLR = (float)GetScreenWidth()*0.10f;
-                DrawTextEx(assets.redHatDisplayLarge, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
+                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
 
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     for (Song& songi : songList.songs) {
@@ -1103,7 +1087,7 @@ int main(int argc, char* argv[])
 					EndScissorMode();
 				}
                 // hehe
-                DrawBottomOvershell();
+                menu.DrawBottomOvershell();
                 float BottomOvershell = GetScreenHeight() - 120;
                 if (selSong) {
                     if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
@@ -1112,7 +1096,7 @@ int main(int argc, char* argv[])
 
                     }
                 }
-                DrawBottomBottomOvershell();
+                menu.DrawBottomBottomOvershell();
 				break;
 			}
 			case INSTRUMENT_SELECT: {
@@ -1134,7 +1118,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (LeftSide + 120
                         )-6;
                 DrawRectangle(0,0, (float)GetScreenWidth(), (float)GetScreenHeight(), Color(0,0,0,128));
-                DrawTopOvershell(160);
+                menu.DrawTopOvershell(160);
 
                 DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
                 DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
@@ -1145,7 +1129,7 @@ int main(int argc, char* argv[])
                 float BottomOvershell = GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(assets.redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
+                DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
                 DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
 				if (!midiLoaded) {
 					if (!songList.songs[curPlayingSong].midiParsed) {
@@ -1216,8 +1200,8 @@ int main(int argc, char* argv[])
 						}
 					}
 				}
-                DrawBottomOvershell();
-                DrawBottomBottomOvershell();
+                menu.DrawBottomOvershell();
+                menu.DrawBottomBottomOvershell();
 				break;
 			}
 			case DIFFICULTY_SELECT: {
@@ -1237,7 +1221,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
                 DrawRectangle(0,0, (float)GetScreenWidth(), (float)GetScreenHeight(), Color(0,0,0,128));
-                DrawTopOvershell(160);
+                menu.DrawTopOvershell(160);
 
                 DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
                 DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
@@ -1248,7 +1232,7 @@ int main(int argc, char* argv[])
                 float BottomOvershell = GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(assets.redHatDisplayLarge, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
+                DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
                 DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
 				for (int i = 0; i < 4; i++) {
 					if (GuiButton({ 0,0,60,60 }, "<")) {
@@ -1267,8 +1251,8 @@ int main(int argc, char* argv[])
 						DrawTextRubik(diffList[i].c_str(), LeftSide + 150 - (MeasureTextRubik(diffList[i].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
 					}
 				}
-                DrawBottomOvershell();
-                DrawBottomBottomOvershell();
+                menu.DrawBottomOvershell();
+                menu.DrawBottomBottomOvershell();
 				break;
 			}
 			case GAMEPLAY: {
@@ -1763,31 +1747,6 @@ int main(int argc, char* argv[])
 			}
 			case RESULTS: {
                 menu.showResults(player, assets);
-                DrawTopOvershell(160);
-                DrawBottomOvershell();
-                DrawBottomBottomOvershell();
-
-
-/*
-				char* starsDisplay = (char*)"";
-				if (starsval == 5) {
-					starsDisplay = (char*)"*****";
-				}
-				else if (starsval == 4) {
-					starsDisplay = (char*)"****";
-				}
-				else if (starsval == 3) {
-					starsDisplay = (char*)"***";
-				}
-				else if (starsval == 2) {
-					starsDisplay = (char*)"**";
-				}
-				else if (starsval == 1) {
-					starsDisplay = (char*)"*";;
-				}
-				else {
-					starsDisplay = (char*)"";
-				}*/
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     player.quit = false;
                     menu.SwitchScreen(SONG_SELECT);
