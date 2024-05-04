@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include "GLFW/glfw3.h"
 #include <cstdio>
-#include "game/menu.h"
+#include "game/gameMenu.h"
 #include "game/assets.h"
 
 Menu menu;
