@@ -199,7 +199,7 @@ public:
 					for (auto& diff:item.value.GetObject())
 					{
 						std::string part = std::string(diff.name.GetString());
-						if (item.value.IsInt()) {
+						if (diff.value.IsInt()) {
 							if (part == "ds" || part == "drums")
 							{
 								parts[0]->diff = diff.value.GetInt();
