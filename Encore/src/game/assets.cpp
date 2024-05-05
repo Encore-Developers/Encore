@@ -11,7 +11,6 @@
 class Assets;
 
 
-
 Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath) {
     Texture2D tex = LoadTexture(texturePath.string().c_str());
     SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
@@ -22,7 +21,6 @@ Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath) {
 
 void Assets::MaterialMapper() {
     Player player;
-
     smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
     smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png");
 
@@ -62,9 +60,7 @@ void Assets::MaterialMapper() {
     uvOffsetXLoc = GetShaderLocation(multNumberShader, "uvOffsetX");
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
-    fxaaShader = LoadShader(0,"Assets/fxaa.fs");
 
-    resolutionLoc = GetShaderLocation(fxaaShader, "resolution");
     expertHighwaySides = LoadModel(((directory / "Assets/highway/sides.obj").string().c_str()));
     expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
     emhHighwaySides = LoadModel((directory / "Assets/highway/sides_emh.obj").string().c_str());
