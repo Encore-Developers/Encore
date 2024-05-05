@@ -501,7 +501,8 @@ public:
                 }
                 if (settings.HasMember("songDirectories") && settings["songDirectories"].IsArray()){
                         for (auto& songPath : settings["songDirectories"].GetArray()) {
-                            songPaths.push_back(songPath.GetString());
+							if(songPath.GetString()!=defaultSongPaths[0])
+								songPaths.push_back(songPath.GetString());
                         }
                 } else {
                     songDirectoryError = true;
@@ -711,8 +712,9 @@ public:
                 settings.EraseMember("songDirectories");
             rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
             rapidjson::Value arraySongDir(rapidjson::kArrayType);
-            for (std::filesystem::path &path: defaultSongPaths)
-                arraySongDir.PushBack(rapidjson::Value().SetString((const char*)(path.c_str()), allocator), allocator);
+			for (auto& songPath : defaultSongPaths) {
+				songPaths.push_back(songPath);
+			}
             settings.AddMember("songDirectories", arraySongDir, allocator);
         }
         if (MissHighwayError) {
@@ -856,10 +858,10 @@ public:
         missHighwayColorMember->value.SetBool(missHighwayDefault);
 		rapidjson::Value::MemberIterator mirrorMember = settings.FindMember("mirror");
 		mirrorMember->value.SetBool(mirrorMode);
-        // rapidjson::Value::MemberIterator songDirMember = settings.FindMember("songDirectories");
-        // songDirMember->value.Clear();
-		// for (std::filesystem::path& path : songPaths)
-        // songDirMember->value.PushBack(rapidjson::Value().SetString(path.string(), allocator), allocator);
+        rapidjson::Value::MemberIterator songDirMember = settings.FindMember("songDirectories");
+		songDirMember->value.Clear();
+		for (std::filesystem::path& path : songPaths)
+			songDirMember->value.PushBack(rapidjson::Value().SetString(path.string(), allocator), allocator);
 		rapidjson::Value::MemberIterator keybinds4KMember = settings["keybinds"].FindMember("4k");
 		keybinds4KMember->value.Clear();
 		for (int& key : keybinds4K)
