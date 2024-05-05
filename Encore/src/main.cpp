@@ -511,6 +511,9 @@ Song song;
 int main(int argc, char* argv[])
 {
 
+	SetConfigFlags(FLAG_MSAA_4X_HINT);
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+	SetConfigFlags(FLAG_VSYNC_HINT);
 	
 	SetTraceLogLevel(LOG_NONE);
 
@@ -650,10 +653,8 @@ int main(int argc, char* argv[])
 
         float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
         float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
-        Vector2 resolution = {(float)GetScreenWidth(), (float)GetScreenHeight()};
-        SetShaderValue(assets.fxaaShader, assets.resolutionLoc, &resolution, SHADER_UNIFORM_VEC2);
         BeginDrawing();
-        BeginShaderMode(assets.fxaaShader);
+
         // menu.loadTitleScreen();
 
         ClearBackground(DARKGRAY);
@@ -1023,12 +1024,12 @@ int main(int argc, char* argv[])
                 float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
 
                 float AlbumArtLeft = RightSide - 400 >= (float)GetScreenWidth()/2 ? RightSide - 300 :RightSide*0.72f;
-                float AlbumArtTop = GetScreenHeight()*0.75f;
+                float AlbumArtTop = 65;
                 float AlbumArtRight = (RightSide - AlbumArtLeft)-6;
                 float AlbumArtBottom = (RightSide - AlbumArtLeft)-6;
-                float TopOvershell = GetScreenHeight()*0.15f;
+                float TopOvershell = 110;
                 DrawRectangle(LeftSide,0, RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(TopOvershell);
+                menu.DrawTopOvershell(110);
                 float TextPlacementTB = (float)GetScreenHeight()*0.005f;
                 float TextPlacementLR = (float)GetScreenWidth()*0.10f;
                 DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
