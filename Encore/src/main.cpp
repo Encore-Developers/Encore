@@ -1343,10 +1343,10 @@ int main(int argc, char* argv[])
                     assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                     assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                 } else {
-                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                 }
 
 
@@ -1382,8 +1382,8 @@ int main(int argc, char* argv[])
                     assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
                     assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
                     assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                     isPlaying = false;
                     midiLoaded = false;
                     streamsLoaded = false;
@@ -1491,7 +1491,7 @@ int main(int argc, char* argv[])
                 }
 
                 if (musicTime < 7.5) {
-                    DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, (float)((GetScreenHeight()/3)) - 20, Units::pt(), WHITE);
+                    DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, (float)((GetScreenHeight()/3)) - 20, Units::window_percent(5), WHITE);
                     DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {45, (float)((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
                     //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
@@ -1538,7 +1538,7 @@ int main(int argc, char* argv[])
                         DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
-                            DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
+                            DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
                             DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
                         }
                     }
@@ -1565,8 +1565,8 @@ int main(int argc, char* argv[])
                         if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
                             double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
                             if (relTime > 1.5) break;
-                            float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.03f : 0.0075f;
-                            DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
+                            float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.01f;
+                            DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, DARKGRAY);
                             if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size() - 1) {
                                 curBeatLine++;
 
@@ -1688,14 +1688,16 @@ int main(int argc, char* argv[])
                                     Color SustainColor = Color{ 172,82,217,255 };
                                 }*/
                                 float sustainLen = (highwayLength * (float)relEnd) - (highwayLength * (float)relTime);
-                                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen), MatrixTranslate(notePosX, 0.1f, player.smasherPos+(highwayLength * (float)relTime) +(sustainLen / 2.0f)));
-                                
+                                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen), MatrixTranslate(notePosX, 0.01f, player.smasherPos+(highwayLength * (float)relTime) +(sustainLen / 2.0f)));
+                                BeginBlendMode(BLEND_ALPHA);
                                 if (curNote.held && !curNote.renderAsOD) {
                                     DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
+                                    DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 0.4f, 0.4f, 0.4f, player.accentColor);
                                     //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
                                 }
                                 if (curNote.renderAsOD && curNote.held) {
                                     DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
+                                    DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 0.4f, 0.4f, 0.4f, WHITE);
                                     //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
                                 }
                                 if (!curNote.held && curNote.hit || curNote.miss) {
@@ -1717,7 +1719,7 @@ int main(int argc, char* argv[])
                                                        player.accentColor);*/
                                     }
                                 }
-
+                                EndBlendMode();
 
                                 // DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
                             }

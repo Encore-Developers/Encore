@@ -13,7 +13,8 @@ class Assets;
 
 Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath) {
     Texture2D tex = LoadTexture(texturePath.string().c_str());
-    SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
+    GenTextureMipmaps(&tex);
+    SetTextureFilter(tex, TEXTURE_FILTER_BILINEAR);
     return tex;
 }
 
@@ -161,11 +162,11 @@ void Assets::MaterialMapper() {
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-    expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+    expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-    emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+    emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
 
     noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
     noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
@@ -181,6 +182,15 @@ void Assets::MaterialMapper() {
     liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
+    GenTextureMipmaps(&redHatDisplayItalic.texture);
+    GenTextureMipmaps(&redHatDisplayBlack.texture);
+    GenTextureMipmaps(&redHatDisplayItalicLarge.texture);
+    GenTextureMipmaps(&rubik.texture);
+    GenTextureMipmaps(&rubik32.texture);
+    GenTextureMipmaps(&rubikBoldItalic32.texture);
+    GenTextureMipmaps(&rubikBold32.texture);
+    GenTextureMipmaps(&josefinSansItalic.texture);
+
     SetTextureFilter(redHatDisplayItalic.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(redHatDisplayBlack.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(redHatDisplayItalicLarge.texture, TEXTURE_FILTER_TRILINEAR);
@@ -195,14 +205,17 @@ void Assets::MaterialMapper() {
     sustainMatHeldOD = LoadMaterialDefault();
     sustainMatMiss = LoadMaterialDefault();
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
-    sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(player.accentColor, { 200,200,200,255 });
+    sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(player.accentColor, { 180,180,180,255 });
+    sustainMatHeld.maps[MATERIAL_MAP_EMISSION].texture = sustainTexture;
+    sustainMatHeld.maps[MATERIAL_MAP_EMISSION].color = WHITE;
+    sustainMatHeld.maps[MATERIAL_MAP_EMISSION].value = 1;
     sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = player.accentColor;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
-    sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].color = { 200,200,200,255 };
+    sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].color = { 180,180,180,255 };
     sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
-    sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].color = LIGHTGRAY;
+    sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].color = DARKGRAY;
 }
 

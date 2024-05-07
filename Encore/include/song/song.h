@@ -189,9 +189,13 @@ public:
 						ImageResize(&albumImage, 512, 512);
 					}
 					albumArt = LoadTextureFromImage(albumImage);
-					SetTextureFilter(albumArt, TEXTURE_FILTER_ANISOTROPIC_16X);
+					GenTextureMipmaps(&albumArt);
+					SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
+					
 					ImageBlurGaussian(&albumImage, 10);
 					albumArtBlur = LoadTextureFromImage(albumImage);
+					GenTextureMipmaps(&albumArtBlur);
+					SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
 					UnloadImage(albumImage);
 				}
 				if (item.name=="diff" && item.value.IsObject())
