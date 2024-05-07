@@ -22,6 +22,7 @@ struct Note
 	bool renderAsOD = false;
     double hitTime = 0;
 	//For plastic support later
+
 	bool forceStrum;
 	bool forceHopo;
 };
@@ -41,6 +42,9 @@ class Chart
 private:
 	std::vector<std::vector<int>> diffNotes = { {60,63,66,69}, {72,75,78,81}, {84,87,90,93}, {96,100,102,106} };
 public:
+    // plastic stuff :tm:
+    int hopoThreshold = 170;
+
 	std::vector<Note> notes;
 	std::vector <std::vector<int>> notes_perlane{ {},{},{},{},{} };
 	int baseScore = 0;

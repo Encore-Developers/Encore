@@ -12,13 +12,16 @@
 #include "game/lerp.h"
 #include "game/settings.h"
 #include "game/assets.h"
+#include "game/uiUnits.h"
+#include "raymath.h"
 
-
+const float Width = (float)GetScreenWidth();
+const float Height = (float)GetScreenHeight();
 
 void Menu::DrawTopOvershell(float TopOvershell) {
 
-    DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell+6,WHITE);
-    DrawRectangle(0,0,(float)(GetScreenWidth()), TopOvershell,GetColor(0x181827FF));
+    DrawRectangle(0,0,Width, TopOvershell+6,WHITE);
+    DrawRectangle(0,0,Width, TopOvershell,GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomOvershell() {
@@ -35,16 +38,19 @@ void Menu::DrawBottomBottomOvershell() {
 
 void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
     int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
+    float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
+
     for (int i = 0; i < 5; i++) {
+        bool firstStar = (i == 0);
         DrawTextureEx(assets.emptyStar, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
-    }
-    for (int i = 0; i < starsval; i++) {
+        float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], yPos, yPos + 50);
+        BeginScissorMode((xPos+(i*50)-125), yMaskPos, 50, 50);
         DrawTextureEx(player.goldStars? assets.goldStar : assets.star, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
+        EndScissorMode();
     }
 };
 
 void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
-    Lerp lerpCtrl;
     Settings settings;
     float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
@@ -57,8 +63,6 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 
     std::ifstream splashes;
     splashes.open((directory / "Assets/ui/splashes.txt"));
-
-    lerpCtrl.createLerp("MENU_LOGO", EaseOutCubic, 1.5f);
     float TopOvershellHeight = (float)GetScreenHeight() * 0.2f;
 
     static std::string result;
@@ -213,12 +217,10 @@ void Menu::showResults(const Player& player, Assets assets) {
 }
 
 void Menu::SwitchScreen(Screens screen){
-    Lerp lerpCtrl;
     currentScreen = screen;
     switch (screen) {
         case MENU:
             // reset lerps
-            lerpCtrl.removeLerp("MENU_LOGO");
             stringChosen = false;
             break;
         case SONG_SELECT:

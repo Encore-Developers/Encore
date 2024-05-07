@@ -42,12 +42,12 @@ private:
 
     void renderStars(Player player, float xPos, float yPos, Assets assets);
 public:
-    void DrawTopOvershell(float TopOvershell);
+    static void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();
     void DrawBottomBottomOvershell();
 
     Screens currentScreen;
-    bool songsLoaded;
+    bool songsLoaded{};
     void showResults(const Player& player, Assets assets);
     void loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
