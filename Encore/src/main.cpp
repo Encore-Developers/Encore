@@ -3,9 +3,6 @@
 #if defined(WIN32) && defined(NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
-#include "rapidjson/document.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/writer.h"
 #include "raylib.h"
 #include <vector>
 #include <iostream>
@@ -21,15 +18,12 @@
 #include "game/keybinds.h"
 #include "game/settings.h"
 #include "raygui.h"
-#include <locale>
-#include <iomanip>
 #include <random>
-#include <thread>
-#include <stdlib.h>
 #include "GLFW/glfw3.h"
-#include <cstdio>
 #include "game/gameMenu.h"
 #include "game/assets.h"
+#include "raymath.h"
+#include "game/uiUnits.h"
 
 Menu menu;
 Player player;
@@ -91,37 +85,30 @@ int pressedGamepadInput = -999;
 int axisDirection = -1;
 int controllerID = -1;
 
-Lerp lerpCtrl = Lerp();
-void createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically = true);
-void removeLerp(std::string key);
-void startLerp(std::string key);
-void updateStates();
-LerpState getState(std::string key);
-
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 1, color);
 }
-static void DrawTextRubik(const char* text, float posX, float posY, int fontSize, Color color) {
+static void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color) {
     DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 1, color);
 }
-static void DrawTextRHDI(const char* text, float posX, float posY, Color color) {
-    DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
+static void DrawTextRHDI(const char* text, float posX, float posY, float fontSize, Color color) {
+    DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, fontSize, 1, color);
 }
-static int MeasureTextRubik32(const char* text) {
-    return MeasureTextEx(assets.rubik32, text, 32, 1).x;
+static float MeasureTextRubik32(const char* text) {
+    return MeasureTextEx(assets.rubik32, text, 32.0f, 1.0f).x;
 }
-static int MeasureTextRubik(const char* text, int fontSize) {
-    return MeasureTextEx(assets.rubik, text, fontSize, 1).x;
+static float MeasureTextRubik(const char* text, float fontSize) {
+    return MeasureTextEx(assets.rubik, text, fontSize, 1.0f).x;
 }
-static int MeasureTextRHDI(const char* text) {
-    return MeasureTextEx(assets.redHatDisplayItalic, text, 48, 1).x;
+static float MeasureTextRHDI(const char* text, float fontSize) {
+    return MeasureTextEx(assets.redHatDisplayItalic, text, fontSize, 1.0f).x;
 }
 
 template<typename CharT>
 struct Separators : public std::numpunct<CharT>
 {
-    virtual std::string do_grouping()
-    const
+    [[nodiscard]] std::string do_grouping()
+    const override
     {
         return "\003";
     }
@@ -156,11 +143,11 @@ static void handleInputs(int lane, int action){
 	if (lane == -1) {
 		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
 		Note* curNote = &curChart.notes[0];
-		for (int i = 0; i < curChart.notes.size(); i++) {
-			if (curChart.notes[i].time - (player.goodBackend+player.InputOffset) < eventTime &&
-				curChart.notes[i].time + (player.goodFrontend+player.InputOffset) > eventTime &&
-				!curChart.notes[i].hit) {
-				curNote = &curChart.notes[i];
+		for (auto & note : curChart.notes) {
+			if (note.time - (player.goodBackend+player.InputOffset) < eventTime &&
+				note.time + (player.goodFrontend+player.InputOffset) > eventTime &&
+				!note.hit) {
+				curNote = &note;
 				break;
 			}
 		}
@@ -296,7 +283,7 @@ static void handleInputs(int lane, int action){
 						continue;
 				}
                 player.OverHit();
-				if (curChart.odPhrases.size() > 0 && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) curChart.odPhrases[curODPhrase].missed = true;
+				if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) curChart.odPhrases[curODPhrase].missed = true;
 				overhitFrets[lane] = true;
 			}
 		}
@@ -385,7 +372,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 	else {
 		if (state.axes[-(settings.controllerOverdrive+1)] != axesValues[-(settings.controllerOverdrive + 1)]) {
 			axesValues[-(settings.controllerOverdrive + 1)] = state.axes[-(settings.controllerOverdrive + 1)];
-			if (state.axes[-(settings.controllerOverdrive + 1)] == 1.0f*settings.controllerOverdriveAxisDirection) {
+			if (state.axes[-(settings.controllerOverdrive + 1)] == 1.0f*(float)settings.controllerOverdriveAxisDirection) {
 				handleInputs(-1, GLFW_PRESS);
 			}
 			else {
@@ -506,7 +493,7 @@ Keybinds keybinds;
 
 Song song;
 
-
+float Units::default_pt = 16;
 
 int main(int argc, char* argv[])
 {
@@ -528,7 +515,9 @@ int main(int argc, char* argv[])
     std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
     int targetFPSArg = 0;
 
-    if (FPSCapStringVal != "")
+
+
+    if (!FPSCapStringVal.empty())
     {
 #ifdef NDEBUG
         str2int(&targetFPSArg, FPSCapStringVal.c_str());
@@ -556,7 +545,7 @@ int main(int argc, char* argv[])
 
 
     InitAudioDevice();
-
+    SetAudioStreamBufferSizeDefault(196);
     SetExitKey(0);
 
     Camera3D camera = { 0 };
@@ -590,10 +579,10 @@ int main(int argc, char* argv[])
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
             SetWindowState(FLAG_MSAA_4X_HINT);
         }
-        SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75, GetMonitorHeight(GetCurrentMonitor()) * 0.75);
-        SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375),
-                          (GetMonitorHeight(GetCurrentMonitor()) * 0.5) -
-                          (GetMonitorHeight(GetCurrentMonitor()) * 0.375));
+        SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75f, GetMonitorHeight(GetCurrentMonitor()) * 0.75f);
+        SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5f) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375f),
+                          (GetMonitorHeight(GetCurrentMonitor()) * 0.5f) -
+                          (GetMonitorHeight(GetCurrentMonitor()) * 0.375f));
     } else {
         SetWindowState(FLAG_WINDOW_UNDECORATED + FLAG_MSAA_4X_HINT);
         int CurrentMonitor = GetCurrentMonitor();
@@ -658,8 +647,6 @@ int main(int argc, char* argv[])
         // menu.loadTitleScreen();
 
         ClearBackground(DARKGRAY);
-
-        lerpCtrl.updateStates();
 
         switch (menu.currentScreen) {
             case MENU: {
@@ -756,7 +743,7 @@ int main(int argc, char* argv[])
                     DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
 
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-                    float avOffsetFloat = (float)settings.avOffsetMS;
+                    auto avOffsetFloat = (float)settings.avOffsetMS;
                     float lengthSetting = settings.highwayLengthMult;
                     DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
                     DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
@@ -793,14 +780,14 @@ int main(int argc, char* argv[])
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", player.MissHighwayColor ? "True" : "False"))) {
                         settings.missHighwayDefault = !settings.missHighwayDefault;
                         player.MissHighwayColor = settings.missHighwayDefault;
-                    };
+                    }
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", settings.mirrorMode ? "True" : "False"))) {
                         settings.mirrorMode = !settings.mirrorMode;
-                    };
+                    }
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 180,250,60 }, TextFormat("Fullscreen: %s", settings.fullscreen ? "True" : "False"))) {
                         settings.fullscreen = !settings.fullscreen;
-                    };
-                    float inputOffsetFloat = (float)settings.inputOffsetMS;
+                    }
+                    auto inputOffsetFloat = (float)settings.inputOffsetMS;
                     DrawTextRubik("Input Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
                     DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
                     DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 130, 20, WHITE);
@@ -819,7 +806,7 @@ int main(int argc, char* argv[])
                 else if (selectedTab == 1) { //Keyboard bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
-                        float j = i - 2.0f;
+                        float j = (float)i - 2.0f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, keybinds.getKeyStr(settings.keybinds5K[i]).c_str())) {
                             settings.changing4k = false;
                             settings.changingAlt = false;
@@ -834,7 +821,7 @@ int main(int argc, char* argv[])
                         }
                     }
                     for (int i = 0; i < 4; i++) {
-                        float j = i - 1.5f;
+                        float j = (float)i - 1.5f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, keybinds.getKeyStr(settings.keybinds4K[i]).c_str())) {
                             settings.changingAlt = false;
                             settings.changing4k = true;
@@ -864,8 +851,8 @@ int main(int argc, char* argv[])
                         std::string keyString = (settings.changing4k ? "4k" : "5k");
                         std::string altString = (settings.changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + keyString + altString + " lane ";
-                        DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to remove bound key", (GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
+                        DrawTextRubik("Or press escape to remove bound key", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
                         if (pressedKey != 0) {
                             if (pressedKey == KEY_ESCAPE)
@@ -879,8 +866,8 @@ int main(int argc, char* argv[])
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string altString = (settings.changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + altString + " overdrive";
-                        DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to remove bound key", (GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
+                        DrawTextRubik("Or press escape to remove bound key", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
                         if (pressedKey != 0) {
                             if (pressedKey == KEY_ESCAPE)
@@ -897,7 +884,7 @@ int main(int argc, char* argv[])
                 else if (selectedTab == 2) { //Controller bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
-                        float j = i - 2.0f;
+                        float j = (float)i - 2.0f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, keybinds.getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
                             settings.changing4k = false;
                             selLane = i;
@@ -905,7 +892,7 @@ int main(int argc, char* argv[])
                         }
                     }
                     for (int i = 0; i < 4; i++) {
-                        float j = i - 1.5f;
+                        float j = (float)i - 1.5f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getControllerStr(controllerID, settings.controller4K[i], settings.controllerType, settings.controller4KAxisDirection[i]).c_str())) {
                             settings.changing4k = true;
                             selLane = i;
@@ -922,8 +909,8 @@ int main(int argc, char* argv[])
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string keyString = (settings.changing4k ? "4k" : "5k");
                         std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
-                        DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        DrawTextRubik("Or press escape to cancel", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
                         if (pressedGamepadInput != -999) {
                             bindsToChange[selLane] = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
@@ -937,8 +924,8 @@ int main(int argc, char* argv[])
                     if (changingOverdrive) {
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string changeString = "Press a button/axis for controller overdrive";
-                        DrawTextRubik(changeString.c_str(), (GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to cancel", (GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        DrawTextRubik("Or press escape to cancel", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
 
                         if (pressedGamepadInput != -999) {
                             settings.controllerOverdrive = pressedGamepadInput;
@@ -977,7 +964,7 @@ int main(int argc, char* argv[])
                 player.diff = 0;
                 std::random_device noise;
                 std::mt19937 worker(noise());
-                std::uniform_int_distribution<int> weezer(0, songList.songs.size()-1);
+                std::uniform_int_distribution<int> weezer(0, (int)songList.songs.size()-1);
 
                 int selectedSongInt;
 
@@ -1011,11 +998,11 @@ int main(int argc, char* argv[])
 
                 Vector2 mouseWheel = GetMouseWheelMoveV();
                 if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
-                    songSelectOffset -= mouseWheel.y;
+                    songSelectOffset -= (int)mouseWheel.y;
                 }
                 if (songSelectOffset < 0) songSelectOffset = 0;
-                if (songSelectOffset > songList.songs.size() + 2 - (GetScreenHeight() / 60)) songSelectOffset = songList.songs.size() + 2 - (GetScreenHeight() / 60);
-                if (songSelectOffset >= songList.songs.size()) songSelectOffset = songList.songs.size() - 1;
+                if (songSelectOffset > songList.songs.size() + 2 - (GetScreenHeight() / 60)) songSelectOffset = (int)songList.songs.size() + 2 - (GetScreenHeight() / 60);
+                if (songSelectOffset >= songList.songs.size()) songSelectOffset = (int)songList.songs.size() - 1;
 
 
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
@@ -1028,7 +1015,7 @@ int main(int argc, char* argv[])
                 float AlbumArtRight = (RightSide - AlbumArtLeft)-6;
                 float AlbumArtBottom = (RightSide - AlbumArtLeft)-6;
                 float TopOvershell = 110;
-                DrawRectangle(LeftSide,0, RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawRectangle((int)LeftSide,0, (int)RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
                 menu.DrawTopOvershell(110);
                 float TextPlacementTB = (float)GetScreenHeight()*0.005f;
                 float TextPlacementLR = (float)GetScreenWidth()*0.10f;
@@ -1041,20 +1028,20 @@ int main(int argc, char* argv[])
                     }
                     menu.SwitchScreen(MENU);
                 }
-                DrawRectangle(AlbumArtLeft-6,AlbumArtBottom+12,AlbumArtRight+12, GetScreenHeight()-AlbumArtBottom,WHITE);
-                DrawRectangle(AlbumArtLeft,AlbumArtBottom,AlbumArtRight, GetScreenHeight()-AlbumArtBottom,GetColor(0x181827FF));
-                DrawRectangle(AlbumArtLeft-6,AlbumArtTop-6,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
-                DrawRectangle(AlbumArtLeft,AlbumArtTop,AlbumArtRight, AlbumArtBottom,BLACK);
+                DrawRectangle((int)AlbumArtLeft-6,(int)AlbumArtBottom+12,(int)AlbumArtRight+12, (int)GetScreenHeight()-(int)AlbumArtBottom,WHITE);
+                DrawRectangle((int)AlbumArtLeft,(int)AlbumArtBottom,(int)AlbumArtRight, (int)GetScreenHeight()-(int)AlbumArtBottom,GetColor(0x181827FF));
+                DrawRectangle((int)AlbumArtLeft-6,(int)AlbumArtTop-6,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
+                DrawRectangle((int)AlbumArtLeft,(int)AlbumArtTop,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
 
 
                 // right side
-                DrawLine(RightSide,0,RightSide,(float)GetScreenHeight(), WHITE);
+                DrawLine((int)RightSide,0,(int)RightSide,(int)(float)GetScreenHeight(), WHITE);
 
                 // left side
-                DrawLine(LeftSide,0,LeftSide,(float)GetScreenHeight(), WHITE);
+                DrawLine((int)LeftSide,0,(int)LeftSide,(int)(float)GetScreenHeight(), WHITE);
 
                 // bottom
-                DrawLine(0,((float)GetScreenHeight()*0.85),0,((float)GetScreenHeight()*0.85), WHITE);
+                DrawLine(0,(int)((float)GetScreenHeight()*0.85),0,(int)((float)GetScreenHeight()*0.85f), WHITE);
                 if (selSong) {
                     DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
                                                                     (float) selectedSong.albumArt.width},
@@ -1076,7 +1063,7 @@ int main(int argc, char* argv[])
                     float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
                     float songXPos = LeftSide;//state.value * 500;
-                    float songYPos = (TopOvershell+6) + (45 * (i - songSelectOffset));
+                    float songYPos = (TopOvershell+6) + (float)(45 * (i - songSelectOffset));
 
                     if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
                         curPlayingSong = i;
@@ -1085,48 +1072,48 @@ int main(int argc, char* argv[])
                     }
 
                     // DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
-                    int songTitleWidth = (((AlbumArtLeft-LeftSide)-6)/5)*2;
+                    int songTitleWidth = (int)(((AlbumArtLeft-LeftSide)-6)/5)*2;
 
-                    int songArtistWidth = (((AlbumArtLeft-LeftSide)-6 )/3)-15;
+                    int songArtistWidth = (int)(((AlbumArtLeft-LeftSide)-6 )/3)-15;
 
-                    if (songi.titleTextWidth >= songTitleWidth) {
+                    if (songi.titleTextWidth >= (float)songTitleWidth) {
                         if (curTime > songi.titleScrollTime && curTime < songi.titleScrollTime + 3.0)
                             songi.titleXOffset = 0;
 
                         if (curTime > songi.titleScrollTime + 3.0) {
                             songi.titleXOffset -= 1;
 
-                            if (songi.titleXOffset < -(songi.titleTextWidth - songTitleWidth)) {
-                                songi.titleXOffset = -(songi.titleTextWidth - songTitleWidth);
+                            if (songi.titleXOffset < -(songi.titleTextWidth - (float)songTitleWidth)) {
+                                songi.titleXOffset = -(songi.titleTextWidth - (float)songTitleWidth);
                                 songi.titleScrollTime = curTime + 3.0;
                             }
                         }
                     }
-                    Color LightText = Color{203, 203, 203, 255};
-                    BeginScissorMode(songXPos + 15, songYPos + 10, songTitleWidth, 45);
+                    auto LightText = Color{203, 203, 203, 255};
+                    BeginScissorMode((int)songXPos + 15, (int)songYPos + 10, songTitleWidth, 45);
                     DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + songi.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
 
-                    if (songi.artistTextWidth > songArtistWidth) {
+                    if (songi.artistTextWidth > (float)songArtistWidth) {
                         if (curTime > songi.artistScrollTime && curTime < songi.artistScrollTime + 3.0)
                             songi.artistXOffset = 0;
 
                         if (curTime > songi.artistScrollTime + 3.0) {
                             songi.artistXOffset -= 1;
-                            if (songi.artistXOffset < -(songi.artistTextWidth - songArtistWidth)) {
+                            if (songi.artistXOffset < -(songi.artistTextWidth - (float)songArtistWidth)) {
                                 songi.artistScrollTime = curTime + 3.0;
                             }
                         }
                     }
 
-                    Color SelectedText = WHITE;
-                    BeginScissorMode(songXPos + 30 + songTitleWidth, songYPos + 12, songArtistWidth, 45);
-                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + songTitleWidth + songi.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
+                    auto SelectedText = WHITE;
+                    BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos + 12, songArtistWidth, 45);
+                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
                 }
                 // hehe
                 menu.DrawBottomOvershell();
-                float BottomOvershell = GetScreenHeight() - 120;
+                float BottomOvershell = (float)GetScreenHeight() - 120;
                 if (selSong) {
                     if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
@@ -1155,16 +1142,16 @@ int main(int argc, char* argv[])
                 float AlbumArtRight = (LeftSide + 120)-6;
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
-                DrawRectangle(0,0, (float)GetScreenWidth(), (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
                 menu.DrawTopOvershell(160);
 
-                DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
-                DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
+                DrawRectangle((int)LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
+                DrawRectangle((int)LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
                 DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {LeftSide + 6, AlbumArtTop+6,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);
 
 
 
-                float BottomOvershell = GetScreenHeight() - 126;
+                float BottomOvershell = (float)GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
                 DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
@@ -1296,22 +1283,37 @@ int main(int argc, char* argv[])
             case GAMEPLAY: {
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
+
                 player.songToBeJudged = songList.songs[curPlayingSong];
-                int scorePos = (GetScreenWidth()/4)* 3;
+
+                float scorePos = (float)(GetScreenWidth()/4)* 3;
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
                 int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
+                float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
                 for (int i = 0; i < 5; i++) {
-                    DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),80},0,0.15f,WHITE);
+                    bool firstStar = (i == 0);
+                    DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),Units::window_percent(0.075f)},0,0.15f,WHITE);
+                    float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, 40);
+                    BeginScissorMode((scorePos+(i*40)), Units::window_percent(0.075f)-yMaskPos, 40, yMaskPos);
+                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),80},0,0.15f,WHITE);
+                    EndScissorMode();
                 }
-                for (int i = 0; i < starsval; i++) {
-                    DrawTextureEx(player.goldStars? assets.goldStar : assets.star, {scorePos+((float)i*40),80},0,0.15f,WHITE);
+                if (starPercent >= player.xStarThreshold[4]) {
+                    float yMaskPos = Remap(starPercent, player.xStarThreshold[4], player.xStarThreshold[5], 0, 40);
+                    BeginScissorMode((scorePos), 120-yMaskPos, scorePos, yMaskPos);
+                    for (int i = 0; i < 5; i++) {
+                        DrawTextureEx(player.goldStars ? assets.goldStar : assets.star, {(scorePos + (i * 40.0f)), Units::window_percent(0.125f)}, 0, 0.15f, player.goldStars ? WHITE : YELLOW);
+                    }
+                    EndScissorMode();
                 }
+
+
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
 
-                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str()), 30,  Color{107, 161, 222,255});
-                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str()), 125, player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), Units::window_percent(0.075f)), 0, Units::window_percent(0.075f), Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), Units::window_percent(0.075f)), Units::window_percent(0.125f), Units::window_percent(0.075f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextRubik32(TextFormat("%s", player.FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
                 // DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
@@ -1390,6 +1392,7 @@ int main(int argc, char* argv[])
                     loadedStreams = LoadStems(songList.songs[curPlayingSong].stemsPath);
                     for (auto& stream : loadedStreams) {
                         std::cout << GetMusicTimeLength(stream.first) << std::endl;
+
                     }
 
                     streamsLoaded = true;
@@ -1467,7 +1470,7 @@ int main(int argc, char* argv[])
                     assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
 
 
-                    player.overdriveFill = player.overdriveActiveFill - ((musicTime - player.overdriveActiveTime) / (1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
+                    player.overdriveFill = player.overdriveActiveFill - (float)((musicTime - player.overdriveActiveTime) / (1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
                     if (player.overdriveFill <= 0) {
                         player.overdrive = false;
                         player.overdriveActiveFill = 0;
@@ -1487,8 +1490,8 @@ int main(int argc, char* argv[])
                 }
 
                 if (musicTime < 7.5) {
-                    DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, ((GetScreenHeight()/3)) - 20, WHITE);
-                    DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {45, ((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
+                    DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, (float)((GetScreenHeight()/3)) - 20, Units::pt(), WHITE);
+                    DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {45, (float)((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
                     //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
 
@@ -1521,7 +1524,7 @@ int main(int argc, char* argv[])
                     for (int i = 0; i < 4; i++) {
                         float radius = (i == (settings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
 
-                        DrawCylinderEx(Vector3{ lineDistance - i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
+                        DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
                     }
 
                     DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
@@ -1574,7 +1577,7 @@ int main(int argc, char* argv[])
                 // DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
                 // DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
-                player.notes = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
+                player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
                 DrawModel(assets.odFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
                 DrawModel(assets.odBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
                 DrawModel(assets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
@@ -1592,10 +1595,10 @@ int main(int argc, char* argv[])
 
                 // DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
                 Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
-                if (curChart.odPhrases.size() > 0) {
+                if (!curChart.odPhrases.empty()) {
 
-                    float odStart = ((curChart.odPhrases[curODPhrase].start - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
-                    float odEnd = ((curChart.odPhrases[curODPhrase].end - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
 
                     // horrifying.
 
@@ -1606,7 +1609,7 @@ int main(int argc, char* argv[])
                 for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
                     for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
                         Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
-                        if (curChart.odPhrases.size() > 0) {
+                        if (!curChart.odPhrases.empty()) {
 
                             if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
                                 if(curNote.hit) {
@@ -1634,14 +1637,14 @@ int main(int argc, char* argv[])
                         if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
                             curNote.miss = true;
                             player.MissNote();
-                            if (curChart.odPhrases.size()>0 && !curChart.odPhrases[curODPhrase].missed && curNote.time>=curChart.odPhrases[curODPhrase].start && curNote.time<curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
+                            if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed && curNote.time>=curChart.odPhrases[curODPhrase].start && curNote.time<curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
                             curNote.accounted = true;
                         }
 
 
                         double relTime = ((curNote.time - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * ( 11.5f / highwayLength);
                         double relEnd = (((curNote.time + curNote.len) - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * ( 11.5f / highwayLength);
-                        float notePosX = diffDistance - (1.0f * (settings.mirrorMode ? (player.diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
+                        float notePosX = diffDistance - (1.0f * (float)(settings.mirrorMode ? (player.diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
                         if (relTime > 1.5) {
                             break;
                         }
@@ -1662,7 +1665,7 @@ int main(int argc, char* argv[])
                                 if (curNote.hit && curNote.held) {
                                     if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
                                         curNote.heldTime = 0.0 - relTime;
-                                        player.sustainScoreBuffer[curNote.lane] = (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) * player.multiplier(player.instrument);
+                                        player.sustainScoreBuffer[curNote.lane] = (float)(curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) * player.multiplier(player.instrument);
                                         if (relTime < 0.0) relTime = 0.0;
                                     }
                                     if (relEnd <= 0.0) {
@@ -1714,13 +1717,13 @@ int main(int argc, char* argv[])
                                 if (curNote.renderAsOD) {
                                     if ((!curNote.held && !curNote.miss) || !curNote.hit) {
                                         DrawModel(assets.noteModelOD, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-                                    };
+                                    }
 
                                 }
                                 else {
                                     if ((!curNote.held && !curNote.miss) || !curNote.hit) {
                                         DrawModel(assets.noteModel, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-                                    };
+                                    }
 
                                 }
 
@@ -1753,7 +1756,7 @@ int main(int argc, char* argv[])
                     }
 
                 }
-                if (curChart.odPhrases.size() > 0 && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
+                if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
                 }
 #ifndef NDEBUG
@@ -1766,10 +1769,10 @@ int main(int argc, char* argv[])
                 EndMode3D();
 
                 float songPlayed = GetMusicTimePlayed(loadedStreams[0].first);
-                int songLength = GetMusicTimeLength(loadedStreams[0].first);
-                int playedMinutes = GetMusicTimePlayed(loadedStreams[0].first)/60;
+                int songLength = (int)GetMusicTimeLength(loadedStreams[0].first);
+                int playedMinutes = (int)GetMusicTimePlayed(loadedStreams[0].first)/60;
                 int playedSeconds = (int)GetMusicTimePlayed(loadedStreams[0].first) % 60;
-                int songMinutes = GetMusicTimeLength(loadedStreams[0].first)/60;
+                int songMinutes = (int)GetMusicTimeLength(loadedStreams[0].first)/60;
                 int songSeconds = (int)GetMusicTimeLength(loadedStreams[0].first) % 60;
                 const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
                 int textLength = MeasureTextRubik32(textTime);
@@ -1779,7 +1782,7 @@ int main(int argc, char* argv[])
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED, ColorToInt(player.FC ? GOLD : player.accentColor));
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(player.FC ? GOLD : player.accentColor));
 
-                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),8}, "", "", &songPlayed, 0, songLength);
+                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),8}, "", "", &songPlayed, 0, (float)songLength);
 
                 break;
             }
