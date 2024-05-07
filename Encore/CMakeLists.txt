@@ -35,7 +35,14 @@ file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include")
-# Link against the DLLs in the lib directory
-target_link_libraries(Encore raylib)
+find_library(BASS NAMES bass PATHS "lib/bass")
+if (CMAKE_SIZEOF_VOID_P EQUAL 4) 
+file(COPY "lib/bass/x86/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+endif() 
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+file(COPY "lib/bass/x64/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+endif()
+
+target_link_libraries(Encore raylib ${BASS})
 # TODO: Add tests and install targets if needed.
 
