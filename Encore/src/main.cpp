@@ -1294,15 +1294,15 @@ int main(int argc, char* argv[])
                     bool firstStar = (i == 0);
                     DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),Units::window_percent(0.075f)},0,0.15f,WHITE);
                     float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, 40);
-                    BeginScissorMode((scorePos+(i*40)), Units::window_percent(0.075f)-yMaskPos, 40, yMaskPos);
-                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),80},0,0.15f,WHITE);
+                    BeginScissorMode((scorePos+(i*40)), Units::window_percent(0.125f)-yMaskPos, 40, yMaskPos);
+                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),Units::window_percent(0.075f) },0,0.15f,WHITE);
                     EndScissorMode();
                 }
                 if (starPercent >= player.xStarThreshold[4]) {
                     float yMaskPos = Remap(starPercent, player.xStarThreshold[4], player.xStarThreshold[5], 0, 40);
-                    BeginScissorMode((scorePos), 120-yMaskPos, scorePos, yMaskPos);
+                    BeginScissorMode((scorePos), Units::window_percent(0.125f) -yMaskPos, scorePos, yMaskPos);
                     for (int i = 0; i < 5; i++) {
-                        DrawTextureEx(player.goldStars ? assets.goldStar : assets.star, {(scorePos + (i * 40.0f)), Units::window_percent(0.125f)}, 0, 0.15f, player.goldStars ? WHITE : YELLOW);
+                        DrawTextureEx(player.goldStars ? assets.goldStar : assets.star, {(scorePos + (i * 40.0f)), Units::window_percent(0.075f)}, 0, 0.15f, player.goldStars ? WHITE : YELLOW);
                     }
                     EndScissorMode();
                 }
@@ -1311,9 +1311,9 @@ int main(int argc, char* argv[])
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-
-                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), Units::window_percent(0.075f)), 0, Units::window_percent(0.075f), Color{107, 161, 222,255});
-                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), Units::window_percent(0.075f)), Units::window_percent(0.125f), Units::window_percent(0.075f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+                DrawRectangleRounded(Rectangle{ (scorePos-2.5f), Units::window_percent(0.0225f), 205, Units::window_percent(0.05f) }, 0.25, 10, player.accentColor);
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.025f), Units::window_percent(0.05f), Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.125f), Units::window_percent(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextRubik32(TextFormat("%s", player.FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
                 // DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
