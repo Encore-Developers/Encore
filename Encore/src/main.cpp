@@ -622,6 +622,8 @@ int main(int argc, char* argv[])
     GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
     GuiSetFont(assets.rubik32);
 
+    Mesh sustainPlane = GenMeshPlane(0.8f,1.0f,1,1);
+
 
     while (!WindowShouldClose())
     {
@@ -1686,26 +1688,34 @@ int main(int argc, char* argv[])
                                     }
                                     Color SustainColor = Color{ 172,82,217,255 };
                                 }*/
-
+                                float sustainLen = (highwayLength * (float)relEnd) - (highwayLength * (float)relTime);
+                                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen), MatrixTranslate(notePosX, 0.1f, player.smasherPos+(highwayLength * (float)relTime) +(sustainLen / 2.0f)));
+                                
                                 if (curNote.held && !curNote.renderAsOD) {
-                                    DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
+                                    DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
+                                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
                                 }
                                 if (curNote.renderAsOD && curNote.held) {
-                                    DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
+                                    DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
+                                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
                                 }
                                 if (!curNote.held && curNote.hit || curNote.miss) {
-                                    DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+
+                                    DrawMesh(sustainPlane, assets.sustainMatMiss, sustainMatrix);
+                                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
                                 }
                                 if (!curNote.hit && !curNote.accounted && !curNote.miss) {
                                     if (curNote.renderAsOD) {
-                                        DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
+                                        DrawMesh(sustainPlane, assets.sustainMatOD, sustainMatrix);
+                                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
                                     }
                                     else {
-                                        DrawCylinderEx(Vector3{ notePosX, 0.05f,
+                                        DrawMesh(sustainPlane, assets.sustainMat, sustainMatrix); 
+                                        /*DrawCylinderEx(Vector3{notePosX, 0.05f,
                                                                 player.smasherPos + (highwayLength * (float)relTime) },
                                                        Vector3{ notePosX, 0.05f,
                                                                 player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-                                                       player.accentColor);
+                                                       player.accentColor);*/
                                     }
                                 }
 
