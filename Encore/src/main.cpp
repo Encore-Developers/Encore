@@ -1313,7 +1313,6 @@ int main(int argc, char* argv[])
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-                DrawRectangleRounded(Rectangle{ (scorePos-2.5f), Units::window_percent(0.0225f), 205, Units::window_percent(0.05f) }, 0.25, 10, player.accentColor);
                 DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.025f), Units::window_percent(0.05f), Color{107, 161, 222,255});
                 DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.125f), Units::window_percent(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextRubik32(TextFormat("%s", player.FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
