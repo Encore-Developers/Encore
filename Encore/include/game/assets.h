@@ -94,6 +94,12 @@ public:
     Texture2D discord;
     Texture2D github;
 
+    Texture2D sustainTexture;
+    Material sustainMat;
+    Material sustainMatOD;
+    Material sustainMatHeld;
+    Material sustainMatHeldOD;
+    Material sustainMatMiss;
 	//Sound clapOD;
     void DrawTextRubik32(const char* text, float posX, float posY, Color color) const {
         DrawTextEx(rubik32, text, { posX,posY }, 32, 1, color);

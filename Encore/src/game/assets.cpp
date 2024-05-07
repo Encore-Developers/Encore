@@ -109,6 +109,8 @@ void Assets::MaterialMapper() {
     discord = Assets::LoadTextureFilter(directory/"Assets/ui/discord-mark-white.png");
     github = Assets::LoadTextureFilter(directory/"Assets/ui/github-mark-white.png");
 
+    sustainTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png");
+
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
@@ -187,5 +189,20 @@ void Assets::MaterialMapper() {
     SetTextureFilter(rubikBoldItalic32.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(rubikBold32.texture, TEXTURE_FILTER_TRILINEAR);
     SetTextureFilter(josefinSansItalic.texture, TEXTURE_FILTER_TRILINEAR);
+    sustainMat = LoadMaterialDefault();
+    sustainMatHeld = LoadMaterialDefault();
+    sustainMatOD = LoadMaterialDefault();
+    sustainMatHeldOD = LoadMaterialDefault();
+    sustainMatMiss = LoadMaterialDefault();
+    sustainMat.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(player.accentColor, { 200,200,200,255 });
+    sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = player.accentColor;
+    sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].color = { 200,200,200,255 };
+    sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
+    sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].color = LIGHTGRAY;
 }
 
