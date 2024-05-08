@@ -57,49 +57,49 @@ jobs:
         name: Encore_Win_x64
         path: ${{github.workspace}}/build_x64/Encore/Release/*
         
-#  build-linux:
-#    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-#    # You can convert this to a matrix build if you need cross-platform coverage.
-#    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#    - uses: actions/checkout@v4
-#    - name: Install Dependencies
-#      run: sudo apt-get install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
-#      
-#    - name: Configure CMake x64
-#      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-#      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-#      run: cmake -B ${{github.workspace}}/build_linux_x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-#
-#    - name: Build x64
-#      # Build your program with the given configuration
-#      run: cmake --build ${{github.workspace}}/build_linux_x64 --config ${{env.BUILD_TYPE}}
-#
-#    - name: Remove CMake files x64
-#      working-directory: ${{github.workspace}}/build_linux_x64/Encore
-#      run: rm -r -f CMakeFiles Makefile cmake_install.cmake
-#
-#    - name: Configure CMake x86
-#      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-#      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-#      run: cmake -B ${{github.workspace}}/build_linux_x86 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
-#
-#    - name: Build x86
-#      # Build your program with the given configuration
-#      run: cmake --build ${{github.workspace}}/build_linux_x86 --config ${{env.BUILD_TYPE}}
+  build-linux:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
 
-#    - name: Remove CMake files x86
-#      working-directory: ${{github.workspace}}/build_linux_x86/Encore
-#      run: rm -r -f CMakeFiles Makefile cmake_install.cmake
-#      
-#    - uses: actions/upload-artifact@v4
-#      with:
-#        name: Encore_Linux_x64
-#        path: ${{github.workspace}}/build_linux_x64/Encore/*
-#    
-#    - uses: actions/upload-artifact@v4
-#      with:
-#        name: Encore_Linux_x86
-#        path: ${{github.workspace}}/build_linux_x86/Encore/*
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Dependencies
+      run: sudo apt-get install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+      
+    - name: Configure CMake x64
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build_linux_x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build x64
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build_linux_x64 --config ${{env.BUILD_TYPE}}
+
+    - name: Remove CMake files x64
+      working-directory: ${{github.workspace}}/build_linux_x64/Encore
+      run: rm -r -f CMakeFiles Makefile cmake_install.cmake
+
+    - name: Configure CMake x86
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build_linux_x86 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
+
+    - name: Build x86
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build_linux_x86 --config ${{env.BUILD_TYPE}}
+
+    - name: Remove CMake files x86
+      working-directory: ${{github.workspace}}/build_linux_x86/Encore
+      run: rm -r -f CMakeFiles Makefile cmake_install.cmake
+      
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Encore_Linux_x64
+        path: ${{github.workspace}}/build_linux_x64/Encore/*
+    
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Encore_Linux_x86
+        path: ${{github.workspace}}/build_linux_x86/Encore/*

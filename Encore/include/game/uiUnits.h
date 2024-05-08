@@ -10,26 +10,25 @@
 
 class Units {
 public:
-    static float default_pt;
 
-    float rem = 16;
-    static float pt(float point) {
-        return GetWindowScaleDPI().x / (point * (0.0138888889f));
-    };
-    static float pt() {
-        return GetWindowScaleDPI().x / (default_pt * (0.0138888889f));
-    };
-    float pica(float pica) {
-        return GetWindowScaleDPI().x * (pica * (1/6));
-    }
-    float set_rem(float rem_in) {
-        rem = GetWindowScaleDPI().x * (rem_in * (1/72));
-    }
-    static float window_percent(float pct) {
+    float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
+    float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
+    float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.25f);
+    float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
+
+    float wpct(float pct) {
         // for decimal points
         return (float)GetScreenHeight()*pct;
     }
-    static float window_percent(int pct) {
+    float wpct(int pct) {
+        // for whole numbers
+        return (float)GetScreenHeight()*((float)pct/100);
+    }
+    float hpct(float pct) {
+        // for decimal points
+        return (float)GetScreenHeight()*pct;
+    }
+    float hpct(int pct) {
         // for whole numbers
         return (float)GetScreenHeight()*((float)pct/100);
     }

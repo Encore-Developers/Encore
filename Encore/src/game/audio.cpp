@@ -1,15 +1,21 @@
 #include "game/audio.h"
 #include "bass.h"
 #include "GLFW/glfw3.h"
+
 #ifdef WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif __linux__
+
 #include <X11/Xlib.h>
+
 #define GLFW_EXPOSE_NATIVE_X11
+
 #endif
+
 #include "GLFW/glfw3native.h"
 #include <vector>
 #include <filesystem>
+
 bool AudioManager::Init() {
 #ifdef WIN32
 	return BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL);
