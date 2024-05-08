@@ -1,13 +1,13 @@
 #include "game/audio.h"
 #include "bass.h"
-#include "glfw/glfw3.h"
+#include "GLFW/glfw3.h"
 #ifdef WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif __linux__
 #include <X11/Xlib.h>
 #define GLFW_EXPOSE_NATIVE_X11
 #endif
-#include "glfw/glfw3native.h"
+#include "GLFW/glfw3native.h"
 #include <vector>
 #include <filesystem>
 bool AudioManager::Init() {
