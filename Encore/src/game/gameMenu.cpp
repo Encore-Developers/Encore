@@ -20,8 +20,8 @@ const float Height = (float)GetScreenHeight();
 
 void Menu::DrawTopOvershell(float TopOvershell) {
 
-    DrawRectangle(0,0,Width, TopOvershell+6,WHITE);
-    DrawRectangle(0,0,Width, TopOvershell,GetColor(0x181827FF));
+    DrawRectangle(0,0,(int)GetScreenWidth(), Units::window_percent(TopOvershell)+6,WHITE);
+    DrawRectangle(0,0,(int)GetScreenWidth(), Units::window_percent(TopOvershell),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomOvershell() {
@@ -63,7 +63,6 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 
     std::ifstream splashes;
     splashes.open((directory / "Assets/ui/splashes.txt"));
-    float TopOvershellHeight = (float)GetScreenHeight() * 0.2f;
 
     static std::string result;
     std::string line;
@@ -78,13 +77,13 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
         stringChosen = true;
     }
 
-    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  TopOvershellHeight/2 - 16};
-    DrawTopOvershell(TopOvershellHeight);
+    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  Units::window_percent(0.2f)/2 - 16};
+    DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 1, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, {LeftSide,
-                                               (TopOvershellHeight/2 - assets.encoreWhiteLogo.height / 4)}, 0,
+                                               (Units::window_percent(0.2f)/2 - assets.encoreWhiteLogo.height / 4)}, 0,
                       0.5, WHITE);
 
 

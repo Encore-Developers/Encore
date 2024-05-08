@@ -1018,7 +1018,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (RightSide - AlbumArtLeft)-6;
                 float TopOvershell = 110;
                 DrawRectangle((int)LeftSide,0, (int)RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(110);
+                menu.DrawTopOvershell(0.15f);
                 float TextPlacementTB = (float)GetScreenHeight()*0.005f;
                 float TextPlacementLR = (float)GetScreenWidth()*0.10f;
                 DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
@@ -1132,7 +1132,7 @@ int main(int argc, char* argv[])
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
                 DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-
+                menu.DrawTopOvershell(0.3f);
 
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
                 float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
@@ -1145,7 +1145,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
                 DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(160);
+
 
                 DrawRectangle((int)LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 DrawRectangle((int)LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
@@ -1248,7 +1248,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
                 DrawRectangle(0,0, (float)GetScreenWidth(), (float)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(160);
+                menu.DrawTopOvershell(0.3f);
 
                 DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
                 DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
@@ -1316,7 +1316,6 @@ int main(int argc, char* argv[])
                 DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.025f), Units::window_percent(0.05f), Color{107, 161, 222,255});
                 DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.125f), Units::window_percent(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextRubik32(TextFormat("%s", player.FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
-                // DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);

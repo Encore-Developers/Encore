@@ -42,7 +42,7 @@ private:
 
     void renderStars(Player player, float xPos, float yPos, Assets assets);
 public:
-    static void DrawTopOvershell(float TopOvershell);
+    void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();
     void DrawBottomBottomOvershell();
 
