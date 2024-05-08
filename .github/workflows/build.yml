@@ -78,7 +78,7 @@ jobs:
       run: cmake --build ${{github.workspace}}/build_linux_x64 --config ${{env.BUILD_TYPE}}
 
     - name: Remove CMake files x64
-          working-directory: ${{github.workspace}}/build_linux_x64/Encore
+      working-directory: ${{github.workspace}}/build_linux_x64/Encore
       run: rm -r -f CMakeFiles Makefile cmake_install.cmake
 
 #   - name: Configure CMake x86
