@@ -50,5 +50,10 @@ if(UNIX AND NOT APPLE)
     execute_process(COMMAND uname -a
 		COMMAND awk "{if ($0 ~ \"x86_64\") {print \"x64\"} else {print \"x86\"}}"
 		OUTPUT_VARIABLE UNAME_LOG)
-    MESSAGE( "Your system architecture is: ${UNAME_LOG}" )
+    if(${UNAME_LOG} EQUAL x86)
+        message("compiling x86")
+    endif()
+    if(${UNAME_LOG} EQUAL x64)
+        message("compiling x64")
+    endif()
 endif()
