@@ -23,10 +23,10 @@ void AudioManager::unloadStreams() {
 	AudioManager::loadedStreams.clear();
 }
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
-	return BASS_ChannelBytes2Seconds(handle, BASS_StreamGetFilePosition(handle, BASS_FILEPOS_CURRENT));
+	return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle,BASS_POS_BYTE));
 }
 double AudioManager::GetMusicTimeLength(unsigned int handle) {
-	return BASS_ChannelBytes2Seconds(handle, BASS_StreamGetFilePosition(handle, BASS_FILEPOS_SIZE));
+	return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetLength(handle, BASS_POS_BYTE));
 }
 
 void AudioManager::SetAudioStreamVolume(unsigned int handle, float volume) {
