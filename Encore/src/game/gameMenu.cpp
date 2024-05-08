@@ -18,25 +18,30 @@
 const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
 
-void Menu::DrawTopOvershell(float TopOvershell) {
 
-    DrawRectangle(0,0,(int)GetScreenWidth(), Units::window_percent(TopOvershell)+6,WHITE);
-    DrawRectangle(0,0,(int)GetScreenWidth(), Units::window_percent(TopOvershell),GetColor(0x181827FF));
+
+void Menu::DrawTopOvershell(float TopOvershell) {
+    Units u;
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.wpct(TopOvershell)+6,WHITE);
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.wpct(TopOvershell),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomOvershell() {
-    float BottomOvershell = GetScreenHeight() - Units::window_percent(0.12f);
+    Units u;
+    float BottomOvershell = GetScreenHeight() - u.wpct(0.12f);
     DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomBottomOvershell() {
-    float BottomBottomOvershell = GetScreenHeight() - Units::window_percent(0.075f);
+    Units u;
+    float BottomBottomOvershell = GetScreenHeight() - u.wpct(0.075f);
     DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
+    Units u;
     int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
     float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
 
@@ -51,6 +56,7 @@ void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
 };
 
 void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
+    Units u;
     Settings settings;
     float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
@@ -77,13 +83,13 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
         stringChosen = true;
     }
 
-    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  Units::window_percent(0.2f)/2 - 16};
+    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  u.wpct(0.2f)/2 - 16};
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 1, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, {LeftSide,
-                                               (Units::window_percent(0.2f)/2 - assets.encoreWhiteLogo.height / 4)}, 0,
+                                               (u.wpct(0.2f)/2 - assets.encoreWhiteLogo.height / 4)}, 0,
                       0.5, WHITE);
 
 
@@ -125,6 +131,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 }
 
 void Menu::showResults(const Player& player, Assets assets) {
+    Units u;
     float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
 
