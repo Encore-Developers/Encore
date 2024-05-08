@@ -20,7 +20,7 @@ bool AudioManager::Init() {
 #ifdef WIN32
 	return BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL);
 #elif __linux__
-	return BASS_Init(-1, 44100, 0, glfwGetX11Window(glfwGetCurrentContext()), NULL);
+	return BASS_Init(-1, 44100, 0, 0, NULL);
 #endif
 };
 void AudioManager::loadStreams(std::vector<std::pair<std::string,int>>& paths) {
