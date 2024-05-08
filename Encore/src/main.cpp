@@ -1015,15 +1015,15 @@ int main(int argc, char* argv[])
                 float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
 
                 float AlbumArtLeft = RightSide - 400 >= (float)GetScreenWidth()/2 ? RightSide - 300 :RightSide*0.72f;
-                float AlbumArtTop = 65;
+                float AlbumArtTop = Units::window_percent(0.075f);
                 float AlbumArtRight = (RightSide - AlbumArtLeft)-6;
                 float AlbumArtBottom = (RightSide - AlbumArtLeft)-6;
                 float TopOvershell = 110;
                 DrawRectangle((int)LeftSide,0, (int)RightSide - LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(110);
-                float TextPlacementTB = (float)GetScreenHeight()*0.005f;
-                float TextPlacementLR = (float)GetScreenWidth()*0.10f;
-                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, 100,1, WHITE);
+                menu.DrawTopOvershell(0.15f);
+                float TextPlacementTB = Units::window_percent(0.01f);
+                float TextPlacementLR = LeftSide + Units::window_percent(0.05f);
+                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, Units::window_percent(0.13f),1, WHITE);
 
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     for (Song& songi : songList.songs) {
@@ -1058,8 +1058,8 @@ int main(int argc, char* argv[])
                                    Rectangle{AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtBottom}, {0, 0}, 0,
                                    WHITE);
                 }
-
-                for (int i = songSelectOffset; i < songSelectOffset + (GetScreenHeight() / 50) - 2; i++) {
+                float songEntryHeight = Units::window_percent(0.05f);
+                for (int i = songSelectOffset; i < songSelectOffset + Units::window_percent(0.15f) - 2; i++) {
                     if (songList.songs.size() == i)
                         break;
 
@@ -1067,14 +1067,17 @@ int main(int argc, char* argv[])
                     float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
                     float songXPos = LeftSide;//state.value * 500;
-                    float songYPos = (TopOvershell+6) + (float)(45 * (i - songSelectOffset));
+                    float songYPos = (Units::window_percent(0.15f)+4) + ((songEntryHeight - 1) * (i - songSelectOffset));
 
-                    if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, 45 }, "")) {
+                    if (i == curPlayingSong && selSong) {
+                        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+                    }
+                    if (GuiButton(Rectangle{ songXPos, songYPos,(AlbumArtLeft-LeftSide)-6, songEntryHeight }, "")) {
                         curPlayingSong = i;
                         selSong = true;
 
                     }
-
+                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                     // DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
                     int songTitleWidth = (int)(((AlbumArtLeft-LeftSide)-6)/5)*2;
 
@@ -1094,8 +1097,8 @@ int main(int argc, char* argv[])
                         }
                     }
                     auto LightText = Color{203, 203, 203, 255};
-                    BeginScissorMode((int)songXPos + 15, (int)songYPos + 10, songTitleWidth, 45);
-                    DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + songi.titleXOffset, songYPos + 10}, 24,1, i == curPlayingSong && selSong ? WHITE : LightText);
+                    BeginScissorMode((int)songXPos + 15, (int)songYPos, songTitleWidth, songEntryHeight);
+                    DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + songi.titleXOffset, songYPos + Units::window_percent(0.01f)}, Units::window_percent(0.03f),1, i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
 
                     if (songi.artistTextWidth > (float)songArtistWidth) {
@@ -1111,19 +1114,21 @@ int main(int argc, char* argv[])
                     }
 
                     auto SelectedText = WHITE;
-                    BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos + 12, songArtistWidth, 45);
-                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + 12, 20, i == curPlayingSong && selSong ? WHITE : LightText);
+                    BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos, songArtistWidth, songEntryHeight);
+                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + Units::window_percent(0.0125f), Units::window_percent(0.025f), i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
                 }
                 // hehe
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
                 if (selSong) {
-                    if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
+                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+                    if (GuiButton(Rectangle{LeftSide, GetScreenHeight() - Units::window_percent(0.12f)-2, 250, Units::window_percent(0.045f)}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
                         menu.SwitchScreen(INSTRUMENT_SELECT);
 
                     }
+                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                 }
                 menu.DrawBottomBottomOvershell();
                 break;
@@ -1134,7 +1139,7 @@ int main(int argc, char* argv[])
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
                 DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-
+                menu.DrawTopOvershell(0.3f);
 
                 float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
                 float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
@@ -1147,7 +1152,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
                 DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(160);
+
 
                 DrawRectangle((int)LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 DrawRectangle((int)LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
@@ -1250,7 +1255,7 @@ int main(int argc, char* argv[])
                 float AlbumArtBottom = (LeftSide + 120
                                        )-6;
                 DrawRectangle(0,0, (float)GetScreenWidth(), (float)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(160);
+                menu.DrawTopOvershell(0.3f);
 
                 DrawRectangle(LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
                 DrawRectangle(LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
@@ -1315,11 +1320,9 @@ int main(int argc, char* argv[])
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-                DrawRectangleRounded(Rectangle{ (scorePos-2.5f), Units::window_percent(0.0225f), 205, Units::window_percent(0.05f) }, 0.25, 10, player.accentColor);
                 DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.025f), Units::window_percent(0.05f), Color{107, 161, 222,255});
                 DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), Units::window_percent(0.05f)), Units::window_percent(0.125f), Units::window_percent(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextRubik32(TextFormat("%s", player.FC ? "FC" : ""), 5, GetScreenHeight() - 40, GOLD);
-                // DrawTextRubik(TextFormat("%s", lastNotePerfect ? "Perfect" : ""), 5, (GetScreenHeight() - 370), 30, GOLD);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -1346,10 +1349,10 @@ int main(int argc, char* argv[])
                     assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                     assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                 } else {
-                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                 }
 
 
@@ -1385,8 +1388,8 @@ int main(int argc, char* argv[])
                     assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
                     assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
                     assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
-                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                     isPlaying = false;
                     midiLoaded = false;
                     player.quit = true;
@@ -1486,7 +1489,7 @@ int main(int argc, char* argv[])
                 }
 
                 if (musicTime < 7.5) {
-                    DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, (float)((GetScreenHeight()/3)) - 20, Units::pt(), WHITE);
+                    DrawTextRHDI(songList.songs[curPlayingSong].title.c_str(), 25, (float)((GetScreenHeight()/3)) - 20, Units::window_percent(5), WHITE);
                     DrawTextEx(assets.redHatDisplayItalic, songList.songs[curPlayingSong].artist.c_str(), {45, (float)((GetScreenHeight()/3)) + 25.0f}, 30, 1.5, LIGHTGRAY);
                     //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
@@ -1533,7 +1536,7 @@ int main(int argc, char* argv[])
                         DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
-                            DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
+                            DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
                             DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
                         }
                     }
@@ -1560,8 +1563,8 @@ int main(int argc, char* argv[])
                         if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
                             double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
                             if (relTime > 1.5) break;
-                            float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.03f : 0.0075f;
-                            DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, Color{ 128,128,128,128 });
+                            float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.01f;
+                            DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, DARKGRAY);
                             if (relTime < -1 && curBeatLine < songList.songs[curPlayingSong].beatLines.size() - 1) {
                                 curBeatLine++;
 
@@ -1683,14 +1686,16 @@ int main(int argc, char* argv[])
                                     Color SustainColor = Color{ 172,82,217,255 };
                                 }*/
                                 float sustainLen = (highwayLength * (float)relEnd) - (highwayLength * (float)relTime);
-                                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen), MatrixTranslate(notePosX, 0.1f, player.smasherPos+(highwayLength * (float)relTime) +(sustainLen / 2.0f)));
-                                
+                                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen), MatrixTranslate(notePosX, 0.01f, player.smasherPos+(highwayLength * (float)relTime) +(sustainLen / 2.0f)));
+                                BeginBlendMode(BLEND_ALPHA);
                                 if (curNote.held && !curNote.renderAsOD) {
                                     DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
+                                    DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 0.4f, 0.4f, 0.4f, player.accentColor);
                                     //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
                                 }
                                 if (curNote.renderAsOD && curNote.held) {
                                     DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
+                                    DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 0.4f, 0.4f, 0.4f, WHITE);
                                     //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
                                 }
                                 if (!curNote.held && curNote.hit || curNote.miss) {
@@ -1712,7 +1717,7 @@ int main(int argc, char* argv[])
                                                        player.accentColor);*/
                                     }
                                 }
-
+                                EndBlendMode();
 
                                 // DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
                             }
