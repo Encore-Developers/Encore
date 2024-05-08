@@ -1120,11 +1120,13 @@ int main(int argc, char* argv[])
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
                 if (selSong) {
-                    if (GuiButton(Rectangle{LeftSide, BottomOvershell, 250, 34}, "Play Song")) {
+                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+                    if (GuiButton(Rectangle{LeftSide, GetScreenHeight() - Units::window_percent(0.12f)-2, 250, Units::window_percent(0.045f)}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
                         menu.SwitchScreen(INSTRUMENT_SELECT);
 
                     }
+                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                 }
                 menu.DrawBottomBottomOvershell();
                 break;

@@ -25,13 +25,13 @@ void Menu::DrawTopOvershell(float TopOvershell) {
 }
 
 void Menu::DrawBottomOvershell() {
-    float BottomOvershell = (float)GetScreenHeight() - 120;
+    float BottomOvershell = GetScreenHeight() - Units::window_percent(0.12f);
     DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomBottomOvershell() {
-    float BottomBottomOvershell = (float)GetScreenHeight() - 80;
+    float BottomBottomOvershell = GetScreenHeight() - Units::window_percent(0.075f);
     DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
