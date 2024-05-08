@@ -55,3 +55,5 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 [midifile](https://github.com/craigsapp/midifile)
 
 [nicolausYes's easing-functions](https://github.com/nicolausYes/easing-functions)
+
+[BASS](https://www.un4seen.com/bass.html)
