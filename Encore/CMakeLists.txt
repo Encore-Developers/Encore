@@ -35,14 +35,20 @@ file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include")
-find_library(BASS NAMES bass PATHS "lib/bass")
-if (CMAKE_SIZEOF_VOID_P EQUAL 4) 
-file(COPY "lib/bass/x86/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-endif() 
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-file(COPY "lib/bass/x64/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+if(WIN32)
+  if (CMAKE_SIZEOF_VOID_P EQUAL 4) 
+    file(COPY "lib/bass/x86/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    find_library(BASS NAMES bass PATHS "lib/bass/x86/")
+  endif() 
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    file(COPY "lib/bass/x64/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    find_library(BASS NAMES bass PATHS "lib/bass/x64/")
+  endif()
+  target_link_libraries(Encore raylib ${BASS})
 endif()
-
-target_link_libraries(Encore raylib ${BASS})
-# TODO: Add tests and install targets if needed.
-
+if(UNIX AND NOT APPLE)
+    execute_process(COMMAND uname -a
+		COMMAND awk "{if ($0 ~ \"x86_64\") {print \"x64\"} else {print \"x86\"}}"
+		OUTPUT_VARIABLE UNAME_LOG)
+    MESSAGE( "Your system architecture is: ${UNAME_LOG}" )
+endif()

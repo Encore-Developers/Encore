@@ -1389,11 +1389,6 @@ int main(int argc, char* argv[])
                     assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
                     isPlaying = false;
                     midiLoaded = false;
-                    for (auto& stream : audioManager.loadedStreams) {
-                        audioManager.StopPlayback(stream.first);
-                    }
-                    streamsLoaded = false;
-
                     player.quit = true;
                 }
                 if (!streamsLoaded && !player.quit) {
@@ -1442,7 +1437,6 @@ int main(int argc, char* argv[])
                         player.overdriveActiveTime = 0.0;
                         isPlaying = false;
                         midiLoaded = false;
-                        streamsLoaded = false;
                         curODPhrase = 0;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
@@ -1452,7 +1446,6 @@ int main(int argc, char* argv[])
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                         menu.SwitchScreen(RESULTS);
-
                     }
                     for (auto& stream : audioManager.loadedStreams) {
                         if (player.instrument == stream.second)
@@ -1798,6 +1791,11 @@ int main(int argc, char* argv[])
                 break;
             }
             case RESULTS: {
+                if (streamsLoaded) {
+                    audioManager.unloadStreams();
+                    streamsLoaded = false;
+                }
+                
                 menu.showResults(player, assets);
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     player.quit = false;
