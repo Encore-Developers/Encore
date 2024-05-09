@@ -538,7 +538,7 @@ int main(int argc, char* argv[])
     float timeCounter = 0.0f;
 
     int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-    std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","PlasticDrums","PlasticBass","PlasticGuitar" };
+    std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
