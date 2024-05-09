@@ -23,7 +23,7 @@ float Units::hinpct(float fpct) {
     // for decimal points
     calcUnits();
     // return ((BottomSide-TopSide)*fpct)+TopSide;
-    return Remap(fpct, 0, 1.0f, TopBorder, BottomBorder)-TopBorder;
+    return Remap(fpct, 0, 1.0f, TopSide, BottomSide)-TopSide;
 }
 
 // usable width
@@ -35,5 +35,5 @@ float Units::wpct(float ipct) {
 float Units::winpct(float ipct) {
     // for decimal points
     calcUnits();
-    return Remap(ipct, 0, 1.0f, LeftBorder, RightBorder)-LeftBorder;
+    return Remap(ipct, 0, 1.0f, LeftSide, RightSide)-LeftSide;
 }

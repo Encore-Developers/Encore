@@ -131,6 +131,7 @@ static void handleInputs(int lane, int action){
 	}
 	Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
 	float eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+    if (player.instrument < 4){
 	if (action == GLFW_PRESS && (lane == -1) && player.overdriveFill > 0 && !player.overdrive) {
         player.overdriveActiveTime = eventTime;
         player.overdriveActiveFill = player.overdriveFill;
@@ -138,6 +139,7 @@ static void handleInputs(int lane, int action){
 		overdriveHitAvailable = true;
         overdriveHitTime = eventTime;
 	}
+
 	if (lane == -1) {
 		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
 		Note* curNote = &curChart.notes[0];
@@ -286,7 +288,7 @@ static void handleInputs(int lane, int action){
 			}
 		}
 	}
-	
+	}
 }
 
 // what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
@@ -536,7 +538,7 @@ int main(int argc, char* argv[])
     float timeCounter = 0.0f;
 
     int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-    std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals" };
+    std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","PlasticDrums","PlasticBass","PlasticGuitar" };
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
@@ -1012,7 +1014,7 @@ int main(int argc, char* argv[])
                 // DrawRectangle((int)u.LeftSide,0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
                 menu.DrawTopOvershell(0.15f);
                 float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
-                float TextPlacementLR = u.LeftSide + u.wpct(0.05f);
+                float TextPlacementLR = u.LeftSide + u.winpct(0.05f);
                 DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),1, WHITE);
 
                 if (GuiButton({ 0,0,60,60 }, "<")) {
@@ -1022,11 +1024,17 @@ int main(int argc, char* argv[])
                     }
                     menu.SwitchScreen(MENU);
                 }
+                float AlbumX = u.RightSide - u.winpct(0.3f);
+                float AlbumY = u.hpct(0.07f);
+                float AlbumHeight = u.winpct(0.3f);
                 // DrawRectangle((int)AlbumArtLeft-6,(int)AlbumArtBottom+12,(int)AlbumArtRight+12, (int)GetScreenHeight()-(int)AlbumArtBottom,WHITE);
                 // DrawRectangle((int)AlbumArtLeft,(int)AlbumArtBottom,(int)AlbumArtRight, (int)GetScreenHeight()-(int)AlbumArtBottom,GetColor(0x181827FF));
                 // DrawRectangle((int)AlbumArtLeft-6,(int)AlbumArtTop-6,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 // DrawRectangle((int)AlbumArtLeft,(int)AlbumArtTop,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
-                DrawRectangle(u.wpct(0.75f),u.hpct(0.075f),u.wpct(0.25f),u.wpct(0.25f), WHITE);
+                DrawRectangle(AlbumX-12,AlbumY+AlbumHeight,AlbumHeight+12,AlbumHeight+12, WHITE);
+                DrawRectangle(AlbumX-6,AlbumY+AlbumHeight,AlbumHeight,AlbumHeight, GetColor(0x181827FF));
+                DrawRectangle(AlbumX-12,AlbumY-6,AlbumHeight+12,AlbumHeight+12, WHITE);
+                DrawRectangle(AlbumX-6,AlbumY,AlbumHeight,AlbumHeight, BLACK);
 
                 // right side
                 DrawLine((int)u.RightSide,0,(int)u.RightSide,(int)(float)GetScreenHeight(), WHITE);
@@ -1035,20 +1043,19 @@ int main(int argc, char* argv[])
                 DrawLine((int)u.LeftSide,0,(int)u.LeftSide,(int)(float)GetScreenHeight(), WHITE);
 
                 // bottom
-                DrawLine(0,(int)((float)GetScreenHeight()*0.85),0,(int)((float)GetScreenHeight()*0.85f), WHITE);
                 if (selSong) {
-                    // DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
-                    //                                                (float) selectedSong.albumArt.width},
-                    //               Rectangle{AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtBottom}, {0, 0}, 0,
-                    //               WHITE);
+                    DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
+                                                                    (float) selectedSong.albumArt.width},
+                                   Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
+                                   WHITE);
                 } else {
                     Song art = songList.songs[randSong];
-                    // DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
-                    //                                       (float) art.albumArt.width},
-                    //               Rectangle{AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtBottom}, {0, 0}, 0,
-                    //               WHITE);
+                    DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
+                                                          (float) art.albumArt.width},
+                                  Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
+                                  WHITE);
                 }
-                float songEntryHeight = u.hinpct(0.04f);
+                float songEntryHeight = u.hinpct(0.05f);
                 for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 2; i++) {
                     if (songList.songs.size() == i)
                         break;
@@ -1062,16 +1069,16 @@ int main(int argc, char* argv[])
                     if (i == curPlayingSong && selSong) {
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
                     }
-                    if (GuiButton(Rectangle{ songXPos, songYPos,(u.wpct(0.75f))-6, songEntryHeight }, "")) {
+                    if (GuiButton(Rectangle{ songXPos, songYPos,(u.winpct(0.7f))-10, songEntryHeight }, "")) {
                         curPlayingSong = i;
                         selSong = true;
 
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                     // DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
-                    int songTitleWidth = (u.wpct(0.3f))-6;
+                    int songTitleWidth = (u.winpct(0.3f))-6;
 
-                    int songArtistWidth = (u.wpct(0.5f))-6;
+                    int songArtistWidth = (u.winpct(0.5f))-6;
 
                     if (songi.titleTextWidth >= (float)songTitleWidth) {
                         if (curTime > songi.titleScrollTime && curTime < songi.titleScrollTime + 3.0)
@@ -1088,7 +1095,7 @@ int main(int argc, char* argv[])
                     }
                     auto LightText = Color{203, 203, 203, 255};
                     BeginScissorMode((int)songXPos + 15, (int)songYPos, songTitleWidth, songEntryHeight);
-                    DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + songi.titleXOffset, songYPos + u.hinpct(0.01f)}, u.hinpct(0.02f),1, i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextEx(assets.rubikBold32,songi.title.c_str(), {songXPos + 15 + songi.titleXOffset, songYPos + u.hinpct(0.01f)}, u.hinpct(0.03f),1, i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
 
                     if (songi.artistTextWidth > (float)songArtistWidth) {
@@ -1105,7 +1112,7 @@ int main(int argc, char* argv[])
 
                     auto SelectedText = WHITE;
                     BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos, songArtistWidth, songEntryHeight);
-                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.0125f), u.hinpct(0.015f), i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextRubik(songi.artist.c_str(), songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.0125f), u.hinpct(0.025f), i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
                 }
                 // hehe
@@ -1174,6 +1181,7 @@ int main(int argc, char* argv[])
                                             if (songPart != SongParts::Invalid) {
                                                 for (int diff = 0; diff < 4; diff++) {
                                                     Chart newChart;
+                                                    std::cout << trackName << " " << diff << endl;
                                                     newChart.parseNotes(midiFile, i, midiFile[i], diff, (int)songPart);
                                                     if (newChart.notes.size() > 0) {
                                                         songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
@@ -1202,7 +1210,7 @@ int main(int argc, char* argv[])
                         menu.SwitchScreen(SONG_SELECT);
                     }
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < 7; i++) {
                         if (songList.songs[curPlayingSong].parts[i]->hasPart) {
                             if (GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "")) {
                                 player.instrument = i;
@@ -1329,6 +1337,7 @@ int main(int argc, char* argv[])
                     assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                     assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                 } else {
+
                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                     assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                     assets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
@@ -1438,6 +1447,7 @@ int main(int argc, char* argv[])
 
                     }
                 }
+
                 float highwayLength = player.defaultHighwayLength * settings.highwayLengthMult;
                 double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
                 if (player.overdrive) {
@@ -1447,8 +1457,6 @@ int main(int argc, char* argv[])
                     assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
                     assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
                     assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
-
-
                     player.overdriveFill = player.overdriveActiveFill - (float)((musicTime - player.overdriveActiveTime) / (1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
                     if (player.overdriveFill <= 0) {
                         player.overdrive = false;
