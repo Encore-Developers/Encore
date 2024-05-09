@@ -5,14 +5,14 @@
 
 #include <functional>
 #include <random>
-#include "game/gameMenu.h"
+#include "game/menus/gameMenu.h"
 #include "raylib.h"
 #include "raygui.h"
 #include "song/songlist.h"
 #include "game/lerp.h"
 #include "game/settings.h"
 #include "game/assets.h"
-#include "game/uiUnits.h"
+#include "game/menus/uiUnits.h"
 #include "raymath.h"
 
 const float Width = (float)GetScreenWidth();
