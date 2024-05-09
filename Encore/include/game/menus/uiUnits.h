@@ -5,7 +5,7 @@
 #ifndef ENCORE_UIUNITS_H
 #define ENCORE_UIUNITS_H
 
-
+#include "raylib.h"
 
 class Units {
 public:
@@ -14,18 +14,20 @@ float RightBorder;
 float RightSide;
 float LeftBorder;
 float LeftSide;
-float TopBorder;
-float TopSide;
+
 float BottomBorder;
 float BottomSide;
+float TopBorder;
+float TopSide;
 
 
     void calcUnits();
     // usable height
     float hpct(float pct);
-
+    float hinpct(float pct);
     // usable width
     float wpct(float pct);
+    float winpct(float pct);
 };
 
 #endif //ENCORE_UIUNITS_H

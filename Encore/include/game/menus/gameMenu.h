@@ -5,8 +5,8 @@
 
 #include "GLFW/glfw3.h"
 #include "song/songlist.h"
-#include "assets.h"
-#include "player.h"
+#include "game/assets.h"
+#include "game/player.h"
 
 enum Screens {
     MENU,
