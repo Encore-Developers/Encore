@@ -55,5 +55,5 @@ if(UNIX AND NOT APPLE)
     file(COPY "lib/bass/linux/x86_64/libbass.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
 endif()
-  
+
 target_link_libraries(Encore raylib ${BASS})

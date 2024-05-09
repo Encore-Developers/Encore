@@ -22,20 +22,20 @@ const float Height = (float)GetScreenHeight();
 
 void Menu::DrawTopOvershell(float TopOvershell) {
     Units u;
-    DrawRectangle(0,0,(int)GetScreenWidth(), u.wpct(TopOvershell)+6,WHITE);
-    DrawRectangle(0,0,(int)GetScreenWidth(), u.wpct(TopOvershell),GetColor(0x181827FF));
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomOvershell() {
     Units u;
-    float BottomOvershell = GetScreenHeight() - u.wpct(0.12f);
+    float BottomOvershell = GetScreenHeight() - u.hpct(0.12f);
     DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomBottomOvershell() {
     Units u;
-    float BottomBottomOvershell = GetScreenHeight() - u.wpct(0.075f);
+    float BottomBottomOvershell = GetScreenHeight() - u.hpct(0.075f);
     DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
@@ -83,13 +83,13 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
         stringChosen = true;
     }
 
-    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  u.wpct(0.2f)/2 - 16};
+    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  u.hpct(0.2f)/2 - 16};
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 1, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, {LeftSide,
-                                               (u.wpct(0.2f)/2 - assets.encoreWhiteLogo.height / 4)}, 0,
+                                               (u.hpct(0.2f)/2 - assets.encoreWhiteLogo.height / 4)}, 0,
                       0.5, WHITE);
 
 
