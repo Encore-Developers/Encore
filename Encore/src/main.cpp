@@ -38,9 +38,12 @@ bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
 
+bool ReadyUpMenu = false;
 bool diffSelected = false;
 bool diffSelection = false;
+bool instSelection = false;
 bool instSelected = false;
+
 int curPlayingSong = 0;
 std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 int curODPhrase = 0;
@@ -969,8 +972,6 @@ int main(int argc, char* argv[])
                 curODPhrase = 0;
                 curBeatLine = 0;
                 curBPM = 0;
-                player.instrument = 0;
-                player.diff = 0;
                 std::random_device noise;
                 std::mt19937 worker(noise());
                 std::uniform_int_distribution<int> weezer(0, (int)songList.songs.size()-1);
@@ -1160,7 +1161,8 @@ int main(int argc, char* argv[])
                 DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, u.hinpct(0.1f), 1, WHITE);
                 DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 1, LIGHTGRAY);
                 // todo: allow this to be run per player
-                if (!midiLoaded && !instSelected) {
+                // load midi
+                if (!midiLoaded) {
                     if (!songList.songs[curPlayingSong].midiParsed) {
                         smf::MidiFile midiFile;
                         midiFile.read(songList.songs[curPlayingSong].midiPath.string());
@@ -1206,11 +1208,32 @@ int main(int argc, char* argv[])
                         songList.songs[curPlayingSong].midiParsed = true;
                     }
                     midiLoaded = true;
+                    if (player.firstReadyUp || !songList.songs[curPlayingSong].parts[player.instrument]->hasPart) {
+                        instSelection = true;
+                    }
+                    else if (songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size() < 1) {
+                        diffSelection = true;
+                    }
+                    else if (!player.firstReadyUp) {
+                        ReadyUpMenu = true;
+                    }
                 }
-                else if (midiLoaded && !diffSelection) {
+                // load instrument select
+                else if (midiLoaded && instSelection) {
                     if (GuiButton({ 0,0,60,60 }, "<")) {
-                        midiLoaded = false;
-                        menu.SwitchScreen(SONG_SELECT);
+                        if (player.firstReadyUp || !songList.songs[curPlayingSong].parts[player.instrument]->hasPart) {
+                            instSelection = false;
+                            diffSelection = false;
+                            instSelected = false;
+                            diffSelected = false;
+                            midiLoaded = false;
+                            menu.SwitchScreen(SONG_SELECT);
+                        }
+                        else {
+                            instSelection = false;
+                            ReadyUpMenu = true;
+                        }
+                        
                     }
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
                     for (int i = 0; i < 4; i++) {
@@ -1235,14 +1258,26 @@ int main(int argc, char* argv[])
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                         if (instSelected) {
                             if (GuiButton({ u.LeftSide, BottomOvershell - 280, 300, 40 }, "Done")) {
-                                diffSelection = true;
+                                if (player.firstReadyUp) {
+                                    instSelection = false;
+                                    diffSelection = true;
+                                }
+                                else if (!player.firstReadyUp && songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size() < 1) {
+                                    instSelection = false;
+                                    diffSelection = true;
+                                }
+                                else {
+                                    instSelection = false;
+                                    ReadyUpMenu = true;
+                                }
                             }
                         }
                     }
                 }
                 menu.DrawBottomOvershell();
                 menu.DrawBottomBottomOvershell();
-                if (diffSelection) {
+                // load difficulty select
+                if (midiLoaded && diffSelection) {
                     for (int a = 0; a < 4; a++) {
                         if (songList.songs[curPlayingSong].parts[player.instrument]->charts[a].notes.size() > 0) {
                             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, a == player.diff && diffSelected ? ColorToInt(ColorBrightness(player.accentColor, -0.25)) : 0x181827FF);
@@ -1258,21 +1293,64 @@ int main(int argc, char* argv[])
                         }
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                         if (diffSelected) {
-                            if (GuiButton({ u.LeftSide, BottomOvershell, 300, u.hinpct(0.05f)}, "Ready Up!")) {
+                            if (GuiButton({ u.LeftSide, BottomOvershell-280, 300, u.hinpct(0.05f)}, "Done")) {
                                 diffSelection = false;
-                                instSelected = false;
-                                diffSelected = false;
-                                menu.SwitchScreen(GAMEPLAY);
+                                ReadyUpMenu = true;
+                                player.firstReadyUp = false;
                             }
                         }
                         if (GuiButton({ 0,0,60,60 }, "<")) {
-                            diffSelection = false;
-                            instSelected = false;
-                            diffSelected = false;
+                            if (player.firstReadyUp || !songList.songs[curPlayingSong].parts[player.instrument]->hasPart) {
+                                midiLoaded = false;
+                                instSelection = false;
+                                diffSelection = false;
+                                instSelected = false;
+                                diffSelected = false;
+                                menu.SwitchScreen(SONG_SELECT);
+                            }
+                            else {
+                                instSelection = false;
+                                diffSelection = false;
+                                instSelected = false;
+                                diffSelected = false;
+                                ReadyUpMenu = true;
+                            }
                         }
                     }
                 }
                 
+                if (midiLoaded && ReadyUpMenu) {
+                    if (GuiButton({ u.LeftSide,BottomOvershell - 60,300,60 }, "")) {
+                            ReadyUpMenu = false;
+                            diffSelection = true;
+                    }
+                    DrawTextRubik("Difficulty", u.LeftSide+15, BottomOvershell - 45, 30, WHITE);
+                    DrawTextEx(assets.rubikBold32, diffList[player.diff].c_str(), {u.LeftSide + 285 - MeasureTextEx(assets.rubikBold32, diffList[player.diff].c_str(),30,1).x, BottomOvershell - 45}, 30, 1, WHITE);
+
+                    if (GuiButton({ u.LeftSide,BottomOvershell - 120,300,60 }, "")) {
+                        ReadyUpMenu = false;
+                        instSelection = true;
+                    }
+                    DrawTextRubik("Instrument", u.LeftSide+15, BottomOvershell - 105, 30, WHITE);
+                    DrawTextEx(assets.rubikBold32, songPartsList[player.instrument].c_str(), { u.LeftSide + 285 - MeasureTextEx(assets.rubikBold32, songPartsList[player.instrument].c_str(),30,1).x, BottomOvershell - 105 }, 30, 1, WHITE);
+
+                      
+                    if (GuiButton({ u.LeftSide, BottomOvershell, 300, u.hinpct(0.05f)}, "Ready Up!")) {
+                        ReadyUpMenu = false;
+                        menu.SwitchScreen(GAMEPLAY);
+                    }
+                        
+                        if (GuiButton({ 0,0,60,60 }, "<")) {
+                            midiLoaded = false;
+                            instSelection = false;
+                            diffSelection = false;
+                            instSelected = false;
+                            diffSelected = false;
+                            ReadyUpMenu = false;
+                            menu.SwitchScreen(SONG_SELECT);
+                        }
+                    
+                }
                 break;
             }
             case GAMEPLAY: {
