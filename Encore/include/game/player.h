@@ -56,6 +56,7 @@ public:
     std::vector<int> sustainScoreBuffer{ 0,0,0,0,0 };
     int playerOverhits = 0;
 
+    bool paused = false;
     bool goldStars = false;
 
     bool overdrive = false;

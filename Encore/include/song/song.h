@@ -326,7 +326,7 @@ public:
 				for (int k = 3; k < events[i].getSize(); k++) {
 					evt_string += events[i][k];
 				}
-				std::cout << evt_string << std::endl;
+				std::cout << evt_string << events[i].tick << std::endl;
 				if (evt_string == "[music_start]")
 					music_start = time;
 				else if (evt_string == "[end]")
