@@ -11,8 +11,7 @@
 enum Screens {
     MENU,
     SONG_SELECT,
-    INSTRUMENT_SELECT,
-    DIFFICULTY_SELECT,
+    READY_UP,
     GAMEPLAY,
     RESULTS,
     SETTINGS

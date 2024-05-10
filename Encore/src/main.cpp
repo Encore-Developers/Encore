@@ -38,6 +38,9 @@ bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
 
+bool diffSelected = false;
+bool diffSelection = false;
+bool instSelected = false;
 int curPlayingSong = 0;
 std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 int curODPhrase = 0;
@@ -1122,15 +1125,16 @@ int main(int argc, char* argv[])
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
                     if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, 250, u.hinpct(0.05f)}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
-                        menu.SwitchScreen(INSTRUMENT_SELECT);
+                        menu.SwitchScreen(READY_UP);
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                 }
                 menu.DrawBottomBottomOvershell();
                 break;
             }
-            case INSTRUMENT_SELECT: {
+            case READY_UP: {
                 selSong = false;
+                
                 Song selectedSong = songList.songs[curPlayingSong];
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
@@ -1150,12 +1154,13 @@ int main(int argc, char* argv[])
                 
 
 
-                float BottomOvershell = (float)GetScreenHeight() - 126;
+                float BottomOvershell = u.hpct(1)-u.hinpct(0.15f);
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
                 DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, u.hinpct(0.1f), 1, WHITE);
                 DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 1, LIGHTGRAY);
-                if (!midiLoaded) {
+                // todo: allow this to be run per player
+                if (!midiLoaded && !instSelected) {
                     if (!songList.songs[curPlayingSong].midiParsed) {
                         smf::MidiFile midiFile;
                         midiFile.read(songList.songs[curPlayingSong].midiPath.string());
@@ -1202,77 +1207,72 @@ int main(int argc, char* argv[])
                     }
                     midiLoaded = true;
                 }
-                else {
+                else if (midiLoaded && !diffSelection) {
                     if (GuiButton({ 0,0,60,60 }, "<")) {
                         midiLoaded = false;
                         menu.SwitchScreen(SONG_SELECT);
                     }
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-                    for (int i = 0; i < 7; i++) {
+                    for (int i = 0; i < 4; i++) {
                         if (songList.songs[curPlayingSong].parts[i]->hasPart) {
+                            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player.instrument && instSelected ? ColorToInt(ColorBrightness(player.accentColor, -0.25)) : 0x181827FF);
                             if (GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "")) {
+                                instSelected = true;
                                 player.instrument = i;
                                 int isBassOrVocal = 0;
                                 if (player.instrument == 1 || player.instrument == 3) {
                                     isBassOrVocal = 1;
                                 }
                                 SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
-                                menu.SwitchScreen(DIFFICULTY_SELECT);
                             }
+                            
+                            
+                            
 
                             DrawTextRubik(songPartsList[i].c_str(), u.LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
                             DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), u.LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
                         }
-                    }
-                }
-                menu.DrawBottomOvershell();
-                menu.DrawBottomBottomOvershell();
-                break;
-            }
-            case DIFFICULTY_SELECT: {
-                Song selectedSong = songList.songs[curPlayingSong];
-                SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
-                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
-                DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-
-                float AlbumArtLeft = u.LeftSide;
-                float AlbumArtTop = 50;
-                float AlbumArtRight = (u.LeftSide + 120)-6;
-                float AlbumArtBottom = (u.LeftSide + 120
-                                       )-6;
-                DrawRectangle(0,0, (float)GetScreenWidth(), (float)GetScreenHeight(), Color(0,0,0,128));
-                menu.DrawTopOvershell(0.3f);
-
-                DrawRectangle(u.LeftSide,AlbumArtTop,AlbumArtRight+12, AlbumArtBottom+12, WHITE);
-                DrawRectangle(u.LeftSide + 6,AlbumArtTop+6,AlbumArtRight, AlbumArtBottom,BLACK);
-                DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {u.LeftSide + 6, AlbumArtTop+6,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);
-
-
-
-                float BottomOvershell = GetScreenHeight() - 126;
-                float TextPlacementTB = AlbumArtTop;
-                float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
-                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
-                for (int i = 0; i < 4; i++) {
-                    if (GuiButton({ 0,0,60,60 }, "<")) {
-                        menu.SwitchScreen(INSTRUMENT_SELECT);
-                    }
-                    // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-                    if (songList.songs[curPlayingSong].parts[player.instrument]->charts[i].notes.size() > 0) {
-                        if (GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "")) {
-                            player.diff = i;
-                            menu.SwitchScreen(GAMEPLAY);
-                            isPlaying = true;
-                            startedPlayingSong = GetTime();
-                            glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-                            glfwSetGamepadStateCallback(gamepadStateCallback);
+                        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                        if (instSelected) {
+                            if (GuiButton({ u.LeftSide, BottomOvershell - 280, 300, 40 }, "Done")) {
+                                diffSelection = true;
+                            }
                         }
-                        DrawTextRubik(diffList[i].c_str(), u.LeftSide + 150 - (MeasureTextRubik(diffList[i].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
                     }
                 }
                 menu.DrawBottomOvershell();
                 menu.DrawBottomBottomOvershell();
+                if (diffSelection) {
+                    for (int a = 0; a < 4; a++) {
+                        if (songList.songs[curPlayingSong].parts[player.instrument]->charts[a].notes.size() > 0) {
+                            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, a == player.diff && diffSelected ? ColorToInt(ColorBrightness(player.accentColor, -0.25)) : 0x181827FF);
+                            if (GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)a),300,60 }, "")) {
+                                player.diff = a;
+                                diffSelected = true;
+                                isPlaying = true;
+                                startedPlayingSong = GetTime();
+                                glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+                                glfwSetGamepadStateCallback(gamepadStateCallback);
+                            }
+                            DrawTextRubik(diffList[a].c_str(), u.LeftSide + 150 - (MeasureTextRubik(diffList[a].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)a), 30, WHITE);
+                        }
+                        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                        if (diffSelected) {
+                            if (GuiButton({ u.LeftSide, BottomOvershell, 300, u.hinpct(0.05f)}, "Ready Up!")) {
+                                diffSelection = false;
+                                instSelected = false;
+                                diffSelected = false;
+                                menu.SwitchScreen(GAMEPLAY);
+                            }
+                        }
+                        if (GuiButton({ 0,0,60,60 }, "<")) {
+                            diffSelection = false;
+                            instSelected = false;
+                            diffSelected = false;
+                        }
+                    }
+                }
+                
                 break;
             }
             case GAMEPLAY: {
