@@ -18,7 +18,12 @@ Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath) {
     return tex;
 }
 
-
+Font Assets::LoadFontFilter(const std::filesystem::path &fontPath, int fontSize) {
+    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0,0);
+    GenTextureMipmaps(&font.texture);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
+    return font;
+}
 
 void Assets::MaterialMapper() {
     Player player;
@@ -88,20 +93,20 @@ void Assets::MaterialMapper() {
     encoreWhiteLogo = Assets::LoadTextureFilter((directory / "Assets/encore-white.png"));
     songBackground = Assets::LoadTextureFilter((directory / "Assets/background.png"));
 
-    redHatDisplayItalic = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 48,0,0);
-    redHatDisplayItalicLarge = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 128,0,0);
+    redHatDisplayItalic = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 256);
+    redHatDisplayItalicLarge = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 256);
 
-    redHatDisplayBlack = LoadFontEx((directory/"Assets/fonts/RedHatDisplay-Black.ttf").string().c_str(), 128,0,0);
+    redHatDisplayBlack = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-Black.ttf").string().c_str(), 256);
 
-    rubik = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 100, 0, 0);
+    rubik = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 256);
 
-    rubik32 = LoadFontEx((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 32, 0, 0);
+    rubik32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 256);
 
-    rubikBoldItalic32 = LoadFontEx((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 40, 0, 0);
+    rubikBoldItalic32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 256);
 
-    josefinSansItalic = LoadFontEx((directory / "Assets/fonts/JosefinSans-Italic.ttf").string().c_str(), 32, 0, 0);
+    josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf").string().c_str(), 256);
 
-    rubikBold32 = LoadFontEx((directory / "Assets/fonts/Rubik-Bold.ttf").string().c_str(), 40, 0, 0);
+    rubikBold32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Bold.ttf").string().c_str(), 256);
 
 
     //clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
@@ -182,23 +187,6 @@ void Assets::MaterialMapper() {
     liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-    GenTextureMipmaps(&redHatDisplayItalic.texture);
-    GenTextureMipmaps(&redHatDisplayBlack.texture);
-    GenTextureMipmaps(&redHatDisplayItalicLarge.texture);
-    GenTextureMipmaps(&rubik.texture);
-    GenTextureMipmaps(&rubik32.texture);
-    GenTextureMipmaps(&rubikBoldItalic32.texture);
-    GenTextureMipmaps(&rubikBold32.texture);
-    GenTextureMipmaps(&josefinSansItalic.texture);
-
-    SetTextureFilter(redHatDisplayItalic.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(redHatDisplayBlack.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(redHatDisplayItalicLarge.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(rubik.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(rubik32.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(rubikBoldItalic32.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(rubikBold32.texture, TEXTURE_FILTER_TRILINEAR);
-    SetTextureFilter(josefinSansItalic.texture, TEXTURE_FILTER_TRILINEAR);
     sustainMat = LoadMaterialDefault();
     sustainMatHeld = LoadMaterialDefault();
     sustainMatOD = LoadMaterialDefault();

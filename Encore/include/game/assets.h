@@ -7,6 +7,7 @@
 class Assets {
 private:
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
+    Font LoadFontFilter(const std::filesystem::path &fontPath, int fontSize);
 public:
     Model smasherReg;
     Texture2D smasherRegTex;

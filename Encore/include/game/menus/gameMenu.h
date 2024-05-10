@@ -39,7 +39,7 @@ private:
         return ss.str();
     }
 
-    void renderStars(Player player, float xPos, float yPos, Assets assets);
+    void renderStars(Player player, float xPos, float yPos, Assets assets, float scale);
 public:
     void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();
