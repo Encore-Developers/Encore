@@ -1120,10 +1120,9 @@ int main(int argc, char* argv[])
                 float BottomOvershell = (float)GetScreenHeight() - 120;
                 if (selSong) {
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
-                    if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.12f)-2, 250, u.hpct(0.045f)}, "Play Song")) {
+                    if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, 250, u.hinpct(0.05f)}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
                         menu.SwitchScreen(INSTRUMENT_SELECT);
-
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                 }
@@ -1136,27 +1135,26 @@ int main(int argc, char* argv[])
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
                 DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-                menu.DrawTopOvershell(0.3f);
+                
 
                 float AlbumArtLeft = u.LeftSide;
-                float AlbumArtTop = 50;
-                float AlbumArtRight = (u.LeftSide + 120)-6;
-                float AlbumArtBottom = (u.LeftSide + 120
-                                       )-6;
+                float AlbumArtTop = u.hpct(0.05f);
+                float AlbumArtRight = u.winpct(0.15f);
+                float AlbumArtBottom = u.winpct(0.15f);
                 DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
 
-
+                menu.DrawTopOvershell(0.2f);
                 DrawRectangle((int)u.LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 DrawRectangle((int)u.LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
                 DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {u.LeftSide + 6, AlbumArtTop+6,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);
-
+                
 
 
                 float BottomOvershell = (float)GetScreenHeight() - 126;
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
-                DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, 72,1, WHITE);
-                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+60}, 40,1,LIGHTGRAY);
+                DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, u.hinpct(0.1f), 1, WHITE);
+                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 1, LIGHTGRAY);
                 if (!midiLoaded) {
                     if (!songList.songs[curPlayingSong].midiParsed) {
                         smf::MidiFile midiFile;
