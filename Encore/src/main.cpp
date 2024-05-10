@@ -1124,7 +1124,7 @@ int main(int argc, char* argv[])
                 float BottomOvershell = (float)GetScreenHeight() - 120;
                 if (selSong) {
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
-                    if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, 250, u.hinpct(0.05f)}, "Play Song")) {
+                    if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Play Song")) {
                         curPlayingSong = selectedSongInt;
                         menu.SwitchScreen(READY_UP);
                     }
@@ -1254,6 +1254,10 @@ int main(int argc, char* argv[])
 
                             DrawTextRubik(songPartsList[i].c_str(), u.LeftSide + 20, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
                             DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), u.LeftSide + 220, BottomOvershell - 45 - (60 * (float)i), 30, WHITE);
+                        } else {
+
+                            GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)i),300,60 }, "");
+                            DrawRectangle( u.LeftSide+2,BottomOvershell+2 - 60 - (60 * (float)i),300-4,60-4, Color{0,0,0,128});
                         }
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                         if (instSelected) {
@@ -1289,6 +1293,9 @@ int main(int argc, char* argv[])
                                 
                             }
                             DrawTextRubik(diffList[a].c_str(), u.LeftSide + 150 - (MeasureTextRubik(diffList[a].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)a), 30, WHITE);
+                        } else {
+                            GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)a),300,60 }, "");
+                            DrawRectangle( u.LeftSide+2,BottomOvershell+2 - 60 - (60 * (float)a),300-4,60-4, Color{0,0,0,128});
                         }
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                         if (diffSelected) {
@@ -1369,7 +1376,7 @@ int main(int argc, char* argv[])
                     DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),u.hpct(0.075f)},0,0.15f,WHITE);
                     float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, 40);
                     BeginScissorMode((scorePos+(i*40)), u.hpct(0.125f)-yMaskPos, 40, yMaskPos);
-                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),u.hpct(0.075f) },0,0.15f,WHITE);
+                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),u.hpct(0.075f) },0,0.15f,i != starsval ? WHITE : Color{192,192,192,128});
                     EndScissorMode();
                 }
                 if (starPercent >= player.xStarThreshold[4]) {
@@ -1424,6 +1431,11 @@ int main(int argc, char* argv[])
 
 
                 if (GuiButton({ 0,0,60,60 }, "<")) {
+                    for (auto& stream : audioManager.loadedStreams) {
+                        audioManager.pauseStreams(stream.first);
+                        player.paused = true;
+                    }
+                    /*
                     for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                         note.accounted = false;
                         note.hit = false;
@@ -1459,6 +1471,7 @@ int main(int argc, char* argv[])
                     isPlaying = false;
                     midiLoaded = false;
                     player.quit = true;
+                     */
                 }
                 if (!streamsLoaded && !player.quit) {
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
@@ -1480,7 +1493,8 @@ int main(int argc, char* argv[])
                     int textLength = MeasureTextRubik32(textTime);
 
                     DrawTextRubik32(textTime,GetScreenWidth() - textLength,GetScreenHeight()-40,WHITE);
-                    if (GetTime() >= audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) + startedPlayingSong) {
+                    float songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
+                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first)) {
                         for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                             note.accounted = false;
                             note.hit = false;
@@ -1842,12 +1856,12 @@ int main(int argc, char* argv[])
 #endif
                 EndMode3D();
 
-                float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
-                int songLength = (int)audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first);
-                int playedMinutes = (int)audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first)/60;
-                int playedSeconds = (int)audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) % 60;
-                int songMinutes = (int)audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first)/60;
-                int songSeconds = (int)audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) % 60;
+                int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+                int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
+                int playedMinutes = songPlayed/60;
+                int playedSeconds = songPlayed % 60;
+                int songMinutes = songLength/60;
+                int songSeconds = songLength % 60;
                 const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
                 int textLength = MeasureTextRubik32(textTime);
                 GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
@@ -1856,7 +1870,99 @@ int main(int argc, char* argv[])
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED, ColorToInt(player.FC ? GOLD : player.accentColor));
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(player.FC ? GOLD : player.accentColor));
 
-                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),8}, "", "", &songPlayed, 0, (float)songLength);
+                float floatSongLength = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+                GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-7,(float)GetScreenWidth(),8}, "", "", &floatSongLength, 0, (float)songLength);
+
+
+
+                if (player.paused) {
+                    DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,64});
+                    DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",64,1).x/2), u.hpct(0.05f)}, 64, 1, WHITE);
+                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Resume")) {
+                        for (auto& stream : audioManager.loadedStreams) {
+                            audioManager.playStreams(stream.first);
+                            player.paused = false;
+                        }
+                    }
+                    /*
+                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2), 200, 60}, "Restart")) {
+                        for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
+                            bool hit = false;
+                            bool held = false;
+                            bool miss = false;
+                            bool accounted = false;
+                            bool countedForODPhrase = false;
+                            bool perfect = false;
+                            bool renderAsOD = false;
+                            double hitTime = 0;
+                        }
+                        // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
+                        // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+                        for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
+                            phrase.missed = false;
+                            phrase.notesHit = 0;
+                            phrase.added = false;
+                        }
+                        player.overdrive = false;
+                        player.overdriveFill = 0.0f;
+                        player.overdriveActiveFill = 0.0f;
+                        player.overdriveActiveTime = 0.0;
+                        curODPhrase = 0;
+                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                        assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                        assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                        isPlaying = false;
+                        midiLoaded = false;
+                        for (auto& stream : audioManager.loadedStreams) {
+                            audioManager.restartStreams(stream.first);
+                            player.paused = false;
+                        }
+                        player.resetPlayerStats();
+                    }*/
+                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) + 120, 200, 60}, "Drop Out")) {
+                        for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
+                            note.accounted = false;
+                            note.hit = false;
+                            note.miss = false;
+                            note.held = false;
+                            note.heldTime = 0;
+                            note.hitTime = 0;
+                            note.perfect = false;
+                            note.countedForODPhrase = false;
+                        }
+                        glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
+                        glfwSetGamepadStateCallback(origGamepadCallback);
+                        // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
+                        // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
+                        for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
+                            phrase.missed = false;
+                            phrase.notesHit = 0;
+                            phrase.added = false;
+                        }
+                        menu.SwitchScreen(RESULTS);
+
+                        player.overdrive = false;
+                        player.overdriveFill = 0.0f;
+                        player.overdriveActiveFill = 0.0f;
+                        player.overdriveActiveTime = 0.0;
+                        curODPhrase = 0;
+                        player.paused = false;
+                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
+                        assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                        assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                        assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
+                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+                        isPlaying = false;
+                        midiLoaded = false;
+                        player.quit = true;
+                    }
+                }
 
                 break;
             }

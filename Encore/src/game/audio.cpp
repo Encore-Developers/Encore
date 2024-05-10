@@ -35,6 +35,15 @@ void AudioManager::unloadStreams() {
 	}
 	AudioManager::loadedStreams.clear();
 }
+void AudioManager::pauseStreams(unsigned int handle) {
+    BASS_ChannelPause(handle);
+}
+void AudioManager::playStreams(unsigned int handle) {
+    BASS_ChannelPlay(handle, false);
+}
+void AudioManager::restartStreams(unsigned int handle) {
+    BASS_ChannelPlay(handle, true);
+}
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
 	return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle,BASS_POS_BYTE));
 }

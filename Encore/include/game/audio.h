@@ -13,4 +13,8 @@ public:
 	void SetAudioStreamVolume(unsigned int, float);
 	void BeginPlayback(unsigned int);
 	void StopPlayback(unsigned int);
+
+    void pauseStreams(unsigned int);
+    void playStreams(unsigned int);
+    void restartStreams(unsigned int);
 };
