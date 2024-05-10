@@ -38,15 +38,16 @@ void Menu::DrawBottomBottomOvershell() {
 }
 
 // todo: replace player with band stats
-void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, float scale) {
+void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, float scale, bool left) {
     int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
     float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
 
+    float starX = left ? 0 : scale*2.5f;
     for (int i = 0; i < 5; i++) {
-        DrawTexturePro(assets.emptyStar, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-125),yPos, scale, scale},{0,0},0,WHITE);
+        DrawTexturePro(assets.emptyStar, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale},{0,0},0,WHITE);
     }
     for (int i = 0; i < starsval ; i++) {
-        DrawTexturePro(player.goldStars?assets.goldStar:assets.star, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-125),yPos, scale, scale}, {0,0},0, WHITE);
+        DrawTexturePro(player.goldStars?assets.goldStar:assets.star, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
     }
 };
 
@@ -144,7 +145,7 @@ void Menu::showResults(const Player& player, Assets assets) {
             u.hinpct(0.08f),
             1,
             GetColor(0x00adffFF));
-    renderStars(player,  u.LeftSide + u.winpct(0.11f), (float)GetScreenHeight()/2 - u.hinpct(0.06f), assets, u.hinpct(0.055f));
+    renderStars(player,  u.LeftSide + u.winpct(0.11f), (float)GetScreenHeight()/2 - u.hinpct(0.06f), assets, u.hinpct(0.055f),false);
     // assets.DrawTextRHDI(scoreCommaFormatter(player.score).c_str(), middle - assets.MeasureTextRHDI(scoreCommaFormatter(player.score).c_str())/2, 120, Color{107, 161, 222,255});
     /*
     assets.DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 192, 24, WHITE);
@@ -177,15 +178,20 @@ void Menu::showResults(const Player& player, Assets assets) {
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
 
-
-
+    float Percent = ((float)player.notesHit/songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()) * 100;
     float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), u.hinpct(0.1f), 1).x/2;
     float bigScorePos = (float)GetScreenWidth()/2 - 15 - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), u.hinpct(0.095f), 1).x;
-    float bigStarPos = (float)GetScreenWidth()/2 + 140;
+    float bigStarPos = (float)GetScreenWidth()/2;
+
+    if (player.FC) {
+        DrawTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {u.wpct(0.12f) - MeasureTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f", Percent), u.hinpct(0.1f),0).x/2,u.hpct(0.285f)},u.hinpct(0.1f),1,
+                   ColorBrightness(GOLD,0.25));
+    }
+    DrawTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {u.wpct(0.11f) - MeasureTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f", Percent), u.hinpct(0.1f),0).x/2,u.hpct(0.275f)},u.hinpct(0.1f),1,player.FC ? GOLD : WHITE);
 
     DrawTextEx(assets.redHatDisplayBlack, player.songToBeJudged.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.1f),1,WHITE);
     DrawTextEx(assets.redHatDisplayItalicLarge, scoreCommaFormatter(player.score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),1, GetColor(0x00adffFF));
-    renderStars(player, bigStarPos, u.hpct(0.1125f), assets, u.hinpct(0.055f));
+    renderStars(player, bigStarPos, u.hpct(0.1125f), assets, u.hinpct(0.055f),true);
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
 }
 
