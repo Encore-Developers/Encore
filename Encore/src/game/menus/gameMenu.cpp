@@ -38,15 +38,15 @@ void Menu::DrawBottomBottomOvershell() {
 }
 
 // todo: replace player with band stats
-void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
+void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, float scale) {
     int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
     float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
 
     for (int i = 0; i < 5; i++) {
-        DrawTextureEx(assets.emptyStar, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
+        DrawTexturePro(assets.emptyStar, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-125),yPos, scale, scale},{0,0},0,WHITE);
     }
     for (int i = 0; i < starsval ; i++) {
-        DrawTextureEx(player.goldStars?assets.goldStar:assets.star, { (xPos + (i * 50) - 125),yPos }, 0, 0.175f, WHITE);
+        DrawTexturePro(player.goldStars?assets.goldStar:assets.star, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-125),yPos, scale, scale}, {0,0},0, WHITE);
     }
 };
 
@@ -118,53 +118,35 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 }
 
 void Menu::showResults(const Player& player, Assets assets) {
-    float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
-    float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
-
-
-    float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.20f);
-    float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
-
 
     Song songToBeJudged = player.songToBeJudged;
 
 
-    float ResultsWidth = (RightSide - LeftSide);
-    float PlayerWidth = (ResultsWidth*0.2275f);
-
-    float InnerMargins = (ResultsWidth*0.03f);
-
-    float Player2 = LeftSide + PlayerWidth + InnerMargins;
-
-    float Player4 = RightSide - PlayerWidth;
-    float Player3 = Player4 - PlayerWidth - InnerMargins;
-
-    float middle = (PlayerWidth/2) + LeftSide;
-
-
     // resultsRenderer.IndivPlayerResultsBox(LeftSide, RightSide, player, assets, );
 
-    DrawRectangle(LeftSide-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
-    DrawRectangle(LeftSide, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
-    // renderStars(player, 0,0);
+    DrawRectangle(u.LeftSide-6, u.hpct(0.2f), u.winpct(0.22f)+12, u.hpct(0.85f), WHITE);
+    DrawRectangle(u.LeftSide, u.hpct(0.2f), u.winpct(0.22f), u.hpct(0.85f), GetColor(0x181827FF));
+    /* renderStars(player, 0,0);
 
     //assets.DrawTextRHDI("Results", 70,7, WHITE);
     assets.DrawTextRubik(songToBeJudged.artist.c_str(), middle - (assets.MeasureTextRubik(songToBeJudged.artist.c_str(), 24) / 2), 48, 24, WHITE);
     // if (player.FC) {
     //    assets.DrawTextRubik("Flawless!", middle- (assets.MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
     // }
-    float scorePos = middle - MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), 64, 1).x /2;
+     */
+    float scorePos = u.wpct(0.11f) - (MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), u.hinpct(0.08f), 1).x /2);
     DrawTextEx(
             assets.redHatDisplayItalic,
             scoreCommaFormatter(player.score).c_str(),
             {
                 scorePos,
                 (float)GetScreenHeight()/2},
-            64,
+            u.hinpct(0.08f),
             1,
             GetColor(0x00adffFF));
-
+    renderStars(player,  u.LeftSide + u.winpct(0.11f), (float)GetScreenHeight()/2 - u.hinpct(0.06f), assets, u.hinpct(0.055f));
     // assets.DrawTextRHDI(scoreCommaFormatter(player.score).c_str(), middle - assets.MeasureTextRHDI(scoreCommaFormatter(player.score).c_str())/2, 120, Color{107, 161, 222,255});
+    /*
     assets.DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 192, 24, WHITE);
     assets.DrawTextRubik(TextFormat("Good Notes : %01i/%02i", player.notesHit - player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", player.notesHit - player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 224, 24, WHITE);
     assets.DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (GetScreenWidth() / 2 - assets.MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 256, 24, WHITE);
@@ -190,22 +172,21 @@ void Menu::showResults(const Player& player, Assets assets) {
     float SongNameHeightPos = ((float)GetScreenHeight() * 0.007f);
     float ScoreFontSize = (TopOvershellHeight / 2) - ((float)GetScreenHeight() * 0.009f);
     float ScoreHeightPos = (TopOvershellHeight / 2 + (float)GetScreenHeight() * 0.01f);
-
+    */
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
 
 
 
-    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), SongNameFontSize, 1).x/2;
-    float bigScorePos = (float)GetScreenWidth()/2 - 15 - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), ScoreFontSize, 1).x;
+    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), u.hinpct(0.1f), 1).x/2;
+    float bigScorePos = (float)GetScreenWidth()/2 - 15 - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), u.hinpct(0.095f), 1).x;
     float bigStarPos = (float)GetScreenWidth()/2 + 140;
 
-    DrawTextEx(assets.redHatDisplayBlack, player.songToBeJudged.title.c_str(), {songNamePos,SongNameHeightPos},SongNameFontSize,1,WHITE);
-    DrawTextEx(assets.redHatDisplayItalicLarge, scoreCommaFormatter(player.score).c_str(), {bigScorePos,ScoreHeightPos},64,1, GetColor(0x00adffFF));
-    renderStars(player, bigStarPos, 105, assets);
+    DrawTextEx(assets.redHatDisplayBlack, player.songToBeJudged.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.1f),1,WHITE);
+    DrawTextEx(assets.redHatDisplayItalicLarge, scoreCommaFormatter(player.score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),1, GetColor(0x00adffFF));
+    renderStars(player, bigStarPos, u.hpct(0.1125f), assets, u.hinpct(0.055f));
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
-
 }
 
 void Menu::SwitchScreen(Screens screen){
