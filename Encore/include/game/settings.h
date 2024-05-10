@@ -50,6 +50,8 @@ private:
 			settings["keybinds"].AddMember("overdrive", rapidjson::Value(), allocator);
 		if (!settings["keybinds"].HasMember("overdriveAlt"))
 			settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(), allocator);
+		if (!settings["keybinds"].HasMember("pause"))
+			settings["keybinds"].AddMember("pause", rapidjson::Value(), allocator);
 		if (!settings.HasMember("controllerbinds"))
 			settings.AddMember("controllerbinds", rapidjson::kObjectType, allocator);
 		if (!settings["controllerbinds"].HasMember("4k"))
@@ -66,6 +68,8 @@ private:
 			settings["controllerbinds"].AddMember("overdrive", rapidjson::Value(), allocator);
 		if (!settings["controllerbinds"].HasMember("type"))
 			settings["controllerbinds"].AddMember("type", rapidjson::Value(), allocator);
+		if (!settings["controllerbinds"].HasMember("pause"))
+			settings["controllerbinds"].AddMember("pause", rapidjson::Value(), allocator);
         if (!settings.HasMember("songDirectories"))
             settings.AddMember("songDirectories", rapidjson::Value(), allocator);
 	}
@@ -80,6 +84,7 @@ public:
 	std::vector<int> defaultKeybinds5KAlt{ -1,-1,-1,-1,-1 };
 	int defaultKeybindOverdrive = KEY_SPACE;
 	int defaultKeybindOverdriveAlt = -1;
+	int defaultKeybindPause = KEY_ESCAPE;
 	std::vector<int> defaultController4K{ GLFW_GAMEPAD_BUTTON_DPAD_LEFT,GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,GLFW_GAMEPAD_BUTTON_X,GLFW_GAMEPAD_BUTTON_B };
 	std::vector<int> defaultController5K{ GLFW_GAMEPAD_BUTTON_DPAD_LEFT,GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,GLFW_GAMEPAD_BUTTON_X,GLFW_GAMEPAD_BUTTON_Y, GLFW_GAMEPAD_BUTTON_B };
 	std::vector<int> defaultController5KAxisDirection{ 0,0,0,0,0 };
@@ -87,6 +92,7 @@ public:
 	int defaultControllerOverdrive = -1-GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER;
 	int defaultControllerOverdriveAxisDirection = 1;
 	int defaultControllerType = 0;
+	int defaultControllerPause = GLFW_GAMEPAD_BUTTON_START;
 	std::vector<int> keybinds4K = defaultKeybinds4K;
 	std::vector<int> keybinds5K = defaultKeybinds5K;
 	std::vector<int> keybinds4KAlt = defaultKeybinds4KAlt;
@@ -98,8 +104,10 @@ public:
 	int controllerType = defaultControllerType;
 	int keybindOverdrive = defaultKeybindOverdrive;
 	int keybindOverdriveAlt = defaultKeybindOverdriveAlt;
+	int keybindPause = defaultKeybindPause;
 	int controllerOverdrive = defaultControllerOverdrive;
 	int controllerOverdriveAxisDirection = defaultControllerOverdriveAxisDirection;
+	int controllerPause = defaultControllerPause;
 	std::vector<int> prev4K = keybinds4K;
 	std::vector<int> prev5K = keybinds5K;
 	std::vector<int> prevController4K = controller4K;
@@ -110,9 +118,11 @@ public:
 	std::vector<int> prev5KAlt = keybinds5KAlt;
 	int prevOverdrive = keybindOverdrive;
 	int prevOverdriveAlt = keybindOverdriveAlt;
+	int prevKeybindPause = keybindPause;
 	int prevControllerOverdrive = controllerOverdrive;
 	int prevControllerOverdriveAxisDirection = controllerOverdriveAxisDirection;
 	int prevControllerType = controllerType;
+	int prevControllerPause = controllerPause;
 	std::vector<float> defaultTrackSpeedOptions = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
 	std::vector<float> trackSpeedOptions = defaultTrackSpeedOptions;
     std::vector<std::filesystem::path> defaultSongPaths{ directory  / "Songs" };
@@ -167,10 +177,9 @@ public:
 		settings["keybinds"].AddMember("5k", array5K, allocator);
 		settings["keybinds"].AddMember("4kAlt", array4KAlt, allocator);
 		settings["keybinds"].AddMember("5kAlt", array5KAlt, allocator);
-		rapidjson::Value overdrive(keybindOverdrive);
-		rapidjson::Value overdriveAlt(keybindOverdriveAlt);
-		settings["keybinds"].AddMember("overdrive", overdrive, allocator);
-		settings["keybinds"].AddMember("overdriveAlt", overdriveAlt, allocator); 
+		settings["keybinds"].AddMember("overdrive", rapidjson::Value(defaultKeybindOverdrive), allocator);
+		settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(defaultKeybindOverdriveAlt), allocator);
+		settings["keybinds"].AddMember("pause", rapidjson::Value(defaultKeybindPause), allocator);
 		rapidjson::Value arrayController4K(rapidjson::kArrayType);
 		rapidjson::Value arrayController5K(rapidjson::kArrayType);
 		rapidjson::Value arrayController4KDirection(rapidjson::kArrayType);
@@ -184,7 +193,6 @@ public:
 		for (int& key : defaultController5KAxisDirection)
 			arrayController5KDirection.PushBack(rapidjson::Value().SetInt(key), allocator);
 		settings.AddMember("controllerbinds", rapidjson::Value(rapidjson::kObjectType), allocator);
-
 		settings["controllerbinds"].AddMember("type", rapidjson::Value().SetInt(defaultControllerType), allocator);
 		settings["controllerbinds"].AddMember("4k", arrayController4K, allocator);
 		settings["controllerbinds"].AddMember("4k_direction", arrayController4KDirection, allocator);
@@ -192,18 +200,13 @@ public:
 		settings["controllerbinds"].AddMember("5k_direction", arrayController5KDirection, allocator);
 		settings["controllerbinds"].AddMember("overdrive", rapidjson::Value().SetInt(defaultControllerOverdrive), allocator);
 		settings["controllerbinds"].AddMember("overdrive_direction", rapidjson::Value().SetInt(defaultControllerOverdriveAxisDirection), allocator);
-		rapidjson::Value avOffset(avOffsetMS);
-		settings.AddMember("avOffset", avOffset, allocator);
-		rapidjson::Value inputOffset(inputOffsetMS);
-		settings.AddMember("inputOffset", inputOffset, allocator);
-        rapidjson::Value fullscreenVal(fullscreenDefault);
-        settings.AddMember("fullscreen", fullscreenVal, allocator);
-		rapidjson::Value mirrorValue(defaultMirrorMode);
-		settings.AddMember("mirror",mirrorValue, allocator);
-		rapidjson::Value trackSpeedVal(4);
-		settings.AddMember("trackSpeed", trackSpeedVal, allocator);
-        rapidjson::Value length(1.0f);
-        settings.AddMember("length", highwayLengthMult, allocator);
+		settings["controllerbinds"].AddMember("pause", rapidjson::Value().SetInt(defaultControllerPause), allocator);
+		settings.AddMember("avOffset", rapidjson::Value(avOffsetMS), allocator);
+		settings.AddMember("inputOffset", rapidjson::Value(inputOffsetMS), allocator);
+        settings.AddMember("fullscreen", rapidjson::Value(fullscreenDefault), allocator);
+		settings.AddMember("mirror", rapidjson::Value(defaultMirrorMode), allocator);
+		settings.AddMember("trackSpeed", rapidjson::Value(4), allocator);
+        settings.AddMember("length", rapidjson::Value(1.0f), allocator);
 		rapidjson::Value arrayTrackSpeedOptions(rapidjson::kArrayType);
 		for (float& speed : defaultTrackSpeedOptions)
 			arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
@@ -227,6 +230,7 @@ public:
 		bool keybinds5KAltError = false;
 		bool keybindsOverdriveError = false;
 		bool keybindsOverdriveAltError = false;
+		bool keybindsPauseError = false;
 		bool controllerError = false;
 		bool controllerTypeError = false;
 		bool controller4KError = false;
@@ -235,6 +239,7 @@ public:
 		bool controller5KDirectionError = false;
 		bool controllerOverdriveError = false;
 		bool controllerOverdriveDirectionError = false;
+		bool controllerPauseError = false;
         bool songDirectoryError = false;
 		bool avError = false;
 		bool inputError = false;
@@ -340,6 +345,13 @@ public:
 					else {
 						keybindsOverdriveAltError = true;
 					}
+					if (settings["keybinds"].HasMember("pause") && settings["keybinds"]["pause"].IsInt()) {
+						keybindPause = settings["keybinds"]["pause"].GetInt();
+						prevKeybindPause = keybindPause;
+					}
+					else {
+						keybindsPauseError = true;
+					}
 				}
 				else {
 					keybindsError = true;
@@ -435,6 +447,13 @@ public:
 					else {
 						controllerOverdriveDirectionError = true;
 					}
+					if (settings["controllerbinds"].HasMember("pause") && settings["controllerbinds"]["pause"].IsInt()) {
+						controllerPause = settings["controllerbinds"]["pause"].GetInt();
+						prevControllerPause = controllerPause;
+					}
+					else {
+						controllerPauseError = true;
+					}
 				}
 				else {
 					controllerError = true;
@@ -514,10 +533,10 @@ public:
 		}
 
 
+		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		if (keybindsError) {
 			if (settings.HasMember("keybinds"))
 				settings.EraseMember("keybinds");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array4K(rapidjson::kArrayType);
 			for (int& key :defaultKeybinds4K)
 				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -535,15 +554,13 @@ public:
 			settings["keybinds"].AddMember("5k", array5K, allocator);
 			settings["keybinds"].AddMember("4kAlt", array4KAlt, allocator);
 			settings["keybinds"].AddMember("5kAlt", array5KAlt, allocator);
-			rapidjson::Value overdriveKey(defaultKeybindOverdrive);
-			settings["keybinds"].AddMember("overdrive", overdriveKey, allocator);
-			rapidjson::Value overdriveKeyAlt(defaultKeybindOverdriveAlt);
-			settings["keybinds"].AddMember("overdriveAlt", overdriveKeyAlt, allocator);
+			settings["keybinds"].AddMember("overdrive", rapidjson::Value(defaultKeybindOverdrive), allocator);
+			settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(defaultKeybindOverdriveAlt), allocator);
+			settings["keybinds"].AddMember("pause", rapidjson::Value(defaultKeybindPause), allocator);
 		}
 		if (keybinds4KError) {
 			if(settings["keybinds"].HasMember("4k"))
 				settings["keybinds"].EraseMember("4k");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array4K(rapidjson::kArrayType);
 			for (int& key :defaultKeybinds4K)
 				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -552,7 +569,6 @@ public:
 		if (keybinds5KError) {
 			if (settings["keybinds"].HasMember("5k"))
 				settings["keybinds"].EraseMember("5k");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array5K(rapidjson::kArrayType);
 			for (int& key :defaultKeybinds5K)
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -561,7 +577,6 @@ public:
 		if (keybinds4KAltError) {
 			if (settings["keybinds"].HasMember("4kAlt"))
 				settings["keybinds"].EraseMember("4kAlt");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array4K(rapidjson::kArrayType);
 			for (int& key : defaultKeybinds4KAlt)
 				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -570,7 +585,6 @@ public:
 		if (keybinds5KAltError) {
 			if (settings["keybinds"].HasMember("5kAlt"))
 				settings["keybinds"].EraseMember("5kAlt");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array5K(rapidjson::kArrayType);
 			for (int& key : defaultKeybinds5KAlt)
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -579,21 +593,21 @@ public:
 		if (keybindsOverdriveError) {
 			if (settings["keybinds"].HasMember("overdrive"))
 				settings["keybinds"].EraseMember("overdrive");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value overdriveKey(defaultKeybindOverdrive);
-			settings["keybinds"].AddMember("overdrive", overdriveKey, allocator);
+			settings["keybinds"].AddMember("overdrive", rapidjson::Value(defaultKeybindOverdrive), allocator);
 		}
 		if (keybindsOverdriveAltError){
 			if (settings["keybinds"].HasMember("overdriveAlt"))
 				settings["keybinds"].EraseMember("overdriveAlt");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value overdriveKeyAlt(defaultKeybindOverdriveAlt);
-			settings["keybinds"].AddMember("overdriveAlt", overdriveKeyAlt, allocator);
+			settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(defaultKeybindOverdriveAlt), allocator);
+		}
+		if (keybindsPauseError) {
+			if (settings["keybinds"].HasMember("pause"))
+				settings["keybinds"].EraseMember("pause");
+			settings["keybinds"].AddMember("pause", rapidjson::Value(defaultKeybindPause), allocator);
 		}
 		if (controllerError) {
 			if (settings.HasMember("controllerbinds"))
 				settings.EraseMember("controllerbinds");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array4K(rapidjson::kArrayType);
 			for (int& key : defaultController4K)
 				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -611,22 +625,18 @@ public:
 			settings["controllerbinds"].AddMember("4k_direction", array4KDirection, allocator);
 			settings["controllerbinds"].AddMember("5k", array5K, allocator);
 			settings["controllerbinds"].AddMember("5k_direction", array4KDirection, allocator);
-			rapidjson::Value overdriveKey(defaultControllerOverdrive);
-			settings["controllerbinds"].AddMember("overdrive", overdriveKey, allocator);
-			rapidjson::Value overdriveDirection(defaultControllerOverdriveAxisDirection);
-			settings["controllerbinds"].AddMember("overdrive_direction", overdriveDirection, allocator);
+			settings["controllerbinds"].AddMember("overdrive", rapidjson::Value(defaultControllerOverdrive), allocator);
+			settings["controllerbinds"].AddMember("overdrive_direction", rapidjson::Value(defaultControllerOverdriveAxisDirection), allocator);
+			settings["controllerbinds"].AddMember("pause", rapidjson::Value(defaultControllerPause), allocator);
 		}
 		if (controllerTypeError) {
 			if (settings["controllerbinds"].HasMember("type"))
 				settings["controllerbinds"].EraseMember("type");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value controllerTypeValue(defaultControllerType);
-			settings["controllerbinds"].AddMember("type", controllerTypeValue, allocator);
+			settings["controllerbinds"].AddMember("type", rapidjson::Value(defaultControllerType), allocator);
 		}
 		if (controller4KError) {
 			if (settings["controllerbinds"].HasMember("4k"))
 				settings["controllerbinds"].EraseMember("4k");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array4K(rapidjson::kArrayType);
 			for (int& key : defaultController4K)
 				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -645,8 +655,13 @@ public:
 			if (settings["controllerbinds"].HasMember("overdrive"))
 				settings["controllerbinds"].EraseMember("overdrive");
 			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value overdriveKey(defaultControllerOverdrive);
-			settings["controllerbinds"].AddMember("overdrive", overdriveKey, allocator);
+			settings["controllerbinds"].AddMember("overdrive", rapidjson::Value(defaultControllerOverdrive), allocator);
+		}
+		if (controllerPauseError) {
+			if (settings["controllerbinds"].HasMember("pause"))
+				settings["controllerbinds"].EraseMember("pause");
+			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+			settings["controllerbinds"].AddMember("pause", rapidjson::Value(defaultControllerPause), allocator);
 		}
 		if (controller4KDirectionError) {
 			if (settings["controllerbinds"].HasMember("4k_direction"))
@@ -669,33 +684,25 @@ public:
 		if (controllerOverdriveDirectionError) {
 			if (settings["controllerbinds"].HasMember("overdrive_direction"))
 				settings["controllerbinds"].EraseMember("overdrive_direction");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value overdriveKey(defaultControllerOverdriveAxisDirection);
-			settings["controllerbinds"].AddMember("overdrive_direction", overdriveKey, allocator);
+			settings["controllerbinds"].AddMember("overdrive_direction", rapidjson::Value(defaultControllerOverdriveAxisDirection), allocator);
 		}
 		if (avError) {
 			if (settings.HasMember("avOffset"))
 				settings.EraseMember("avOffset");
 			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value avOffset;
-			avOffset.SetInt(0);
-			settings.AddMember("avOffset", avOffset, allocator);
+			settings.AddMember("avOffset", rapidjson::Value(0), allocator);
 		}
 		if (inputError) {
 			if (settings.HasMember("inputOffset"))
 				settings.EraseMember("inputOffset");
 			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value inputOffset;
-			inputOffset.SetInt(0);
-			settings.AddMember("inputOffset", inputOffset, allocator);
+			settings.AddMember("inputOffset", rapidjson::Value(0), allocator);
 		}
 		if (trackSpeedError) {
 			if(settings.HasMember("trackSpeed"))
 				settings.EraseMember("trackSpeed");
 			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
-			rapidjson::Value trackSpeedVal;
-			trackSpeedVal.SetInt(4);
-			settings.AddMember("trackSpeed", trackSpeedVal, allocator);
+			settings.AddMember("trackSpeed", rapidjson::Value(4), allocator);
 		}
 		if (trackSpeedOptionsError) {
 			trackSpeedOptions = defaultTrackSpeedOptions;
@@ -882,7 +889,8 @@ public:
 		overdriveKeyMember->value.SetInt(keybindOverdrive);
 		rapidjson::Value::MemberIterator overdriveKeyAltMember = settings["keybinds"].FindMember("overdriveAlt");
 		overdriveKeyAltMember->value.SetInt(keybindOverdriveAlt);
-
+		rapidjson::Value::MemberIterator pauseKeyMember = settings["keybinds"].FindMember("pause");
+		pauseKeyMember->value.SetInt(keybindPause);
 		rapidjson::Value::MemberIterator controller4KMember = settings["controllerbinds"].FindMember("4k");
 		controller4KMember->value.Clear();
 		for (int& key : controller4K)
@@ -903,6 +911,8 @@ public:
 		overdriveControllerMember->value.SetInt(controllerOverdrive);
 		rapidjson::Value::MemberIterator overdriveControllerDirMember = settings["controllerbinds"].FindMember("overdrive_direction");
 		overdriveControllerDirMember->value.SetInt(controllerOverdriveAxisDirection);
+		rapidjson::Value::MemberIterator pauseControllerMember = settings["controllerbinds"].FindMember("pause");
+		pauseControllerMember->value.SetInt(controllerPause);
 		rapidjson::Value::MemberIterator controllerTypeMember = settings["controllerbinds"].FindMember("type");
 		controllerTypeMember->value.SetInt(controllerType);
 
