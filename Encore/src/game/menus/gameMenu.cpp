@@ -45,7 +45,7 @@ void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
     for (int i = 0; i < 5; i++) {
         DrawTextureEx(assets.emptyStar, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
     }
-    for (int i; i <= starsval; i++) {
+    for (int i = 0; i <= starsval; i++) {
         DrawTextureEx(player.goldStars?assets.goldStar:assets.star, { (xPos + (i * 50) - 125),yPos }, 0, 0.175f, WHITE);
     }
 };
@@ -217,9 +217,7 @@ void Menu::SwitchScreen(Screens screen){
             break;
         case SONG_SELECT:
             break;
-        case INSTRUMENT_SELECT:
-            break;
-        case DIFFICULTY_SELECT:
+        case READY_UP:
             break;
         case GAMEPLAY:
             break;
