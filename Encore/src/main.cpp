@@ -131,6 +131,7 @@ std::string scoreCommaFormatter(int value) {
 
 
 static void handleInputs(int lane, int action){
+    if (player.paused) return;
 	if (lane == -2) return;
 	if (settings.mirrorMode && lane!=-1) {
 		lane = (player.diff == 3 ? 4 : 3) - lane;
@@ -272,7 +273,7 @@ static void handleInputs(int lane, int action){
 				}
 				if (curNote.miss) player.lastNotePerfect = false;
 			}
-			if (action == GLFW_RELEASE && curNote.held && (curNote.len) > 0) {
+			if ((!heldFrets[curNote.lane] && !heldFretsAlt[curNote.lane]) && curNote.held && (curNote.len) > 0) {
 				curNote.held = false;
                 player.score += player.sustainScoreBuffer[curNote.lane];
                 player.sustainScoreBuffer[curNote.lane] = 0;
@@ -311,8 +312,13 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
             player.paused = !player.paused;
             if(player.paused)
                 audioManager.pauseStreams();
-            else
+            else {
                 audioManager.playStreams();
+                for (int i = 0; i < (player.diff == 3 ? 5 : 4); i++) {
+                    handleInputs(i, -1);
+                }
+            }
+
         }
         else if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
 			handleInputs(-1, action);
@@ -382,18 +388,25 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
     if (settings.controllerPause >= 0) {
         if (state.buttons[settings.controllerPause] != buttonValues[settings.controllerPause]) {
             buttonValues[settings.controllerPause] = state.buttons[settings.controllerPause];
-            handleInputs(-1, state.buttons[settings.controllerPause]);
+            if (state.buttons[settings.controllerPause] == 1) {
+                player.paused = !player.paused;
+                if (player.paused)
+                    audioManager.pauseStreams();
+                else {
+                    audioManager.playStreams();
+                    for (int i = 0; i < (player.diff == 3 ? 5 : 4); i++) {
+                        handleInputs(i, -1);
+                    }
+                }
+            }
         }
     }
     else {
         if (state.axes[-(settings.controllerPause + 1)] != axesValues[-(settings.controllerPause + 1)]) {
             axesValues[-(settings.controllerPause + 1)] = state.axes[-(settings.controllerPause + 1)];
             if (state.axes[-(settings.controllerPause + 1)] == 1.0f * (float)settings.controllerPauseAxisDirection) {
-                player.paused = !player.paused;
-                if(player.paused)
-                    audioManager.pauseStreams();
-                else
-                    audioManager.playStreams();
+                
+                    
             }
         }
     }
