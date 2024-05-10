@@ -53,7 +53,10 @@ int selLane = 0;
 bool selSong = false;
 int songSelectOffset = 0;
 bool changingKey = false;
+bool changing4k = false;
 bool changingOverdrive = false;
+bool changingAlt = false;
+bool changingPause = false;
 double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
@@ -304,7 +307,13 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 	}
 	if (action < 2) {  // if the key action is NOT repeat (release is 0, press is 1)
 		int lane = -2;
-		if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
+        if (key == settings.keybindPause) {
+            for (auto& stream : audioManager.loadedStreams) {
+                audioManager.pauseStreams(stream.first);
+                player.paused = true;
+            }
+        }
+        else if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
 			handleInputs(-1, action);
 		}
 		else {
@@ -369,6 +378,23 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		return;
 	}
 	double eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+    if (settings.controllerPause >= 0) {
+        if (state.buttons[settings.controllerPause] != buttonValues[settings.controllerPause]) {
+            buttonValues[settings.controllerPause] = state.buttons[settings.controllerPause];
+            handleInputs(-1, state.buttons[settings.controllerPause]);
+        }
+    }
+    else {
+        if (state.axes[-(settings.controllerPause + 1)] != axesValues[-(settings.controllerPause + 1)]) {
+            axesValues[-(settings.controllerPause + 1)] = state.axes[-(settings.controllerPause + 1)];
+            if (state.axes[-(settings.controllerPause + 1)] == 1.0f * (float)settings.controllerPauseAxisDirection) {
+                for (auto& stream : audioManager.loadedStreams) {
+                    audioManager.pauseStreams(stream.first);
+                    player.paused = true;
+                }
+            }
+        }
+    }
 	if (settings.controllerOverdrive >= 0) {
 		if (state.buttons[settings.controllerOverdrive] != buttonValues[settings.controllerOverdrive]) {
 			buttonValues[settings.controllerOverdrive] = state.buttons[settings.controllerOverdrive];
@@ -453,7 +479,7 @@ static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
 	for (int i = 0; i < 6; i++) {
 		axesValues2[i] = state.axes[i];
 	}
-	if (changingKey || changingOverdrive) {
+	if (changingKey || changingOverdrive || changingPause) {
 		for (int i = 0; i < 15; i++) {
 			if (state.buttons[i] == 1) {
 				if (buttonValues[i] == 0) {
@@ -669,7 +695,7 @@ int main(int argc, char* argv[])
                     std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
                     settings.controllerType = keybinds.getControllerType(gamepadName);
                 }
-                if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive)) {
+                if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
                     settings.keybinds4K = settings.prev4K;
                     settings.keybinds5K = settings.prev5K;
@@ -677,6 +703,7 @@ int main(int argc, char* argv[])
                     settings.keybinds5KAlt = settings.prev5KAlt;
                     settings.keybindOverdrive = settings.prevOverdrive;
                     settings.keybindOverdriveAlt = settings.prevOverdriveAlt;
+                    settings.keybindPause = settings.prevKeybindPause;
 
                     settings.controller4K = settings.prevController4K;
                     settings.controller4KAxisDirection = settings.prevController4KAxisDirection;
@@ -685,6 +712,7 @@ int main(int argc, char* argv[])
                     settings.controllerOverdrive = settings.prevControllerOverdrive;
                     settings.controllerOverdriveAxisDirection = settings.prevControllerOverdriveAxisDirection;
                     settings.controllerType = settings.prevControllerType;
+                    settings.controllerPause = settings.prevControllerPause;
 
                     settings.highwayLengthMult = settings.prevHighwayLengthMult;
                     settings.trackSpeed = settings.prevTrackSpeed;
@@ -698,7 +726,7 @@ int main(int argc, char* argv[])
 
                     menu.SwitchScreen(MENU);
                 }
-                if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive)) {
+                if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
                     settings.prev4K = settings.keybinds4K;
                     settings.prev5K = settings.keybinds5K;
@@ -706,12 +734,14 @@ int main(int argc, char* argv[])
                     settings.prev5KAlt = settings.keybinds5KAlt;
                     settings.prevOverdrive = settings.keybindOverdrive;
                     settings.prevOverdriveAlt = settings.keybindOverdriveAlt;
+                    settings.prevKeybindPause = settings.keybindPause;
 
                     settings.prevController4K = settings.controller4K;
                     settings.prevController4KAxisDirection = settings.controller4KAxisDirection;
                     settings.prevController5K = settings.controller5K;
                     settings.prevController5KAxisDirection = settings.controller5KAxisDirection;
                     settings.prevControllerOverdrive = settings.controllerOverdrive;
+                    settings.prevControllerPause = settings.controllerPause;
                     settings.prevControllerOverdriveAxisDirection = settings.controllerOverdriveAxisDirection;
                     settings.prevControllerType = settings.controllerType;
 
@@ -745,8 +775,16 @@ int main(int argc, char* argv[])
                     menu.SwitchScreen(MENU);
                 }
                 static int selectedTab = 0;
+                static int displayedTab = 0;
                 GuiToggleGroup({ 0,0,(float)GetScreenWidth() / 3,60 }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
-                if (selectedTab == 0) { //Main settings tab
+                if (!changingKey && !changingOverdrive && !changingPause) {
+                    displayedTab = selectedTab;
+                }
+                else {
+                    selectedTab = displayedTab;
+                }
+                    
+                if (displayedTab == 0) { //Main settings tab
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
                         if (settings.trackSpeed == settings.trackSpeedOptions.size() - 1) settings.trackSpeed = 0; else settings.trackSpeed++;
                         trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
@@ -814,19 +852,19 @@ int main(int argc, char* argv[])
                     DrawTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
                 }
-                else if (selectedTab == 1) { //Keyboard bindings tab
+                else if (displayedTab == 1) { //Keyboard bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
                         float j = (float)i - 2.0f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, keybinds.getKeyStr(settings.keybinds5K[i]).c_str())) {
-                            settings.changing4k = false;
-                            settings.changingAlt = false;
+                            changing4k = false;
+                            changingAlt = false;
                             selLane = i;
                             changingKey = true;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, keybinds.getKeyStr(settings.keybinds5KAlt[i]).c_str())) {
-                            settings.changing4k = false;
-                            settings.changingAlt = true;
+                            changing4k = false;
+                            changingAlt = true;
                             selLane = i;
                             changingKey = true;
                         }
@@ -834,40 +872,48 @@ int main(int argc, char* argv[])
                     for (int i = 0; i < 4; i++) {
                         float j = (float)i - 1.5f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, keybinds.getKeyStr(settings.keybinds4K[i]).c_str())) {
-                            settings.changingAlt = false;
-                            settings.changing4k = true;
+                            changingAlt = false;
+                            changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getKeyStr(settings.keybinds4KAlt[i]).c_str())) {
-                            settings.changingAlt = true;
-                            settings.changing4k = true;
+                            changingAlt = true;
+                            changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 100,480,80,60 }, keybinds.getKeyStr(settings.keybindOverdrive).c_str())) {
-                        settings.changingAlt = false;
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 130,480,120,60 }, keybinds.getKeyStr(settings.keybindOverdrive).c_str())) {
+                        changingAlt = false;
                         changingKey = false;
                         changingOverdrive = true;
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) + 20,480,80,60 }, keybinds.getKeyStr(settings.keybindOverdriveAlt).c_str())) {
-                        settings.changingAlt = true;
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) + 10,480,120,60 }, keybinds.getKeyStr(settings.keybindOverdriveAlt).c_str())) {
+                        changingAlt = true;
                         changingKey = false;
                         changingOverdrive = true;
+                    }
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 60,560,120,60 }, keybinds.getKeyStr(settings.keybindPause).c_str())) {
+                        changingKey = false;
+                        changingPause = true;
                     }
                     if (changingKey) {
-                        std::vector<int>& bindsToChange = settings.changingAlt ? (settings.changing4k ? settings.keybinds4KAlt : settings.keybinds5KAlt) : (settings.changing4k ? settings.keybinds4K : settings.keybinds5K);
+                        std::vector<int>& bindsToChange = changingAlt ? (changing4k ? settings.keybinds4KAlt : settings.keybinds5KAlt) : (changing4k ? settings.keybinds4K : settings.keybinds5K);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string keyString = (settings.changing4k ? "4k" : "5k");
-                        std::string altString = (settings.changingAlt ? " alt" : "");
+                        std::string keyString = (changing4k ? "4k" : "5k");
+                        std::string altString = (changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + keyString + altString + " lane ";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to remove bound key", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 130, GetScreenHeight() - 60.0f, 120,40 }, "Unbind Key")) {
+                            pressedKey = -1;
+                        }
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
+                            selLane = 0;
+                            changingKey = false;
+                        }
                         if (pressedKey != 0) {
-                            if (pressedKey == KEY_ESCAPE)
-                                pressedKey = -1;
                             bindsToChange[selLane] = pressedKey;
                             selLane = 0;
                             changingKey = false;
@@ -875,29 +921,49 @@ int main(int argc, char* argv[])
                     }
                     if (changingOverdrive) {
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string altString = (settings.changingAlt ? " alt" : "");
+                        std::string altString = (changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + altString + " overdrive";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to remove bound key", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to remove bound key", 20)) / 2, (float)GetScreenHeight() / 2 + 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 130, GetScreenHeight() - 60.0f, 120,40 }, "Unbind Key")) {
+                            pressedKey = -1;
+                        }
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
+                            changingAlt = false;
+                            changingOverdrive = false;
+                        }
                         if (pressedKey != 0) {
-                            if (pressedKey == KEY_ESCAPE)
-                                pressedKey = -1;
-                            if (settings.changingAlt)
+                            if(changingAlt)
                                 settings.keybindOverdriveAlt = pressedKey;
                             else
-                                settings.keybindOverdrive = pressedKey;
+                                settings.keybindOverdriveAlt = pressedKey;
                             changingOverdrive = false;
+                        }
+                    }
+                    if (changingPause) {
+                        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
+                        DrawTextRubik("Press a key for Pause", ((float)GetScreenWidth() - MeasureTextRubik("Press a key for Pause", 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
+                        int pressedKey = GetKeyPressed();
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 130, GetScreenHeight() - 60.0f, 120,40 }, "Unbind Key")) {
+                            pressedKey = -1;
+                        }
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
+                            changingAlt = false;
+                            changingPause = false;
+                        }
+                        if (pressedKey != 0) {
+                            settings.keybindPause = pressedKey;
+                            changingPause = false;
                         }
                     }
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
                 }
-                else if (selectedTab == 2) { //Controller bindings tab
+                else if (displayedTab == 2) { //Controller bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
                         float j = (float)i - 2.0f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, keybinds.getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
-                            settings.changing4k = false;
+                            changing4k = false;
                             selLane = i;
                             changingKey = true;
                         }
@@ -905,7 +971,7 @@ int main(int argc, char* argv[])
                     for (int i = 0; i < 4; i++) {
                         float j = (float)i - 1.5f;
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getControllerStr(controllerID, settings.controller4K[i], settings.controllerType, settings.controller4KAxisDirection[i]).c_str())) {
-                            settings.changing4k = true;
+                            changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
@@ -913,15 +979,21 @@ int main(int argc, char* argv[])
                     if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, keybinds.getControllerStr(controllerID, settings.controllerOverdrive, settings.controllerType, settings.controllerOverdriveAxisDirection).c_str())) {
                         changingKey = false;
                         changingOverdrive = true;
+                    } 
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,560,80,60 }, keybinds.getControllerStr(controllerID, settings.controllerPause, settings.controllerType, settings.controllerPauseAxisDirection).c_str())) {
+                        changingKey = false;
+                        changingOverdrive = true;
                     }
                     if (changingKey) {
-                        std::vector<int>& bindsToChange = (settings.changing4k ? settings.controller4K : settings.controller5K);
-                        std::vector<int>& directionToChange = (settings.changing4k ? settings.controller4KAxisDirection : settings.controller5KAxisDirection);
+                        std::vector<int>& bindsToChange = (changing4k ? settings.controller4K : settings.controller5K);
+                        std::vector<int>& directionToChange = (changing4k ? settings.controller4KAxisDirection : settings.controller5KAxisDirection);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string keyString = (settings.changing4k ? "4k" : "5k");
+                        std::string keyString = (changing4k ? "4k" : "5k");
                         std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to cancel", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 60, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
+                            changingKey = false;
+                        }
                         if (pressedGamepadInput != -999) {
                             bindsToChange[selLane] = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
@@ -936,8 +1008,9 @@ int main(int argc, char* argv[])
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string changeString = "Press a button/axis for controller overdrive";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
-                        DrawTextRubik("Or press escape to cancel", ((float)GetScreenWidth() - MeasureTextRubik("Or press escape to cancel", 20)) / 2, GetScreenHeight() / 2 + 30, 20, WHITE);
-
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 60, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
+                            changingOverdrive = false;
+                        }
                         if (pressedGamepadInput != -999) {
                             settings.controllerOverdrive = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
@@ -946,12 +1019,23 @@ int main(int argc, char* argv[])
                             changingOverdrive = false;
                             pressedGamepadInput = -999;
                         }
-                    }
-                    if (IsKeyPressed(KEY_ESCAPE)) {
-                        pressedGamepadInput = -999;
-                        changingKey = false;
-                        changingOverdrive = false;
-                    }
+                    } 
+                    if (changingPause) {
+                        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
+                        std::string changeString = "Press a button/axis for controller pause";
+                        DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, GetScreenHeight() / 2 - 30, 20, WHITE);
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 60, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
+                            changingPause = false;
+                        }
+                        if (pressedGamepadInput != -999) {
+                            settings.controllerPause = pressedGamepadInput;
+                            if (pressedGamepadInput < 0) {
+                                settings.controllerPauseAxisDirection = axisDirection;
+                            }
+                            changingPause = false;
+                            pressedGamepadInput = -999;
+                        }
+                    }                   
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
                 }
                 break;
@@ -1430,12 +1514,7 @@ int main(int argc, char* argv[])
 
 
 
-                if (GuiButton({ 0,0,60,60 }, "<")) {
-                    for (auto& stream : audioManager.loadedStreams) {
-                        audioManager.pauseStreams(stream.first);
-                        player.paused = true;
-                    }
-                    /*
+                /*if (GuiButton({0,0,60,60}, "<")) {
                     for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                         note.accounted = false;
                         note.hit = false;
@@ -1471,8 +1550,7 @@ int main(int argc, char* argv[])
                     isPlaying = false;
                     midiLoaded = false;
                     player.quit = true;
-                     */
-                }
+                }*/
                 if (!streamsLoaded && !player.quit) {
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
                     streamsLoaded = true;
