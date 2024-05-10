@@ -1262,7 +1262,7 @@ int main(int argc, char* argv[])
                                     instSelection = false;
                                     diffSelection = true;
                                 }
-                                else if (!player.firstReadyUp && songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size() < 1) {
+                                else if (songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size() < 1) {
                                     instSelection = false;
                                     diffSelection = true;
                                 }
