@@ -307,11 +307,12 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 	}
 	if (action < 2) {  // if the key action is NOT repeat (release is 0, press is 1)
 		int lane = -2;
-        if (key == settings.keybindPause) {
-            for (auto& stream : audioManager.loadedStreams) {
-                audioManager.pauseStreams(stream.first);
-                player.paused = true;
-            }
+        if (key == settings.keybindPause && action==GLFW_PRESS) {
+            player.paused = !player.paused;
+            if(player.paused)
+                audioManager.pauseStreams();
+            else
+                audioManager.playStreams();
         }
         else if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
 			handleInputs(-1, action);
@@ -388,10 +389,11 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
         if (state.axes[-(settings.controllerPause + 1)] != axesValues[-(settings.controllerPause + 1)]) {
             axesValues[-(settings.controllerPause + 1)] = state.axes[-(settings.controllerPause + 1)];
             if (state.axes[-(settings.controllerPause + 1)] == 1.0f * (float)settings.controllerPauseAxisDirection) {
-                for (auto& stream : audioManager.loadedStreams) {
-                    audioManager.pauseStreams(stream.first);
-                    player.paused = true;
-                }
+                player.paused = !player.paused;
+                if(player.paused)
+                    audioManager.pauseStreams();
+                else
+                    audioManager.playStreams();
             }
         }
     }
@@ -1957,10 +1959,8 @@ int main(int argc, char* argv[])
                     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,64});
                     DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",64,1).x/2), u.hpct(0.05f)}, 64, 1, WHITE);
                     if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Resume")) {
-                        for (auto& stream : audioManager.loadedStreams) {
-                            audioManager.playStreams(stream.first);
-                            player.paused = false;
-                        }
+                        audioManager.playStreams();
+                        player.paused = false;
                     }
                     /*
                     if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2), 200, 60}, "Restart")) {
