@@ -70,6 +70,8 @@ private:
 			settings["controllerbinds"].AddMember("type", rapidjson::Value(), allocator);
 		if (!settings["controllerbinds"].HasMember("pause"))
 			settings["controllerbinds"].AddMember("pause", rapidjson::Value(), allocator);
+		if (!settings["controllerbinds"].HasMember("pause_direction"))
+			settings["controllerbinds"].AddMember("pause_direction", rapidjson::Value(), allocator);
         if (!settings.HasMember("songDirectories"))
             settings.AddMember("songDirectories", rapidjson::Value(), allocator);
 	}
@@ -93,6 +95,7 @@ public:
 	int defaultControllerOverdriveAxisDirection = 1;
 	int defaultControllerType = 0;
 	int defaultControllerPause = GLFW_GAMEPAD_BUTTON_START;
+	int defaultControllerPauseAxisDirection = 0;
 	std::vector<int> keybinds4K = defaultKeybinds4K;
 	std::vector<int> keybinds5K = defaultKeybinds5K;
 	std::vector<int> keybinds4KAlt = defaultKeybinds4KAlt;
@@ -108,6 +111,7 @@ public:
 	int controllerOverdrive = defaultControllerOverdrive;
 	int controllerOverdriveAxisDirection = defaultControllerOverdriveAxisDirection;
 	int controllerPause = defaultControllerPause;
+	int controllerPauseAxisDirection = defaultControllerPauseAxisDirection;
 	std::vector<int> prev4K = keybinds4K;
 	std::vector<int> prev5K = keybinds5K;
 	std::vector<int> prevController4K = controller4K;
@@ -123,6 +127,7 @@ public:
 	int prevControllerOverdriveAxisDirection = controllerOverdriveAxisDirection;
 	int prevControllerType = controllerType;
 	int prevControllerPause = controllerPause;
+	int prevControllerPauseAxisDirection = controllerPauseAxisDirection;
 	std::vector<float> defaultTrackSpeedOptions = { 0.5f,0.75f,1.0f,1.25f,1.5f,1.75f,2.0f };
 	std::vector<float> trackSpeedOptions = defaultTrackSpeedOptions;
     std::vector<std::filesystem::path> defaultSongPaths{ directory  / "Songs" };
@@ -137,8 +142,6 @@ public:
 	bool defaultMirrorMode = false;
 	bool mirrorMode = defaultMirrorMode;
 	bool prevMirrorMode = mirrorMode;
-	bool changing4k = false;
-	bool changingAlt = false;
     bool missHighwayDefault = false;
     bool prevMissHighwayColor = missHighwayDefault;
     bool fullscreenDefault = true;
@@ -201,6 +204,7 @@ public:
 		settings["controllerbinds"].AddMember("overdrive", rapidjson::Value().SetInt(defaultControllerOverdrive), allocator);
 		settings["controllerbinds"].AddMember("overdrive_direction", rapidjson::Value().SetInt(defaultControllerOverdriveAxisDirection), allocator);
 		settings["controllerbinds"].AddMember("pause", rapidjson::Value().SetInt(defaultControllerPause), allocator);
+		settings["controllerbinds"].AddMember("pause_direction", rapidjson::Value().SetInt(defaultControllerPauseAxisDirection), allocator);
 		settings.AddMember("avOffset", rapidjson::Value(avOffsetMS), allocator);
 		settings.AddMember("inputOffset", rapidjson::Value(inputOffsetMS), allocator);
         settings.AddMember("fullscreen", rapidjson::Value(fullscreenDefault), allocator);
@@ -240,6 +244,7 @@ public:
 		bool controllerOverdriveError = false;
 		bool controllerOverdriveDirectionError = false;
 		bool controllerPauseError = false;
+		bool controllerPauseDirectionError = false;
         bool songDirectoryError = false;
 		bool avError = false;
 		bool inputError = false;
@@ -454,6 +459,13 @@ public:
 					else {
 						controllerPauseError = true;
 					}
+					if (settings["controllerbinds"].HasMember("pause_direction") && settings["controllerbinds"]["pause_direction"].IsInt()) {
+						controllerPauseAxisDirection = settings["controllerbinds"]["pause_direction"].GetInt();
+						prevControllerPauseAxisDirection = controllerPauseAxisDirection;
+					}
+					else {
+						controllerPauseDirectionError = true;
+					}
 				}
 				else {
 					controllerError = true;
@@ -499,22 +511,26 @@ public:
 				}
                 if (settings.HasMember("length") && settings["length"].IsFloat()){
                     highwayLengthMult = settings["length"].GetFloat();
+					prevHighwayLengthMult = highwayLengthMult;
                 } else {
                     highwayLengthError = true;
                 }
                 if (settings.HasMember("missHighwayColor") && settings["missHighwayColor"].IsBool()) {
                     player.MissHighwayColor = settings["missHighwayColor"].GetBool();
+					prevMissHighwayColor = player.MissHighwayColor;
                 } else {
                     MissHighwayError = true;
                 } 
 				if (settings.HasMember("mirror") && settings["mirror"].IsBool()) {
 					mirrorMode = settings["mirror"].GetBool();
+					prevMirrorMode = mirrorMode;
 				}
 				else {
 					mirrorError = true;
 				}
                 if (settings.HasMember("fullscreen") && settings["fullscreen"].IsBool()) {
                     fullscreen = settings["fullscreen"].GetBool();
+					fullscreenPrev = fullscreen;
                 } else {
                     fullscreenError = true;
                 }
@@ -531,7 +547,6 @@ public:
 		else {
 			writeDefaultSettings(settingsFile);
 		}
-
 
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		if (keybindsError) {
@@ -628,6 +643,7 @@ public:
 			settings["controllerbinds"].AddMember("overdrive", rapidjson::Value(defaultControllerOverdrive), allocator);
 			settings["controllerbinds"].AddMember("overdrive_direction", rapidjson::Value(defaultControllerOverdriveAxisDirection), allocator);
 			settings["controllerbinds"].AddMember("pause", rapidjson::Value(defaultControllerPause), allocator);
+			settings["controllerbinds"].AddMember("pause_direction", rapidjson::Value(defaultControllerPauseAxisDirection), allocator);
 		}
 		if (controllerTypeError) {
 			if (settings["controllerbinds"].HasMember("type"))
@@ -645,7 +661,6 @@ public:
 		if (controller5KError) {
 			if (settings["controllerbinds"].HasMember("5k"))
 				settings["controllerbinds"].EraseMember("5k");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array5K(rapidjson::kArrayType);
 			for (int& key : defaultController5K)
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -654,19 +669,21 @@ public:
 		if (controllerOverdriveError) {
 			if (settings["controllerbinds"].HasMember("overdrive"))
 				settings["controllerbinds"].EraseMember("overdrive");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			settings["controllerbinds"].AddMember("overdrive", rapidjson::Value(defaultControllerOverdrive), allocator);
 		}
 		if (controllerPauseError) {
 			if (settings["controllerbinds"].HasMember("pause"))
 				settings["controllerbinds"].EraseMember("pause");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			settings["controllerbinds"].AddMember("pause", rapidjson::Value(defaultControllerPause), allocator);
+		}
+		if (controllerPauseDirectionError) {
+			if (settings["controllerbinds"].HasMember("pause_direction"))
+				settings["controllerbinds"].EraseMember("pause_direction");
+			settings["controllerbinds"].AddMember("pause_direction", rapidjson::Value(defaultControllerPauseAxisDirection), allocator);
 		}
 		if (controller4KDirectionError) {
 			if (settings["controllerbinds"].HasMember("4k_direction"))
 				settings["controllerbinds"].EraseMember("4k_direction");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array4K(rapidjson::kArrayType);
 			for (int& key : defaultController4KAxisDirection)
 				array4K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -675,7 +692,6 @@ public:
 		if (controller5KDirectionError) {
 			if (settings["controllerbinds"].HasMember("5k_direction"))
 				settings["controllerbinds"].EraseMember("5k_direction");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value array5K(rapidjson::kArrayType);
 			for (int& key : defaultController5KAxisDirection)
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
@@ -689,26 +705,22 @@ public:
 		if (avError) {
 			if (settings.HasMember("avOffset"))
 				settings.EraseMember("avOffset");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			settings.AddMember("avOffset", rapidjson::Value(0), allocator);
 		}
 		if (inputError) {
 			if (settings.HasMember("inputOffset"))
 				settings.EraseMember("inputOffset");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			settings.AddMember("inputOffset", rapidjson::Value(0), allocator);
 		}
 		if (trackSpeedError) {
 			if(settings.HasMember("trackSpeed"))
 				settings.EraseMember("trackSpeed");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			settings.AddMember("trackSpeed", rapidjson::Value(4), allocator);
 		}
 		if (trackSpeedOptionsError) {
 			trackSpeedOptions = defaultTrackSpeedOptions;
 			if (settings.HasMember("trackSpeedOptions"))
 				settings.EraseMember("trackSpeedOptions");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value arrayTrackSpeedOptions(rapidjson::kArrayType);
 			for (float& speed : defaultTrackSpeedOptions)
 				arrayTrackSpeedOptions.PushBack(rapidjson::Value().SetFloat(speed), allocator);
@@ -717,7 +729,6 @@ public:
         if (songDirectoryError) {
             if (settings.HasMember("songDirectories"))
                 settings.EraseMember("songDirectories");
-            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
             rapidjson::Value arraySongDir(rapidjson::kArrayType);
 			for (auto& songPath : defaultSongPaths) {
 				songPaths.push_back(songPath);
@@ -727,7 +738,6 @@ public:
         if (MissHighwayError) {
             if (settings.HasMember("missHighwayColor"))
                 settings.EraseMember("missHighwayColor");
-            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
             rapidjson::Value missHighwayColor;
             missHighwayColor.SetBool(false);
             settings.AddMember("missHighwayColor", missHighwayColor, allocator);
@@ -735,13 +745,11 @@ public:
         if (highwayLengthError) {
             if (settings.HasMember("length"))
                 settings.EraseMember("length");
-            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
             settings.AddMember("length", highwayLengthMult, allocator);
         }
 		if (mirrorError) {
 			if (settings.HasMember("mirror"))
 				settings.EraseMember("mirror");
-			rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 			rapidjson::Value mirrorValue;
 			mirrorValue .SetBool(defaultMirrorMode);
 			settings.AddMember("mirror", mirrorValue, allocator);
@@ -749,12 +757,11 @@ public:
         if (fullscreenError) {
             if (settings.HasMember("fullscreen"))
                 settings.EraseMember("fullscreen");
-            rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
             rapidjson::Value fullscreenVal;
             fullscreenVal.SetBool(fullscreenDefault);
             settings.AddMember("fullscreen", fullscreenVal, allocator);
         }
-		if (fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if (fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
