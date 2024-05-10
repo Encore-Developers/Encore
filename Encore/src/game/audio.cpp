@@ -35,14 +35,20 @@ void AudioManager::unloadStreams() {
 	}
 	AudioManager::loadedStreams.clear();
 }
-void AudioManager::pauseStreams(unsigned int handle) {
-    BASS_ChannelPause(handle);
+void AudioManager::pauseStreams() {
+	for (auto& stream : AudioManager::loadedStreams) {
+		BASS_ChannelPause(stream.first);
+	}
 }
-void AudioManager::playStreams(unsigned int handle) {
-    BASS_ChannelPlay(handle, false);
+void AudioManager::playStreams() {
+	for (auto& stream : AudioManager::loadedStreams) {
+		BASS_ChannelPlay(stream.first,false);
+	}
 }
-void AudioManager::restartStreams(unsigned int handle) {
-    BASS_ChannelPlay(handle, true);
+void AudioManager::restartStreams() {
+	for (auto& stream : AudioManager::loadedStreams) {
+		BASS_ChannelPlay(stream.first, true);
+	}
 }
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
 	return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle,BASS_POS_BYTE));
