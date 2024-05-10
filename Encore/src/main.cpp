@@ -1286,8 +1286,7 @@ int main(int argc, char* argv[])
                                 diffSelected = true;
                                 isPlaying = true;
                                 startedPlayingSong = GetTime();
-                                glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-                                glfwSetGamepadStateCallback(gamepadStateCallback);
+                                
                             }
                             DrawTextRubik(diffList[a].c_str(), u.LeftSide + 150 - (MeasureTextRubik(diffList[a].c_str(), 30) / 2), BottomOvershell - 45 - (60 * (float)a), 30, WHITE);
                         }
@@ -1338,6 +1337,8 @@ int main(int argc, char* argv[])
                     if (GuiButton({ u.LeftSide, BottomOvershell, 300, u.hinpct(0.05f)}, "Ready Up!")) {
                         ReadyUpMenu = false;
                         menu.SwitchScreen(GAMEPLAY);
+                        glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+                        glfwSetGamepadStateCallback(gamepadStateCallback);
                     }
                         
                         if (GuiButton({ 0,0,60,60 }, "<")) {
