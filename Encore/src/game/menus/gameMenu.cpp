@@ -18,52 +18,41 @@
 const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
 
-
+Units u;
 
 void Menu::DrawTopOvershell(float TopOvershell) {
-    Units u;
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomOvershell() {
-    Units u;
     float BottomOvershell = GetScreenHeight() - u.hpct(0.15f);
     DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
 void Menu::DrawBottomBottomOvershell() {
-    Units u;
     float BottomBottomOvershell = GetScreenHeight() - u.hpct(0.1f);
     DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
 }
 
+// todo: replace player with band stats
 void Menu::renderStars(Player player, float xPos, float yPos, Assets assets) {
-    Units u;
     int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
     float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
 
     for (int i = 0; i < 5; i++) {
-        bool firstStar = (i == 0);
         DrawTextureEx(assets.emptyStar, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
-        float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], yPos, yPos + 50);
-        BeginScissorMode((xPos+(i*50)-125), yMaskPos, 50, 50);
-        DrawTextureEx(player.goldStars? assets.goldStar : assets.star, {(xPos+(i*50)-125),yPos},0,0.175f,WHITE);
-        EndScissorMode();
+    }
+    for (int i; i <= starsval; i++) {
+        DrawTextureEx(player.goldStars?assets.goldStar:assets.star, { (xPos + (i * 50) - 125),yPos }, 0, 0.175f, WHITE);
     }
 };
 
+// todo: text box rendering for splashes, cleanup of buttons
 void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
-    Units u;
     Settings settings;
-    float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
-    float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
-    float LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.20f);
-    float LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
-
-
 
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
@@ -83,14 +72,12 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
         stringChosen = true;
     }
 
-    Vector2 StringBox = {RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x,  u.hpct(0.2f)/2 - 16};
+    Vector2 StringBox = {u.RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x - u.winpct(0.01f),  u.hpct(0.2f)/2 - 16};
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 1, WHITE);
-    DrawTextureEx(assets.encoreWhiteLogo, {LeftSide,
-                                               (u.hpct(0.2f)/2 - assets.encoreWhiteLogo.height / 4)}, 0,
-                      0.5, WHITE);
+    DrawTextureEx(assets.encoreWhiteLogo, { u.LeftSide + u.winpct(0.01f), u.hpct(0.19f)-(assets.encoreWhiteLogo.height*0.5f)}, 0, 0.5, WHITE);
 
 
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
@@ -111,27 +98,26 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) + 60, 200, 60}, "Quit")) {
             exit(0);
         }
-        if (GuiButton({(float) GetScreenWidth() - 60, (float) GetScreenHeight() - 60, 60, 60}, "")) {
+        if (GuiButton({(float) GetScreenWidth() - 60, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
             OpenURL("https://github.com/Encore-Developers/Encore-Raylib");
         }
 
 
-        if (GuiButton({(float) GetScreenWidth() - 120, (float) GetScreenHeight() - 60, 60, 60}, "")) {
+        if (GuiButton({(float) GetScreenWidth() - 120, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
             OpenURL("https://discord.gg/GhkgVUAC9v");
         }
-    if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - 60, 60, 60}, "")) {
+    if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
         stringChosen = false;
     }
-        if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - 120, 180, 60}, "Rescan Songs")) {
+        if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - u.hpct(0.15f) - 120, 180, 60}, "Rescan Songs")) {
             songsLoaded = false;
         }
-        DrawTextureEx(assets.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54}, 0, 0.2, WHITE);
-        DrawTextureEx(assets.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48}, 0, 0.075,
+        DrawTextureEx(assets.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54 - u.hpct(0.15f) }, 0, 0.2, WHITE);
+        DrawTextureEx(assets.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
                       WHITE);
 }
 
 void Menu::showResults(const Player& player, Assets assets) {
-    Units u;
     float RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.20f);
     float RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
 
