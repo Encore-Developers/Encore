@@ -10,6 +10,9 @@ class Player {
 public:
     int instrument = 0;
     int diff = 0;
+    int persistentInst = 0;
+    int persistentDiff = 0;
+    bool firstReadyUp = true;
 
     Song songToBeJudged;
 
