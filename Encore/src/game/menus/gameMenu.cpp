@@ -22,20 +22,108 @@ Units u;
 
 void Menu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
-    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),GetColor(0x181827FF));
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),ColorBrightness(GetColor(0x181827FF),-0.25f));
 }
 
 void Menu::DrawBottomOvershell() {
     float BottomOvershell = GetScreenHeight() - u.hpct(0.15f);
     DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
+    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
 }
 
 void Menu::DrawBottomBottomOvershell() {
     float BottomBottomOvershell = GetScreenHeight() - u.hpct(0.1f);
     DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),GetColor(0x181827FF));
+    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
 }
+
+// should be reduced to just PlayerSongStats (instead of Player) eventually
+void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
+
+    float cardPos = u.LeftSide + (u.winpct(0.26f) * (float)player.playerNum);
+
+
+    DrawRectangle(cardPos-6, u.hpct(0.2f), u.winpct(0.22f)+12, u.hpct(0.85f), WHITE);
+    DrawRectangle(cardPos, u.hpct(0.2f), u.winpct(0.22f), u.hpct(0.85f), GetColor(0x181827FF));
+
+    DrawRectangleGradientV(cardPos,u.hpct(0.2f), u.winpct(0.22f), u.hinpct(0.2f), ColorBrightness(player.accentColor, -0.5f), GetColor(0x181827FF));
+
+    bool rendAsFC = (player.notesHit == song.parts[player.instrument]->charts[player.diff].notes.size()) && player.FC;
+
+    if (player.quit) {
+        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF), ColorBrightness(RED, -0.5f));
+    }
+    if (rendAsFC) {
+        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
+                               ColorContrast(ColorBrightness(GOLD, -0.5f), -0.25f));
+    }
+    if (player.perfectHit==song.parts[player.instrument]->charts[player.diff].notes.size() && rendAsFC) {
+        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
+                               ColorBrightness(WHITE, -0.5f));
+    }
+
+    DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.2f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.2f),WHITE);
+    DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.4f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.4f),WHITE);
+
+    float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), u.hinpct(0.07f), 1).x /2);
+    float Percent = ((float)player.notesHit/song.parts[player.instrument]->charts[player.diff].notes.size()) * 100;
+
+    DrawTextEx(
+            assets.redHatDisplayItalic,
+            scoreCommaFormatter(player.score).c_str(),
+            {
+                    scorePos,
+                    (float)GetScreenHeight()/2},
+            u.hinpct(0.065f),
+            0,
+            GetColor(0x00adffFF));
+
+    renderStars(player,  (cardPos + u.winpct(0.11f)), (float)GetScreenHeight()/2 - u.hinpct(0.06f), assets, u.hinpct(0.055f),false);
+
+
+    if (rendAsFC) {
+        DrawTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {(cardPos + u.winpct(0.113f)) - (MeasureTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f", Percent), u.hinpct(0.1f),0).x/1.5f),u.hpct(0.243f)},u.hinpct(0.1f),0,
+                   ColorBrightness(GOLD,-0.5));
+        float flawlessFontSize = 0.03f;
+        DrawTextEx(
+                assets.rubikBoldItalic32,
+                "Flawless!",
+                {
+                        (cardPos + u.winpct(0.113f))-(MeasureTextEx(assets.rubikBoldItalic32, "Flawless!", u.hinpct(flawlessFontSize), 0.0f).x/2),
+                        u.hpct(0.35f)},
+                u.hinpct(flawlessFontSize),
+                0.0f,
+                WHITE);
+    } if (player.quit) {
+        float flawlessFontSize = 0.05f;
+        DrawTextEx(
+                assets.rubikBoldItalic32,
+                "Quit",
+                {
+                        (cardPos + u.winpct(0.11f))-(MeasureTextEx(assets.rubikBoldItalic32, "Quit", u.hinpct(flawlessFontSize), 0.0f).x/2),
+                        u.hpct(0.335f)},
+                u.hinpct(flawlessFontSize),
+                0.0f,
+                RED);
+    }
+    DrawTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {(cardPos + u.winpct(0.11f)) - (MeasureTextEx(assets.redHatDisplayItalicLarge, rendAsFC ? TextFormat("%3.0f", Percent) : TextFormat("%3.0f%%", Percent), u.hinpct(0.1f),0).x/(rendAsFC ? 1.5f : 2.0f)),u.hpct(0.24f)},u.hinpct(0.1f),0, rendAsFC ? YELLOW : WHITE);
+
+    float statsHeight = u.hpct(0.2f) + u.hinpct(0.415f);
+    float statsLeft = cardPos + u.winpct(0.01f);
+    float statsRight = cardPos + u.winpct(0.21f);
+
+    DrawTextEx(assets.rubik, "Perfects:", {statsLeft, statsHeight}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, "Goods:", {statsLeft, statsHeight+u.hinpct(0.035f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, "Missed:", {statsLeft, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, "Strikes:", {statsLeft, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, "Max Streak:", {statsLeft, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
+
+    DrawTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i", player.notesHit-player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.notesHit-player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.035f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i", player.notesMissed), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.notesMissed), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i", player.maxCombo), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.maxCombo), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
+};
 
 // todo: replace player with band stats
 void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, float scale, bool left) {
@@ -77,7 +165,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
-    DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 1, WHITE);
+    DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 0, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, { u.LeftSide + u.winpct(0.01f), u.hpct(0.19f)-(assets.encoreWhiteLogo.height*0.5f)}, 0, 0.5, WHITE);
 
 
@@ -118,79 +206,33 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
                       WHITE);
 }
 
-void Menu::showResults(const Player& player, Assets assets) {
+void Menu::showResults(Player &player, Assets assets) {
+
 
     Song songToBeJudged = player.songToBeJudged;
+    DrawTexturePro(songToBeJudged.albumArtBlur, Rectangle{0, 0, (float) songToBeJudged.albumArt.width,
+                                                          (float) songToBeJudged.albumArt.width},
+                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
+                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
+                   WHITE);
 
 
-    // resultsRenderer.IndivPlayerResultsBox(LeftSide, RightSide, player, assets, );
+    for (int i = 0; i < 4; i++) {
+        renderPlayerResults(player, songToBeJudged, assets);
+    }
 
-    DrawRectangle(u.LeftSide-6, u.hpct(0.2f), u.winpct(0.22f)+12, u.hpct(0.85f), WHITE);
-    DrawRectangle(u.LeftSide, u.hpct(0.2f), u.winpct(0.22f), u.hpct(0.85f), GetColor(0x181827FF));
-    /* renderStars(player, 0,0);
-
-    //assets.DrawTextRHDI("Results", 70,7, WHITE);
-    assets.DrawTextRubik(songToBeJudged.artist.c_str(), middle - (assets.MeasureTextRubik(songToBeJudged.artist.c_str(), 24) / 2), 48, 24, WHITE);
-    // if (player.FC) {
-    //    assets.DrawTextRubik("Flawless!", middle- (assets.MeasureTextRubik("Flawless!", 24) / 2), 7, 24, GOLD);
-    // }
-     */
-    float scorePos = u.wpct(0.11f) - (MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), u.hinpct(0.08f), 1).x /2);
-    DrawTextEx(
-            assets.redHatDisplayItalic,
-            scoreCommaFormatter(player.score).c_str(),
-            {
-                scorePos,
-                (float)GetScreenHeight()/2},
-            u.hinpct(0.08f),
-            1,
-            GetColor(0x00adffFF));
-    renderStars(player,  u.LeftSide + u.winpct(0.11f), (float)GetScreenHeight()/2 - u.hinpct(0.06f), assets, u.hinpct(0.055f),false);
-    // assets.DrawTextRHDI(scoreCommaFormatter(player.score).c_str(), middle - assets.MeasureTextRHDI(scoreCommaFormatter(player.score).c_str())/2, 120, Color{107, 161, 222,255});
-    /*
-    assets.DrawTextRubik(TextFormat("Perfect Notes : %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Perfect Notes: %01i/%02i", player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 192, 24, WHITE);
-    assets.DrawTextRubik(TextFormat("Good Notes : %01i/%02i", player.notesHit - player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (middle - assets.MeasureTextRubik(TextFormat("Good Notes: %01i/%02i", player.notesHit - player.perfectHit, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 224, 24, WHITE);
-    assets.DrawTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), (GetScreenWidth() / 2 - assets.MeasureTextRubik(TextFormat("Missed Notes: %01i/%02i", player.notesMissed, songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()), 24) / 2), 256, 24, WHITE);
-    assets.DrawTextRubik(TextFormat("Strikes: %01i", player.playerOverhits), (middle - assets.MeasureTextRubik(TextFormat("Strikes: %01i", player.playerOverhits), 24) / 2), 288, 24, WHITE);
-    assets.DrawTextRubik(TextFormat("Longest Streak: %01i", player.maxCombo), (middle - assets.MeasureTextRubik(TextFormat("Longest Streak: %01i", player.maxCombo), 24) / 2), 320, 24, WHITE);
-    renderStars(player, middle, (float)GetScreenHeight()/2 - 50, assets);
-
-
-    //DrawRectangle(Player2-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
-    //DrawRectangle(Player2, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
-
-    //DrawRectangle(Player3-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
-    //DrawRectangle(Player3, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
-
-    //DrawRectangle(Player4-4, 0, PlayerWidth+8, (float)GetScreenHeight(), WHITE);
-    //DrawRectangle(Player4, 0, PlayerWidth, (float)GetScreenHeight(), GetColor(0x181827FF));
-    // DrawLine(LeftSide, 0, LeftSide, (float)GetScreenHeight(), WHITE);
-
-    float TopOvershellHeight = (float)GetScreenHeight() * 0.2f;
-
-    float SongNameFontSizePre = (TopOvershellHeight / 2) - ((float)GetScreenHeight() * 0.01f);
-    float SongNameFontSize = (MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), SongNameFontSizePre, 1).x >= GetScreenWidth()*0.75f ? TopOvershellHeight / 2 - ((float)GetScreenWidth() * 0.25f) : TopOvershellHeight / 2 - ((float)GetScreenHeight() * 0.01f));
-    float SongNameHeightPos = ((float)GetScreenHeight() * 0.007f);
-    float ScoreFontSize = (TopOvershellHeight / 2) - ((float)GetScreenHeight() * 0.009f);
-    float ScoreHeightPos = (TopOvershellHeight / 2 + (float)GetScreenHeight() * 0.01f);
-    */
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
 
-    float Percent = ((float)player.notesHit/songToBeJudged.parts[player.instrument]->charts[player.diff].notes.size()) * 100;
-    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), u.hinpct(0.1f), 1).x/2;
-    float bigScorePos = (float)GetScreenWidth()/2 - 15 - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), u.hinpct(0.095f), 1).x;
-    float bigStarPos = (float)GetScreenWidth()/2;
 
-    if (player.FC) {
-        DrawTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {u.wpct(0.12f) - MeasureTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f", Percent), u.hinpct(0.1f),0).x/2,u.hpct(0.285f)},u.hinpct(0.1f),1,
-                   ColorBrightness(GOLD,0.25));
-    }
-    DrawTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {u.wpct(0.11f) - MeasureTextEx(assets.redHatDisplayItalicLarge, TextFormat("%3.0f", Percent), u.hinpct(0.1f),0).x/2,u.hpct(0.275f)},u.hinpct(0.1f),1,player.FC ? GOLD : WHITE);
+    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), u.hinpct(0.09f), 0).x/2;
+    float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), u.hinpct(0.08f), 0).x;
+    float bigStarPos = (float)GetScreenWidth()/2 + u.winpct(0.005f);
 
-    DrawTextEx(assets.redHatDisplayBlack, player.songToBeJudged.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.1f),1,WHITE);
-    DrawTextEx(assets.redHatDisplayItalicLarge, scoreCommaFormatter(player.score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),1, GetColor(0x00adffFF));
+
+    DrawTextEx(assets.redHatDisplayBlack, player.songToBeJudged.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.09f),0,WHITE);
+    DrawTextEx(assets.redHatDisplayItalicLarge, scoreCommaFormatter(player.score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),0, GetColor(0x00adffFF));
     renderStars(player, bigStarPos, u.hpct(0.1125f), assets, u.hinpct(0.055f),true);
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
 }

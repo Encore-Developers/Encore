@@ -93,20 +93,18 @@ void Assets::MaterialMapper() {
     encoreWhiteLogo = Assets::LoadTextureFilter((directory / "Assets/encore-white.png"));
     songBackground = Assets::LoadTextureFilter((directory / "Assets/background.png"));
 
-    redHatDisplayItalic = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 256);
-    redHatDisplayItalicLarge = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf").string().c_str(), 256);
+    redHatDisplayItalic = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256);
+    redHatDisplayItalicLarge = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256);
+    redHatDisplayBlack = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-Black.ttf"), 256);
 
-    redHatDisplayBlack = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-Black.ttf").string().c_str(), 256);
+    rubik = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf"), 256);
+    rubik32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf"), 256);
+    rubikBoldItalic32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 256);
+    rubikBold32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Bold.ttf"), 256);
+    rubikItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Italic.ttf"), 256);
 
-    rubik = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 256);
+    josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256);
 
-    rubik32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf").string().c_str(), 256);
-
-    rubikBoldItalic32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-BoldItalic.ttf").string().c_str(), 256);
-
-    josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf").string().c_str(), 256);
-
-    rubikBold32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Bold.ttf").string().c_str(), 256);
 
 
     //clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());

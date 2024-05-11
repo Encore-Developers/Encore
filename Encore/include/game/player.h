@@ -49,6 +49,7 @@ public:
 
     bool extraGameplayStats = false;
 
+    int playerNum = 0;
     int notes = 0;
     int combo = 0;
     int maxCombo = 0;
