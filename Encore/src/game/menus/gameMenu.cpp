@@ -19,6 +19,8 @@ const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
 
 Units u;
+std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
+std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 
 void Menu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
@@ -117,6 +119,10 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawTextEx(assets.rubik, "Missed:", {statsLeft, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
     DrawTextEx(assets.rubik, "Strikes:", {statsLeft, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
     DrawTextEx(assets.rubik, "Max Streak:", {statsLeft, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
+
+    DrawTextEx(assets.rubikBold32, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), {cardPos + u.winpct(0.11f) -
+                                                                                                                                          (MeasureTextEx(assets.rubikBold32, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), u.hinpct(0.04f),0).x/2), statsHeight+u.hinpct(0.175f)}, u.hinpct(0.04f),0,WHITE);
+
 
     DrawTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight}, u.hinpct(0.03f),0,WHITE);
     DrawTextEx(assets.rubik, TextFormat("%01i", player.notesHit-player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.notesHit-player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.035f)}, u.hinpct(0.03f),0,WHITE);
