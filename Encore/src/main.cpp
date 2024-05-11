@@ -1152,7 +1152,7 @@ int main(int argc, char* argv[])
                 }
                 DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
                 float songEntryHeight = u.hinpct(0.06f);
-                for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 2; i++) {
+                for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
                     if (songList.songs.size() == i)
                         break;
                     Font songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic32 : assets.rubikBold32;
@@ -1522,45 +1522,6 @@ int main(int argc, char* argv[])
                     assets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                 }
 
-
-
-                /*if (GuiButton({0,0,60,60}, "<")) {
-                    for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
-                        note.accounted = false;
-                        note.hit = false;
-                        note.miss = false;
-                        note.held = false;
-                        note.heldTime = 0;
-                        note.hitTime = 0;
-                        note.perfect = false;
-                        note.countedForODPhrase = false;
-                    }
-                    glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-                    glfwSetGamepadStateCallback(origGamepadCallback);
-                    // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-                    // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-                    for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
-                        phrase.missed = false;
-                        phrase.notesHit = 0;
-                        phrase.added = false;
-                    }
-                    menu.SwitchScreen(RESULTS);
-                    player.overdrive = false;
-                    player.overdriveFill = 0.0f;
-                    player.overdriveActiveFill = 0.0f;
-                    player.overdriveActiveTime = 0.0;
-                    curODPhrase = 0;
-                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
-                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
-                    assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-                    assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-                    assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
-                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
-                    assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
-                    isPlaying = false;
-                    midiLoaded = false;
-                    player.quit = true;
-                }*/
                 if (!streamsLoaded && !player.quit) {
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
                     streamsLoaded = true;
@@ -1581,8 +1542,8 @@ int main(int argc, char* argv[])
                     float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
-                    float songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first)) {
+                    double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
+                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first)+0.5) {
                         for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                             note.accounted = false;
                             note.hit = false;
@@ -1656,8 +1617,8 @@ int main(int argc, char* argv[])
                 }
 
                 if (musicTime < 7.5) {
-                    DrawTextEx(assets.rubikBoldItalic32, songList.songs[curPlayingSong].title.c_str(), {u.LeftSide + 5, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
-                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {u.LeftSide + 25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
+                    DrawTextEx(assets.rubikBoldItalic32, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
+                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
                     //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
 
@@ -1727,7 +1688,7 @@ int main(int argc, char* argv[])
                 }
                 if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
                     for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
-                        if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
+                        if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start-1 && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
                             double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
                             if (relTime > 1.5) break;
                             float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.01f;
@@ -1760,6 +1721,7 @@ int main(int argc, char* argv[])
 
 
                 // DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
+                double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
                 Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
                 if (!curChart.odPhrases.empty()) {
 
@@ -1768,170 +1730,206 @@ int main(int argc, char* argv[])
 
                     // horrifying.
 
-                    DrawCylinderEx(Vector3{ player.diff == 3 ? 2.7f : 2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? 2.7f : 2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player.overdriveColor);
-                    DrawCylinderEx(Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.075, 0.075, 10, player.overdriveColor);
+                    DrawCylinderEx(Vector3{ player.diff == 3 ? 2.7f : 2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? 2.7f : 2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.07, 0.07, 10, RAYWHITE);
+                    DrawCylinderEx(Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.07, 0.07, 10, RAYWHITE);
 
                 }
-                for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
-                    for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
-                        Note& curNote = curChart.notes[curChart.notes_perlane[lane][i]];
-                        if (!curChart.odPhrases.empty()) {
+                    for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
+                        for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 
-                            if (curNote.time >= curChart.odPhrases[curODPhrase].start && curNote.time <= curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) {
-                                if(curNote.hit) {
-                                    if (curNote.hit && !curNote.countedForODPhrase) {
-                                        curChart.odPhrases[curODPhrase].notesHit++;
-                                        curNote.countedForODPhrase = true;
+                            Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
+                            if (!curChart.odPhrases.empty()) {
+
+                                if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
+                                    curNote.time <= curChart.odPhrases[curODPhrase].end &&
+                                    !curChart.odPhrases[curODPhrase].missed) {
+                                    if (curNote.hit) {
+                                        if (curNote.hit && !curNote.countedForODPhrase) {
+                                            curChart.odPhrases[curODPhrase].notesHit++;
+                                            curNote.countedForODPhrase = true;
+                                        }
                                     }
-                                }
-                                curNote.renderAsOD = true;
+                                    curNote.renderAsOD = true;
 
+                                }
+                                if (curChart.odPhrases[curODPhrase].missed) {
+                                    curNote.renderAsOD = false;
+                                }
+                                if (curChart.odPhrases[curODPhrase].notesHit ==
+                                    curChart.odPhrases[curODPhrase].noteCount &&
+                                    !curChart.odPhrases[curODPhrase].added && player.overdriveFill < 1.0f) {
+                                    player.overdriveFill += 0.25f;
+                                    if (player.overdriveFill > 1.0f) player.overdriveFill = 1.0f;
+                                    if (player.overdrive) {
+                                        player.overdriveActiveFill = player.overdriveFill;
+                                        player.overdriveActiveTime = musicTime;
+                                    }
+                                    curChart.odPhrases[curODPhrase].added = true;
+                                }
                             }
-                            if (curChart.odPhrases[curODPhrase].missed) {
-                                curNote.renderAsOD = false;
+                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
+                                curNote.miss = true;
+                                player.MissNote();
+                                if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
+                                    curNote.time >= curChart.odPhrases[curODPhrase].start &&
+                                    curNote.time < curChart.odPhrases[curODPhrase].end)
+                                    curChart.odPhrases[curODPhrase].missed = true;
+                                curNote.accounted = true;
                             }
-                            if (curChart.odPhrases[curODPhrase].notesHit == curChart.odPhrases[curODPhrase].noteCount && !curChart.odPhrases[curODPhrase].added && player.overdriveFill < 1.0f) {
-                                player.overdriveFill += 0.25f;
-                                if (player.overdriveFill > 1.0f) player.overdriveFill = 1.0f;
-                                if (player.overdrive) {
-                                    player.overdriveActiveFill = player.overdriveFill;
-                                    player.overdriveActiveTime = musicTime;
-                                }
-                                curChart.odPhrases[curODPhrase].added = true;
+
+
+                            double relTime = ((curNote.time - musicTime) + player.VideoOffset) *
+                                             settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                            double relEnd = (((curNote.time + curNote.len) - musicTime) + player.VideoOffset) *
+                                            settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                            float notePosX = diffDistance - (1.0f *
+                                                             (float) (settings.mirrorMode ? (player.diff == 3 ? 4 : 3) -
+                                                                                            curNote.lane
+                                                                                          : curNote.lane));
+                            if (relTime > 1.5) {
+                                break;
                             }
-                        }
-                        if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
-                            curNote.miss = true;
-                            player.MissNote();
-                            if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed && curNote.time>=curChart.odPhrases[curODPhrase].start && curNote.time<curChart.odPhrases[curODPhrase].end) curChart.odPhrases[curODPhrase].missed = true;
-                            curNote.accounted = true;
-                        }
-
-
-                        double relTime = ((curNote.time - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * ( 11.5f / highwayLength);
-                        double relEnd = (((curNote.time + curNote.len) - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * ( 11.5f / highwayLength);
-                        float notePosX = diffDistance - (1.0f * (float)(settings.mirrorMode ? (player.diff == 3 ? 4 : 3) - curNote.lane : curNote.lane));
-                        if (relTime > 1.5) {
-                            break;
-                        }
-                        if (relEnd > 1.5) relEnd = 1.5;
-                        if (curNote.lift && !curNote.hit) {
-                            // lifts						//  distance between notes
-                            //									(furthest left - lane distance)
-                            if (curNote.renderAsOD)					//  1.6f	0.8
-                                DrawModel(assets.liftModelOD, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-                                // energy phrase
-                            else
-                                DrawModel(assets.liftModel, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-                            // regular
-                        }
-                        else {
-                            // sustains
-                            if ((curNote.len) > 0) {
-                                if (curNote.hit && curNote.held) {
-                                    if (curNote.heldTime < (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
-                                        curNote.heldTime = 0.0 - relTime;
-                                        player.sustainScoreBuffer[curNote.lane] = (float)(curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) * player.multiplier(player.instrument);
-                                        if (relTime < 0.0) relTime = 0.0;
+                            if (relEnd > 1.5) relEnd = 1.5;
+                            if (curNote.lift && !curNote.hit) {
+                                // lifts						//  distance between notes
+                                //									(furthest left - lane distance)
+                                if (curNote.renderAsOD)                    //  1.6f	0.8
+                                    DrawModel(assets.liftModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                                       (highwayLength *
+                                                                                        (float) relTime)}, 1.1f, WHITE);
+                                    // energy phrase
+                                else
+                                    DrawModel(assets.liftModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                                     (highwayLength * (float) relTime)},
+                                              1.1f, WHITE);
+                                // regular
+                            } else {
+                                // sustains
+                                if ((curNote.len) > 0) {
+                                    if (curNote.hit && curNote.held) {
+                                        if (curNote.heldTime <
+                                            (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
+                                            curNote.heldTime = 0.0 - relTime;
+                                            player.sustainScoreBuffer[curNote.lane] =
+                                                    (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
+                                                    player.multiplier(player.instrument);
+                                            if (relTime < 0.0) relTime = 0.0;
+                                        }
+                                        if (relEnd <= 0.0) {
+                                            if (relTime < 0.0) relTime = relEnd;
+                                            player.score += player.sustainScoreBuffer[curNote.lane];
+                                            player.sustainScoreBuffer[curNote.lane] = 0;
+                                            curNote.held = false;
+                                        }
+                                    } else if (curNote.hit && !curNote.held) {
+                                        relTime = relTime + curNote.heldTime;
                                     }
-                                    if (relEnd <= 0.0) {
-                                        if (relTime < 0.0) relTime = relEnd;
-                                        player.score += player.sustainScoreBuffer[curNote.lane];
-                                        player.sustainScoreBuffer[curNote.lane] = 0;
-                                        curNote.held = false;
-                                    }
-                                }
-                                else if (curNote.hit && !curNote.held) {
-                                    relTime = relTime + curNote.heldTime;
-                                }
 
-                                /*Color SustainColor = Color{ 69,69,69,255 };
-                                if (curNote.held) {
-                                    if (od) {
-                                        Color SustainColor = Color{ 217, 183, 82 ,255 };
+                                    /*Color SustainColor = Color{ 69,69,69,255 };
+                                    if (curNote.held) {
+                                        if (od) {
+                                            Color SustainColor = Color{ 217, 183, 82 ,255 };
+                                        }
+                                        Color SustainColor = Color{ 172,82,217,255 };
+                                    }*/
+                                    float sustainLen =
+                                            (highwayLength * (float) relEnd) - (highwayLength * (float) relTime);
+                                    Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
+                                                                          MatrixTranslate(notePosX, 0.01f,
+                                                                                          player.smasherPos +
+                                                                                          (highwayLength *
+                                                                                           (float) relTime) +
+                                                                                          (sustainLen / 2.0f)));
+                                    BeginBlendMode(BLEND_ALPHA);
+                                    if (curNote.held && !curNote.renderAsOD) {
+                                        DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
+                                        DrawCube(Vector3{notePosX, 0, player.smasherPos}, 0.4f, 0.4f, 0.4f,
+                                                 player.accentColor);
+                                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
                                     }
-                                    Color SustainColor = Color{ 172,82,217,255 };
-                                }*/
-                                float sustainLen = (highwayLength * (float)relEnd) - (highwayLength * (float)relTime);
-                                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen), MatrixTranslate(notePosX, 0.01f, player.smasherPos+(highwayLength * (float)relTime) +(sustainLen / 2.0f)));
-                                BeginBlendMode(BLEND_ALPHA);
-                                if (curNote.held && !curNote.renderAsOD) {
-                                    DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
-                                    DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 0.4f, 0.4f, 0.4f, player.accentColor);
-                                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
-                                }
-                                if (curNote.renderAsOD && curNote.held) {
-                                    DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
-                                    DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 0.4f, 0.4f, 0.4f, WHITE);
-                                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
-                                }
-                                if (!curNote.held && curNote.hit || curNote.miss) {
+                                    if (curNote.renderAsOD && curNote.held) {
+                                        DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
+                                        DrawCube(Vector3{notePosX, 0, player.smasherPos}, 0.4f, 0.4f, 0.4f, WHITE);
+                                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
+                                    }
+                                    if (!curNote.held && curNote.hit || curNote.miss) {
 
-                                    DrawMesh(sustainPlane, assets.sustainMatMiss, sustainMatrix);
-                                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+                                        DrawMesh(sustainPlane, assets.sustainMatMiss, sustainMatrix);
+                                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+                                    }
+                                    if (!curNote.hit && !curNote.accounted && !curNote.miss) {
+                                        if (curNote.renderAsOD) {
+                                            DrawMesh(sustainPlane, assets.sustainMatOD, sustainMatrix);
+                                            //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
+                                        } else {
+                                            DrawMesh(sustainPlane, assets.sustainMat, sustainMatrix);
+                                            /*DrawCylinderEx(Vector3{notePosX, 0.05f,
+                                                                    player.smasherPos + (highwayLength * (float)relTime) },
+                                                           Vector3{ notePosX, 0.05f,
+                                                                    player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
+                                                           player.accentColor);*/
+                                        }
+                                    }
+                                    EndBlendMode();
+
+                                    // DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
                                 }
-                                if (!curNote.hit && !curNote.accounted && !curNote.miss) {
+                                // regular notes
+                                if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
+                                    ((curNote.len) == 0 && !curNote.hit)) {
                                     if (curNote.renderAsOD) {
-                                        DrawMesh(sustainPlane, assets.sustainMatOD, sustainMatrix);
-                                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
-                                    }
-                                    else {
-                                        DrawMesh(sustainPlane, assets.sustainMat, sustainMatrix); 
-                                        /*DrawCylinderEx(Vector3{notePosX, 0.05f,
-                                                                player.smasherPos + (highwayLength * (float)relTime) },
-                                                       Vector3{ notePosX, 0.05f,
-                                                                player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-                                                       player.accentColor);*/
-                                    }
-                                }
-                                EndBlendMode();
+                                        if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+                                            DrawModel(assets.noteModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                                               (highwayLength *
+                                                                                                (float) relTime)}, 1.1f,
+                                                      WHITE);
+                                        }
 
-                                // DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
-                            }
-                            // regular notes
-                            if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) || ((curNote.len) == 0 && !curNote.hit)) {
-                                if (curNote.renderAsOD) {
-                                    if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-                                        DrawModel(assets.noteModelOD, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
+                                    } else {
+                                        if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+                                            DrawModel(assets.noteModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                                             (highwayLength *
+                                                                                              (float) relTime)}, 1.1f,
+                                                      WHITE);
+                                        }
+
                                     }
 
                                 }
-                                else {
-                                    if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-                                        DrawModel(assets.noteModel, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.1f, WHITE);
-                                    }
-
-                                }
-
-                            }
-                            assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
-                        }
-                        if (curNote.miss) {
-                            DrawModel(curNote.lift ? assets.liftModel : assets.noteModel, Vector3{ notePosX,0,player.smasherPos + (highwayLength * (float)relTime) }, 1.0f, RED);
-                            if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) < curNote.time + 0.4 && player.MissHighwayColor) {
-                                assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-                            }
-                            else {
                                 assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                             }
-                        }
-                        if (curNote.hit && audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) < curNote.hitTime + 0.15f) {
-                            DrawCube(Vector3{ notePosX, 0, player.smasherPos }, 1.0f, 0.5f, 0.5f, curNote.perfect ? Color{ 255,215,0,64 } : Color{ 255,255,255,64 });
-                            if (curNote.perfect) {
-                                DrawCube(Vector3{ player.diff == 3 ? 3.3f : 2.8f, 0, player.smasherPos }, 1.0f, 0.01f, 0.5f, ORANGE);
-
+                            if (curNote.miss) {
+                                DrawModel(curNote.lift ? assets.liftModel : assets.noteModel,
+                                          Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
+                                          1.0f, RED);
+                                if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) <
+                                    curNote.time + 0.4 && player.MissHighwayColor) {
+                                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+                                } else {
+                                    assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                                }
                             }
+                            if (curNote.hit && audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) <
+                                               curNote.hitTime + 0.15f) {
+                                DrawCube(Vector3{notePosX, 0, player.smasherPos}, 1.0f, 0.5f, 0.5f,
+                                         curNote.perfect ? Color{255, 215, 0, 64} : Color{255, 255, 255, 64});
+                                if (curNote.perfect) {
+                                    DrawCube(Vector3{player.diff == 3 ? 3.3f : 2.8f, 0, player.smasherPos}, 1.0f, 0.01f,
+                                             0.5f, ORANGE);
+
+                                }
+                            }
+                            // DrawText3D(assets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
+
+
+                            if (relEnd < -1 && curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1)
+                                curNoteIdx[lane] = i + 1;
+
+
                         }
-                        // DrawText3D(assets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
-
-
-                        if (relEnd < -1 && curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1) curNoteIdx[lane] = i + 1;
-
-
 
                     }
-
-                }
+                
                 if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
                 }
@@ -1965,7 +1963,7 @@ int main(int argc, char* argv[])
 
                 if (player.paused) {
                     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,64});
-                    DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",64,0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
+                    DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",u.hinpct(0.1f),0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
 
                     if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Resume")) {
                         audioManager.playStreams();
