@@ -38,7 +38,7 @@ private:
         ss << std::fixed << value;
         return ss.str();
     }
-
+    void renderPlayerResults(Player player, Song song, Assets assets);
     void renderStars(Player player, float xPos, float yPos, Assets assets, float scale, bool left);
 public:
     void DrawTopOvershell(float TopOvershell);
@@ -47,7 +47,7 @@ public:
 
     Screens currentScreen;
     bool songsLoaded{};
-    void showResults(const Player& player, Assets assets);
+    void showResults(Player &player, Assets assets);
     void loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
 

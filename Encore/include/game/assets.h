@@ -82,7 +82,7 @@ public:
 
 
     Font rubik;
-
+    Font rubikItalic;
     Font rubik32;
 
     Font rubikBoldItalic32;
