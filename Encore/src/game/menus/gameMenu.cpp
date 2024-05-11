@@ -50,7 +50,7 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
 
     DrawRectangleGradientV(cardPos,u.hpct(0.2f), u.winpct(0.22f), u.hinpct(0.2f), ColorBrightness(player.accentColor, -0.5f), GetColor(0x181827FF));
 
-    bool rendAsFC = (player.notesHit == song.parts[player.instrument]->charts[player.diff].notes.size()) && player.FC;
+    bool rendAsFC = player.FC && !player.quit;
 
     if (player.quit) {
         DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF), ColorBrightness(RED, -0.5f));

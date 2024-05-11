@@ -105,19 +105,19 @@ public:
     void DrawTextRubik32(const char* text, float posX, float posY, Color color) const {
         DrawTextEx(rubik32, text, { posX,posY }, 32, 1, color);
     }
-    void DrawTextRubik(const char* text, float posX, float posY, int fontSize, Color color)const  {
+    void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color)const  {
         DrawTextEx(rubik, text, { posX,posY }, fontSize, 1, color);
     }
     void DrawTextRHDI(const char* text, float posX, float posY, Color color)const  {
         DrawTextEx(redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
     }
-    int MeasureTextRubik32(const char* text) const {
+    float MeasureTextRubik32(const char* text) const {
         return MeasureTextEx(rubik32, text, 32, 1).x;
     }
-    int MeasureTextRubik(const char* text, int fontSize) const {
+    float MeasureTextRubik(const char* text, float fontSize) const {
         return MeasureTextEx(rubik, text, fontSize, 1).x;
     }
-    int MeasureTextRHDI(const char* text) const {
+    float MeasureTextRHDI(const char* text) const {
         return MeasureTextEx(redHatDisplayItalic, text, 48, 1).x;
     }
 
