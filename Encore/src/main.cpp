@@ -1969,24 +1969,21 @@ int main(int argc, char* argv[])
                     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,64});
                     DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",u.hinpct(0.1f),0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
 
-                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Resume")) {
+                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 150, 200, 60}, "Resume")) {
                         audioManager.playStreams();
                         player.paused = false;
                     }
-                    /*
-                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2), 200, 60}, "Restart")) {
+                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2)-30, 200, 60}, "Restart")) {
                         for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
-                            bool hit = false;
-                            bool held = false;
-                            bool miss = false;
-                            bool accounted = false;
-                            bool countedForODPhrase = false;
-                            bool perfect = false;
-                            bool renderAsOD = false;
-                            double hitTime = 0;
+                            note.accounted = false;
+                            note.hit = false;
+                            note.miss = false;
+                            note.held = false;
+                            note.heldTime = 0;
+                            note.hitTime = 0;
+                            note.perfect = false;
+                            note.countedForODPhrase = false;
                         }
-                        // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-                        // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
                         for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
                             phrase.missed = false;
                             phrase.notesHit = 0;
@@ -1997,6 +1994,9 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         curODPhrase = 0;
+                        curNoteIdx = { 0,0,0,0,0 };
+                        curBeatLine = 0;
+                        player.resetPlayerStats();
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
@@ -2004,15 +2004,15 @@ int main(int argc, char* argv[])
                         assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
-                        isPlaying = false;
-                        midiLoaded = false;
                         for (auto& stream : audioManager.loadedStreams) {
-                            audioManager.restartStreams(stream.first);
+                            audioManager.restartStreams();
                             player.paused = false;
                         }
-                        player.resetPlayerStats();
-                    }*/
-                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) + 120, 200, 60}, "Drop Out")) {
+
+                        startedPlayingSong = GetTime();
+                        
+                    }
+                    if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) + 90, 200, 60}, "Drop Out")) {
                         for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                             note.accounted = false;
                             note.hit = false;
