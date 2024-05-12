@@ -548,7 +548,7 @@ int main(int argc, char* argv[])
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
 	
-	SetTraceLogLevel(LOG_NONE);
+	//SetTraceLogLevel(LOG_NONE);
 
 	// 800 , 600
 	InitWindow(1, 1, "Encore");
@@ -679,6 +679,8 @@ int main(int argc, char* argv[])
     {
         u.calcUnits();
         double curTime = GetTime();
+        float bgTime = curTime / 5.0f;
+        SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
         if (GetScreenWidth() < minWidth) {
             if (GetScreenHeight() < minHeight)
                 SetWindowSize(minWidth, minHeight);
@@ -1088,6 +1090,7 @@ int main(int argc, char* argv[])
 
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+                BeginShaderMode(assets.bgShader);
                 if (selSong){
                     DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0, 0, (float) selectedSong.albumArt.width,
                                                                         (float) selectedSong.albumArt.width},
@@ -1104,7 +1107,7 @@ int main(int argc, char* argv[])
                                              (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
                                    WHITE);
                 }
-
+                EndShaderMode();
                 Vector2 mouseWheel = GetMouseWheelMoveV();
                 if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
                     songSelectOffset -= (int)mouseWheel.y;
@@ -1232,9 +1235,10 @@ int main(int argc, char* argv[])
                 
                 Song selectedSong = songList.songs[curPlayingSong];
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
-                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X); 
+                BeginShaderMode(assets.bgShader);
                 DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-                
+                EndShaderMode();
 
                 float AlbumArtLeft = u.LeftSide;
                 float AlbumArtTop = u.hpct(0.05f);

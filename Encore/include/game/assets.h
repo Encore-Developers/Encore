@@ -101,15 +101,25 @@ public:
     Material sustainMatHeld;
     Material sustainMatHeldOD;
     Material sustainMatMiss;
+
+    Shader sdfShader;
+    Shader bgShader;
+    int bgTimeLoc;
 	//Sound clapOD;
     void DrawTextRubik32(const char* text, float posX, float posY, Color color) const {
+        BeginShaderMode(sdfShader);
         DrawTextEx(rubik32, text, { posX,posY }, 32, 1, color);
+        EndShaderMode();
     }
     void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color)const  {
+        BeginShaderMode(sdfShader);
         DrawTextEx(rubik, text, { posX,posY }, fontSize, 1, color);
+        EndShaderMode();
     }
     void DrawTextRHDI(const char* text, float posX, float posY, Color color)const  {
+        BeginShaderMode(sdfShader);
         DrawTextEx(redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
+        EndShaderMode();
     }
     float MeasureTextRubik32(const char* text) const {
         return MeasureTextEx(rubik32, text, 32, 1).x;
