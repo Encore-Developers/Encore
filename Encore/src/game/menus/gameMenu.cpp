@@ -216,12 +216,13 @@ void Menu::showResults(Player &player, Assets assets) {
 
 
     Song songToBeJudged = player.songToBeJudged;
+    BeginShaderMode(assets.bgShader);
     DrawTexturePro(songToBeJudged.albumArtBlur, Rectangle{0, 0, (float) songToBeJudged.albumArt.width,
                                                           (float) songToBeJudged.albumArt.width},
                    Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
                              (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
                    WHITE);
-
+    EndShaderMode();
 
     for (int i = 0; i < 4; i++) {
         renderPlayerResults(player, songToBeJudged, assets);
