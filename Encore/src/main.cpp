@@ -92,6 +92,8 @@ int pressedGamepadInput = -999;
 int axisDirection = -1;
 int controllerID = -1;
 
+int currentSortValue = 0;
+std::vector <std::string> sortTypes{ "Title","Artist","Length"};
 static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
     DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 0, color);
 }
@@ -1130,6 +1132,16 @@ int main(int argc, char* argv[])
                     }
                     menu.SwitchScreen(MENU);
                 }
+
+                if (GuiButton({ GetScreenWidth()-180.0f,0,180,60}, sortTypes[currentSortValue].c_str())) {
+                    currentSortValue++;
+                    if (currentSortValue == 3) currentSortValue = 0;
+                    if (selSong)
+                        songList.sortList(currentSortValue, curPlayingSong);
+                    else
+                        songList.sortList(currentSortValue, randSong);
+                }
+
                 float AlbumX = u.RightSide - u.winpct(0.25f);
                 float AlbumY = u.hpct(0.075f);
                 float AlbumHeight = u.winpct(0.25f);
@@ -1158,8 +1170,8 @@ int main(int argc, char* argv[])
                 for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
                     if (songList.songs.size() == i)
                         break;
-                    Font songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic32 : assets.rubikBold32;
-                    Font artistFont = i == curPlayingSong && selSong ? assets.josefinSansItalic : assets.josefinSansItalic;
+                    Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic32 : assets.rubikBold32;
+                    Font& artistFont = i == curPlayingSong && selSong ? assets.josefinSansItalic : assets.josefinSansItalic;
                     Song& songi = songList.songs[i];
                     float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
