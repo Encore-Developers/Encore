@@ -3,8 +3,12 @@
 #include <filesystem>
 class AudioManager {
 public:
+	struct audioStream {
+		unsigned int handle = 0;
+		int instrument = 0;
+	};
 	bool Init();
-	std::vector<std::pair<unsigned int, int>> loadedStreams;
+	std::vector<audioStream> loadedStreams;
 	void loadStreams(std::vector<std::pair<std::string, int>>&);
 	void unloadStreams();
 	double GetMusicTimePlayed(unsigned int);

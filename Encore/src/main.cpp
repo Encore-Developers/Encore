@@ -146,7 +146,7 @@ static void handleInputs(int lane, int action){
 		return;
 	}
 	Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
-	float eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+	float eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
     if (player.instrument < 4){
 	if (action == GLFW_PRESS && (lane == -1) && player.overdriveFill > 0 && !player.overdrive) {
         player.overdriveActiveTime = eventTime;
@@ -390,7 +390,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 	if (!streamsLoaded) {
 		return;
 	}
-	double eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+	double eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
     if (settings.controllerPause >= 0) {
         if (state.buttons[settings.controllerPause] != buttonValues[settings.controllerPause]) {
             buttonValues[settings.controllerPause] = state.buttons[settings.controllerPause];
@@ -1548,24 +1548,23 @@ int main(int argc, char* argv[])
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
                     streamsLoaded = true;
                     for (auto& stream : audioManager.loadedStreams) {
-                        audioManager.BeginPlayback(stream.first);
+                        audioManager.BeginPlayback(stream.handle);
                     }
                     player.resetPlayerStats();
                 }
                 else {
-                    float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
-                    int songLength = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first);
-                    int playedMinutes = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first)/60;
-                    int playedSeconds = (int)audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) % 60;
-                    int songMinutes = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first)/60;
-                    int songSeconds = (int)audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) % 60;
-
+                    float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+                    int songLength = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle);
+                    int playedMinutes = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)/60;
+                    int playedSeconds = (int)audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) % 60;
+                    int songMinutes = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle)/60;
+                    int songSeconds = (int)audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) % 60;
                     const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
                     float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
-                    double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first)+0.5) {
+                    double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
+                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)+0.5) {
                         for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                             note.accounted = false;
                             note.hit = false;
@@ -1602,16 +1601,16 @@ int main(int argc, char* argv[])
                         menu.SwitchScreen(RESULTS);
                     }
                     for (auto& stream : audioManager.loadedStreams) {
-                        if (player.instrument == stream.second)
-                            audioManager.SetAudioStreamVolume(stream.first, player.mute ? player.missVolume : player.selInstVolume);
+                        if (player.instrument == stream.instrument)
+                            audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : player.selInstVolume);
                         else
-                            audioManager.SetAudioStreamVolume(stream.first, player.otherInstVolume);
+                            audioManager.SetAudioStreamVolume(stream.handle, player.otherInstVolume);
 
                     }
                 }
 
                 float highwayLength = player.defaultHighwayLength * settings.highwayLengthMult;
-                double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+                double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 if (player.overdrive) {
 
                     // assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
@@ -1743,7 +1742,7 @@ int main(int argc, char* argv[])
 
 
                 // DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
-                double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
+                double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                 Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
                 if (!curChart.odPhrases.empty()) {
 
@@ -1924,14 +1923,14 @@ int main(int argc, char* argv[])
                                 DrawModel(curNote.lift ? assets.liftModel : assets.noteModel,
                                           Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
                                           1.0f, RED);
-                                if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) <
+                                if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
                                     curNote.time + 0.4 && player.MissHighwayColor) {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
                                 } else {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                                 }
                             }
-                            if (curNote.hit && audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first) <
+                            if (curNote.hit && audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
                                                curNote.hitTime + 0.15f) {
                                 DrawCube(Vector3{notePosX, 0, player.smasherPos}, 1.0f, 0.5f, 0.5f,
                                          curNote.perfect ? Color{255, 215, 0, 64} : Color{255, 255, 255, 64});
@@ -1964,8 +1963,8 @@ int main(int argc, char* argv[])
 #endif
                 EndMode3D();
 
-                int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
-                int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].first) : songList.songs[curPlayingSong].end;
+                int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+                int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                 int playedMinutes = songPlayed/60;
                 int playedSeconds = songPlayed % 60;
                 int songMinutes = songLength/60;
@@ -1978,7 +1977,7 @@ int main(int argc, char* argv[])
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED, ColorToInt(player.FC ? GOLD : player.accentColor));
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(player.FC ? GOLD : player.accentColor));
 
-                float floatSongLength = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].first);
+                float floatSongLength = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-u.hinpct(0.005f),(float)GetScreenWidth(),u.hinpct(0.01f)}, "", "", &floatSongLength, 0, (float)songLength);
 
 
@@ -2072,6 +2071,7 @@ int main(int argc, char* argv[])
                 }
 
                 break;
+
             }
             case RESULTS: {
                 if (streamsLoaded) {
