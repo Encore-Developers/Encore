@@ -36,8 +36,8 @@ vec2 uvDist=uv;
 uv.x*=3.0;
 uv.y*=3.0;
 
-uvDist.x+=sin(cos(uv.x)+(time)+0.15)*0.5*noise(uv);
-uvDist.y+=sin(cos(uv.y)+(time))*0.5*noise(uv);
+uvDist.x+=sin(cos(uv.x)+(time)+0.15)*1.0*noise(uv);
+uvDist.y+=sin(cos(uv.y)+(time))*1.0*noise(uv);
 uvDist.x-=2.0*(when_ge(uvDist.x,1.0));
 uvDist.x=abs(uvDist.x);
 uvDist.y-=2.0*(when_ge(uvDist.y,1.0));
