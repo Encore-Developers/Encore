@@ -30,24 +30,24 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string,int>>& paths) {
 }
 void AudioManager::unloadStreams() {
 	for (auto& stream : AudioManager::loadedStreams) {
-		AudioManager::StopPlayback(stream.first);
-		BASS_StreamFree(stream.first);
+		AudioManager::StopPlayback(stream.handle);
+		BASS_StreamFree(stream.handle);
 	}
 	AudioManager::loadedStreams.clear();
 }
 void AudioManager::pauseStreams() {
 	for (auto& stream : AudioManager::loadedStreams) {
-		BASS_ChannelPause(stream.first);
+		BASS_ChannelPause(stream.handle);
 	}
 }
 void AudioManager::playStreams() {
 	for (auto& stream : AudioManager::loadedStreams) {
-		BASS_ChannelPlay(stream.first,false);
+		BASS_ChannelPlay(stream.handle,false);
 	}
 }
 void AudioManager::restartStreams() {
 	for (auto& stream : AudioManager::loadedStreams) {
-		BASS_ChannelPlay(stream.first, true);
+		BASS_ChannelPlay(stream.handle, true);
 	}
 }
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
@@ -56,7 +56,6 @@ double AudioManager::GetMusicTimePlayed(unsigned int handle) {
 double AudioManager::GetMusicTimeLength(unsigned int handle) {
 	return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetLength(handle, BASS_POS_BYTE));
 }
-
 void AudioManager::SetAudioStreamVolume(unsigned int handle, float volume) {
 	BASS_ChannelSetAttribute(handle, BASS_ATTRIB_VOL, volume);
 }
