@@ -15,8 +15,14 @@
 #include "game/menus/uiUnits.h"
 #include "raymath.h"
 
+#ifndef GIT_COMMIT_HASH
+#define GIT_COMMIT_HASH
+#endif
+
 const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
+
+std::string menuCommitHash = GIT_COMMIT_HASH;
 
 Units u;
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
@@ -171,6 +177,8 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
+    menuCommitHash.erase(7);
+    DrawTextEx(assets.josefinSansItalic, TextFormat("v0.2.0-%s", menuCommitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 0, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, { u.LeftSide + u.winpct(0.01f), u.hpct(0.19f)-(assets.encoreWhiteLogo.height*0.5f)}, 0, 0.5, WHITE);
 

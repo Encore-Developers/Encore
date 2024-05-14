@@ -34,6 +34,10 @@ static bool compareNotes(const Note& a, const Note& b) {
 	return a.time < b.time;
 }
 
+#ifndef GIT_COMMIT_HASH
+#define GIT_COMMIT_HASH
+#endif
+
 bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
@@ -66,7 +70,7 @@ std::string trackSpeedButton;
 
 
 
-
+std::string commitHash = GIT_COMMIT_HASH;
 std::vector<bool> heldFrets{ false,false,false,false,false };
 std::vector<bool> heldFretsAlt{ false,false,false,false,false };
 std::vector<bool> overhitFrets{ false,false,false,false,false };
@@ -545,7 +549,7 @@ Song song;
 int main(int argc, char* argv[])
 {
     Units u;
-
+    commitHash.erase(7);
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	SetConfigFlags(FLAG_VSYNC_HINT);
@@ -1125,22 +1129,8 @@ int main(int argc, char* argv[])
                 float TextPlacementLR = u.wpct(0.01f);
                 DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
 
-                if (GuiButton({ 0,0,60,60 }, "<")) {
-                    for (Song& songi : songList.songs) {
-                        songi.titleXOffset = 0;
-                        songi.artistXOffset = 0;
-                    }
-                    menu.SwitchScreen(MENU);
-                }
 
-                if (GuiButton({ GetScreenWidth()-180.0f,0,180,60}, sortTypes[currentSortValue].c_str())) {
-                    currentSortValue++;
-                    if (currentSortValue == 3) currentSortValue = 0;
-                    if (selSong)
-                        songList.sortList(currentSortValue, curPlayingSong);
-                    else
-                        songList.sortList(currentSortValue, randSong);
-                }
+                DrawTextEx(assets.josefinSansItalic, TextFormat("v0.2.0-%s", commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
 
                 float AlbumX = u.RightSide - u.winpct(0.25f);
                 float AlbumY = u.hpct(0.075f);
@@ -1165,6 +1155,7 @@ int main(int argc, char* argv[])
                                   Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
                                   WHITE);
                 }
+                DrawTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), u.hinpct(0.025f), 0).x, AlbumY + u.hinpct(0.0075)}, u.hinpct(0.025f), 0, WHITE);
                 DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
                 float songEntryHeight = u.hinpct(0.06f);
                 for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
@@ -1238,6 +1229,21 @@ int main(int argc, char* argv[])
                         menu.SwitchScreen(READY_UP);
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                }
+                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.4f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Sort")) {
+                    currentSortValue++;
+                    if (currentSortValue == 3) currentSortValue = 0;
+                    if (selSong)
+                        songList.sortList(currentSortValue, curPlayingSong);
+                    else
+                        songList.sortList(currentSortValue, randSong);
+                }
+                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.2f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Back")) {
+                    for (Song& songi : songList.songs) {
+                        songi.titleXOffset = 0;
+                        songi.artistXOffset = 0;
+                    }
+                    menu.SwitchScreen(MENU);
                 }
                 menu.DrawBottomBottomOvershell();
                 break;
