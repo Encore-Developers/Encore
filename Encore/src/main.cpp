@@ -1137,7 +1137,7 @@ int main(int argc, char* argv[])
                 float AlbumHeight = u.winpct(0.25f);
 
                 DrawRectangle(AlbumX-12,AlbumY+AlbumHeight,AlbumHeight+12,AlbumHeight+12, WHITE);
-                DrawRectangle(AlbumX-6,AlbumY+AlbumHeight,AlbumHeight,AlbumHeight, GetColor(0x181827FF));
+                DrawRectangle(AlbumX-6,AlbumY+AlbumHeight,AlbumHeight,u.hinpct(0.075f)+AlbumHeight, GetColor(0x181827FF));
                 DrawRectangle(AlbumX-12,AlbumY-6,AlbumHeight+12,AlbumHeight+12, WHITE);
                 DrawRectangle(AlbumX-6,AlbumY,AlbumHeight,AlbumHeight, BLACK);
 
@@ -1157,6 +1157,8 @@ int main(int argc, char* argv[])
                 }
                 DrawTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), u.hinpct(0.025f), 0).x, AlbumY + u.hinpct(0.0075)}, u.hinpct(0.025f), 0, WHITE);
                 DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
+
+                BeginScissorMode(u.LeftSide, u.hpct(0.15f), u.winpct(0.75f),u.hinpct(0.7f));
                 float songEntryHeight = u.hinpct(0.06f);
                 for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
                     if (songList.songs.size() == i)
@@ -1219,6 +1221,7 @@ int main(int argc, char* argv[])
                     DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == curPlayingSong && selSong ? WHITE : LightText);
                     EndScissorMode();
                 }
+                EndScissorMode();
                 // hehe
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
@@ -1508,8 +1511,8 @@ int main(int argc, char* argv[])
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), u.hpct(0.025f), u.hpct(0.05f), Color{107, 161, 222,255});
-                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), (scorePos + 200) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), u.hpct(0.125f), u.hpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), u.hpct(0.025f), u.hinpct(0.05f), Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), u.hpct(0.125f), u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextEx(assets.rubikBold32, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);

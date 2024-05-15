@@ -3,13 +3,13 @@
 #include "raymath.h"
 
 void Units::calcUnits() {
-    RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25);
+    RightBorder = ((float)GetScreenWidth()/2)+((float)GetScreenHeight()/1.25f);
     RightSide = RightBorder >= (float)GetScreenWidth() ? (float)GetScreenWidth() : RightBorder;
-    LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.25);
+    LeftBorder = ((float)GetScreenWidth()/2)-((float)GetScreenHeight()/1.25f);
     LeftSide = LeftBorder <= 0 ? 0 : LeftBorder;
-    BottomBorder = (GetScreenHeight() / 2) + (GetScreenWidth() / 2.0f);
+    BottomBorder = (GetScreenHeight() / 2) + (GetScreenWidth() / 3.0f);
     BottomSide = BottomBorder < GetScreenHeight() ? BottomBorder : GetScreenHeight();
-    TopBorder = (GetScreenHeight() / 2) - ((GetScreenWidth() / 2.0f));
+    TopBorder = (GetScreenHeight() / 2) - ((GetScreenWidth() / 3.0f));
     TopSide = TopBorder < 0 ? 0 : TopBorder;
 }
 // usable height
