@@ -19,10 +19,15 @@
 #define GIT_COMMIT_HASH
 #endif
 
+#ifndef ENCORE_VERSION
+#define ENCORE_VERSION
+#endif
+
 const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
 
 std::string menuCommitHash = GIT_COMMIT_HASH;
+std::string menuVersion = ENCORE_VERSION;
 
 Units u;
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
@@ -178,7 +183,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     menuCommitHash.erase(7);
-    DrawTextEx(assets.josefinSansItalic, TextFormat("v0.2.0-%s", menuCommitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
+    DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 0, WHITE);
     DrawTextureEx(assets.encoreWhiteLogo, { u.LeftSide + u.winpct(0.01f), u.hpct(0.19f)-(assets.encoreWhiteLogo.height*0.5f)}, 0, 0.5, WHITE);
 
@@ -240,6 +245,7 @@ void Menu::showResults(Player &player, Assets assets) {
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
 
+    DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
 
     float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(assets.redHatDisplayBlack,player.songToBeJudged.title.c_str(), u.hinpct(0.09f), 0).x/2;
     float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(assets.redHatDisplayItalicLarge,scoreCommaFormatter(player.score).c_str(), u.hinpct(0.08f), 0).x;

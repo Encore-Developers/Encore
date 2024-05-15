@@ -38,6 +38,11 @@ static bool compareNotes(const Note& a, const Note& b) {
 #define GIT_COMMIT_HASH
 #endif
 
+#ifndef ENCORE_VERSION
+#define ENCORE_VERSION
+#endif
+
+
 bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
@@ -69,7 +74,7 @@ Rectangle view = { 0 };
 std::string trackSpeedButton;
 
 
-
+std::string encoreVersion = ENCORE_VERSION;
 std::string commitHash = GIT_COMMIT_HASH;
 std::vector<bool> heldFrets{ false,false,false,false,false };
 std::vector<bool> heldFretsAlt{ false,false,false,false,false };
@@ -1130,7 +1135,7 @@ int main(int argc, char* argv[])
                 DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
 
 
-                DrawTextEx(assets.josefinSansItalic, TextFormat("v0.2.0-%s", commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
+                DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s", encoreVersion.c_str() , commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
 
                 float AlbumX = u.RightSide - u.winpct(0.25f);
                 float AlbumY = u.hpct(0.075f);
@@ -1268,6 +1273,8 @@ int main(int argc, char* argv[])
                 DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
 
                 menu.DrawTopOvershell(0.2f);
+                DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s", encoreVersion.c_str() , commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
+
                 DrawRectangle((int)u.LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 DrawRectangle((int)u.LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
                 DrawTexturePro(selectedSong.albumArt, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {u.LeftSide + 6, AlbumArtTop+6,AlbumArtRight,AlbumArtBottom}, {0,0}, 0, WHITE);

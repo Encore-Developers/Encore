@@ -73,4 +73,7 @@ execute_process(
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "-DENCORE_VERSION=\"v0.2.0\"")
+
 target_link_libraries(Encore raylib ${BASS})
