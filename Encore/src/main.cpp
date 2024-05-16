@@ -551,13 +551,15 @@ Keybinds keybinds;
 
 Song song;
 
+bool firstInit = true;
+
 int main(int argc, char* argv[])
 {
     Units u;
     commitHash.erase(7);
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	// SetConfigFlags(FLAG_VSYNC_HINT);
+	SetConfigFlags(FLAG_VSYNC_HINT);
 	
 	//SetTraceLogLevel(LOG_NONE);
 
@@ -595,7 +597,31 @@ int main(int argc, char* argv[])
 
     float timeCounter = 0.0f;
 
-    int targetFPS = 15; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    std::filesystem::path executablePath(GetApplicationDirectory());
+
+    std::filesystem::path directory = executablePath.parent_path();
+
+    if (std::filesystem::exists(directory / "keybinds.json")) {
+        settings.migrateSettings(directory / "keybinds.json", directory / "settings.json");
+    }
+    settings.loadSettings(directory / "settings.json");
+
+    int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    if (!settings.fullscreen) {
+        if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
+            ClearWindowState(FLAG_WINDOW_UNDECORATED);
+            SetWindowState(FLAG_MSAA_4X_HINT);
+        }
+        SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75f, GetMonitorHeight(GetCurrentMonitor()) * 0.75f);
+        SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5f) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375f),
+                          (GetMonitorHeight(GetCurrentMonitor()) * 0.5f) -
+                          (GetMonitorHeight(GetCurrentMonitor()) * 0.375f));
+    } else {
+        SetWindowState(FLAG_WINDOW_UNDECORATED + FLAG_MSAA_4X_HINT);
+        int CurrentMonitor = GetCurrentMonitor();
+        SetWindowPosition(0, 0);
+        SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
+    }
     std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
@@ -624,36 +650,16 @@ int main(int argc, char* argv[])
     camera.projection = CAMERA_PERSPECTIVE;
 
 
-    std::filesystem::path executablePath(GetApplicationDirectory());
-
-    std::filesystem::path directory = executablePath.parent_path();
 
 
-    if (std::filesystem::exists(directory / "keybinds.json")) {
-        settings.migrateSettings(directory / "keybinds.json", directory / "settings.json");
-    }
-    settings.loadSettings(directory / "settings.json");
+
+
     trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
 
-    if (!settings.fullscreen) {
-        if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
-            ClearWindowState(FLAG_WINDOW_UNDECORATED);
-            SetWindowState(FLAG_MSAA_4X_HINT);
-        }
-        SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75f, GetMonitorHeight(GetCurrentMonitor()) * 0.75f);
-        SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5f) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375f),
-                          (GetMonitorHeight(GetCurrentMonitor()) * 0.5f) -
-                          (GetMonitorHeight(GetCurrentMonitor()) * 0.375f));
-    } else {
-        SetWindowState(FLAG_WINDOW_UNDECORATED + FLAG_MSAA_4X_HINT);
-        int CurrentMonitor = GetCurrentMonitor();
-        SetWindowPosition(0, 0);
-        SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
-    }
+
 
     ChangeDirectory(GetApplicationDirectory());
-    assets.MaterialMapper();
-    SetWindowIcon(assets.icon);
+
     GLFWkeyfun origKeyCallback = glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
     GLFWgamepadstatefun origGamepadCallback = glfwSetGamepadStateCallback(gamepadStateCallback);
     glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
@@ -681,17 +687,18 @@ int main(int argc, char* argv[])
     GuiSetStyle(TOGGLE, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
     GuiSetStyle(TOGGLE, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
     GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
-    GuiSetFont(assets.rubik32);
+
 
     Mesh sustainPlane = GenMeshPlane(0.8f,1.0f,1,1);
 
 
     while (!WindowShouldClose())
     {
+
         u.calcUnits();
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
-        SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
+
         if (GetScreenWidth() < minWidth) {
             if (GetScreenHeight() < minHeight)
                 SetWindowSize(minWidth, minHeight);
@@ -712,6 +719,14 @@ int main(int argc, char* argv[])
         // menu.loadTitleScreen();
 
         ClearBackground(DARKGRAY);
+
+        if (firstInit) {
+            assets.MaterialMapper();
+            SetWindowIcon(assets.icon);
+            GuiSetFont(assets.rubik32);
+            firstInit = false;
+        }
+        SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
 
         switch (menu.currentScreen) {
             case MENU: {
