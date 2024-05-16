@@ -595,7 +595,7 @@ int main(int argc, char* argv[])
 
     float timeCounter = 0.0f;
 
-    int targetFPS = 5; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    int targetFPS = 15; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
     std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
@@ -1513,6 +1513,7 @@ int main(int argc, char* argv[])
                     }
                     EndScissorMode();
                 }
+                DrawFPS(0,0);
 
 
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
@@ -1557,9 +1558,7 @@ int main(int argc, char* argv[])
                 if (!streamsLoaded && !player.quit) {
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
                     streamsLoaded = true;
-                    for (auto& stream : audioManager.loadedStreams) {
-                        audioManager.BeginPlayback(stream.handle);
-                    }
+                    audioManager.BeginPlayback(audioManager.loadedStreams[0].handle);
                     player.resetPlayerStats();
                 }
                 else {
