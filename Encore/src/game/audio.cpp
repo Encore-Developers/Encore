@@ -23,32 +23,37 @@ bool AudioManager::Init() {
 	return BASS_Init(-1, 44100, 0, 0, NULL);
 #endif
 };
+
 void AudioManager::loadStreams(std::vector<std::pair<std::string,int>>& paths) {
+    int streams = 0;
 	for (auto& path : paths) {
 		AudioManager::loadedStreams.push_back({ BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0),path.second });
-	}
+	    if (streams != 0) {
+            BASS_ChannelSetLink(loadedStreams[0].handle, loadedStreams[streams].handle);
+        }
+        streams += 1;
+    }
+
 }
 void AudioManager::unloadStreams() {
+    AudioManager::StopPlayback(AudioManager::loadedStreams[0].handle);
 	for (auto& stream : AudioManager::loadedStreams) {
-		AudioManager::StopPlayback(stream.handle);
 		BASS_StreamFree(stream.handle);
 	}
 	AudioManager::loadedStreams.clear();
 }
 void AudioManager::pauseStreams() {
-	for (auto& stream : AudioManager::loadedStreams) {
-		BASS_ChannelPause(stream.handle);
-	}
+	BASS_ChannelPause(loadedStreams[0].handle);
+
 }
 void AudioManager::playStreams() {
-	for (auto& stream : AudioManager::loadedStreams) {
-		BASS_ChannelPlay(stream.handle,false);
-	}
+    BASS_ChannelPlay(loadedStreams[0].handle,false);
 }
 void AudioManager::restartStreams() {
-	for (auto& stream : AudioManager::loadedStreams) {
-		BASS_ChannelPlay(stream.handle, true);
-	}
+    for (auto& stream : AudioManager::loadedStreams) {
+        BASS_ChannelSetPosition(stream.handle, 0, BASS_POS_BYTE);
+    }
+	BASS_ChannelPlay(loadedStreams[0].handle, true);
 }
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
 	return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle,BASS_POS_BYTE));
