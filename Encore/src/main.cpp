@@ -70,9 +70,7 @@ double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
-
 std::string trackSpeedButton;
-
 
 std::string encoreVersion = ENCORE_VERSION;
 std::string commitHash = GIT_COMMIT_HASH;
@@ -138,8 +136,6 @@ std::string scoreCommaFormatter(int value) {
     ss << std::fixed << value;
     return ss.str();
 }
-
-
 
 static void handleInputs(int lane, int action){
     if (player.paused) return;
