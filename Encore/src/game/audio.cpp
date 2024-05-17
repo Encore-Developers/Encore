@@ -33,7 +33,6 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string,int>>& paths) {
         }
         streams += 1;
     }
-
 }
 void AudioManager::unloadStreams() {
     AudioManager::StopPlayback(AudioManager::loadedStreams[0].handle);

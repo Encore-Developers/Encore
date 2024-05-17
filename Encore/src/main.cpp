@@ -25,6 +25,8 @@
 #include "raymath.h"
 #include "game/menus/uiUnits.h"
 #include "game/audio.h"
+#include <thread>
+#include <atomic>
 Menu menu;
 Player player;
 Settings& settingsMain = Settings::getInstance();
@@ -104,17 +106,11 @@ int controllerID = -1;
 
 int currentSortValue = 0;
 std::vector <std::string> sortTypes{ "Title","Artist","Length"};
-static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
-    DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 0, color);
-}
 static void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color) {
     DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 0, color);
 }
 static void DrawTextRHDI(const char* text, float posX, float posY, float fontSize, Color color) {
     DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, fontSize, 0, color);
-}
-static float MeasureTextRubik32(const char* text) {
-    return MeasureTextEx(assets.rubik32, text, 32.0f, 0).x;
 }
 static float MeasureTextRubik(const char* text, float fontSize) {
     return MeasureTextEx(assets.rubik, text, fontSize, 0).x;
@@ -551,7 +547,7 @@ Keybinds keybinds;
 Song song;
 
 bool firstInit = true;
-
+int loadedAssets;
 int main(int argc, char* argv[])
 {
     Units u;
@@ -625,13 +621,7 @@ int main(int argc, char* argv[])
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
-    bool didBassInit = audioManager.Init();
-    if (didBassInit)
-        std::cout << "WE GOT BASS!" << std::endl;
-    else
-        std::cout << "FUCK" << std::endl;
-    //InitAudioDevice();
-    //SetAudioStreamBufferSizeDefault(196);
+    audioManager.Init();
     SetExitKey(0);
 
     Camera3D camera = { 0 };
@@ -690,6 +680,10 @@ int main(int argc, char* argv[])
 
     Mesh sustainPlane = GenMeshPlane(0.8f,1.0f,1,1);
 
+    assets.FirstAssets();
+    SetWindowIcon(assets.icon);
+    GuiSetFont(assets.rubik);
+    assets.LoadAssets();
 
     while (!WindowShouldClose())
     {
@@ -719,16 +713,12 @@ int main(int argc, char* argv[])
 
         ClearBackground(DARKGRAY);
 
-        if (firstInit) {
-            assets.MaterialMapper();
-            SetWindowIcon(assets.icon);
-            GuiSetFont(assets.rubik32);
-            firstInit = false;
-        }
+        
         SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
+        
 
         switch (menu.currentScreen) {
-            case MENU: {
+           case MENU: {
                 menu.loadMenu(songList,gamepadStateCallbackSetControls, assets);
                 break;
             }
@@ -1182,7 +1172,7 @@ int main(int argc, char* argv[])
                 for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
                     if (songList.songs.size() == i)
                         break;
-                    Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic32 : assets.rubikBold32;
+                    Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic : assets.rubikBold;
                     Font& artistFont = i == curPlayingSong && selSong ? assets.josefinSansItalic : assets.josefinSansItalic;
                     Song& songi = songList.songs[i];
                     float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
@@ -1299,7 +1289,7 @@ int main(int argc, char* argv[])
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
                 DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, u.hinpct(0.1f), 0, WHITE);
-                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 0, LIGHTGRAY);
+                DrawTextEx(assets.rubikBoldItalic, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 0, LIGHTGRAY);
                 // todo: allow this to be run per player
                 // load midi
                 if (!midiLoaded) {
@@ -1471,14 +1461,14 @@ int main(int argc, char* argv[])
                             diffSelection = true;
                     }
                     DrawTextRubik("Difficulty", u.LeftSide+15, BottomOvershell - 45, 30, WHITE);
-                    DrawTextEx(assets.rubikBold32, diffList[player.diff].c_str(), {u.LeftSide + 285 - MeasureTextEx(assets.rubikBold32, diffList[player.diff].c_str(),30,0).x, BottomOvershell - 45}, 30, 0, WHITE);
+                    DrawTextEx(assets.rubikBold, diffList[player.diff].c_str(), {u.LeftSide + 285 - MeasureTextEx(assets.rubikBold, diffList[player.diff].c_str(),30,0).x, BottomOvershell - 45}, 30, 0, WHITE);
 
                     if (GuiButton({ u.LeftSide,BottomOvershell - 120,300,60 }, "")) {
                         ReadyUpMenu = false;
                         instSelection = true;
                     }
                     DrawTextRubik("Instrument", u.LeftSide+15, BottomOvershell - 105, 30, WHITE);
-                    DrawTextEx(assets.rubikBold32, songPartsList[player.instrument].c_str(), { u.LeftSide + 285 - MeasureTextEx(assets.rubikBold32, songPartsList[player.instrument].c_str(),30,0).x, BottomOvershell - 105 }, 30, 0, WHITE);
+                    DrawTextEx(assets.rubikBold, songPartsList[player.instrument].c_str(), { u.LeftSide + 285 - MeasureTextEx(assets.rubikBold, songPartsList[player.instrument].c_str(),30,0).x, BottomOvershell - 105 }, 30, 0, WHITE);
 
                       
                     if (GuiButton({ u.LeftSide, BottomOvershell, 300, u.hinpct(0.05f)}, "Ready Up!")) {
@@ -1535,7 +1525,7 @@ int main(int argc, char* argv[])
 
                 DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), u.hpct(0.025f), u.hinpct(0.05f), Color{107, 161, 222,255});
                 DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), u.hpct(0.125f), u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
-                DrawTextEx(assets.rubikBold32, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
+                DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -1661,7 +1651,7 @@ int main(int argc, char* argv[])
                 }
 
                 if (musicTime < 7.5) {
-                    DrawTextEx(assets.rubikBoldItalic32, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
+                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
                     DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
                     //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
@@ -1992,8 +1982,6 @@ int main(int argc, char* argv[])
                 int playedSeconds = songPlayed % 60;
                 int songMinutes = songLength/60;
                 int songSeconds = songLength % 60;
-                const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
-                int textLength = MeasureTextRubik32(textTime);
                 GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(player.FC ? GOLD : player.accentColor));
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED, ColorToInt(player.FC ? GOLD : player.accentColor));
@@ -2007,7 +1995,7 @@ int main(int argc, char* argv[])
 
                 if (player.paused) {
                     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,64});
-                    DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",u.hinpct(0.1f),0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
+                    DrawTextEx(assets.rubikBoldItalic, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic, "PAUSED",u.hinpct(0.1f),0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
 
                     if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 150, 200, 60}, "Resume")) {
                         audioManager.playStreams();

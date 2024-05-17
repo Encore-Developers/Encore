@@ -6,9 +6,12 @@
 
 class Assets {
 private:
+    std::vector<Image> images;
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-    Font LoadFontFilter(const std::filesystem::path &fontPath, int fontSize);
+    Font LoadFontFilter(const std::filesystem::path& fontPath, int fontSize, int& loadedAssets);
 public:
+    int loadedAssets;
+    int totalAssets = 31;
     Model smasherReg;
     Texture2D smasherRegTex;
 
@@ -83,11 +86,10 @@ public:
 
     Font rubik;
     Font rubikItalic;
-    Font rubik32;
 
-    Font rubikBoldItalic32;
+    Font rubikBoldItalic;
 
-    Font rubikBold32;
+    Font rubikBold;
 
     //clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
     //SetSoundVolume(clapOD, 0.375);
@@ -106,11 +108,6 @@ public:
     Shader bgShader;
     int bgTimeLoc;
 	//Sound clapOD;
-    void DrawTextRubik32(const char* text, float posX, float posY, Color color) const {
-        BeginShaderMode(sdfShader);
-        DrawTextEx(rubik32, text, { posX,posY }, 32, 1, color);
-        EndShaderMode();
-    }
     void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color)const  {
         BeginShaderMode(sdfShader);
         DrawTextEx(rubik, text, { posX,posY }, fontSize, 1, color);
@@ -121,9 +118,6 @@ public:
         DrawTextEx(redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
         EndShaderMode();
     }
-    float MeasureTextRubik32(const char* text) const {
-        return MeasureTextEx(rubik32, text, 32, 1).x;
-    }
     float MeasureTextRubik(const char* text, float fontSize) const {
         return MeasureTextEx(rubik, text, fontSize, 1).x;
     }
@@ -131,7 +125,8 @@ public:
         return MeasureTextEx(redHatDisplayItalic, text, 48, 1).x;
     }
 
-    static Texture2D LoadTextureFilter(const std::filesystem::path& texturePath);
-
-    void MaterialMapper();
+    static Texture2D LoadTextureFilter(const std::filesystem::path& texturePath, int& loadedAssets);
+    static Model LoadModel_(const std::filesystem::path& modelPath, int& loadedAssets);
+    void FirstAssets();
+    void LoadAssets();
 };
