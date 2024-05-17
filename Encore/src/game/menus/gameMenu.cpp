@@ -98,10 +98,10 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
                    ColorBrightness(GOLD,-0.5));
         float flawlessFontSize = 0.03f;
         DrawTextEx(
-                assets.rubikBoldItalic32,
+                assets.rubikBoldItalic,
                 "Flawless!",
                 {
-                        (cardPos + u.winpct(0.113f))-(MeasureTextEx(assets.rubikBoldItalic32, "Flawless!", u.hinpct(flawlessFontSize), 0.0f).x/2),
+                        (cardPos + u.winpct(0.113f))-(MeasureTextEx(assets.rubikBoldItalic, "Flawless!", u.hinpct(flawlessFontSize), 0.0f).x/2),
                         u.hpct(0.35f)},
                 u.hinpct(flawlessFontSize),
                 0.0f,
@@ -109,10 +109,10 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     } if (player.quit) {
         float flawlessFontSize = 0.05f;
         DrawTextEx(
-                assets.rubikBoldItalic32,
+                assets.rubikBoldItalic,
                 "Quit",
                 {
-                        (cardPos + u.winpct(0.11f))-(MeasureTextEx(assets.rubikBoldItalic32, "Quit", u.hinpct(flawlessFontSize), 0.0f).x/2),
+                        (cardPos + u.winpct(0.11f))-(MeasureTextEx(assets.rubikBoldItalic, "Quit", u.hinpct(flawlessFontSize), 0.0f).x/2),
                         u.hpct(0.335f)},
                 u.hinpct(flawlessFontSize),
                 0.0f,
@@ -130,8 +130,8 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawTextEx(assets.rubik, "Strikes:", {statsLeft, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
     DrawTextEx(assets.rubik, "Max Streak:", {statsLeft, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
 
-    DrawTextEx(assets.rubikBold32, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), {cardPos + u.winpct(0.11f) -
-                                                                                                                                          (MeasureTextEx(assets.rubikBold32, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), u.hinpct(0.04f),0).x/2), statsHeight+u.hinpct(0.175f)}, u.hinpct(0.04f),0,WHITE);
+    DrawTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), {cardPos + u.winpct(0.11f) -
+                                                                                                                                          (MeasureTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), u.hinpct(0.04f),0).x/2), statsHeight+u.hinpct(0.175f)}, u.hinpct(0.04f),0,WHITE);
 
 
     DrawTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight}, u.hinpct(0.03f),0,WHITE);

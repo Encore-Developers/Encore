@@ -11,14 +11,20 @@
 class Assets;
 
 
-Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath) {
+Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath, int& loadedAssets) {
     Texture2D tex = LoadTexture(texturePath.string().c_str());
     GenTextureMipmaps(&tex);
     SetTextureFilter(tex, TEXTURE_FILTER_BILINEAR);
+    loadedAssets++;
     return tex;
 }
 
-Font Assets::LoadFontFilter(const std::filesystem::path &fontPath, int fontSize) {
+Model Assets::LoadModel_(const std::filesystem::path& modelPath, int& loadedAssets) {
+    return LoadModel(modelPath.string().c_str());
+    loadedAssets++;
+}
+
+Font Assets::LoadFontFilter(const std::filesystem::path &fontPath, int fontSize, int& loadedAssets) {
     Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0,0);
     font.baseSize = 128;
     font.glyphCount = 95;
@@ -29,40 +35,45 @@ Font Assets::LoadFontFilter(const std::filesystem::path &fontPath, int fontSize)
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
     SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    loadedAssets++;
     return font;
 }
-
-void Assets::MaterialMapper() {
+void Assets::FirstAssets() {
+    icon = LoadImage((directory / "Assets/encore_favicon-NEW.png").string().c_str());
+    encoreWhiteLogo = Assets::LoadTextureFilter((directory / "Assets/encore-white.png"), loadedAssets);
+    rubik = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf"), 256, loadedAssets);
+}
+void Assets::LoadAssets() {
     Player player;
-    smasherReg = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-    smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png");
+    smasherReg = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
+    smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png", loadedAssets);
 
 
-    smasherBoard = LoadModel((directory / "Assets/highway/new_board.obj").string().c_str());
-    smasherBoardTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_board_new.png");
-    smasherBoardEMH = LoadModel((directory / "Assets/highway/board_emh.obj").string().c_str());
+    smasherBoard = Assets::LoadModel_((directory / "Assets/highway/new_board.obj"), loadedAssets);
+    smasherBoardTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_board_new.png", loadedAssets);
+    smasherBoardEMH = Assets::LoadModel_((directory / "Assets/highway/board_emh.obj"), loadedAssets);
 
-    lanes = LoadModel((directory / "Assets/highway/lanes.obj").string().c_str());
-    lanesTex = Assets::LoadTextureFilter(directory / "Assets/highway/lanes.png");
+    lanes = Assets::LoadModel_((directory / "Assets/highway/lanes.obj"), loadedAssets);
+    lanesTex = Assets::LoadTextureFilter(directory / "Assets/highway/lanes.png", loadedAssets);
 
-    smasherPressed = LoadModel((directory / "Assets/highway/smasher.obj").string().c_str());
-    smasherPressTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_press.png");
+    smasherPressed = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
+    smasherPressTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_press.png", loadedAssets);
 
-    star = Assets::LoadTextureFilter(directory/ "Assets/ui/star.png");
-    goldStar = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star.png");
-    emptyStar = Assets::LoadTextureFilter(directory/ "Assets/ui/empty-star.png");
+    star = Assets::LoadTextureFilter(directory/ "Assets/ui/star.png", loadedAssets);
+    goldStar = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star.png", loadedAssets);
+    emptyStar = Assets::LoadTextureFilter(directory/ "Assets/ui/empty-star.png", loadedAssets);
 
-    odFrame = LoadModel((directory / "Assets/ui/od_frame.obj").string().c_str());
-    odBar = LoadModel((directory / "Assets/ui/od_fill.obj").string().c_str());
-    multFrame = LoadModel((directory / "Assets/ui/multcircle_frame.obj").string().c_str());
-    multBar = LoadModel((directory / "Assets/ui/multcircle_fill.obj").string().c_str());
-    multCtr3 = LoadModel((directory / "Assets/ui/multbar_3.obj").string().c_str());
-    multCtr5 = LoadModel((directory / "Assets/ui/multbar_5.obj").string().c_str());
-    multNumber = LoadModel((directory / "Assets/ui/mult_number_plane.obj").string().c_str());
-    odMultFrame = Assets::LoadTextureFilter(directory / "Assets/ui/mult_base.png");
-    odMultFill = Assets::LoadTextureFilter(directory / "Assets/ui/mult_fill.png");
-    odMultFillActive = Assets::LoadTextureFilter(directory / "Assets/ui/mult_fill_od.png");
-    multNumberTex = Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png");
+    odFrame = Assets::LoadModel_((directory / "Assets/ui/od_frame.obj"), loadedAssets);
+    odBar = Assets::LoadModel_((directory / "Assets/ui/od_fill.obj"), loadedAssets);
+    multFrame = Assets::LoadModel_((directory / "Assets/ui/multcircle_frame.obj"), loadedAssets);
+    multBar = Assets::LoadModel_((directory / "Assets/ui/multcircle_fill.obj"), loadedAssets);
+    multCtr3 = Assets::LoadModel_((directory / "Assets/ui/multbar_3.obj"), loadedAssets);
+    multCtr5 = Assets::LoadModel_((directory / "Assets/ui/multbar_5.obj"), loadedAssets);
+    multNumber = Assets::LoadModel_((directory / "Assets/ui/mult_number_plane.obj"), loadedAssets);
+    odMultFrame = Assets::LoadTextureFilter(directory / "Assets/ui/mult_base.png", loadedAssets);
+    odMultFill = Assets::LoadTextureFilter(directory / "Assets/ui/mult_fill.png", loadedAssets);
+    odMultFillActive = Assets::LoadTextureFilter(directory / "Assets/ui/mult_fill_od.png", loadedAssets);
+    multNumberTex = Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png", loadedAssets);
     odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 
@@ -74,54 +85,50 @@ void Assets::MaterialMapper() {
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
 
-    expertHighwaySides = LoadModel(((directory / "Assets/highway/sides.obj").string().c_str()));
-    expertHighway = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
-    emhHighwaySides = LoadModel((directory / "Assets/highway/sides_emh.obj").string().c_str());
-    emhHighway = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
-    odHighwayEMH = LoadModel((directory / "Assets/highway/emh.obj").string().c_str());
-    odHighwayX = LoadModel((directory / "Assets/highway/expert.obj").string().c_str());
-    highwayTexture = Assets::LoadTextureFilter(directory / "Assets/highway/highway_new.png");
-    highwayTextureOD = Assets::LoadTextureFilter(directory / "Assets/highway/highway_od.png");
-    highwaySidesTexture = Assets::LoadTextureFilter(directory/"Assets/highway/highwaysides_new.png");
+    expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides.obj", loadedAssets);
+    expertHighway = Assets::LoadModel_((directory / "Assets/highway/expert.obj"), loadedAssets);
+    emhHighwaySides = Assets::LoadModel_((directory / "Assets/highway/sides_emh.obj"), loadedAssets);
+    emhHighway = Assets::LoadModel_((directory / "Assets/highway/emh.obj"), loadedAssets);
+    odHighwayEMH = Assets::LoadModel_((directory / "Assets/highway/emh.obj"), loadedAssets);
+    odHighwayX = Assets::LoadModel_((directory / "Assets/highway/expert.obj"), loadedAssets);
+    highwayTexture = Assets::LoadTextureFilter(directory / "Assets/highway/highway_new.png", loadedAssets);
+    highwayTextureOD = Assets::LoadTextureFilter(directory / "Assets/highway/highway_od.png", loadedAssets);
+    highwaySidesTexture = Assets::LoadTextureFilter(directory / "Assets/highway/highwaysides_new.png", loadedAssets);
 
-    noteModel = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-    noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png");
-    emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
+    noteModel = Assets::LoadModel_((directory / "Assets/notes/note.obj"), loadedAssets);
+    noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
+    emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
 
-    noteModelOD = LoadModel((directory / "Assets/notes/note.obj").string().c_str());
-    noteTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note.png");
-    emitTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png");
+    noteModelOD = Assets::LoadModel_((directory / "Assets/notes/note.obj"), loadedAssets);
+    noteTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
+    emitTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
 
-    liftModel = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
-    liftModelOD = LoadModel((directory / "Assets/notes/lift.obj").string().c_str());
+    liftModel = Assets::LoadModel_((directory / "Assets/notes/lift.obj"), loadedAssets);
+    liftModelOD = Assets::LoadModel_((directory / "Assets/notes/lift.obj"), loadedAssets);
 
 
-    icon = LoadImage((directory / "Assets/encore_favicon-NEW.png").string().c_str());
-    encoreWhiteLogo = Assets::LoadTextureFilter((directory / "Assets/encore-white.png"));
-    songBackground = Assets::LoadTextureFilter((directory / "Assets/background.png"));
+    songBackground = Assets::LoadTextureFilter((directory / "Assets/background.png"), loadedAssets);
 
-    redHatDisplayItalic = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256);
-    redHatDisplayItalicLarge = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256);
-    redHatDisplayBlack = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-Black.ttf"), 256);
+    redHatDisplayItalic = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets);
+    redHatDisplayItalicLarge = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets);
+    redHatDisplayBlack = Assets::LoadFontFilter((directory/"Assets/fonts/RedHatDisplay-Black.ttf"), 256, loadedAssets);
 
-    rubik = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf"), 256);
-    rubik32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf"), 256);
-    rubikBoldItalic32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 256);
-    rubikBold32 = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Bold.ttf"), 256);
-    rubikItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Italic.ttf"), 256);
+    rubikBoldItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 256, loadedAssets);
+    rubikBold = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Bold.ttf"), 256, loadedAssets);
+    rubikItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets);
 
-    josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256);
+    josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets);
 
     sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
     bgShader = LoadShader(0, (directory / "Assets/ui/wavy.fs").string().c_str());
     bgTimeLoc= GetShaderLocation(bgShader, "time");
-    //clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
+    //clapOD = LoadSound((directory / "Assets/highway/clap.ogg"));
     //SetSoundVolume(clapOD, 0.375);
 
-    discord = Assets::LoadTextureFilter(directory/"Assets/ui/discord-mark-white.png");
-    github = Assets::LoadTextureFilter(directory/"Assets/ui/github-mark-white.png");
+    discord = Assets::LoadTextureFilter(directory/"Assets/ui/discord-mark-white.png", loadedAssets);
+    github = Assets::LoadTextureFilter(directory/"Assets/ui/github-mark-white.png", loadedAssets);
 
-    sustainTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png");
+    sustainTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png", loadedAssets);
 
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
