@@ -32,7 +32,7 @@ std::string menuVersion = ENCORE_VERSION;
 Units u;
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
-
+extern Settings settings;
 void Menu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),ColorBrightness(GetColor(0x181827FF),-0.25f));
@@ -158,7 +158,6 @@ void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, flo
 
 // todo: text box rendering for splashes, cleanup of buttons
 void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
-    Settings settings;
 
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
