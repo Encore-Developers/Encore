@@ -11,10 +11,10 @@
 #include "game/player.h"
 
 
-
 class Settings {
     Player player;
 private:
+	Settings() {}
 	rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
 		rapidjson::Value array(rapidjson::kArrayType);
 		for (const auto& value : vec) {
@@ -78,6 +78,17 @@ private:
     std::filesystem::path executablePath = GetApplicationDirectory();
     std::filesystem::path directory = executablePath.parent_path();
 public:
+
+	static Settings& getInstance() {
+		static Settings instance; // This is the single instance
+		return instance;
+	}
+
+	// Delete copy constructor and assignment operator
+	Settings(const Settings&) = delete;
+	void operator=(const Settings&) = delete;
+
+
 	rapidjson::Document settings;
 
 	std::vector<int> defaultKeybinds4K{ KEY_D,KEY_F,KEY_J,KEY_K };
@@ -931,3 +942,4 @@ public:
 		fclose(fp);
 	}
 };
+

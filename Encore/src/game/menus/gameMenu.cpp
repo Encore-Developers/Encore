@@ -28,11 +28,10 @@ const float Height = (float)GetScreenHeight();
 
 std::string menuCommitHash = GIT_COMMIT_HASH;
 std::string menuVersion = ENCORE_VERSION;
-
+Settings& settings = Settings::getInstance();
 Units u;
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
-extern Settings settings;
 void Menu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),ColorBrightness(GetColor(0x181827FF),-0.25f));
