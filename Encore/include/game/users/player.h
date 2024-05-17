@@ -23,14 +23,13 @@
 // realizing how i could just make a "SelectableEntity" class and then extend Band and Player from it instead of having
 // the logic rewritten between the two
 
-class SelectableEntity {
+
+// acts as an individual save-file
+class Player {
     std::string Name;
     std::filesystem::path SettingsFile;
     std::filesystem::path ScoreFile;
-};
-
-// acts as an individual save-file
-class Player: public SelectableEntity {
+    bool LoadPlayerScore(std::filesystem::directory_entry PlayerSaveFolder);
     bool Online;
     int PlayerNum; // zero indexed. local would be 0-3, online would be 4-7.
                    // NOTE! this is only for like. local information and
@@ -49,19 +48,26 @@ class Player: public SelectableEntity {
 // literally every team game i can think of thats pvp doesnt really do this unless its strict about teams i think
 // correct me if im wrong
 // still would be useful for co-op band stuff
-class Band: public SelectableEntity {
+class Band {
+    std::filesystem::path ScoreFile;
+    bool SoloGameplay = true; // to be true until multiple players
 
 };
 
+class PlayerManager {
 
-class SelectableEntityManager {
-    bool LoadEntities(std::filesystem::path EntityFolder); // search through files for entities
-    bool SelectEntity(std::filesystem::path EntityFolder); // select the requested entity
+    bool MakePlayerDirectory(); // run on initialization?
+    int LoadPlayerList(std::filesystem::directory_entry PlayerSaveFolder); // make player, load player stuff to PlayerList
+    std::vector<Player> PlayerList;
+
+    bool CreatePlayer(std::string PlayerName); // set it as the next one in PlayerList
+    bool DeletePlayer(Player PlayerToDelete); // remove player, reload playerlist
+    bool RenamePlayer(Player PlayerToRename); // rename player
+
 };
 
-class PlayerManager: public SelectableEntityManager {
+class PlayerGameplayStats {
+
 };
 
-class BandManager: public SelectableEntityManager {
-};
 #endif //ENCORE_PLAYER_H

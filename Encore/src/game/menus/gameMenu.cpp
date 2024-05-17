@@ -219,6 +219,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
     }
         if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - u.hpct(0.15f) - 120, 180, 60}, "Rescan Songs")) {
             songsLoaded = false;
+            songList.ScanSongs(settings.songPaths);
         }
         DrawTextureEx(assets.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54 - u.hpct(0.15f) }, 0, 0.2, WHITE);
         DrawTextureEx(assets.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
