@@ -87,9 +87,11 @@ std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
 double overdriveHitTime = 0.0;
 std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
 
-SongList songList;
+
 
 Settings settings;
+
+SongList songList;
 Assets assets;
 double lastAxesTime = 0.0;
 std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
@@ -1082,7 +1084,7 @@ int main(int argc, char* argv[])
             case SONG_SELECT: {
                 if (!menu.songsLoaded) {
 
-                    songList = songList.LoadSongs(settings.songPaths);
+                    songList = songList.LoadCache();
 
                     menu.songsLoaded = true;
                 }

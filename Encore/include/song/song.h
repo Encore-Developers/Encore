@@ -138,6 +138,9 @@ public:
 
 	std::filesystem::path midiPath = "";
 
+    std::string songDir = "";
+    std::string albumArtPath = "";
+    std::string songInfoPath = "";
 	int releaseYear = 0;
 	std::string loadingPhrase = "";
 	std::vector<std::string> charters{};
@@ -156,7 +159,8 @@ public:
 		
 		rapidjson::Document document;
 		document.Parse(jsonString.c_str());
-
+        songInfoPath = jsonPath.string();
+        songDir = jsonPath.parent_path().string();
 		if (document.IsObject()) 
 		{
 			for (auto& item : document.GetObject()) {
@@ -183,8 +187,8 @@ public:
 				if (item.name == "midi" && item.value.IsString())
 					midiPath = jsonPath.parent_path() / item.value.GetString();
 				if (item.name == "art" && item.value.IsString()) {
-					std::string artPath = (jsonPath.parent_path() / item.value.GetString()).string();
-					Image albumImage = LoadImage(artPath.c_str());
+					albumArtPath = (jsonPath.parent_path() / item.value.GetString()).string();
+					Image albumImage = LoadImage(albumArtPath.c_str());
 					if (albumImage.height > 512) {
 						ImageResize(&albumImage, 512, 512);
 					}
