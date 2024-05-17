@@ -27,7 +27,10 @@
 #include "game/audio.h"
 Menu menu;
 Player player;
+Settings& settingsMain = Settings::getInstance();
 AudioManager audioManager;
+
+
 vector<std::string> ArgumentList::arguments;
 
 static bool compareNotes(const Note& a, const Note& b) {
@@ -89,8 +92,6 @@ std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
 
 
 
-Settings settings;
-
 SongList songList;
 Assets assets;
 double lastAxesTime = 0.0;
@@ -142,7 +143,7 @@ std::string scoreCommaFormatter(int value) {
 static void handleInputs(int lane, int action){
     if (player.paused) return;
 	if (lane == -2) return;
-	if (settings.mirrorMode && lane!=-1) {
+	if (settingsMain.mirrorMode && lane!=-1) {
 		lane = (player.diff == 3 ? 4 : 3) - lane;
 	}
 	if (!streamsLoaded) {
@@ -242,7 +243,7 @@ static void handleInputs(int lane, int action){
 					if (chordLane != -1) {
 						Note& chordNote = curChart.notes[chordLane];
 						if (chordNote.held && chordNote.len > 0) {
-							if (!((player.diff == 3 && settings.keybinds5K[chordNote.lane]) || (player.diff != 3 && settings.keybinds4K[chordNote.lane]))) {
+							if (!((player.diff == 3 && settingsMain.keybinds5K[chordNote.lane]) || (player.diff != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
 								chordNote.held = false;
                                 player.score += player.sustainScoreBuffer[chordNote.lane];
                                 player.sustainScoreBuffer[chordNote.lane] = 0;
@@ -317,7 +318,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 	}
 	if (action < 2) {  // if the key action is NOT repeat (release is 0, press is 1)
 		int lane = -2;
-        if (key == settings.keybindPause && action==GLFW_PRESS) {
+        if (key == settingsMain.keybindPause && action==GLFW_PRESS) {
             player.paused = !player.paused;
             if(player.paused)
                 audioManager.pauseStreams();
@@ -329,13 +330,13 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
             }
 
         }
-        else if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
+        else if (key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) {
 			handleInputs(-1, action);
 		}
 		else {
 			if (player.diff == 3) {
 				for (int i = 0; i < 5; i++) {
-					if (key == settings.keybinds5K[i] && !heldFretsAlt[i]) {
+					if (key == settingsMain.keybinds5K[i] && !heldFretsAlt[i]) {
 						if (action == GLFW_PRESS) {
 							heldFrets[i] = true;
 						}
@@ -345,7 +346,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 						}
 						lane = i;
 					}
-					else if (key == settings.keybinds5KAlt[i] && !heldFrets[i]) {
+					else if (key == settingsMain.keybinds5KAlt[i] && !heldFrets[i]) {
 						if (action == GLFW_PRESS) {
 							heldFretsAlt[i] = true;
 						}
@@ -359,7 +360,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 			}
 			else {
 				for (int i = 0; i < 4; i++) {
-					if (key == settings.keybinds4K[i] && !heldFretsAlt[i]) {
+					if (key == settingsMain.keybinds4K[i] && !heldFretsAlt[i]) {
 						if (action == GLFW_PRESS) {
 							heldFrets[i] = true;
 						}
@@ -369,7 +370,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 						}
 						lane = i;
 					}
-					else if (key == settings.keybinds4KAlt[i] && !heldFrets[i]) {
+					else if (key == settingsMain.keybinds4KAlt[i] && !heldFrets[i]) {
 						if (action == GLFW_PRESS) {
 							heldFretsAlt[i] = true;
 						}
@@ -394,10 +395,10 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		return;
 	}
 	double eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
-    if (settings.controllerPause >= 0) {
-        if (state.buttons[settings.controllerPause] != buttonValues[settings.controllerPause]) {
-            buttonValues[settings.controllerPause] = state.buttons[settings.controllerPause];
-            if (state.buttons[settings.controllerPause] == 1) {
+    if (settingsMain.controllerPause >= 0) {
+        if (state.buttons[settingsMain.controllerPause] != buttonValues[settingsMain.controllerPause]) {
+            buttonValues[settingsMain.controllerPause] = state.buttons[settingsMain.controllerPause];
+            if (state.buttons[settingsMain.controllerPause] == 1) {
                 player.paused = !player.paused;
                 if (player.paused)
                     audioManager.pauseStreams();
@@ -411,24 +412,24 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
         }
     }
     else {
-        if (state.axes[-(settings.controllerPause + 1)] != axesValues[-(settings.controllerPause + 1)]) {
-            axesValues[-(settings.controllerPause + 1)] = state.axes[-(settings.controllerPause + 1)];
-            if (state.axes[-(settings.controllerPause + 1)] == 1.0f * (float)settings.controllerPauseAxisDirection) {
+        if (state.axes[-(settingsMain.controllerPause + 1)] != axesValues[-(settingsMain.controllerPause + 1)]) {
+            axesValues[-(settingsMain.controllerPause + 1)] = state.axes[-(settingsMain.controllerPause + 1)];
+            if (state.axes[-(settingsMain.controllerPause + 1)] == 1.0f * (float)settingsMain.controllerPauseAxisDirection) {
                 
                     
             }
         }
     }
-	if (settings.controllerOverdrive >= 0) {
-		if (state.buttons[settings.controllerOverdrive] != buttonValues[settings.controllerOverdrive]) {
-			buttonValues[settings.controllerOverdrive] = state.buttons[settings.controllerOverdrive];
-			handleInputs(-1, state.buttons[settings.controllerOverdrive]);
+	if (settingsMain.controllerOverdrive >= 0) {
+		if (state.buttons[settingsMain.controllerOverdrive] != buttonValues[settingsMain.controllerOverdrive]) {
+			buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.controllerOverdrive];
+			handleInputs(-1, state.buttons[settingsMain.controllerOverdrive]);
 		}
 	}
 	else {
-		if (state.axes[-(settings.controllerOverdrive+1)] != axesValues[-(settings.controllerOverdrive + 1)]) {
-			axesValues[-(settings.controllerOverdrive + 1)] = state.axes[-(settings.controllerOverdrive + 1)];
-			if (state.axes[-(settings.controllerOverdrive + 1)] == 1.0f*(float)settings.controllerOverdriveAxisDirection) {
+		if (state.axes[-(settingsMain.controllerOverdrive+1)] != axesValues[-(settingsMain.controllerOverdrive + 1)]) {
+			axesValues[-(settingsMain.controllerOverdrive + 1)] = state.axes[-(settingsMain.controllerOverdrive + 1)];
+			if (state.axes[-(settingsMain.controllerOverdrive + 1)] == 1.0f*(float)settingsMain.controllerOverdriveAxisDirection) {
 				handleInputs(-1, GLFW_PRESS);
 			}
 			else {
@@ -438,22 +439,22 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 	}
 	if (player.diff == 3) {
 		for (int i = 0; i < 5; i++) {
-			if (settings.controller5K[i] >= 0) {
-				if (state.buttons[settings.controller5K[i]] != buttonValues[settings.controller5K[i]]) {
-					if (state.buttons[settings.controller5K[i]] == 1)
+			if (settingsMain.controller5K[i] >= 0) {
+				if (state.buttons[settingsMain.controller5K[i]] != buttonValues[settingsMain.controller5K[i]]) {
+					if (state.buttons[settingsMain.controller5K[i]] == 1)
 						heldFrets[i] = true;
 					else {
 						heldFrets[i] = false;
 						overhitFrets[i] = false;
 					}
 						
-					handleInputs(i, state.buttons[settings.controller5K[i]]);
-					buttonValues[settings.controller5K[i]] = state.buttons[settings.controller5K[i]];
+					handleInputs(i, state.buttons[settingsMain.controller5K[i]]);
+					buttonValues[settingsMain.controller5K[i]] = state.buttons[settingsMain.controller5K[i]];
 				}
 			}
 			else {
-				if (state.axes[-(settings.controller5K[i] + 1)] != axesValues[-(settings.controller5K[i]+1)]) {
-					if (state.axes[-(settings.controller5K[i] + 1)] == 1.0f * (float)settings.controller5KAxisDirection[i]) {
+				if (state.axes[-(settingsMain.controller5K[i] + 1)] != axesValues[-(settingsMain.controller5K[i]+1)]) {
+					if (state.axes[-(settingsMain.controller5K[i] + 1)] == 1.0f * (float)settingsMain.controller5KAxisDirection[i]) {
 						heldFrets[i] = true;
 						handleInputs(i, GLFW_PRESS);
 					}
@@ -462,28 +463,28 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 						overhitFrets[i] = false;
 						handleInputs(i, GLFW_RELEASE);
 					}
-					axesValues[-(settings.controller5K[i] + 1)] = state.axes[-(settings.controller5K[i] + 1)];
+					axesValues[-(settingsMain.controller5K[i] + 1)] = state.axes[-(settingsMain.controller5K[i] + 1)];
 				}
 			}
 		}
 	}
 	else {
 		for (int i = 0; i < 4; i++) {
-			if (settings.controller4K[i] >= 0) {
-				if (state.buttons[settings.controller4K[i]] != buttonValues[settings.controller4K[i]]) {
-					if (state.buttons[settings.controller4K[i]] == 1)
+			if (settingsMain.controller4K[i] >= 0) {
+				if (state.buttons[settingsMain.controller4K[i]] != buttonValues[settingsMain.controller4K[i]]) {
+					if (state.buttons[settingsMain.controller4K[i]] == 1)
 						heldFrets[i] = true;
 					else {
 						heldFrets[i] = false;
 						overhitFrets[i] = false;
 					}
-					handleInputs(i, state.buttons[settings.controller4K[i]]);
-					buttonValues[settings.controller4K[i]] = state.buttons[settings.controller4K[i]];
+					handleInputs(i, state.buttons[settingsMain.controller4K[i]]);
+					buttonValues[settingsMain.controller4K[i]] = state.buttons[settingsMain.controller4K[i]];
 				}
 			}
 			else {
-				if (state.axes[-(settings.controller4K[i] + 1)] != axesValues[-(settings.controller4K[i] + 1)]) {
-					if (state.axes[-(settings.controller4K[i] + 1)] == 1.0f * (float)settings.controller4KAxisDirection[i]) {
+				if (state.axes[-(settingsMain.controller4K[i] + 1)] != axesValues[-(settingsMain.controller4K[i] + 1)]) {
+					if (state.axes[-(settingsMain.controller4K[i] + 1)] == 1.0f * (float)settingsMain.controller4KAxisDirection[i]) {
 						heldFrets[i] = true;
 						handleInputs(i, GLFW_PRESS);
 					}
@@ -492,7 +493,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 						overhitFrets[i] = false;
 						handleInputs(i, GLFW_RELEASE);
 					}
-					axesValues[-(settings.controller4K[i] + 1)] = state.axes[-(settings.controller4K[i] + 1)];
+					axesValues[-(settingsMain.controller4K[i] + 1)] = state.axes[-(settingsMain.controller4K[i] + 1)];
 				}
 			}
 		}
@@ -600,12 +601,12 @@ int main(int argc, char* argv[])
     std::filesystem::path directory = executablePath.parent_path();
 
     if (std::filesystem::exists(directory / "keybinds.json")) {
-        settings.migrateSettings(directory / "keybinds.json", directory / "settings.json");
+        settingsMain.migrateSettings(directory / "keybinds.json", directory / "settings.json");
     }
-    settings.loadSettings(directory / "settings.json");
+    settingsMain.loadSettings(directory / "settings.json");
 
     int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-    if (!settings.fullscreen) {
+    if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
             SetWindowState(FLAG_MSAA_4X_HINT);
@@ -652,7 +653,7 @@ int main(int argc, char* argv[])
 
 
 
-    trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+    trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]) + "x";
 
 
 
@@ -732,71 +733,71 @@ int main(int argc, char* argv[])
                 break;
             }
             case SETTINGS: {
-                if (settings.controllerType == -1 && controllerID != -1) {
+                if (settingsMain.controllerType == -1 && controllerID != -1) {
                     std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
-                    settings.controllerType = keybinds.getControllerType(gamepadName);
+                    settingsMain.controllerType = keybinds.getControllerType(gamepadName);
                 }
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
-                    settings.keybinds4K = settings.prev4K;
-                    settings.keybinds5K = settings.prev5K;
-                    settings.keybinds4KAlt = settings.prev4KAlt;
-                    settings.keybinds5KAlt = settings.prev5KAlt;
-                    settings.keybindOverdrive = settings.prevOverdrive;
-                    settings.keybindOverdriveAlt = settings.prevOverdriveAlt;
-                    settings.keybindPause = settings.prevKeybindPause;
+                    settingsMain.keybinds4K = settingsMain.prev4K;
+                    settingsMain.keybinds5K = settingsMain.prev5K;
+                    settingsMain.keybinds4KAlt = settingsMain.prev4KAlt;
+                    settingsMain.keybinds5KAlt = settingsMain.prev5KAlt;
+                    settingsMain.keybindOverdrive = settingsMain.prevOverdrive;
+                    settingsMain.keybindOverdriveAlt = settingsMain.prevOverdriveAlt;
+                    settingsMain.keybindPause = settingsMain.prevKeybindPause;
 
-                    settings.controller4K = settings.prevController4K;
-                    settings.controller4KAxisDirection = settings.prevController4KAxisDirection;
-                    settings.controller5K = settings.prevController5K;
-                    settings.controller5KAxisDirection = settings.prevController5KAxisDirection;
-                    settings.controllerOverdrive = settings.prevControllerOverdrive;
-                    settings.controllerOverdriveAxisDirection = settings.prevControllerOverdriveAxisDirection;
-                    settings.controllerType = settings.prevControllerType;
-                    settings.controllerPause = settings.prevControllerPause;
+                    settingsMain.controller4K = settingsMain.prevController4K;
+                    settingsMain.controller4KAxisDirection = settingsMain.prevController4KAxisDirection;
+                    settingsMain.controller5K = settingsMain.prevController5K;
+                    settingsMain.controller5KAxisDirection = settingsMain.prevController5KAxisDirection;
+                    settingsMain.controllerOverdrive = settingsMain.prevControllerOverdrive;
+                    settingsMain.controllerOverdriveAxisDirection = settingsMain.prevControllerOverdriveAxisDirection;
+                    settingsMain.controllerType = settingsMain.prevControllerType;
+                    settingsMain.controllerPause = settingsMain.prevControllerPause;
 
-                    settings.highwayLengthMult = settings.prevHighwayLengthMult;
-                    settings.trackSpeed = settings.prevTrackSpeed;
-                    settings.inputOffsetMS = settings.prevInputOffsetMS;
-                    settings.avOffsetMS = settings.prevAvOffsetMS;
-                    settings.missHighwayDefault = settings.prevMissHighwayColor;
-                    settings.mirrorMode = settings.prevMirrorMode;
-                    settings.fullscreen = settings.fullscreenPrev;
+                    settingsMain.highwayLengthMult = settingsMain.prevHighwayLengthMult;
+                    settingsMain.trackSpeed = settingsMain.prevTrackSpeed;
+                    settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
+                    settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
+                    settingsMain.missHighwayDefault = settingsMain.prevMissHighwayColor;
+                    settingsMain.mirrorMode = settingsMain.prevMirrorMode;
+                    settingsMain.fullscreen = settingsMain.fullscreenPrev;
 
-                    settings.saveSettings(directory / "settings.json");
+                    settingsMain.saveSettings(directory / "settingsMain.json");
 
                     menu.SwitchScreen(MENU);
                 }
                 if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
-                    settings.prev4K = settings.keybinds4K;
-                    settings.prev5K = settings.keybinds5K;
-                    settings.prev4KAlt = settings.keybinds4KAlt;
-                    settings.prev5KAlt = settings.keybinds5KAlt;
-                    settings.prevOverdrive = settings.keybindOverdrive;
-                    settings.prevOverdriveAlt = settings.keybindOverdriveAlt;
-                    settings.prevKeybindPause = settings.keybindPause;
+                    settingsMain.prev4K = settingsMain.keybinds4K;
+                    settingsMain.prev5K = settingsMain.keybinds5K;
+                    settingsMain.prev4KAlt = settingsMain.keybinds4KAlt;
+                    settingsMain.prev5KAlt = settingsMain.keybinds5KAlt;
+                    settingsMain.prevOverdrive = settingsMain.keybindOverdrive;
+                    settingsMain.prevOverdriveAlt = settingsMain.keybindOverdriveAlt;
+                    settingsMain.prevKeybindPause = settingsMain.keybindPause;
 
-                    settings.prevController4K = settings.controller4K;
-                    settings.prevController4KAxisDirection = settings.controller4KAxisDirection;
-                    settings.prevController5K = settings.controller5K;
-                    settings.prevController5KAxisDirection = settings.controller5KAxisDirection;
-                    settings.prevControllerOverdrive = settings.controllerOverdrive;
-                    settings.prevControllerPause = settings.controllerPause;
-                    settings.prevControllerOverdriveAxisDirection = settings.controllerOverdriveAxisDirection;
-                    settings.prevControllerType = settings.controllerType;
+                    settingsMain.prevController4K = settingsMain.controller4K;
+                    settingsMain.prevController4KAxisDirection = settingsMain.controller4KAxisDirection;
+                    settingsMain.prevController5K = settingsMain.controller5K;
+                    settingsMain.prevController5KAxisDirection = settingsMain.controller5KAxisDirection;
+                    settingsMain.prevControllerOverdrive = settingsMain.controllerOverdrive;
+                    settingsMain.prevControllerPause = settingsMain.controllerPause;
+                    settingsMain.prevControllerOverdriveAxisDirection = settingsMain.controllerOverdriveAxisDirection;
+                    settingsMain.prevControllerType = settingsMain.controllerType;
 
-                    settings.prevHighwayLengthMult = settings.highwayLengthMult;
-                    settings.prevTrackSpeed = settings.trackSpeed;
-                    settings.prevInputOffsetMS = settings.inputOffsetMS;
-                    settings.prevAvOffsetMS = settings.avOffsetMS;
-                    settings.prevMissHighwayColor = settings.missHighwayDefault;
-                    settings.prevMirrorMode = settings.mirrorMode;
-                    settings.fullscreenPrev = settings.fullscreen;
+                    settingsMain.prevHighwayLengthMult = settingsMain.highwayLengthMult;
+                    settingsMain.prevTrackSpeed = settingsMain.trackSpeed;
+                    settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
+                    settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
+                    settingsMain.prevMissHighwayColor = settingsMain.missHighwayDefault;
+                    settingsMain.prevMirrorMode = settingsMain.mirrorMode;
+                    settingsMain.fullscreenPrev = settingsMain.fullscreen;
 
-                    settings.saveSettings(directory / "settings.json");
+                    settingsMain.saveSettings(directory / "settingsMain.json");
 
-                    if (settings.fullscreen) {
+                    if (settingsMain.fullscreen) {
                         SetWindowState(FLAG_WINDOW_UNDECORATED);
                         SetWindowState(FLAG_MSAA_4X_HINT);
                         int CurrentMonitor = GetCurrentMonitor();
@@ -827,28 +828,28 @@ int main(int argc, char* argv[])
                     
                 if (displayedTab == 0) { //Main settings tab
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
-                        if (settings.trackSpeed == settings.trackSpeedOptions.size() - 1) settings.trackSpeed = 0; else settings.trackSpeed++;
-                        trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+                        if (settingsMain.trackSpeed == settingsMain.trackSpeedOptions.size() - 1) settingsMain.trackSpeed = 0; else settingsMain.trackSpeed++;
+                        trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]) + "x";
                     }
                     DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
 
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-                    auto avOffsetFloat = (float)settings.avOffsetMS;
-                    float lengthSetting = settings.highwayLengthMult;
+                    auto avOffsetFloat = (float)settingsMain.avOffsetMS;
+                    float lengthSetting = settingsMain.highwayLengthMult;
                     DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
                     DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
                     DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 210, 20, WHITE);
                     if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 220,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
-                        settings.avOffsetMS = (int)avOffsetFloat;
+                        settingsMain.avOffsetMS = (int)avOffsetFloat;
                     }
 
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 230,60,60 }, "-1")) {
-                        settings.avOffsetMS--;
+                        settingsMain.avOffsetMS--;
                     }
                     if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
-                        settings.avOffsetMS++;
+                        settingsMain.avOffsetMS++;
                     }
-                    DrawTextRubik(TextFormat("%01i ms",settings.avOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
+                    DrawTextRubik(TextFormat("%01i ms",settingsMain.avOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settingsMain.avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
 
 
                     float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
@@ -856,54 +857,54 @@ int main(int argc, char* argv[])
                     DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
                     DrawTextRubik(" 2.50 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
                     if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,lengthHeight,250,40 }, "", "", &lengthSetting, 0.25f, 2.5f)) {
-                        settings.highwayLengthMult = lengthSetting;
+                        settingsMain.highwayLengthMult = lengthSetting;
                     }
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
-                        settings.highwayLengthMult-= 0.25;
+                        settingsMain.highwayLengthMult-= 0.25;
                     }
                     if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" 2.50 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
-                        settings.highwayLengthMult+=0.25;
+                        settingsMain.highwayLengthMult+=0.25;
                     }
-                    DrawTextRubik(TextFormat("%1.2fx",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
+                    DrawTextRubik(TextFormat("%1.2fx",settingsMain.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settingsMain.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
 
 
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", player.MissHighwayColor ? "True" : "False"))) {
-                        settings.missHighwayDefault = !settings.missHighwayDefault;
-                        player.MissHighwayColor = settings.missHighwayDefault;
+                        settingsMain.missHighwayDefault = !settingsMain.missHighwayDefault;
+                        player.MissHighwayColor = settingsMain.missHighwayDefault;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", settings.mirrorMode ? "True" : "False"))) {
-                        settings.mirrorMode = !settings.mirrorMode;
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", settingsMain.mirrorMode ? "True" : "False"))) {
+                        settingsMain.mirrorMode = !settingsMain.mirrorMode;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 180,250,60 }, TextFormat("Fullscreen: %s", settings.fullscreen ? "True" : "False"))) {
-                        settings.fullscreen = !settings.fullscreen;
+                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 180,250,60 }, TextFormat("Fullscreen: %s", settingsMain.fullscreen ? "True" : "False"))) {
+                        settingsMain.fullscreen = !settingsMain.fullscreen;
                     }
-                    auto inputOffsetFloat = (float)settings.inputOffsetMS;
+                    auto inputOffsetFloat = (float)settingsMain.inputOffsetMS;
                     DrawTextRubik("Input Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
                     DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
                     DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 130, 20, WHITE);
                     if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 140,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
-                        settings.inputOffsetMS = (int)inputOffsetFloat;
+                        settingsMain.inputOffsetMS = (int)inputOffsetFloat;
                     }
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 150,60,60 }, "-1")) {
-                        settings.inputOffsetMS--;
+                        settingsMain.inputOffsetMS--;
                     }
                     if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20),(float)GetScreenHeight() / 2 - 150,60,60 }, "+1")) {
-                        settings.inputOffsetMS++;
+                        settingsMain.inputOffsetMS++;
                     }
-                    DrawTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
+                    DrawTextRubik(TextFormat("%01i ms",settingsMain.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settingsMain.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
                 }
                 else if (displayedTab == 1) { //Keyboard bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
                         float j = (float)i - 2.0f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, keybinds.getKeyStr(settings.keybinds5K[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, keybinds.getKeyStr(settingsMain.keybinds5K[i]).c_str())) {
                             changing4k = false;
                             changingAlt = false;
                             selLane = i;
                             changingKey = true;
                         }
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, keybinds.getKeyStr(settings.keybinds5KAlt[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, keybinds.getKeyStr(settingsMain.keybinds5KAlt[i]).c_str())) {
                             changing4k = false;
                             changingAlt = true;
                             selLane = i;
@@ -912,35 +913,35 @@ int main(int argc, char* argv[])
                     }
                     for (int i = 0; i < 4; i++) {
                         float j = (float)i - 1.5f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, keybinds.getKeyStr(settings.keybinds4K[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, keybinds.getKeyStr(settingsMain.keybinds4K[i]).c_str())) {
                             changingAlt = false;
                             changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getKeyStr(settings.keybinds4KAlt[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getKeyStr(settingsMain.keybinds4KAlt[i]).c_str())) {
                             changingAlt = true;
                             changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 130,480,120,60 }, keybinds.getKeyStr(settings.keybindOverdrive).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 130,480,120,60 }, keybinds.getKeyStr(settingsMain.keybindOverdrive).c_str())) {
                         changingAlt = false;
                         changingKey = false;
                         changingOverdrive = true;
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) + 10,480,120,60 }, keybinds.getKeyStr(settings.keybindOverdriveAlt).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) + 10,480,120,60 }, keybinds.getKeyStr(settingsMain.keybindOverdriveAlt).c_str())) {
                         changingAlt = true;
                         changingKey = false;
                         changingOverdrive = true;
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 60,560,120,60 }, keybinds.getKeyStr(settings.keybindPause).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 60,560,120,60 }, keybinds.getKeyStr(settingsMain.keybindPause).c_str())) {
                         changingKey = false;
                         changingPause = true;
                     }
                     if (changingKey) {
-                        std::vector<int>& bindsToChange = changingAlt ? (changing4k ? settings.keybinds4KAlt : settings.keybinds5KAlt) : (changing4k ? settings.keybinds4K : settings.keybinds5K);
+                        std::vector<int>& bindsToChange = changingAlt ? (changing4k ? settingsMain.keybinds4KAlt : settingsMain.keybinds5KAlt) : (changing4k ? settingsMain.keybinds4K : settingsMain.keybinds5K);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string keyString = (changing4k ? "4k" : "5k");
                         std::string altString = (changingAlt ? " alt" : "");
@@ -975,9 +976,9 @@ int main(int argc, char* argv[])
                         }
                         if (pressedKey != 0) {
                             if(changingAlt)
-                                settings.keybindOverdriveAlt = pressedKey;
+                                settingsMain.keybindOverdriveAlt = pressedKey;
                             else
-                                settings.keybindOverdriveAlt = pressedKey;
+                                settingsMain.keybindOverdriveAlt = pressedKey;
                             changingOverdrive = false;
                         }
                     }
@@ -993,7 +994,7 @@ int main(int argc, char* argv[])
                             changingPause = false;
                         }
                         if (pressedKey != 0) {
-                            settings.keybindPause = pressedKey;
+                            settingsMain.keybindPause = pressedKey;
                             changingPause = false;
                         }
                     }
@@ -1003,7 +1004,7 @@ int main(int argc, char* argv[])
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
                         float j = (float)i - 2.0f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, keybinds.getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controller5K[i], settingsMain.controllerType, settingsMain.controller5KAxisDirection[i]).c_str())) {
                             changing4k = false;
                             selLane = i;
                             changingKey = true;
@@ -1011,23 +1012,23 @@ int main(int argc, char* argv[])
                     }
                     for (int i = 0; i < 4; i++) {
                         float j = (float)i - 1.5f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getControllerStr(controllerID, settings.controller4K[i], settings.controllerType, settings.controller4KAxisDirection[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controller4K[i], settingsMain.controllerType, settingsMain.controller4KAxisDirection[i]).c_str())) {
                             changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, keybinds.getControllerStr(controllerID, settings.controllerOverdrive, settings.controllerType, settings.controllerOverdriveAxisDirection).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controllerOverdrive, settingsMain.controllerType, settingsMain.controllerOverdriveAxisDirection).c_str())) {
                         changingKey = false;
                         changingOverdrive = true;
                     } 
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,560,80,60 }, keybinds.getControllerStr(controllerID, settings.controllerPause, settings.controllerType, settings.controllerPauseAxisDirection).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,560,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controllerPause, settingsMain.controllerType, settingsMain.controllerPauseAxisDirection).c_str())) {
                         changingKey = false;
                         changingOverdrive = true;
                     }
                     if (changingKey) {
-                        std::vector<int>& bindsToChange = (changing4k ? settings.controller4K : settings.controller5K);
-                        std::vector<int>& directionToChange = (changing4k ? settings.controller4KAxisDirection : settings.controller5KAxisDirection);
+                        std::vector<int>& bindsToChange = (changing4k ? settingsMain.controller4K : settingsMain.controller5K);
+                        std::vector<int>& directionToChange = (changing4k ? settingsMain.controller4KAxisDirection : settingsMain.controller5KAxisDirection);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string keyString = (changing4k ? "4k" : "5k");
                         std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
@@ -1053,9 +1054,9 @@ int main(int argc, char* argv[])
                             changingOverdrive = false;
                         }
                         if (pressedGamepadInput != -999) {
-                            settings.controllerOverdrive = pressedGamepadInput;
+                            settingsMain.controllerOverdrive = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
-                                settings.controllerOverdriveAxisDirection = axisDirection;
+                                settingsMain.controllerOverdriveAxisDirection = axisDirection;
                             }
                             changingOverdrive = false;
                             pressedGamepadInput = -999;
@@ -1069,9 +1070,9 @@ int main(int argc, char* argv[])
                             changingPause = false;
                         }
                         if (pressedGamepadInput != -999) {
-                            settings.controllerPause = pressedGamepadInput;
+                            settingsMain.controllerPause = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
-                                settings.controllerPauseAxisDirection = axisDirection;
+                                settingsMain.controllerPauseAxisDirection = axisDirection;
                             }
                             changingPause = false;
                             pressedGamepadInput = -999;
@@ -1631,7 +1632,7 @@ int main(int argc, char* argv[])
                     }
                 }
 
-                float highwayLength = player.defaultHighwayLength * settings.highwayLengthMult;
+                float highwayLength = player.defaultHighwayLength * settingsMain.highwayLengthMult;
                 double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 if (player.overdrive) {
 
@@ -1667,10 +1668,10 @@ int main(int argc, char* argv[])
 
                 BeginMode3D(camera);
                 if (player.diff == 3) {
-                    float highwayPosShit = ((20) * (1 - settings.highwayLengthMult));
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    if (settings.highwayLengthMult > 1.0f) {
+                    float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    if (settingsMain.highwayLengthMult > 1.0f) {
                         DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
@@ -1692,7 +1693,7 @@ int main(int argc, char* argv[])
                     //DrawModel(assets.lanes, Vector3 {0,0.1f,0}, 1.0f, WHITE);
 
                     for (int i = 0; i < 4; i++) {
-                        float radius = (i == (settings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
+                        float radius = (i == (settingsMain.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
 
                         DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
                     }
@@ -1700,10 +1701,10 @@ int main(int argc, char* argv[])
                     DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
                 }
                 else {
-                    float highwayPosShit = ((20) * (1 - settings.highwayLengthMult));
-                    DrawModel(assets.emhHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    DrawModel(assets.emhHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    if (settings.highwayLengthMult > 1.0f) {
+                    float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
+                    DrawModel(assets.emhHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.emhHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    if (settingsMain.highwayLengthMult > 1.0f) {
                         DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
@@ -1732,7 +1733,7 @@ int main(int argc, char* argv[])
                 if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
                     for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
                         if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start-1 && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-                            double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
+                            double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed]  * ( 11.5f / highwayLength);
                             if (relTime > 1.5) break;
                             float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.01f;
                             DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, DARKGRAY);
@@ -1768,8 +1769,8 @@ int main(int argc, char* argv[])
                 Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
                 if (!curChart.odPhrases.empty()) {
 
-                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
-                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime) + player.VideoOffset) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime) + player.VideoOffset) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
 
                     // horrifying.
 
@@ -1822,11 +1823,11 @@ int main(int argc, char* argv[])
 
 
                             double relTime = ((curNote.time - musicTime) + player.VideoOffset) *
-                                             settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                                             settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
                             double relEnd = (((curNote.time + curNote.len) - musicTime) + player.VideoOffset) *
-                                            settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                                            settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
                             float notePosX = diffDistance - (1.0f *
-                                                             (float) (settings.mirrorMode ? (player.diff == 3 ? 4 : 3) -
+                                                             (float) (settingsMain.mirrorMode ? (player.diff == 3 ? 4 : 3) -
                                                                                             curNote.lane
                                                                                           : curNote.lane));
                             if (relTime > 1.5) {
@@ -1851,7 +1852,7 @@ int main(int argc, char* argv[])
                                 if ((curNote.len) > 0) {
                                     if (curNote.hit && curNote.held) {
                                         if (curNote.heldTime <
-                                            (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
+                                            (curNote.len * settingsMain.trackSpeedOptions[settingsMain.trackSpeed])) {
                                             curNote.heldTime = 0.0 - relTime;
                                             player.sustainScoreBuffer[curNote.lane] =
                                                     (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
