@@ -168,32 +168,27 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
     static std::string result;
     std::string line;
     if (!stringChosen) {
-        std::random_device seed;
-        std::mt19937 prng(seed());
         for (std::size_t n = 0; std::getline(splashes, line); n++) {
-            std::uniform_int_distribution<> dist(0, n);
-            if (dist(prng) < 1)
+            int rng = GetRandomValue(0, n);
+            if (rng < 1)
                 result = line;
         }
         stringChosen = true;
     }
     if (!albumArtLoaded) {
-        AlbumArtBackground = assets.highwayTexture;;
+        AlbumArtBackground = assets.highwayTexture;
+
         if (!songChosen && songsLoaded) {
-            std::random_device weez;
-            std::mt19937 jonas(weez());
-            std::uniform_int_distribution<int> nameis(0, (int) songListMenu.songs.size());
+            SetRandomSeed(GetTime());
+            int my = GetRandomValue(0, (int) songListMenu.songs.size());
 
-            static int my = nameis(jonas);
+            ChosenSong = songListMenu.songs[my];
+            ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
+            ChosenSongInt = my;
 
-            Song art = songListMenu.songs[my];
-            art.LoadAlbumArt(art.albumArtPath);
-
-            AlbumArtBackground = art.albumArtBlur;
-
+            AlbumArtBackground = ChosenSong.albumArtBlur;
+            TraceLog(LOG_INFO, ChosenSong.title.c_str());
             songChosen = true;
-
-
         } else {
             AlbumArtBackground = assets.highwayTexture;
         };

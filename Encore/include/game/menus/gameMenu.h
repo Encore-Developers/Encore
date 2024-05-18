@@ -20,10 +20,8 @@ enum Screens {
 class Menu {
 private:
 
-    bool stringChosen = false;
-    bool songChosen = false;
-    Texture2D AlbumArtBackground;
-    bool albumArtLoaded = false;
+
+    Menu() {}
 
     template<typename CharT>
     struct Separators : public std::numpunct<CharT>
@@ -44,17 +42,30 @@ private:
     void renderPlayerResults(Player player, Song song, Assets assets);
     void renderStars(Player player, float xPos, float yPos, Assets assets, float scale, bool left);
 public:
+
     void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();
     void DrawBottomBottomOvershell();
 
+    static Menu& getInstance() {
+        static Menu instance; // This is the single instance
+        return instance;
+    }
+
+    Song ChosenSong;
+    int ChosenSongInt;
     Screens currentScreen;
     bool songsLoaded{};
+    bool stringChosen = false;
+    Texture2D AlbumArtBackground;
+    bool albumArtLoaded = false;
     void showResults(Player &player, Assets assets);
     void loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);
+
+    bool songChosen = false;
 };
 
 

@@ -1,7 +1,6 @@
 ﻿
 It's Encore-ing time.
 Definitely not ripping off a popular battle royale game!
-We worship NF and The Search. We pray to him every day.
 Now available: The Encore Battle Pass! Including 30 unique skins!
 Friday Night Funkin' Modding
 Do NOT drink the Among Us potion at 3 AM.
@@ -9,11 +8,11 @@ What's better? Encore Raylib or Encore Unity?
 Player player = new Player;
 gameMenu.cpp.obj : error LNK2001: unresolved external symbol "public: static struct Player Player::player" (?player@Player@@2UPlayer@@A)
 case gameplay? like pheonix wright?
-wow its an encore in here
+wow it's an encore in here
 error C2065: 'FretAfterStrumTime': undeclared identifier
 NullReferenceException: "randomizedText" is null or undefined.
 If En, then only Core!
-Encore better add the balls or else I'm gonna be sad
+Encore better add the balls or else I am going to be sad
 #1 on the Cake By The Ocean leaderboard
 In loving memory of Zwarkledarg... gone too soon.
 Now comes with a calculator!
@@ -23,24 +22,21 @@ Also try YARG!
 Also try Rock Band 3 Deluxe!
 Also try Clone Hero!
 Also try GHWT:DE!
+Also try Partypack!
 SlowFNF
 Powered by Unity
 Powered by Scratch
 Powered by Assets assets;
-We do NOT support piracy. Piracy is bad!
-I remember you was conflicted, misusing your influence
-Also try Partypack!
+We do NOT support piracy.
 The band's back together again. And again. And again. And again.
 FREE MONEY FREE GENERATOR 2024 FREE MONEY CODES [LATEST UPDATES]
 Popular shooter game's rhythm mode - but made in China!
-baby gronk ohio amongsus tiktok rizz party livvy dunn rizz grimace quandale
+Gyatt!
 const const = "const"
 Finally... charts can be butchered by pull-off notes!
 What are those arrow notes for?
 acai if you see this please dm me "banana"
 S O N G S  I N  B I O
-Yep! Another Unity rhythm game! Clone Hero was not enough!
-The Seasn
 harmonix binder
 What if Raven Team Leader had a built-in emote where she gave you a hug
 I hope this grabs your attention!
@@ -57,3 +53,6 @@ When shit hit the fan, is you still a fan?
 John Encore thanks you!
 Technical difficulties!
 Ohio State University Frenzy but easy
+Trans Rights!
+Queer Rights!
+Love yourself!
