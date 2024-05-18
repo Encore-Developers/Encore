@@ -6,7 +6,14 @@
 #include <algorithm>
 class SongList
 {
+    SongList() {}
 public:
+
+    static SongList& getInstance() {
+        static SongList instance; // This is the single instance
+        return instance;
+    }
+
     static bool sortArtist(const Song& a, const Song& b) {
         return a.artist < b.artist;
     }
@@ -74,30 +81,38 @@ public:
                 }
             }
         }
-
+        TraceLog(LOG_INFO, "Reloading song cache");
         std::filesystem::remove("songCache.bin");
 
         std::ofstream SongCache("songCache.bin", std::ios::binary);
         size_t SongCount = list.songs.size();
-        SongCache.write(reinterpret_cast<const char*>(&SongCount), sizeof(SongCount));
+        SongCache.write(reinterpret_cast<const char*>(&SongCount),  sizeof(SongCount));
 
         for (const auto& song : list.songs) {
+            TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
             size_t nameLen = song.title.size();
             size_t songDirectoryLen = song.songDir.size();
             size_t albumArtPathLen = song.albumArtPath.size();
             size_t jsonPathLen = song.songInfoPath.size();
+            size_t artistLen = song.artist.size();
 
             SongCache.write(reinterpret_cast<const char*>(&nameLen), sizeof(nameLen));
             SongCache.write(song.title.c_str(), nameLen);
 
             SongCache.write(reinterpret_cast<const char*>(&songDirectoryLen), sizeof(songDirectoryLen));
             SongCache.write(song.songDir.c_str(), songDirectoryLen);
+            TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
 
             SongCache.write(reinterpret_cast<const char*>(&albumArtPathLen), sizeof(albumArtPathLen));
             SongCache.write(song.albumArtPath.c_str(), albumArtPathLen);
+            TraceLog(LOG_INFO, TextFormat("Album Art Path - %s", song.albumArtPath.c_str()));
+
+            SongCache.write(reinterpret_cast<const char*>(&artistLen), sizeof(artistLen));
+            SongCache.write(song.artist.c_str(), artistLen);
 
             SongCache.write(reinterpret_cast<const char*>(&jsonPathLen), sizeof(jsonPathLen));
             SongCache.write(song.songInfoPath.c_str(), jsonPathLen);
+            TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
         }
 
         SongCache.close();
@@ -105,39 +120,46 @@ public:
 
     SongList LoadCache() {
         SongList list;
-        std::ifstream SongCache("songCache.bin", std::ios::binary);
-        if (!SongCache) {
+        std::ifstream SongCacheIn("songCache.bin", std::ios::binary);
+        if (!SongCacheIn) {
             TraceLog(LOG_ERROR, "Failed to load song cache!");
             return list;
         }
 
         size_t size;
-        SongCache.read(reinterpret_cast<char*>(&size), sizeof(size));
+        SongCacheIn.read(reinterpret_cast<char*>(&size), sizeof(size));
         list.songs.resize(size);
-
+        TraceLog(LOG_INFO, "Loading song cache");
         for (auto& song : list.songs) {
-            size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen;
+            size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen, artistLen;
 
-            SongCache.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
             song.title.resize(nameLen);
-            SongCache.read(&song.title[0], nameLen);
+            SongCacheIn.read(&song.title[0], nameLen);
 
-            SongCache.read(reinterpret_cast<char*>(&albumArtPathLen), sizeof(albumArtPathLen));
-            song.albumArtPath.resize(albumArtPathLen);
-            SongCache.read(&song.albumArtPath[0], albumArtPathLen);
-
-            SongCache.read(reinterpret_cast<char*>(&directoryLen), sizeof(directoryLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&directoryLen), sizeof(directoryLen));
             song.songDir.resize(directoryLen);
-            SongCache.read(&song.songDir[0], directoryLen);
+            SongCacheIn.read(&song.songDir[0], directoryLen);
+            TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
 
-            SongCache.read(reinterpret_cast<char*>(&jsonPathLen), sizeof(jsonPathLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&albumArtPathLen), sizeof(albumArtPathLen));
+            song.albumArtPath.resize(albumArtPathLen);
+            SongCacheIn.read(&song.albumArtPath[0], albumArtPathLen);
+            TraceLog(LOG_INFO, TextFormat("Album Art Path - %s", song.albumArtPath.c_str()));
+
+            SongCacheIn.read(reinterpret_cast<char*>(&artistLen), sizeof(artistLen));
+            song.artist.resize(artistLen);
+            SongCacheIn.read(&song.artist[0], artistLen);
+
+            SongCacheIn.read(reinterpret_cast<char*>(&jsonPathLen), sizeof(jsonPathLen));
             song.songInfoPath.resize(jsonPathLen);
-            SongCache.read(&song.songInfoPath[0], jsonPathLen);
+            SongCacheIn.read(&song.songInfoPath[0], jsonPathLen);
+            TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
 
-            song.LoadSong(song.songInfoPath);
+            TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
         }
 
-        SongCache.close();
+        SongCacheIn.close();
         list.sortList(0);
         return list;
     };

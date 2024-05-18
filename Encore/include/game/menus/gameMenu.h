@@ -21,6 +21,9 @@ class Menu {
 private:
 
     bool stringChosen = false;
+    bool songChosen = false;
+    Texture2D AlbumArtBackground;
+    bool albumArtLoaded = false;
 
     template<typename CharT>
     struct Separators : public std::numpunct<CharT>
@@ -48,7 +51,7 @@ public:
     Screens currentScreen;
     bool songsLoaded{};
     void showResults(Player &player, Assets assets);
-    void loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
+    void loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);

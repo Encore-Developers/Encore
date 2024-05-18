@@ -26,9 +26,11 @@
 const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
 
+
 std::string menuCommitHash = GIT_COMMIT_HASH;
 std::string menuVersion = ENCORE_VERSION;
 Settings& settings = Settings::getInstance();
+SongList &songListMenu = SongList::getInstance();
 Units u;
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
@@ -156,7 +158,7 @@ void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, flo
 };
 
 // todo: text box rendering for splashes, cleanup of buttons
-void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
+void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
 
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
@@ -175,6 +177,35 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
         }
         stringChosen = true;
     }
+    if (!albumArtLoaded) {
+        AlbumArtBackground = assets.highwayTexture;;
+        if (!songChosen && songsLoaded) {
+            std::random_device weez;
+            std::mt19937 jonas(weez());
+            std::uniform_int_distribution<int> nameis(0, (int) songListMenu.songs.size());
+
+            static int my = nameis(jonas);
+
+            Song art = songListMenu.songs[my];
+            art.LoadAlbumArt(art.albumArtPath);
+
+            AlbumArtBackground = art.albumArtBlur;
+
+            songChosen = true;
+
+
+        } else {
+            AlbumArtBackground = assets.highwayTexture;
+        };
+        albumArtLoaded = true;
+    };
+    BeginShaderMode(assets.bgShader);
+    DrawTexturePro(AlbumArtBackground, Rectangle{0, 0, (float) AlbumArtBackground.width,
+                                                 (float) AlbumArtBackground.width},
+                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
+                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
+                   WHITE);
+    EndShaderMode();
 
     Vector2 StringBox = {u.RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x - u.winpct(0.01f),  u.hpct(0.2f)/2 - 16};
     DrawTopOvershell(0.2f);
@@ -188,7 +219,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
 
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
 
-            for (Song &songi: songList.songs) {
+            for (Song &songi: songListMenu.songs) {
                 songi.titleScrollTime = GetTime();
                 songi.titleTextWidth = assets.MeasureTextRubik(songi.title.c_str(), 24);
                 songi.artistScrollTime = GetTime();
@@ -217,7 +248,7 @@ void Menu::loadMenu(SongList songList, GLFWgamepadstatefun gamepadStateCallbackS
     }
         if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - u.hpct(0.15f) - 120, 180, 60}, "Rescan Songs")) {
             songsLoaded = false;
-            songList.ScanSongs(settings.songPaths);
+            songListMenu.ScanSongs(settings.songPaths);
         }
         DrawTextureEx(assets.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54 - u.hpct(0.15f) }, 0, 0.2, WHITE);
         DrawTextureEx(assets.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
