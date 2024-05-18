@@ -27,7 +27,8 @@
 #include "game/audio.h"
 #include <thread>
 #include <atomic>
-Menu menu;
+
+Menu menu = Menu::getInstance();
 Player player;
 Settings& settingsMain = Settings::getInstance();
 AudioManager audioManager;
@@ -64,6 +65,7 @@ std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
+int selectedSongInt = 0;
 int selLane = 0;
 bool selSong = false;
 int songSelectOffset = 0;
@@ -728,6 +730,7 @@ int main(int argc, char* argv[])
                     songList = songList.LoadCache();
                     menu.songsLoaded = true;
                 }
+
                 menu.loadMenu(gamepadStateCallbackSetControls, assets);
                 break;
             }
@@ -1097,30 +1100,18 @@ int main(int argc, char* argv[])
                 curODPhrase = 0;
                 curBeatLine = 0;
                 curBPM = 0;
-                int selectedSongInt = 0;
-                static int randSong = 0;
-                if (!albumArtSelectedAndLoaded) {
-                    std::random_device noise;
-                    std::mt19937 worker(noise());
-                    std::uniform_int_distribution<int> weezer(0, (int)songList.songs.size()-1);
-
-
-
-                    randSong = weezer(worker);
-                    albumArtSelectedAndLoaded = true;
-                }
 
                 if (selSong) {
                     selectedSongInt = curPlayingSong;
                 } else
-                    selectedSongInt = randSong;
-
-
+                    selectedSongInt = menu.ChosenSongInt;
 
                 if (!albumArtLoaded) {
-                    selectedSong = songList.songs[selectedSongInt];
+                    selectedSong = menu.ChosenSong;
+                    selectedSongInt = menu.ChosenSongInt;
                     selectedSong.LoadAlbumArt(selectedSong.albumArtPath);
                     albumArtLoaded = true;
+
                 }
 
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
@@ -1136,7 +1127,7 @@ int main(int argc, char* argv[])
                 }
                 else {
 
-                    Song art = songList.songs[randSong];
+                    Song art = menu.ChosenSong;
                     DrawTexturePro(art.albumArtBlur, Rectangle{0, 0, (float) art.albumArt.width,
                                                                (float) art.albumArt.width},
                                    Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
@@ -1179,7 +1170,7 @@ int main(int argc, char* argv[])
                                    Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
                                    WHITE);
                 } else {
-                    Song art = songList.songs[randSong];
+                    Song art = menu.ChosenSong;
                     DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
                                                           (float) art.albumArt.width},
                                   Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
@@ -1201,9 +1192,8 @@ int main(int argc, char* argv[])
                     float songXPos = u.LeftSide;//state.value * 500;
                     float songYPos = (u.hpct(0.15f)+4) + ((songEntryHeight - 1) * (i - songSelectOffset));
 
-                    if (i == curPlayingSong && selSong) {
+                    if (i == menu.ChosenSongInt) {
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.4)));
-
                     }
                     if (GuiButton(Rectangle{ songXPos, songYPos,(u.winpct(0.75f))-10, songEntryHeight }, "")) {
                         curPlayingSong = i;
@@ -1256,29 +1246,32 @@ int main(int argc, char* argv[])
                 // hehe
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
-                if (selSong) {
+
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
                     if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Play Song")) {
-                        curPlayingSong = selectedSongInt;
+                        curPlayingSong = menu.ChosenSongInt;
                         songList.songs[curPlayingSong].LoadSong(songList.songs[curPlayingSong].songInfoPath);
                         menu.SwitchScreen(READY_UP);
                         albumArtLoaded = false;
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-                }
+
                 if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.4f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Sort")) {
                     currentSortValue++;
                     if (currentSortValue == 3) currentSortValue = 0;
                     if (selSong)
                         songList.sortList(currentSortValue, curPlayingSong);
                     else
-                        songList.sortList(currentSortValue, randSong);
+                        songList.sortList(currentSortValue, menu.ChosenSongInt);
                 }
                 if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.2f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Back")) {
                     for (Song& songi : songList.songs) {
                         songi.titleXOffset = 0;
                         songi.artistXOffset = 0;
                     }
+                    menu.songChosen = false;
+                    menu.albumArtLoaded = false;
+                    menu.songsLoaded = true;
                     menu.SwitchScreen(MENU);
                 }
                 menu.DrawBottomBottomOvershell();
