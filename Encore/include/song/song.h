@@ -188,19 +188,6 @@ public:
 					midiPath = jsonPath.parent_path() / item.value.GetString();
 				if (item.name == "art" && item.value.IsString()) {
 					albumArtPath = (jsonPath.parent_path() / item.value.GetString()).string();
-					Image albumImage = LoadImage(albumArtPath.c_str());
-					if (albumImage.height > 512) {
-						ImageResize(&albumImage, 512, 512);
-					}
-					albumArt = LoadTextureFromImage(albumImage);
-					GenTextureMipmaps(&albumArt);
-					SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
-					
-					ImageBlurGaussian(&albumImage, 10);
-					albumArtBlur = LoadTextureFromImage(albumImage);
-					GenTextureMipmaps(&albumArtBlur);
-					SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
-					UnloadImage(albumImage);
 				}
 				if (item.name=="diff" && item.value.IsObject())
 				{
@@ -338,4 +325,20 @@ public:
 			}
 		}
 	}
+
+    void LoadAlbumArt(std::string artpath) {
+        Image albumImage = LoadImage(artpath.c_str());
+        if (albumImage.height > 512) {
+            ImageResize(&albumImage, 512, 512);
+        }
+        albumArt = LoadTextureFromImage(albumImage);
+        GenTextureMipmaps(&albumArt);
+        SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
+
+        ImageBlurGaussian(&albumImage, 10);
+        albumArtBlur = LoadTextureFromImage(albumImage);
+        GenTextureMipmaps(&albumArtBlur);
+        SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
+        UnloadImage(albumImage);
+    };
 };
