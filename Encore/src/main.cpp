@@ -59,6 +59,7 @@ bool diffSelected = false;
 bool diffSelection = false;
 bool instSelection = false;
 bool instSelected = false;
+bool songEnded = false;
 
 int curPlayingSong = 0;
 std::vector<int> curNoteIdx = { 0,0,0,0,0 };
@@ -1286,6 +1287,7 @@ int main(int argc, char* argv[])
                 streamsLoaded = false;
                 midiLoaded = false;
                 isPlaying = false;
+                songEnded = false;
                 player.overdrive = false;
                 curNoteIdx = { 0,0,0,0,0 };
                 curODPhrase = 0;
@@ -1814,6 +1816,9 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         midiLoaded = false;
+                        isPlaying = false;
+                        songEnded = true;
+                        songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
                         curODPhrase = 0;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
@@ -2012,7 +2017,7 @@ int main(int argc, char* argv[])
                                     curChart.odPhrases[curODPhrase].added = true;
                                 }
                             }
-                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
+                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime && !songEnded) {
                                 curNote.miss = true;
                                 player.MissNote();
                                 if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
@@ -2271,6 +2276,9 @@ int main(int argc, char* argv[])
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                         midiLoaded = false;
+                        isPlaying = false;
+                        songEnded = true;
+                        songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
                         player.quit = true;
                     }
                 }
@@ -2279,10 +2287,7 @@ int main(int argc, char* argv[])
 
             }
             case RESULTS: {
-                if (isPlaying) {
-                    songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
-                    isPlaying = false;
-                }
+                
                 if (streamsLoaded) {
                     audioManager.unloadStreams();
                     streamsLoaded = false;
