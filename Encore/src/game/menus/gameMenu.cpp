@@ -199,7 +199,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
 
             if (!songChosen && songsLoaded) {
                 SetRandomSeed(GetTime());
-                int my = GetRandomValue(0, (int) songListMenu.songs.size());
+                int my = GetRandomValue(0, (int) songListMenu.songs.size()-1);
 
                 ChosenSong = songListMenu.songs[my];
                 ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);

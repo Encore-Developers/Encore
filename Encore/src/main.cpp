@@ -846,84 +846,107 @@ int main(int argc, char* argv[])
                 }
                     
                 if (displayedTab == 0) { //Main settings tab
-                    float EntryFontSize = u.hinpct(0.03f);
-                    float EntryHeight = u.hinpct(0.04f);
-                    float EntryTop = OvershellBottom + u.hinpct(0.05f);
-                    float EntryTextLeft = u.LeftSide + u.winpct(0.015f);
-                    float EntryTextTop = EntryTop + u.hinpct(0.01f);
 
+
+                    float EntryFontSize = u.hinpct(0.03f);
+                    float EntryHeight = u.hinpct(0.05f);
+                    float EntryTop = OvershellBottom + u.hinpct(0.11f);
+                    float HeaderTextLeft = u.LeftSide + u.winpct(0.015f);
+                    float EntryTextLeft = u.LeftSide + u.winpct(0.025f);
+                    float EntryTextTop = EntryTop + u.hinpct(0.01f);
+                    float OptionLeft = u.LeftSide+u.winpct(0.99f) / 3;
+                    float OptionWidth = u.winpct(0.99f) / 3;
+                    float OptionRight = OptionLeft + OptionWidth;
                     float trackSpeedFloat = settingsMain.trackSpeed;
+                    DrawTextEx(assets.rubikBoldItalic, "Highway", {HeaderTextLeft, OvershellBottom + u.hinpct(0.055f)}, u.hinpct(0.05f), 0, WHITE);
+
                     DrawTextEx(assets.rubikBold, "Track Speed Multiplier", {EntryTextLeft, EntryTextTop}, EntryFontSize, 0, WHITE );
-                    if (GuiSliderBar({ u.wpct(0.5f), EntryTop,u.winpct(0.25f),EntryHeight }, "", "", &trackSpeedFloat, 0, settingsMain.trackSpeedOptions.size())) {
+                    if (GuiSliderBar({ OptionLeft+EntryHeight, EntryTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &trackSpeedFloat, 0, settingsMain.trackSpeedOptions.size()-1)) {
                         settingsMain.trackSpeed = trackSpeedFloat;
                     }
+                    if (GuiButton({ OptionLeft,EntryTop,EntryHeight,EntryHeight }, "<")) {
+                        if (settingsMain.trackSpeedOptions[0] < settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
+                            settingsMain.trackSpeed -= 1;
+                    }
+                    if (GuiButton({ OptionRight - EntryHeight ,EntryTop,EntryHeight,EntryHeight }, ">")) {
+                        if (settingsMain.trackSpeedOptions.back() > settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
+                            settingsMain.trackSpeed += 1;
+                    }
+                    float TrackSpeedMiddle = MeasureTextEx(assets.rubikBold, truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]).c_str(), EntryFontSize, 0).y / 2;
+                    DrawTextEx(assets.rubikBold, truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]).c_str(), {OptionRight - (OptionWidth /2) -TrackSpeedMiddle, EntryTextTop}, EntryFontSize, 0, BLACK);
 
-                    /*
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
-                        if (settingsMain.trackSpeed == settingsMain.trackSpeedOptions.size() - 1) settingsMain.trackSpeed = 0; else settingsMain.trackSpeed++;
-                        trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]) + "x";
+                    float lengthTop = EntryTop + EntryHeight;
+                    float lengthTextTop = EntryTextTop + EntryHeight;
+                    float lengthFloat = settingsMain.highwayLengthMult;
+                    DrawTextEx(assets.rubikBold, "Highway Length Multiplier", {EntryTextLeft, lengthTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiSliderBar({ OptionLeft+EntryHeight, lengthTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &lengthFloat, 0.25f, 2.5f)) {
+                        settingsMain.highwayLengthMult = lengthFloat;
                     }
-                    DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
-                    */
-                    GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-                    auto avOffsetFloat = (float)settingsMain.avOffsetMS;
-                    float lengthSetting = settingsMain.highwayLengthMult;
-                    DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
-                    DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
-                    DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 210, 20, WHITE);
-                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 220,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
-                        settingsMain.avOffsetMS = (int)avOffsetFloat;
-                    }
-
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 230,60,60 }, "-1")) {
-                        settingsMain.avOffsetMS--;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
-                        settingsMain.avOffsetMS++;
-                    }
-                    DrawTextRubik(TextFormat("%01i ms",settingsMain.avOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settingsMain.avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
-
-
-                    float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
-                    DrawTextRubik("Highway Length", (float)GetScreenWidth() / 2 - MeasureTextRubik("Highway Length", 20) / 2, lengthHeight - 20, 20, WHITE);
-                    DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
-                    DrawTextRubik(" 2.50 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
-                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,lengthHeight,250,40 }, "", "", &lengthSetting, 0.25f, 2.5f)) {
-                        settingsMain.highwayLengthMult = lengthSetting;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
+                    if (GuiButton({ OptionLeft,lengthTop,EntryHeight,EntryHeight }, "<")) {
                         settingsMain.highwayLengthMult-= 0.25;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" 2.50 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
+                    if (GuiButton({ OptionRight - EntryHeight ,lengthTop,EntryHeight,EntryHeight }, ">")) {
                         settingsMain.highwayLengthMult+=0.25;
                     }
-                    DrawTextRubik(TextFormat("%1.2fx",settingsMain.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settingsMain.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
+                    float lengthMiddle = MeasureTextEx(assets.rubikBold, truncateFloatString(settingsMain.highwayLengthMult).c_str(), EntryFontSize, 0).y / 2;
+                    DrawTextEx(assets.rubikBold, truncateFloatString(settingsMain.highwayLengthMult).c_str(), {OptionRight - (OptionWidth /2) -lengthMiddle, lengthTextTop}, EntryFontSize, 0, BLACK);
 
-
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", player.MissHighwayColor ? "True" : "False"))) {
+                    float highwayMissTop = EntryTop + (EntryHeight * 2);
+                    float highwayTextTop = EntryTextTop + (EntryHeight * 2);
+                    DrawTextEx(assets.rubikBold, "Highway Miss Color", {EntryTextLeft, highwayTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiButton({ OptionLeft, highwayMissTop,OptionWidth,EntryHeight }, TextFormat("%s", player.MissHighwayColor ? "On" : "Off"))) {
                         settingsMain.missHighwayDefault = !settingsMain.missHighwayDefault;
                         player.MissHighwayColor = settingsMain.missHighwayDefault;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", settingsMain.mirrorMode ? "True" : "False"))) {
+                    float mirrorTop = EntryTop + (EntryHeight * 3);
+                    float mirrorTextTop = EntryTextTop + (EntryHeight * 3);
+                    DrawTextEx(assets.rubikBold, "Mirror/Lefty Mode", {EntryTextLeft, mirrorTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiButton({ OptionLeft, mirrorTop,OptionWidth,EntryHeight }, TextFormat("%s", settingsMain.mirrorMode ? "On" : "Off"))) {
                         settingsMain.mirrorMode = !settingsMain.mirrorMode;
                     }
+
+                    DrawTextEx(assets.rubikBoldItalic, "Calibration", {HeaderTextLeft, OvershellBottom + u.hinpct(0.01f) + (EntryHeight * 6)}, u.hinpct(0.05f), 0, WHITE);
+
+                    float avOffsetTop = EntryTop + (EntryHeight * 5);
+                    float avTextTop = EntryTextTop + (EntryHeight * 5);
+                    auto avOffsetFloat = (float)settingsMain.avOffsetMS;
+                    DrawTextEx(assets.rubikBold, "Audio/Visual Offset", {EntryTextLeft, avTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiSliderBar({ OptionLeft+EntryHeight, avOffsetTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
+                        settingsMain.avOffsetMS = (int)avOffsetFloat;
+                    }
+                    if (GuiButton({ OptionLeft,avOffsetTop,EntryHeight,EntryHeight }, "<")) {
+                        settingsMain.avOffsetMS--;
+                    }
+                    if (GuiButton({ OptionRight - EntryHeight ,avOffsetTop,EntryHeight,EntryHeight }, ">")) {
+                        settingsMain.avOffsetMS++;
+                    }
+                    float avTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.avOffsetMS).c_str(), EntryFontSize, 0).y / 2;
+                    DrawTextEx(assets.rubikBold, to_string(settingsMain.avOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -avTextMiddle, avTextTop}, EntryFontSize, 0, BLACK);
+
+                    GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
+
+                    float inputOffsetTop = EntryTop + (EntryHeight * 6);
+                    float inputTextTop = EntryTextTop + (EntryHeight * 6);
+                    auto inputOffsetFloat = (float)settingsMain.inputOffsetMS;
+                    DrawTextEx(assets.rubikBold, "Input Offset", {EntryTextLeft, inputTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiSliderBar({ OptionLeft+EntryHeight, inputOffsetTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
+                        settingsMain.inputOffsetMS = (int)inputOffsetFloat;
+                    }
+                    if (GuiButton({ OptionLeft,inputOffsetTop,EntryHeight,EntryHeight }, "<")) {
+                        settingsMain.inputOffsetMS--;
+                    }
+                    if (GuiButton({ OptionRight - EntryHeight ,inputOffsetTop,EntryHeight,EntryHeight }, ">")) {
+                        settingsMain.inputOffsetMS++;
+                    }
+                    float inputTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), EntryFontSize, 0).y / 2;
+                    DrawTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -inputTextMiddle, inputTextTop}, EntryFontSize, 0, BLACK);
+
+                    DrawTextEx(assets.rubikBoldItalic, "General", {HeaderTextLeft, OvershellBottom + u.hinpct(0.01f) + (EntryHeight * 7)}, u.hinpct(0.05f), 0, WHITE);
+                    
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 180,250,60 }, TextFormat("Fullscreen: %s", settingsMain.fullscreen ? "True" : "False"))) {
                         settingsMain.fullscreen = !settingsMain.fullscreen;
                     }
-                    auto inputOffsetFloat = (float)settingsMain.inputOffsetMS;
-                    DrawTextRubik("Input Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
-                    DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
-                    DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 130, 20, WHITE);
-                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 140,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
-                        settingsMain.inputOffsetMS = (int)inputOffsetFloat;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 150,60,60 }, "-1")) {
-                        settingsMain.inputOffsetMS--;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20),(float)GetScreenHeight() / 2 - 150,60,60 }, "+1")) {
-                        settingsMain.inputOffsetMS++;
-                    }
-                    DrawTextRubik(TextFormat("%01i ms",settingsMain.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settingsMain.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
+
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
                 }
                 else if (displayedTab == 1) { //Keyboard bindings tab
