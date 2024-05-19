@@ -883,7 +883,7 @@ int main(int argc, char* argv[])
                     settingsMain.mirrorMode = settingsMain.prevMirrorMode;
                     settingsMain.fullscreen = settingsMain.fullscreenPrev;
 
-                    settingsMain.saveSettings(directory / "settingsMain.json");
+                    settingsMain.saveSettings(directory / "settings.json");
 
                     menu.SwitchScreen(MENU);
                 }
@@ -914,7 +914,7 @@ int main(int argc, char* argv[])
                     settingsMain.prevMirrorMode = settingsMain.mirrorMode;
                     settingsMain.fullscreenPrev = settingsMain.fullscreen;
 
-                    settingsMain.saveSettings(directory / "settingsMain.json");
+                    settingsMain.saveSettings(directory / "settings.json");
 
                     if (settingsMain.fullscreen) {
                         SetWindowState(FLAG_WINDOW_UNDECORATED);
