@@ -20,7 +20,6 @@ float BottomSide;
 float TopBorder;
 float TopSide;
 
-
     void calcUnits();
     // usable height
     float hpct(float pct);

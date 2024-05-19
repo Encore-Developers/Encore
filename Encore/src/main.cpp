@@ -746,12 +746,15 @@ int main(int argc, char* argv[])
                 float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
                 float TextPlacementLR = u.wpct(0.01f);
                 DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0,0,0,64});
+                DrawLineEx({u.LeftSide + u.winpct(0.0025f),0},{u.LeftSide + u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
+
                 menu.DrawTopOvershell(0.15f);
+                menu.DrawVersion(assets);
                 menu.DrawBottomOvershell();
                 menu.DrawBottomBottomOvershell();
                 DrawTextEx(assets.redHatDisplayBlack, "Options", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
 
-                float OvershellBottom = u.hpct(0.15f) + 6;
+                float OvershellBottom = u.hpct(0.15f);
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
                     settingsMain.keybinds4K = settingsMain.prev4K;
@@ -834,7 +837,7 @@ int main(int argc, char* argv[])
                 static int selectedTab = 0;
                 static int displayedTab = 0;
 
-                GuiToggleGroup({ u.LeftSide,OvershellBottom,u.winpct(1.0f) / 3,u.hinpct(0.05) }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
+                GuiToggleGroup({ u.LeftSide + u.winpct(0.005f),OvershellBottom,(u.winpct(0.99f) / 3 ),u.hinpct(0.05) }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
                 if (!changingKey && !changingOverdrive && !changingPause) {
                     displayedTab = selectedTab;
                 }
@@ -843,12 +846,25 @@ int main(int argc, char* argv[])
                 }
                     
                 if (displayedTab == 0) { //Main settings tab
+                    float EntryFontSize = u.hinpct(0.03f);
+                    float EntryHeight = u.hinpct(0.04f);
+                    float EntryTop = OvershellBottom + u.hinpct(0.05f);
+                    float EntryTextLeft = u.LeftSide + u.winpct(0.015f);
+                    float EntryTextTop = EntryTop + u.hinpct(0.01f);
+
+                    float trackSpeedFloat = settingsMain.trackSpeed;
+                    DrawTextEx(assets.rubikBold, "Track Speed Multiplier", {EntryTextLeft, EntryTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiSliderBar({ u.wpct(0.5f), EntryTop,u.winpct(0.25f),EntryHeight }, "", "", &trackSpeedFloat, 0, settingsMain.trackSpeedOptions.size())) {
+                        settingsMain.trackSpeed = trackSpeedFloat;
+                    }
+
+                    /*
                     if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
                         if (settingsMain.trackSpeed == settingsMain.trackSpeedOptions.size() - 1) settingsMain.trackSpeed = 0; else settingsMain.trackSpeed++;
                         trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]) + "x";
                     }
                     DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
-
+                    */
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     auto avOffsetFloat = (float)settingsMain.avOffsetMS;
                     float lengthSetting = settingsMain.highwayLengthMult;
@@ -1120,16 +1136,35 @@ int main(int argc, char* argv[])
                 } else
                     selectedSongInt = menu.ChosenSongInt;
 
+
+
+                SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
+                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+
+                Vector2 mouseWheel = GetMouseWheelMoveV();
+
+                // set to specified height
+                if (songSelectOffset <= songList.songs.size() && songSelectOffset >= 0) {
+                    songSelectOffset -= (int)mouseWheel.y;
+                }
+
+                // prevent going past top
+                if (songSelectOffset < 0)
+                    songSelectOffset = 0;
+
+                // prevent going past bottom
+                if (songSelectOffset >= songList.songs.size() - 6)
+                    songSelectOffset = (int)songList.songs.size() - 6;
+
                 if (!albumArtLoaded) {
                     selectedSong = menu.ChosenSong;
                     selectedSongInt = menu.ChosenSongInt;
                     selectedSong.LoadAlbumArt(selectedSong.albumArtPath);
+                    if (!selSong)
+                        songSelectOffset = menu.ChosenSongInt - 5;
                     albumArtLoaded = true;
-
                 }
 
-                SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
-                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
                 BeginShaderMode(assets.bgShader);
                 if (selSong){
 
@@ -1141,73 +1176,53 @@ int main(int argc, char* argv[])
                     menu.DrawAlbumArtBackground(art.albumArtBlur, assets);
                 }
                 EndShaderMode();
-                Vector2 mouseWheel = GetMouseWheelMoveV();
-                if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
-                    songSelectOffset -= (int)mouseWheel.y;
-                }
-                if (songSelectOffset < 0) songSelectOffset = 0;
-                if (songSelectOffset > songList.songs.size() + 2 - (GetScreenHeight() / 60)) songSelectOffset = (int)songList.songs.size() + 2 - (GetScreenHeight() / 60);
-                if (songSelectOffset >= songList.songs.size()) songSelectOffset = (int)songList.songs.size() - 1;
 
                 float TopOvershell = u.hpct(0.15f);
-                // DrawRectangle((int)u.LeftSide,0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawRectangle((int)u.LeftSide,0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawLineEx({u.LeftSide + u.winpct(0.0025f),0},{u.LeftSide + u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
+
                 menu.DrawTopOvershell(0.15f);
-                float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
-                float TextPlacementLR = u.wpct(0.01f);
-                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
 
 
-                DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s", encoreVersion.c_str() , commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
-
-                float AlbumX = u.RightSide - u.winpct(0.25f);
-                float AlbumY = u.hpct(0.075f);
-                float AlbumHeight = u.winpct(0.25f);
-
-                DrawRectangle(AlbumX-12,AlbumY+AlbumHeight,AlbumHeight+12,AlbumHeight+12, WHITE);
-                DrawRectangle(AlbumX-6,AlbumY+AlbumHeight,AlbumHeight,u.hinpct(0.075f)+AlbumHeight, GetColor(0x181827FF));
-                DrawRectangle(AlbumX-12,AlbumY-6,AlbumHeight+12,AlbumHeight+12, WHITE);
-                DrawRectangle(AlbumX-6,AlbumY,AlbumHeight,AlbumHeight, BLACK);
+                menu.DrawVersion(assets);
+                int AlbumX = u.RightSide - u.winpct(0.25f);
+                int AlbumY = u.hpct(0.075f);
+                int AlbumHeight = u.winpct(0.25f);
+                int AlbumOuter = u.hinpct(0.01f);
+                int AlbumInner = u.hinpct(0.005f);
+                int BorderBetweenAlbumStuff = (u.RightSide - u.LeftSide) - u.winpct(0.25f);
 
 
-                // bottom
-                if (selSong) {
-                    DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
-                                                                    (float) selectedSong.albumArt.width},
-                                   Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
-                                   WHITE);
-                } else {
-                    Song art = menu.ChosenSong;
-                    DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
-                                                          (float) art.albumArt.width},
-                                  Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
-                                  WHITE);
-                }
-                DrawTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), u.hinpct(0.025f), 0).x, AlbumY + u.hinpct(0.0075)}, u.hinpct(0.025f), 0, WHITE);
-                DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
+                DrawTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {AlbumX - (AlbumOuter * 2) - MeasureTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), u.hinpct(0.025f), 0).x, AlbumY + u.hinpct(0.0075)}, u.hinpct(0.025f), 0, WHITE);
+                DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX - (AlbumOuter * 2) - MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
 
-                BeginScissorMode(u.LeftSide, u.hpct(0.15f), u.winpct(0.75f),u.hinpct(0.7f));
+
                 float songEntryHeight = u.hinpct(0.06f);
-                for (int i = songSelectOffset; i < songSelectOffset + u.hinpct(0.15f); i++) {
+                for (int i = songSelectOffset; i < songList.songs.size() && i < songSelectOffset+12; i++) {
                     if (songList.songs.size() == i)
                         break;
                     Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic : assets.rubikBold;
                     Font& artistFont = i == curPlayingSong && selSong ? assets.josefinSansItalic : assets.josefinSansItalic;
                     Song& songi = songList.songs[i];
-                    float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
+                    // float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
-                    float songXPos = u.LeftSide;//state.value * 500;
-                    float songYPos = (u.hpct(0.15f)+4) + ((songEntryHeight - 1) * (i - songSelectOffset));
+                    float songXPos = u.LeftSide+u.winpct(0.005f)-2;
+                    float songYPos = (u.hpct(0.15f)-2) + ((songEntryHeight-1) * (i - songSelectOffset));
 
                     if (i == menu.ChosenSongInt) {
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.4)));
                     }
-                    if (GuiButton(Rectangle{ songXPos, songYPos,(u.winpct(0.75f))-10, songEntryHeight }, "")) {
+                    BeginScissorMode(u.LeftSide, u.hpct(0.15f), BorderBetweenAlbumStuff,u.hinpct(0.7f));
+                    if (GuiButton(Rectangle{ songXPos, songYPos,(u.winpct(0.75f)), songEntryHeight }, "")) {
                         curPlayingSong = i;
                         selSong = true;
                         albumArtSelectedAndLoaded = false;
                         albumArtLoaded = false;
+                        menu.ChosenSong = songList.songs[i];
+                        menu.ChosenSongInt = i;
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                    EndScissorMode();
                     // DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
                     int songTitleWidth = (u.winpct(0.3f))-6;
 
@@ -1228,7 +1243,7 @@ int main(int argc, char* argv[])
                     }
                     auto LightText = Color{203, 203, 203, 255};
                     BeginScissorMode((int)songXPos + 20, (int)songYPos, songTitleWidth, songEntryHeight);
-                    DrawTextEx(songFont,songi.title.c_str(), {songXPos + 20 + songi.titleXOffset + (i == curPlayingSong && selSong ? u.winpct(0.005f) : 0), songYPos + u.hinpct(0.0125f)}, u.hinpct(0.035f),0, i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextEx(songFont,songi.title.c_str(), {songXPos + 20 + songi.titleXOffset + (i == curPlayingSong && selSong ? u.winpct(0.005f) : 0), songYPos + u.hinpct(0.0125f)}, u.hinpct(0.035f),0, i == curPlayingSong ? WHITE : LightText);
                     EndScissorMode();
 
                     if (songi.artistTextWidth > (float)songArtistWidth) {
@@ -1245,24 +1260,48 @@ int main(int argc, char* argv[])
 
                     auto SelectedText = WHITE;
                     BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos, songArtistWidth, songEntryHeight);
-                    DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == curPlayingSong ? WHITE : LightText);
                     EndScissorMode();
                 }
-                EndScissorMode();
+
+                DrawRectangle(AlbumX-AlbumOuter,AlbumY+AlbumHeight,AlbumHeight+AlbumOuter,AlbumHeight+u.hinpct(0.01f), WHITE);
+                DrawRectangle(AlbumX-AlbumInner,AlbumY+AlbumHeight,AlbumHeight,u.hinpct(0.075f)+AlbumHeight, GetColor(0x181827FF));
+                DrawRectangle(AlbumX-AlbumOuter,AlbumY-AlbumInner,AlbumHeight+AlbumOuter,AlbumHeight+AlbumOuter, WHITE);
+                DrawRectangle(AlbumX-AlbumInner,AlbumY,AlbumHeight,AlbumHeight, BLACK);
+
+
+                // bottom
+                if (selSong) {
+                    DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
+                                                                    (float) selectedSong.albumArt.width},
+                                   Rectangle{(float)AlbumX-AlbumInner, (float)AlbumY, (float)AlbumHeight, (float)AlbumHeight}, {0, 0}, 0,
+                                   WHITE);
+                } else {
+                    Song art = menu.ChosenSong;
+                    DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
+                                                           (float) art.albumArt.width},
+                                   Rectangle{(float)AlbumX-AlbumInner, (float)AlbumY, (float)AlbumHeight, (float)AlbumHeight}, {0, 0}, 0,
+                                   WHITE);
+                }
                 // hehe
+
+                float TextPlacementTB = u.TopSide + u.hinpct(0.15f) - u.hinpct(0.11f);
+                float TextPlacementLR = u.LeftSide + u.winpct(0.01f);
+                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
+
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
 
-                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
-                    if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Play Song")) {
+                GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+                if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f)}, "Play Song")) {
                         curPlayingSong = menu.ChosenSongInt;
                         songList.songs[curPlayingSong].LoadSong(songList.songs[curPlayingSong].songInfoPath);
                         menu.SwitchScreen(READY_UP);
                         albumArtLoaded = false;
-                    }
-                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                }
+                GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
 
-                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.4f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Sort")) {
+                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.4f)-2, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f)}, "Sort")) {
                     currentSortValue++;
                     if (currentSortValue == 3) currentSortValue = 0;
                     if (selSong)
@@ -1270,21 +1309,22 @@ int main(int argc, char* argv[])
                     else
                         songList.sortList(currentSortValue, menu.ChosenSongInt);
                 }
-                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.2f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Back")) {
+                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.2f)-1, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f)}, "Back")) {
                     for (Song& songi : songList.songs) {
                         songi.titleXOffset = 0;
                         songi.artistXOffset = 0;
                     }
+                    albumArtLoaded = false;
                     menu.songChosen = false;
                     menu.albumArtLoaded = false;
                     menu.songsLoaded = true;
+                    selSong = false;
                     menu.SwitchScreen(MENU);
                 }
                 menu.DrawBottomBottomOvershell();
                 break;
             }
             case READY_UP: {
-                selSong = false;
 
                 if (!albumArtLoaded) {
                     selectedSong = songList.songs[curPlayingSong];
@@ -1302,7 +1342,7 @@ int main(int argc, char* argv[])
                 DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
 
                 menu.DrawTopOvershell(0.2f);
-                DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s", encoreVersion.c_str() , commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
+                menu.DrawVersion(assets);
 
                 DrawRectangle((int)u.LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 DrawRectangle((int)u.LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
@@ -1382,6 +1422,8 @@ int main(int argc, char* argv[])
                             instSelected = false;
                             diffSelected = false;
                             midiLoaded = false;
+                            albumArtSelectedAndLoaded = false;
+                            albumArtLoaded = false;
                             menu.SwitchScreen(SONG_SELECT);
                         }
                         else {
@@ -1542,8 +1584,8 @@ int main(int argc, char* argv[])
                     }
                     EndScissorMode();
                 }
-                DrawFPS(0,0);
-
+                DrawFPS(0,u.hpct(0.0025f) + u.hinpct(0.025f));
+                menu.DrawVersion(assets);
 
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
