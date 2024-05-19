@@ -846,9 +846,9 @@ int main(int argc, char* argv[])
                     selectedTab = displayedTab;
                 }
                     
-                if (displayedTab == 0) { //Main settings tab
+                if (displayedTab == 0) { // Main settings tab
 
-
+                    // initial math
                     float EntryFontSize = u.hinpct(0.03f);
                     float EntryHeight = u.hinpct(0.05f);
                     float EntryTop = OvershellBottom + u.hinpct(0.11f);
@@ -859,12 +859,17 @@ int main(int argc, char* argv[])
                     float OptionWidth = u.winpct(0.99f) / 3;
                     float OptionRight = OptionLeft + OptionWidth;
                     float trackSpeedFloat = settingsMain.trackSpeed;
+
+                    // header 1
                     DrawTextEx(assets.rubikBoldItalic, "Highway", {HeaderTextLeft, OvershellBottom + u.hinpct(0.055f)}, u.hinpct(0.05f), 0, WHITE);
 
+                    // breakneck speed
                     DrawTextEx(assets.rubikBold, "Track Speed Multiplier", {EntryTextLeft, EntryTextTop}, EntryFontSize, 0, WHITE );
+                    // main slider
                     if (GuiSliderBar({ OptionLeft+EntryHeight, EntryTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &trackSpeedFloat, 0, settingsMain.trackSpeedOptions.size()-1)) {
                         settingsMain.trackSpeed = trackSpeedFloat;
                     }
+                    // slider side buttons
                     if (GuiButton({ OptionLeft,EntryTop,EntryHeight,EntryHeight }, "<")) {
                         if (settingsMain.trackSpeedOptions[0] < settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
                             settingsMain.trackSpeed -= 1;
@@ -873,32 +878,40 @@ int main(int argc, char* argv[])
                         if (settingsMain.trackSpeedOptions.back() > settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
                             settingsMain.trackSpeed += 1;
                     }
+                    // slider label
                     float TrackSpeedMiddle = MeasureTextEx(assets.rubikBold, truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]).c_str(), EntryFontSize, 0).y / 2;
-                    DrawTextEx(assets.rubikBold, truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]).c_str(), {OptionRight - (OptionWidth /2) -TrackSpeedMiddle, EntryTextTop}, EntryFontSize, 0, BLACK);
+                    DrawTextEx(assets.rubikBold,truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]).c_str(), {OptionRight - (OptionWidth /2) -TrackSpeedMiddle, EntryTextTop}, EntryFontSize, 0, BLACK);
 
+                    // highway length
                     float lengthTop = EntryTop + EntryHeight;
                     float lengthTextTop = EntryTextTop + EntryHeight;
                     float lengthFloat = settingsMain.highwayLengthMult;
                     DrawTextEx(assets.rubikBold, "Highway Length Multiplier", {EntryTextLeft, lengthTextTop}, EntryFontSize, 0, WHITE );
+                    // main slider
                     if (GuiSliderBar({ OptionLeft+EntryHeight, lengthTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &lengthFloat, 0.25f, 2.5f)) {
                         settingsMain.highwayLengthMult = lengthFloat;
                     }
+                    // slider side buttons
                     if (GuiButton({ OptionLeft,lengthTop,EntryHeight,EntryHeight }, "<")) {
                         settingsMain.highwayLengthMult-= 0.25;
                     }
                     if (GuiButton({ OptionRight - EntryHeight ,lengthTop,EntryHeight,EntryHeight }, ">")) {
                         settingsMain.highwayLengthMult+=0.25;
                     }
+                    // slider label
                     float lengthMiddle = MeasureTextEx(assets.rubikBold, truncateFloatString(settingsMain.highwayLengthMult).c_str(), EntryFontSize, 0).y / 2;
                     DrawTextEx(assets.rubikBold, truncateFloatString(settingsMain.highwayLengthMult).c_str(), {OptionRight - (OptionWidth /2) -lengthMiddle, lengthTextTop}, EntryFontSize, 0, BLACK);
 
+                    // miss color
                     float highwayMissTop = EntryTop + (EntryHeight * 2);
                     float highwayTextTop = EntryTextTop + (EntryHeight * 2);
                     DrawTextEx(assets.rubikBold, "Highway Miss Color", {EntryTextLeft, highwayTextTop}, EntryFontSize, 0, WHITE );
+                    // main slider
                     if (GuiButton({ OptionLeft, highwayMissTop,OptionWidth,EntryHeight }, TextFormat("%s", player.MissHighwayColor ? "On" : "Off"))) {
                         settingsMain.missHighwayDefault = !settingsMain.missHighwayDefault;
                         player.MissHighwayColor = settingsMain.missHighwayDefault;
                     }
+                    // lefty flip
                     float mirrorTop = EntryTop + (EntryHeight * 3);
                     float mirrorTextTop = EntryTextTop + (EntryHeight * 3);
                     DrawTextEx(assets.rubikBold, "Mirror/Lefty Mode", {EntryTextLeft, mirrorTextTop}, EntryFontSize, 0, WHITE );
@@ -906,42 +919,60 @@ int main(int argc, char* argv[])
                         settingsMain.mirrorMode = !settingsMain.mirrorMode;
                     }
 
+
+                    // calibration header
                     DrawTextEx(assets.rubikBoldItalic, "Calibration", {HeaderTextLeft, OvershellBottom + u.hinpct(0.01f) + (EntryHeight * 6)}, u.hinpct(0.05f), 0, WHITE);
 
+
+                    // av offset
                     float avOffsetTop = EntryTop + (EntryHeight * 5);
                     float avTextTop = EntryTextTop + (EntryHeight * 5);
                     auto avOffsetFloat = (float)settingsMain.avOffsetMS;
+                    // label
                     DrawTextEx(assets.rubikBold, "Audio/Visual Offset", {EntryTextLeft, avTextTop}, EntryFontSize, 0, WHITE );
+                    // main slider
                     if (GuiSliderBar({ OptionLeft+EntryHeight, avOffsetTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
                         settingsMain.avOffsetMS = (int)avOffsetFloat;
                     }
+                    // slider side buttons
                     if (GuiButton({ OptionLeft,avOffsetTop,EntryHeight,EntryHeight }, "<")) {
                         settingsMain.avOffsetMS--;
                     }
                     if (GuiButton({ OptionRight - EntryHeight ,avOffsetTop,EntryHeight,EntryHeight }, ">")) {
                         settingsMain.avOffsetMS++;
                     }
+                    // slider label
                     float avTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.avOffsetMS).c_str(), EntryFontSize, 0).y / 2;
                     DrawTextEx(assets.rubikBold, to_string(settingsMain.avOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -avTextMiddle, avTextTop}, EntryFontSize, 0, BLACK);
 
+
+                    // input offset
                     float inputOffsetTop = EntryTop + (EntryHeight * 6);
                     float inputTextTop = EntryTextTop + (EntryHeight * 6);
                     auto inputOffsetFloat = (float)settingsMain.inputOffsetMS;
+                    // label
                     DrawTextEx(assets.rubikBold, "Input Offset", {EntryTextLeft, inputTextTop}, EntryFontSize, 0, WHITE );
+                    // main slider
                     if (GuiSliderBar({ OptionLeft+EntryHeight, inputOffsetTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
                         settingsMain.inputOffsetMS = (int)inputOffsetFloat;
                     }
+                    // slider side buttons
                     if (GuiButton({ OptionLeft,inputOffsetTop,EntryHeight,EntryHeight }, "<")) {
                         settingsMain.inputOffsetMS--;
                     }
                     if (GuiButton({ OptionRight - EntryHeight ,inputOffsetTop,EntryHeight,EntryHeight }, ">")) {
                         settingsMain.inputOffsetMS++;
                     }
+                    // slider label
                     float inputTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), EntryFontSize, 0).y / 2;
                     DrawTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -inputTextMiddle, inputTextTop}, EntryFontSize, 0, BLACK);
 
+
+                    // general header
                     DrawTextEx(assets.rubikBoldItalic, "General", {HeaderTextLeft, OvershellBottom + u.hinpct(0.015f) + (EntryHeight * 10)}, u.hinpct(0.05f), 0, WHITE);
 
+
+                    // fullscreen
                     float fullscreenTop = EntryTop + (EntryHeight * 9);
                     float fullscreenTextTop = EntryTextTop + (EntryHeight * 9);
                     DrawTextEx(assets.rubikBold, "Fullscreen", {EntryTextLeft, fullscreenTextTop}, EntryFontSize, 0, WHITE );
