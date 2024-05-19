@@ -78,6 +78,17 @@ double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
 
+bool isCalibrating = false;
+double calibrationStartTime = 0.0;
+double lastClickTime = 0.0;
+std::vector<double> tapTimes;
+const int clickInterval = 1;
+
+bool showInputFeedback = false;
+double inputFeedbackStartTime = 0.0;
+const double inputFeedbackDuration = 0.6;
+float inputFeedbackAlpha = 1.0f;
+
 std::string trackSpeedButton;
 
 std::string encoreVersion = ENCORE_VERSION;
@@ -737,6 +748,94 @@ int main(int argc, char* argv[])
                 menu.loadMenu(gamepadStateCallbackSetControls, assets);
                 break;
             }
+            case CALIBRATION: {
+
+                static bool sampleLoaded = false;
+                if (!sampleLoaded) {
+                    audioManager.loadSample("Assets/kick.wav", "click");
+                    sampleLoaded = true;
+                }
+
+                if (GuiButton({ (float)GetScreenWidth() / 2 - 250, (float)GetScreenHeight() - 120, 200, 60 }, "Start Calibration")) {
+                    isCalibrating = true;
+                    calibrationStartTime = GetTime();
+                    lastClickTime = calibrationStartTime;
+                    tapTimes.clear();
+                }
+                if (GuiButton({ (float)GetScreenWidth() / 2 + 50, (float)GetScreenHeight() - 120, 200, 60 }, "Stop Calibration")) {
+                    isCalibrating = false;
+                    
+                    if (tapTimes.size() > 1) {
+                        double totalDifference = 0.0;
+                        for (double tapTime : tapTimes) {
+                            double expectedClickTime = round((tapTime - calibrationStartTime) / clickInterval) * clickInterval + calibrationStartTime;
+                            totalDifference += (tapTime - expectedClickTime);
+                        }
+                        settingsMain.avOffsetMS = static_cast<int>((totalDifference / tapTimes.size()) * 1000);  // Convert to milliseconds
+                        settingsMain.inputOffsetMS = settingsMain.avOffsetMS;
+                        std::cout << static_cast<int>((totalDifference / tapTimes.size()) * 1000) << "ms of latency detected" << std::endl;
+                    }
+                    std::cout << "Stopped Calibration" << std::endl;
+                    tapTimes.clear();
+                }
+                
+                if (isCalibrating) {
+                    double currentTime = GetTime();
+                    double elapsedTime = currentTime - lastClickTime;
+
+                    if (elapsedTime >= clickInterval) {
+                        audioManager.playSample("click");
+                        lastClickTime += clickInterval;  // Increment by the interval to avoid missing clicks
+                        std::cout << "Click" << std::endl;
+                    }
+
+                    if (IsKeyPressed(settingsMain.keybindOverdrive)) {
+                        tapTimes.push_back(currentTime);
+                        std::cout << "Input Registered" << std::endl;
+
+                        showInputFeedback = true;
+                        inputFeedbackStartTime = currentTime;
+                        inputFeedbackAlpha = 1.0f;
+                    }
+                }
+
+                if (showInputFeedback) {
+                    double currentTime = GetTime();
+                    double timeSinceInput = currentTime - inputFeedbackStartTime;
+                    if (timeSinceInput > inputFeedbackDuration) {
+                        showInputFeedback = false;
+                    } else {
+                        inputFeedbackAlpha = 1.0f - (timeSinceInput / inputFeedbackDuration);
+                    }
+                }
+
+                if (showInputFeedback) {
+                    Color feedbackColor = {0, 255, 0, static_cast<unsigned char>(inputFeedbackAlpha * 255)};
+                    DrawTextEx(assets.rubikBold, "Input Registered", {static_cast<float>((GetScreenWidth() - u.hinpct(0.35f)) / 2), static_cast<float>(GetScreenHeight() / 2)}, u.hinpct(0.05f), 0, feedbackColor);
+                }
+
+                if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel")) {
+                    isCalibrating = false;
+                    settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
+                    settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
+                    tapTimes.clear();
+
+                    settingsMain.saveSettings(directory / "settingsMain.json");
+                    menu.SwitchScreen(SETTINGS);
+                }
+
+                if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+                    isCalibrating = false;
+                    settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
+                    settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
+                    tapTimes.clear();
+
+                    settingsMain.saveSettings(directory / "settingsMain.json");
+                    menu.SwitchScreen(SETTINGS);
+                }
+            
+                break;
+            }
             case SETTINGS: {
                 if (menu.songsLoaded)
                     menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
@@ -968,6 +1067,12 @@ int main(int argc, char* argv[])
                     float inputTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), EntryFontSize, 0).y / 2;
                     DrawTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -inputTextMiddle, inputTextTop}, EntryFontSize, 0, BLACK);
 
+                    float calibrationTop = EntryTop + (EntryHeight * 7);
+                    float calibrationTextTop = EntryTextTop + (EntryHeight * 7);  
+                    DrawTextEx(assets.rubikBold, "Automatic Calibration", {EntryTextLeft, calibrationTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiButton({ OptionLeft, calibrationTop,OptionWidth,EntryHeight }, "Start Calibration")) {
+                        menu.SwitchScreen(CALIBRATION);
+                    }
 
                     // general header
                     DrawTextEx(assets.rubikBoldItalic, "General", {HeaderTextLeft, OvershellBottom + u.hinpct(0.015f) + (EntryHeight * 10)}, u.hinpct(0.05f), 0, WHITE);
