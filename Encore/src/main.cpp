@@ -84,6 +84,11 @@ double lastClickTime = 0.0;
 std::vector<double> tapTimes;
 const int clickInterval = 1;
 
+bool showInputFeedback = false;
+double inputFeedbackStartTime = 0.0;
+const double inputFeedbackDuration = 0.6;
+float inputFeedbackAlpha = 1.0f;
+
 std::string trackSpeedButton;
 
 std::string encoreVersion = ENCORE_VERSION;
@@ -783,10 +788,29 @@ int main(int argc, char* argv[])
                         std::cout << "Click" << std::endl;
                     }
 
-                    if (IsKeyPressed(KEY_SPACE)) {
+                    if (IsKeyPressed(settingsMain.keybindOverdrive)) {
                         tapTimes.push_back(currentTime);
                         std::cout << "Input Registered" << std::endl;
+
+                        showInputFeedback = true;
+                        inputFeedbackStartTime = currentTime;
+                        inputFeedbackAlpha = 1.0f;
                     }
+                }
+
+                if (showInputFeedback) {
+                    double currentTime = GetTime();
+                    double timeSinceInput = currentTime - inputFeedbackStartTime;
+                    if (timeSinceInput > inputFeedbackDuration) {
+                        showInputFeedback = false;
+                    } else {
+                        inputFeedbackAlpha = 1.0f - (timeSinceInput / inputFeedbackDuration);
+                    }
+                }
+
+                if (showInputFeedback) {
+                    Color feedbackColor = {0, 255, 0, static_cast<unsigned char>(inputFeedbackAlpha * 255)};
+                    DrawTextEx(assets.rubikBold, "Input Registered", {static_cast<float>((GetScreenWidth() - u.hinpct(0.35f)) / 2), static_cast<float>(GetScreenHeight() / 2)}, u.hinpct(0.05f), 0, feedbackColor);
                 }
 
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel")) {
