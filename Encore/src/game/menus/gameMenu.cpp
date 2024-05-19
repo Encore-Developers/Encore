@@ -35,20 +35,20 @@ Units u;
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 void Menu::DrawTopOvershell(float TopOvershell) {
-    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)+6,WHITE);
-    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),ColorBrightness(GetColor(0x181827FF),-0.25f));
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),WHITE);
+    DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)-u.hinpct(0.005f),ColorBrightness(GetColor(0x181827FF),-0.25f));
 }
 
 void Menu::DrawBottomOvershell() {
     float BottomOvershell = GetScreenHeight() - u.hpct(0.15f);
-    DrawRectangle(0,BottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
+    DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
+    DrawRectangle(0,BottomOvershell+u.hinpct(0.005f),(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
 }
 
 void Menu::DrawBottomBottomOvershell() {
     float BottomBottomOvershell = GetScreenHeight() - u.hpct(0.1f);
-    DrawRectangle(0,BottomBottomOvershell-6,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
-    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
+    DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
+    DrawRectangle(0,BottomBottomOvershell+u.hinpct(0.005f),(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
 }
 
 // should be reduced to just PlayerSongStats (instead of Player) eventually
@@ -170,6 +170,11 @@ void Menu::DrawAlbumArtBackground(Texture2D song, Assets assets) {
     EndShaderMode();
 };
 
+void Menu::DrawVersion(Assets assets) {
+    DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0.0025f), u.hpct(0.0025f)}, u.hinpct(0.025f), 0, WHITE);
+};
+
+
 // todo: text box rendering for splashes, cleanup of buttons
 void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
 
@@ -220,7 +225,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
     DrawBottomBottomOvershell();
     menuCommitHash.erase(7);
     float logoHeight = u.hinpct(0.145f);
-    DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0.0025f), u.hpct(0.0025f)}, u.hinpct(0.025f), 0, WHITE);
+    DrawVersion(assets);
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, SplashFontSize, 0, WHITE);
 
     Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.04f), Remap(assets.encoreWhiteLogo.height, 0, assets.encoreWhiteLogo.width / 4.25, 0, u.winpct(0.5f)), logoHeight};
