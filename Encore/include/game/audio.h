@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <filesystem>
+#include <unordered_map>
 class AudioManager {
 public:
 	struct audioStream {
@@ -21,4 +22,10 @@ public:
     void pauseStreams();
     void playStreams();
     void restartStreams();
+	
+    void loadSample(const std::string& path, const std::string& name);
+    void playSample(const std::string& name);
+
+private:
+    std::unordered_map<std::string, unsigned int> samples;
 };
