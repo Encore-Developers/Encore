@@ -820,7 +820,7 @@ int main(int argc, char* argv[])
                     settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
                     tapTimes.clear();
 
-                    settingsMain.saveSettings(directory / "settingsMain.json");
+                    settingsMain.saveSettings(directory / "settings.json");
                     menu.SwitchScreen(SETTINGS);
                 }
 
@@ -830,7 +830,7 @@ int main(int argc, char* argv[])
                     settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
                     tapTimes.clear();
 
-                    settingsMain.saveSettings(directory / "settingsMain.json");
+                    settingsMain.saveSettings(directory / "settings.json");
                     menu.SwitchScreen(SETTINGS);
                 }
             
