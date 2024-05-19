@@ -745,8 +745,9 @@ int main(int argc, char* argv[])
                 }
                 float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
                 float TextPlacementLR = u.wpct(0.01f);
-                DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0,0,0,64});
+                DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0,0,0,128});
                 DrawLineEx({u.LeftSide + u.winpct(0.0025f),0},{u.LeftSide + u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
+                DrawLineEx({u.RightSide - u.winpct(0.0025f),0},{u.RightSide - u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
 
                 menu.DrawTopOvershell(0.15f);
                 menu.DrawVersion(assets);
@@ -923,8 +924,6 @@ int main(int argc, char* argv[])
                     float avTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.avOffsetMS).c_str(), EntryFontSize, 0).y / 2;
                     DrawTextEx(assets.rubikBold, to_string(settingsMain.avOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -avTextMiddle, avTextTop}, EntryFontSize, 0, BLACK);
 
-                    GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-
                     float inputOffsetTop = EntryTop + (EntryHeight * 6);
                     float inputTextTop = EntryTextTop + (EntryHeight * 6);
                     auto inputOffsetFloat = (float)settingsMain.inputOffsetMS;
@@ -941,13 +940,15 @@ int main(int argc, char* argv[])
                     float inputTextMiddle = MeasureTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), EntryFontSize, 0).y / 2;
                     DrawTextEx(assets.rubikBold, to_string(settingsMain.inputOffsetMS).c_str(), {OptionRight - (OptionWidth /2) -inputTextMiddle, inputTextTop}, EntryFontSize, 0, BLACK);
 
-                    DrawTextEx(assets.rubikBoldItalic, "General", {HeaderTextLeft, OvershellBottom + u.hinpct(0.01f) + (EntryHeight * 7)}, u.hinpct(0.05f), 0, WHITE);
-                    
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 180,250,60 }, TextFormat("Fullscreen: %s", settingsMain.fullscreen ? "True" : "False"))) {
+                    DrawTextEx(assets.rubikBoldItalic, "General", {HeaderTextLeft, OvershellBottom + u.hinpct(0.015f) + (EntryHeight * 10)}, u.hinpct(0.05f), 0, WHITE);
+
+                    float fullscreenTop = EntryTop + (EntryHeight * 9);
+                    float fullscreenTextTop = EntryTextTop + (EntryHeight * 9);
+                    DrawTextEx(assets.rubikBold, "Fullscreen", {EntryTextLeft, fullscreenTextTop}, EntryFontSize, 0, WHITE );
+                    if (GuiButton({ OptionLeft, fullscreenTop,OptionWidth,EntryHeight }, TextFormat("%s", settingsMain.fullscreen ? "On" : "Off"))) {
                         settingsMain.fullscreen = !settingsMain.fullscreen;
                     }
 
-                    GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
                 }
                 else if (displayedTab == 1) { //Keyboard bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);

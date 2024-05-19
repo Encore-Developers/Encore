@@ -198,7 +198,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
             AlbumArtBackground = assets.highwayTexture;
 
             if (!songChosen && songsLoaded) {
-                SetRandomSeed(GetTime());
+                SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count()*GetTime());
                 int my = GetRandomValue(0, (int) songListMenu.songs.size()-1);
 
                 ChosenSong = songListMenu.songs[my];
