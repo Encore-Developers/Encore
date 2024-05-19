@@ -64,7 +64,7 @@ public:
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);
-
+    void DrawAlbumArtBackground(Texture2D song, Assets assets);
     bool songChosen = false;
 };
 

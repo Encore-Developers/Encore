@@ -88,6 +88,7 @@ public:
         size_t SongCount = list.songs.size();
         SongCache.write(reinterpret_cast<const char*>(&SongCount),  sizeof(SongCount));
 
+
         for (const auto& song : list.songs) {
             TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
             size_t nameLen = song.title.size();
@@ -95,6 +96,7 @@ public:
             size_t albumArtPathLen = song.albumArtPath.size();
             size_t jsonPathLen = song.songInfoPath.size();
             size_t artistLen = song.artist.size();
+            size_t lengthLen =  std::to_string(song.length).size();
 
             SongCache.write(reinterpret_cast<const char*>(&nameLen), sizeof(nameLen));
             SongCache.write(song.title.c_str(), nameLen);
@@ -113,6 +115,10 @@ public:
             SongCache.write(reinterpret_cast<const char*>(&jsonPathLen), sizeof(jsonPathLen));
             SongCache.write(song.songInfoPath.c_str(), jsonPathLen);
             TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
+
+            SongCache.write(reinterpret_cast<const char*>(&lengthLen), sizeof(lengthLen));
+            SongCache.write(std::to_string(song.length).c_str(), lengthLen);
+            TraceLog(LOG_INFO, std::to_string(song.length).c_str());
         }
 
         SongCache.close();
@@ -126,12 +132,14 @@ public:
             return list;
         }
 
+
         size_t size;
         SongCacheIn.read(reinterpret_cast<char*>(&size), sizeof(size));
         list.songs.resize(size);
         TraceLog(LOG_INFO, "Loading song cache");
         for (auto& song : list.songs) {
-            size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen, artistLen;
+            size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen, artistLen, lengthLen;
+            std::string LengthString;
 
             SongCacheIn.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
             song.title.resize(nameLen);
@@ -156,7 +164,14 @@ public:
             SongCacheIn.read(&song.songInfoPath[0], jsonPathLen);
             TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
 
+            SongCacheIn.read(reinterpret_cast<char*>(&lengthLen), sizeof(lengthLen));
+            LengthString.resize(lengthLen);
+            SongCacheIn.read(&LengthString[0], lengthLen);
+            TraceLog(LOG_INFO, TextFormat("Song Length - %s", LengthString.c_str()));
+
             TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
+
+            song.length = std::stoi(LengthString);
         }
 
         SongCacheIn.close();

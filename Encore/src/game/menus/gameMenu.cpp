@@ -156,6 +156,19 @@ void Menu::renderStars(Player player, float xPos, float yPos, Assets assets, flo
         DrawTexturePro(player.goldStars?assets.goldStar:assets.star, {0,0,(float)assets.emptyStar.width,(float)assets.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
     }
 };
+void Menu::DrawAlbumArtBackground(Texture2D song, Assets assets) {
+    float diagonalLength = sqrtf((float)(GetScreenWidth() * GetScreenWidth()) + (float)(GetScreenHeight() * GetScreenHeight()));
+    float RectXPos = GetScreenWidth() / 2;
+    float RectYPos = diagonalLength / 2;
+
+    BeginShaderMode(assets.bgShader);
+    DrawTexturePro(song, Rectangle{0, 0, (float) song.width,
+                                                 (float) song.width},
+                   Rectangle{RectXPos, -RectYPos * 2,
+                             diagonalLength * 2, diagonalLength * 2}, {0,0}, 45,
+                   WHITE);
+    EndShaderMode();
+};
 
 // todo: text box rendering for splashes, cleanup of buttons
 void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets) {
@@ -175,43 +188,45 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
         }
         stringChosen = true;
     }
-    if (!albumArtLoaded) {
-        AlbumArtBackground = assets.highwayTexture;
-
-        if (!songChosen && songsLoaded) {
-            SetRandomSeed(GetTime());
-            int my = GetRandomValue(0, (int) songListMenu.songs.size());
-
-            ChosenSong = songListMenu.songs[my];
-            ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
-            ChosenSongInt = my;
-
-            AlbumArtBackground = ChosenSong.albumArtBlur;
-            TraceLog(LOG_INFO, ChosenSong.title.c_str());
-            songChosen = true;
-        } else {
+    if (std::filesystem::exists("songCache.bin")) {
+        if (!albumArtLoaded) {
             AlbumArtBackground = assets.highwayTexture;
-        };
-        albumArtLoaded = true;
-    };
-    BeginShaderMode(assets.bgShader);
-    DrawTexturePro(AlbumArtBackground, Rectangle{0, 0, (float) AlbumArtBackground.width,
-                                                 (float) AlbumArtBackground.width},
-                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
-                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
-                   WHITE);
-    EndShaderMode();
 
-    Vector2 StringBox = {u.RightSide - MeasureTextEx(assets.josefinSansItalic, result.c_str(), 32, 1).x - u.winpct(0.01f),  u.hpct(0.2f)/2 - 16};
+            if (!songChosen && songsLoaded) {
+                SetRandomSeed(GetTime());
+                int my = GetRandomValue(0, (int) songListMenu.songs.size());
+
+                ChosenSong = songListMenu.songs[my];
+                ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
+                ChosenSongInt = my;
+
+                AlbumArtBackground = ChosenSong.albumArtBlur;
+                TraceLog(LOG_INFO, ChosenSong.title.c_str());
+                songChosen = true;
+            } else {
+                AlbumArtBackground = assets.highwayTexture;
+            };
+            albumArtLoaded = true;
+
+        };
+        DrawAlbumArtBackground(AlbumArtBackground, assets);
+    }
+    float SplashFontSize = u.hinpct(0.03f);
+    float SplashHeight = MeasureTextEx(assets.josefinSansItalic, result.c_str(), SplashFontSize, 0).y;
+    float SplashWidth = MeasureTextEx(assets.josefinSansItalic, result.c_str(), SplashFontSize, 0).x;
+    Vector2 StringBox = {u.RightSide - SplashWidth - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (SplashHeight/2)};
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     menuCommitHash.erase(7);
-    DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
-    DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, 32, 0, WHITE);
-    DrawTextureEx(assets.encoreWhiteLogo, { u.LeftSide + u.winpct(0.01f), u.hpct(0.19f)-(assets.encoreWhiteLogo.height*0.5f)}, 0, 0.5, WHITE);
+    float logoHeight = u.hinpct(0.145f);
+    DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0.0025f), u.hpct(0.0025f)}, u.hinpct(0.025f), 0, WHITE);
+    DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, SplashFontSize, 0, WHITE);
 
+    Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.04f), Remap(assets.encoreWhiteLogo.height, 0, assets.encoreWhiteLogo.width / 4.25, 0, u.winpct(0.5f)), logoHeight};
+    DrawTexturePro(assets.encoreWhiteLogo, {0,0,(float)assets.encoreWhiteLogo.width,(float)assets.encoreWhiteLogo.height}, LogoRect, {0,0}, 0, WHITE);
 
+    if (std::filesystem::exists("songCache.bin")) {
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
 
             for (Song &songi: songListMenu.songs) {
@@ -222,6 +237,14 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
             }
             Menu::SwitchScreen(SONG_SELECT);
         }
+
+    }else{
+        GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, ColorToInt(Color{128,0,0,255}));
+        GuiButton({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60}, "Invalid song cache!");
+
+        DrawRectanglePro({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60},{0,0},0, Color{0,0,0,64});
+        GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, 0x181827FF);
+    }
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 30, 200, 60},
                       "Options")) {
             glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);

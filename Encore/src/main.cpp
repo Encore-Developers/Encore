@@ -727,18 +727,31 @@ int main(int argc, char* argv[])
         switch (menu.currentScreen) {
             case MENU: {
                 if (!menu.songsLoaded) {
-                    songList = songList.LoadCache();
-                    menu.songsLoaded = true;
+                    if (std::filesystem::exists("songCache.bin")) {
+                        songList = songList.LoadCache();
+                        menu.songsLoaded = true;
+                    }
                 }
 
                 menu.loadMenu(gamepadStateCallbackSetControls, assets);
                 break;
             }
             case SETTINGS: {
+                if (menu.songsLoaded)
+                    menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
                 if (settingsMain.controllerType == -1 && controllerID != -1) {
                     std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
                     settingsMain.controllerType = keybinds.getControllerType(gamepadName);
                 }
+                float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
+                float TextPlacementLR = u.wpct(0.01f);
+                DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0,0,0,64});
+                menu.DrawTopOvershell(0.15f);
+                menu.DrawBottomOvershell();
+                menu.DrawBottomBottomOvershell();
+                DrawTextEx(assets.redHatDisplayBlack, "Options", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
+
+                float OvershellBottom = u.hpct(0.15f) + 6;
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
                     settingsMain.keybinds4K = settingsMain.prev4K;
@@ -820,7 +833,8 @@ int main(int argc, char* argv[])
                 }
                 static int selectedTab = 0;
                 static int displayedTab = 0;
-                GuiToggleGroup({ 0,0,(float)GetScreenWidth() / 3,60 }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
+
+                GuiToggleGroup({ u.LeftSide,OvershellBottom,u.winpct(1.0f) / 3,u.hinpct(0.05) }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
                 if (!changingKey && !changingOverdrive && !changingPause) {
                     displayedTab = selectedTab;
                 }
@@ -1088,8 +1102,8 @@ int main(int argc, char* argv[])
                 if (!menu.songsLoaded) {
 
                     songList = songList.LoadCache();
-
                     menu.songsLoaded = true;
+
                 }
                 u.calcUnits();
                 streamsLoaded = false;
@@ -1119,20 +1133,12 @@ int main(int argc, char* argv[])
                 BeginShaderMode(assets.bgShader);
                 if (selSong){
 
-                    DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0, 0, (float) selectedSong.albumArt.width,
-                                                                        (float) selectedSong.albumArt.width},
-                                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
-                                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
-                                   WHITE);
+                    menu.DrawAlbumArtBackground(selectedSong.albumArtBlur, assets);
                 }
                 else {
 
                     Song art = menu.ChosenSong;
-                    DrawTexturePro(art.albumArtBlur, Rectangle{0, 0, (float) art.albumArt.width,
-                                                               (float) art.albumArt.width},
-                                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
-                                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
-                                   WHITE);
+                    menu.DrawAlbumArtBackground(art.albumArtBlur, assets);
                 }
                 EndShaderMode();
                 Vector2 mouseWheel = GetMouseWheelMoveV();
@@ -1181,7 +1187,7 @@ int main(int argc, char* argv[])
 
                 BeginScissorMode(u.LeftSide, u.hpct(0.15f), u.winpct(0.75f),u.hinpct(0.7f));
                 float songEntryHeight = u.hinpct(0.06f);
-                for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
+                for (int i = songSelectOffset; i < songSelectOffset + u.hinpct(0.15f); i++) {
                     if (songList.songs.size() == i)
                         break;
                     Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic : assets.rubikBold;
@@ -1286,10 +1292,8 @@ int main(int argc, char* argv[])
                     albumArtLoaded = true;
                 }
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
-                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X); 
-                BeginShaderMode(assets.bgShader);
-                DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-                EndShaderMode();
+                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+                menu.DrawAlbumArtBackground(selectedSong.albumArtBlur, assets);
 
                 float AlbumArtLeft = u.LeftSide;
                 float AlbumArtTop = u.hpct(0.05f);
