@@ -770,6 +770,7 @@ int main(int argc, char* argv[])
                         std::cout << static_cast<int>((totalDifference / tapTimes.size()) * 1000) << "ms of latency detected" << std::endl;
                     }
                     std::cout << "Stopped Calibration" << std::endl;
+                    tapTimes.clear();
                 }
                 
                 if (isCalibrating) {
@@ -789,16 +790,20 @@ int main(int argc, char* argv[])
                 }
 
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel")) {
+                    isCalibrating = false;
                     settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
                     settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
+                    tapTimes.clear();
 
                     settingsMain.saveSettings(directory / "settingsMain.json");
                     menu.SwitchScreen(SETTINGS);
                 }
 
                 if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+                    isCalibrating = false;
                     settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
                     settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
+                    tapTimes.clear();
 
                     settingsMain.saveSettings(directory / "settingsMain.json");
                     menu.SwitchScreen(SETTINGS);
