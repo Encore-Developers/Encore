@@ -14,7 +14,8 @@ enum Screens {
     READY_UP,
     GAMEPLAY,
     RESULTS,
-    SETTINGS
+    SETTINGS,
+    CALIBRATION
 };
 
 class Menu {

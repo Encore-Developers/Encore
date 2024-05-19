@@ -328,5 +328,7 @@ void Menu::SwitchScreen(Screens screen){
             break;
         case SETTINGS:
             break;
+        case CALIBRATION:
+            break;
     }
 }

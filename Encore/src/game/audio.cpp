@@ -15,6 +15,7 @@
 #include "GLFW/glfw3native.h"
 #include <vector>
 #include <filesystem>
+#include <iostream>
 
 bool AudioManager::Init() {
 #ifdef WIN32
@@ -73,4 +74,22 @@ void AudioManager::BeginPlayback(unsigned int handle) {
 }
 void AudioManager::StopPlayback(unsigned int handle) {
 	BASS_ChannelStop(handle);
+}
+void AudioManager::loadSample(const std::string& path, const std::string& name) {
+    unsigned int sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 1, 0);
+    if (sample) {
+        samples[name] = sample;
+    } else {
+        std::cerr << "Failed to load sample: " << path << std::endl;
+    }
+}
+
+void AudioManager::playSample(const std::string& name) {
+    auto it = samples.find(name);
+    if (it != samples.end()) {
+        HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
+        BASS_ChannelPlay(channel, true);
+    } else {
+        std::cerr << "Sample not found: " << name << std::endl;
+    }
 }
