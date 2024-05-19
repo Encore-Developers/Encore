@@ -176,4 +176,21 @@ public:
 			}
 		}
 	}
+	void resetNotes() {
+		for (Note& note : notes) {
+			note.accounted = false;
+			note.hit = false;
+			note.miss = false;
+			note.held = false;
+			note.heldTime = 0;
+			note.hitTime = 0;
+			note.perfect = false;
+			note.countedForODPhrase = false;
+		}
+		for (odPhrase& phrase : odPhrases) {
+			phrase.missed = false;
+			phrase.notesHit = 0;
+			phrase.added = false;
+		}
+	}
 };
