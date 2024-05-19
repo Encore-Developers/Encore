@@ -225,6 +225,7 @@ static void handleInputs(int lane, int action){
 									chordNote.perfect = true;
 
 								}
+                                chordNote.accounted = true;
 								if (chordNote.perfect) player.lastNotePerfect = true;
 								else player.lastNotePerfect = false;
 							}
@@ -1197,7 +1198,7 @@ int main(int argc, char* argv[])
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
 
                 Vector2 mouseWheel = GetMouseWheelMoveV();
-
+                int lastIntChosen = (int)mouseWheel.y;
                 // set to specified height
                 if (songSelectOffset <= songList.songs.size() && songSelectOffset >= 0) {
                     songSelectOffset -= (int)mouseWheel.y;
@@ -1256,8 +1257,8 @@ int main(int argc, char* argv[])
                 for (int i = songSelectOffset; i < songList.songs.size() && i < songSelectOffset+12; i++) {
                     if (songList.songs.size() == i)
                         break;
-                    Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic : assets.rubikBold;
-                    Font& artistFont = i == curPlayingSong && selSong ? assets.josefinSansItalic : assets.josefinSansItalic;
+                    Font& songFont = i == menu.ChosenSongInt ? assets.rubikBoldItalic : assets.rubikBold;
+                    Font& artistFont = i == menu.ChosenSongInt ? assets.josefinSansItalic : assets.josefinSansItalic;
                     Song& songi = songList.songs[i];
                     // float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
@@ -1298,7 +1299,7 @@ int main(int argc, char* argv[])
                     }
                     auto LightText = Color{203, 203, 203, 255};
                     BeginScissorMode((int)songXPos + 20, (int)songYPos, songTitleWidth, songEntryHeight);
-                    DrawTextEx(songFont,songi.title.c_str(), {songXPos + 20 + songi.titleXOffset + (i == curPlayingSong && selSong ? u.winpct(0.005f) : 0), songYPos + u.hinpct(0.0125f)}, u.hinpct(0.035f),0, i == curPlayingSong ? WHITE : LightText);
+                    DrawTextEx(songFont,songi.title.c_str(), {songXPos + 20 + songi.titleXOffset + (i == menu.ChosenSongInt ? u.winpct(0.005f) : 0), songYPos + u.hinpct(0.0125f)}, u.hinpct(0.035f),0, i == menu.ChosenSongInt ? WHITE : LightText);
                     EndScissorMode();
 
                     if (songi.artistTextWidth > (float)songArtistWidth) {
@@ -1315,7 +1316,7 @@ int main(int argc, char* argv[])
 
                     auto SelectedText = WHITE;
                     BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos, songArtistWidth, songEntryHeight);
-                    DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == curPlayingSong ? WHITE : LightText);
+                    DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == menu.ChosenSongInt ? WHITE : LightText);
                     EndScissorMode();
                 }
 
@@ -1699,7 +1700,7 @@ int main(int argc, char* argv[])
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)+0.5) {
+                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)+player.VideoOffset) {
                         for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
                             note.accounted = false;
                             note.hit = false;

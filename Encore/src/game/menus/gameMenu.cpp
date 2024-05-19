@@ -71,7 +71,7 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
         DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
                                ColorContrast(ColorBrightness(GOLD, -0.5f), -0.25f));
     }
-    if (player.perfectHit==song.parts[player.instrument]->charts[player.diff].notes.size() && rendAsFC) {
+    if (player.perfectHit==player.notes && rendAsFC) {
         DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
                                ColorBrightness(WHITE, -0.5f));
     }
@@ -80,7 +80,7 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.4f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.4f),WHITE);
 
     float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), u.hinpct(0.07f), 1).x /2);
-    float Percent = ((float)player.notesHit/song.parts[player.instrument]->charts[player.diff].notes.size()) * 100;
+    float Percent = floorf(((float)player.notesHit/ (float)player.notes) * 100.0f);
 
     DrawTextEx(
             assets.redHatDisplayItalic,
@@ -135,12 +135,12 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), {cardPos + u.winpct(0.11f) -
                                                                                                                                           (MeasureTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), u.hinpct(0.04f),0).x/2), statsHeight+u.hinpct(0.175f)}, u.hinpct(0.04f),0,WHITE);
 
-
-    DrawTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(assets.rubik, TextFormat("%01i", player.notesHit-player.perfectHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.notesHit-player.perfectHit), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.035f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(assets.rubik, TextFormat("%01i", player.notesMissed), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.notesMissed), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(assets.rubik, TextFormat("%01i", player.maxCombo), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.maxCombo), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
+    int MaxNotes = song.parts[player.instrument]->charts[player.diff].notes.size();
+    DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.perfectHit, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.perfectHit, player.notes), u.hinpct(0.03f), 0).x, statsHeight}, u.hinpct(0.03f), 0, WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.notesHit-player.perfectHit, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.notesHit-player.perfectHit, player.notes), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.035f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.notesMissed, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.notesMissed, player.notes), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.maxCombo, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.maxCombo, player.notes), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
 };
 
 // todo: replace player with band stats
@@ -278,17 +278,16 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
                       WHITE);
 }
 
+bool AlbumArtLoadingStuff = false;
 void Menu::showResults(Player &player, Assets assets) {
 
 
     Song songToBeJudged = player.songToBeJudged;
-    BeginShaderMode(assets.bgShader);
-    DrawTexturePro(songToBeJudged.albumArtBlur, Rectangle{0, 0, (float) songToBeJudged.albumArt.width,
-                                                          (float) songToBeJudged.albumArt.width},
-                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
-                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
-                   WHITE);
-    EndShaderMode();
+    if (!AlbumArtLoadingStuff){
+        songToBeJudged.LoadAlbumArt(songToBeJudged.albumArtPath);
+        AlbumArtLoadingStuff = true;
+    }
+    DrawAlbumArtBackground(songToBeJudged.albumArtBlur, assets);
 
     for (int i = 0; i < 4; i++) {
         renderPlayerResults(player, songToBeJudged, assets);
@@ -325,6 +324,7 @@ void Menu::SwitchScreen(Screens screen){
         case GAMEPLAY:
             break;
         case RESULTS:
+            AlbumArtLoadingStuff = false;
             break;
         case SETTINGS:
             break;
