@@ -31,7 +31,7 @@ std::string menuCommitHash = GIT_COMMIT_HASH;
 std::string menuVersion = ENCORE_VERSION;
 Settings& settings = Settings::getInstance();
 SongList &songListMenu = SongList::getInstance();
-Units u;
+Units u = Units::getInstance();
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 void Menu::DrawTopOvershell(float TopOvershell) {
