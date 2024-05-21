@@ -1807,7 +1807,7 @@ int main(int argc, char* argv[])
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)+0.5) {
+                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);
                         // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
@@ -2292,6 +2292,11 @@ int main(int argc, char* argv[])
                     audioManager.unloadStreams();
                     streamsLoaded = false;
                 }
+                if (!albumArtLoaded){
+                    menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
+                    albumArtLoaded = true;
+                }
+                menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
                 menu.showResults(player, assets);
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     player.quit = false;
