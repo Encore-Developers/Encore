@@ -26,6 +26,7 @@
 const float Width = (float)GetScreenWidth();
 const float Height = (float)GetScreenHeight();
 
+bool randomSongChosen = false;
 
 std::string menuCommitHash = GIT_COMMIT_HASH;
 std::string menuVersion = ENCORE_VERSION;
@@ -198,12 +199,17 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
             AlbumArtBackground = assets.highwayTexture;
 
             if (!songChosen && songsLoaded) {
-                SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count()*GetTime());
-                int my = GetRandomValue(0, (int) songListMenu.songs.size()-1);
+                if (!randomSongChosen) {
+                    SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count() * GetTime());
+                    int my = GetRandomValue(0, (int) songListMenu.songs.size() - 1);
 
-                ChosenSong = songListMenu.songs[my];
-                ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
-                ChosenSongInt = my;
+                    ChosenSong = songListMenu.songs[my];
+                    ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
+                    ChosenSongInt = my;
+                    randomSongChosen = true;
+                } else {
+                    ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
+                }
 
                 AlbumArtBackground = ChosenSong.albumArtBlur;
                 TraceLog(LOG_INFO, ChosenSong.title.c_str());

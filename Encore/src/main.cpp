@@ -1446,9 +1446,9 @@ int main(int argc, char* argv[])
                         songi.artistXOffset = 0;
                     }
                     albumArtLoaded = false;
-                    menu.songChosen = false;
                     menu.albumArtLoaded = false;
                     menu.songsLoaded = true;
+                    menu.songChosen = false;
                     selSong = false;
                     menu.SwitchScreen(MENU);
                 }
