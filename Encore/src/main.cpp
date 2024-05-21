@@ -899,6 +899,26 @@ int main(int argc, char* argv[])
                 }
                 if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
+                    if (settingsMain.fullscreen) {
+                        SetWindowState(FLAG_WINDOW_UNDECORATED);
+                        SetWindowState(FLAG_MSAA_4X_HINT);
+                        int CurrentMonitor = GetCurrentMonitor();
+                        SetWindowPosition(0,0);
+                        SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
+                    } else {
+                        if (IsWindowState(FLAG_WINDOW_UNDECORATED)){
+                            ClearWindowState(FLAG_WINDOW_UNDECORATED);
+                            SetWindowState(FLAG_MSAA_4X_HINT);
+                        }
+                        if (settingsMain.fullscreen != settingsMain.fullscreenPrev) {
+                            SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75,
+                                          GetMonitorHeight(GetCurrentMonitor()) * 0.75);
+                            SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5) -
+                                              (GetMonitorWidth(GetCurrentMonitor()) * 0.375),
+                                              (GetMonitorHeight(GetCurrentMonitor()) * 0.5) -
+                                              (GetMonitorHeight(GetCurrentMonitor()) * 0.375));
+                        }
+                    }
                     settingsMain.prev4K = settingsMain.keybinds4K;
                     settingsMain.prev5K = settingsMain.keybinds5K;
                     settingsMain.prev4KAlt = settingsMain.keybinds4KAlt;
@@ -926,22 +946,7 @@ int main(int argc, char* argv[])
 
                     settingsMain.saveSettings(directory / "settings.json");
 
-                    if (settingsMain.fullscreen) {
-                        SetWindowState(FLAG_WINDOW_UNDECORATED);
-                        SetWindowState(FLAG_MSAA_4X_HINT);
-                        int CurrentMonitor = GetCurrentMonitor();
-                        SetWindowPosition(0,0);
-                        SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
-                    } else {
-                        if (IsWindowState(FLAG_WINDOW_UNDECORATED)){
-                            ClearWindowState(FLAG_WINDOW_UNDECORATED);
-                            SetWindowState(FLAG_MSAA_4X_HINT);
-                        }
-                        SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75, GetMonitorHeight(GetCurrentMonitor()) * 0.75);
-                        SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375),
-                                          (GetMonitorHeight(GetCurrentMonitor()) * 0.5) -
-                                          (GetMonitorHeight(GetCurrentMonitor()) * 0.375));
-                    }
+
 
                     menu.SwitchScreen(MENU);
                 }
