@@ -79,7 +79,7 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.2f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.2f),WHITE);
     DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.4f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.4f),WHITE);
 
-    float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), u.hinpct(0.07f), 1).x /2);
+    float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(assets.redHatDisplayItalic, scoreCommaFormatter(player.score).c_str(), u.hinpct(0.07f), 0).x /2);
     float Percent = floorf(((float)player.notesHit/ (float)player.notes) * 100.0f);
 
     DrawTextEx(
@@ -281,16 +281,8 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
 bool AlbumArtLoadingStuff = false;
 void Menu::showResults(Player &player, Assets assets) {
 
-
-    Song songToBeJudged = player.songToBeJudged;
-    if (!AlbumArtLoadingStuff){
-        songToBeJudged.LoadAlbumArt(songToBeJudged.albumArtPath);
-        AlbumArtLoadingStuff = true;
-    }
-    DrawAlbumArtBackground(songToBeJudged.albumArtBlur, assets);
-
     for (int i = 0; i < 4; i++) {
-        renderPlayerResults(player, songToBeJudged, assets);
+        renderPlayerResults(player, ChosenSong, assets);
     }
 
     DrawTopOvershell(0.2f);
