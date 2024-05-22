@@ -750,7 +750,7 @@ int main(int argc, char* argv[])
             case MENU: {
                 if (!menu.songsLoaded) {
                     if (std::filesystem::exists("songCache.bin")) {
-                        songList = songList.LoadCache();
+                        songList = songList.LoadCache(settingsMain.songPaths);
                         menu.songsLoaded = true;
                     }
                 }
@@ -1252,7 +1252,7 @@ int main(int argc, char* argv[])
             case SONG_SELECT: {
                 if (!menu.songsLoaded) {
 
-                    songList = songList.LoadCache();
+                    songList = songList.LoadCache(settingsMain.songPaths);
                     menu.songsLoaded = true;
 
                 }
@@ -1267,9 +1267,9 @@ int main(int argc, char* argv[])
                 curBeatLine = 0;
                 curBPM = 0;
 
-                if (selSong) {
+                if (selSong) 
                     selectedSongInt = curPlayingSong;
-                } else
+                else
                     selectedSongInt = menu.ChosenSongInt;
 
 
