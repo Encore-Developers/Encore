@@ -48,9 +48,8 @@ void Assets::LoadAssets() {
     smasherReg = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
     smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png", loadedAssets);
 
-
-    smasherBoard = Assets::LoadModel_((directory / "Assets/highway/new_board.obj"), loadedAssets);
-    smasherBoardTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_board_new.png", loadedAssets);
+    smasherBoardTex = Assets::LoadTextureFilter(directory / "Assets/highway/board.png", loadedAssets);
+    smasherBoard = Assets::LoadModel_((directory / "Assets/highway/board_x.obj"), loadedAssets);
     smasherBoardEMH = Assets::LoadModel_((directory / "Assets/highway/board_emh.obj"), loadedAssets);
 
     lanes = Assets::LoadModel_((directory / "Assets/highway/lanes.obj"), loadedAssets);
@@ -85,15 +84,15 @@ void Assets::LoadAssets() {
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
 
-    expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides.obj", loadedAssets);
-    expertHighway = Assets::LoadModel_((directory / "Assets/highway/expert.obj"), loadedAssets);
+    expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
+    expertHighway = Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
     emhHighwaySides = Assets::LoadModel_((directory / "Assets/highway/sides_emh.obj"), loadedAssets);
-    emhHighway = Assets::LoadModel_((directory / "Assets/highway/emh.obj"), loadedAssets);
-    odHighwayEMH = Assets::LoadModel_((directory / "Assets/highway/emh.obj"), loadedAssets);
-    odHighwayX = Assets::LoadModel_((directory / "Assets/highway/expert.obj"), loadedAssets);
-    highwayTexture = Assets::LoadTextureFilter(directory / "Assets/highway/highway_new.png", loadedAssets);
-    highwayTextureOD = Assets::LoadTextureFilter(directory / "Assets/highway/highway_od.png", loadedAssets);
-    highwaySidesTexture = Assets::LoadTextureFilter(directory / "Assets/highway/highwaysides_new.png", loadedAssets);
+    emhHighway = Assets::LoadModel_((directory / "Assets/highway/highway_emh.obj"), loadedAssets);
+    odHighwayEMH = Assets::LoadModel_((directory / "Assets/highway/overdrive_emh.obj"), loadedAssets);
+    odHighwayX = Assets::LoadModel_((directory / "Assets/highway/overdrive_x.obj"), loadedAssets);
+    highwayTexture = Assets::LoadTextureFilter(directory / "Assets/highway/highway.png", loadedAssets);
+    highwayTextureOD = Assets::LoadTextureFilter(directory / "Assets/highway/overdrive.png", loadedAssets);
+    highwaySidesTexture = Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
 
     noteModel = Assets::LoadModel_((directory / "Assets/notes/note.obj"), loadedAssets);
     noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);

@@ -1700,34 +1700,53 @@ int main(int argc, char* argv[])
 
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
-                float scorePos = (float)(GetScreenWidth()/4)* 3;
+                float scorePos = u.RightSide;
+                float scoreY = u.hpct(0.15f);
+                float starY = scoreY + u.hinpct(0.05f);
+                float comboY = starY + u.hinpct(0.055f);
+
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
                 int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
                 float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
                 for (int i = 0; i < 5; i++) {
                     bool firstStar = (i == 0);
-                    DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),u.hpct(0.075f)},0,0.15f,WHITE);
-                    float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, 40);
-                    BeginScissorMode((scorePos+(i*40)), u.hpct(0.125f)-yMaskPos, 40, yMaskPos);
-                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),u.hpct(0.075f) },0,0.15f,i != starsval ? WHITE : Color{192,192,192,128});
+                    float starX = scorePos - u.hinpct(0.26) + (i*u.hinpct(0.05));
+                    float starWH = u.hinpct(0.05);
+                    Rectangle emptyStarWH = {0,0,(float)assets.emptyStar.width, (float)assets.emptyStar.height};
+                    Rectangle starRect = {starX, starY, starWH,starWH};
+
+                    DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, {0,0},0,WHITE);
+                    float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, u.hinpct(0.05));
+                    BeginScissorMode(starX, (starY+starWH)-yMaskPos, starWH, yMaskPos);
+                    DrawTexturePro(assets.star, emptyStarWH, starRect, {0,0},0,i != starsval ? WHITE : Color{192,192,192,128});
                     EndScissorMode();
                 }
+
                 if (starPercent >= player.xStarThreshold[4]) {
-                    float yMaskPos = Remap(starPercent, player.xStarThreshold[4], player.xStarThreshold[5], 0, 40);
-                    BeginScissorMode((scorePos), u.hpct(0.125f) -yMaskPos, scorePos, yMaskPos);
+
+                    float starWH = u.hinpct(0.05);
+                    Rectangle emptyStarWH = {0,0,(float)assets.goldStar.width, (float)assets.goldStar.height};
+
+
+                    float yMaskPos = Remap(starPercent, player.xStarThreshold[4], player.xStarThreshold[5], 0, u.hinpct(0.05));
+                    BeginScissorMode(scorePos - (starWH*6), (starY+starWH)-yMaskPos, scorePos, yMaskPos);
                     for (int i = 0; i < 5; i++) {
-                        DrawTextureEx(player.goldStars ? assets.goldStar : assets.star, {(scorePos + (i * 40.0f)), u.hpct(0.075f)}, 0, 0.15f, player.goldStars ? WHITE : GOLD);
+                        float starX = scorePos - u.hinpct(0.26) + (i*u.hinpct(0.05));
+                        Rectangle starRect = {starX, starY, starWH,starWH};
+                        DrawTexturePro(player.goldStars ? assets.goldStar : assets.star, emptyStarWH, starRect,
+                                       {0, 0}, 0, player.goldStars ? WHITE : ColorAlpha(GOLD, 0.5f));
                     }
                     EndScissorMode();
+
                 }
-                DrawFPS(0,u.hpct(0.0025f) + u.hinpct(0.025f));
+                DrawFPS(u.LeftSide,u.hpct(0.0025f) + u.hinpct(0.025f));
                 menu.DrawVersion(assets);
 
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), u.hpct(0.025f), u.hinpct(0.05f), Color{107, 161, 222,255});
-                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), u.hpct(0.125f), u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), scoreY, u.hinpct(0.05f), Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), comboY, u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
@@ -1780,7 +1799,7 @@ int main(int argc, char* argv[])
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)) {
+                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)-player.VideoOffset) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);
                         // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
@@ -1788,6 +1807,7 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
+                        menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
                         isPlaying = false;
                         songEnded = true;
@@ -2235,6 +2255,7 @@ int main(int argc, char* argv[])
                         // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
                         // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
                         menu.SwitchScreen(RESULTS);
+                        menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         player.overdrive = false;
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
@@ -2265,10 +2286,8 @@ int main(int argc, char* argv[])
                     audioManager.unloadStreams();
                     streamsLoaded = false;
                 }
-                if (!albumArtLoaded){
-                    menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
-                    albumArtLoaded = true;
-                }
+
+
                 menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
                 menu.showResults(player, assets);
                 if (GuiButton({ 0,0,60,60 }, "<")) {
