@@ -1289,8 +1289,8 @@ int main(int argc, char* argv[])
                     songSelectOffset = 0;
 
                 // prevent going past bottom
-                if (songSelectOffset >= songList.songs.size() - 6)
-                    songSelectOffset = (int)songList.songs.size() - 6;
+                if (songSelectOffset >= songList.songs.size() - 12)
+                    songSelectOffset = (int)songList.songs.size() - 12;
 
                 if (!albumArtLoaded) {
                     selectedSong = menu.ChosenSong;
