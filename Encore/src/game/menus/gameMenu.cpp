@@ -248,11 +248,11 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
             }
             Menu::SwitchScreen(SONG_SELECT);
         }
-
     }else{
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, ColorToInt(Color{128,0,0,255}));
         GuiButton({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60}, "Invalid song cache!");
-
+        songListMenu.ScanSongs(settings.songPaths); 
+        songsLoaded = false;
         DrawRectanglePro({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60},{0,0},0, Color{0,0,0,64});
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, 0x181827FF);
     }

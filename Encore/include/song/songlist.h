@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <thread>
 #include <algorithm>
+#include <set>
 class SongList
 {
     SongList() {}
@@ -63,40 +64,32 @@ public:
             }
         }
     }
-    void ScanSongs(const std::vector<std::filesystem::path>& songsFolder)
-    {
-        SongList list;
-        for (const auto & i : songsFolder) {
-            for (const auto &entry: std::filesystem::directory_iterator(i)) {
-                if (std::filesystem::is_directory(entry)) {
-                    list.directoryCount++;
-                    if (std::filesystem::exists(entry.path() / "info.json")) {
-                        Song song;
-                        song.LoadSong(entry.path() / "info.json");
-                        list.songs.push_back(song);
-                        list.songCount++;
-                    } else {
-                        list.badSongCount++;
-                    }
-                }
-            }
-        }
-        TraceLog(LOG_INFO, "Reloading song cache");
+
+    void WriteCache() {
+        WriteCache(songs);
+    }
+    void WriteCache(std::vector<Song> songs) {
         std::filesystem::remove("songCache.bin");
 
         std::ofstream SongCache("songCache.bin", std::ios::binary);
-        size_t SongCount = list.songs.size();
-        SongCache.write(reinterpret_cast<const char*>(&SongCount),  sizeof(SongCount));
+
+        const char header[7] = "ENCORE";
+        SongCache.write(header, 6);
+        uint16_t version = 1;
+        SongCache.write(reinterpret_cast<const char*>(&version), 2);
+
+        size_t SongCount = songs.size();
+        SongCache.write(reinterpret_cast<const char*>(&SongCount), sizeof(SongCount));
 
 
-        for (const auto& song : list.songs) {
+        for (const auto& song : songs) {
             TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
             size_t nameLen = song.title.size();
             size_t songDirectoryLen = song.songDir.size();
             size_t albumArtPathLen = song.albumArtPath.size();
             size_t jsonPathLen = song.songInfoPath.size();
             size_t artistLen = song.artist.size();
-            size_t lengthLen =  std::to_string(song.length).size();
+            size_t lengthLen = std::to_string(song.length).size();
 
             SongCache.write(reinterpret_cast<const char*>(&nameLen), sizeof(nameLen));
             SongCache.write(song.title.c_str(), nameLen);
@@ -124,7 +117,30 @@ public:
         SongCache.close();
     }
 
-    SongList LoadCache() {
+
+    void ScanSongs(const std::vector<std::filesystem::path>& songsFolder)
+    {
+        SongList list;
+        for (const auto & i : songsFolder) {
+            for (const auto &entry: std::filesystem::directory_iterator(i)) {
+                if (std::filesystem::is_directory(entry)) {
+                    list.directoryCount++;
+                    if (std::filesystem::exists(entry.path() / "info.json")) {
+                        Song song;
+                        song.LoadSong(entry.path() / "info.json");
+                        list.songs.push_back(song);
+                        list.songCount++;
+                    } else {
+                        list.badSongCount++;
+                    }
+                }
+            }
+        }
+        TraceLog(LOG_INFO, "Rewriting song cache");
+        WriteCache();
+    }
+
+    SongList LoadCache(const std::vector<std::filesystem::path>& songsFolder) {
         SongList list;
         std::ifstream SongCacheIn("songCache.bin", std::ios::binary);
         if (!SongCacheIn) {
@@ -132,17 +148,30 @@ public:
             return list;
         }
 
+        // Read header
+        char header[6];
+        SongCacheIn.read(header, 6);
+        if (std::string(header, 6) != "ENCORE") {
+            TraceLog(LOG_ERROR, "Invalid song cache format, rescanning");
+            SongCacheIn.close();
+            ScanSongs(songsFolder);
+            return LoadCache(songsFolder);
+        }
+
+        uint16_t version;
+        SongCacheIn.read(reinterpret_cast<char*>(&version), 2);
 
         size_t size;
         SongCacheIn.read(reinterpret_cast<char*>(&size), sizeof(size));
         list.songs.resize(size);
         TraceLog(LOG_INFO, "Loading song cache");
-        int idx=0;
+
+        std::set<std::string> loadedSongs;  // To track loaded songs and avoid duplicates
+        int idx = 0;
         for (auto& ___ : list.songs) {
             size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen, artistLen, lengthLen;
             std::string LengthString;
             Song& song = list.songs[idx];
-
             SongCacheIn.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
             song.title.resize(nameLen);
             SongCacheIn.read(&song.title[0], nameLen);
@@ -158,7 +187,6 @@ public:
             SongCacheIn.read(reinterpret_cast<char*>(&albumArtPathLen), sizeof(albumArtPathLen));
             song.albumArtPath.resize(albumArtPathLen);
             SongCacheIn.read(&song.albumArtPath[0], albumArtPathLen);
-            TraceLog(LOG_INFO, TextFormat("Album Art Path - %s", song.albumArtPath.c_str()));
 
             SongCacheIn.read(reinterpret_cast<char*>(&artistLen), sizeof(artistLen));
             song.artist.resize(artistLen);
@@ -167,22 +195,42 @@ public:
             SongCacheIn.read(reinterpret_cast<char*>(&jsonPathLen), sizeof(jsonPathLen));
             song.songInfoPath.resize(jsonPathLen);
             SongCacheIn.read(&song.songInfoPath[0], jsonPathLen);
-            TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
 
             SongCacheIn.read(reinterpret_cast<char*>(&lengthLen), sizeof(lengthLen));
             LengthString.resize(lengthLen);
             SongCacheIn.read(&LengthString[0], lengthLen);
-            TraceLog(LOG_INFO, TextFormat("Song Length - %s", LengthString.c_str()));
-
-            TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
 
             song.length = std::stoi(LengthString);
+            loadedSongs.insert(song.songDir);
             idx++;
         }
         list.songs.resize(idx);
         SongCacheIn.close();
+        int loadedFromCache = list.songs.size();
+        // Load additional songs from directories if needed
+        for (const auto& folder : songsFolder) {
+            for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+                if (std::filesystem::is_directory(entry)) {
+                    if (std::filesystem::exists(entry.path() / "info.json")) {
+                        if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
+                            Song song;
+                            song.LoadSong(entry.path() / "info.json");
+                            list.songs.push_back(song);
+                            list.songCount++;
+                        }
+                        else {
+                            list.badSongCount++;
+                        }
+                    }
+                }
+            }
+        }
+        if (size!=loadedFromCache || list.songs.size() > loadedFromCache) {
+            TraceLog(LOG_INFO, "Updating song cache");
+            WriteCache(list.songs);
+        }
         list.sortList(0);
         return list;
-    };
+    }
 };
 
