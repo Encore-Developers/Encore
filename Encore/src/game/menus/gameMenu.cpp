@@ -194,7 +194,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
         }
         stringChosen = true;
     }
-    if (std::filesystem::exists("songCache.bin")) {
+    if (std::filesystem::exists("songCache.bin") && songListMenu.songs.size()>0) {
         if (!albumArtLoaded) {
             AlbumArtBackground = assets.highwayTexture;
 
