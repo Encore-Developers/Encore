@@ -65,9 +65,6 @@ public:
         }
     }
 
-    void WriteCache() {
-        WriteCache(songs);
-    }
     void WriteCache(std::vector<Song> songs) {
         std::filesystem::remove("songCache.bin");
 
@@ -137,7 +134,7 @@ public:
             }
         }
         TraceLog(LOG_INFO, "Rewriting song cache");
-        WriteCache();
+        WriteCache(list.songs);
     }
 
     SongList LoadCache(const std::vector<std::filesystem::path>& songsFolder) {
