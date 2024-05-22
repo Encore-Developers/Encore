@@ -137,9 +137,11 @@ public:
         SongCacheIn.read(reinterpret_cast<char*>(&size), sizeof(size));
         list.songs.resize(size);
         TraceLog(LOG_INFO, "Loading song cache");
-        for (auto& song : list.songs) {
+        int idx=0;
+        for (auto& ___ : list.songs) {
             size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen, artistLen, lengthLen;
             std::string LengthString;
+            Song& song = list.songs[idx];
 
             SongCacheIn.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
             song.title.resize(nameLen);
@@ -148,6 +150,9 @@ public:
             SongCacheIn.read(reinterpret_cast<char*>(&directoryLen), sizeof(directoryLen));
             song.songDir.resize(directoryLen);
             SongCacheIn.read(&song.songDir[0], directoryLen);
+            if (!std::filesystem::exists(song.songDir)) {
+                continue;
+            }
             TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
 
             SongCacheIn.read(reinterpret_cast<char*>(&albumArtPathLen), sizeof(albumArtPathLen));
@@ -172,8 +177,9 @@ public:
             TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
 
             song.length = std::stoi(LengthString);
+            idx++;
         }
-
+        list.songs.resize(idx);
         SongCacheIn.close();
         list.sortList(0);
         return list;
