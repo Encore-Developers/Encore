@@ -485,7 +485,7 @@ public:
 				if (settings.HasMember("avOffset") && settings["avOffset"].IsInt()) {
 					avOffsetMS = settings["avOffset"].GetInt();
 					prevAvOffsetMS = avOffsetMS;
-                    player.VideoOffset = -(float)(avOffsetMS / 1000);
+                    player.VideoOffset = -(((double)avOffsetMS) / 1000.0);
 				}
 				else {
 					avError = true;
@@ -493,7 +493,7 @@ public:
 				if (settings.HasMember("inputOffset") && settings["inputOffset"].IsInt()) {
 					inputOffsetMS = settings["inputOffset"].GetInt();
 					prevInputOffsetMS = inputOffsetMS;
-                    player.InputOffset = (float)(inputOffsetMS / 1000);
+                    player.InputOffset = (((double)inputOffsetMS) / 1000.0);
 				}
 				else {
 					inputError = true;

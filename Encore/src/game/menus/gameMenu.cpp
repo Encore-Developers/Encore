@@ -134,7 +134,7 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawTextEx(assets.rubik, "Max Streak:", {statsLeft, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
 
     DrawTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), {cardPos + u.winpct(0.11f) -
-                                                                                                                                          (MeasureTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), u.hinpct(0.04f),0).x/2), statsHeight+u.hinpct(0.175f)}, u.hinpct(0.04f),0,WHITE);
+                                                                                                                                          (MeasureTextEx(assets.rubikBold, TextFormat("%s %s", diffList[player.diff].c_str(), songPartsList[player.instrument].c_str()), u.hinpct(0.03f),0).x/2), statsHeight+u.hinpct(0.20f)}, u.hinpct(0.03f),0,WHITE);
 
     int MaxNotes = song.parts[player.instrument]->charts[player.diff].notes.size();
     DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.perfectHit, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.perfectHit, player.notes), u.hinpct(0.03f), 0).x, statsHeight}, u.hinpct(0.03f), 0, WHITE);
@@ -142,6 +142,7 @@ void Menu::renderPlayerResults(Player player, Song song, Assets assets) {
     DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.notesMissed, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.notesMissed, player.notes), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
     DrawTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i", player.playerOverhits), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
     DrawTextEx(assets.rubik, TextFormat("%01i/%01i", player.maxCombo, player.notes), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%01i/%01i", player.maxCombo, player.notes), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
+    DrawTextEx(assets.rubik, TextFormat("%2.2f", player.totalOffset / player.notesHit), {statsRight - MeasureTextEx(assets.rubik, TextFormat("%2.2f", player.totalOffset / player.notesHit), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.17f)}, u.hinpct(0.03f),0,WHITE);
 };
 
 // todo: replace player with band stats
@@ -194,7 +195,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
         }
         stringChosen = true;
     }
-    if (std::filesystem::exists("songCache.bin") && songListMenu.songs.size()>0) {
+    if (std::filesystem::exists("songCache.encr") && songListMenu.songs.size()>0) {
         if (!albumArtLoaded) {
             AlbumArtBackground = assets.highwayTexture;
 
@@ -237,7 +238,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
     Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.04f), Remap(assets.encoreWhiteLogo.height, 0, assets.encoreWhiteLogo.width / 4.25, 0, u.winpct(0.5f)), logoHeight};
     DrawTexturePro(assets.encoreWhiteLogo, {0,0,(float)assets.encoreWhiteLogo.width,(float)assets.encoreWhiteLogo.height}, LogoRect, {0,0}, 0, WHITE);
 
-    if (std::filesystem::exists("songCache.bin")) {
+    if (std::filesystem::exists("songCache.encr")) {
         if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
 
             for (Song &songi: songListMenu.songs) {

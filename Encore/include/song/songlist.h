@@ -66,9 +66,9 @@ public:
     }
 
     void WriteCache(std::vector<Song> songs) {
-        std::filesystem::remove("songCache.bin");
+        std::filesystem::remove("songCache.encr");
 
-        std::ofstream SongCache("songCache.bin", std::ios::binary);
+        std::ofstream SongCache("songCache.encr", std::ios::binary);
 
         const char header[7] = "ENCORE";
         SongCache.write(header, 6);
@@ -139,7 +139,7 @@ public:
 
     SongList LoadCache(const std::vector<std::filesystem::path>& songsFolder) {
         SongList list;
-        std::ifstream SongCacheIn("songCache.bin", std::ios::binary);
+        std::ifstream SongCacheIn("songCache.encr", std::ios::binary);
         if (!SongCacheIn) {
             TraceLog(LOG_ERROR, "Failed to load song cache!");
             return list;
