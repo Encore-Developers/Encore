@@ -5,6 +5,7 @@
 #include <thread>
 #include <algorithm>
 #include <set>
+#include "picosha2.h"
 class SongList
 {
     SongList() {}
@@ -94,7 +95,6 @@ public:
             SongCache.write(reinterpret_cast<const char*>(&songDirectoryLen), sizeof(songDirectoryLen));
             SongCache.write(song.songDir.c_str(), songDirectoryLen);
             TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
-
             SongCache.write(reinterpret_cast<const char*>(&albumArtPathLen), sizeof(albumArtPathLen));
             SongCache.write(song.albumArtPath.c_str(), albumArtPathLen);
             TraceLog(LOG_INFO, TextFormat("Album Art Path - %s", song.albumArtPath.c_str()));
@@ -105,6 +105,7 @@ public:
             SongCache.write(reinterpret_cast<const char*>(&jsonPathLen), sizeof(jsonPathLen));
             SongCache.write(song.songInfoPath.c_str(), jsonPathLen);
             TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
+            SongCache.write(song.jsonHash.c_str(), 64);
 
             SongCache.write(reinterpret_cast<const char*>(&lengthLen), sizeof(lengthLen));
             SongCache.write(std::to_string(song.length).c_str(), lengthLen);
@@ -172,38 +173,47 @@ public:
         std::set<std::string> loadedSongs;  // To track loaded songs and avoid duplicates
         int idx = 0;
         for (auto& ___ : list.songs) {
-            size_t nameLen, albumArtPathLen, directoryLen, jsonPathLen, artistLen, lengthLen;
+            size_t nameLen = 0, albumArtPathLen = 0, directoryLen = 0, jsonPathLen = 0, artistLen = 0, lengthLen = 0;
             std::string LengthString;
             Song& song = list.songs[idx];
-            SongCacheIn.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&nameLen), 8);
             song.title.resize(nameLen);
             SongCacheIn.read(&song.title[0], nameLen);
 
-            SongCacheIn.read(reinterpret_cast<char*>(&directoryLen), sizeof(directoryLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&directoryLen), 8);
             song.songDir.resize(directoryLen);
             SongCacheIn.read(&song.songDir[0], directoryLen);
-            if (!std::filesystem::exists(song.songDir)) {
-                continue;
-            }
+            
+
             TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
 
-            SongCacheIn.read(reinterpret_cast<char*>(&albumArtPathLen), sizeof(albumArtPathLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&albumArtPathLen), 8);
             song.albumArtPath.resize(albumArtPathLen);
             SongCacheIn.read(&song.albumArtPath[0], albumArtPathLen);
 
-            SongCacheIn.read(reinterpret_cast<char*>(&artistLen), sizeof(artistLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&artistLen), 8);
             song.artist.resize(artistLen);
             SongCacheIn.read(&song.artist[0], artistLen);
 
-            SongCacheIn.read(reinterpret_cast<char*>(&jsonPathLen), sizeof(jsonPathLen));
+            SongCacheIn.read(reinterpret_cast<char*>(&jsonPathLen), 8);
             song.songInfoPath.resize(jsonPathLen);
             SongCacheIn.read(&song.songInfoPath[0], jsonPathLen);
-
-            SongCacheIn.read(reinterpret_cast<char*>(&lengthLen), sizeof(lengthLen));
+            song.jsonHash.resize(64);
+            SongCacheIn.read(&song.jsonHash[0], 64);
+            std::ifstream jsonFile(song.songInfoPath);
+            std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
+            jsonFile.close();
+            std::string jsonHashNew = picosha2::hash256_hex_string(jsonString);
+            
+            SongCacheIn.read(reinterpret_cast<char*>(&lengthLen), 8);
             LengthString.resize(lengthLen);
             SongCacheIn.read(&LengthString[0], lengthLen);
 
             song.length = std::stoi(LengthString);
+            if (!std::filesystem::exists(song.songDir))
+                continue;
+            if (song.jsonHash != jsonHashNew)
+                continue;
             loadedSongs.insert(song.songDir);
             idx++;
         }
