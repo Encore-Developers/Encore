@@ -78,4 +78,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DENCORE_VERSION=\"v0.2.0\"")
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "-DCACHE_VERSION=2")
+
 target_link_libraries(Encore raylib ${BASS})
