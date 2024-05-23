@@ -714,7 +714,7 @@ int main(int argc, char* argv[])
     SetWindowIcon(assets.icon);
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
-
+    RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     while (!WindowShouldClose())
     {
 
@@ -1678,6 +1678,8 @@ int main(int argc, char* argv[])
                 break;
             }
             case GAMEPLAY: {
+                notes_tex.texture.height = GetScreenHeight();
+                notes_tex.texture.width = GetScreenWidth();
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
                 player.VideoOffset = -(((double)settingsMain.inputOffsetMS) / 1000.0);
@@ -1964,6 +1966,10 @@ int main(int argc, char* argv[])
                     DrawCylinderEx(Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.07, 0.07, 10, RAYWHITE);
 
                 }
+                EndMode3D();
+                BeginTextureMode(notes_tex);
+                ClearBackground({0,0,0,0});
+                BeginMode3D(camera);
                     for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
                         for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 
@@ -2077,13 +2083,13 @@ int main(int argc, char* argv[])
                                     BeginBlendMode(BLEND_ALPHA);
                                     if (curNote.held && !curNote.renderAsOD) {
                                         DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
-                                        DrawCube(Vector3{notePosX, 0, player.smasherPos}, 0.4f, 0.4f, 0.4f,
+                                        DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f,
                                                  player.accentColor);
                                         //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
                                     }
                                     if (curNote.renderAsOD && curNote.held) {
                                         DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
-                                        DrawCube(Vector3{notePosX, 0, player.smasherPos}, 0.4f, 0.4f, 0.4f, WHITE);
+                                        DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f, WHITE);
                                         //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
                                     }
                                     if (!curNote.held && curNote.hit || curNote.miss) {
@@ -2145,8 +2151,8 @@ int main(int argc, char* argv[])
                             }
                             if (curNote.hit && audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
                                                curNote.hitTime + 0.15f) {
-                                DrawCube(Vector3{notePosX, 0, player.smasherPos}, 1.0f, 0.5f, 0.5f,
-                                         curNote.perfect ? Color{255, 215, 0, 64} : Color{255, 255, 255, 64});
+                                DrawCube(Vector3{ notePosX, 0.125 , player.smasherPos }, 1.0f, 0.25f, 0.5f,
+                                         curNote.perfect ? Color{255, 215, 0, 150} : Color{255, 255, 255, 150});
                                 if (curNote.perfect) {
                                     DrawCube(Vector3{player.diff == 3 ? 3.3f : 2.8f, 0, player.smasherPos}, 1.0f, 0.01f,
                                              0.5f, ORANGE);
@@ -2163,18 +2169,11 @@ int main(int argc, char* argv[])
                         }
 
                     }
-                
+                    EndMode3D();
+                    EndTextureMode();                    DrawTextureRec(notes_tex.texture, { 0, 0, (float)notes_tex.texture.width, (float)-notes_tex.texture.height },{0,0}, WHITE);
                 if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
                 }
-#ifndef NDEBUG
-                // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
-                // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
-
-                // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
-                // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
-#endif
-                EndMode3D();
 
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
