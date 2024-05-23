@@ -2170,7 +2170,8 @@ int main(int argc, char* argv[])
 
                     }
                     EndMode3D();
-                    EndTextureMode();                    DrawTextureRec(notes_tex.texture, { 0, 0, (float)notes_tex.texture.width, (float)-notes_tex.texture.height },{0,0}, WHITE);
+                    EndTextureMode();
+                    DrawTextureRec(notes_tex.texture, { 0, 0, (float)notes_tex.texture.width, (float)-notes_tex.texture.height },{0,0}, WHITE);
                 if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
                 }

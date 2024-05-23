@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <filesystem>
 #include <cmath>
-
+#include "picosha2.h"
 enum PartIcon {
 	IconDrum,
 	IconBass,
@@ -144,8 +144,7 @@ public:
 	int releaseYear = 0;
 	std::string loadingPhrase = "";
 	std::vector<std::string> charters{};
-
-
+	std::string jsonHash = "";
 
 	void LoadSong(std::filesystem::path jsonPath) 
 	{
@@ -156,7 +155,8 @@ public:
 		}
 
 		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-		
+		ifs.close();
+		jsonHash = picosha2::hash256_hex_string(jsonString);
 		rapidjson::Document document;
 		document.Parse(jsonString.c_str());
         songInfoPath = jsonPath.string();
