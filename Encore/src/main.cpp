@@ -215,6 +215,7 @@ static void handleInputs(int lane, int action){
 							}
 							if (chordNote.perfect) player.lastNotePerfect = true;
 							else player.lastNotePerfect = false;
+                            chordNote.HitOffset = chordNote.time - eventTime;
                             player.HitNote(chordNote.perfect, player.instrument);
 							chordNote.accounted = true;
 						}
@@ -235,6 +236,7 @@ static void handleInputs(int lane, int action){
 							Note& chordNote = curChart.notes[chordLane];
 							if (chordNote.lift) {
 								chordNote.hit = true;
+                                chordNote.HitOffset = chordNote.time - eventTime;
 								overdriveLanesHit[newlane] = false;
 								chordNote.hitTime = eventTime;
 
@@ -285,6 +287,7 @@ static void handleInputs(int lane, int action){
 						lastHitLifts[lane] = curChart.notes_perlane[lane][i];
 					}
 					curNote.hit = true;
+                    curNote.HitOffset = curNote.time - eventTime;
 					curNote.hitTime = eventTime;
 					if ((curNote.len) > 0 && !curNote.lift) {
 						curNote.held = true;
@@ -749,7 +752,7 @@ int main(int argc, char* argv[])
         switch (menu.currentScreen) {
             case MENU: {
                 if (!menu.songsLoaded) {
-                    if (std::filesystem::exists("songCache.bin")) {
+                    if (std::filesystem::exists("songCache.encr")) {
                         songList = songList.LoadCache(settingsMain.songPaths);
                         menu.songsLoaded = true;
                     }
@@ -1064,54 +1067,34 @@ int main(int argc, char* argv[])
                 else if (displayedTab == 1) { //Keyboard bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
-                        float j = (float)i - 2.0f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, keybinds.getKeyStr(settingsMain.keybinds5K[i]).c_str())) {
-                            changing4k = false;
-                            changingAlt = false;
-                            selLane = i;
-                            changingKey = true;
-                        }
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, keybinds.getKeyStr(settingsMain.keybinds5KAlt[i]).c_str())) {
-                            changing4k = false;
-                            changingAlt = true;
-                            selLane = i;
-                            changingKey = true;
-                        }
+                        sor.keybindEntryText(i+1, "Lane " + to_string(i+1), assets);
+                        sor.keybindEntry(settingsMain.keybinds5K[i], i+1, "Lane " + to_string(i+1), assets, keybinds, i);
+                        sor.keybindAltEntry(settingsMain.keybinds5KAlt[i], i+1, "Lane " + to_string(i+1), assets, keybinds, i);
                     }
                     for (int i = 0; i < 4; i++) {
-                        float j = (float)i - 1.5f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, keybinds.getKeyStr(settingsMain.keybinds4K[i]).c_str())) {
-                            changingAlt = false;
-                            changing4k = true;
-                            selLane = i;
-                            changingKey = true;
-                        }
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getKeyStr(settingsMain.keybinds4KAlt[i]).c_str())) {
-                            changingAlt = true;
-                            changing4k = true;
-                            selLane = i;
-                            changingKey = true;
-                        }
+                        sor.keybindEntryText(i+7, "Lane " + to_string(i+1), assets);
+                        sor.keybindEntry(settingsMain.keybinds4K[i], i+7, "Lane " + to_string(i+1), assets, keybinds, i);
+                        sor.keybindAltEntry(settingsMain.keybinds4KAlt[i], i+7, "Lane " + to_string(i+1), assets, keybinds, i);
                     }
                     if (GuiButton({ ((float)GetScreenWidth() / 2) - 130,480,120,60 }, keybinds.getKeyStr(settingsMain.keybindOverdrive).c_str())) {
-                        changingAlt = false;
-                        changingKey = false;
-                        changingOverdrive = true;
+                        sor.changingAlt = false;
+                        sor.changingKey = false;
+                        sor.changingOverdrive = true;
                     }
                     if (GuiButton({ ((float)GetScreenWidth() / 2) + 10,480,120,60 }, keybinds.getKeyStr(settingsMain.keybindOverdriveAlt).c_str())) {
-                        changingAlt = true;
-                        changingKey = false;
-                        changingOverdrive = true;
+                        sor.changingAlt = true;
+                        sor.changingKey = false;
+                        sor.changingOverdrive = true;
                     }
                     if (GuiButton({ ((float)GetScreenWidth() / 2) - 60,560,120,60 }, keybinds.getKeyStr(settingsMain.keybindPause).c_str())) {
-                        changingKey = false;
-                        changingPause = true;
+                        sor.changingKey = false;
+                        sor.changingPause = true;
                     }
-                    if (changingKey) {
-                        std::vector<int>& bindsToChange = changingAlt ? (changing4k ? settingsMain.keybinds4KAlt : settingsMain.keybinds5KAlt) : (changing4k ? settingsMain.keybinds4K : settingsMain.keybinds5K);
+                    if (sor.changingKey) {
+                        std::vector<int>& bindsToChange = sor.changingAlt ? (sor.changing4k ? settingsMain.keybinds4KAlt : settingsMain.keybinds5KAlt) : (sor.changing4k ? settingsMain.keybinds4K : settingsMain.keybinds5K);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string keyString = (changing4k ? "4k" : "5k");
-                        std::string altString = (changingAlt ? " alt" : "");
+                        std::string keyString = (sor.changing4k ? "4k" : "5k");
+                        std::string altString = (sor.changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + keyString + altString + " lane ";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
@@ -1119,18 +1102,18 @@ int main(int argc, char* argv[])
                             pressedKey = -1;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
-                            selLane = 0;
-                            changingKey = false;
+                            sor.selLane = 0;
+                            sor.changingKey = false;
                         }
                         if (pressedKey != 0) {
-                            bindsToChange[selLane] = pressedKey;
-                            selLane = 0;
-                            changingKey = false;
+                            bindsToChange[sor.selLane] = pressedKey;
+                            sor.selLane = 0;
+                            sor.changingKey = false;
                         }
                     }
-                    if (changingOverdrive) {
+                    if (sor.changingOverdrive) {
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string altString = (changingAlt ? " alt" : "");
+                        std::string altString = (sor.changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + altString + " overdrive";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
@@ -1138,18 +1121,18 @@ int main(int argc, char* argv[])
                             pressedKey = -1;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
-                            changingAlt = false;
-                            changingOverdrive = false;
+                            sor.changingAlt = false;
+                            sor.changingOverdrive = false;
                         }
                         if (pressedKey != 0) {
                             if(changingAlt)
                                 settingsMain.keybindOverdriveAlt = pressedKey;
                             else
                                 settingsMain.keybindOverdriveAlt = pressedKey;
-                            changingOverdrive = false;
+                            sor.changingOverdrive = false;
                         }
                     }
-                    if (changingPause) {
+                    if (sor.changingPause) {
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         DrawTextRubik("Press a key for Pause", ((float)GetScreenWidth() - MeasureTextRubik("Press a key for Pause", 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
@@ -1157,12 +1140,12 @@ int main(int argc, char* argv[])
                             pressedKey = -1;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
-                            changingAlt = false;
-                            changingPause = false;
+                            sor.changingAlt = false;
+                            sor.changingPause = false;
                         }
                         if (pressedKey != 0) {
                             settingsMain.keybindPause = pressedKey;
-                            changingPause = false;
+                            sor.changingPause = false;
                         }
                     }
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
@@ -1697,7 +1680,8 @@ int main(int argc, char* argv[])
             case GAMEPLAY: {
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
-
+                player.VideoOffset = -(((double)settingsMain.inputOffsetMS) / 1000.0);
+                player.InputOffset = -(((double)settingsMain.inputOffsetMS) / 1000.0);
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
                 float scorePos = u.RightSide;
@@ -1733,8 +1717,8 @@ int main(int argc, char* argv[])
                     for (int i = 0; i < 5; i++) {
                         float starX = scorePos - u.hinpct(0.26) + (i*u.hinpct(0.05));
                         Rectangle starRect = {starX, starY, starWH,starWH};
-                        DrawTexturePro(player.goldStars ? assets.goldStar : assets.star, emptyStarWH, starRect,
-                                       {0, 0}, 0, player.goldStars ? WHITE : ColorAlpha(GOLD, 0.5f));
+                        DrawTexturePro(player.goldStars ? assets.goldStar : assets.goldStarUnfilled, emptyStarWH, starRect,
+                                       {0, 0}, 0, WHITE);
                     }
                     EndScissorMode();
 
@@ -1745,9 +1729,12 @@ int main(int argc, char* argv[])
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), scoreY, u.hinpct(0.05f), Color{107, 161, 222,255});
-                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), comboY, u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hinpct(0.05f)), scoreY, u.hinpct(0.05f), Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hinpct(0.05f)), comboY, u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
+
+                DrawTextEx(assets.rubikBold, TextFormat("Video Offset: %2.3f", player.VideoOffset), {u.LeftSide, u.hinpct(0.5f)}, u.hinpct(0.04), 0, WHITE);
+                DrawTextEx(assets.rubikBold, TextFormat("Input Offset: %2.3f", player.InputOffset), {u.LeftSide, u.hinpct(0.55f)}, u.hinpct(0.04), 0, WHITE);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -1981,6 +1968,10 @@ int main(int argc, char* argv[])
                         for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 
                             Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
+                            if (curNote.hit) {
+                                player.totalOffset += curNote.HitOffset;
+                            }
+
                             if (!curChart.odPhrases.empty()) {
 
                                 if (curNote.time >= curChart.odPhrases[curODPhrase].start &&

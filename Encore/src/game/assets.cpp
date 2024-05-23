@@ -14,7 +14,7 @@ class Assets;
 Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath, int& loadedAssets) {
     Texture2D tex = LoadTexture(texturePath.string().c_str());
     GenTextureMipmaps(&tex);
-    SetTextureFilter(tex, TEXTURE_FILTER_BILINEAR);
+    SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
     loadedAssets++;
     return tex;
 }
@@ -34,7 +34,7 @@ Font Assets::LoadFontFilter(const std::filesystem::path &fontPath, int fontSize,
     Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 95, 128, 4, 1);
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
-    SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
     loadedAssets++;
     return font;
 }
@@ -60,6 +60,7 @@ void Assets::LoadAssets() {
 
     star = Assets::LoadTextureFilter(directory/ "Assets/ui/star.png", loadedAssets);
     goldStar = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star.png", loadedAssets);
+    goldStarUnfilled = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star_unfilled.png", loadedAssets);
     emptyStar = Assets::LoadTextureFilter(directory/ "Assets/ui/empty-star.png", loadedAssets);
 
     odFrame = Assets::LoadModel_((directory / "Assets/ui/od_frame.obj"), loadedAssets);
@@ -172,8 +173,10 @@ void Assets::LoadAssets() {
     multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
     multNumber.materials[0].shader = multNumberShader;
 
+    SetTextureWrap(highwayTextureOD, TEXTURE_WRAP_CLAMP);
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;

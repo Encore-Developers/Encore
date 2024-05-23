@@ -19,6 +19,7 @@ public:
     int notesHit = 0;
     int notesMissed = 0;
     int perfectHit = 0;
+    double totalOffset = 0.0;
 
     bool quit = false;
 
@@ -32,7 +33,7 @@ public:
     float perfectFrontend = 0.025f;
     float perfectBackend = 0.025f;
 
-    float VideoOffset = (0);
+    double VideoOffset = (0);
     float InputOffset = 0;
 
     bool MissHighwayColor = false;

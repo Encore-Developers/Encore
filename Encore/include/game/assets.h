@@ -11,7 +11,7 @@ private:
     Font LoadFontFilter(const std::filesystem::path& fontPath, int fontSize, int& loadedAssets);
 public:
     int loadedAssets;
-    int totalAssets = 31;
+    int totalAssets = 32;
     Model smasherReg;
     Texture2D smasherRegTex;
 
@@ -26,6 +26,7 @@ public:
     Model smasherPressed;
     Texture2D smasherPressTex;
 
+    Texture2D goldStarUnfilled;
     Texture2D star;
     Texture2D goldStar;
     Texture2D emptyStar;

@@ -10,6 +10,7 @@ struct Note
 	double beatsLen;
 	double heldTime=0.0;
 	double sustainThreshold = 0.2;
+    double HitOffset = 0.0;
 	int lane;
 	bool lift = false;
 	bool hit = false;
