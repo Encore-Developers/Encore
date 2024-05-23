@@ -200,10 +200,15 @@ public:
             SongCacheIn.read(&song.songInfoPath[0], jsonPathLen);
             song.jsonHash.resize(64);
             SongCacheIn.read(&song.jsonHash[0], 64);
+
             std::ifstream jsonFile(song.songInfoPath);
-            std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
-            jsonFile.close();
-            std::string jsonHashNew = picosha2::hash256_hex_string(jsonString);
+            std::string jsonHashNew = "";
+            if (jsonFile) {
+                std::string jsonString((std::istreambuf_iterator<char>(jsonFile)), std::istreambuf_iterator<char>());
+                jsonFile.close();
+                jsonHashNew = picosha2::hash256_hex_string(jsonString);
+            }
+            
             
             SongCacheIn.read(reinterpret_cast<char*>(&lengthLen), 8);
             LengthString.resize(lengthLen);
