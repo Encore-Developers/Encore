@@ -72,7 +72,7 @@ public:
 
         const char header[7] = "ENCORE";
         SongCache.write(header, 6);
-        uint16_t version = 1;
+        uint16_t version = CACHE_VERSION;
         SongCache.write(reinterpret_cast<const char*>(&version), 2);
 
         size_t SongCount = songs.size();
@@ -141,7 +141,7 @@ public:
         SongList list;
         std::ifstream SongCacheIn("songCache.encr", std::ios::binary);
         if (!SongCacheIn) {
-            TraceLog(LOG_ERROR, "Failed to load song cache!");
+            TraceLog(LOG_WARNING, "Failed to load song cache!");
             return list;
         }
 
@@ -149,7 +149,7 @@ public:
         char header[6];
         SongCacheIn.read(header, 6);
         if (std::string(header, 6) != "ENCORE") {
-            TraceLog(LOG_ERROR, "Invalid song cache format, rescanning");
+            TraceLog(LOG_WARNING, "Invalid song cache format, rescanning");
             SongCacheIn.close();
             ScanSongs(songsFolder);
             return LoadCache(songsFolder);
@@ -157,6 +157,12 @@ public:
 
         uint16_t version;
         SongCacheIn.read(reinterpret_cast<char*>(&version), 2);
+        if (version != CACHE_VERSION) {
+            TraceLog(LOG_WARNING, TextFormat("Cache version %01i, but current version is %01i",version, CACHE_VERSION));
+            SongCacheIn.close();
+            ScanSongs(songsFolder);
+            return LoadCache(songsFolder);
+        }
 
         size_t size;
         SongCacheIn.read(reinterpret_cast<char*>(&size), sizeof(size));
