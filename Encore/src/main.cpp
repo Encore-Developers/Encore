@@ -278,8 +278,8 @@ static void handleInputs(int lane, int action){
 
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if ((curNote.time) - (action == GLFW_RELEASE ? player.goodBackend * player.liftTimingMult : player.goodBackend) + player.InputOffset < eventTime &&
-					(curNote.time) + ((action == GLFW_RELEASE ? player.goodFrontend * player.liftTimingMult : player.goodFrontend) + player.InputOffset) > eventTime &&
+				if (curNote.time - player.goodBackend + player.InputOffset < eventTime &&
+					curNote.time + player.goodFrontend + player.InputOffset > eventTime &&
 					!curNote.hit) {
 					if (curNote.lift && action == GLFW_RELEASE) {
 						lastHitLifts[lane] = curChart.notes_perlane[lane][i];
