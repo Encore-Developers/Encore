@@ -714,8 +714,9 @@ int main(int argc, char* argv[])
     SetWindowIcon(assets.icon);
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
-    RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    RenderTexture2D notes_tex  = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     while (!WindowShouldClose())
+
     {
 
         u.calcUnits();
@@ -1690,8 +1691,10 @@ int main(int argc, char* argv[])
                 float scoreY = u.hpct(0.15f);
                 float starY = scoreY + u.hinpct(0.05f);
                 float comboY = starY + u.hinpct(0.055f);
-
+                menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
+                DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,128});
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
+
                 int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
                 float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
                 for (int i = 0; i < 5; i++) {
@@ -2171,6 +2174,9 @@ int main(int argc, char* argv[])
                     }
                     EndMode3D();
                     EndTextureMode();
+
+
+
                     DrawTextureRec(notes_tex.texture, { 0, 0, (float)notes_tex.texture.width, (float)-notes_tex.texture.height },{0,0}, WHITE);
                 if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
