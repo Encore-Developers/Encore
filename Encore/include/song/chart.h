@@ -3,8 +3,10 @@
 #include <string>
 #include "midifile/MidiFile.h"
 #include "song.h"
-struct Note 
+#include "game/timingvalues.h"
+class Note 
 {
+public:
 	double time;
 	double len;
 	double beatsLen;
@@ -26,6 +28,14 @@ struct Note
 
 	bool forceStrum;
 	bool forceHopo;
+	bool isGood(double eventTime, double inputOffset) const {
+		return (time - (goodBackend+inputOffset) < eventTime &&
+			time + (goodFrontend + inputOffset) > eventTime);
+	}
+	bool isPerfect(double eventTime, double inputOffset) const {
+		return (time - (perfectBackend + inputOffset) < eventTime &&
+			time + (perfectFrontend + inputOffset) > eventTime);
+	}
 };
 
 struct odPhrase 

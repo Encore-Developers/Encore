@@ -27,11 +27,6 @@ public:
     float otherInstVolume = 0.375;
     float missVolume = 0.15;
 
-// time in seconds
-    float goodFrontend = 0.1f;
-    float goodBackend = 0.1f;
-    float perfectFrontend = 0.025f;
-    float perfectBackend = 0.025f;
 
     double VideoOffset = (0);
     float InputOffset = 0;
