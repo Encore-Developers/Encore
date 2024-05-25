@@ -12,7 +12,6 @@
 
 
 class Settings {
-    Player player;
 private:
 	Settings() {}
 	rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
@@ -154,6 +153,7 @@ public:
 	bool mirrorMode = defaultMirrorMode;
 	bool prevMirrorMode = mirrorMode;
     bool missHighwayDefault = false;
+	bool missHighwayColor = missHighwayDefault;
     bool prevMissHighwayColor = missHighwayDefault;
     bool fullscreenDefault = true;
     bool fullscreen = fullscreenDefault;
@@ -485,7 +485,6 @@ public:
 				if (settings.HasMember("avOffset") && settings["avOffset"].IsInt()) {
 					avOffsetMS = settings["avOffset"].GetInt();
 					prevAvOffsetMS = avOffsetMS;
-                    player.VideoOffset = -(((double)avOffsetMS) / 1000.0);
 				}
 				else {
 					avError = true;
@@ -493,7 +492,6 @@ public:
 				if (settings.HasMember("inputOffset") && settings["inputOffset"].IsInt()) {
 					inputOffsetMS = settings["inputOffset"].GetInt();
 					prevInputOffsetMS = inputOffsetMS;
-                    player.InputOffset = (((double)inputOffsetMS) / 1000.0);
 				}
 				else {
 					inputError = true;
@@ -527,8 +525,8 @@ public:
                     highwayLengthError = true;
                 }
                 if (settings.HasMember("missHighwayColor") && settings["missHighwayColor"].IsBool()) {
-                    player.MissHighwayColor = settings["missHighwayColor"].GetBool();
-					prevMissHighwayColor = player.MissHighwayColor;
+                    missHighwayColor = settings["missHighwayColor"].GetBool();
+					prevMissHighwayColor = missHighwayColor;
                 } else {
                     MissHighwayError = true;
                 } 
@@ -830,8 +828,6 @@ public:
 			if (keybinds.HasMember("avOffset") && keybinds["avOffset"].IsInt()) {
 				avOffsetMS = keybinds["avOffset"].GetInt();
 				prevAvOffsetMS = avOffsetMS;
-                player.VideoOffset = -(float)(avOffsetMS / 1000);
-				
 			}
 			else {
 				avOffsetError = true;
@@ -839,7 +835,6 @@ public:
 			if (keybinds.HasMember("inputOffset") && keybinds["inputOffset"].IsInt()) {
 				inputOffsetMS = keybinds["inputOffset"].GetInt();
 				prevInputOffsetMS = inputOffsetMS;
-                player.InputOffset = (float)(inputOffsetMS / 1000);
 			}
 			else {
 				inputOffsetError = true;

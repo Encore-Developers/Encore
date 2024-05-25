@@ -7,7 +7,13 @@
 // clone hero defaults
 
 class Player {
+private:
+    Player() {}
 public:
+    static Player& getInstance() {
+        static Player instance; // This is the single instance
+        return instance;
+    }
     int instrument = 0;
     int diff = 0;
     int persistentInst = 0;
