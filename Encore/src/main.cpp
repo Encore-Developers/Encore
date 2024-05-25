@@ -26,6 +26,7 @@
 #include "game/menus/uiUnits.h"
 #include "game/audio.h"
 #include "game/menus/settingsOptionRenderer.h"
+#include "game/timingvalues.h"
 #include <thread>
 #include <atomic>
 
@@ -180,8 +181,7 @@ static void handleInputs(int lane, int action){
 		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
 		Note* curNote = &curChart.notes[0];
 		for (auto & note : curChart.notes) {
-			if (note.time - (player.goodBackend+player.InputOffset) < eventTime &&
-				note.time + (player.goodFrontend+player.InputOffset) > eventTime &&
+			if (note.isGood(eventTime, player.InputOffset ) &&
 				!note.hit) {
 				curNote = &note;
 				break;
@@ -194,8 +194,7 @@ static void handleInputs(int lane, int action){
 			overdriveHeld = false;
 		}
 		if (action == GLFW_PRESS && overdriveHitAvailable) {
-			if (curNote->time - (player.goodBackend + player.InputOffset) < eventTime &&
-				curNote->time + (player.goodFrontend + player.InputOffset) > eventTime &&
+			if (curNote->isGood(eventTime, player.InputOffset) &&
 				!curNote->hit) {
 				for (int newlane = 0; newlane < 5; newlane++) {
 					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
@@ -209,7 +208,7 @@ static void handleInputs(int lane, int action){
 							if ((chordNote.len) > 0 && !chordNote.lift) {
 								chordNote.held = true;
 							}
-							if ((chordNote.time) - player.perfectBackend + player.InputOffset < eventTime && chordNote.time + player.perfectFrontend + player.InputOffset > eventTime) {
+                            if (chordNote.isPerfect(eventTime, player.InputOffset)) {
 								chordNote.perfect = true;
 
 							}
@@ -226,8 +225,7 @@ static void handleInputs(int lane, int action){
 			}
 		}
 		else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-			if ((curNote->time) - (player.goodBackend * player.liftTimingMult) + player.InputOffset < eventTime &&
-				(curNote->time) + (player.goodFrontend * player.liftTimingMult) + player.InputOffset > eventTime &&
+			if (curNote->isGood(eventTime, player.InputOffset) &&
 				!curNote->hit) {
 				for (int newlane = 0; newlane < 5; newlane++) {
 					if (overdriveLanesHit[newlane]) {
@@ -240,7 +238,7 @@ static void handleInputs(int lane, int action){
 								overdriveLanesHit[newlane] = false;
 								chordNote.hitTime = eventTime;
 
-								if ((chordNote.time) - player.perfectBackend + player.InputOffset < eventTime && chordNote.time + player.perfectFrontend + player.InputOffset > eventTime) {
+								if (chordNote.isPerfect(eventTime, player.InputOffset)) {
 									chordNote.perfect = true;
 
 								}
@@ -280,8 +278,7 @@ static void handleInputs(int lane, int action){
 
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if (curNote.time - player.goodBackend + player.InputOffset < eventTime &&
-					curNote.time + player.goodFrontend + player.InputOffset > eventTime &&
+				if (curNote.isGood(eventTime, player.InputOffset) &&
 					!curNote.hit) {
 					if (curNote.lift && action == GLFW_RELEASE) {
 						lastHitLifts[lane] = curChart.notes_perlane[lane][i];
@@ -292,7 +289,7 @@ static void handleInputs(int lane, int action){
 					if ((curNote.len) > 0 && !curNote.lift) {
 						curNote.held = true;
 					}
-					if ((curNote.time) - player.perfectBackend + player.InputOffset < eventTime && curNote.time + player.perfectFrontend + player.InputOffset > eventTime) {
+					if (curNote.isPerfect(eventTime, player.InputOffset)) {
 						curNote.perfect = true;
 					}
 					if (curNote.perfect) player.lastNotePerfect = true;
@@ -315,7 +312,7 @@ static void handleInputs(int lane, int action){
 				eventTime > songList.songs[curPlayingSong].music_start &&
 				!curNote.hit &&
 				!curNote.accounted &&
-				((curNote.time) - player.perfectBackend) + player.InputOffset > eventTime &&
+				((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
 				eventTime > overdriveHitTime + 0.05
 				&& !overhitFrets[lane]) {
 				if (lastHitLifts[lane] != -1) {
@@ -1683,7 +1680,7 @@ int main(int argc, char* argv[])
                 notes_tex.texture.width = GetScreenWidth();
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
-                player.VideoOffset = -(((double)settingsMain.inputOffsetMS) / 1000.0);
+                player.VideoOffset = -(((double)settingsMain.avOffsetMS) / 1000.0);
                 player.InputOffset = -(((double)settingsMain.inputOffsetMS) / 1000.0);
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
