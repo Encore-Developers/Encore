@@ -29,12 +29,12 @@ public:
 	bool forceStrum;
 	bool forceHopo;
 	bool isGood(double eventTime, double inputOffset) const {
-		return (time - (goodBackend+inputOffset) < eventTime &&
-			time + (goodFrontend + inputOffset) > eventTime);
+		return (time - goodBackend + inputOffset < eventTime &&
+			time + goodFrontend + inputOffset > eventTime);
 	}
-	bool isPerfect(double eventTime, double inputOffset) const {
-		return (time - (perfectBackend + inputOffset) < eventTime &&
-			time + (perfectFrontend + inputOffset) > eventTime);
+	bool isPerfect(double eventTime, double inputOffset) {
+		return (time - perfectBackend + inputOffset < eventTime &&
+			time + perfectFrontend + inputOffset > eventTime);
 	}
 };
 

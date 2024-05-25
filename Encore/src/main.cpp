@@ -31,7 +31,7 @@
 #include <atomic>
 
 Menu menu = Menu::getInstance();
-Player player;
+Player player = Player::getInstance();
 Settings& settingsMain = Settings::getInstance();
 AudioManager audioManager;
 
@@ -627,7 +627,8 @@ int main(int argc, char* argv[])
         settingsMain.migrateSettings(directory / "keybinds.json", directory / "settings.json");
     }
     settingsMain.loadSettings(directory / "settings.json");
-
+    player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
+    player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
     int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
     if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
@@ -890,11 +891,9 @@ int main(int argc, char* argv[])
                     settingsMain.trackSpeed = settingsMain.prevTrackSpeed;
                     settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
                     settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
-                    settingsMain.missHighwayDefault = settingsMain.prevMissHighwayColor;
+                    settingsMain.missHighwayColor = settingsMain.prevMissHighwayColor;
                     settingsMain.mirrorMode = settingsMain.prevMirrorMode;
                     settingsMain.fullscreen = settingsMain.fullscreenPrev;
-
-                    settingsMain.saveSettings(directory / "settings.json");
 
                     menu.SwitchScreen(MENU);
                 }
@@ -941,9 +940,12 @@ int main(int argc, char* argv[])
                     settingsMain.prevTrackSpeed = settingsMain.trackSpeed;
                     settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
                     settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
-                    settingsMain.prevMissHighwayColor = settingsMain.missHighwayDefault;
+                    settingsMain.prevMissHighwayColor = settingsMain.missHighwayColor;
                     settingsMain.prevMirrorMode = settingsMain.mirrorMode;
                     settingsMain.fullscreenPrev = settingsMain.fullscreen;
+
+                    player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
+                    player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
 
                     settingsMain.saveSettings(directory / "settings.json");
 
@@ -1680,8 +1682,6 @@ int main(int argc, char* argv[])
                 notes_tex.texture.width = GetScreenWidth();
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
-                player.VideoOffset = -(((double)settingsMain.avOffsetMS) / 1000.0);
-                player.InputOffset = -(((double)settingsMain.inputOffsetMS) / 1000.0);
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
                 float scorePos = u.RightSide;
@@ -1788,7 +1788,7 @@ int main(int argc, char* argv[])
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)-player.VideoOffset) {
+                    if (songEnd <= songPlayed) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);
                         // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
@@ -1821,7 +1821,7 @@ int main(int argc, char* argv[])
                 }
 
                 float highwayLength = player.defaultHighwayLength * settingsMain.highwayLengthMult;
-                double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+                double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) - player.VideoOffset;
                 if (player.overdrive) {
 
                     // assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
@@ -1921,7 +1921,7 @@ int main(int argc, char* argv[])
                 if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
                     for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
                         if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start-1 && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-                            double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed]  * ( 11.5f / highwayLength);
+                            double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed]  * ( 11.5f / highwayLength);
                             if (relTime > 1.5) break;
                             float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.01f;
                             DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, DARKGRAY);
@@ -1957,8 +1957,8 @@ int main(int argc, char* argv[])
                 Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
                 if (!curChart.odPhrases.empty()) {
 
-                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime) + player.VideoOffset) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
-                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime) + player.VideoOffset) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
 
                     // horrifying.
 
@@ -2007,7 +2007,7 @@ int main(int argc, char* argv[])
                                     curChart.odPhrases[curODPhrase].added = true;
                                 }
                             }
-                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime && !songEnded) {
+                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime+player.VideoOffset-player.InputOffset && !songEnded) {
                                 curNote.miss = true;
                                 player.MissNote();
                                 if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
@@ -2018,9 +2018,9 @@ int main(int argc, char* argv[])
                             }
 
 
-                            double relTime = ((curNote.time - musicTime) + player.VideoOffset) *
+                            double relTime = ((curNote.time - musicTime)) *
                                              settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
-                            double relEnd = (((curNote.time + curNote.len) - musicTime) + player.VideoOffset) *
+                            double relEnd = (((curNote.time + curNote.len) - musicTime)) *
                                             settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
                             float notePosX = diffDistance - (1.0f *
                                                              (float) (settingsMain.mirrorMode ? (player.diff == 3 ? 4 : 3) -
@@ -2143,7 +2143,7 @@ int main(int argc, char* argv[])
                                           Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
                                           1.0f, RED);
                                 if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
-                                    curNote.time + 0.4 && player.MissHighwayColor) {
+                                    curNote.time + 0.4 && settingsMain.missHighwayColor) {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
                                 } else {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
