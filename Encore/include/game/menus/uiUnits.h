@@ -8,7 +8,13 @@
 #include "raylib.h"
 
 class Units {
+    Units() {}
 public:
+
+    static Units& getInstance() {
+        static Units instance; // This is the single instance
+        return instance;
+    }
 
 float RightBorder;
 float RightSide;
@@ -19,7 +25,6 @@ float BottomBorder;
 float BottomSide;
 float TopBorder;
 float TopSide;
-
 
     void calcUnits();
     // usable height

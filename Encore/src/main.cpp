@@ -10,7 +10,6 @@
 #include <algorithm>
 #include "song/song.h"
 #include "song/songlist.h"
-#include "audio/audio.h"
 #include "game/arguments.h"
 #include "game/utility.h"
 #include "game/player.h"
@@ -25,9 +24,17 @@
 #include "raymath.h"
 #include "game/menus/uiUnits.h"
 #include "game/audio.h"
-Menu menu;
-Player player;
+#include "game/menus/settingsOptionRenderer.h"
+#include "game/timingvalues.h"
+#include <thread>
+#include <atomic>
+
+Menu menu = Menu::getInstance();
+Player player = Player::getInstance();
+Settings& settingsMain = Settings::getInstance();
 AudioManager audioManager;
+
+
 vector<std::string> ArgumentList::arguments;
 
 static bool compareNotes(const Note& a, const Note& b) {
@@ -46,18 +53,25 @@ static bool compareNotes(const Note& a, const Note& b) {
 bool midiLoaded = false;
 bool isPlaying = false;
 bool streamsLoaded = false;
+bool albumArtSelectedAndLoaded = false;
+
+bool ShowHighwaySettings = true;
+bool ShowCalibrationSettings = true;
+bool ShowGeneralSettings = true;
 
 bool ReadyUpMenu = false;
 bool diffSelected = false;
 bool diffSelection = false;
 bool instSelection = false;
 bool instSelected = false;
+bool songEnded = false;
 
 int curPlayingSong = 0;
 std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 int curODPhrase = 0;
 int curBeatLine = 0;
 int curBPM = 0;
+int selectedSongInt = 0;
 int selLane = 0;
 bool selSong = false;
 int songSelectOffset = 0;
@@ -69,6 +83,17 @@ bool changingPause = false;
 double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
+
+bool isCalibrating = false;
+double calibrationStartTime = 0.0;
+double lastClickTime = 0.0;
+std::vector<double> tapTimes;
+const int clickInterval = 1;
+
+bool showInputFeedback = false;
+double inputFeedbackStartTime = 0.0;
+const double inputFeedbackDuration = 0.6;
+float inputFeedbackAlpha = 1.0f;
 
 std::string trackSpeedButton;
 
@@ -87,9 +112,9 @@ std::vector<bool> overdriveLanesHit{ false,false,false,false,false };
 double overdriveHitTime = 0.0;
 std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
 
-SongList songList;
 
-Settings settings;
+
+SongList &songList = SongList::getInstance();
 Assets assets;
 double lastAxesTime = 0.0;
 std::vector<float> axesValues{0.0f,0.0f,0.0f,0.0f,0.0f,0.0f};
@@ -101,17 +126,11 @@ int controllerID = -1;
 
 int currentSortValue = 0;
 std::vector <std::string> sortTypes{ "Title","Artist","Length"};
-static void DrawTextRubik32(const char* text, float posX, float posY, Color color) {
-    DrawTextEx(assets.rubik32, text, { posX,posY }, 32, 0, color);
-}
 static void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color) {
     DrawTextEx(assets.rubik, text, { posX,posY }, fontSize, 0, color);
 }
 static void DrawTextRHDI(const char* text, float posX, float posY, float fontSize, Color color) {
     DrawTextEx(assets.redHatDisplayItalic, text, { posX,posY }, fontSize, 0, color);
-}
-static float MeasureTextRubik32(const char* text) {
-    return MeasureTextEx(assets.rubik32, text, 32.0f, 0).x;
 }
 static float MeasureTextRubik(const char* text, float fontSize) {
     return MeasureTextEx(assets.rubik, text, fontSize, 0).x;
@@ -140,7 +159,7 @@ std::string scoreCommaFormatter(int value) {
 static void handleInputs(int lane, int action){
     if (player.paused) return;
 	if (lane == -2) return;
-	if (settings.mirrorMode && lane!=-1) {
+	if (settingsMain.mirrorMode && lane!=-1) {
 		lane = (player.diff == 3 ? 4 : 3) - lane;
 	}
 	if (!streamsLoaded) {
@@ -161,8 +180,7 @@ static void handleInputs(int lane, int action){
 		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
 		Note* curNote = &curChart.notes[0];
 		for (auto & note : curChart.notes) {
-			if (note.time - (player.goodBackend+player.InputOffset) < eventTime &&
-				note.time + (player.goodFrontend+player.InputOffset) > eventTime &&
+			if (note.isGood(eventTime, player.InputOffset ) &&
 				!note.hit) {
 				curNote = &note;
 				break;
@@ -175,8 +193,7 @@ static void handleInputs(int lane, int action){
 			overdriveHeld = false;
 		}
 		if (action == GLFW_PRESS && overdriveHitAvailable) {
-			if (curNote->time - (player.goodBackend + player.InputOffset) < eventTime &&
-				curNote->time + (player.goodFrontend + player.InputOffset) > eventTime &&
+			if (curNote->isGood(eventTime, player.InputOffset) &&
 				!curNote->hit) {
 				for (int newlane = 0; newlane < 5; newlane++) {
 					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
@@ -190,12 +207,13 @@ static void handleInputs(int lane, int action){
 							if ((chordNote.len) > 0 && !chordNote.lift) {
 								chordNote.held = true;
 							}
-							if ((chordNote.time) - player.perfectBackend + player.InputOffset < eventTime && chordNote.time + player.perfectFrontend + player.InputOffset > eventTime) {
+                            if (chordNote.isPerfect(eventTime, player.InputOffset)) {
 								chordNote.perfect = true;
 
 							}
 							if (chordNote.perfect) player.lastNotePerfect = true;
 							else player.lastNotePerfect = false;
+                            chordNote.HitOffset = chordNote.time - eventTime;
                             player.HitNote(chordNote.perfect, player.instrument);
 							chordNote.accounted = true;
 						}
@@ -206,8 +224,7 @@ static void handleInputs(int lane, int action){
 			}
 		}
 		else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-			if ((curNote->time) - (player.goodBackend * player.liftTimingMult) + player.InputOffset < eventTime &&
-				(curNote->time) + (player.goodFrontend * player.liftTimingMult) + player.InputOffset > eventTime &&
+			if (curNote->isGood(eventTime, player.InputOffset) &&
 				!curNote->hit) {
 				for (int newlane = 0; newlane < 5; newlane++) {
 					if (overdriveLanesHit[newlane]) {
@@ -216,13 +233,15 @@ static void handleInputs(int lane, int action){
 							Note& chordNote = curChart.notes[chordLane];
 							if (chordNote.lift) {
 								chordNote.hit = true;
+                                chordNote.HitOffset = chordNote.time - eventTime;
 								overdriveLanesHit[newlane] = false;
 								chordNote.hitTime = eventTime;
 
-								if ((chordNote.time) - player.perfectBackend + player.InputOffset < eventTime && chordNote.time + player.perfectFrontend + player.InputOffset > eventTime) {
+								if (chordNote.isPerfect(eventTime, player.InputOffset)) {
 									chordNote.perfect = true;
 
 								}
+                                chordNote.accounted = true;
 								if (chordNote.perfect) player.lastNotePerfect = true;
 								else player.lastNotePerfect = false;
 							}
@@ -240,7 +259,7 @@ static void handleInputs(int lane, int action){
 					if (chordLane != -1) {
 						Note& chordNote = curChart.notes[chordLane];
 						if (chordNote.held && chordNote.len > 0) {
-							if (!((player.diff == 3 && settings.keybinds5K[chordNote.lane]) || (player.diff != 3 && settings.keybinds4K[chordNote.lane]))) {
+							if (!((player.diff == 3 && settingsMain.keybinds5K[chordNote.lane]) || (player.diff != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
 								chordNote.held = false;
                                 player.score += player.sustainScoreBuffer[chordNote.lane];
                                 player.sustainScoreBuffer[chordNote.lane] = 0;
@@ -258,18 +277,18 @@ static void handleInputs(int lane, int action){
 
 			if (lane != curNote.lane) continue;
 			if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-				if ((curNote.time) - (action == GLFW_RELEASE ? player.goodBackend * player.liftTimingMult : player.goodBackend) + player.InputOffset < eventTime &&
-					(curNote.time) + ((action == GLFW_RELEASE ? player.goodFrontend * player.liftTimingMult : player.goodFrontend) + player.InputOffset) > eventTime &&
+				if (curNote.isGood(eventTime, player.InputOffset) &&
 					!curNote.hit) {
 					if (curNote.lift && action == GLFW_RELEASE) {
 						lastHitLifts[lane] = curChart.notes_perlane[lane][i];
 					}
 					curNote.hit = true;
+                    curNote.HitOffset = curNote.time - eventTime;
 					curNote.hitTime = eventTime;
 					if ((curNote.len) > 0 && !curNote.lift) {
 						curNote.held = true;
 					}
-					if ((curNote.time) - player.perfectBackend + player.InputOffset < eventTime && curNote.time + player.perfectFrontend + player.InputOffset > eventTime) {
+					if (curNote.isPerfect(eventTime, player.InputOffset)) {
 						curNote.perfect = true;
 					}
 					if (curNote.perfect) player.lastNotePerfect = true;
@@ -292,7 +311,7 @@ static void handleInputs(int lane, int action){
 				eventTime > songList.songs[curPlayingSong].music_start &&
 				!curNote.hit &&
 				!curNote.accounted &&
-				((curNote.time) - player.perfectBackend) + player.InputOffset > eventTime &&
+				((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
 				eventTime > overdriveHitTime + 0.05
 				&& !overhitFrets[lane]) {
 				if (lastHitLifts[lane] != -1) {
@@ -315,7 +334,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 	}
 	if (action < 2) {  // if the key action is NOT repeat (release is 0, press is 1)
 		int lane = -2;
-        if (key == settings.keybindPause && action==GLFW_PRESS) {
+        if (key == settingsMain.keybindPause && action==GLFW_PRESS) {
             player.paused = !player.paused;
             if(player.paused)
                 audioManager.pauseStreams();
@@ -327,13 +346,13 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
             }
 
         }
-        else if (key == settings.keybindOverdrive || key == settings.keybindOverdriveAlt) {
+        else if (key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) {
 			handleInputs(-1, action);
 		}
 		else {
 			if (player.diff == 3) {
 				for (int i = 0; i < 5; i++) {
-					if (key == settings.keybinds5K[i] && !heldFretsAlt[i]) {
+					if (key == settingsMain.keybinds5K[i] && !heldFretsAlt[i]) {
 						if (action == GLFW_PRESS) {
 							heldFrets[i] = true;
 						}
@@ -343,7 +362,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 						}
 						lane = i;
 					}
-					else if (key == settings.keybinds5KAlt[i] && !heldFrets[i]) {
+					else if (key == settingsMain.keybinds5KAlt[i] && !heldFrets[i]) {
 						if (action == GLFW_PRESS) {
 							heldFretsAlt[i] = true;
 						}
@@ -357,7 +376,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 			}
 			else {
 				for (int i = 0; i < 4; i++) {
-					if (key == settings.keybinds4K[i] && !heldFretsAlt[i]) {
+					if (key == settingsMain.keybinds4K[i] && !heldFretsAlt[i]) {
 						if (action == GLFW_PRESS) {
 							heldFrets[i] = true;
 						}
@@ -367,7 +386,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 						}
 						lane = i;
 					}
-					else if (key == settings.keybinds4KAlt[i] && !heldFrets[i]) {
+					else if (key == settingsMain.keybinds4KAlt[i] && !heldFrets[i]) {
 						if (action == GLFW_PRESS) {
 							heldFretsAlt[i] = true;
 						}
@@ -392,10 +411,10 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		return;
 	}
 	double eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
-    if (settings.controllerPause >= 0) {
-        if (state.buttons[settings.controllerPause] != buttonValues[settings.controllerPause]) {
-            buttonValues[settings.controllerPause] = state.buttons[settings.controllerPause];
-            if (state.buttons[settings.controllerPause] == 1) {
+    if (settingsMain.controllerPause >= 0) {
+        if (state.buttons[settingsMain.controllerPause] != buttonValues[settingsMain.controllerPause]) {
+            buttonValues[settingsMain.controllerPause] = state.buttons[settingsMain.controllerPause];
+            if (state.buttons[settingsMain.controllerPause] == 1) {
                 player.paused = !player.paused;
                 if (player.paused)
                     audioManager.pauseStreams();
@@ -409,24 +428,24 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
         }
     }
     else {
-        if (state.axes[-(settings.controllerPause + 1)] != axesValues[-(settings.controllerPause + 1)]) {
-            axesValues[-(settings.controllerPause + 1)] = state.axes[-(settings.controllerPause + 1)];
-            if (state.axes[-(settings.controllerPause + 1)] == 1.0f * (float)settings.controllerPauseAxisDirection) {
+        if (state.axes[-(settingsMain.controllerPause + 1)] != axesValues[-(settingsMain.controllerPause + 1)]) {
+            axesValues[-(settingsMain.controllerPause + 1)] = state.axes[-(settingsMain.controllerPause + 1)];
+            if (state.axes[-(settingsMain.controllerPause + 1)] == 1.0f * (float)settingsMain.controllerPauseAxisDirection) {
                 
                     
             }
         }
     }
-	if (settings.controllerOverdrive >= 0) {
-		if (state.buttons[settings.controllerOverdrive] != buttonValues[settings.controllerOverdrive]) {
-			buttonValues[settings.controllerOverdrive] = state.buttons[settings.controllerOverdrive];
-			handleInputs(-1, state.buttons[settings.controllerOverdrive]);
+	if (settingsMain.controllerOverdrive >= 0) {
+		if (state.buttons[settingsMain.controllerOverdrive] != buttonValues[settingsMain.controllerOverdrive]) {
+			buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.controllerOverdrive];
+			handleInputs(-1, state.buttons[settingsMain.controllerOverdrive]);
 		}
 	}
 	else {
-		if (state.axes[-(settings.controllerOverdrive+1)] != axesValues[-(settings.controllerOverdrive + 1)]) {
-			axesValues[-(settings.controllerOverdrive + 1)] = state.axes[-(settings.controllerOverdrive + 1)];
-			if (state.axes[-(settings.controllerOverdrive + 1)] == 1.0f*(float)settings.controllerOverdriveAxisDirection) {
+		if (state.axes[-(settingsMain.controllerOverdrive+1)] != axesValues[-(settingsMain.controllerOverdrive + 1)]) {
+			axesValues[-(settingsMain.controllerOverdrive + 1)] = state.axes[-(settingsMain.controllerOverdrive + 1)];
+			if (state.axes[-(settingsMain.controllerOverdrive + 1)] == 1.0f*(float)settingsMain.controllerOverdriveAxisDirection) {
 				handleInputs(-1, GLFW_PRESS);
 			}
 			else {
@@ -436,22 +455,22 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 	}
 	if (player.diff == 3) {
 		for (int i = 0; i < 5; i++) {
-			if (settings.controller5K[i] >= 0) {
-				if (state.buttons[settings.controller5K[i]] != buttonValues[settings.controller5K[i]]) {
-					if (state.buttons[settings.controller5K[i]] == 1)
+			if (settingsMain.controller5K[i] >= 0) {
+				if (state.buttons[settingsMain.controller5K[i]] != buttonValues[settingsMain.controller5K[i]]) {
+					if (state.buttons[settingsMain.controller5K[i]] == 1)
 						heldFrets[i] = true;
 					else {
 						heldFrets[i] = false;
 						overhitFrets[i] = false;
 					}
 						
-					handleInputs(i, state.buttons[settings.controller5K[i]]);
-					buttonValues[settings.controller5K[i]] = state.buttons[settings.controller5K[i]];
+					handleInputs(i, state.buttons[settingsMain.controller5K[i]]);
+					buttonValues[settingsMain.controller5K[i]] = state.buttons[settingsMain.controller5K[i]];
 				}
 			}
 			else {
-				if (state.axes[-(settings.controller5K[i] + 1)] != axesValues[-(settings.controller5K[i]+1)]) {
-					if (state.axes[-(settings.controller5K[i] + 1)] == 1.0f * (float)settings.controller5KAxisDirection[i]) {
+				if (state.axes[-(settingsMain.controller5K[i] + 1)] != axesValues[-(settingsMain.controller5K[i]+1)]) {
+					if (state.axes[-(settingsMain.controller5K[i] + 1)] == 1.0f * (float)settingsMain.controller5KAxisDirection[i]) {
 						heldFrets[i] = true;
 						handleInputs(i, GLFW_PRESS);
 					}
@@ -460,28 +479,28 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 						overhitFrets[i] = false;
 						handleInputs(i, GLFW_RELEASE);
 					}
-					axesValues[-(settings.controller5K[i] + 1)] = state.axes[-(settings.controller5K[i] + 1)];
+					axesValues[-(settingsMain.controller5K[i] + 1)] = state.axes[-(settingsMain.controller5K[i] + 1)];
 				}
 			}
 		}
 	}
 	else {
 		for (int i = 0; i < 4; i++) {
-			if (settings.controller4K[i] >= 0) {
-				if (state.buttons[settings.controller4K[i]] != buttonValues[settings.controller4K[i]]) {
-					if (state.buttons[settings.controller4K[i]] == 1)
+			if (settingsMain.controller4K[i] >= 0) {
+				if (state.buttons[settingsMain.controller4K[i]] != buttonValues[settingsMain.controller4K[i]]) {
+					if (state.buttons[settingsMain.controller4K[i]] == 1)
 						heldFrets[i] = true;
 					else {
 						heldFrets[i] = false;
 						overhitFrets[i] = false;
 					}
-					handleInputs(i, state.buttons[settings.controller4K[i]]);
-					buttonValues[settings.controller4K[i]] = state.buttons[settings.controller4K[i]];
+					handleInputs(i, state.buttons[settingsMain.controller4K[i]]);
+					buttonValues[settingsMain.controller4K[i]] = state.buttons[settingsMain.controller4K[i]];
 				}
 			}
 			else {
-				if (state.axes[-(settings.controller4K[i] + 1)] != axesValues[-(settings.controller4K[i] + 1)]) {
-					if (state.axes[-(settings.controller4K[i] + 1)] == 1.0f * (float)settings.controller4KAxisDirection[i]) {
+				if (state.axes[-(settingsMain.controller4K[i] + 1)] != axesValues[-(settingsMain.controller4K[i] + 1)]) {
+					if (state.axes[-(settingsMain.controller4K[i] + 1)] == 1.0f * (float)settingsMain.controller4KAxisDirection[i]) {
 						heldFrets[i] = true;
 						handleInputs(i, GLFW_PRESS);
 					}
@@ -490,7 +509,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 						overhitFrets[i] = false;
 						handleInputs(i, GLFW_RELEASE);
 					}
-					axesValues[-(settings.controller4K[i] + 1)] = state.axes[-(settings.controller4K[i] + 1)];
+					axesValues[-(settingsMain.controller4K[i] + 1)] = state.axes[-(settingsMain.controller4K[i] + 1)];
 				}
 			}
 		}
@@ -548,10 +567,16 @@ Keybinds keybinds;
 Song song;
 
 bool firstInit = true;
+int loadedAssets;
+bool albumArtLoaded = false;
+
+settingsOptionRenderer sor;
+
+Song selectedSong;
 
 int main(int argc, char* argv[])
 {
-    Units u;
+    Units u = Units::getInstance();
     commitHash.erase(7);
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -598,12 +623,13 @@ int main(int argc, char* argv[])
     std::filesystem::path directory = executablePath.parent_path();
 
     if (std::filesystem::exists(directory / "keybinds.json")) {
-        settings.migrateSettings(directory / "keybinds.json", directory / "settings.json");
+        settingsMain.migrateSettings(directory / "keybinds.json", directory / "settings.json");
     }
-    settings.loadSettings(directory / "settings.json");
-
+    settingsMain.loadSettings(directory / "settings.json");
+    player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
+    player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
     int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-    if (!settings.fullscreen) {
+    if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
             SetWindowState(FLAG_MSAA_4X_HINT);
@@ -622,13 +648,7 @@ int main(int argc, char* argv[])
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
-    bool didBassInit = audioManager.Init();
-    if (didBassInit)
-        std::cout << "WE GOT BASS!" << std::endl;
-    else
-        std::cout << "FUCK" << std::endl;
-    //InitAudioDevice();
-    //SetAudioStreamBufferSizeDefault(196);
+    audioManager.Init();
     SetExitKey(0);
 
     Camera3D camera = { 0 };
@@ -650,7 +670,7 @@ int main(int argc, char* argv[])
 
 
 
-    trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
+    trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed]) + "x";
 
 
 
@@ -687,11 +707,18 @@ int main(int argc, char* argv[])
 
     Mesh sustainPlane = GenMeshPlane(0.8f,1.0f,1,1);
 
-
+    assets.FirstAssets();
+    SetWindowIcon(assets.icon);
+    GuiSetFont(assets.rubik);
+    assets.LoadAssets();
+    RenderTexture2D notes_tex  = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     while (!WindowShouldClose())
+
     {
 
         u.calcUnits();
+        GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.03f));
+        GuiSetStyle(DEFAULT, TEXT_SPACING, 0);
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
 
@@ -716,85 +743,162 @@ int main(int argc, char* argv[])
 
         ClearBackground(DARKGRAY);
 
-        if (firstInit) {
-            assets.MaterialMapper();
-            SetWindowIcon(assets.icon);
-            GuiSetFont(assets.rubik32);
-            firstInit = false;
-        }
+        
         SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
+        
 
         switch (menu.currentScreen) {
             case MENU: {
-                menu.loadMenu(songList,gamepadStateCallbackSetControls, assets);
+                if (!menu.songsLoaded) {
+                    if (std::filesystem::exists("songCache.encr")) {
+                        songList = songList.LoadCache(settingsMain.songPaths);
+                        menu.songsLoaded = true;
+                    }
+                }
+
+                menu.loadMenu(gamepadStateCallbackSetControls, assets);
+                break;
+            }
+            case CALIBRATION: {
+
+                static bool sampleLoaded = false;
+                if (!sampleLoaded) {
+                    audioManager.loadSample("Assets/kick.wav", "click");
+                    sampleLoaded = true;
+                }
+
+                if (GuiButton({ (float)GetScreenWidth() / 2 - 250, (float)GetScreenHeight() - 120, 200, 60 }, "Start Calibration")) {
+                    isCalibrating = true;
+                    calibrationStartTime = GetTime();
+                    lastClickTime = calibrationStartTime;
+                    tapTimes.clear();
+                }
+                if (GuiButton({ (float)GetScreenWidth() / 2 + 50, (float)GetScreenHeight() - 120, 200, 60 }, "Stop Calibration")) {
+                    isCalibrating = false;
+                    
+                    if (tapTimes.size() > 1) {
+                        double totalDifference = 0.0;
+                        for (double tapTime : tapTimes) {
+                            double expectedClickTime = round((tapTime - calibrationStartTime) / clickInterval) * clickInterval + calibrationStartTime;
+                            totalDifference += (tapTime - expectedClickTime);
+                        }
+                        settingsMain.avOffsetMS = static_cast<int>((totalDifference / tapTimes.size()) * 1000);  // Convert to milliseconds
+                        settingsMain.inputOffsetMS = settingsMain.avOffsetMS;
+                        std::cout << static_cast<int>((totalDifference / tapTimes.size()) * 1000) << "ms of latency detected" << std::endl;
+                    }
+                    std::cout << "Stopped Calibration" << std::endl;
+                    tapTimes.clear();
+                }
+                
+                if (isCalibrating) {
+                    double currentTime = GetTime();
+                    double elapsedTime = currentTime - lastClickTime;
+
+                    if (elapsedTime >= clickInterval) {
+                        audioManager.playSample("click");
+                        lastClickTime += clickInterval;  // Increment by the interval to avoid missing clicks
+                        std::cout << "Click" << std::endl;
+                    }
+
+                    if (IsKeyPressed(settingsMain.keybindOverdrive)) {
+                        tapTimes.push_back(currentTime);
+                        std::cout << "Input Registered" << std::endl;
+
+                        showInputFeedback = true;
+                        inputFeedbackStartTime = currentTime;
+                        inputFeedbackAlpha = 1.0f;
+                    }
+                }
+
+                if (showInputFeedback) {
+                    double currentTime = GetTime();
+                    double timeSinceInput = currentTime - inputFeedbackStartTime;
+                    if (timeSinceInput > inputFeedbackDuration) {
+                        showInputFeedback = false;
+                    } else {
+                        inputFeedbackAlpha = 1.0f - (timeSinceInput / inputFeedbackDuration);
+                    }
+                }
+
+                if (showInputFeedback) {
+                    Color feedbackColor = {0, 255, 0, static_cast<unsigned char>(inputFeedbackAlpha * 255)};
+                    DrawTextEx(assets.rubikBold, "Input Registered", {static_cast<float>((GetScreenWidth() - u.hinpct(0.35f)) / 2), static_cast<float>(GetScreenHeight() / 2)}, u.hinpct(0.05f), 0, feedbackColor);
+                }
+
+                if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel")) {
+                    isCalibrating = false;
+                    settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
+                    settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
+                    tapTimes.clear();
+
+                    settingsMain.saveSettings(directory / "settings.json");
+                    menu.SwitchScreen(SETTINGS);
+                }
+
+                if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply")) {
+                    isCalibrating = false;
+                    settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
+                    settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
+                    tapTimes.clear();
+
+                    settingsMain.saveSettings(directory / "settings.json");
+                    menu.SwitchScreen(SETTINGS);
+                }
+            
                 break;
             }
             case SETTINGS: {
-                if (settings.controllerType == -1 && controllerID != -1) {
+                if (menu.songsLoaded)
+                    menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
+                if (settingsMain.controllerType == -1 && controllerID != -1) {
                     std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
-                    settings.controllerType = keybinds.getControllerType(gamepadName);
+                    settingsMain.controllerType = keybinds.getControllerType(gamepadName);
                 }
+                float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
+                float TextPlacementLR = u.wpct(0.01f);
+                DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0,0,0,128});
+                DrawLineEx({u.LeftSide + u.winpct(0.0025f),0},{u.LeftSide + u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
+                DrawLineEx({u.RightSide - u.winpct(0.0025f),0},{u.RightSide - u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
+
+                menu.DrawTopOvershell(0.15f);
+                menu.DrawVersion(assets);
+                menu.DrawBottomOvershell();
+                menu.DrawBottomBottomOvershell();
+                DrawTextEx(assets.redHatDisplayBlack, "Options", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
+
+                float OvershellBottom = u.hpct(0.15f);
                 if (GuiButton({ ((float)GetScreenWidth() / 2) - 350,((float)GetScreenHeight() - 60),100,60 }, "Cancel") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
-                    settings.keybinds4K = settings.prev4K;
-                    settings.keybinds5K = settings.prev5K;
-                    settings.keybinds4KAlt = settings.prev4KAlt;
-                    settings.keybinds5KAlt = settings.prev5KAlt;
-                    settings.keybindOverdrive = settings.prevOverdrive;
-                    settings.keybindOverdriveAlt = settings.prevOverdriveAlt;
-                    settings.keybindPause = settings.prevKeybindPause;
+                    settingsMain.keybinds4K = settingsMain.prev4K;
+                    settingsMain.keybinds5K = settingsMain.prev5K;
+                    settingsMain.keybinds4KAlt = settingsMain.prev4KAlt;
+                    settingsMain.keybinds5KAlt = settingsMain.prev5KAlt;
+                    settingsMain.keybindOverdrive = settingsMain.prevOverdrive;
+                    settingsMain.keybindOverdriveAlt = settingsMain.prevOverdriveAlt;
+                    settingsMain.keybindPause = settingsMain.prevKeybindPause;
 
-                    settings.controller4K = settings.prevController4K;
-                    settings.controller4KAxisDirection = settings.prevController4KAxisDirection;
-                    settings.controller5K = settings.prevController5K;
-                    settings.controller5KAxisDirection = settings.prevController5KAxisDirection;
-                    settings.controllerOverdrive = settings.prevControllerOverdrive;
-                    settings.controllerOverdriveAxisDirection = settings.prevControllerOverdriveAxisDirection;
-                    settings.controllerType = settings.prevControllerType;
-                    settings.controllerPause = settings.prevControllerPause;
+                    settingsMain.controller4K = settingsMain.prevController4K;
+                    settingsMain.controller4KAxisDirection = settingsMain.prevController4KAxisDirection;
+                    settingsMain.controller5K = settingsMain.prevController5K;
+                    settingsMain.controller5KAxisDirection = settingsMain.prevController5KAxisDirection;
+                    settingsMain.controllerOverdrive = settingsMain.prevControllerOverdrive;
+                    settingsMain.controllerOverdriveAxisDirection = settingsMain.prevControllerOverdriveAxisDirection;
+                    settingsMain.controllerType = settingsMain.prevControllerType;
+                    settingsMain.controllerPause = settingsMain.prevControllerPause;
 
-                    settings.highwayLengthMult = settings.prevHighwayLengthMult;
-                    settings.trackSpeed = settings.prevTrackSpeed;
-                    settings.inputOffsetMS = settings.prevInputOffsetMS;
-                    settings.avOffsetMS = settings.prevAvOffsetMS;
-                    settings.missHighwayDefault = settings.prevMissHighwayColor;
-                    settings.mirrorMode = settings.prevMirrorMode;
-                    settings.fullscreen = settings.fullscreenPrev;
-
-                    settings.saveSettings(directory / "settings.json");
+                    settingsMain.highwayLengthMult = settingsMain.prevHighwayLengthMult;
+                    settingsMain.trackSpeed = settingsMain.prevTrackSpeed;
+                    settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
+                    settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
+                    settingsMain.missHighwayColor = settingsMain.prevMissHighwayColor;
+                    settingsMain.mirrorMode = settingsMain.prevMirrorMode;
+                    settingsMain.fullscreen = settingsMain.fullscreenPrev;
 
                     menu.SwitchScreen(MENU);
                 }
                 if (GuiButton({ ((float)GetScreenWidth() / 2) + 250,((float)GetScreenHeight() - 60),100,60 }, "Apply") && !(changingKey || changingOverdrive || changingPause)) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
-                    settings.prev4K = settings.keybinds4K;
-                    settings.prev5K = settings.keybinds5K;
-                    settings.prev4KAlt = settings.keybinds4KAlt;
-                    settings.prev5KAlt = settings.keybinds5KAlt;
-                    settings.prevOverdrive = settings.keybindOverdrive;
-                    settings.prevOverdriveAlt = settings.keybindOverdriveAlt;
-                    settings.prevKeybindPause = settings.keybindPause;
-
-                    settings.prevController4K = settings.controller4K;
-                    settings.prevController4KAxisDirection = settings.controller4KAxisDirection;
-                    settings.prevController5K = settings.controller5K;
-                    settings.prevController5KAxisDirection = settings.controller5KAxisDirection;
-                    settings.prevControllerOverdrive = settings.controllerOverdrive;
-                    settings.prevControllerPause = settings.controllerPause;
-                    settings.prevControllerOverdriveAxisDirection = settings.controllerOverdriveAxisDirection;
-                    settings.prevControllerType = settings.controllerType;
-
-                    settings.prevHighwayLengthMult = settings.highwayLengthMult;
-                    settings.prevTrackSpeed = settings.trackSpeed;
-                    settings.prevInputOffsetMS = settings.inputOffsetMS;
-                    settings.prevAvOffsetMS = settings.avOffsetMS;
-                    settings.prevMissHighwayColor = settings.missHighwayDefault;
-                    settings.prevMirrorMode = settings.mirrorMode;
-                    settings.fullscreenPrev = settings.fullscreen;
-
-                    settings.saveSettings(directory / "settings.json");
-
-                    if (settings.fullscreen) {
+                    if (settingsMain.fullscreen) {
                         SetWindowState(FLAG_WINDOW_UNDECORATED);
                         SetWindowState(FLAG_MSAA_4X_HINT);
                         int CurrentMonitor = GetCurrentMonitor();
@@ -805,143 +909,191 @@ int main(int argc, char* argv[])
                             ClearWindowState(FLAG_WINDOW_UNDECORATED);
                             SetWindowState(FLAG_MSAA_4X_HINT);
                         }
-                        SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75, GetMonitorHeight(GetCurrentMonitor()) * 0.75);
-                        SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375),
-                                          (GetMonitorHeight(GetCurrentMonitor()) * 0.5) -
-                                          (GetMonitorHeight(GetCurrentMonitor()) * 0.375));
+                        if (settingsMain.fullscreen != settingsMain.fullscreenPrev) {
+                            SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75,
+                                          GetMonitorHeight(GetCurrentMonitor()) * 0.75);
+                            SetWindowPosition((GetMonitorWidth(GetCurrentMonitor()) * 0.5) -
+                                              (GetMonitorWidth(GetCurrentMonitor()) * 0.375),
+                                              (GetMonitorHeight(GetCurrentMonitor()) * 0.5) -
+                                              (GetMonitorHeight(GetCurrentMonitor()) * 0.375));
+                        }
                     }
+                    settingsMain.prev4K = settingsMain.keybinds4K;
+                    settingsMain.prev5K = settingsMain.keybinds5K;
+                    settingsMain.prev4KAlt = settingsMain.keybinds4KAlt;
+                    settingsMain.prev5KAlt = settingsMain.keybinds5KAlt;
+                    settingsMain.prevOverdrive = settingsMain.keybindOverdrive;
+                    settingsMain.prevOverdriveAlt = settingsMain.keybindOverdriveAlt;
+                    settingsMain.prevKeybindPause = settingsMain.keybindPause;
+
+                    settingsMain.prevController4K = settingsMain.controller4K;
+                    settingsMain.prevController4KAxisDirection = settingsMain.controller4KAxisDirection;
+                    settingsMain.prevController5K = settingsMain.controller5K;
+                    settingsMain.prevController5KAxisDirection = settingsMain.controller5KAxisDirection;
+                    settingsMain.prevControllerOverdrive = settingsMain.controllerOverdrive;
+                    settingsMain.prevControllerPause = settingsMain.controllerPause;
+                    settingsMain.prevControllerOverdriveAxisDirection = settingsMain.controllerOverdriveAxisDirection;
+                    settingsMain.prevControllerType = settingsMain.controllerType;
+
+                    settingsMain.prevHighwayLengthMult = settingsMain.highwayLengthMult;
+                    settingsMain.prevTrackSpeed = settingsMain.trackSpeed;
+                    settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
+                    settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
+                    settingsMain.prevMissHighwayColor = settingsMain.missHighwayColor;
+                    settingsMain.prevMirrorMode = settingsMain.mirrorMode;
+                    settingsMain.fullscreenPrev = settingsMain.fullscreen;
+
+                    player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
+                    player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
+
+                    settingsMain.saveSettings(directory / "settings.json");
+
+
 
                     menu.SwitchScreen(MENU);
                 }
                 static int selectedTab = 0;
                 static int displayedTab = 0;
-                GuiToggleGroup({ 0,0,(float)GetScreenWidth() / 3,60 }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
+
+                GuiToggleGroup({ u.LeftSide + u.winpct(0.005f),OvershellBottom,(u.winpct(0.989f) / 3 ),u.hinpct(0.05) }, "Main;Keyboard Controls;Gamepad Controls", &selectedTab);
                 if (!changingKey && !changingOverdrive && !changingPause) {
                     displayedTab = selectedTab;
                 }
                 else {
                     selectedTab = displayedTab;
                 }
-                    
-                if (displayedTab == 0) { //Main settings tab
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 320,250,60 }, "")) {
-                        if (settings.trackSpeed == settings.trackSpeedOptions.size() - 1) settings.trackSpeed = 0; else settings.trackSpeed++;
-                        trackSpeedButton = "Track Speed " + truncateFloatString(settings.trackSpeedOptions[settings.trackSpeed]) + "x";
-                    }
-                    DrawTextRubik(trackSpeedButton.c_str(), (float)GetScreenWidth() / 2 - MeasureTextRubik(trackSpeedButton.c_str(), 20) / 2, (float)GetScreenHeight() / 2 - 300, 20, WHITE);
+                float EntryFontSize = u.hinpct(0.03f);
+                float EntryHeight = u.hinpct(0.05f);
+                float EntryTop = OvershellBottom + u.hinpct(0.1f);
+                float HeaderTextLeft = u.LeftSide + u.winpct(0.015f);
+                float EntryTextLeft = u.LeftSide + u.winpct(0.025f);
+                float EntryTextTop = EntryTop + u.hinpct(0.01f);
+                float OptionLeft = u.LeftSide+u.winpct(0.005f)+u.winpct(0.989f) / 3;
+                float OptionWidth = u.winpct(0.989f) / 3;
+                float OptionRight = OptionLeft + OptionWidth;
 
-                    GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
-                    auto avOffsetFloat = (float)settings.avOffsetMS;
-                    float lengthSetting = settings.highwayLengthMult;
-                    DrawTextRubik("A/V Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("A/V Offset", 20) / 2, (float)GetScreenHeight() / 2 - 240, 20, WHITE);
-                    DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 210, 20, WHITE);
-                    DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 210, 20, WHITE);
-                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 220,250,40 }, "", "", &avOffsetFloat, -500.0f, 500.0f)) {
-                        settings.avOffsetMS = (int)avOffsetFloat;
-                    }
+                float underTabsHeight = OvershellBottom + u.hinpct(0.05f);
 
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 230,60,60 }, "-1")) {
-                        settings.avOffsetMS--;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20) ,(float)GetScreenHeight() / 2 - 230,60,60 }, "+1")) {
-                        settings.avOffsetMS++;
-                    }
-                    DrawTextRubik(TextFormat("%01i ms",settings.avOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.avOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 210, 20, BLACK);
+                GuiSetStyle(SLIDER, BASE_COLOR_NORMAL, 0x181827FF);
+                GuiSetStyle(SLIDER, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.25f)));
+                GuiSetStyle(SLIDER, TEXT_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5f)));
+                GuiSetStyle(SLIDER, BORDER, 0xFFFFFFFF);
+                GuiSetStyle(SLIDER, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
+                GuiSetStyle(SLIDER, BORDER_WIDTH, 2);
+
+                if (displayedTab == 0) { // Main settings tab
 
 
-                    float lengthHeight = ((float)GetScreenHeight() / 2 )- 60;
-                    DrawTextRubik("Highway Length", (float)GetScreenWidth() / 2 - MeasureTextRubik("Highway Length", 20) / 2, lengthHeight - 20, 20, WHITE);
-                    DrawTextRubik(" 0.25 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20), lengthHeight+10, 20, WHITE);
-                    DrawTextRubik(" 2.50 ", (float)GetScreenWidth() / 2 + 125, lengthHeight+10, 20, WHITE);
-                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,lengthHeight,250,40 }, "", "", &lengthSetting, 0.25f, 2.5f)) {
-                        settings.highwayLengthMult = lengthSetting;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" 0.25 ", 20) - 60,lengthHeight-10,60,60 }, "-0.25")) {
-                        settings.highwayLengthMult-= 0.25;
-                    }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" 2.50 ", 20) ,lengthHeight-10,60,60 }, "+0.25")) {
-                        settings.highwayLengthMult+=0.25;
-                    }
-                    DrawTextRubik(TextFormat("%1.2fx",settings.highwayLengthMult), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%1.2f",settings.highwayLengthMult), 20) / 2), lengthHeight+10, 20, BLACK);
+                    float trackSpeedFloat = settingsMain.trackSpeed;
 
 
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2,250,60 }, TextFormat("Miss Highway Color: %s", player.MissHighwayColor ? "True" : "False"))) {
-                        settings.missHighwayDefault = !settings.missHighwayDefault;
-                        player.MissHighwayColor = settings.missHighwayDefault;
+
+                    // header 1
+                    DrawRectangle(u.wpct(0.005f),OvershellBottom + u.hinpct(0.05f),OptionWidth*2, EntryHeight, Color{0,0,0,128});
+                    DrawTextEx(assets.rubikBoldItalic, "Highway", {HeaderTextLeft, OvershellBottom + u.hinpct(0.055f)}, u.hinpct(0.04f), 0, WHITE);
+                    if (GuiButton({OptionLeft-EntryHeight,underTabsHeight,EntryHeight,EntryHeight}, ShowHighwaySettings ? "v" : ">")) {
+                        ShowHighwaySettings = !ShowHighwaySettings;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 90,250,60 }, TextFormat("Mirror mode: %s", settings.mirrorMode ? "True" : "False"))) {
-                        settings.mirrorMode = !settings.mirrorMode;
+
+                    if (ShowHighwaySettings) {
+                        settingsMain.trackSpeed = sor.sliderEntry(settingsMain.trackSpeed, 0,
+                                                                  settingsMain.trackSpeedOptions.size() - 1, 1,
+                                                                  "Track Speed", 1.0f, assets);
+                        // highway length
+
+                        DrawRectangle(u.wpct(0.005f), underTabsHeight + (EntryHeight * 2), OptionWidth * 2, EntryHeight,
+                                      Color{0, 0, 0, 64});
+                        settingsMain.highwayLengthMult = sor.sliderEntry(settingsMain.highwayLengthMult, 0.25f, 2.5f, 2,
+                                                                         "Highway Length Multiplier", 0.25f, assets);
+
+                        // miss color
+                        settingsMain.missHighwayDefault = sor.toggleEntry(settingsMain.missHighwayDefault, 3,
+                                                                          "Highway Miss Color", assets);
+
+                        // lefty flip
+                        DrawRectangle(u.wpct(0.005f), underTabsHeight + (EntryHeight * 4), OptionWidth * 2, EntryHeight,
+                                      Color{0, 0, 0, 64});
+                        settingsMain.mirrorMode = sor.toggleEntry(settingsMain.mirrorMode, 4, "Mirror/Lefty Mode",
+                                                                  assets);
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125, (float)GetScreenHeight() / 2 + 180,250,60 }, TextFormat("Fullscreen: %s", settings.fullscreen ? "True" : "False"))) {
-                        settings.fullscreen = !settings.fullscreen;
+                    // calibration header
+                    int calibrationMenuOffset = ShowHighwaySettings ? 5 : 1;
+
+                    DrawRectangle(u.wpct(0.005f),underTabsHeight+(EntryHeight*calibrationMenuOffset),OptionWidth*2, EntryHeight, Color{0,0,0,128});
+                    DrawTextEx(assets.rubikBoldItalic, "Calibration", {HeaderTextLeft, OvershellBottom + u.hinpct(0.055f) + (EntryHeight * calibrationMenuOffset)}, u.hinpct(0.04f), 0, WHITE);
+                    if (GuiButton({OptionLeft-EntryHeight,underTabsHeight+(EntryHeight*calibrationMenuOffset),EntryHeight,EntryHeight}, ShowCalibrationSettings ? "v" : ">")) {
+                        ShowCalibrationSettings = !ShowCalibrationSettings;
                     }
-                    auto inputOffsetFloat = (float)settings.inputOffsetMS;
-                    DrawTextRubik("Input Offset", (float)GetScreenWidth() / 2 - MeasureTextRubik("Input Offset", 20) / 2, (float)GetScreenHeight() / 2 - 160, 20, WHITE);
-                    DrawTextRubik(" -500 ", (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20), (float)GetScreenHeight() / 2 - 130, 20, WHITE);
-                    DrawTextRubik(" 500 ", (float)GetScreenWidth() / 2 + 125, (float)GetScreenHeight() / 2 - 130, 20, WHITE);
-                    if (GuiSliderBar({ (float)GetScreenWidth() / 2 - 125,(float)GetScreenHeight() / 2 - 140,250,40 }, "", "", &inputOffsetFloat, -500.0f, 500.0f)) {
-                        settings.inputOffsetMS = (int)inputOffsetFloat;
+
+                    if (ShowCalibrationSettings) {
+                        // av offset
+
+                        settingsMain.avOffsetMS = sor.sliderEntry(settingsMain.avOffsetMS, -500.0f, 500.0f,
+                                                                  calibrationMenuOffset + 1, "Audio/Visual Offset", 1,
+                                                                  assets);
+
+                        // input offset
+                        DrawRectangle(u.wpct(0.005f), underTabsHeight + (EntryHeight * (calibrationMenuOffset + 2)),
+                                      OptionWidth * 2, EntryHeight, Color{0, 0, 0, 64});
+                        settingsMain.inputOffsetMS = sor.sliderEntry(settingsMain.inputOffsetMS, -500.0f, 500.0f,
+                                                                     calibrationMenuOffset + 2, "Input Offset", 1,
+                                                                     assets);
+
+                        float calibrationTop = EntryTop + (EntryHeight * (calibrationMenuOffset + 2));
+                        float calibrationTextTop = EntryTextTop + (EntryHeight * (calibrationMenuOffset + 2));
+                        DrawTextEx(assets.rubikBold, "Automatic Calibration", {EntryTextLeft, calibrationTextTop},
+                                   EntryFontSize, 0, WHITE);
+                        if (GuiButton({OptionLeft, calibrationTop, OptionWidth, EntryHeight}, "Start Calibration")) {
+                            menu.SwitchScreen(CALIBRATION);
+                        }
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 - 125 - MeasureTextRubik(" -500 ", 20) - 60,(float)GetScreenHeight() / 2 - 150,60,60 }, "-1")) {
-                        settings.inputOffsetMS--;
+
+                    int generalOffset = ShowHighwaySettings ? (ShowCalibrationSettings ? 9 : 6 ): (ShowCalibrationSettings ? 5 : 2);
+                    // general header
+                    DrawRectangle(u.wpct(0.005f),underTabsHeight+(EntryHeight*generalOffset),OptionWidth*2, EntryHeight, Color{0,0,0,128});
+                    DrawTextEx(assets.rubikBoldItalic, "General", {HeaderTextLeft, OvershellBottom + u.hinpct(0.055f) + (EntryHeight * generalOffset)}, u.hinpct(0.04f), 0, WHITE);
+                    if (GuiButton({OptionLeft-EntryHeight,underTabsHeight+(EntryHeight*generalOffset),EntryHeight,EntryHeight}, ShowGeneralSettings ? "v" : ">")) {
+                        ShowGeneralSettings = !ShowGeneralSettings;
                     }
-                    if (GuiButton({ (float)GetScreenWidth() / 2 + 125 + MeasureTextRubik(" -500 ", 20),(float)GetScreenHeight() / 2 - 150,60,60 }, "+1")) {
-                        settings.inputOffsetMS++;
+
+                    // fullscreen
+                    if (ShowGeneralSettings) {
+                        settingsMain.fullscreen = sor.toggleEntry(settingsMain.fullscreen, generalOffset + 1,
+                                                                  "Fullscreen", assets);
                     }
-                    DrawTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), (float)GetScreenWidth() / 2 - (MeasureTextRubik(TextFormat("%01i ms",settings.inputOffsetMS), 20) / 2), (float)GetScreenHeight() / 2 - 130, 20, BLACK);
-                    GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
+
                 }
                 else if (displayedTab == 1) { //Keyboard bindings tab
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
-                        float j = (float)i - 2.0f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),120,80,60 }, keybinds.getKeyStr(settings.keybinds5K[i]).c_str())) {
-                            changing4k = false;
-                            changingAlt = false;
-                            selLane = i;
-                            changingKey = true;
-                        }
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),180,80,60 }, keybinds.getKeyStr(settings.keybinds5KAlt[i]).c_str())) {
-                            changing4k = false;
-                            changingAlt = true;
-                            selLane = i;
-                            changingKey = true;
-                        }
+                        sor.keybindEntryText(i+1, "Lane " + to_string(i+1), assets);
+                        sor.keybindEntry(settingsMain.keybinds5K[i], i+1, "Lane " + to_string(i+1), assets, keybinds, i);
+                        sor.keybindAltEntry(settingsMain.keybinds5KAlt[i], i+1, "Lane " + to_string(i+1), assets, keybinds, i);
                     }
                     for (int i = 0; i < 4; i++) {
-                        float j = (float)i - 1.5f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),300,80,60 }, keybinds.getKeyStr(settings.keybinds4K[i]).c_str())) {
-                            changingAlt = false;
-                            changing4k = true;
-                            selLane = i;
-                            changingKey = true;
-                        }
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getKeyStr(settings.keybinds4KAlt[i]).c_str())) {
-                            changingAlt = true;
-                            changing4k = true;
-                            selLane = i;
-                            changingKey = true;
-                        }
+                        sor.keybindEntryText(i+7, "Lane " + to_string(i+1), assets);
+                        sor.keybindEntry(settingsMain.keybinds4K[i], i+7, "Lane " + to_string(i+1), assets, keybinds, i);
+                        sor.keybindAltEntry(settingsMain.keybinds4KAlt[i], i+7, "Lane " + to_string(i+1), assets, keybinds, i);
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 130,480,120,60 }, keybinds.getKeyStr(settings.keybindOverdrive).c_str())) {
-                        changingAlt = false;
-                        changingKey = false;
-                        changingOverdrive = true;
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 130,480,120,60 }, keybinds.getKeyStr(settingsMain.keybindOverdrive).c_str())) {
+                        sor.changingAlt = false;
+                        sor.changingKey = false;
+                        sor.changingOverdrive = true;
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) + 10,480,120,60 }, keybinds.getKeyStr(settings.keybindOverdriveAlt).c_str())) {
-                        changingAlt = true;
-                        changingKey = false;
-                        changingOverdrive = true;
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) + 10,480,120,60 }, keybinds.getKeyStr(settingsMain.keybindOverdriveAlt).c_str())) {
+                        sor.changingAlt = true;
+                        sor.changingKey = false;
+                        sor.changingOverdrive = true;
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 60,560,120,60 }, keybinds.getKeyStr(settings.keybindPause).c_str())) {
-                        changingKey = false;
-                        changingPause = true;
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 60,560,120,60 }, keybinds.getKeyStr(settingsMain.keybindPause).c_str())) {
+                        sor.changingKey = false;
+                        sor.changingPause = true;
                     }
-                    if (changingKey) {
-                        std::vector<int>& bindsToChange = changingAlt ? (changing4k ? settings.keybinds4KAlt : settings.keybinds5KAlt) : (changing4k ? settings.keybinds4K : settings.keybinds5K);
+                    if (sor.changingKey) {
+                        std::vector<int>& bindsToChange = sor.changingAlt ? (sor.changing4k ? settingsMain.keybinds4KAlt : settingsMain.keybinds5KAlt) : (sor.changing4k ? settingsMain.keybinds4K : settingsMain.keybinds5K);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string keyString = (changing4k ? "4k" : "5k");
-                        std::string altString = (changingAlt ? " alt" : "");
+                        std::string keyString = (sor.changing4k ? "4k" : "5k");
+                        std::string altString = (sor.changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + keyString + altString + " lane ";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
@@ -949,18 +1101,18 @@ int main(int argc, char* argv[])
                             pressedKey = -1;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
-                            selLane = 0;
-                            changingKey = false;
+                            sor.selLane = 0;
+                            sor.changingKey = false;
                         }
                         if (pressedKey != 0) {
-                            bindsToChange[selLane] = pressedKey;
-                            selLane = 0;
-                            changingKey = false;
+                            bindsToChange[sor.selLane] = pressedKey;
+                            sor.selLane = 0;
+                            sor.changingKey = false;
                         }
                     }
-                    if (changingOverdrive) {
+                    if (sor.changingOverdrive) {
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
-                        std::string altString = (changingAlt ? " alt" : "");
+                        std::string altString = (sor.changingAlt ? " alt" : "");
                         std::string changeString = "Press a key for " + altString + " overdrive";
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
@@ -968,18 +1120,18 @@ int main(int argc, char* argv[])
                             pressedKey = -1;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
-                            changingAlt = false;
-                            changingOverdrive = false;
+                            sor.changingAlt = false;
+                            sor.changingOverdrive = false;
                         }
                         if (pressedKey != 0) {
                             if(changingAlt)
-                                settings.keybindOverdriveAlt = pressedKey;
+                                settingsMain.keybindOverdriveAlt = pressedKey;
                             else
-                                settings.keybindOverdriveAlt = pressedKey;
-                            changingOverdrive = false;
+                                settingsMain.keybindOverdriveAlt = pressedKey;
+                            sor.changingOverdrive = false;
                         }
                     }
-                    if (changingPause) {
+                    if (sor.changingPause) {
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         DrawTextRubik("Press a key for Pause", ((float)GetScreenWidth() - MeasureTextRubik("Press a key for Pause", 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
@@ -987,12 +1139,12 @@ int main(int argc, char* argv[])
                             pressedKey = -1;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
-                            changingAlt = false;
-                            changingPause = false;
+                            sor.changingAlt = false;
+                            sor.changingPause = false;
                         }
                         if (pressedKey != 0) {
-                            settings.keybindPause = pressedKey;
-                            changingPause = false;
+                            settingsMain.keybindPause = pressedKey;
+                            sor.changingPause = false;
                         }
                     }
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
@@ -1001,7 +1153,7 @@ int main(int argc, char* argv[])
                     GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
                     for (int i = 0; i < 5; i++) {
                         float j = (float)i - 2.0f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, keybinds.getControllerStr(controllerID, settings.controller5K[i], settings.controllerType, settings.controller5KAxisDirection[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),240,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controller5K[i], settingsMain.controllerType, settingsMain.controller5KAxisDirection[i]).c_str())) {
                             changing4k = false;
                             selLane = i;
                             changingKey = true;
@@ -1009,23 +1161,23 @@ int main(int argc, char* argv[])
                     }
                     for (int i = 0; i < 4; i++) {
                         float j = (float)i - 1.5f;
-                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getControllerStr(controllerID, settings.controller4K[i], settings.controllerType, settings.controller4KAxisDirection[i]).c_str())) {
+                        if (GuiButton({ ((float)GetScreenWidth() / 2) - 40 + (80 * j),360,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controller4K[i], settingsMain.controllerType, settingsMain.controller4KAxisDirection[i]).c_str())) {
                             changing4k = true;
                             selLane = i;
                             changingKey = true;
                         }
                     }
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, keybinds.getControllerStr(controllerID, settings.controllerOverdrive, settings.controllerType, settings.controllerOverdriveAxisDirection).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,480,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controllerOverdrive, settingsMain.controllerType, settingsMain.controllerOverdriveAxisDirection).c_str())) {
                         changingKey = false;
                         changingOverdrive = true;
                     } 
-                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,560,80,60 }, keybinds.getControllerStr(controllerID, settings.controllerPause, settings.controllerType, settings.controllerPauseAxisDirection).c_str())) {
+                    if (GuiButton({ ((float)GetScreenWidth() / 2) - 40,560,80,60 }, keybinds.getControllerStr(controllerID, settingsMain.controllerPause, settingsMain.controllerType, settingsMain.controllerPauseAxisDirection).c_str())) {
                         changingKey = false;
                         changingOverdrive = true;
                     }
                     if (changingKey) {
-                        std::vector<int>& bindsToChange = (changing4k ? settings.controller4K : settings.controller5K);
-                        std::vector<int>& directionToChange = (changing4k ? settings.controller4KAxisDirection : settings.controller5KAxisDirection);
+                        std::vector<int>& bindsToChange = (changing4k ? settingsMain.controller4K : settingsMain.controller5K);
+                        std::vector<int>& directionToChange = (changing4k ? settingsMain.controller4KAxisDirection : settingsMain.controller5KAxisDirection);
                         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0,0,0,200 });
                         std::string keyString = (changing4k ? "4k" : "5k");
                         std::string changeString = "Press a button/axis for controller " + keyString + " lane " + std::to_string(selLane + 1);
@@ -1051,9 +1203,9 @@ int main(int argc, char* argv[])
                             changingOverdrive = false;
                         }
                         if (pressedGamepadInput != -999) {
-                            settings.controllerOverdrive = pressedGamepadInput;
+                            settingsMain.controllerOverdrive = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
-                                settings.controllerOverdriveAxisDirection = axisDirection;
+                                settingsMain.controllerOverdriveAxisDirection = axisDirection;
                             }
                             changingOverdrive = false;
                             pressedGamepadInput = -999;
@@ -1067,9 +1219,9 @@ int main(int argc, char* argv[])
                             changingPause = false;
                         }
                         if (pressedGamepadInput != -999) {
-                            settings.controllerPause = pressedGamepadInput;
+                            settingsMain.controllerPause = pressedGamepadInput;
                             if (pressedGamepadInput < 0) {
-                                settings.controllerPauseAxisDirection = axisDirection;
+                                settingsMain.controllerPauseAxisDirection = axisDirection;
                             }
                             changingPause = false;
                             pressedGamepadInput = -999;
@@ -1082,121 +1234,113 @@ int main(int argc, char* argv[])
             case SONG_SELECT: {
                 if (!menu.songsLoaded) {
 
-                    songList = songList.LoadSongs(settings.songPaths);
-
+                    songList = songList.LoadCache(settingsMain.songPaths);
                     menu.songsLoaded = true;
+
                 }
                 u.calcUnits();
                 streamsLoaded = false;
                 midiLoaded = false;
                 isPlaying = false;
+                songEnded = false;
                 player.overdrive = false;
                 curNoteIdx = { 0,0,0,0,0 };
                 curODPhrase = 0;
                 curBeatLine = 0;
                 curBPM = 0;
-                std::random_device noise;
-                std::mt19937 worker(noise());
-                std::uniform_int_distribution<int> weezer(0, (int)songList.songs.size()-1);
 
-                int selectedSongInt;
-
-                static int randSong = weezer(worker);
-
-                if (selSong) {
+                if (selSong) 
                     selectedSongInt = curPlayingSong;
-                } else
-                    selectedSongInt = randSong;
+                else
+                    selectedSongInt = menu.ChosenSongInt;
 
-                Song selectedSong = songList.songs[selectedSongInt];
+
 
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+
+                Vector2 mouseWheel = GetMouseWheelMoveV();
+                int lastIntChosen = (int)mouseWheel.y;
+                // set to specified height
+                if (songSelectOffset <= songList.songs.size() && songSelectOffset >= 0) {
+                    songSelectOffset -= (int)mouseWheel.y;
+                }
+
+                // prevent going past top
+                if (songSelectOffset < 0)
+                    songSelectOffset = 0;
+
+                // prevent going past bottom
+                if (songSelectOffset >= songList.songs.size() - 12)
+                    songSelectOffset = (int)songList.songs.size() - 12;
+
+                if (!albumArtLoaded) {
+                    selectedSong = menu.ChosenSong;
+                    selectedSongInt = menu.ChosenSongInt;
+                    selectedSong.LoadAlbumArt(selectedSong.albumArtPath);
+                    if (!selSong)
+                        songSelectOffset = menu.ChosenSongInt - 5;
+                    albumArtLoaded = true;
+                }
+
                 BeginShaderMode(assets.bgShader);
                 if (selSong){
-                    DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0, 0, (float) selectedSong.albumArt.width,
-                                                                        (float) selectedSong.albumArt.width},
-                                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
-                                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
-                                   WHITE);
+
+                    menu.DrawAlbumArtBackground(selectedSong.albumArtBlur, assets);
                 }
                 else {
 
-                    Song art = songList.songs[randSong];
-                    DrawTexturePro(art.albumArtBlur, Rectangle{0, 0, (float) art.albumArt.width,
-                                                               (float) art.albumArt.width},
-                                   Rectangle{(float) GetScreenWidth() / 2, -((float) GetScreenHeight() * 2),
-                                             (float) GetScreenWidth() * 2, (float) GetScreenWidth() * 2}, {0, 0}, 45,
-                                   WHITE);
+                    Song art = menu.ChosenSong;
+                    menu.DrawAlbumArtBackground(art.albumArtBlur, assets);
                 }
                 EndShaderMode();
-                Vector2 mouseWheel = GetMouseWheelMoveV();
-                if (songSelectOffset <= songList.songs.size() + 2 - (GetScreenHeight() / 60) && songSelectOffset >= 0) {
-                    songSelectOffset -= (int)mouseWheel.y;
-                }
-                if (songSelectOffset < 0) songSelectOffset = 0;
-                if (songSelectOffset > songList.songs.size() + 2 - (GetScreenHeight() / 60)) songSelectOffset = (int)songList.songs.size() + 2 - (GetScreenHeight() / 60);
-                if (songSelectOffset >= songList.songs.size()) songSelectOffset = (int)songList.songs.size() - 1;
 
                 float TopOvershell = u.hpct(0.15f);
-                // DrawRectangle((int)u.LeftSide,0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawRectangle((int)u.LeftSide,0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), Color(0,0,0,128));
+                DrawLineEx({u.LeftSide + u.winpct(0.0025f),0},{u.LeftSide + u.winpct(0.0025f),(float)GetScreenHeight()}, u.winpct(0.005f), WHITE);
+
                 menu.DrawTopOvershell(0.15f);
-                float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
-                float TextPlacementLR = u.wpct(0.01f);
-                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
 
 
-                DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s", encoreVersion.c_str() , commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
-
-                float AlbumX = u.RightSide - u.winpct(0.25f);
-                float AlbumY = u.hpct(0.075f);
-                float AlbumHeight = u.winpct(0.25f);
-
-                DrawRectangle(AlbumX-12,AlbumY+AlbumHeight,AlbumHeight+12,AlbumHeight+12, WHITE);
-                DrawRectangle(AlbumX-6,AlbumY+AlbumHeight,AlbumHeight,u.hinpct(0.075f)+AlbumHeight, GetColor(0x181827FF));
-                DrawRectangle(AlbumX-12,AlbumY-6,AlbumHeight+12,AlbumHeight+12, WHITE);
-                DrawRectangle(AlbumX-6,AlbumY,AlbumHeight,AlbumHeight, BLACK);
+                menu.DrawVersion(assets);
+                int AlbumX = u.RightSide - u.winpct(0.25f);
+                int AlbumY = u.hpct(0.075f);
+                int AlbumHeight = u.winpct(0.25f);
+                int AlbumOuter = u.hinpct(0.01f);
+                int AlbumInner = u.hinpct(0.005f);
+                int BorderBetweenAlbumStuff = (u.RightSide - u.LeftSide) - u.winpct(0.25f);
 
 
-                // bottom
-                if (selSong) {
-                    DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
-                                                                    (float) selectedSong.albumArt.width},
-                                   Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
-                                   WHITE);
-                } else {
-                    Song art = songList.songs[randSong];
-                    DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
-                                                          (float) art.albumArt.width},
-                                  Rectangle{AlbumX-6, AlbumY, AlbumHeight, AlbumHeight}, {0, 0}, 0,
-                                  WHITE);
-                }
-                DrawTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), u.hinpct(0.025f), 0).x, AlbumY + u.hinpct(0.0075)}, u.hinpct(0.025f), 0, WHITE);
-                DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX -24- MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
+                DrawTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {AlbumX - (AlbumOuter * 2) - MeasureTextEx(assets.josefinSansItalic, TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), u.hinpct(0.025f), 0).x, AlbumY + u.hinpct(0.0075)}, u.hinpct(0.025f), 0, WHITE);
+                DrawTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), {AlbumX - (AlbumOuter * 2) - MeasureTextEx(assets.josefinSansItalic, TextFormat("Songs loaded: %01i", songList.songs.size()), u.hinpct(0.025f), 0).x, AlbumY +u.hinpct(0.04f)}, u.hinpct(0.025f), 0, WHITE);
 
-                BeginScissorMode(u.LeftSide, u.hpct(0.15f), u.winpct(0.75f),u.hinpct(0.7f));
+
                 float songEntryHeight = u.hinpct(0.06f);
-                for (int i = songSelectOffset; i < songSelectOffset + u.hpct(0.15f) - 4; i++) {
+                for (int i = songSelectOffset; i < songList.songs.size() && i < songSelectOffset+12; i++) {
                     if (songList.songs.size() == i)
                         break;
-                    Font& songFont = i == curPlayingSong && selSong ? assets.rubikBoldItalic32 : assets.rubikBold32;
-                    Font& artistFont = i == curPlayingSong && selSong ? assets.josefinSansItalic : assets.josefinSansItalic;
+                    Font& songFont = i == menu.ChosenSongInt ? assets.rubikBoldItalic : assets.rubikBold;
+                    Font& artistFont = i == menu.ChosenSongInt ? assets.josefinSansItalic : assets.josefinSansItalic;
                     Song& songi = songList.songs[i];
-                    float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
+                    // float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
-                    float songXPos = u.LeftSide;//state.value * 500;
-                    float songYPos = (u.hpct(0.15f)+4) + ((songEntryHeight - 1) * (i - songSelectOffset));
+                    float songXPos = u.LeftSide+u.winpct(0.005f)-2;
+                    float songYPos = (u.hpct(0.15f)-2) + ((songEntryHeight-1) * (i - songSelectOffset));
 
-                    if (i == curPlayingSong && selSong) {
+                    if (i == menu.ChosenSongInt) {
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.4)));
-
                     }
-                    if (GuiButton(Rectangle{ songXPos, songYPos,(u.winpct(0.75f))-10, songEntryHeight }, "")) {
+                    BeginScissorMode(u.LeftSide, u.hpct(0.15f), BorderBetweenAlbumStuff,u.hinpct(0.7f));
+                    if (GuiButton(Rectangle{ songXPos, songYPos,(u.winpct(0.75f)), songEntryHeight }, "")) {
                         curPlayingSong = i;
                         selSong = true;
-
+                        albumArtSelectedAndLoaded = false;
+                        albumArtLoaded = false;
+                        menu.ChosenSong = songList.songs[i];
+                        menu.ChosenSongInt = i;
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                    EndScissorMode();
                     // DrawTexturePro(song.albumArt, Rectangle{ songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f, RAYWHITE);
                     int songTitleWidth = (u.winpct(0.3f))-6;
 
@@ -1217,7 +1361,7 @@ int main(int argc, char* argv[])
                     }
                     auto LightText = Color{203, 203, 203, 255};
                     BeginScissorMode((int)songXPos + 20, (int)songYPos, songTitleWidth, songEntryHeight);
-                    DrawTextEx(songFont,songi.title.c_str(), {songXPos + 20 + songi.titleXOffset + (i == curPlayingSong && selSong ? u.winpct(0.005f) : 0), songYPos + u.hinpct(0.0125f)}, u.hinpct(0.035f),0, i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextEx(songFont,songi.title.c_str(), {songXPos + 20 + songi.titleXOffset + (i == menu.ChosenSongInt ? u.winpct(0.005f) : 0), songYPos + u.hinpct(0.0125f)}, u.hinpct(0.035f),0, i == menu.ChosenSongInt ? WHITE : LightText);
                     EndScissorMode();
 
                     if (songi.artistTextWidth > (float)songArtistWidth) {
@@ -1234,48 +1378,80 @@ int main(int argc, char* argv[])
 
                     auto SelectedText = WHITE;
                     BeginScissorMode((int)songXPos + 30 + (int)songTitleWidth, (int)songYPos, songArtistWidth, songEntryHeight);
-                    DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == curPlayingSong && selSong ? WHITE : LightText);
+                    DrawTextEx(artistFont, songi.artist.c_str(), {songXPos + 30 + (float)songTitleWidth + songi.artistXOffset, songYPos + u.hinpct(0.02f)}, u.hinpct(0.025f), 0, i == menu.ChosenSongInt ? WHITE : LightText);
                     EndScissorMode();
                 }
-                EndScissorMode();
+
+                DrawRectangle(AlbumX-AlbumOuter,AlbumY+AlbumHeight,AlbumHeight+AlbumOuter,AlbumHeight+u.hinpct(0.01f), WHITE);
+                DrawRectangle(AlbumX-AlbumInner,AlbumY+AlbumHeight,AlbumHeight,u.hinpct(0.075f)+AlbumHeight, GetColor(0x181827FF));
+                DrawRectangle(AlbumX-AlbumOuter,AlbumY-AlbumInner,AlbumHeight+AlbumOuter,AlbumHeight+AlbumOuter, WHITE);
+                DrawRectangle(AlbumX-AlbumInner,AlbumY,AlbumHeight,AlbumHeight, BLACK);
+
+
+                // bottom
+                if (selSong) {
+                    DrawTexturePro(selectedSong.albumArt, Rectangle{0, 0, (float) selectedSong.albumArt.width,
+                                                                    (float) selectedSong.albumArt.width},
+                                   Rectangle{(float)AlbumX-AlbumInner, (float)AlbumY, (float)AlbumHeight, (float)AlbumHeight}, {0, 0}, 0,
+                                   WHITE);
+                } else {
+                    Song art = menu.ChosenSong;
+                    DrawTexturePro(art.albumArt, Rectangle{0, 0, (float) art.albumArt.width,
+                                                           (float) art.albumArt.width},
+                                   Rectangle{(float)AlbumX-AlbumInner, (float)AlbumY, (float)AlbumHeight, (float)AlbumHeight}, {0, 0}, 0,
+                                   WHITE);
+                }
                 // hehe
+
+                float TextPlacementTB = u.TopSide + u.hinpct(0.15f) - u.hinpct(0.11f);
+                float TextPlacementLR = u.LeftSide + u.winpct(0.01f);
+                DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
+
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
-                if (selSong) {
-                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
-                    if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Play Song")) {
-                        curPlayingSong = selectedSongInt;
+
+                GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+                if (GuiButton(Rectangle{u.LeftSide, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f)}, "Play Song")) {
+                        curPlayingSong = menu.ChosenSongInt;
+                        songList.songs[curPlayingSong].LoadSong(songList.songs[curPlayingSong].songInfoPath);
                         menu.SwitchScreen(READY_UP);
-                    }
-                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                        albumArtLoaded = false;
                 }
-                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.4f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Sort")) {
+                GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+
+                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.4f)-2, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f)}, "Sort")) {
                     currentSortValue++;
                     if (currentSortValue == 3) currentSortValue = 0;
                     if (selSong)
                         songList.sortList(currentSortValue, curPlayingSong);
                     else
-                        songList.sortList(currentSortValue, randSong);
+                        songList.sortList(currentSortValue, menu.ChosenSongInt);
                 }
-                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.2f), GetScreenHeight() - u.hpct(0.15f)-2, u.winpct(0.2f), u.hinpct(0.05f)}, "Back")) {
+                if (GuiButton(Rectangle{u.LeftSide + u.winpct(0.2f)-1, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f)}, "Back")) {
                     for (Song& songi : songList.songs) {
                         songi.titleXOffset = 0;
                         songi.artistXOffset = 0;
                     }
+                    albumArtLoaded = false;
+                    menu.albumArtLoaded = false;
+                    menu.songsLoaded = true;
+                    menu.songChosen = false;
+                    selSong = false;
                     menu.SwitchScreen(MENU);
                 }
                 menu.DrawBottomBottomOvershell();
                 break;
             }
             case READY_UP: {
-                selSong = false;
-                
-                Song selectedSong = songList.songs[curPlayingSong];
+
+                if (!albumArtLoaded) {
+                    selectedSong = songList.songs[curPlayingSong];
+                    selectedSong.LoadAlbumArt(selectedSong.albumArtPath);
+                    albumArtLoaded = true;
+                }
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
-                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X); 
-                BeginShaderMode(assets.bgShader);
-                DrawTexturePro(selectedSong.albumArtBlur, Rectangle{0,0,(float)selectedSong.albumArt.width,(float)selectedSong.albumArt.width}, Rectangle {(float)GetScreenWidth()/2, -((float)GetScreenHeight()*2),(float)GetScreenWidth() *2,(float)GetScreenWidth() *2}, {0,0}, 45, WHITE);
-                EndShaderMode();
+                SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+                menu.DrawAlbumArtBackground(selectedSong.albumArtBlur, assets);
 
                 float AlbumArtLeft = u.LeftSide;
                 float AlbumArtTop = u.hpct(0.05f);
@@ -1284,7 +1460,7 @@ int main(int argc, char* argv[])
                 DrawRectangle(0,0, (int)GetScreenWidth(), (int)GetScreenHeight(), Color(0,0,0,128));
 
                 menu.DrawTopOvershell(0.2f);
-                DrawTextEx(assets.josefinSansItalic, TextFormat("%s-%s", encoreVersion.c_str() , commitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
+                menu.DrawVersion(assets);
 
                 DrawRectangle((int)u.LeftSide,(int)AlbumArtTop,(int)AlbumArtRight+12, (int)AlbumArtBottom+12, WHITE);
                 DrawRectangle((int)u.LeftSide + 6,(int)AlbumArtTop+6,(int)AlbumArtRight, (int)AlbumArtBottom,BLACK);
@@ -1296,7 +1472,7 @@ int main(int argc, char* argv[])
                 float TextPlacementTB = AlbumArtTop;
                 float TextPlacementLR = AlbumArtRight + AlbumArtLeft+ 32;
                 DrawTextEx(assets.redHatDisplayBlack, songList.songs[curPlayingSong].title.c_str(), {TextPlacementLR, TextPlacementTB-5}, u.hinpct(0.1f), 0, WHITE);
-                DrawTextEx(assets.rubikBoldItalic32, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 0, LIGHTGRAY);
+                DrawTextEx(assets.rubikBoldItalic, selectedSong.artist.c_str(), {TextPlacementLR, TextPlacementTB+u.hinpct(0.09f)}, u.hinpct(0.05f), 0, LIGHTGRAY);
                 // todo: allow this to be run per player
                 // load midi
                 if (!midiLoaded) {
@@ -1364,6 +1540,8 @@ int main(int argc, char* argv[])
                             instSelected = false;
                             diffSelected = false;
                             midiLoaded = false;
+                            albumArtSelectedAndLoaded = false;
+                            albumArtLoaded = false;
                             menu.SwitchScreen(SONG_SELECT);
                         }
                         else {
@@ -1468,14 +1646,14 @@ int main(int argc, char* argv[])
                             diffSelection = true;
                     }
                     DrawTextRubik("Difficulty", u.LeftSide+15, BottomOvershell - 45, 30, WHITE);
-                    DrawTextEx(assets.rubikBold32, diffList[player.diff].c_str(), {u.LeftSide + 285 - MeasureTextEx(assets.rubikBold32, diffList[player.diff].c_str(),30,0).x, BottomOvershell - 45}, 30, 0, WHITE);
+                    DrawTextEx(assets.rubikBold, diffList[player.diff].c_str(), {u.LeftSide + 285 - MeasureTextEx(assets.rubikBold, diffList[player.diff].c_str(),30,0).x, BottomOvershell - 45}, 30, 0, WHITE);
 
                     if (GuiButton({ u.LeftSide,BottomOvershell - 120,300,60 }, "")) {
                         ReadyUpMenu = false;
                         instSelection = true;
                     }
                     DrawTextRubik("Instrument", u.LeftSide+15, BottomOvershell - 105, 30, WHITE);
-                    DrawTextEx(assets.rubikBold32, songPartsList[player.instrument].c_str(), { u.LeftSide + 285 - MeasureTextEx(assets.rubikBold32, songPartsList[player.instrument].c_str(),30,0).x, BottomOvershell - 105 }, 30, 0, WHITE);
+                    DrawTextEx(assets.rubikBold, songPartsList[player.instrument].c_str(), { u.LeftSide + 285 - MeasureTextEx(assets.rubikBold, songPartsList[player.instrument].c_str(),30,0).x, BottomOvershell - 105 }, 30, 0, WHITE);
 
                       
                     if (GuiButton({ u.LeftSide, BottomOvershell, 300, u.hinpct(0.05f)}, "Ready Up!")) {
@@ -1499,40 +1677,65 @@ int main(int argc, char* argv[])
                 break;
             }
             case GAMEPLAY: {
+                notes_tex.texture.height = GetScreenHeight();
+                notes_tex.texture.width = GetScreenWidth();
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
-
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
-                float scorePos = (float)(GetScreenWidth()/4)* 3;
+                float scorePos = u.RightSide;
+                float scoreY = u.hpct(0.15f);
+                float starY = scoreY + u.hinpct(0.05f);
+                float comboY = starY + u.hinpct(0.055f);
+                menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
+                DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,128});
                 DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
+
                 int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
                 float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
                 for (int i = 0; i < 5; i++) {
                     bool firstStar = (i == 0);
-                    DrawTextureEx(assets.emptyStar, {scorePos+((float)i*40),u.hpct(0.075f)},0,0.15f,WHITE);
-                    float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, 40);
-                    BeginScissorMode((scorePos+(i*40)), u.hpct(0.125f)-yMaskPos, 40, yMaskPos);
-                    DrawTextureEx(assets.star, {(scorePos+(i*40.0f)),u.hpct(0.075f) },0,0.15f,i != starsval ? WHITE : Color{192,192,192,128});
+                    float starX = scorePos - u.hinpct(0.26) + (i*u.hinpct(0.05));
+                    float starWH = u.hinpct(0.05);
+                    Rectangle emptyStarWH = {0,0,(float)assets.emptyStar.width, (float)assets.emptyStar.height};
+                    Rectangle starRect = {starX, starY, starWH,starWH};
+
+                    DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, {0,0},0,WHITE);
+                    float yMaskPos = Remap(starPercent, firstStar ? 0 : player.xStarThreshold[i-1], player.xStarThreshold[i], 0, u.hinpct(0.05));
+                    BeginScissorMode(starX, (starY+starWH)-yMaskPos, starWH, yMaskPos);
+                    DrawTexturePro(assets.star, emptyStarWH, starRect, {0,0},0,i != starsval ? WHITE : Color{192,192,192,128});
                     EndScissorMode();
                 }
+
                 if (starPercent >= player.xStarThreshold[4]) {
-                    float yMaskPos = Remap(starPercent, player.xStarThreshold[4], player.xStarThreshold[5], 0, 40);
-                    BeginScissorMode((scorePos), u.hpct(0.125f) -yMaskPos, scorePos, yMaskPos);
+
+                    float starWH = u.hinpct(0.05);
+                    Rectangle emptyStarWH = {0,0,(float)assets.goldStar.width, (float)assets.goldStar.height};
+
+
+                    float yMaskPos = Remap(starPercent, player.xStarThreshold[4], player.xStarThreshold[5], 0, u.hinpct(0.05));
+                    BeginScissorMode(scorePos - (starWH*6), (starY+starWH)-yMaskPos, scorePos, yMaskPos);
                     for (int i = 0; i < 5; i++) {
-                        DrawTextureEx(player.goldStars ? assets.goldStar : assets.star, {(scorePos + (i * 40.0f)), u.hpct(0.075f)}, 0, 0.15f, player.goldStars ? WHITE : GOLD);
+                        float starX = scorePos - u.hinpct(0.26) + (i*u.hinpct(0.05));
+                        Rectangle starRect = {starX, starY, starWH,starWH};
+                        DrawTexturePro(player.goldStars ? assets.goldStar : assets.goldStarUnfilled, emptyStarWH, starRect,
+                                       {0, 0}, 0, WHITE);
                     }
                     EndScissorMode();
-                }
-                DrawFPS(0,0);
 
+                }
+                DrawFPS(u.LeftSide,u.hpct(0.0025f) + u.hinpct(0.025f));
+                menu.DrawVersion(assets);
 
                 // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
-                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hpct(0.05f)), u.hpct(0.025f), u.hinpct(0.05f), Color{107, 161, 222,255});
-                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), GetScreenWidth() - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hpct(0.05f)), u.hpct(0.125f), u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
-                DrawTextEx(assets.rubikBold32, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
+                DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hinpct(0.05f)), scoreY, u.hinpct(0.05f), Color{107, 161, 222,255});
+                DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hinpct(0.05f)), comboY, u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+                DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
+
+                DrawTextEx(assets.rubikBold, TextFormat("Video Offset: %2.3f", player.VideoOffset), {u.LeftSide, u.hinpct(0.5f)}, u.hinpct(0.04), 0, WHITE);
+                DrawTextEx(assets.rubikBold, TextFormat("Input Offset: %2.3f", player.InputOffset), {u.LeftSide, u.hinpct(0.55f)}, u.hinpct(0.04), 0, WHITE);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -1584,32 +1787,19 @@ int main(int argc, char* argv[])
 
                     DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)+0.5) {
-                        for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
-                            note.accounted = false;
-                            note.hit = false;
-                            note.miss = false;
-                            note.held = false;
-                            note.heldTime = 0;
-                            note.hitTime = 0;
-                            note.perfect = false;
-                            note.countedForODPhrase = false;
-                            // notes += 1;
-                        }
+                    if (songEnd <= songPlayed) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);
                         // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
-                        for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
-                            phrase.missed = false;
-                            phrase.notesHit = 0;
-                            phrase.added = false;
-                        }
                         player.overdrive = false;
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
-                        isPlaying = false;
+                        menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
+                        isPlaying = false;
+                        songEnded = true;
+                        songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
                         curODPhrase = 0;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
@@ -1629,8 +1819,8 @@ int main(int argc, char* argv[])
                     }
                 }
 
-                float highwayLength = player.defaultHighwayLength * settings.highwayLengthMult;
-                double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+                float highwayLength = player.defaultHighwayLength * settingsMain.highwayLengthMult;
+                double musicTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) - player.VideoOffset;
                 if (player.overdrive) {
 
                     // assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTextureOD;
@@ -1658,17 +1848,17 @@ int main(int argc, char* argv[])
                 }
 
                 if (musicTime < 7.5) {
-                    DrawTextEx(assets.rubikBoldItalic32, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
+                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
                     DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
                     //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
 
                 BeginMode3D(camera);
                 if (player.diff == 3) {
-                    float highwayPosShit = ((20) * (1 - settings.highwayLengthMult));
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    DrawModel(assets.expertHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    if (settings.highwayLengthMult > 1.0f) {
+                    float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    if (settingsMain.highwayLengthMult > 1.0f) {
                         DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
@@ -1690,7 +1880,7 @@ int main(int argc, char* argv[])
                     //DrawModel(assets.lanes, Vector3 {0,0.1f,0}, 1.0f, WHITE);
 
                     for (int i = 0; i < 4; i++) {
-                        float radius = (i == (settings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
+                        float radius = (i == (settingsMain.mirrorMode ? 2 : 1)) ? 0.05 : 0.02;
 
                         DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
                     }
@@ -1698,10 +1888,10 @@ int main(int argc, char* argv[])
                     DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
                 }
                 else {
-                    float highwayPosShit = ((20) * (1 - settings.highwayLengthMult));
-                    DrawModel(assets.emhHighwaySides, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    DrawModel(assets.emhHighway, Vector3{ 0,0,settings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    if (settings.highwayLengthMult > 1.0f) {
+                    float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
+                    DrawModel(assets.emhHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.emhHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    if (settingsMain.highwayLengthMult > 1.0f) {
                         DrawModel(assets.emhHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         DrawModel(assets.emhHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
@@ -1730,7 +1920,7 @@ int main(int argc, char* argv[])
                 if (songList.songs[curPlayingSong].beatLines.size() >= 0) {
                     for (int i = curBeatLine; i < songList.songs[curPlayingSong].beatLines.size(); i++) {
                         if (songList.songs[curPlayingSong].beatLines[i].first >= songList.songs[curPlayingSong].music_start-1 && songList.songs[curPlayingSong].beatLines[i].first <= songList.songs[curPlayingSong].end) {
-                            double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed]  * ( 11.5f / highwayLength);
+                            double relTime = ((songList.songs[curPlayingSong].beatLines[i].first - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed]  * ( 11.5f / highwayLength);
                             if (relTime > 1.5) break;
                             float radius = songList.songs[curPlayingSong].beatLines[i].second ? 0.05f : 0.01f;
                             DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ diffDistance + 0.5f,0,player.smasherPos + (highwayLength * (float)relTime) }, radius, radius, 4, DARKGRAY);
@@ -1766,8 +1956,8 @@ int main(int argc, char* argv[])
                 Chart& curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
                 if (!curChart.odPhrases.empty()) {
 
-                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
-                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime) + player.VideoOffset) * settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                    float odStart = (float)((curChart.odPhrases[curODPhrase].start - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+                    float odEnd = (float)((curChart.odPhrases[curODPhrase].end - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
 
                     // horrifying.
 
@@ -1775,10 +1965,18 @@ int main(int argc, char* argv[])
                     DrawCylinderEx(Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.07, 0.07, 10, RAYWHITE);
 
                 }
+                EndMode3D();
+                BeginTextureMode(notes_tex);
+                ClearBackground({0,0,0,0});
+                BeginMode3D(camera);
                     for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
                         for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 
                             Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
+                            if (curNote.hit) {
+                                player.totalOffset += curNote.HitOffset;
+                            }
+
                             if (!curChart.odPhrases.empty()) {
 
                                 if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
@@ -1808,7 +2006,7 @@ int main(int argc, char* argv[])
                                     curChart.odPhrases[curODPhrase].added = true;
                                 }
                             }
-                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime) {
+                            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime+player.VideoOffset-player.InputOffset && !songEnded) {
                                 curNote.miss = true;
                                 player.MissNote();
                                 if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
@@ -1819,12 +2017,12 @@ int main(int argc, char* argv[])
                             }
 
 
-                            double relTime = ((curNote.time - musicTime) + player.VideoOffset) *
-                                             settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
-                            double relEnd = (((curNote.time + curNote.len) - musicTime) + player.VideoOffset) *
-                                            settings.trackSpeedOptions[settings.trackSpeed] * (11.5f / highwayLength);
+                            double relTime = ((curNote.time - musicTime)) *
+                                             settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+                            double relEnd = (((curNote.time + curNote.len) - musicTime)) *
+                                            settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
                             float notePosX = diffDistance - (1.0f *
-                                                             (float) (settings.mirrorMode ? (player.diff == 3 ? 4 : 3) -
+                                                             (float) (settingsMain.mirrorMode ? (player.diff == 3 ? 4 : 3) -
                                                                                             curNote.lane
                                                                                           : curNote.lane));
                             if (relTime > 1.5) {
@@ -1849,7 +2047,7 @@ int main(int argc, char* argv[])
                                 if ((curNote.len) > 0) {
                                     if (curNote.hit && curNote.held) {
                                         if (curNote.heldTime <
-                                            (curNote.len * settings.trackSpeedOptions[settings.trackSpeed])) {
+                                            (curNote.len * settingsMain.trackSpeedOptions[settingsMain.trackSpeed])) {
                                             curNote.heldTime = 0.0 - relTime;
                                             player.sustainScoreBuffer[curNote.lane] =
                                                     (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
@@ -1884,13 +2082,13 @@ int main(int argc, char* argv[])
                                     BeginBlendMode(BLEND_ALPHA);
                                     if (curNote.held && !curNote.renderAsOD) {
                                         DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
-                                        DrawCube(Vector3{notePosX, 0, player.smasherPos}, 0.4f, 0.4f, 0.4f,
+                                        DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f,
                                                  player.accentColor);
                                         //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
                                     }
                                     if (curNote.renderAsOD && curNote.held) {
                                         DrawMesh(sustainPlane, assets.sustainMatHeldOD, sustainMatrix);
-                                        DrawCube(Vector3{notePosX, 0, player.smasherPos}, 0.4f, 0.4f, 0.4f, WHITE);
+                                        DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f, WHITE);
                                         //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
                                     }
                                     if (!curNote.held && curNote.hit || curNote.miss) {
@@ -1944,7 +2142,7 @@ int main(int argc, char* argv[])
                                           Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
                                           1.0f, RED);
                                 if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
-                                    curNote.time + 0.4 && player.MissHighwayColor) {
+                                    curNote.time + 0.4 && settingsMain.missHighwayColor) {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
                                 } else {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
@@ -1952,8 +2150,8 @@ int main(int argc, char* argv[])
                             }
                             if (curNote.hit && audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
                                                curNote.hitTime + 0.15f) {
-                                DrawCube(Vector3{notePosX, 0, player.smasherPos}, 1.0f, 0.5f, 0.5f,
-                                         curNote.perfect ? Color{255, 215, 0, 64} : Color{255, 255, 255, 64});
+                                DrawCube(Vector3{ notePosX, 0.125 , player.smasherPos }, 1.0f, 0.25f, 0.5f,
+                                         curNote.perfect ? Color{255, 215, 0, 150} : Color{255, 255, 255, 150});
                                 if (curNote.perfect) {
                                     DrawCube(Vector3{player.diff == 3 ? 3.3f : 2.8f, 0, player.smasherPos}, 1.0f, 0.01f,
                                              0.5f, ORANGE);
@@ -1970,18 +2168,15 @@ int main(int argc, char* argv[])
                         }
 
                     }
-                
+                    EndMode3D();
+                    EndTextureMode();
+
+
+
+                    DrawTextureRec(notes_tex.texture, { 0, 0, (float)notes_tex.texture.width, (float)-notes_tex.texture.height },{0,0}, WHITE);
                 if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
                 }
-#ifndef NDEBUG
-                // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
-                // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * goodBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * goodFrontend * trackSpeed[speedSelection]) }, Color{ 0,255,0,80 });
-
-                // DrawTriangle3D(Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
-                // DrawTriangle3D(Vector3{ diffDistance + 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos - (highwayLength * perfectBackend * trackSpeed[speedSelection]) }, Vector3{ -diffDistance - 0.5f,0.05f,smasherPos + (highwayLength * perfectFrontend * trackSpeed[speedSelection]) }, Color{ 190,255,0,80 });
-#endif
-                EndMode3D();
 
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
@@ -1989,8 +2184,6 @@ int main(int argc, char* argv[])
                 int playedSeconds = songPlayed % 60;
                 int songMinutes = songLength/60;
                 int songSeconds = songLength % 60;
-                const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
-                int textLength = MeasureTextRubik32(textTime);
                 GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(player.FC ? GOLD : player.accentColor));
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED, ColorToInt(player.FC ? GOLD : player.accentColor));
@@ -2004,7 +2197,7 @@ int main(int argc, char* argv[])
 
                 if (player.paused) {
                     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,64});
-                    DrawTextEx(assets.rubikBoldItalic32, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic32, "PAUSED",u.hinpct(0.1f),0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
+                    DrawTextEx(assets.rubikBoldItalic, "PAUSED", {(GetScreenWidth()/2) - (MeasureTextEx(assets.rubikBoldItalic, "PAUSED",u.hinpct(0.1f),0).x/2), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
 
                     if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 150, 200, 60}, "Resume")) {
                         audioManager.playStreams();
@@ -2050,27 +2243,12 @@ int main(int argc, char* argv[])
                         
                     }
                     if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) + 90, 200, 60}, "Drop Out")) {
-                        for (Note& note : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes) {
-                            note.accounted = false;
-                            note.hit = false;
-                            note.miss = false;
-                            note.held = false;
-                            note.heldTime = 0;
-                            note.hitTime = 0;
-                            note.perfect = false;
-                            note.countedForODPhrase = false;
-                        }
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);
                         // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
                         // notes = songList.songs[curPlayingSong].parts[instrument]->charts[diff];
-                        for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
-                            phrase.missed = false;
-                            phrase.notesHit = 0;
-                            phrase.added = false;
-                        }
                         menu.SwitchScreen(RESULTS);
-
+                        menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         player.overdrive = false;
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
@@ -2084,8 +2262,10 @@ int main(int argc, char* argv[])
                         assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
-                        isPlaying = false;
                         midiLoaded = false;
+                        isPlaying = false;
+                        songEnded = true;
+                        songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
                         player.quit = true;
                     }
                 }
@@ -2094,11 +2274,14 @@ int main(int argc, char* argv[])
 
             }
             case RESULTS: {
+                
                 if (streamsLoaded) {
                     audioManager.unloadStreams();
                     streamsLoaded = false;
                 }
-                
+
+
+                menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
                 menu.showResults(player, assets);
                 if (GuiButton({ 0,0,60,60 }, "<")) {
                     player.quit = false;
