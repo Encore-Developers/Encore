@@ -11,10 +11,9 @@
 #include "game/player.h"
 
 
-
 class Settings {
-    Player player;
 private:
+	Settings() {}
 	rapidjson::Value vectorToJsonArray(const std::vector<int>& vec, rapidjson::Document::AllocatorType& allocator) {
 		rapidjson::Value array(rapidjson::kArrayType);
 		for (const auto& value : vec) {
@@ -78,6 +77,17 @@ private:
     std::filesystem::path executablePath = GetApplicationDirectory();
     std::filesystem::path directory = executablePath.parent_path();
 public:
+
+	static Settings& getInstance() {
+		static Settings instance; // This is the single instance
+		return instance;
+	}
+
+	// Delete copy constructor and assignment operator
+	Settings(const Settings&) = delete;
+	void operator=(const Settings&) = delete;
+
+
 	rapidjson::Document settings;
 
 	std::vector<int> defaultKeybinds4K{ KEY_D,KEY_F,KEY_J,KEY_K };
@@ -143,6 +153,7 @@ public:
 	bool mirrorMode = defaultMirrorMode;
 	bool prevMirrorMode = mirrorMode;
     bool missHighwayDefault = false;
+	bool missHighwayColor = missHighwayDefault;
     bool prevMissHighwayColor = missHighwayDefault;
     bool fullscreenDefault = true;
     bool fullscreen = fullscreenDefault;
@@ -474,7 +485,6 @@ public:
 				if (settings.HasMember("avOffset") && settings["avOffset"].IsInt()) {
 					avOffsetMS = settings["avOffset"].GetInt();
 					prevAvOffsetMS = avOffsetMS;
-                    player.VideoOffset = -(float)(avOffsetMS / 1000);
 				}
 				else {
 					avError = true;
@@ -482,7 +492,6 @@ public:
 				if (settings.HasMember("inputOffset") && settings["inputOffset"].IsInt()) {
 					inputOffsetMS = settings["inputOffset"].GetInt();
 					prevInputOffsetMS = inputOffsetMS;
-                    player.InputOffset = (float)(inputOffsetMS / 1000);
 				}
 				else {
 					inputError = true;
@@ -516,8 +525,8 @@ public:
                     highwayLengthError = true;
                 }
                 if (settings.HasMember("missHighwayColor") && settings["missHighwayColor"].IsBool()) {
-                    player.MissHighwayColor = settings["missHighwayColor"].GetBool();
-					prevMissHighwayColor = player.MissHighwayColor;
+                    missHighwayColor = settings["missHighwayColor"].GetBool();
+					prevMissHighwayColor = missHighwayColor;
                 } else {
                     MissHighwayError = true;
                 } 
@@ -819,8 +828,6 @@ public:
 			if (keybinds.HasMember("avOffset") && keybinds["avOffset"].IsInt()) {
 				avOffsetMS = keybinds["avOffset"].GetInt();
 				prevAvOffsetMS = avOffsetMS;
-                player.VideoOffset = -(float)(avOffsetMS / 1000);
-				
 			}
 			else {
 				avOffsetError = true;
@@ -828,7 +835,6 @@ public:
 			if (keybinds.HasMember("inputOffset") && keybinds["inputOffset"].IsInt()) {
 				inputOffsetMS = keybinds["inputOffset"].GetInt();
 				prevInputOffsetMS = inputOffsetMS;
-                player.InputOffset = (float)(inputOffsetMS / 1000);
 			}
 			else {
 				inputOffsetError = true;
@@ -931,3 +937,4 @@ public:
 		fclose(fp);
 	}
 };
+

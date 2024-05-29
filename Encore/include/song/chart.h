@@ -3,13 +3,16 @@
 #include <string>
 #include "midifile/MidiFile.h"
 #include "song.h"
-struct Note 
+#include "game/timingvalues.h"
+class Note 
 {
+public:
 	double time;
 	double len;
 	double beatsLen;
 	double heldTime=0.0;
 	double sustainThreshold = 0.2;
+    double HitOffset = 0.0;
 	int lane;
 	bool lift = false;
 	bool hit = false;
@@ -25,6 +28,14 @@ struct Note
 
 	bool forceStrum;
 	bool forceHopo;
+	bool isGood(double eventTime, double inputOffset) const {
+		return (time - goodBackend + inputOffset < eventTime &&
+			time + goodFrontend + inputOffset > eventTime);
+	}
+	bool isPerfect(double eventTime, double inputOffset) {
+		return (time - perfectBackend + inputOffset < eventTime &&
+			time + perfectFrontend + inputOffset > eventTime);
+	}
 };
 
 struct odPhrase 
@@ -174,6 +185,23 @@ public:
 				noteIdx++;
 				++it;
 			}
+		}
+	}
+	void resetNotes() {
+		for (Note& note : notes) {
+			note.accounted = false;
+			note.hit = false;
+			note.miss = false;
+			note.held = false;
+			note.heldTime = 0;
+			note.hitTime = 0;
+			note.perfect = false;
+			note.countedForODPhrase = false;
+		}
+		for (odPhrase& phrase : odPhrases) {
+			phrase.missed = false;
+			phrase.notesHit = 0;
+			phrase.added = false;
 		}
 	}
 };

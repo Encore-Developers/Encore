@@ -12,6 +12,7 @@ void Units::calcUnits() {
     TopBorder = (GetScreenHeight() / 2) - ((GetScreenWidth() / 3.0f));
     TopSide = TopBorder < 0 ? 0 : TopBorder;
 }
+
 // usable height
 float Units::hpct(float fpct) {
     // for decimal points

@@ -57,3 +57,5 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 [nicolausYes's easing-functions](https://github.com/nicolausYes/easing-functions)
 
 [BASS](https://www.un4seen.com/bass.html)
+
+[PicoSHA2](https://github.com/okdshin/PicoSHA2)

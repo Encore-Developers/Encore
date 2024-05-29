@@ -7,7 +7,13 @@
 // clone hero defaults
 
 class Player {
+private:
+    Player() {}
 public:
+    static Player& getInstance() {
+        static Player instance; // This is the single instance
+        return instance;
+    }
     int instrument = 0;
     int diff = 0;
     int persistentInst = 0;
@@ -19,6 +25,7 @@ public:
     int notesHit = 0;
     int notesMissed = 0;
     int perfectHit = 0;
+    double totalOffset = 0.0;
 
     bool quit = false;
 
@@ -26,13 +33,8 @@ public:
     float otherInstVolume = 0.375;
     float missVolume = 0.15;
 
-// time in seconds
-    float goodFrontend = 0.1f;
-    float goodBackend = 0.1f;
-    float perfectFrontend = 0.025f;
-    float perfectBackend = 0.025f;
 
-    float VideoOffset = (0);
+    double VideoOffset = (0);
     float InputOffset = 0;
 
     bool MissHighwayColor = false;

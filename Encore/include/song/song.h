@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <filesystem>
 #include <cmath>
-
+#include "picosha2.h"
 enum PartIcon {
 	IconDrum,
 	IconBass,
@@ -138,11 +138,13 @@ public:
 
 	std::filesystem::path midiPath = "";
 
+    std::string songDir = "";
+    std::string albumArtPath = "";
+    std::string songInfoPath = "";
 	int releaseYear = 0;
 	std::string loadingPhrase = "";
 	std::vector<std::string> charters{};
-
-
+	std::string jsonHash = "";
 
 	void LoadSong(std::filesystem::path jsonPath) 
 	{
@@ -153,10 +155,12 @@ public:
 		}
 
 		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-		
+		ifs.close();
+		jsonHash = picosha2::hash256_hex_string(jsonString);
 		rapidjson::Document document;
 		document.Parse(jsonString.c_str());
-
+        songInfoPath = jsonPath.string();
+        songDir = jsonPath.parent_path().string();
 		if (document.IsObject()) 
 		{
 			for (auto& item : document.GetObject()) {
@@ -183,20 +187,7 @@ public:
 				if (item.name == "midi" && item.value.IsString())
 					midiPath = jsonPath.parent_path() / item.value.GetString();
 				if (item.name == "art" && item.value.IsString()) {
-					std::string artPath = (jsonPath.parent_path() / item.value.GetString()).string();
-					Image albumImage = LoadImage(artPath.c_str());
-					if (albumImage.height > 512) {
-						ImageResize(&albumImage, 512, 512);
-					}
-					albumArt = LoadTextureFromImage(albumImage);
-					GenTextureMipmaps(&albumArt);
-					SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
-					
-					ImageBlurGaussian(&albumImage, 10);
-					albumArtBlur = LoadTextureFromImage(albumImage);
-					GenTextureMipmaps(&albumArtBlur);
-					SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
-					UnloadImage(albumImage);
+					albumArtPath = (jsonPath.parent_path() / item.value.GetString()).string();
 				}
 				if (item.name=="diff" && item.value.IsObject())
 				{
@@ -334,4 +325,20 @@ public:
 			}
 		}
 	}
+
+    void LoadAlbumArt(std::string artpath) {
+        Image albumImage = LoadImage(artpath.c_str());
+        if (albumImage.height > 512) {
+            ImageResize(&albumImage, 512, 512);
+        }
+        albumArt = LoadTextureFromImage(albumImage);
+        GenTextureMipmaps(&albumArt);
+        SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
+
+        ImageBlurGaussian(&albumImage, 10);
+        albumArtBlur = LoadTextureFromImage(albumImage);
+        GenTextureMipmaps(&albumArtBlur);
+        SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
+        UnloadImage(albumImage);
+    };
 };
