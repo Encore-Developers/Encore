@@ -318,7 +318,7 @@ static void handleInputs(int lane, int action){
 					if (eventTime > curChart.notes[lastHitLifts[lane]].time - 0.1 && eventTime < curChart.notes[lastHitLifts[lane]].time + 0.1)
 						continue;
 				}
-                player.OverHit();
+                player.OverHit(audioManager);
 				if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[curODPhrase].start && eventTime < curChart.odPhrases[curODPhrase].end && !curChart.odPhrases[curODPhrase].missed) curChart.odPhrases[curODPhrase].missed = true;
 				overhitFrets[lane] = true;
 			}
@@ -574,6 +574,9 @@ settingsOptionRenderer sor;
 
 Song selectedSong;
 
+bool ReloadGameplayTexture = true;
+bool songAlbumArtLoadedGameplay = false;
+
 int main(int argc, char* argv[])
 {
     Units u = Units::getInstance();
@@ -650,19 +653,19 @@ int main(int argc, char* argv[])
 
     audioManager.Init();
     SetExitKey(0);
-
+    audioManager.loadSample("Assets/combobreak.mp3", "miss");
     Camera3D camera = { 0 };
 
     // Y UP!!!! REMEMBER!!!!!!
     //							  x,    y,     z
     // 0.0f, 5.0f, -3.5f
     //								 6.5f
-    camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
+    camera.position = Vector3{ 0.0f, 6.5f, -08.0f };
     // 0.0f, 0.0f, 6.5f
-    camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
+    camera.target = Vector3{ 0.0f, 0.0f, 10.0f };
 
     camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
-    camera.fovy = 34.5f;
+    camera.fovy = 35.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
 
@@ -711,11 +714,11 @@ int main(int argc, char* argv[])
     SetWindowIcon(assets.icon);
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
-    RenderTexture2D notes_tex  = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    RenderTexture2D notes_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
+    RenderTexture2D hud_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
     while (!WindowShouldClose())
 
     {
-
         u.calcUnits();
         GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.03f));
         GuiSetStyle(DEFAULT, TEXT_SPACING, 0);
@@ -733,6 +736,13 @@ int main(int argc, char* argv[])
                 SetWindowSize(minWidth, minHeight);
             else
                 SetWindowSize(GetScreenWidth(), minHeight);
+        }
+
+        if (IsWindowResized()) {
+            UnloadRenderTexture(notes_tex);
+            RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+            UnloadRenderTexture(hud_tex);
+            RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
         }
 
         float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
@@ -795,7 +805,7 @@ int main(int argc, char* argv[])
                     double elapsedTime = currentTime - lastClickTime;
 
                     if (elapsedTime >= clickInterval) {
-                        audioManager.playSample("click");
+                        audioManager.playSample("click", 1);
                         lastClickTime += clickInterval;  // Increment by the interval to avoid missing clicks
                         std::cout << "Click" << std::endl;
                     }
@@ -1677,8 +1687,6 @@ int main(int argc, char* argv[])
                 break;
             }
             case GAMEPLAY: {
-                notes_tex.texture.height = GetScreenHeight();
-                notes_tex.texture.width = GetScreenWidth();
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
                 player.songToBeJudged = songList.songs[curPlayingSong];
@@ -1687,9 +1695,14 @@ int main(int argc, char* argv[])
                 float scoreY = u.hpct(0.15f);
                 float starY = scoreY + u.hinpct(0.05f);
                 float comboY = starY + u.hinpct(0.055f);
+                if (!songAlbumArtLoadedGameplay) {
+                    menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
+                    songAlbumArtLoadedGameplay = true;
+                }
+
                 menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur, assets);
                 DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,128});
-                DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
+                // DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
 
                 int starsval = player.stars(songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].baseScore,player.diff);
                 float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
@@ -1734,8 +1747,8 @@ int main(int argc, char* argv[])
                 DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hinpct(0.05f)), comboY, u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), {5, GetScreenHeight() -u.hinpct(0.05f)}, u.hinpct(0.04), 0, GOLD);
 
-                DrawTextEx(assets.rubikBold, TextFormat("Video Offset: %2.3f", player.VideoOffset), {u.LeftSide, u.hinpct(0.5f)}, u.hinpct(0.04), 0, WHITE);
-                DrawTextEx(assets.rubikBold, TextFormat("Input Offset: %2.3f", player.InputOffset), {u.LeftSide, u.hinpct(0.55f)}, u.hinpct(0.04), 0, WHITE);
+                // DrawTextEx(assets.rubikBold, TextFormat("Video Offset: %2.3f", player.VideoOffset), {u.LeftSide, u.hinpct(0.5f)}, u.hinpct(0.04), 0, WHITE);
+                // DrawTextEx(assets.rubikBold, TextFormat("Input Offset: %2.3f", player.InputOffset), {u.LeftSide, u.hinpct(0.55f)}, u.hinpct(0.04), 0, WHITE);
 
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
@@ -1854,22 +1867,30 @@ int main(int argc, char* argv[])
                 }
 
                 BeginMode3D(camera);
+
                 if (player.diff == 3) {
+
+
                     float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
-                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
-                    DrawModel(assets.expertHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : 0 }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
+                    DrawModel(assets.expertHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
                     if (settingsMain.highwayLengthMult > 1.0f) {
-                        DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
-                        DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20 }, 1.0f, WHITE);
+                        DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20-0.2f }, 1.0f, WHITE);
+                        DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-20-0.2f }, 1.0f, WHITE);
                         if (highwayLength > 23.0f) {
-                            DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
-                            DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40 }, 1.0f, WHITE);
+                            DrawModel(assets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40-0.2f }, 1.0f, WHITE);
+                            DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40-0.2f }, 1.0f, WHITE);
                         }
                     }
 
                     if (player.overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
+                    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+                    DrawTriangle3D({-diffDistance-0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},Color{0,0,0,64});
 
-                    for (int i = 0; i < 5; i++) {
+                    DrawTriangle3D({diffDistance+0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
+                    EndBlendMode();
+
+                    for (int i = 0; i < 5;  i++) {
                         if (heldFrets[i] || heldFretsAlt[i]) {
                             DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, player.smasherPos }, 1.0f, WHITE);
                         }
@@ -1885,7 +1906,8 @@ int main(int argc, char* argv[])
                         DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
                     }
 
-                    DrawModel(assets.smasherBoard, Vector3{ 0, 0.001f, 0 }, 1.0f, WHITE);
+                    DrawModel(assets.smasherBoard, Vector3{ 0, 0.003f, 0 }, 1.0f, WHITE);
+
                 }
                 else {
                     float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
@@ -1936,19 +1958,7 @@ int main(int argc, char* argv[])
                 // DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
 
                 player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
-                DrawModel(assets.odFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-                DrawModel(assets.odBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-                DrawModel(assets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-                DrawModel(assets.multBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-                if (player.instrument == 1 || player.instrument == 3) {
 
-                    DrawModel(assets.multCtr5, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-                }
-                else {
-
-                    DrawModel(assets.multCtr3, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-                }
-                DrawModel(assets.multNumber, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 
 
                 // DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
@@ -1966,10 +1976,31 @@ int main(int argc, char* argv[])
 
                 }
                 EndMode3D();
+
+                BeginTextureMode(hud_tex);
+                ClearBackground({0,0,0,0});
+                BeginMode3D(camera);
+                DrawModel(assets.odFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                DrawModel(assets.odBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                DrawModel(assets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                DrawModel(assets.multBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                if (player.instrument == 1 || player.instrument == 3) {
+
+                    DrawModel(assets.multCtr5, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                }
+                else {
+
+                    DrawModel(assets.multCtr3, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                }
+                DrawModel(assets.multNumber, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+                EndMode3D();
+                EndTextureMode();
+
+
                 BeginTextureMode(notes_tex);
                 ClearBackground({0,0,0,0});
                 BeginMode3D(camera);
-                    for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
+                for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
                         for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 
                             Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
@@ -2008,7 +2039,7 @@ int main(int argc, char* argv[])
                             }
                             if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < musicTime+player.VideoOffset-player.InputOffset && !songEnded) {
                                 curNote.miss = true;
-                                player.MissNote();
+                                player.MissNote(audioManager);
                                 if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
                                     curNote.time >= curChart.odPhrases[curODPhrase].start &&
                                     curNote.time < curChart.odPhrases[curODPhrase].end)
@@ -2168,12 +2199,22 @@ int main(int argc, char* argv[])
                         }
 
                     }
-                    EndMode3D();
-                    EndTextureMode();
+                EndMode3D();
+                EndTextureMode();
 
+                SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
+                notes_tex.texture.width = GetScreenWidth();
+                notes_tex.texture.height = GetScreenHeight();
+                DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 
+                SetTextureWrap(hud_tex.texture,TEXTURE_WRAP_CLAMP);
+                hud_tex.texture.width = GetScreenWidth();
+                hud_tex.texture.height = GetScreenHeight();
+                DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 
-                    DrawTextureRec(notes_tex.texture, { 0, 0, (float)notes_tex.texture.width, (float)-notes_tex.texture.height },{0,0}, WHITE);
+                //(float)notes_tex.texture.width, (float)-notes_tex.texture.height
+                    //DrawTextureRec(notes_tex.texture, { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },{0,0}, WHITE);
+
                 if (!curChart.odPhrases.empty() && curODPhrase<curChart.odPhrases.size() - 1 && musicTime>curChart.odPhrases[curODPhrase].end && (curChart.odPhrases[curODPhrase].added ||curChart.odPhrases[curODPhrase].missed)) {
                     curODPhrase++;
                 }

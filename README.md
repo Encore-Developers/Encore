@@ -59,3 +59,5 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 [BASS](https://www.un4seen.com/bass.html)
 
 [PicoSHA2](https://github.com/okdshin/PicoSHA2)
+
+[osu! resources](https://github.com/ppy/osu-resources/)
