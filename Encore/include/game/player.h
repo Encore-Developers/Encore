@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "song/song.h"
+#include "audio.h"
 
 // clone hero defaults
 
@@ -185,15 +186,19 @@ public:
 		perfectHit += perfect ? 1 : 0;
 		mute = false;
 	}
-	void MissNote() {
+	void MissNote(AudioManager audioManager) {
 		notesMissed += 1;
+        if (combo != 0)
+            audioManager.playSample("miss", 0.8f);
 		if (combo > maxCombo)
 			maxCombo = combo;
 		combo = 0;
 		FC = false;
         mute = true;
 	}
-    void OverHit() {
+    void OverHit(AudioManager audioManager) {
+        if (combo != 0)
+            audioManager.playSample("miss", 0.8f);
 		if (combo > maxCombo)
 			maxCombo = combo;
         combo = 0;

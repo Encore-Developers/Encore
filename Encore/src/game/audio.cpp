@@ -116,10 +116,11 @@ void AudioManager::loadSample(const std::string& path, const std::string& name) 
     }
 }
 
-void AudioManager::playSample(const std::string& name) {
+void AudioManager::playSample(const std::string& name, float volume) {
     auto it = samples.find(name);
     if (it != samples.end()) {
         HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
+        BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
         BASS_ChannelPlay(channel, true);
     } else {
         std::cerr << "Sample not found: " << name << std::endl;
