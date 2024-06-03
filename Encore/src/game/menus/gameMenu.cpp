@@ -226,20 +226,55 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
     float SplashFontSize = u.hinpct(0.03f);
     float SplashHeight = MeasureTextEx(assets.josefinSansItalic, result.c_str(), SplashFontSize, 0).y;
     float SplashWidth = MeasureTextEx(assets.josefinSansItalic, result.c_str(), SplashFontSize, 0).x;
-    Vector2 StringBox = {u.RightSide - SplashWidth - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (SplashHeight/2)};
+
+    float SongFontSize = u.hinpct(0.03f);
+    float TitleHeight = MeasureTextEx(assets.rubikBoldItalic, ChosenSong.title.c_str(), SongFontSize, 0).y;
+    float TitleWidth = MeasureTextEx(assets.rubikBoldItalic, ChosenSong.title.c_str(), SongFontSize, 0).x;
+    float ArtistHeight = MeasureTextEx(assets.rubikItalic, ChosenSong.artist.c_str(), SongFontSize, 0).y;
+    float ArtistWidth = MeasureTextEx(assets.rubikItalic, ChosenSong.artist.c_str(), SongFontSize, 0).x;
+
+    Vector2 SongTitleBox = {u.RightSide - TitleWidth - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (TitleHeight*1.1f)};
+    Vector2 SongArtistBox = {u.RightSide - ArtistWidth - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f)};
+
+    Vector2 StringBox = {u.wpct(0.01f),  u.hpct(0.8125f)};
+    DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,128});
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
     menuCommitHash.erase(7);
     float logoHeight = u.hinpct(0.145f);
     DrawVersion(assets);
+
+    Color accentColor = ColorBrightness(ColorContrast(Color{255,0,255,128}, -0.125f),-0.25f);
+
+    DrawRectangle(0,u.hpct(0.8f),u.LeftSide, u.hinpct(0.05f), accentColor);
+    DrawRectangleGradientH(u.LeftSide,u.hpct(0.8f),SplashWidth+u.winpct(0.1f),u.hinpct(0.05f),accentColor,Color{0,0,0,0});
+
     DrawTextEx(assets.josefinSansItalic, result.c_str(), StringBox, SplashFontSize, 0, WHITE);
+    DrawTextEx(assets.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
+    DrawTextEx(assets.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
 
-    Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.04f), Remap(assets.encoreWhiteLogo.height, 0, assets.encoreWhiteLogo.width / 4.25, 0, u.winpct(0.5f)), logoHeight};
+    Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.035f), Remap(assets.encoreWhiteLogo.height, 0, assets.encoreWhiteLogo.width / 4.25, 0, u.winpct(0.5f)), logoHeight};
     DrawTexturePro(assets.encoreWhiteLogo, {0,0,(float)assets.encoreWhiteLogo.width,(float)assets.encoreWhiteLogo.height}, LogoRect, {0,0}, 0, WHITE);
-
+    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.08f));
+    GuiSetFont(assets.redHatDisplayBlack);
+    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xaaaaaaFF);
+    GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
+    GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
+    GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x00000000);
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x00000000);
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0x00000000);
+    GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0x00000000);
+    GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0x00000000);
+    GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x00000000);
+    GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
+    if (GuiButton({0, u.hpct(0.8f), u.LeftSide+SplashWidth, u.hpct(0.05f)}, "")) {
+        stringChosen = false;
+    }
     if (std::filesystem::exists("songCache.encr")) {
-        if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 120, 200, 60}, "Play")) {
+        if (GuiButton({u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f)}, "Play")) {
 
             for (Song &songi: songListMenu.songs) {
                 songi.titleScrollTime = GetTime();
@@ -249,39 +284,46 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets 
             }
             Menu::SwitchScreen(SONG_SELECT);
         }
-    }else{
+    } else {
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, ColorToInt(Color{128,0,0,255}));
-        GuiButton({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60}, "Invalid song cache!");
+        GuiButton({u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f)}, "Invalid song cache!");
         songListMenu.ScanSongs(settings.songPaths); 
         songsLoaded = false;
         DrawRectanglePro({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60},{0,0},0, Color{0,0,0,64});
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, 0x181827FF);
     }
-        if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) - 30, 200, 60},
-                      "Options")) {
-            glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
-            Menu::SwitchScreen(SETTINGS);
-        }
-        if (GuiButton({((float) GetScreenWidth() / 2) - 100, ((float) GetScreenHeight() / 2) + 60, 200, 60}, "Quit")) {
-            exit(0);
-        }
-        if (GuiButton({(float) GetScreenWidth() - 60, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
-            OpenURL("https://github.com/Encore-Developers/Encore-Raylib");
-        }
-
-
-        if (GuiButton({(float) GetScreenWidth() - 120, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
-            OpenURL("https://discord.gg/GhkgVUAC9v");
-        }
-    if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
-        stringChosen = false;
+    if (GuiButton({u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.2f), u.hinpct(0.08f)},
+                  "Options")) {
+        glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
+        Menu::SwitchScreen(SETTINGS);
     }
-        if (GuiButton({(float) GetScreenWidth() - 180, (float) GetScreenHeight() - u.hpct(0.15f) - 120, 180, 60}, "Rescan Songs")) {
-            songsLoaded = false;
-            songListMenu.ScanSongs(settings.songPaths);
-        }
-        DrawTextureEx(assets.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54 - u.hpct(0.15f) }, 0, 0.2, WHITE);
-        DrawTextureEx(assets.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
+    if (GuiButton({u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f)}, "Quit")) {
+        exit(0);
+    }
+
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(Color{255,0,255,255}, -0.5)));
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(Color{255,0,255,255}, -0.3)));
+    GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
+    GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
+    GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
+    GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
+    GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
+
+    if (GuiButton({(float) GetScreenWidth() - 60, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
+        OpenURL("https://github.com/Encore-Developers/Encore-Raylib");
+    }
+
+
+    if (GuiButton({(float) GetScreenWidth() - 120, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
+        OpenURL("https://discord.gg/GhkgVUAC9v");
+    }
+
+    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.03f));
+    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+    GuiSetFont(assets.rubik);
+    DrawTextureEx(assets.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54 - u.hpct(0.15f) }, 0, 0.2, WHITE);
+    DrawTextureEx(assets.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
                       WHITE);
 }
 

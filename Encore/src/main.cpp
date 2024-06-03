@@ -1070,6 +1070,18 @@ int main(int argc, char* argv[])
                     if (ShowGeneralSettings) {
                         settingsMain.fullscreen = sor.toggleEntry(settingsMain.fullscreen, generalOffset + 1,
                                                                   "Fullscreen", assets);
+
+                        DrawRectangle(u.wpct(0.005f), underTabsHeight + (EntryHeight * (generalOffset + 2)),
+                                      OptionWidth * 2, EntryHeight, Color{0, 0, 0, 64});
+
+                        float scanTop = EntryTop + (EntryHeight * (generalOffset + 1));
+                        float scanTextTop = EntryTextTop + (EntryHeight * (generalOffset + 1));
+                        DrawTextEx(assets.rubikBold, "Scan Songs", {EntryTextLeft, scanTextTop},
+                                   EntryFontSize, 0, WHITE);
+                        if (GuiButton({OptionLeft, scanTop, OptionWidth, EntryHeight}, "Scan")) {
+                            menu.songsLoaded = false;
+                            songList.ScanSongs(settingsMain.songPaths);
+                        }
                     }
 
                 }
