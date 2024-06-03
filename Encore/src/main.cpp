@@ -658,11 +658,11 @@ int main(int argc, char* argv[])
 
     // Y UP!!!! REMEMBER!!!!!!
     //							  x,    y,     z
-    // 0.0f, 5.0f, -3.5f
+    //                         0.0f, 5.0f, -3.5f
     //								 6.5f
-    camera.position = Vector3{ 0.0f, 6.5f, -08.0f };
+    camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
     // 0.0f, 0.0f, 6.5f
-    camera.target = Vector3{ 0.0f, 0.0f, 10.0f };
+    camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
 
     camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
     camera.fovy = 35.0f;
