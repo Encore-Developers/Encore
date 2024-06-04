@@ -741,8 +741,12 @@ int main(int argc, char* argv[])
         if (IsWindowResized()) {
             UnloadRenderTexture(notes_tex);
             RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+            SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_TRILINEAR);
+            GenTextureMipmaps(&notes_tex.texture);
             UnloadRenderTexture(hud_tex);
             RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+            SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_TRILINEAR);
+            GenTextureMipmaps(&hud_tex.texture);
         }
 
         float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
@@ -1081,6 +1085,14 @@ int main(int argc, char* argv[])
                         if (GuiButton({OptionLeft, scanTop, OptionWidth, EntryHeight}, "Scan")) {
                             menu.songsLoaded = false;
                             songList.ScanSongs(settingsMain.songPaths);
+                        }
+
+                        float heheTop = EntryTop + (EntryHeight * (generalOffset + 2));
+                        float heheTextTop = EntryTextTop + (EntryHeight * (generalOffset + 2));
+                        DrawTextEx(assets.rubikBold, "Super Cool Highway Colors", {EntryTextLeft, heheTextTop},
+                                   EntryFontSize, 0, WHITE);
+                        if (GuiButton({OptionLeft, heheTop, OptionWidth, EntryHeight}, menu.hehe ? "On" : "Off")) {
+                            menu.hehe = !menu.hehe;
                         }
                     }
 
@@ -2012,14 +2024,19 @@ int main(int argc, char* argv[])
                 BeginTextureMode(notes_tex);
                 ClearBackground({0,0,0,0});
                 BeginMode3D(camera);
+                glEnable(GL_CULL_FACE);
                 for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
                         for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 
+                            Color NoteColor = menu.hehe && player.diff == 3 ? lane == 0 || lane == 4 ? SKYBLUE : lane == 1 || lane == 3 ? PINK : WHITE : player.accentColor;
                             Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
                             if (curNote.hit) {
                                 player.totalOffset += curNote.HitOffset;
                             }
+                            assets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 
+                            assets.noteModel.materials[assets.noteModel.meshMaterial[0]].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+                            assets.noteModel.materials[assets.noteModel.meshMaterial[1]].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
                             if (!curChart.odPhrases.empty()) {
 
                                 if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
@@ -2123,6 +2140,10 @@ int main(int argc, char* argv[])
                                                                                            (float) relTime) +
                                                                                           (sustainLen / 2.0f)));
                                     BeginBlendMode(BLEND_ALPHA);
+                                    assets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(NoteColor, { 180,180,180,255 });
+                                    assets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(NoteColor, 0.5f);
+
+
                                     if (curNote.held && !curNote.renderAsOD) {
                                         DrawMesh(sustainPlane, assets.sustainMatHeld, sustainMatrix);
                                         DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f,

@@ -117,8 +117,7 @@ Every `notes.mid` needs an `EVENTS` track and a `BEAT` track.
 - An `[end]` event should be placed at the very end of the chart MIDI, or where the game should cut to the Results screen.
 
 ## Audio
-All songs should be .ogg or .mp3, and include at least a backing/song track. 
-There is no support for .flac or .opus. Ogg Opus support is a planned feature.
+As Encore uses BASS and BASSOPUS, you can use WAV/AIFF/MP3/MP2/MP1/OGG/OPUS files for music. **OGG and OPUS are highly recommended.**
 
 ## Album art
 Album art must be .png or .jpg, with a size of 512x512.
