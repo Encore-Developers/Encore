@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <set>
 #include "picosha2.h"
+#include "raylib.h"
+
 class SongList
 {
     SongList() {}
@@ -17,10 +19,10 @@ public:
     }
 
     static bool sortArtist(const Song& a, const Song& b) {
-        return a.artist < b.artist;
+        return ((std::string)TextToLower(a.artist.c_str())) < ((std::string)TextToLower(b.artist.c_str()));
     }
     static bool sortTitle(const Song& a, const Song& b) {
-        return a.title < b.title;
+        return ((std::string)TextToLower(a.title.c_str())) < ((std::string)TextToLower(b.title.c_str()));
     }
     static bool sortLen(const Song& a, const Song& b) {
         return a.length < b.length;
