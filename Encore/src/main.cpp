@@ -577,6 +577,8 @@ Song selectedSong;
 bool ReloadGameplayTexture = true;
 bool songAlbumArtLoadedGameplay = false;
 
+
+
 int main(int argc, char* argv[])
 {
     Units u = Units::getInstance();
@@ -1809,6 +1811,13 @@ int main(int argc, char* argv[])
                 if (!streamsLoaded && !player.quit) {
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
                     streamsLoaded = true;
+                    for (auto& stream : audioManager.loadedStreams) {
+                        if (player.instrument == stream.instrument)
+                            audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : player.selInstVolume);
+                        else
+                            audioManager.SetAudioStreamVolume(stream.handle, player.otherInstVolume);
+
+                    }
                     audioManager.BeginPlayback(audioManager.loadedStreams[0].handle);
                     player.resetPlayerStats();
                 }
@@ -1832,13 +1841,13 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
-
+                        curODPhrase = 0;
                         menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
                         isPlaying = false;
                         songEnded = true;
                         songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
-                        curODPhrase = 0;
+
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFill;
@@ -1848,13 +1857,7 @@ int main(int argc, char* argv[])
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                         menu.SwitchScreen(RESULTS);
                     }
-                    for (auto& stream : audioManager.loadedStreams) {
-                        if (player.instrument == stream.instrument)
-                            audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : player.selInstVolume);
-                        else
-                            audioManager.SetAudioStreamVolume(stream.handle, player.otherInstVolume);
 
-                    }
                 }
 
                 float highwayLength = player.defaultHighwayLength * settingsMain.highwayLengthMult;
