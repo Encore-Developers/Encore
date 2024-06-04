@@ -189,11 +189,14 @@ void Assets::LoadAssets() {
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
 
-    noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
-    noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
-    noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTexture;
-    noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
-    noteModel.materials[0].maps[MATERIAL_MAP_EMISSION].value = 1;
+    // noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
+    noteModel.meshMaterial[0] = 0;
+    noteModel.materials[noteModel.meshMaterial[0]].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    // noteModel.materials[1].maps[MATERIAL_MAP_ALBEDO].texture = emitTexture;
+    noteModel.meshMaterial[1] = 1;
+    noteModel.materials[noteModel.meshMaterial[1]].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
+
 
     noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
     noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;

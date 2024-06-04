@@ -1,5 +1,6 @@
 #include "game/audio.h"
-#include "bass.h"
+#include "bass/bass.h"
+#include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
 
 #ifdef WIN32
@@ -28,11 +29,16 @@ bool AudioManager::Init() {
     if (!BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
         CHECK_BASS_ERROR();
     }
+    BASS_PluginLoad("bassopus", 0);
+    CHECK_BASS_ERROR();
 #elif __linux__
     if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
         CHECK_BASS_ERROR();
     }
+    BASS_PluginLoad("libbassopus", 0);
+    CHECK_BASS_ERROR();
 #endif
+
     return true;
 }
 

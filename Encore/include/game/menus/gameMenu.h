@@ -53,6 +53,7 @@ public:
         return instance;
     }
 
+    bool hehe = false;
     Song ChosenSong;
     int ChosenSongInt;
     Screens currentScreen;
