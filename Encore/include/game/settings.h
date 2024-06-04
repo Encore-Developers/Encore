@@ -92,10 +92,10 @@ public:
 
 	std::vector<int> defaultKeybinds4K{ KEY_D,KEY_F,KEY_J,KEY_K };
 	std::vector<int> defaultKeybinds5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
-	std::vector<int> defaultKeybinds4KAlt{ -1,-1,-1,-1 };
-	std::vector<int> defaultKeybinds5KAlt{ -1,-1,-1,-1,-1 };
+	std::vector<int> defaultKeybinds4KAlt{ -2,-2,-2,-2 };
+	std::vector<int> defaultKeybinds5KAlt{ -2,-2,-2,-2,-2 };
 	int defaultKeybindOverdrive = KEY_SPACE;
-	int defaultKeybindOverdriveAlt = -1;
+	int defaultKeybindOverdriveAlt = -2;
 	int defaultKeybindPause = KEY_ESCAPE;
 	std::vector<int> defaultController4K{ GLFW_GAMEPAD_BUTTON_DPAD_LEFT,GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,GLFW_GAMEPAD_BUTTON_X,GLFW_GAMEPAD_BUTTON_B };
 	std::vector<int> defaultController5K{ GLFW_GAMEPAD_BUTTON_DPAD_LEFT,GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,GLFW_GAMEPAD_BUTTON_X,GLFW_GAMEPAD_BUTTON_Y, GLFW_GAMEPAD_BUTTON_B };
