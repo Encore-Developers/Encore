@@ -26,6 +26,7 @@
 #include "game/audio.h"
 #include "game/menus/settingsOptionRenderer.h"
 #include "game/timingvalues.h"
+
 #include <thread>
 #include <atomic>
 
@@ -718,6 +719,7 @@ int main(int argc, char* argv[])
     assets.LoadAssets();
     RenderTexture2D notes_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
     RenderTexture2D hud_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
+    RenderTexture2D highway_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
     while (!WindowShouldClose())
 
     {
@@ -745,10 +747,16 @@ int main(int argc, char* argv[])
             RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
             SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_TRILINEAR);
             GenTextureMipmaps(&notes_tex.texture);
+
             UnloadRenderTexture(hud_tex);
             RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
             SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_TRILINEAR);
             GenTextureMipmaps(&hud_tex.texture);
+
+            UnloadRenderTexture(highway_tex);
+            RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+            SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_TRILINEAR);
+            GenTextureMipmaps(&highway_tex.texture);
         }
 
         float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
@@ -1776,6 +1784,9 @@ int main(int argc, char* argv[])
                 // DrawTextEx(assets.rubikBold, TextFormat("Video Offset: %2.3f", player.VideoOffset), {u.LeftSide, u.hinpct(0.5f)}, u.hinpct(0.04), 0, WHITE);
                 // DrawTextEx(assets.rubikBold, TextFormat("Input Offset: %2.3f", player.InputOffset), {u.LeftSide, u.hinpct(0.55f)}, u.hinpct(0.04), 0, WHITE);
 
+                BeginTextureMode(highway_tex);
+                ClearBackground({0,0,0,0});
+
                 float multFill = (!player.overdrive ? (float)(player.multiplier(player.instrument) - 1) : ((float)(player.multiplier(player.instrument) / 2) - 1)) / (float)player.maxMultForMeter(player.instrument);
                 SetShaderValue(assets.odMultShader, assets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
                 SetShaderValue(assets.multNumberShader, assets.uvOffsetXLoc, &player.uvOffsetX, SHADER_UNIFORM_FLOAT);
@@ -1823,15 +1834,7 @@ int main(int argc, char* argv[])
                 }
                 else {
                     float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
-                    int songLength = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle);
-                    int playedMinutes = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)/60;
-                    int playedSeconds = (int)audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) % 60;
-                    int songMinutes = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle)/60;
-                    int songSeconds = (int)audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) % 60;
-                    const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
-                    float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
 
-                    DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                     if (songEnd <= songPlayed) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
@@ -1888,17 +1891,12 @@ int main(int argc, char* argv[])
                         curBPM++;
                 }
 
-                if (musicTime < 7.5) {
-                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
-                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
-                    //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
-                }
+
 
                 BeginMode3D(camera);
 
+
                 if (player.diff == 3) {
-
-
                     float highwayPosShit = ((20) * (1 - settingsMain.highwayLengthMult));
                     DrawModel(assets.expertHighwaySides, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
                     DrawModel(assets.expertHighway, Vector3{ 0,0,settingsMain.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
@@ -1910,13 +1908,13 @@ int main(int argc, char* argv[])
                             DrawModel(assets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40-0.2f }, 1.0f, WHITE);
                         }
                     }
-
+                    BeginBlendMode(BLEND_ALPHA);
                     if (player.overdrive) {DrawModel(assets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
-                    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+
                     DrawTriangle3D({-diffDistance-0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},Color{0,0,0,64});
 
                     DrawTriangle3D({diffDistance+0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
-                    EndBlendMode();
+
 
                     for (int i = 0; i < 5;  i++) {
                         if (heldFrets[i] || heldFretsAlt[i]) {
@@ -2003,7 +2001,9 @@ int main(int argc, char* argv[])
                     DrawCylinderEx(Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.07, 0.07, 10, RAYWHITE);
 
                 }
+                EndBlendMode();
                 EndMode3D();
+                EndTextureMode();
 
                 BeginTextureMode(hud_tex);
                 ClearBackground({0,0,0,0});
@@ -2239,15 +2239,23 @@ int main(int argc, char* argv[])
                 EndMode3D();
                 EndTextureMode();
 
+                float DisplayWidth = (float)GetScreenWidth();
+
+                SetTextureWrap(highway_tex.texture,TEXTURE_WRAP_CLAMP);
+                highway_tex.texture.width = DisplayWidth;
+                highway_tex.texture.height = GetScreenHeight();
+                DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+
                 SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
-                notes_tex.texture.width = GetScreenWidth();
+                notes_tex.texture.width = DisplayWidth;
                 notes_tex.texture.height = GetScreenHeight();
                 DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 
                 SetTextureWrap(hud_tex.texture,TEXTURE_WRAP_CLAMP);
-                hud_tex.texture.width = GetScreenWidth();
+                hud_tex.texture.width = DisplayWidth;
                 hud_tex.texture.height = GetScreenHeight();
                 DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+
 
                 //(float)notes_tex.texture.width, (float)-notes_tex.texture.height
                     //DrawTextureRec(notes_tex.texture, { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },{0,0}, WHITE);
@@ -2256,12 +2264,20 @@ int main(int argc, char* argv[])
                     curODPhrase++;
                 }
 
+                if (musicTime < 7.5) {
+                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
+                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
+                    //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
+                }
+
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                 int playedMinutes = songPlayed/60;
                 int playedSeconds = songPlayed % 60;
                 int songMinutes = songLength/60;
                 int songSeconds = songLength % 60;
+
+
                 GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(player.FC ? GOLD : player.accentColor));
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED, ColorToInt(player.FC ? GOLD : player.accentColor));
@@ -2269,6 +2285,11 @@ int main(int argc, char* argv[])
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED, ColorToInt(player.FC ? GOLD : player.accentColor));
 
                 float floatSongLength = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+
+                const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
+                float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
+
+                DrawTextEx(assets.rubik, textTime,{GetScreenWidth() - textLength,GetScreenHeight()-u.hinpct(0.05f)},u.hinpct(0.04f),0,WHITE);
                 GuiProgressBar(Rectangle {0,(float)GetScreenHeight()-u.hinpct(0.005f),(float)GetScreenWidth(),u.hinpct(0.01f)}, "", "", &floatSongLength, 0, (float)songLength);
 
 
