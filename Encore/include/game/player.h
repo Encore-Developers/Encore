@@ -94,10 +94,10 @@ public:
         return 0;
     }
 
-    int multiplier(int instrument) {
+    int multiplier(int inst) {
         int od = overdrive ? 2 : 1;
 
-        if (instrument == 1 || instrument == 3){
+        if (inst == 1 || inst == 3){
 
             if (combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (overdrive ? 0.5f:0); return 1 * od; }
             else if (combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (overdrive ? 0.5f : 0);  return 2 * od; }
@@ -116,15 +116,15 @@ public:
         };
     }
 
-    int maxMultForMeter(int instrument) {
-        if (instrument == 1 || instrument == 3)
+    int maxMultForMeter(int inst) {
+        if (inst == 1 || inst == 3)
             return 5;
         else
             return 3;
     }
 
-    float comboFillCalc(int instrument) {
-        if (instrument == 0 || instrument == 2) {
+    float comboFillCalc(int inst) {
+        if (inst == 0 || inst == 2) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0
@@ -159,6 +159,7 @@ public:
 		combo = 0;
 		score = 0;
 		FC = true;
+        mute = false;
         notes = 0;
         goldStars = false;
         playerOverhits = 0;
@@ -166,23 +167,23 @@ public:
         lastNotePerfect = false;
 	};
 
-	void HitNote(bool perfect, int instrument) {
+	void HitNote(bool perfect, int inst) {
 		notesHit += 1;
 		combo += 1;
 		if (combo > maxCombo)
 			maxCombo = combo;
 		float perfectMult = perfect ? 1.2f : 1.0f;
-		score += (int)((30 * (multiplier(instrument)) * perfectMult));
+		score += (int)((30.0f * (multiplier(inst)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
         mute = false;
 	}
-	void HitNoteAudio(bool perfect, int instrument) {
+	void HitNoteAudio(bool perfect, int inst) {
 		notesHit += 1;
 		combo += 1;
 		if (combo > maxCombo)
 			maxCombo = combo;
 		float perfectMult = perfect ? 1.2f : 1.0f;
-		score += (int)((30 * (multiplier(instrument)) * perfectMult));
+		score += (int)((30.0f * (multiplier(inst)) * perfectMult));
 		perfectHit += perfect ? 1 : 0;
 		mute = false;
 	}

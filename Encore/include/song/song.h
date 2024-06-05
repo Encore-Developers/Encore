@@ -153,7 +153,10 @@ public:
 		if (!ifs.is_open()) {
 			std::cerr << "Failed to open JSON file." << std::endl;
 		}
-
+        if (!stemsPath.empty())
+            stemsPath.clear();
+        if (!charters.empty())
+            charters.clear();
 		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 		ifs.close();
 		jsonHash = picosha2::hash256_hex_string(jsonString);
