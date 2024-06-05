@@ -47,7 +47,7 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int>>& paths) 
     for (auto& path : paths) {
         HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
         if (streamHandle) {
-            AudioManager::loadedStreams.push_back({ streamHandle, path.second });
+            loadedStreams.push_back({ streamHandle, path.second });
             if (streams != 0) {
                 BASS_ChannelSetLink(loadedStreams[0].handle, loadedStreams[streams].handle);
             }
@@ -60,11 +60,12 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int>>& paths) 
 
 void AudioManager::unloadStreams() {
     if (!loadedStreams.empty()) {
-        AudioManager::StopPlayback(AudioManager::loadedStreams[0].handle);
-        for (auto& stream : AudioManager::loadedStreams) {
+        for (auto& stream : loadedStreams) {
+            StopPlayback(stream.handle);
             BASS_StreamFree(stream.handle);
         }
-        AudioManager::loadedStreams.clear();
+        loadedStreams = {};
+        loadedStreams.clear();
     }
 }
 
