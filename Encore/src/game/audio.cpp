@@ -90,6 +90,20 @@ void AudioManager::restartStreams() {
     }
 }
 
+void AudioManager::unpauseStreams() {
+    if (!loadedStreams.empty()) {
+        for (auto& stream : loadedStreams) {
+            int rewindTimeBytes = BASS_ChannelSeconds2Bytes(stream.handle, 3.0);
+            int channelPositionBytes = BASS_ChannelGetPosition(stream.handle, BASS_POS_BYTE);
+
+            int position = channelPositionBytes <= rewindTimeBytes ? 0 : channelPositionBytes - rewindTimeBytes;
+
+            BASS_ChannelSetPosition(stream.handle, position, BASS_POS_BYTE);
+        }
+        BASS_ChannelPlay(loadedStreams[0].handle, false);
+    }
+}
+
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
     return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle, BASS_POS_BYTE));
 }

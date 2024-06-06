@@ -2373,7 +2373,8 @@ int main(int argc, char* argv[])
                     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
                     
                     if (GuiButton({ u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) }, "Resume")) {
-                        audioManager.playStreams();
+
+                        audioManager.unpauseStreams();
                         player.paused = false;
                     }
                     
@@ -2441,6 +2442,7 @@ int main(int argc, char* argv[])
                         songEnded = true;
                         songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
                         player.quit = true;
+                        songAlbumArtLoadedGameplay = false;
                     }
 
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
