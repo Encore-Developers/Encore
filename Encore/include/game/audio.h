@@ -29,6 +29,7 @@ public:
 
 	// Audio stream control
 	void UpdateMusicStream(unsigned int handle);
+    void unpauseStreams();
 	void SetAudioStreamVolume(unsigned int handle, float volume);
 	void BeginPlayback(unsigned int handle);
 	void StopPlayback(unsigned int handle);
