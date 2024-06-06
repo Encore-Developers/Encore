@@ -23,6 +23,16 @@ private:
 	}
 	void ensureValuesExist() {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+		if (!settings.HasMember("volume"))
+			settings.AddMember("volume", rapidjson::kObjectType, allocator);
+		if (!settings["volume"].HasMember("main"))
+			settings["volume"].AddMember("main", rapidjson::Value(), allocator);
+		if (!settings["volume"].HasMember("player"))
+			settings["volume"].AddMember("player", rapidjson::Value(), allocator);
+		if (!settings["volume"].HasMember("band"))
+			settings["volume"].AddMember("band", rapidjson::Value(), allocator);
+		if (!settings["volume"].HasMember("sfx"))
+			settings["volume"].AddMember("sfx", rapidjson::Value(), allocator);
         if (!settings.HasMember("fullscreen"))
             settings.AddMember("fullscreen", rapidjson::Value(), allocator);
 		if (!settings.HasMember("trackSpeed"))
@@ -159,6 +169,23 @@ public:
     bool fullscreen = fullscreenDefault;
     bool fullscreenPrev = fullscreen;
 
+
+	float defaultMainVolume = 0.5f;
+	float defaultPlayerVolume = 0.75f;
+	float defaultBandVolume = 0.5f;
+	float defaultSFXVolume = 0.5f;
+
+	float MainVolume = defaultMainVolume;
+	float PlayerVolume = defaultPlayerVolume;
+	float BandVolume = defaultBandVolume;
+	float SFXVolume = defaultSFXVolume;
+
+	float prevMainVolume = MainVolume;
+	float prevPlayerVolume = PlayerVolume;
+	float prevBandVolume = BandVolume;
+	float prevSFXVolume = SFXVolume;
+
+
     float highwayLengthMult = 1.0f;
     float prevHighwayLengthMult = highwayLengthMult;
 
@@ -186,6 +213,13 @@ public:
 			array4KAlt.PushBack(rapidjson::Value().SetInt(key), allocator);
 		for (int& key : defaultKeybinds5KAlt)
 			array5KAlt.PushBack(rapidjson::Value().SetInt(key), allocator);
+
+		settings.AddMember("volume", rapidjson::Value(rapidjson::kObjectType), allocator);
+		settings["volume"].AddMember("main", rapidjson::Value(defaultMainVolume), allocator);
+		settings["volume"].AddMember("player", rapidjson::Value(defaultPlayerVolume), allocator);
+		settings["volume"].AddMember("band", rapidjson::Value(defaultBandVolume), allocator);
+		settings["volume"].AddMember("sfx", rapidjson::Value(defaultSFXVolume), allocator);
+
 		settings.AddMember("keybinds", rapidjson::Value(rapidjson::kObjectType), allocator);
 		settings["keybinds"].AddMember("4k", array4K, allocator);
 		settings["keybinds"].AddMember("5k", array5K, allocator);
@@ -265,6 +299,14 @@ public:
 		bool trackSpeedError = false;
         bool MissHighwayError = false;
         bool fullscreenError = false;
+
+		bool VolumeError = false;
+		bool MainVolumeError = false;
+		bool PlayerVolumeError = false;
+		bool BandVolumeError = false;
+		bool SFXVolumeError = false;
+
+
 		if (std::filesystem::exists(settingsFile)) {
 			std::ifstream ifs(settingsFile);
 			if (!ifs.is_open()) {
@@ -276,6 +318,35 @@ public:
 
 			if (settings.IsObject())
 			{
+				if (settings.HasMember("volume") && settings["volume"].IsObject()) {
+					if (settings["volume"].HasMember("main") && settings["volume"]["main"].IsFloat()) {
+						MainVolume = settings["volume"]["main"].GetFloat();
+					}
+					else {
+						MainVolumeError = true;
+					}
+					if (settings["volume"].HasMember("player") && settings["volume"]["player"].IsFloat()) {
+						PlayerVolume = settings["volume"]["player"].GetFloat();
+					}
+					else {
+						PlayerVolumeError = true;
+					}
+					if (settings["volume"].HasMember("band") && settings["volume"]["band"].IsFloat()) {
+						BandVolume = settings["volume"]["band"].GetFloat();
+					}
+					else {
+						BandVolumeError = true;
+					}
+					if (settings["volume"].HasMember("sfx") && settings["volume"]["sfx"].IsFloat()) {
+						SFXVolume = settings["volume"]["sfx"].GetFloat();
+					}
+					else {
+						SFXVolumeError = true;
+					}
+				}
+				else {
+					VolumeError = true;
+				}
 
 				if (settings.HasMember("keybinds") && settings["keybinds"].IsObject()) {
 					if (settings["keybinds"].HasMember("4k") && settings["keybinds"]["4k"].IsArray()) {
@@ -558,6 +629,15 @@ public:
 		}
 
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+		if (VolumeError) {
+			if (settings.HasMember("volume"))
+				settings.EraseMember("volume");
+			settings.AddMember("volume", rapidjson::Value(rapidjson::kObjectType), allocator);
+			settings["volume"].AddMember("main", rapidjson::Value(defaultMainVolume), allocator);
+			settings["volume"].AddMember("player", rapidjson::Value(defaultPlayerVolume), allocator);
+			settings["volume"].AddMember("band", rapidjson::Value(defaultBandVolume), allocator);
+			settings["volume"].AddMember("sfx", rapidjson::Value(defaultSFXVolume), allocator);
+		}
 		if (keybindsError) {
 			if (settings.HasMember("keybinds"))
 				settings.EraseMember("keybinds");
@@ -581,6 +661,26 @@ public:
 			settings["keybinds"].AddMember("overdrive", rapidjson::Value(defaultKeybindOverdrive), allocator);
 			settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(defaultKeybindOverdriveAlt), allocator);
 			settings["keybinds"].AddMember("pause", rapidjson::Value(defaultKeybindPause), allocator);
+		}
+		if (MainVolumeError) {
+			if (settings["volume"].HasMember("main"))
+				settings["volume"].EraseMember("main");
+			settings["volume"].AddMember("main", rapidjson::Value(defaultMainVolume), allocator);
+		}
+		if (PlayerVolumeError) {
+			if (settings["volume"].HasMember("player"))
+				settings["volume"].EraseMember("player");
+			settings["volume"].AddMember("player", rapidjson::Value(defaultPlayerVolume), allocator);
+		}
+		if (BandVolumeError) {
+			if (settings["volume"].HasMember("band"))
+				settings["volume"].EraseMember("band");
+			settings["volume"].AddMember("band", rapidjson::Value(defaultBandVolume), allocator);
+		}
+		if (SFXVolumeError) {
+			if (settings["volume"].HasMember("sfx"))
+				settings["volume"].EraseMember("sfx");
+			settings["volume"].AddMember("sfx", rapidjson::Value(defaultSFXVolume), allocator);
 		}
 		if (keybinds4KError) {
 			if(settings["keybinds"].HasMember("4k"))
@@ -770,7 +870,7 @@ public:
             fullscreenVal.SetBool(fullscreenDefault);
             settings.AddMember("fullscreen", fullscreenVal, allocator);
         }
-		if (fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if ( SFXVolumeError || BandVolumeError || PlayerVolumeError || VolumeError || MainVolumeError || fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -864,6 +964,16 @@ public:
 	}
 	const void saveSettings(std::filesystem::path settingsFile) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
+
+		rapidjson::Value::MemberIterator MainVolumeMember = settings["volume"].FindMember("main");
+		MainVolumeMember->value.SetFloat(MainVolume);
+		rapidjson::Value::MemberIterator PlayerVolumeMember = settings["volume"].FindMember("player");
+		PlayerVolumeMember->value.SetFloat(PlayerVolume);
+		rapidjson::Value::MemberIterator BandVolumeMember = settings["volume"].FindMember("band");
+		BandVolumeMember->value.SetFloat(BandVolume);
+		rapidjson::Value::MemberIterator SfxVolumeMember = settings["volume"].FindMember("sfx");
+		SfxVolumeMember->value.SetFloat(SFXVolume);
+
         rapidjson::Value::MemberIterator fullscreenMember = settings.FindMember("fullscreen");
         fullscreenMember->value.SetBool(fullscreen);
         rapidjson::Value::MemberIterator lengthMember = settings.FindMember("length");

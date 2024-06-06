@@ -119,7 +119,10 @@ void Assets::LoadAssets() {
     rubikItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets);
 
     josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets);
-
+    
+    fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.fs").string().c_str());
+    texLoc = GetShaderLocation(fxaa, "texture0");
+    resLoc = GetShaderLocation(fxaa, "resolution");
     sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
     bgShader = LoadShader(0, (directory / "Assets/ui/wavy.fs").string().c_str());
     bgTimeLoc= GetShaderLocation(bgShader, "time");
@@ -132,18 +135,18 @@ void Assets::LoadAssets() {
     sustainTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png", loadedAssets);
 
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
 
     smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
-    smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
 
     smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
-    smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+    smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
 
     smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
-    smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = LIGHTGRAY;
+    smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
 
     lanes.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = lanesTex;
     lanes.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
@@ -183,11 +186,11 @@ void Assets::LoadAssets() {
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-    expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+    expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
-    emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+    emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
 
     // noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
     noteModel.meshMaterial[0] = 0;
