@@ -45,6 +45,10 @@ public:
     Texture2D multNumberTex;
     Shader odMultShader;
     Shader multNumberShader;
+    Shader fxaa;
+
+    int texLoc;
+    int resLoc;
 
     int odLoc;
     int comboCounterLoc;
