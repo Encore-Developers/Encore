@@ -1327,6 +1327,7 @@ int main(int argc, char* argv[])
                 player.overdrive = false;
                 curNoteIdx = { 0,0,0,0,0 };
                 curODPhrase = 0;
+                curSolo = 0;
                 curBeatLine = 0;
                 curBPM = 0;
 
@@ -1901,6 +1902,7 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         curODPhrase = 0;
+                        curSolo = 0;
                         menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
                         isPlaying = false;
@@ -2433,23 +2435,48 @@ int main(int argc, char* argv[])
                 float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
 
 
-                double twoBeatTime = (curChart.resolution * 2) / songList.songs[curPlayingSong].bpms[curBPM].bpm;
+                if (!curChart.Solos.empty() && songPlayed >= curChart.Solos[curSolo].start - 1 && songPlayed <= curChart.Solos[curSolo].end + 2.5) {
 
-                if (!curChart.Solos.empty() && songPlayed >= curChart.Solos[curSolo].start - 2.0 && songPlayed <= curChart.Solos[curSolo].end) {
+
                     int solopctnum = Remap(curChart.Solos[curSolo].notesHit, 0, curChart.Solos[curSolo].noteCount, 0, 100);
+                    Color accColor = solopctnum == 100 ? GOLD : WHITE;
                     const char* soloPct = TextFormat("%i%%", solopctnum);
                     float soloPercentLength = MeasureTextEx(assets.rubikBold, soloPct, u.hinpct(0.09f), 0).x;
 
                     Vector2 SoloBoxPos = {(GetScreenWidth()/2) - (soloPercentLength/2), u.hpct(0.2f)};
 
-                    DrawTextEx(assets.rubikBold, soloPct, SoloBoxPos, u.hinpct(0.09f), 0, WHITE);
+                    DrawTextEx(assets.rubikBold, soloPct, SoloBoxPos, u.hinpct(0.09f), 0, accColor);
 
                     const char* soloHit = TextFormat("%i/%i", curChart.Solos[curSolo].notesHit, curChart.Solos[curSolo].noteCount);
                     float soloHitLength = MeasureTextEx(assets.josefinSansItalic, soloHit, u.hinpct(0.04f), 0).x;
 
                     Vector2 SoloHitPos = {(GetScreenWidth()/2) - (soloHitLength/2), u.hpct(0.2f) + u.hinpct(0.1f)};
 
-                    DrawTextEx(assets.josefinSansItalic, soloHit, SoloHitPos, u.hinpct(0.04f), 0, WHITE);
+                    DrawTextEx(assets.josefinSansItalic, soloHit, SoloHitPos, u.hinpct(0.04f), 0, accColor);
+
+                    if (songPlayed >= curChart.Solos[curSolo].end && songPlayed >= curChart.Solos[curSolo].end + 2.5) {
+
+                        const char* PraiseText = "";
+                        if (solopctnum == 100) {
+                            PraiseText = "Perfect Solo!";
+                        } else if (solopctnum == 99) {
+                            PraiseText  = "Awesome Choke!";
+                        } else if (solopctnum > 90) {
+                            PraiseText  = "Awesome solo!";
+                        } else if (solopctnum > 80) {
+                            PraiseText  = "Great solo!";
+                        } else if (solopctnum > 75) {
+                            PraiseText  = "Decent solo";
+                        } else if (solopctnum > 50) {
+                            PraiseText  = "OK solo";
+                        } else if (solopctnum > 0) {
+                            PraiseText  = "Bad solo";
+                        }
+                        int PraiseWidth = MeasureTextEx(assets.josefinSansItalic, PraiseText, u.hinpct(0.05f), 0).x;
+                        Vector2 PraisePos = {u.wpct(0.5f) - (PraiseWidth/2), u.hpct(0.2f) - u.hinpct(0.06f)};
+                        DrawTextEx(assets.josefinSansItalic, PraiseText, PraisePos, u.hinpct(0.05f), 0, accColor);
+                    }
+
                 }
                 
 
@@ -2501,6 +2528,7 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         curODPhrase = 0;
+                        curSolo = 0;
                         curNoteIdx = { 0,0,0,0,0 };
                         curBeatLine = 0;
                         player.resetPlayerStats();
@@ -2530,6 +2558,7 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         curODPhrase = 0;
+                        curSolo = 0;
                         player.paused = false;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
