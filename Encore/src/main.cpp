@@ -70,6 +70,7 @@ bool songEnded = false;
 int curPlayingSong = 0;
 std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 int curODPhrase = 0;
+int curSolo = 0;
 int curBeatLine = 0;
 int curBPM = 0;
 int selectedSongInt = 0;
@@ -1927,7 +1928,7 @@ int main(int argc, char* argv[])
                     assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
                     assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
                     assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
-                    player.overdriveFill = player.overdriveActiveFill - (float)((musicTime - player.overdriveActiveTime) / (1920 / songList.songs[curPlayingSong].bpms[curBPM].bpm));
+                    player.overdriveFill = player.overdriveActiveFill - (float)((musicTime - player.overdriveActiveTime) / ((songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resolution * 2) / songList.songs[curPlayingSong].bpms[curBPM].bpm));
                     if (player.overdriveFill <= 0) {
                         player.overdrive = false;
                         player.overdriveActiveFill = 0;
@@ -2065,6 +2066,45 @@ int main(int argc, char* argv[])
                     DrawCylinderEx(Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odStart)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odStart)) }, Vector3{ player.diff == 3 ? -2.7f : -2.2f,0,(float)(player.smasherPos + (highwayLength * odEnd)) >= (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) + player.smasherPos : (float)(player.smasherPos + (highwayLength * odEnd)) }, 0.07, 0.07, 10, RAYWHITE);
 
                 }
+                if (!curChart.Solos.empty()) {
+
+                    float soloStart = (float)((curChart.Solos[curSolo].start - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+                    float soloEnd = (float)((curChart.Solos[curSolo].end - musicTime)) * settingsMain.trackSpeedOptions[settingsMain.trackSpeed] * (11.5f / highwayLength);
+
+                    // horrifying.
+
+                        DrawCylinderEx(Vector3{player.diff == 3 ? 2.7f : 2.2f, -0.001,
+                                               (float) (player.smasherPos + (highwayLength * soloStart)) >=
+                                               (highwayLength * 1.5f) + player.smasherPos+0.1 ? (highwayLength * 1.5f) +
+                                                                                            player.smasherPos
+                                                                                          : (float) (player.smasherPos +
+                                                                                                     (highwayLength *
+                                                                                                      soloStart))},
+                                       Vector3{player.diff == 3 ? 2.7f : 2.2f, -0.001,
+                                               (float) (player.smasherPos + (highwayLength * soloEnd)) >=
+                                               (highwayLength * 1.5f) + player.smasherPos+0.1 ? (highwayLength * 1.5f) +
+                                                                                            player.smasherPos
+                                                                                          : (float) (player.smasherPos +
+                                                                                                     (highwayLength *
+                                                                                                      soloEnd))}, 0.07,
+                                       0.07, 10, SKYBLUE);
+                        DrawCylinderEx(Vector3{player.diff == 3 ? -2.7f : -2.2f, -0.001,
+                                               (float) (player.smasherPos + (highwayLength * soloStart)) >=
+                                               (highwayLength * 1.5f) + player.smasherPos+0.1 ? (highwayLength * 1.5f) +
+                                                                                            player.smasherPos
+                                                                                          : (float) (player.smasherPos +
+                                                                                                     (highwayLength *
+                                                                                                      soloStart))},
+                                       Vector3{player.diff == 3 ? -2.7f : -2.2f, -0.001,
+                                               (float) (player.smasherPos+0.1 + (highwayLength * soloEnd)) >=
+                                               (highwayLength * 1.5f) + player.smasherPos ? (highwayLength * 1.5f) +
+                                                                                            player.smasherPos
+                                                                                          : (float) (player.smasherPos +
+                                                                                                     (highwayLength *
+                                                                                                      soloEnd))}, 0.07,
+                                       0.07, 10, SKYBLUE);
+
+                }
                 EndBlendMode();
                 EndMode3D();
                 EndTextureMode();
@@ -2105,6 +2145,17 @@ int main(int argc, char* argv[])
 
                             assets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
                             assets.noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+                            if (!curChart.Solos.empty()) {
+                                if (curNote.time >= curChart.Solos[curSolo].start &&
+                                    curNote.time <= curChart.Solos[curSolo].end) {
+                                    if (curNote.hit) {
+                                        if (curNote.hit && !curNote.countedForSolo) {
+                                            curChart.Solos[curSolo].notesHit++;
+                                            curNote.countedForSolo = true;
+                                        }
+                                    }
+                                }
+                            }
                             if (!curChart.odPhrases.empty()) {
 
                                 if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
@@ -2349,6 +2400,10 @@ int main(int argc, char* argv[])
                     curODPhrase++;
                 }
 
+                if (!curChart.Solos.empty() && curSolo<curChart.Solos.size() - 1 && musicTime>curChart.Solos[curSolo].end) {
+                    curSolo++;
+                }
+
                 if (curTime < startedPlayingSong + 7.5) {
                     DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
                     DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
@@ -2377,6 +2432,25 @@ int main(int argc, char* argv[])
                 const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
                 float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
 
+
+                double twoBeatTime = (curChart.resolution * 2) / songList.songs[curPlayingSong].bpms[curBPM].bpm;
+
+                if (!curChart.Solos.empty() && songPlayed >= curChart.Solos[curSolo].start - 2.0 && songPlayed <= curChart.Solos[curSolo].end) {
+                    int solopctnum = Remap(curChart.Solos[curSolo].notesHit, 0, curChart.Solos[curSolo].noteCount, 0, 100);
+                    const char* soloPct = TextFormat("%i%%", solopctnum);
+                    float soloPercentLength = MeasureTextEx(assets.rubikBold, soloPct, u.hinpct(0.09f), 0).x;
+
+                    Vector2 SoloBoxPos = {(GetScreenWidth()/2) - (soloPercentLength/2), u.hpct(0.2f)};
+
+                    DrawTextEx(assets.rubikBold, soloPct, SoloBoxPos, u.hinpct(0.09f), 0, WHITE);
+
+                    const char* soloHit = TextFormat("%i/%i", curChart.Solos[curSolo].notesHit, curChart.Solos[curSolo].noteCount);
+                    float soloHitLength = MeasureTextEx(assets.josefinSansItalic, soloHit, u.hinpct(0.04f), 0).x;
+
+                    Vector2 SoloHitPos = {(GetScreenWidth()/2) - (soloHitLength/2), u.hpct(0.2f) + u.hinpct(0.1f)};
+
+                    DrawTextEx(assets.josefinSansItalic, soloHit, SoloHitPos, u.hinpct(0.04f), 0, WHITE);
+                }
                 
 
 
