@@ -1118,7 +1118,7 @@ int main(int argc, char* argv[])
                     }
 
                 }
-                else if (displayedTab == 1) {
+                else if (displayedTab == 1) { // audio tab
                     DrawRectangle(u.wpct(0.005f), OvershellBottom + u.hinpct(0.05f), OptionWidth * 2, EntryHeight, Color{ 0,0,0,128 });
                     DrawTextEx(assets.rubikBoldItalic, "Volume", { HeaderTextLeft, OvershellBottom + u.hinpct(0.055f) }, u.hinpct(0.04f), 0, WHITE);
                    
@@ -1140,6 +1140,8 @@ int main(int argc, char* argv[])
 
                         player.selInstVolume = settingsMain.MainVolume * settingsMain.PlayerVolume;
                         player.otherInstVolume = settingsMain.MainVolume * settingsMain.BandVolume;
+                        player.sfxVolume = settingsMain.MainVolume * settingsMain.SFXVolume;
+                        player.missVolume = settingsMain.MainVolume * 0.15f;
                         
 
 
@@ -1880,9 +1882,9 @@ int main(int argc, char* argv[])
                     streamsLoaded = true;
                     for (auto& stream : audioManager.loadedStreams) {
                         if (player.instrument == stream.instrument)
-                            audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : player.selInstVolume);
+                            audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : settingsMain.MainVolume * settingsMain.PlayerVolume);
                         else
-                            audioManager.SetAudioStreamVolume(stream.handle, player.otherInstVolume);
+                            audioManager.SetAudioStreamVolume(stream.handle, settingsMain.MainVolume * settingsMain.BandVolume);
 
                     }
                     audioManager.BeginPlayback(audioManager.loadedStreams[0].handle);

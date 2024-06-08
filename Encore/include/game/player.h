@@ -33,7 +33,7 @@ public:
     float selInstVolume = 0.5;
     float otherInstVolume = 0.375;
     float missVolume = 0.15;
-
+    float sfxVolume = 0.8f;
 
     double VideoOffset = (0);
     float InputOffset = 0;
@@ -190,7 +190,7 @@ public:
 	void MissNote(AudioManager audioManager) {
 		notesMissed += 1;
         if (combo != 0)
-            audioManager.playSample("miss", 0.8f);
+            audioManager.playSample("miss", sfxVolume);
 		if (combo > maxCombo)
 			maxCombo = combo;
 		combo = 0;
@@ -199,7 +199,7 @@ public:
 	}
     void OverHit(AudioManager audioManager) {
         if (combo != 0)
-            audioManager.playSample("miss", 0.8f);
+            audioManager.playSample("miss", sfxVolume);
 		if (combo > maxCombo)
 			maxCombo = combo;
         combo = 0;

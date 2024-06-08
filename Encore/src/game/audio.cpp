@@ -1,6 +1,5 @@
 #include "game/audio.h"
 #include "bass/bass.h"
-#include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
 
 #ifdef WIN32
