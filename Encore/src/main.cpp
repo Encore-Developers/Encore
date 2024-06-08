@@ -2454,7 +2454,7 @@ int main(int argc, char* argv[])
 
                     DrawTextEx(assets.josefinSansItalic, soloHit, SoloHitPos, u.hinpct(0.04f), 0, accColor);
 
-                    if (songPlayed >= curChart.Solos[curSolo].end && songPlayed >= curChart.Solos[curSolo].end + 2.5) {
+                    if (songPlayed >= curChart.Solos[curSolo].end && songPlayed <= curChart.Solos[curSolo].end + 2.5) {
 
                         const char* PraiseText = "";
                         if (solopctnum == 100) {
