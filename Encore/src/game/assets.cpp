@@ -96,11 +96,13 @@ void Assets::LoadAssets() {
     highwayTextureOD = Assets::LoadTextureFilter(directory / "Assets/highway/overdrive.png", loadedAssets);
     highwaySidesTexture = Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
 
-    noteModel = Assets::LoadModel_((directory / "Assets/notes/note.obj"), loadedAssets);
+    noteTopModel = Assets::LoadModel_((directory / "Assets/notes/note_top.obj"), loadedAssets);
+    noteBottomModel = Assets::LoadModel_((directory / "Assets/notes/note_bottom.obj"), loadedAssets);
     noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
     emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
 
-    noteModelOD = Assets::LoadModel_((directory / "Assets/notes/note.obj"), loadedAssets);
+    noteTopModelOD = Assets::LoadModel_((directory / "Assets/notes/note_top_od.obj"), loadedAssets);
+    noteBottomModelOD = Assets::LoadModel_((directory / "Assets/notes/note_bottom.obj"), loadedAssets);
     noteTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
     emitTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
 
@@ -192,19 +194,11 @@ void Assets::LoadAssets() {
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
 
-    // noteModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTexture;
-    noteModel.meshMaterial[0] = 0;
-    noteModel.materials[noteModel.meshMaterial[0]].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
-    // noteModel.materials[1].maps[MATERIAL_MAP_ALBEDO].texture = emitTexture;
-    noteModel.meshMaterial[1] = 1;
-    noteModel.materials[noteModel.meshMaterial[1]].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-
-
-    noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = noteTextureOD;
-    noteModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].texture = emitTextureOD;
-    noteModelOD.materials[0].maps[MATERIAL_MAP_EMISSION].color = WHITE;
+    noteTopModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
 
     liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
