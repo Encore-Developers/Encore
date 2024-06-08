@@ -68,11 +68,13 @@ public:
     Texture2D highwayTextureOD;
     Texture2D highwaySidesTexture;
 
-    Model noteModel;
+    Model noteBottomModel;
+    Model noteTopModel;
     Texture2D noteTexture;
     Texture2D emitTexture;
 
-    Model noteModelOD;
+    Model noteBottomModelOD;
+    Model noteTopModelOD;
     Texture2D noteTextureOD;
     Texture2D emitTextureOD;
 

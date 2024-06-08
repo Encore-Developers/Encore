@@ -1889,8 +1889,9 @@ int main(int argc, char* argv[])
                 else {
                     float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 
+
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
-                    if (songEnd <= songPlayed) {
+                    if (songEnd < songPlayed) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);
                         // notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
@@ -1975,6 +1976,11 @@ int main(int argc, char* argv[])
                     BeginBlendMode(BLEND_ALPHA);
 
                     for (int i = 0; i < 5;  i++) {
+                        Color NoteColor = menu.hehe && player.diff == 3 ? i == 0 || i == 4 ? SKYBLUE : i == 1 || i == 3 ? PINK : WHITE : player.accentColor;
+
+                        assets.smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+                        assets.smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+
                         if (heldFrets[i] || heldFretsAlt[i]) {
                             DrawModel(assets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, player.smasherPos }, 1.0f, WHITE);
                         }
@@ -2097,8 +2103,8 @@ int main(int argc, char* argv[])
                             }
                             assets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 
-                            assets.noteModel.materials[assets.noteModel.meshMaterial[0]].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-                            assets.noteModel.materials[assets.noteModel.meshMaterial[1]].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+                            assets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+                            assets.noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
                             if (!curChart.odPhrases.empty()) {
 
                                 if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
@@ -2244,7 +2250,11 @@ int main(int argc, char* argv[])
                                     ((curNote.len) == 0 && !curNote.hit)) {
                                     if (curNote.renderAsOD) {
                                         if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-                                            DrawModel(assets.noteModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                            DrawModel(assets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                                               (highwayLength *
+                                                                                                (float) relTime)}, 1.1f,
+                                                      WHITE);
+                                            DrawModel(assets.noteBottomModelOD, Vector3{notePosX, 0, player.smasherPos +
                                                                                                (highwayLength *
                                                                                                 (float) relTime)}, 1.1f,
                                                       WHITE);
@@ -2252,9 +2262,13 @@ int main(int argc, char* argv[])
 
                                     } else {
                                         if ((!curNote.held && !curNote.miss) || !curNote.hit) {
-                                            DrawModel(assets.noteModel, Vector3{notePosX, 0, player.smasherPos +
+                                            DrawModel(assets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
                                                                                              (highwayLength *
                                                                                               (float) relTime)}, 1.1f,
+                                                      WHITE);
+                                            DrawModel(assets.noteBottomModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                                                (highwayLength *
+                                                                                                 (float) relTime)}, 1.1f,
                                                       WHITE);
                                         }
 
@@ -2264,9 +2278,22 @@ int main(int argc, char* argv[])
                                 assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                             }
                             if (curNote.miss) {
-                                DrawModel(curNote.lift ? assets.liftModel : assets.noteModel,
-                                          Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
-                                          1.0f, RED);
+
+
+                                if (curNote.lift) {
+                                    DrawModel(assets.liftModel,
+                                              Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
+                                              1.0f, RED);
+                                } else {
+                                    DrawModel(assets.noteBottomModel,
+                                              Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
+                                              1.0f, RED);
+                                    DrawModel(assets.noteTopModel,
+                                              Vector3{notePosX, 0, player.smasherPos + (highwayLength * (float) relTime)},
+                                              1.0f, RED);
+                                }
+
+
                                 if (audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle) <
                                     curNote.time + 0.4 && settingsMain.missHighwayColor) {
                                     assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
