@@ -23,7 +23,6 @@
 #include "game/assets.h"
 #include "raymath.h"
 #include "game/menus/uiUnits.h"
-#include "game/audio.h"
 #include "game/menus/settingsOptionRenderer.h"
 #include "game/timingvalues.h"
 
