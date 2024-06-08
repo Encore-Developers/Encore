@@ -20,6 +20,7 @@ public:
 	bool valid = false;
 	bool miss = false;
 	bool accounted = false;
+    bool countedForSolo = false;
 	bool countedForODPhrase = false;
     bool perfect = false;
 	bool renderAsOD = false;
@@ -38,11 +39,19 @@ public:
 	}
 };
 
+struct solo {
+    double start;
+    double end;
+    int noteCount = 0;
+    int notesHit = 0;
+    bool perfect = false;
+};
+
 struct odPhrase 
 {
 	double start;
 	double end;
-	int noteCount=0;
+	int noteCount = 0;
 	int notesHit = 0;
 	bool missed = false;
 	bool added = false;
@@ -52,8 +61,10 @@ class Chart
 {
 private:
 	std::vector<std::vector<int>> diffNotes = { {60,63,66,69}, {72,75,78,81}, {84,87,90,93}, {96,100,102,106} };
+    int soloNote = 101;
 public:
     // plastic stuff :tm:
+    // note: clones dont do thresh. they do 12ths
     int hopoThreshold = 170;
 
 	std::vector<Note> notes;
@@ -67,15 +78,20 @@ public:
 		return -1;
 	}
 	std::vector<odPhrase> odPhrases;
+    std::vector<solo> Solos;
+    int resolution = 480;
 	void parseNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument) {
 		std::vector<bool> notesOn{ false,false,false,false,false};
 		bool odOn = false;
+        bool soloOn = false;
 		std::vector<double> noteOnTime{ 0.0, 0.0, 0.0, 0.0, 0.0};
 		std::vector<int> noteOnTick{ 0,0,0,0,0 };
 		std::vector<int> notePitches = diffNotes[diff];
 		int odNote = 116;
 		int curODPhrase = -1;
+        int curSolo = -1;
 		int curBPM = 0;
+        resolution = midiFile.getTicksPerQuarterNote();
 		for (int i = 0; i < events.getSize(); i++) {
 			if (events[i].isNoteOn()) {
 				double time = midiFile.getTimeInSeconds(trkidx, i);
@@ -124,7 +140,15 @@ public:
 						
 					}
 					
-				}
+				} else if ((int)events[i][1] == soloNote) {
+                    if (!soloOn) {
+                        soloOn = true;
+                        solo newSolo;
+                        newSolo.start = midiFile.getTimeInSeconds(trkidx, i);
+                        Solos.push_back(newSolo);
+                        curSolo++;
+                    }
+                }
 			}
 			else if (events[i].isNoteOff()) {
 				double time = midiFile.getTimeInSeconds(trkidx, i);
@@ -154,6 +178,12 @@ public:
 						odOn = false;
 					}
 				}
+                else if ((int)events[i][1] == soloNote) {
+                    if (soloOn == true) {
+                        Solos[curSolo].end = time;
+                        soloOn = false;
+                    }
+                }
 			}
 		}
 		curODPhrase = 0;
@@ -165,6 +195,15 @@ public:
 					odPhrases[curODPhrase].noteCount++;
 			}
 		}
+        curSolo = 0;
+        if (Solos.size() > 0) {
+            for (Note &note : notes) {
+                if (note.time > Solos[curSolo].end && curSolo<Solos.size()-1)
+                    curSolo++;
+                if (note.time >= Solos[curSolo].start && note.time <= Solos[curSolo].end)
+                    Solos[curSolo].noteCount++;
+            }
+        }
 		int mult = 1;
 		int multCtr = 0;
 		int noteIdx = 0;
@@ -203,5 +242,8 @@ public:
 			phrase.notesHit = 0;
 			phrase.added = false;
 		}
+        for (solo& Solo : Solos) {
+            Solo.notesHit = 0;
+        }
 	}
 };
