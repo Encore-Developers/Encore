@@ -1975,9 +1975,9 @@ int main(int argc, char* argv[])
                     DrawTriangle3D({-diffDistance-0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},Color{0,0,0,64});
                     DrawTriangle3D({diffDistance+0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
                     
-                    EndBlendMode();
+
                     DrawModel(assets.smasherBoard, Vector3{ 0, 0.003f, 0 }, 1.0f, WHITE);
-                    BeginBlendMode(BLEND_ALPHA);
+
 
                     for (int i = 0; i < 5;  i++) {
                         Color NoteColor = menu.hehe && player.diff == 3 ? i == 0 || i == 4 ? SKYBLUE : i == 1 || i == 3 ? PINK : WHITE : player.accentColor;
@@ -2584,6 +2584,8 @@ int main(int argc, char* argv[])
                     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
                     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
                     GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
+                    GuiSetFont(assets.rubik);
+                    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
                     
                     DrawTextEx(assets.rubikBoldItalic, "PAUSED", {u.wpct(0.02f), u.hpct(0.05f)}, u.hinpct(0.1f), 0, WHITE);
 
