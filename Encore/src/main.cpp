@@ -1180,7 +1180,7 @@ int main(int argc, char* argv[])
                         DrawTextRubik(changeString.c_str(), ((float)GetScreenWidth() - MeasureTextRubik(changeString.c_str(), 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 130, GetScreenHeight() - 60.0f, 120,40 }, "Unbind Key")) {
-                            pressedKey = -1;
+                            pressedKey = -2;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
                             sor.selLane = 0;
@@ -1218,7 +1218,7 @@ int main(int argc, char* argv[])
                         DrawTextRubik("Press a key for Pause", ((float)GetScreenWidth() - MeasureTextRubik("Press a key for Pause", 20)) / 2, (float)GetScreenHeight() / 2 - 30, 20, WHITE);
                         int pressedKey = GetKeyPressed();
                         if (GuiButton({ ((float)GetScreenWidth() / 2) - 130, GetScreenHeight() - 60.0f, 120,40 }, "Unbind Key")) {
-                            pressedKey = -1;
+                            pressedKey = -2;
                         }
                         if (GuiButton({ ((float)GetScreenWidth() / 2) + 10, GetScreenHeight() - 60.0f, 120,40 }, "Cancel")) {
                             sor.changingAlt = false;
