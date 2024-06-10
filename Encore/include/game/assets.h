@@ -7,10 +7,19 @@
 
 class Assets {
 private:
+    Assets() {}
     std::vector<Image> images;
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     Font LoadFontFilter(const std::filesystem::path& fontPath, int fontSize, int& loadedAssets);
 public:
+    static Assets& getInstance() {
+        static Assets instance; // This is the single instance
+        return instance;
+    }
+
+    Assets(const Assets&) = delete;
+    void operator=(const Assets&) = delete;
+
     int loadedAssets;
     int totalAssets = 32;
     Model smasherReg;

@@ -40,8 +40,8 @@ private:
         ss << std::fixed << value;
         return ss.str();
     }
-    void renderPlayerResults(Player player, Song song, Assets assets);
-    void renderStars(Player player, float xPos, float yPos, Assets assets, float scale, bool left);
+    void renderPlayerResults(Player player, Song song);
+    void renderStars(Player player, float xPos, float yPos, float scale, bool left);
 public:
 
     void DrawTopOvershell(float TopOvershell);
@@ -61,15 +61,15 @@ public:
     bool stringChosen = false;
     Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
-    void showResults(Player &player, Assets assets);
-    void loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls, Assets assets);
+    void showResults(Player &player);
+    void loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls);
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);
-    void DrawAlbumArtBackground(Texture2D song, Assets assets);
+    void DrawAlbumArtBackground(Texture2D song);
     bool songChosen = false;
 
-    void DrawVersion(Assets assets);
+    void DrawVersion();
 };
 
 

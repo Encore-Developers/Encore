@@ -7,8 +7,11 @@
 
 // clone hero defaults
 
+
+
 class Player {
 private:
+    AudioManager &playerAudioManager = AudioManager::getInstance();
     Player() {}
 public:
     static Player& getInstance() {
@@ -187,19 +190,19 @@ public:
 		perfectHit += perfect ? 1 : 0;
 		mute = false;
 	}
-	void MissNote(AudioManager audioManager) {
+	void MissNote() {
 		notesMissed += 1;
         if (combo != 0)
-            audioManager.playSample("miss", sfxVolume);
+            playerAudioManager.playSample("miss", sfxVolume);
 		if (combo > maxCombo)
 			maxCombo = combo;
 		combo = 0;
 		FC = false;
         mute = true;
 	}
-    void OverHit(AudioManager audioManager) {
+    void OverHit() {
         if (combo != 0)
-            audioManager.playSample("miss", sfxVolume);
+            playerAudioManager.playSample("miss", sfxVolume);
 		if (combo > maxCombo)
 			maxCombo = combo;
         combo = 0;

@@ -17,10 +17,11 @@ std::string trFloatString(float& input) {
 }
 
 Units units = Units::getInstance();
+Assets &soreAss = Assets::getInstance();
 
 float width = 0.989f;
 
-float settingsOptionRenderer::sliderEntry(float value, float min, float max, int entryNum, std::string Label, float increment, Assets assets) {
+float settingsOptionRenderer::sliderEntry(float value, float min, float max, int entryNum, std::string Label, float increment) {
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
     float EntryHeight = units.hinpct(0.05f);
@@ -34,7 +35,7 @@ float settingsOptionRenderer::sliderEntry(float value, float min, float max, int
     float lengthTop = EntryTop + (EntryHeight * (entryNum-1));
     float lengthTextTop = EntryTextTop + (EntryHeight * (entryNum-1));
     float lengthFloat = value;
-    DrawTextEx(assets.rubikBold, Label.c_str(), {EntryTextLeft, lengthTextTop}, EntryFontSize, 0, WHITE );
+    DrawTextEx(soreAss.rubikBold, Label.c_str(), {EntryTextLeft, lengthTextTop}, EntryFontSize, 0, WHITE );
     // main slider
 
     if (GuiSliderBar({ OptionLeft+EntryHeight, lengthTop,OptionWidth-(EntryHeight * 2),EntryHeight }, "", "", &lengthFloat, min, max)) {
@@ -47,12 +48,12 @@ float settingsOptionRenderer::sliderEntry(float value, float min, float max, int
     if (GuiButton({ OptionRight - EntryHeight ,lengthTop,EntryHeight,EntryHeight }, ">")) {
         value+=increment;
     }
-    float ValueMiddle = MeasureTextEx(assets.rubikBold, trFloatString(value).c_str(), EntryFontSize, 0).x / 2;
-    DrawTextEx(assets.rubikBold,trFloatString(value).c_str(), {OptionRight - (OptionWidth /2) -ValueMiddle, lengthTextTop}, EntryFontSize, 0, WHITE);
+    float ValueMiddle = MeasureTextEx(soreAss.rubikBold, trFloatString(value).c_str(), EntryFontSize, 0).x / 2;
+    DrawTextEx(soreAss.rubikBold,trFloatString(value).c_str(), {OptionRight - (OptionWidth /2) -ValueMiddle, lengthTextTop}, EntryFontSize, 0, WHITE);
     return value;
 };
 
-bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, std::string Label, Assets assets){
+bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, std::string Label){
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
     float EntryHeight = units.hinpct(0.05f);
@@ -65,7 +66,7 @@ bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, std::string L
 
     float valueTop = EntryTop + (EntryHeight * (entryNum-1));
     float valueTextTop = EntryTextTop + (EntryHeight * (entryNum-1));
-    DrawTextEx(assets.rubikBold, Label.c_str(), {EntryTextLeft, valueTextTop}, EntryFontSize, 0, WHITE );
+    DrawTextEx(soreAss.rubikBold, Label.c_str(), {EntryTextLeft, valueTextTop}, EntryFontSize, 0, WHITE );
     // main slider
     if (GuiButton({ OptionLeft, valueTop,OptionWidth,EntryHeight }, TextFormat("%s", value ? "On" : "Off"))) {
         value= !value;
@@ -74,7 +75,7 @@ bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, std::string L
 };
 
 void settingsOptionRenderer::keybindAltEntry(int altValue, int entryNum, std::string Label,
-                                             Assets assets, Keybinds keybinds, int lane) {
+                                             Keybinds keybinds, int lane) {
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
     float EntryHeight = units.hinpct(0.05f);
@@ -97,7 +98,7 @@ void settingsOptionRenderer::keybindAltEntry(int altValue, int entryNum, std::st
 }
 
 void settingsOptionRenderer::keybindEntry(int value, int entryNum, std::string Label,
-                                            Assets assets, Keybinds keybinds, int lane) {
+                                          Keybinds keybinds, int lane) {
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
     float EntryHeight = units.hinpct(0.05f);
@@ -119,7 +120,7 @@ void settingsOptionRenderer::keybindEntry(int value, int entryNum, std::string L
     }
 }
 
-void settingsOptionRenderer::keybindEntryText(int entryNum, std::string Label, Assets assets) {
+void settingsOptionRenderer::keybindEntryText(int entryNum, std::string Label) {
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
     float EntryHeight = units.hinpct(0.05f);
@@ -131,5 +132,5 @@ void settingsOptionRenderer::keybindEntryText(int entryNum, std::string Label, A
     float OptionRight = OptionLeft + OptionWidth;
     float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
 
-    DrawTextEx(assets.rubikBold, Label.c_str(), {EntryTextLeft, valueTextTop}, EntryFontSize, 0, WHITE );
+    DrawTextEx(soreAss.rubikBold, Label.c_str(), {EntryTextLeft, valueTextTop}, EntryFontSize, 0, WHITE );
 }

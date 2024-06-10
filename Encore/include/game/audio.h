@@ -6,7 +6,16 @@
 #include <string>
 
 class AudioManager {
+    AudioManager() {};
 public:
+    static AudioManager& getInstance() {
+        static AudioManager instance; // This is the single instance
+        return instance;
+    }
+
+    AudioManager(const AudioManager&) = delete;
+    void operator=(const AudioManager&) = delete;
+
 	struct AudioStream {
 		unsigned int handle = 0;
 		int instrument = 0;
