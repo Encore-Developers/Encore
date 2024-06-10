@@ -706,9 +706,9 @@ int main(int argc, char* argv[])
     SetWindowIcon(assets.icon);
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
-    RenderTexture2D notes_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
-    RenderTexture2D hud_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
-    RenderTexture2D highway_tex = LoadRenderTexture(GetMonitorWidth(GetCurrentMonitor()), GetMonitorHeight(GetCurrentMonitor()));
+    RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     while (!WindowShouldClose())
 
     {
@@ -731,25 +731,7 @@ int main(int argc, char* argv[])
                 SetWindowSize(GetScreenWidth(), minHeight);
         }
 
-        if (IsWindowResized()) {
-            UnloadRenderTexture(notes_tex);
-            RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-            GenTextureMipmaps(&notes_tex.texture);
-            SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
-
-            UnloadRenderTexture(hud_tex);
-            RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-            GenTextureMipmaps(&hud_tex.texture);
-            SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-
-
-            UnloadRenderTexture(highway_tex);
-            RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-            GenTextureMipmaps(&highway_tex.texture);
-            SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-
-        }
 
         float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
         float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
@@ -1770,6 +1752,25 @@ int main(int argc, char* argv[])
                 // IMAGE BACKGROUNDS??????
                 ClearBackground(BLACK);
                 player.songToBeJudged = songList.songs[curPlayingSong];
+
+
+                if (IsWindowResized()) {
+                    UnloadRenderTexture(notes_tex);
+                    RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+                    GenTextureMipmaps(&notes_tex.texture);
+                    SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+
+                    UnloadRenderTexture(hud_tex);
+                    RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+                    GenTextureMipmaps(&hud_tex.texture);
+                    SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+
+                    UnloadRenderTexture(highway_tex);
+                    RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+                    GenTextureMipmaps(&highway_tex.texture);
+                    SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+                }
+
 
                 float scorePos = u.RightSide;
                 float scoreY = u.hpct(0.15f);
