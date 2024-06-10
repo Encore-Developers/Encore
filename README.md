@@ -24,6 +24,7 @@ Extract the .zip file that you downloaded, either Nightly or Stable, and extract
 ## Songs
 
 Extract songs into the `/Songs` folder in your Encore folder. They should consist of several files:
+Please check [CHARTS.md](https://github.com/Encore-Developers/Encore/blob/main/CHARTS.md) for more song information.
 - info.json - the information file required for Encore to read audio, difficulties, the name, and file names.
 - lead.ogg (or similar)
 - bass.ogg (or similar)
