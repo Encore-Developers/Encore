@@ -33,9 +33,6 @@ Please check [CHARTS.md](https://github.com/Encore-Developers/Encore/blob/main/C
 - backing.ogg (or similar)
 - notes.mid (typically named after the song's name)
 
-### IMPORTANT!
-Encore ***will not*** read songs without an info.json. Encore will also only read Ogg Vorbis (.ogg) audio files. 
-
 ### Contributing
 
 If you have any bugs or suggestions for Encore, please consider making an issue.
