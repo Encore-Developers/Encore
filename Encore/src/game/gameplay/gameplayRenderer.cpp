@@ -16,7 +16,7 @@ Menu gprMenu = Menu::getInstance();
 Units gprU = Units::getInstance();
 
 
-void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D notes_tex, float length) {
+void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
     float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
     float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
 
@@ -272,7 +272,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
     DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 }
 
-void gameplayRenderer::RenderHud(Player& player, RenderTexture2D hud_tex) {
+void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex) {
     BeginTextureMode(hud_tex);
     ClearBackground({0,0,0,0});
     BeginMode3D(camera);
@@ -298,7 +298,24 @@ void gameplayRenderer::RenderHud(Player& player, RenderTexture2D hud_tex) {
     DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 }
 
-void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, RenderTexture2D highway_tex, RenderTexture2D hud_tex, RenderTexture2D notes_tex) {
+void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, RenderTexture2D& highway_tex, RenderTexture2D& hud_tex, RenderTexture2D& notes_tex) {
+
+    if (notes_tex.texture.width != GetScreenWidth() || notes_tex.texture.height != GetScreenHeight()) {
+        UnloadRenderTexture(notes_tex);
+        RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+        GenTextureMipmaps(&notes_tex.texture);
+        SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+
+        UnloadRenderTexture(hud_tex);
+        RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+        GenTextureMipmaps(&hud_tex.texture);
+        SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+
+        UnloadRenderTexture(highway_tex);
+        RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+        GenTextureMipmaps(&highway_tex.texture);
+        SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+    }
 
     Chart& curChart = song.parts[player.instrument]->charts[player.diff];
     float highwayLength = player.defaultHighwayLength * gprSettings.highwayLengthMult;
@@ -414,7 +431,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     RenderHud(player, hud_tex);
 }
 
-void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D highway_tex) {
+void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D &highway_tex) {
 
     BeginTextureMode(highway_tex);
     ClearBackground({0,0,0,0});
@@ -488,7 +505,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 
 }
 
-void gameplayRenderer::RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D highway_tex) {
+void gameplayRenderer::RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D &highway_tex) {
     BeginTextureMode(highway_tex);
     ClearBackground({0,0,0,0});
     BeginMode3D(camera);

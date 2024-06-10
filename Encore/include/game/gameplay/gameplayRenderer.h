@@ -8,10 +8,10 @@
 #include "game/player.h"
 
 class gameplayRenderer {
-    void RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D notes_tex, float length);
-    void RenderHud(Player& player, RenderTexture2D);
-    void RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D highway_tex);
-    void RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D highway_tex);
+    void RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
+    void RenderHud(Player& player, RenderTexture2D&);
+    void RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
+    void RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
     void DrawBeatlines(Player& player, Song song, float length, double musicTime);
     void DrawOverdrive(Player& player, Chart& curChart, float length, double musicTime);
     void DrawSolo(Player& player,  Chart& curChart, float length, double musicTime);
@@ -33,6 +33,6 @@ public:
 
     Camera3D camera = { 0 };
 
-    void RenderGameplay(Player& player, double time, Song song, RenderTexture2D, RenderTexture2D, RenderTexture2D);
+    void RenderGameplay(Player& player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
 };
 
