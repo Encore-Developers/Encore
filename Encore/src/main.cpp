@@ -1931,7 +1931,7 @@ int main(int argc, char* argv[])
                     assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
                     assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
                     assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets.odMultFillActive;
-                    player.overdriveFill = player.overdriveActiveFill - (float)((musicTime - player.overdriveActiveTime) / ((songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resolution * 2) / songList.songs[curPlayingSong].bpms[curBPM].bpm));
+                    player.overdriveFill = player.overdriveActiveFill - (float)((musicTime - player.overdriveActiveTime) / ((1920) / songList.songs[curPlayingSong].bpms[curBPM].bpm));
                     if (player.overdriveFill <= 0) {
                         player.overdrive = false;
                         player.overdriveActiveFill = 0;
