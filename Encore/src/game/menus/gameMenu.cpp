@@ -374,3 +374,13 @@ void Menu::SwitchScreen(Screens screen){
             break;
     }
 }
+
+void Menu::DrawFPS(int posX, int posY) {
+        Color color = LIME;                         // Good FPS
+        int fps = GetFPS();
+
+        if ((fps < 30) && (fps >= 15)) color = ORANGE;  // Warning FPS
+        else if (fps < 15) color = RED;             // Low FPS
+
+        DrawTextEx(menuAss.josefinSansItalic, TextFormat("%2i FPS", fps), {(float)posX, (float)posY}, u.hinpct(0.025f), 0, color);
+}
