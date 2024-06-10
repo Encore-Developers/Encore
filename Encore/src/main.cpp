@@ -30,7 +30,7 @@
 #include <thread>
 #include <atomic>
 
-Menu menu = Menu::getInstance();
+Menu &menu = Menu::getInstance();
 Player player = Player::getInstance();
 Settings& settingsMain = Settings::getInstance();
 AudioManager &audioManager = AudioManager::getInstance();
@@ -576,7 +576,7 @@ int main(int argc, char* argv[])
     commitHash.erase(7);
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-	SetConfigFlags(FLAG_VSYNC_HINT);
+	// SetConfigFlags(FLAG_VSYNC_HINT);
 	
 	//SetTraceLogLevel(LOG_NONE);
 
@@ -624,7 +624,7 @@ int main(int argc, char* argv[])
     settingsMain.loadSettings(directory / "settings.json");
     player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
     player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
-    int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    int targetFPS = 5000; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
     if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -1753,7 +1753,6 @@ int main(int argc, char* argv[])
                 ClearBackground(BLACK);
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
-
                 if (IsWindowResized()) {
                     UnloadRenderTexture(notes_tex);
                     RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
@@ -1770,7 +1769,6 @@ int main(int argc, char* argv[])
                     GenTextureMipmaps(&highway_tex.texture);
                     SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
                 }
-
 
                 float scorePos = u.RightSide;
                 float scoreY = u.hpct(0.15f);
@@ -1816,21 +1814,15 @@ int main(int argc, char* argv[])
                                        {0, 0}, 0, WHITE);
                     }
                     EndScissorMode();
-
                 }
-                DrawFPS(u.LeftSide,u.hpct(0.0025f) + u.hinpct(0.025f));
-                menu.DrawVersion();
 
-                // DrawTextRubik(TextFormat("%s", starsDisplay), 5, GetScreenHeight() - 470, 48, goldStars ? GOLD : WHITE);
+
+
                 int totalScore = player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3] + player.sustainScoreBuffer[4];
 
                 DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(totalScore).c_str(), u.hinpct(0.05f)), scoreY, u.hinpct(0.05f), Color{107, 161, 222,255});
                 DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(scoreCommaFormatter(player.combo).c_str(), u.hinpct(0.05f)), comboY, u.hinpct(0.05f), player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
                 
-                // DrawTextEx(assets.rubikBold, TextFormat("Video Offset: %2.3f", player.VideoOffset), {u.LeftSide, u.hinpct(0.5f)}, u.hinpct(0.04), 0, WHITE);
-                // DrawTextEx(assets.rubikBold, TextFormat("Input Offset: %2.3f", player.InputOffset), {u.LeftSide, u.hinpct(0.55f)}, u.hinpct(0.04), 0, WHITE);
-
-
 
                 if (player.extraGameplayStats) {
                     DrawTextRubik(TextFormat("Perfect Hit: %01i", player.perfectHit), 5, GetScreenHeight() - 280, 24,
@@ -1888,31 +1880,23 @@ int main(int argc, char* argv[])
 
                 }
 
-                // DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, BLACK);
-                // DrawTriangle3D(Vector3{ 2.5f,0.0f,0.0f }, Vector3{ -2.5f,0.0f,20.0f }, Vector3{ 2.5f,0.0f,20.0f }, BLACK);
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 double songFloat = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+
                 gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex);
 
-
                 player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
-                // DrawLine3D(Vector3{ 2.5f, 0.05f, 2.0f }, Vector3{ -2.5f, 0.05f, 2.0f}, WHITE);
-                //(float)notes_tex.texture.width, (float)-notes_tex.texture.height
-                    //DrawTextureRec(notes_tex.texture, { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },{0,0}, WHITE);
 
                 if (curTime < startedPlayingSong + 7.5) {
                     DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
                     DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
-                    //DrawTextRHDI(songList.songs[curPlayingSong].artist.c_str(), 5, 130, WHITE);
                 }
-
 
                 int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                 int playedMinutes = songPlayed/60;
                 int playedSeconds = songPlayed % 60;
                 int songMinutes = songLength/60;
                 int songSeconds = songLength % 60;
-
 
                 GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
                 GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL, ColorToInt(player.FC ? GOLD : player.accentColor));
@@ -1927,12 +1911,6 @@ int main(int argc, char* argv[])
 
                 const char* textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes,playedSeconds,songMinutes,songSeconds);
                 float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
-
-
-
-
-                
-
 
                 if (player.paused) {
 
@@ -2060,6 +2038,10 @@ int main(int argc, char* argv[])
                     DrawTextEx(assets.rubikItalic, menu.ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
                     DrawTextEx(assets.rubikBold, instDiffText, SongInstDiffBox, SongFontSize, 0, WHITE);
                 }
+
+
+                menu.DrawFPS(u.LeftSide,u.hpct(0.0025f) + u.hinpct(0.025f));
+                menu.DrawVersion();
 
                 DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, GOLD);
                 DrawTextEx(assets.rubik, textTime, { GetScreenWidth() - textLength,GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04f), 0, WHITE);

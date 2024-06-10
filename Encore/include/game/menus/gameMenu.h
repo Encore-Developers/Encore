@@ -52,7 +52,7 @@ public:
         static Menu instance; // This is the single instance
         return instance;
     }
-
+    void DrawFPS(int posX, int posY);
     bool hehe = false;
     Song ChosenSong;
     int ChosenSongInt;
