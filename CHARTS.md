@@ -104,6 +104,10 @@ Refer to the chart below for the different difficulties and pitch information.
 |:-|:-:|
 |All Diffs|116|
 
+### Solos
+
+Solos are marked per instrument at pitch 101, between Expert's lift and tap pitches.
+
 ## `EVENTS` and `BEAT`
 Every `notes.mid` needs an `EVENTS` track and a `BEAT` track.
 
