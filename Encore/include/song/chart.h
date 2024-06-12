@@ -26,9 +26,10 @@ public:
 	bool renderAsOD = false;
     double hitTime = 0;
 	//For plastic support later
+	bool forceStrum = false;
+	bool forceHopo = false;
+    bool hopo = false;
 
-	bool forceStrum;
-	bool forceHopo;
 	bool isGood(double eventTime, double inputOffset) const {
 		return (time - goodBackend + inputOffset < eventTime &&
 			time + goodFrontend + inputOffset > eventTime);
