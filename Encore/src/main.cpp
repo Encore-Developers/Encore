@@ -146,6 +146,8 @@ std::string scoreCommaFormatter(int value) {
 
 double StrumNoFretTime = 0.0;
 
+bool FAS = false;
+
 static void handleInputs(int lane, int action){
     if (player.paused) return;
 	if (lane == -2) return;
@@ -339,7 +341,33 @@ static void handleInputs(int lane, int action){
                     StrumNoFretTime = eventTime;
                     if (curNote.isGood(eventTime, player.InputOffset) &&
                         !curNote.hit) {
-                        if ((curNote.chord ? pressedMask == curNote.mask : pressedMask <= ((curNote.mask * 2 )-1))) {
+                        if ((curNote.chord ? pressedMask == curNote.mask : pressedMask >= curNote.mask && pressedMask <= ((curNote.mask * 2 )-1))) {
+                            curNote.hit = true;
+                            curNote.HitOffset = curNote.time - eventTime;
+                            curNote.hitTime = eventTime;
+                            if ((curNote.len) > 0) {
+                                curNote.held = true;
+                            }
+                            if (curNote.isPerfect(eventTime, player.InputOffset)) {
+                                curNote.perfect = true;
+                            }
+                            if (curNote.perfect) player.lastNotePerfect = true;
+                            else player.lastNotePerfect = false;
+                            player.HitNote(curNote.perfect, player.instrument);
+                            curNote.accounted = true;
+                            break;
+                        } else {
+                            FAS = true;
+                        }
+                    }
+                    if (curNote.miss) player.lastNotePerfect = false;
+                } else if (lane != -3) {
+                    if ((action == GLFW_RELEASE && (pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)||
+                        (action == GLFW_PRESS && (pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)
+                        && FAS) {
+
+                        if ((curNote.isGood(eventTime, player.InputOffset) &&
+                            !curNote.hit) && eventTime < StrumNoFretTime + 0.015) {
                             curNote.hit = true;
                             curNote.HitOffset = curNote.time - eventTime;
                             curNote.hitTime = eventTime;
@@ -355,46 +383,36 @@ static void handleInputs(int lane, int action){
                             curNote.accounted = true;
                             break;
                         }
+                        if (curNote.miss) player.lastNotePerfect = false;
+                    } else if (((action == GLFW_RELEASE && (pressedMask <= ((curNote.mask * 2) - 1))) &&
+                                pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)||(
+                                action == GLFW_PRESS && (pressedMask <= ((curNote.mask * 2) - 1)) &&
+                               pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)) {
+                        if ((curNote.isGood(eventTime, player.InputOffset) &&
+                             !curNote.hit)) {
+                            curNote.hit = true;
+                            curNote.HitOffset = curNote.time - eventTime;
+                            curNote.hitTime = eventTime;
+                            if ((curNote.len) > 0) {
+                                curNote.held = true;
+                            }
+                            if (curNote.isPerfect(eventTime, player.InputOffset)) {
+                                curNote.perfect = true;
+                            }
+                            if (curNote.perfect) player.lastNotePerfect = true;
+                            else player.lastNotePerfect = false;
+                            player.HitNote(curNote.perfect, player.instrument);
+                            curNote.accounted = true;
+                            break;
+                        }
+                        if (curNote.miss) player.lastNotePerfect = false;
                     }
-                    if (curNote.miss) player.lastNotePerfect = false;
-                } else if ((action == GLFW_PRESS) && (curNote.chord ? pressedMask == curNote.mask : pressedMask <= ((curNote.mask * 2 )-1))) {
-                    if ((curNote.isGood(eventTime, player.InputOffset) &&
-                         !curNote.hit) && eventTime < StrumNoFretTime + 0.015) {
-                        curNote.hit = true;
-                        curNote.HitOffset = curNote.time - eventTime;
-                        curNote.hitTime = eventTime;
-                        if ((curNote.len) > 0) {
-                            curNote.held = true;
-                        }
-                        if (curNote.isPerfect(eventTime, player.InputOffset)) {
-                            curNote.perfect = true;
-                        }
-                        if (curNote.perfect) player.lastNotePerfect = true;
-                        else player.lastNotePerfect = false;
-                        player.HitNote(curNote.perfect, player.instrument);
-                        curNote.accounted = true;
-                        break;
-                    }
-                    if (curNote.miss) player.lastNotePerfect = false;
-                }else if ((action == GLFW_RELEASE || action == GLFW_PRESS) && pressedMask <= ((curNote.mask * 2 )-1) && curNote.phopo && player.combo > 0) {
-                    if ((curNote.isGood(eventTime, player.InputOffset) &&
-                        !curNote.hit)) {
-                        curNote.hit = true;
-                        curNote.HitOffset = curNote.time - eventTime;
-                        curNote.hitTime = eventTime;
-                        if ((curNote.len) > 0) {
-                            curNote.held = true;
-                        }
-                        if (curNote.isPerfect(eventTime, player.InputOffset)) {
-                            curNote.perfect = true;
-                        }
-                        if (curNote.perfect) player.lastNotePerfect = true;
-                        else player.lastNotePerfect = false;
-                        player.HitNote(curNote.perfect, player.instrument);
-                        curNote.accounted = true;
-                        break;
-                    }
-                    if (curNote.miss) player.lastNotePerfect = false;
+                }
+                if ((curNote.chord ? pressedMask != curNote.mask : pressedMask >= curNote.mask * 2 || pressedMask < curNote.mask) && curNote.held &&
+                    (curNote.len) > 0) {
+                    curNote.held = false;
+                    player.mute = true;
+                    // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream, missVolume);
                 }
                 if (action == GLFW_PRESS && lane == -3 &&
                     eventTime > songList.songs[curPlayingSong].music_start &&
@@ -403,6 +421,7 @@ static void handleInputs(int lane, int action){
                     ((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
                     eventTime > StrumNoFretTime + 0.015) {
                     player.OverHit();
+                    FAS = false;
                     if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
                         eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
                         !curChart.odPhrases[gpr.curODPhrase].missed)

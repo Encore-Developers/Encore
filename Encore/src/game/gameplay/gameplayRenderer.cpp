@@ -419,12 +419,23 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             }
             if (relEnd > 1.5) relEnd = 1.5;
             if (!curNote.hit) {
+                if (curNote.renderAsOD) {
+                    gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+                    gprAssets.noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+                }
+
                 Model TopModel = gprAssets.noteTopModel;
                 Model BottomModel = gprAssets.noteBottomModel;
 
                 if (curNote.phopo) {
                     TopModel = gprAssets.noteTopModelHP;
                     BottomModel = gprAssets.noteBottomModelHP;
+                    if (curNote.renderAsOD) {
+                        gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+                        gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+                        TopModel = gprAssets.noteTopModelHP;
+                        BottomModel = gprAssets.noteBottomModelHP;
+                    }
                 }
 
 
