@@ -34,7 +34,7 @@ Assets &menuAss = Assets::getInstance();
 Settings& settings = Settings::getInstance();
 SongList &songListMenu = SongList::getInstance();
 Units u = Units::getInstance();
-std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
+std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 void Menu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),WHITE);
