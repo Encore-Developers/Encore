@@ -168,7 +168,7 @@ static void handleInputs(int lane, int action){
         overdriveHitTime = eventTime;
 	}
 
-	if (lane == -1) {
+	if (lane == -1 && !player.plastic) {
 		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
 		Note* curNote = &curChart.notes[0];
 		for (auto & note : curChart.notes) {
@@ -326,7 +326,7 @@ static void handleInputs(int lane, int action){
                 }
             }
         } else {
-            for (Note& curNote : curChart.notes) {
+            for (Note &curNote : curChart.notes) {
 
                 int pressedMask = 0b000000;
 
@@ -338,10 +338,9 @@ static void handleInputs(int lane, int action){
                 }
 
                 if (action == GLFW_PRESS && lane == -3) {
-                    StrumNoFretTime = eventTime;
-                    if (curNote.isGood(eventTime, player.InputOffset) &&
-                        !curNote.hit) {
-                        if ((curNote.chord ? pressedMask == curNote.mask : pressedMask >= curNote.mask && pressedMask <= ((curNote.mask * 2 )-1))) {
+
+                    if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit) {
+                        if (curNote.chord ? pressedMask == curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2 )) {
                             curNote.hit = true;
                             curNote.HitOffset = curNote.time - eventTime;
                             curNote.hitTime = eventTime;
@@ -351,23 +350,23 @@ static void handleInputs(int lane, int action){
                             if (curNote.isPerfect(eventTime, player.InputOffset)) {
                                 curNote.perfect = true;
                             }
-                            if (curNote.perfect) player.lastNotePerfect = true;
-                            else player.lastNotePerfect = false;
                             player.HitNote(curNote.perfect, player.instrument);
                             curNote.accounted = true;
                             break;
                         } else {
                             FAS = true;
+                            StrumNoFretTime = eventTime;
+                            break;
                         }
                     }
-                    if (curNote.miss) player.lastNotePerfect = false;
-                } else if (lane != -3) {
-                    if ((action == GLFW_RELEASE && (pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)||
-                        (action == GLFW_PRESS && (pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)
+                }
+                else if (lane != -3) {
+                    if (((pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)||
+                        ((pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)
                         && FAS) {
 
                         if ((curNote.isGood(eventTime, player.InputOffset) &&
-                            !curNote.hit) && eventTime < StrumNoFretTime + 0.015) {
+                            !curNote.hit) && eventTime - 0.015 < StrumNoFretTime) {
                             curNote.hit = true;
                             curNote.HitOffset = curNote.time - eventTime;
                             curNote.hitTime = eventTime;
@@ -377,17 +376,18 @@ static void handleInputs(int lane, int action){
                             if (curNote.isPerfect(eventTime, player.InputOffset)) {
                                 curNote.perfect = true;
                             }
-                            if (curNote.perfect) player.lastNotePerfect = true;
-                            else player.lastNotePerfect = false;
                             player.HitNote(curNote.perfect, player.instrument);
                             curNote.accounted = true;
+                            FAS = false;
                             break;
                         }
-                        if (curNote.miss) player.lastNotePerfect = false;
-                    } else if (((action == GLFW_RELEASE && (pressedMask <= ((curNote.mask * 2) - 1))) &&
+                    }
+                    else if (((action == GLFW_PRESS && (pressedMask < (curNote.mask * 2))) &&
                                 pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)||(
-                                action == GLFW_PRESS && (pressedMask <= ((curNote.mask * 2) - 1)) &&
-                               pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)) {
+                                action == GLFW_RELEASE && (pressedMask < (curNote.mask * 2)) &&
+                                pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)||(
+                                action == GLFW_REPEAT && (pressedMask < (curNote.mask * 2)) &&
+                                pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)) {
                         if ((curNote.isGood(eventTime, player.InputOffset) &&
                              !curNote.hit)) {
                             curNote.hit = true;
@@ -405,7 +405,6 @@ static void handleInputs(int lane, int action){
                             curNote.accounted = true;
                             break;
                         }
-                        if (curNote.miss) player.lastNotePerfect = false;
                     }
                 }
                 if ((curNote.chord ? pressedMask != curNote.mask : pressedMask >= curNote.mask * 2 || pressedMask < curNote.mask) && curNote.held &&
@@ -414,18 +413,21 @@ static void handleInputs(int lane, int action){
                     player.mute = true;
                     // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream, missVolume);
                 }
-                if (action == GLFW_PRESS && lane == -3 &&
+                if (!curNote.accounted &&
+                    action == GLFW_PRESS && lane == -3 &&
                     eventTime > songList.songs[curPlayingSong].music_start &&
                     !curNote.hit &&
-                    !curNote.accounted &&
-                    ((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
-                    eventTime > StrumNoFretTime + 0.015) {
+                    (curNote.time - goodBackend) + player.InputOffset > eventTime &&
+                    // (curNote.time + goodFrontend) + player.InputOffset < eventTime &&
+                    eventTime - 0.02 < StrumNoFretTime
+                        && !gpr.overstrum && FAS == false) {
                     player.OverHit();
                     FAS = false;
                     if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
                         eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
                         !curChart.odPhrases[gpr.curODPhrase].missed)
                         curChart.odPhrases[gpr.curODPhrase].missed = true;
+                    gpr.overstrum = true;
                 }
                 /*
                 if ((!gpr.heldFrets[curNote.lane] && !gpr.heldFretsAlt[curNote.lane]) && curNote.held &&
@@ -485,7 +487,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
         else if (key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) {
 			handleInputs(-1, action);
 		}
-		else {
+        else {
             if (player.instrument != 4) {
                 if (player.diff == 3) {
                     for (int i = 0; i < 5; i++) {
@@ -528,8 +530,9 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                         }
                     }
                 }
-                if (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) {
+                if (action == GLFW_PRESS && (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) ) {
                     lane = -3;
+                    gpr.overstrum = false;
                 }
                 if (lane != -1 && lane != -2) {
                     handleInputs(lane, action);
@@ -647,8 +650,10 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] || state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN])
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1 || state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1) {
+        gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
+    }
 }
 
 static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
