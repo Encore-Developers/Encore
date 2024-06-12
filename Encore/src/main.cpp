@@ -7,7 +7,6 @@
 #include <vector>
 #include <iostream>
 #include <filesystem>
-#include <algorithm>
 #include "song/song.h"
 #include "song/songlist.h"
 #include "game/arguments.h"
@@ -38,9 +37,7 @@ AudioManager &audioManager = AudioManager::getInstance();
 
 vector<std::string> ArgumentList::arguments;
 
-static bool compareNotes(const Note& a, const Note& b) {
-	return a.time < b.time;
-}
+
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH
@@ -640,7 +637,7 @@ int main(int argc, char* argv[])
         SetWindowPosition(0, 0);
         SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
     }
-    std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals"};
+    std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead"};
     std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
     TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
@@ -1552,19 +1549,32 @@ int main(int argc, char* argv[])
                                             songList.songs[curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
                                         }
                                         else {
-                                            if (songPart != SongParts::Invalid) {
+                                            if (songPart != SongParts::Invalid && songPart != SongParts::PlasticDrums) {
                                                 for (int diff = 0; diff < 4; diff++) {
                                                     Chart newChart;
                                                     std::cout << trackName << " " << diff << endl;
-                                                    newChart.parseNotes(midiFile, i, midiFile[i], diff, (int)songPart);
-                                                    if (newChart.notes.size() > 0) {
-                                                        songList.songs[curPlayingSong].parts[(int)songPart]->hasPart = true;
+
+                                                    if (songPart == SongParts::PlasticBass || songPart == SongParts::PlasticGuitar) {
+                                                        newChart.plastic = true;
+                                                        newChart.parsePlasticNotes(midiFile, i, midiFile[i], diff,
+                                                                                   (int) songPart);
                                                     }
-                                                    std::sort(newChart.notes.begin(), newChart.notes.end(), compareNotes);
-                                                    int noteIdx = 0;
-                                                    for (Note& note : newChart.notes) {
-                                                        newChart.notes_perlane[note.lane].push_back(noteIdx);
-                                                        noteIdx++;
+                                                    else {
+                                                        newChart.parseNotes(midiFile, i, midiFile[i], diff,
+                                                                            (int) songPart);
+                                                    }
+
+
+
+                                                    if (!newChart.plastic) {
+                                                        int noteIdx = 0;
+                                                        for (Note &note: newChart.notes) {
+                                                            newChart.notes_perlane[note.lane].push_back(noteIdx);
+                                                            noteIdx++;
+                                                        }
+                                                    }
+                                                    if (newChart.notes.size() > 0) {
+                                                        songList.songs[curPlayingSong].parts[(int) songPart]->hasPart = true;
                                                     }
                                                     songList.songs[curPlayingSong].parts[(int)songPart]->charts.push_back(newChart);
                                                 }
@@ -1608,7 +1618,7 @@ int main(int argc, char* argv[])
                         
                     }
                     // DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < 7; i++) {
                         if (songList.songs[curPlayingSong].parts[i]->hasPart) {
                             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player.instrument && instSelected ? ColorToInt(ColorBrightness(player.accentColor, -0.25)) : 0x181827FF);
                             
@@ -1618,7 +1628,9 @@ int main(int argc, char* argv[])
                                 instSelected = true;
                                 player.instrument = i;
                                 int isBassOrVocal = 0;
-                                if (player.instrument == 1 || player.instrument == 3) {
+                                if (i>3)
+                                    player.plastic = true;
+                                if (player.instrument == 1 || player.instrument == 3 || player.instrument == 5) {
                                     isBassOrVocal = 1;
                                 }
                                 SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
@@ -1840,7 +1852,7 @@ int main(int argc, char* argv[])
                     audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
                     streamsLoaded = true;
                     for (auto& stream : audioManager.loadedStreams) {
-                        if (player.instrument == stream.instrument)
+                        if ((player.plastic ? player.instrument -4 : player.instrument) == stream.instrument)
                             audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : settingsMain.MainVolume * settingsMain.PlayerVolume);
                         else
                             audioManager.SetAudioStreamVolume(stream.handle, settingsMain.MainVolume * settingsMain.BandVolume);
@@ -1851,7 +1863,7 @@ int main(int argc, char* argv[])
                 }
                 else {
                     for (auto& stream : audioManager.loadedStreams) {
-                        if (player.instrument == stream.instrument)
+                        if ((player.plastic ? player.instrument -4 : player.instrument)  == stream.instrument)
                             audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : settingsMain.MainVolume * settingsMain.PlayerVolume);
                         else
                             audioManager.SetAudioStreamVolume(stream.handle, settingsMain.MainVolume * settingsMain.BandVolume);

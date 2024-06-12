@@ -27,8 +27,54 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
     // glDisable(GL_CULL_FACE);
     for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
         for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
+            Color NoteColor;
+            if (player.plastic) {
+                bool pd = (player.instrument == 4);
+                switch (lane) {
+                    case 0:
+                        if (pd) {
+                            NoteColor = ORANGE;
+                        } else {
+                            NoteColor = GREEN;
+                        }
+                        break;
+                    case 1:
+                        if (pd) {
+                            NoteColor = RED;
+                        } else {
+                            NoteColor = RED;
+                        }
+                        break;
+                    case 2:
+                        if (pd) {
+                            NoteColor = YELLOW;
+                        } else {
+                            NoteColor = YELLOW;
+                        }
+                        break;
+                    case 3:
+                        if (pd) {
+                            NoteColor = BLUE;
+                        } else {
+                            NoteColor = BLUE;
+                        }
+                        break;
+                    case 4:
+                        if (pd) {
+                            NoteColor = GREEN;
+                        } else {
+                            NoteColor = ORANGE;
+                        }
+                        break;
+                    default:
+                        NoteColor = player.accentColor;
+                        break;
+                }
+            }   else {
+                NoteColor = gprMenu.hehe && player.diff == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : player.accentColor;
+            }
 
-            Color NoteColor = gprMenu.hehe && player.diff == 3 ? lane == 0 || lane == 4 ? SKYBLUE : lane == 1 || lane == 3 ? PINK : WHITE : player.accentColor;
+            // Color NoteColor = gprMenu.hehe && player.diff == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : player.accentColor;
             Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
             if (curNote.hit) {
                 player.totalOffset += curNote.HitOffset;
@@ -273,6 +319,402 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
     DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 }
 
+void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
+    float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
+    float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
+
+    BeginTextureMode(notes_tex);
+    ClearBackground({0,0,0,0});
+    BeginMode3D(camera);
+    // glDisable(GL_CULL_FACE);
+
+
+    for (auto & curNote : curChart.notes) {
+
+        double relTime = ((curNote.time - time)) *
+                         gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+        double relEnd = (((curNote.time + curNote.len) - time)) *
+                        gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+
+        float hopoScale = curNote.phopo ? 0.75f : 1.1f;
+
+        for (int lane : curNote.pLanes) {
+            Color NoteColor;
+            switch (lane) {
+                case 0:
+                    NoteColor = GREEN;
+                    break;
+                case 1:
+                    NoteColor = RED;
+                    break;
+                case 2:
+                    NoteColor = YELLOW;
+                    break;
+                case 3:
+                    NoteColor = BLUE;
+                    break;
+                case 4:
+                    NoteColor = ORANGE;
+                    break;
+                default:
+                    NoteColor = player.accentColor;
+                    break;
+            }
+
+            gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+
+            float notePosX = diffDistance - (1.0f * lane);
+            if (relTime > 1.5) {
+                break;
+            }
+            if (relEnd > 1.5) relEnd = 1.5;
+            DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                       (length *
+                                                                        (float) relTime)}, hopoScale,
+                          WHITE);
+                DrawModel(gprAssets.noteBottomModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                          (length *
+                                                                           (float) relTime)}, hopoScale,
+                          WHITE);
+            if (curNote.len > 0.25) {
+
+                float sustainLen =
+                        (length * (float) relEnd) - (length * (float) relTime);
+                Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
+                                                      MatrixTranslate(notePosX, 0.01f,
+                                                                      player.smasherPos +
+                                                                      (length *
+                                                                       (float) relTime) +
+                                                                      (sustainLen / 2.0f)));
+                BeginBlendMode(BLEND_ALPHA);
+                gprAssets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(NoteColor, { 180,180,180,255 });
+                gprAssets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(NoteColor, 0.5f);
+
+
+                if (curNote.held && !curNote.renderAsOD) {
+                    DrawMesh(sustainPlane, gprAssets.sustainMatHeld, sustainMatrix);
+                    DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f,
+                             player.accentColor);
+                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
+                }
+                if (curNote.renderAsOD && curNote.held) {
+                    DrawMesh(sustainPlane, gprAssets.sustainMatHeldOD, sustainMatrix);
+                    DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f, WHITE);
+                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
+                }
+                if (!curNote.held && !curNote.hit || !curNote.miss) {
+
+                    DrawMesh(sustainPlane, gprAssets.sustainMat, sustainMatrix);
+                    //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+                }
+            }
+        }
+    }
+/*    for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
+        Color NoteColor;
+        if (player.plastic) {
+            bool pd = (player.instrument == 4);
+                switch (lane) {
+                    case 0:
+                        if (pd) {
+                            NoteColor = ORANGE;
+                        } else {
+                            NoteColor = GREEN;
+                        }
+                        break;
+                    case 1:
+                        if (pd) {
+                            NoteColor = RED;
+                        } else {
+                            NoteColor = RED;
+                        }
+                        break;
+                    case 2:
+                        if (pd) {
+                            NoteColor = YELLOW;
+                        } else {
+                            NoteColor = YELLOW;
+                        }
+                        break;
+                    case 3:
+                        if (pd) {
+                            NoteColor = BLUE;
+                        } else {
+                            NoteColor = BLUE;
+                        }
+                        break;
+                    case 4:
+                        if (pd) {
+                            NoteColor = GREEN;
+                        } else {
+                            NoteColor = ORANGE;
+                        }
+                        break;
+                    default:
+                        NoteColor = player.accentColor;
+                        break;
+                }
+            }   else {
+                NoteColor = gprMenu.hehe && player.diff == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : player.accentColor;
+            }
+
+            // Color NoteColor = gprMenu.hehe && player.diff == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : player.accentColor;
+            Note & curNote = curChart.notes[curChart.notes_perlane[lane][i]];
+            if (curNote.hit) {
+                player.totalOffset += curNote.HitOffset;
+            }
+            gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+
+            gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+            gprAssets.noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+            if (!curChart.Solos.empty()) {
+                if (curNote.time >= curChart.Solos[curSolo].start &&
+                    curNote.time <= curChart.Solos[curSolo].end) {
+                    if (curNote.hit) {
+                        if (curNote.hit && !curNote.countedForSolo) {
+                            curChart.Solos[curSolo].notesHit++;
+                            curNote.countedForSolo = true;
+                        }
+                    }
+                }
+            }
+            if (!curChart.odPhrases.empty()) {
+
+                if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
+                    curNote.time <= curChart.odPhrases[curODPhrase].end &&
+                    !curChart.odPhrases[curODPhrase].missed) {
+                    if (curNote.hit) {
+                        if (curNote.hit && !curNote.countedForODPhrase) {
+                            curChart.odPhrases[curODPhrase].notesHit++;
+                            curNote.countedForODPhrase = true;
+                        }
+                    }
+                    curNote.renderAsOD = true;
+
+                }
+                if (curChart.odPhrases[curODPhrase].missed) {
+                    curNote.renderAsOD = false;
+                }
+                if (curChart.odPhrases[curODPhrase].notesHit ==
+                    curChart.odPhrases[curODPhrase].noteCount &&
+                    !curChart.odPhrases[curODPhrase].added && player.overdriveFill < 1.0f) {
+                    player.overdriveFill += 0.25f;
+                    if (player.overdriveFill > 1.0f) player.overdriveFill = 1.0f;
+                    if (player.overdrive) {
+                        player.overdriveActiveFill = player.overdriveFill;
+                        player.overdriveActiveTime = time;
+                    }
+                    curChart.odPhrases[curODPhrase].added = true;
+                }
+            }
+            if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < time+player.VideoOffset-player.InputOffset && !songEnded) {
+                curNote.miss = true;
+                player.MissNote();
+                if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
+                    curNote.time >= curChart.odPhrases[curODPhrase].start &&
+                    curNote.time < curChart.odPhrases[curODPhrase].end)
+                    curChart.odPhrases[curODPhrase].missed = true;
+                player.combo = 0;
+                curNote.accounted = true;
+            }
+
+            double relTime = ((curNote.time - time)) *
+                             gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+            double relEnd = (((curNote.time + curNote.len) - time)) *
+                            gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+            float notePosX = diffDistance - (1.0f *
+                                             (float) (gprSettings.mirrorMode ? (player.diff == 3 ? 4 : 3) -
+                                                                               curNote.lane
+                                                                             : curNote.lane));
+            if (relTime > 1.5) {
+                break;
+            }
+            if (relEnd > 1.5) relEnd = 1.5;
+            if (curNote.hopo && !curNote.hit) {
+                // lifts						//  distance between notes
+                //									(furthest left - lane distance)
+                if (curNote.renderAsOD) {                     //  1.6f	0.8
+                    DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                             (length *
+                                                                              (float) relTime)}, 0.9f,
+                              WHITE);
+                    DrawModel(gprAssets.noteBottomModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                                (length *
+                                                                                 (float) relTime)}, 0.9f,
+                              WHITE);
+                    // energy phrase
+                }
+                else {
+                    DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                           (length *
+                                                                            (float) relTime)}, 0.9f,
+                              WHITE);
+                    DrawModel(gprAssets.noteBottomModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                              (length *
+                                                                               (float) relTime)}, 0.9f,
+                              WHITE);
+                }
+                // regular
+            } else {
+                // sustains
+                if ((curNote.len) > 0) {
+                    if (curNote.hit && curNote.held) {
+                        if (curNote.heldTime <
+                            (curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
+                            curNote.heldTime = 0.0 - relTime;
+                            player.sustainScoreBuffer[curNote.lane] =
+                                    (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
+                                    player.multiplier(player.instrument);
+                            if (relTime < 0.0) relTime = 0.0;
+                        }
+                        if (relEnd <= 0.0) {
+                            if (relTime < 0.0) relTime = relEnd;
+                            player.score += player.sustainScoreBuffer[curNote.lane];
+                            player.sustainScoreBuffer[curNote.lane] = 0;
+                            curNote.held = false;
+                        }
+                    } else if (curNote.hit && !curNote.held) {
+                        relTime = relTime + curNote.heldTime;
+                    }
+
+                    *//*Color SustainColor = Color{ 69,69,69,255 };
+                    if (curNote.held) {
+                        if (od) {
+                            Color SustainColor = Color{ 217, 183, 82 ,255 };
+                        }
+                        Color SustainColor = Color{ 172,82,217,255 };
+                    }*//*
+                    float sustainLen =
+                            (length * (float) relEnd) - (length * (float) relTime);
+                    Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
+                                                          MatrixTranslate(notePosX, 0.01f,
+                                                                          player.smasherPos +
+                                                                          (length *
+                                                                           (float) relTime) +
+                                                                          (sustainLen / 2.0f)));
+                    BeginBlendMode(BLEND_ALPHA);
+                    gprAssets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(NoteColor, { 180,180,180,255 });
+                    gprAssets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(NoteColor, 0.5f);
+
+
+                    if (curNote.held && !curNote.renderAsOD) {
+                        DrawMesh(sustainPlane, gprAssets.sustainMatHeld, sustainMatrix);
+                        DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f,
+                                 player.accentColor);
+                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, player.accentColor);
+                    }
+                    if (curNote.renderAsOD && curNote.held) {
+                        DrawMesh(sustainPlane, gprAssets.sustainMatHeldOD, sustainMatrix);
+                        DrawCube(Vector3{notePosX, 0.1, player.smasherPos}, 0.4f, 0.2f, 0.4f, WHITE);
+                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
+                    }
+                    if (!curNote.held && curNote.hit || curNote.miss) {
+
+                        DrawMesh(sustainPlane, gprAssets.sustainMatMiss, sustainMatrix);
+                        //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
+                    }
+                    if (!curNote.hit && !curNote.accounted && !curNote.miss) {
+                        if (curNote.renderAsOD) {
+                            DrawMesh(sustainPlane, gprAssets.sustainMatOD, sustainMatrix);
+                            //DrawCylinderEx(Vector3{ notePosX, 0.05f, player.smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
+                        } else {
+                            DrawMesh(sustainPlane, gprAssets.sustainMat, sustainMatrix);
+                            *//*DrawCylinderEx(Vector3{notePosX, 0.05f,
+                                                    player.smasherPos + (highwayLength * (float)relTime) },
+                                           Vector3{ notePosX, 0.05f,
+                                                    player.smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
+                                           player.accentColor);*//*
+                        }
+                    }
+                    EndBlendMode();
+
+                    // DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
+                }
+                // regular notes
+                if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
+                    ((curNote.len) == 0 && !curNote.hit)) {
+                    if (curNote.renderAsOD) {
+                        if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+                            DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                                     (length *
+                                                                                      (float) relTime)}, 1.1f,
+                                      WHITE);
+                            DrawModel(gprAssets.noteBottomModelOD, Vector3{notePosX, 0, player.smasherPos +
+                                                                                        (length *
+                                                                                         (float) relTime)}, 1.1f,
+                                      WHITE);
+                        }
+
+                    } else {
+                        if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+                            DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                                   (length *
+                                                                                    (float) relTime)}, 1.1f,
+                                      WHITE);
+                            DrawModel(gprAssets.noteBottomModel, Vector3{notePosX, 0, player.smasherPos +
+                                                                                      (length *
+                                                                                       (float) relTime)}, 1.1f,
+                                      WHITE);
+                        }
+
+                    }
+
+                }
+                gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+            }
+            if (curNote.miss) {
+
+
+                if (curNote.lift) {
+                    DrawModel(gprAssets.liftModel,
+                              Vector3{notePosX, 0, player.smasherPos + (length * (float) relTime)},
+                              1.0f, RED);
+                } else {
+                    DrawModel(gprAssets.noteBottomModel,
+                              Vector3{notePosX, 0, player.smasherPos + (length * (float) relTime)},
+                              1.0f, RED);
+                    DrawModel(gprAssets.noteTopModel,
+                              Vector3{notePosX, 0, player.smasherPos + (length * (float) relTime)},
+                              1.0f, RED);
+                }
+
+
+                if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+                    curNote.time + 0.4 && gprSettings.missHighwayColor) {
+                    gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+                } else {
+                    gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+                }
+            }
+            if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+                               curNote.hitTime + 0.15f) {
+                DrawCube(Vector3{ notePosX, 0.125 , player.smasherPos }, 1.0f, 0.25f, 0.5f,
+                         curNote.perfect ? Color{255, 215, 0, 150} : Color{255, 255, 255, 150});
+                if (curNote.perfect) {
+                    DrawCube(Vector3{player.diff == 3 ? 3.3f : 2.8f, 0, player.smasherPos}, 1.0f, 0.01f,
+                             0.5f, ORANGE);
+
+                }
+            }
+            // DrawText3D(gprAssets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
+
+
+            if (relEnd < -1 && curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1)
+                curNoteIdx[lane] = i + 1;
+
+
+        }*/
+
+
+    EndMode3D();
+    EndTextureMode();
+
+    SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
+    notes_tex.texture.width = (float)GetScreenWidth();
+    notes_tex.texture.height = (float)GetScreenHeight();
+    DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+}
+
 void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex) {
     BeginTextureMode(hud_tex);
     ClearBackground({0,0,0,0});
@@ -281,7 +723,7 @@ void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex) {
     DrawModel(gprAssets.odBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
     DrawModel(gprAssets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
     DrawModel(gprAssets.multBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-    if (player.instrument == 1 || player.instrument == 3) {
+    if (player.instrument == 1 || player.instrument == 3 || player.instrument == 5) {
 
         DrawModel(gprAssets.multCtr5, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
     }
@@ -312,7 +754,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     SetShaderValue(gprAssets.odMultShader, gprAssets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
     SetShaderValue(gprAssets.odMultShader, gprAssets.odLoc, &player.overdriveFill, SHADER_UNIFORM_FLOAT);
 
-    if ((player.overdrive ? player.multiplier(player.instrument) / 2 : player.multiplier(player.instrument))>= (player.instrument == 1 || player.instrument == 3 ? 6 : 4)) {
+    if ((player.overdrive ? player.multiplier(player.instrument) / 2 : player.multiplier(player.instrument))>= (player.instrument == 1 || player.instrument == 3 || player.instrument == 5 ? 6 : 4)) {
         gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
         gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
         gprAssets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
@@ -411,7 +853,11 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     } else {
         RenderEmhHighway(player, song, time, highway_tex);
     }
-    RenderNotes(player, curChart, time, notes_tex, highwayLength);
+    if (player.plastic) {
+        RenderClassicNotes(player, curChart, time, notes_tex, highwayLength);
+    } else {
+        RenderNotes(player, curChart, time, notes_tex, highwayLength);
+    }
     RenderHud(player, hud_tex);
 }
 
@@ -449,7 +895,33 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     DrawModel(gprAssets.smasherBoard, Vector3{ 0, 0.003f, 0 }, 1.0f, WHITE);
 
     for (int i = 0; i < 5;  i++) {
-        Color NoteColor = gprMenu.hehe && player.diff == 3 ? i == 0 || i == 4 ? SKYBLUE : i == 1 || i == 3 ? PINK : WHITE : player.accentColor;
+        Color NoteColor; // = gprMenu.hehe && player.diff == 3 ? i == 0 || i == 4 ? SKYBLUE : i == 1 || i == 3 ? PINK : WHITE : player.accentColor;
+
+        if (player.plastic) {
+            bool pd = (player.instrument == 4);
+            switch (i) {
+                case 0:
+                    NoteColor = pd ? ORANGE : GREEN;
+                    break;
+                case 1:
+                    NoteColor = pd ? RED :RED;
+                    break;
+                case 2:
+                    NoteColor = pd ? YELLOW :YELLOW;
+                    break;
+                case 3:
+                    NoteColor = pd ? BLUE :BLUE;
+                    break;
+                case 4:
+                    NoteColor = pd ? GREEN :ORANGE;
+                    break;
+                default:
+                    NoteColor = player.accentColor;
+                    break;
+            }
+        }   else {
+            NoteColor = gprMenu.hehe && player.diff == 3 ? (i == 0 || i == 4 ? SKYBLUE : (i == 1 || i == 3 ? PINK : WHITE)) : player.accentColor;
+        }
 
         gprAssets.smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
         gprAssets.smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
@@ -546,7 +1018,7 @@ void gameplayRenderer::RenderEmhHighway(Player& player, Song song, double time, 
     if (!song.parts[player.instrument]->charts[player.diff].odPhrases.empty()) {
         DrawOverdrive(player, song.parts[player.instrument]->charts[player.diff], highwayLength, time);
     }
-    
+
     EndBlendMode();
     EndMode3D();
     EndTextureMode();
