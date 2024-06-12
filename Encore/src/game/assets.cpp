@@ -98,11 +98,18 @@ void Assets::LoadAssets() {
 
     noteTopModel = Assets::LoadModel_((directory / "Assets/notes/note_top.obj"), loadedAssets);
     noteBottomModel = Assets::LoadModel_((directory / "Assets/notes/note_bottom.obj"), loadedAssets);
-    noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
-    emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
+
+    // noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
+    // emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
 
     noteTopModelOD = Assets::LoadModel_((directory / "Assets/notes/note_top_od.obj"), loadedAssets);
     noteBottomModelOD = Assets::LoadModel_((directory / "Assets/notes/note_bottom.obj"), loadedAssets);
+
+    noteTopModelHP = Assets::LoadModel_((directory / "Assets/notes/hopo_top.obj"), loadedAssets);
+    noteBottomModelHP = Assets::LoadModel_((directory / "Assets/notes/hopo_bottom.obj"), loadedAssets);
+
+
+
     noteTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
     emitTextureOD = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
 
@@ -199,6 +206,9 @@ void Assets::LoadAssets() {
 
     noteTopModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
+
+    noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;

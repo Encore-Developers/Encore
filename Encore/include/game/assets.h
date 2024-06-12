@@ -77,6 +77,9 @@ public:
     Texture2D highwayTextureOD;
     Texture2D highwaySidesTexture;
 
+    Model noteBottomModelHP;
+    Model noteTopModelHP;
+
     Model noteBottomModel;
     Model noteTopModel;
     Texture2D noteTexture;
