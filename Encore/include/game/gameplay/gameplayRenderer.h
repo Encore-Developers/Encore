@@ -24,6 +24,7 @@ public:
     std::vector<bool> liftRegistered{ false,false,false,false,false };
     std::vector<int> curNoteIdx = { 0,0,0,0,0 };
     bool songEnded = false;
+    bool overstrum = false;
     int selectedSongInt = 0;
     int curBPM = 0;
     int curBeatLine = 0;

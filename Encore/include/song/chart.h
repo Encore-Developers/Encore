@@ -374,24 +374,7 @@ public:
                             Solos.push_back(newSolo);
                             curSolo++;
                         }
-                    }// else if ((int)events[i][1] == odNote) {
-                      //  if (!odOn) {
-                      //      odOn = true;
-                      //      odPhrase newPhrase;
-                      //      newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
-                      //      odPhrases.push_back(newPhrase);
-                      //      newPhrase.end = newPhrase.start + events[i].getDurationInSeconds();
-                      //      curODPhrase++;
-                      //  }
-                    //} else if ((int)events[i][1] == soloNote) {
-                    //    if (!soloOn) {
-                    //        soloOn = true;
-                    //        solo newSolo;
-                    //        newSolo.start = midiFile.getTimeInSeconds(trkidx, i);
-                    //        newSolo.end = newSolo.start + events[i].getDurationInSeconds();
-                    //        Solos.push_back(newSolo);
-                    //        curSolo++;
-                    //    }
+                    }
                     } else if (events[i].isNoteOff()) {
                         double time = midiFile.getTimeInSeconds(trkidx, i);
                         int tick = midiFile.getAbsoluteTickTime(time);
@@ -464,15 +447,19 @@ public:
                 }
                 newNote.len = note.len;
                 newNote.time = note.time;
+                newNote.valid = true;
                 notes.push_back(newNote);
 
             }
-            std::sort(notes.begin(), notes.end(),
-                  compareNotes);
+
             auto it = std::unique(notes.begin(), notes.end(), areNotesEqual);
             notes.erase(it, notes.end());
+            std::sort(notes.begin(), notes.end(),
+                  compareNotes);
+            auto again = std::unique(notes.begin(), notes.end(), areNotesEqual);
+            notes.erase(again, notes.end());
 
-            
+
         curFOff = 0;
         if (forcedOffPhrases.size() > 0) {
             for (Note &note : notes) {
