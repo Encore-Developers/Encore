@@ -1850,6 +1850,13 @@ int main(int argc, char* argv[])
                     player.resetPlayerStats();
                 }
                 else {
+                    for (auto& stream : audioManager.loadedStreams) {
+                        if (player.instrument == stream.instrument)
+                            audioManager.SetAudioStreamVolume(stream.handle, player.mute ? player.missVolume : settingsMain.MainVolume * settingsMain.PlayerVolume);
+                        else
+                            audioManager.SetAudioStreamVolume(stream.handle, settingsMain.MainVolume * settingsMain.BandVolume);
+
+                    }
                     float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                     double songEnd = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                     if (songEnd < songPlayed) {
@@ -2043,8 +2050,8 @@ int main(int argc, char* argv[])
                 menu.DrawFPS(u.LeftSide,u.hpct(0.0025f) + u.hinpct(0.025f));
                 menu.DrawVersion();
 
-                DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, GOLD);
                 DrawTextEx(assets.rubik, textTime, { GetScreenWidth() - textLength,GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04f), 0, WHITE);
+                DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, GOLD);
                 GuiProgressBar(Rectangle{ 0,(float)GetScreenHeight() - u.hinpct(0.005f),(float)GetScreenWidth(),u.hinpct(0.01f) }, "", "", & floatSongLength, 0, (float)songLength);
 
                 break;
