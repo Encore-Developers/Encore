@@ -371,7 +371,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             }
         }
         if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < time + player.VideoOffset - player.InputOffset &&
-            !songEnded) {
+            !songEnded && curNoteInt <= curChart.notes.size()) {
             curNote.miss = true;
             player.MissNote();
             if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
@@ -423,8 +423,8 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             if (relEnd > 1.5) relEnd = 1.5;
             if (curNote.phopo && !curNote.hit) {
                 if (curNote.renderAsOD) {
-                    gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-                    gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+                    gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+                    gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
                     DrawModel(gprAssets.noteTopModelHP, Vector3{notePosX, 0, player.smasherPos +
                                                                              (length *
                                                                               (float) relTime)}, 1.1f,
@@ -974,7 +974,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
         curODPhrase++;
     }
 
-    if (!curChart.Solos.empty() && curSolo<curChart.Solos.size() - 1 && musicTime>curChart.Solos[curSolo].end) {
+    if (!curChart.Solos.empty() && curSolo<curChart.Solos.size() - 1 && musicTime-2.5f>curChart.Solos[curSolo].end) {
         curSolo++;
     }
 
