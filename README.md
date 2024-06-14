@@ -15,7 +15,7 @@ Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Rayl
 ### Nightly releases
 
 Current nightly build:    
-- [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip) ([32 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip))    
+- [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x64.zip) ([32 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip))    
 - [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64.zip)    
 ### Running Encore
 
