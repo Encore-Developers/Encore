@@ -15,10 +15,8 @@ Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Rayl
 ### Nightly releases
 
 Current nightly build:    
-- [Windows x64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip)    
-- [Windows x32](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip)    
-- [Linux x64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64.zip)    
-
+- [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip) ([32 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip))    
+- [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64.zip)    
 ### Running Encore
 
 Extract the .zip file that you downloaded, either Nightly or Stable, and extract it into a folder that you will be able to remember. If Windows Defender SmartScreen appears, click Read More, and Run. Encore is not a malicious program, and removing the SmartScreen popup would cost us (the developers) more than we're willing to pay.
