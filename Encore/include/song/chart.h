@@ -30,6 +30,7 @@ public:
 
 	// CLASSIC
     // 0-4 for grybo, helps with chords
+    int strumCount = 0;
     bool hitWithFAS = false;
     int mask;
     bool chord = false;

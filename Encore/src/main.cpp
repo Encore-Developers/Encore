@@ -348,31 +348,32 @@ static void handleInputs(int lane, int action){
         HeldMaskShow = pressedMask;
         Note &lastNote = curChart.notes[gpr.curNoteInt == 0 ? 0 : gpr.curNoteInt - 1];
 
-        if (!lastNote.accounted && gpr.curNoteInt != 0)
-            return;
+        // if (!lastNote.accounted && gpr.curNoteInt != 0)
+        //    return;
 
 
 
         bool firstNote = gpr.curNoteInt == 0;
 
-        if (lane == -3 && action == GLFW_PRESS) {
+        if ((gpr.upStrum || gpr.downStrum )&& action == GLFW_PRESS) {
+            if (gpr.downStrum)
+                gpr.downStrum = false;
+            if (gpr.upStrum)
+                gpr.upStrum = false;
             StrumNoFretTime = eventTime;
-            if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS && !FAS) {
+            curNote.strumCount++;
+            if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS && !gpr.FAS && (firstNote ? true : lastNote.accounted)) {
                 gpr.FAS = true;
                 curNote.hitWithFAS = true;
-                if (gpr.curNoteInt < curChart.notes.size() - 1)
+                if (gpr.curNoteInt < curChart.notes.size() - 1) {
                     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
+                    curChart.notes[gpr.curNoteInt + 1].strumCount = 0;
+                }
                 strummedNote = gpr.curNoteInt;
             }
-            if (!curNote.isGood(eventTime, player.InputOffset) &&
-                curNote.time > eventTime &&
-                (firstNote ? true : lastNote.accounted) &&
-                strummedNote != gpr.curNoteInt &&
-                gpr.FAS) {
+            else if (curNote.strumCount > 1 && !gpr.FAS && !curNote.hitWithFAS) {
                 gpr.overstrum = true;
-                gpr.FAS = false;
                 player.OverHit();
-                return;
             }
         }
 
@@ -382,11 +383,11 @@ static void handleInputs(int lane, int action){
         //if (eventTime - fretAfterStrumTime >= StrumNoFretTime) {
         //    FAS = false;
         //}
-        if (StrumNoFretTime + fretAfterStrumTime < eventTime) {
-            gpr.FAS = false;
-        }
-        if (gpr.FAS && curNote.hitWithFAS && (gpr.curNoteInt == 0 ? true : lastNote.accounted)) {
-            if (noteMatch && (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && strummedNote == gpr.curNoteInt)) {
+        /// if (StrumNoFretTime + fretAfterStrumTime < eventTime) {
+        ///    gpr.FAS = false;
+        /// }
+        if (gpr.FAS && curNote.hitWithFAS) {
+            if (noteMatch && (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && curNote.strumCount > 0)) {
                 gpr.FAS = false;
                 curNote.hit = true;
                 curNote.HitOffset = curNote.time - eventTime;
@@ -663,18 +664,18 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS) {
         gpr.upStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
-    } else {
+    } else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE) {
         gpr.upStrum = false;
     }
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS) {
         gpr.downStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
-    } else {
+    } else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE){
         gpr.downStrum = false;
     }
 }
