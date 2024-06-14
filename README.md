@@ -14,8 +14,10 @@ Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Rayl
 
 ### Nightly releases
 
-*Sign in to GitHub to be able to access nightly releases.*
-Go to the Actions tab on GitHub, which can be [found here](https://github.com/Encore-Developers/Encore-Raylib/actions) and select the latest commit. Then, scroll under Artifacts, and download the one made for your platform. If you are on Windows, `Encore_Win_x64` is the most likely the Artifact that can be installed on your computer. `Encore_Win_x86` is for 32 bit Windows computers.
+Current nightly build:    
+- [Windows x64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip)    
+- [Windows x32](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip)    
+- [Linux x64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64.zip)    
 
 ### Running Encore
 
