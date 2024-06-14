@@ -655,7 +655,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1 &) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1) {
         gpr.upStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
