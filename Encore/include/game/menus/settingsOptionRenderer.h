@@ -20,13 +20,13 @@ public:
     bool changingAlt = false;
     bool changingPause = false;
     int selLane = 0;
-    float sliderEntry(float value, float min, float max, int entryNum, std::string Label, float increment, Assets assets);
-    bool toggleEntry(bool value, int entryNum, std::string Label,  Assets assets);
-    void keybindEntryText(int entryNum, std::string Label, Assets assets);
-    void keybindAltEntry(int altValue, int entryNum, std::string Label,  Assets assets, Keybinds keybinds, int lane);
-    void keybindEntry(int value, int entryNum, std::string Label,  Assets assets, Keybinds keybinds, int lane);
-    void keybindOdEntry(int value, int entryNum, std::string Label,  Assets assets, Keybinds keybinds, int lane);
-    void keybindOdAltEntry(int value, int entryNum, std::string Label,  Assets assets, Keybinds keybinds, int lane);
+    float sliderEntry(float value, float min, float max, int entryNum, std::string Label, float increment);
+    bool toggleEntry(bool value, int entryNum, std::string Label);
+    void keybindEntryText(int entryNum, std::string Label);
+    void keybindAltEntry(int altValue, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybindEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybindOdEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybindOdAltEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
 };
 
 
