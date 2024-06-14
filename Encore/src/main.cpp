@@ -387,6 +387,7 @@ static void handleInputs(int lane, int action){
             if ((FAS && !curNote.hitWithFAS) || curNote.time+goodFrontend < eventTime) {
                 player.OverHit();
                 FAS = false;
+                return;
             }
         }
         if (noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0) && lane != -3) {
@@ -408,7 +409,7 @@ static void handleInputs(int lane, int action){
             }
         }
 
-        if (!noteMatch && curNote.hit && curNote.held && curNote.len > 0) {
+        if (!noteMatch && curNote.held && curNote.len > 0) {
             curNote.held = false;
             player.mute = true;
             return;
@@ -586,7 +587,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-	if (player.diff == 3) {
+	if (player.diff == 3 || player.plastic) {
 		for (int i = 0; i < 5; i++) {
 			if (settingsMain.controller5K[i] >= 0) {
 				if (state.buttons[settingsMain.controller5K[i]] != buttonValues[settingsMain.controller5K[i]]) {
@@ -617,7 +618,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-	else {
+	else{
 		for (int i = 0; i < 4; i++) {
 			if (settingsMain.controller4K[i] >= 0) {
 				if (state.buttons[settingsMain.controller4K[i]] != buttonValues[settingsMain.controller4K[i]]) {

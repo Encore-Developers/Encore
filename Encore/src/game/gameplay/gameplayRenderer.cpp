@@ -320,9 +320,8 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 }
 
 void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
-    float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
-    float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
-
+    float diffDistance = 2.0f;
+    float lineDistance = 1.5f;
     BeginTextureMode(notes_tex);
     ClearBackground({0,0,0,0});
     BeginMode3D(camera);
@@ -568,7 +567,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
                     DrawCube(Vector3{notePosX, 0.125, player.smasherPos}, 1.0f, 0.25f, 0.5f,
                              curNote.perfect ? Color{255, 215, 0, 150} : Color{255, 255, 255, 150});
                     if (curNote.perfect) {
-                        DrawCube(Vector3{player.diff == 3 ? 3.3f : 2.8f, 0, player.smasherPos}, 1.0f, 0.01f,
+                        DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
                                  0.5f, ORANGE);
 
                     }
@@ -1018,7 +1017,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
         }
     }
 
-    if (player.diff == 3) {
+    if (player.diff == 3 || player.plastic) {
         RenderExpertHighway(player, song, time, highway_tex);
     } else {
         RenderEmhHighway(player, song, time, highway_tex);
@@ -1036,8 +1035,8 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     ClearBackground({0,0,0,0});
     BeginMode3D(camera);
 
-    float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
-    float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
+    float diffDistance = 2.0f;
+    float lineDistance = 1.5f;
 
     float highwayLength = player.defaultHighwayLength * gprSettings.highwayLengthMult;
     float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
@@ -1090,7 +1089,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
                     break;
             }
         }   else {
-            NoteColor = gprMenu.hehe && player.diff == 3 ? (i == 0 || i == 4 ? SKYBLUE : (i == 1 || i == 3 ? PINK : WHITE)) : player.accentColor;
+            NoteColor = gprMenu.hehe ? (i == 0 || i == 4 ? SKYBLUE : (i == 1 || i == 3 ? PINK : WHITE)) : player.accentColor;
         }
 
         gprAssets.smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
@@ -1201,8 +1200,8 @@ void gameplayRenderer::RenderEmhHighway(Player& player, Song song, double time, 
 }
 
 void gameplayRenderer::DrawBeatlines(Player& player, Song song, float length, double musicTime) {
-    float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
-    float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
+    float diffDistance = player.diff == 3 || player.plastic ? 2.0f : 1.5f;
+    float lineDistance = player.diff == 3 || player.plastic ? 1.5f : 1.0f;
     std::vector<std::pair<double, bool>> beatlines = song.beatLines;
 
     if (beatlines.size() >= 0) {
@@ -1240,13 +1239,13 @@ void gameplayRenderer::DrawOverdrive(Player& player,  Chart& curChart, float len
     float HighwayEnd = (length * 1.5f) + player.smasherPos;
 
     // right calc
-    float RightSideX = player.diff == 3 ? 2.7f : 2.2f;
+    float RightSideX = player.diff == 3 || player.plastic ? 2.7f : 2.2f;
 
     Vector3 RightSideStart = {RightSideX ,0,Beginning ?  HighwayEnd : (float)(player.smasherPos + (length * odStart)) };
     Vector3 RightSideEnd = { RightSideX,0, Ending ? HighwayEnd : (float)(player.smasherPos + (length * odEnd)) };
 
     // left calc
-    float LeftSideX = player.diff == 3 ? -2.7f : -2.2f;
+    float LeftSideX = player.diff == 3 || player.plastic ? -2.7f : -2.2f;
 
     Vector3 LeftSideStart = {LeftSideX ,0,Beginning ?  HighwayEnd : (float)(player.smasherPos + (length * odStart)) };
     Vector3 LeftSideEnd = { LeftSideX,0, Ending ? HighwayEnd : (float)(player.smasherPos + (length * odEnd)) };
@@ -1271,13 +1270,13 @@ void gameplayRenderer::DrawSolo(Player& player, Chart& curChart, float length, d
     float HighwayEnd = (length * 1.5f) + player.smasherPos;
 
     // right calc
-    float RightSideX = player.diff == 3 ? 2.7f : 2.2f;
+    float RightSideX = player.diff == 3 || player.plastic ? 2.7f : 2.2f;
 
     Vector3 RightSideStart = {RightSideX ,-0.0025,Beginning ?  HighwayEnd : (float)(player.smasherPos + (length * soloStart)) };
     Vector3 RightSideEnd = { RightSideX,-0.0025, Ending ? HighwayEnd : (float)(player.smasherPos + (length * soloEnd)) };
 
     // left calc
-    float LeftSideX = player.diff == 3 ? -2.7f : -2.2f;
+    float LeftSideX = player.diff == 3 || player.plastic ? -2.7f : -2.2f;
 
     Vector3 LeftSideStart = {LeftSideX ,-0.0025,Beginning ?  HighwayEnd : (float)(player.smasherPos + (length * soloStart)) };
     Vector3 LeftSideEnd = { LeftSideX,-0.0025, Ending ? HighwayEnd : (float)(player.smasherPos + (length * soloEnd)) };
