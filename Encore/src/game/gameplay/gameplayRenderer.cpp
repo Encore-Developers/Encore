@@ -381,6 +381,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
                 curChart.odPhrases[curODPhrase].missed = true;
             player.combo = 0;
             curNote.accounted = true;
+            curNoteInt++;
         }
 
         double relTime = ((curNote.time - time)) *

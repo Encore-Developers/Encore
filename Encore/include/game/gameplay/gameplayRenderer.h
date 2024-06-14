@@ -30,11 +30,15 @@ public:
     int curBeatLine = 0;
     int curODPhrase = 0;
     int curSolo = 0;
+    int curNoteInt = 0;
 
     Mesh sustainPlane;
 
     Camera3D camera = { 0 };
 
     void RenderGameplay(Player& player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
+
+    bool upStrum = false;
+    bool downStrum = false;
 };
 
