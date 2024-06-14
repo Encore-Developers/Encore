@@ -349,7 +349,7 @@ static void handleInputs(int lane, int action){
         if (!lastNote.accounted && gpr.curNoteInt != 0)
             return;
 
-
+        bool firstNote = gpr.curNoteInt == 0;
 
         if (lane == -3 && action == GLFW_PRESS) {
             StrumNoFretTime = eventTime;
@@ -360,8 +360,9 @@ static void handleInputs(int lane, int action){
                     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
                 strummedNote = gpr.curNoteInt;
             }
-            else if (!curNote.isGood(eventTime, player.InputOffset) && curNote.time < eventTime && ((!curNote.hit && !curNote.hitWithFAS) || FAS)) {
+            else if (!curNote.isGood(eventTime, player.InputOffset) && curNote.time > eventTime && (!curNote.hit && !curNote.hitWithFAS) && (firstNote ? true : lastNote.accounted) && !FAS && (firstNote ? false : lastNote.time) ) {
                 gpr.overstrum = true;
+                FAS = false;
                 player.OverHit();
                 return;
             }
@@ -654,14 +655,14 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1 && action == GLFW_PRESS) {
         gpr.upStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
     } else {
         gpr.upStrum = false;
     }
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1 && action = GLFW_PRESS) {
         gpr.downStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
