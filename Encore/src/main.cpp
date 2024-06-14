@@ -64,6 +64,7 @@ bool instSelection = false;
 bool instSelected = false;
 bool songEnded = false;
 
+int curNoteIndex = 0;
 int curPlayingSong = 0;
 int selLane = 0;
 bool selSong = false;
@@ -76,6 +77,8 @@ bool changingPause = false;
 double startedPlayingSong = 0.0;
 Vector2 viewScroll = { 0,0 };
 Rectangle view = { 0 };
+
+int HeldMaskShow;
 
 bool isCalibrating = false;
 double calibrationStartTime = 0.0;
@@ -148,6 +151,8 @@ double StrumNoFretTime = 0.0;
 
 bool FAS = false;
 
+int FASNote = 0;
+
 static void handleInputs(int lane, int action){
     if (player.paused) return;
 	if (lane == -2) return;
@@ -168,103 +173,104 @@ static void handleInputs(int lane, int action){
         overdriveHitTime = eventTime;
 	}
 
-	if (lane == -1 && !player.plastic) {
-		if ((action == GLFW_PRESS && !overdriveHitAvailable) || (action == GLFW_RELEASE && !overdriveLiftAvailable)) return;
-		Note* curNote = &curChart.notes[0];
-		for (auto & note : curChart.notes) {
-			if (note.isGood(eventTime, player.InputOffset ) &&
-				!note.hit) {
-				curNote = &note;
-				break;
-			}
-		}
-		if (action == GLFW_PRESS && !overdriveHeld) {
-			overdriveHeld = true;
-		}
-		else if (action == GLFW_RELEASE && overdriveHeld) {
-			overdriveHeld = false;
-		}
-		if (action == GLFW_PRESS && overdriveHitAvailable) {
-			if (curNote->isGood(eventTime, player.InputOffset) &&
-				!curNote->hit) {
-				for (int newlane = 0; newlane < 5; newlane++) {
-					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
-					if (chordLane != -1) {
-						Note& chordNote = curChart.notes[chordLane];
-						if (!chordNote.accounted) {
-							chordNote.hit = true;
-							overdriveLanesHit[newlane] = true;
-							chordNote.hitTime = eventTime;
+	if (!player.plastic) {
+        if (lane == -1) {
+            if ((action == GLFW_PRESS && !overdriveHitAvailable) ||
+                (action == GLFW_RELEASE && !overdriveLiftAvailable))
+                return;
+            Note *curNote = &curChart.notes[0];
+            for (auto &note: curChart.notes) {
+                if (note.isGood(eventTime, player.InputOffset) &&
+                    !note.hit) {
+                    curNote = &note;
+                    break;
+                }
+            }
+            if (action == GLFW_PRESS && !overdriveHeld) {
+                overdriveHeld = true;
+            } else if (action == GLFW_RELEASE && overdriveHeld) {
+                overdriveHeld = false;
+            }
+            if (action == GLFW_PRESS && overdriveHitAvailable) {
+                if (curNote->isGood(eventTime, player.InputOffset) &&
+                    !curNote->hit) {
+                    for (int newlane = 0; newlane < 5; newlane++) {
+                        int chordLane = curChart.findNoteIdx(curNote->time, newlane);
+                        if (chordLane != -1) {
+                            Note &chordNote = curChart.notes[chordLane];
+                            if (!chordNote.accounted) {
+                                chordNote.hit = true;
+                                overdriveLanesHit[newlane] = true;
+                                chordNote.hitTime = eventTime;
 
-							if ((chordNote.len) > 0 && !chordNote.lift) {
-								chordNote.held = true;
-							}
-                            if (chordNote.isPerfect(eventTime, player.InputOffset)) {
-								chordNote.perfect = true;
+                                if ((chordNote.len) > 0 && !chordNote.lift) {
+                                    chordNote.held = true;
+                                }
+                                if (chordNote.isPerfect(eventTime, player.InputOffset)) {
+                                    chordNote.perfect = true;
 
-							}
-							if (chordNote.perfect) player.lastNotePerfect = true;
-							else player.lastNotePerfect = false;
-                            chordNote.HitOffset = chordNote.time - eventTime;
-                            player.HitNote(chordNote.perfect, player.instrument);
-							chordNote.accounted = true;
-						}
-					}
-				}
-				overdriveHitAvailable = false;
-				overdriveLiftAvailable = true;
-			}
-		}
-		else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-			if (curNote->isGood(eventTime, player.InputOffset) &&
-				!curNote->hit) {
-				for (int newlane = 0; newlane < 5; newlane++) {
-					if (overdriveLanesHit[newlane]) {
-						int chordLane = curChart.findNoteIdx(curNote->time, newlane);
-						if (chordLane != -1) {
-							Note& chordNote = curChart.notes[chordLane];
-							if (chordNote.lift) {
-								chordNote.hit = true;
+                                }
+                                if (chordNote.perfect) player.lastNotePerfect = true;
+                                else player.lastNotePerfect = false;
                                 chordNote.HitOffset = chordNote.time - eventTime;
-								overdriveLanesHit[newlane] = false;
-								chordNote.hitTime = eventTime;
-
-								if (chordNote.isPerfect(eventTime, player.InputOffset)) {
-									chordNote.perfect = true;
-
-								}
+                                player.HitNote(chordNote.perfect, player.instrument);
                                 chordNote.accounted = true;
-								if (chordNote.perfect) player.lastNotePerfect = true;
-								else player.lastNotePerfect = false;
-							}
+                            }
+                        }
+                    }
+                    overdriveHitAvailable = false;
+                    overdriveLiftAvailable = true;
+                }
+            } else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
+                if (curNote->isGood(eventTime, player.InputOffset) &&
+                    !curNote->hit) {
+                    for (int newlane = 0; newlane < 5; newlane++) {
+                        if (overdriveLanesHit[newlane]) {
+                            int chordLane = curChart.findNoteIdx(curNote->time, newlane);
+                            if (chordLane != -1) {
+                                Note &chordNote = curChart.notes[chordLane];
+                                if (chordNote.lift) {
+                                    chordNote.hit = true;
+                                    chordNote.HitOffset = chordNote.time - eventTime;
+                                    overdriveLanesHit[newlane] = false;
+                                    chordNote.hitTime = eventTime;
 
-						}
-					}
-				}
-				overdriveLiftAvailable = false;
-			}
-		}
-		if (action == GLFW_RELEASE && curNote->held && (curNote->len) > 0 && overdriveLiftAvailable) {
-			for (int newlane = 0; newlane < 5; newlane++) {
-				if (overdriveLanesHit[newlane]) {
-					int chordLane = curChart.findNoteIdx(curNote->time, newlane);
-					if (chordLane != -1) {
-						Note& chordNote = curChart.notes[chordLane];
-						if (chordNote.held && chordNote.len > 0) {
-							if (!((player.diff == 3 && settingsMain.keybinds5K[chordNote.lane]) || (player.diff != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
-								chordNote.held = false;
-                                player.score += player.sustainScoreBuffer[chordNote.lane];
-                                player.sustainScoreBuffer[chordNote.lane] = 0;
-                                player.mute = true;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	else {
-        if (!player.plastic) {
+                                    if (chordNote.isPerfect(eventTime, player.InputOffset)) {
+                                        chordNote.perfect = true;
+
+                                    }
+                                    chordNote.accounted = true;
+                                    if (chordNote.perfect) player.lastNotePerfect = true;
+                                    else player.lastNotePerfect = false;
+                                }
+
+                            }
+                        }
+                    }
+                    overdriveLiftAvailable = false;
+                }
+            }
+            if (action == GLFW_RELEASE && curNote->held && (curNote->len) > 0 && overdriveLiftAvailable) {
+                for (int newlane = 0; newlane < 5; newlane++) {
+                    if (overdriveLanesHit[newlane]) {
+                        int chordLane = curChart.findNoteIdx(curNote->time, newlane);
+                        if (chordLane != -1) {
+                            Note &chordNote = curChart.notes[chordLane];
+                            if (chordNote.held && chordNote.len > 0) {
+                                if (!((player.diff == 3 && settingsMain.keybinds5K[chordNote.lane]) ||
+                                      (player.diff != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
+                                    chordNote.held = false;
+                                    player.score += player.sustainScoreBuffer[chordNote.lane];
+                                    player.sustainScoreBuffer[chordNote.lane] = 0;
+                                    player.mute = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
             for (int i = gpr.curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
                 Note &curNote = curChart.notes[curChart.notes_perlane[lane][i]];
 
@@ -274,7 +280,7 @@ static void handleInputs(int lane, int action){
                 if (!player.plastic) {
                     if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
                         if (curNote.isGood(eventTime, player.InputOffset) &&
-                            !curNote.hit) {
+                        !curNote.hit) {
                             if (curNote.lift && action == GLFW_RELEASE) {
                                 lastHitLifts[lane] = curChart.notes_perlane[lane][i];
                             }
@@ -296,7 +302,7 @@ static void handleInputs(int lane, int action){
                         if (curNote.miss) player.lastNotePerfect = false;
                     }
                     if ((!gpr.heldFrets[curNote.lane] && !gpr.heldFretsAlt[curNote.lane]) && curNote.held &&
-                        (curNote.len) > 0) {
+                    (curNote.len) > 0) {
                         curNote.held = false;
                         player.score += player.sustainScoreBuffer[curNote.lane];
                         player.sustainScoreBuffer[curNote.lane] = 0;
@@ -305,164 +311,141 @@ static void handleInputs(int lane, int action){
                     }
 
                     if (action == GLFW_PRESS &&
-                        eventTime > songList.songs[curPlayingSong].music_start &&
-                        !curNote.hit &&
-                        !curNote.accounted &&
-                        ((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
-                        eventTime > overdriveHitTime + 0.05
-                        && !gpr.overhitFrets[lane]) {
-                        if (lastHitLifts[lane] != -1) {
-                            if (eventTime > curChart.notes[lastHitLifts[lane]].time - 0.1 &&
-                                eventTime < curChart.notes[lastHitLifts[lane]].time + 0.1)
-                                continue;
-                        }
-                        player.OverHit();
-                        if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
-                            eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
-                            !curChart.odPhrases[gpr.curODPhrase].missed)
-                            curChart.odPhrases[gpr.curODPhrase].missed = true;
-                        gpr.overhitFrets[lane] = true;
-                    }
-                }
-            }
-        } else {
-            for (Note &curNote : curChart.notes) {
-
-                int pressedMask = 0b000000;
-
-                for (int pressedButtons = 0; pressedButtons < gpr.heldFrets.size(); pressedButtons++) {
-                    if (action == GLFW_PRESS && gpr.heldFrets[pressedButtons])
-                        pressedMask += curChart.PlasticFrets[pressedButtons];
-                    else if (action == GLFW_RELEASE && !gpr.heldFrets[pressedButtons])
-                        pressedMask -= curChart.PlasticFrets[pressedButtons];
-                }
-
-                if (action == GLFW_PRESS && lane == -3) {
-
-                    if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit) {
-                        if (curNote.chord ? pressedMask == curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2 )) {
-                            curNote.hit = true;
-                            curNote.HitOffset = curNote.time - eventTime;
-                            curNote.hitTime = eventTime;
-                            if ((curNote.len) > 0) {
-                                curNote.held = true;
-                            }
-                            if (curNote.isPerfect(eventTime, player.InputOffset)) {
-                                curNote.perfect = true;
-                            }
-                            player.HitNote(curNote.perfect, player.instrument);
-                            curNote.accounted = true;
-                            break;
-                        } else {
-                            FAS = true;
-                            StrumNoFretTime = eventTime;
-                            break;
-                        }
-                    }
-                }
-                else if (lane != -3) {
-                    if (((pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)||
-                        ((pressedMask < (curNote.mask * 2)) && pressedMask >= curNote.mask)
-                        && FAS) {
-
-                        if ((curNote.isGood(eventTime, player.InputOffset) &&
-                            !curNote.hit) && eventTime - 0.015 < StrumNoFretTime) {
-                            curNote.hit = true;
-                            curNote.HitOffset = curNote.time - eventTime;
-                            curNote.hitTime = eventTime;
-                            if ((curNote.len) > 0) {
-                                curNote.held = true;
-                            }
-                            if (curNote.isPerfect(eventTime, player.InputOffset)) {
-                                curNote.perfect = true;
-                            }
-                            player.HitNote(curNote.perfect, player.instrument);
-                            curNote.accounted = true;
-                            FAS = false;
-                            break;
-                        }
-                    }
-                    else if (((action == GLFW_PRESS && (pressedMask < (curNote.mask * 2))) &&
-                                pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)||(
-                                action == GLFW_RELEASE && (pressedMask < (curNote.mask * 2)) &&
-                                pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)||(
-                                action == GLFW_REPEAT && (pressedMask < (curNote.mask * 2)) &&
-                                pressedMask >= curNote.mask && curNote.phopo && player.combo > 0)) {
-                        if ((curNote.isGood(eventTime, player.InputOffset) &&
-                             !curNote.hit)) {
-                            curNote.hit = true;
-                            curNote.HitOffset = curNote.time - eventTime;
-                            curNote.hitTime = eventTime;
-                            if ((curNote.len) > 0) {
-                                curNote.held = true;
-                            }
-                            if (curNote.isPerfect(eventTime, player.InputOffset)) {
-                                curNote.perfect = true;
-                            }
-                            if (curNote.perfect) player.lastNotePerfect = true;
-                            else player.lastNotePerfect = false;
-                            player.HitNote(curNote.perfect, player.instrument);
-                            curNote.accounted = true;
-                            break;
-                        }
-                    }
-                }
-                if ((curNote.chord ? pressedMask != curNote.mask : pressedMask >= curNote.mask * 2 || pressedMask < curNote.mask) && curNote.held &&
-                    (curNote.len) > 0) {
-                    curNote.held = false;
-                    player.mute = true;
-                    // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream, missVolume);
-                }
-                if (!curNote.accounted &&
-                    action == GLFW_PRESS && lane == -3 &&
-                    eventTime > songList.songs[curPlayingSong].music_start &&
-                    !curNote.hit &&
-                    (curNote.time - goodBackend) + player.InputOffset > eventTime &&
-                    // (curNote.time + goodFrontend) + player.InputOffset < eventTime &&
-                    eventTime - 0.02 < StrumNoFretTime
-                        && !gpr.overstrum && FAS == false) {
-                    player.OverHit();
-                    FAS = false;
-                    if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
-                        eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
-                        !curChart.odPhrases[gpr.curODPhrase].missed)
-                        curChart.odPhrases[gpr.curODPhrase].missed = true;
-                    gpr.overstrum = true;
-                }
-                /*
-                if ((!gpr.heldFrets[curNote.lane] && !gpr.heldFretsAlt[curNote.lane]) && curNote.held &&
-                    (curNote.len) > 0) {
-                    curNote.held = false;
-                    player.score += player.sustainScoreBuffer[curNote.lane];
-                    player.sustainScoreBuffer[curNote.lane] = 0;
-                    player.mute = true;
-                    // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream, missVolume);
-                }*/
-                /*
-                if (action == GLFW_PRESS &&
                     eventTime > songList.songs[curPlayingSong].music_start &&
                     !curNote.hit &&
                     !curNote.accounted &&
                     ((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
                     eventTime > overdriveHitTime + 0.05
                     && !gpr.overhitFrets[lane]) {
-                    if (lastHitLifts[lane] != -1) {
-                        if (eventTime > curChart.notes[lastHitLifts[lane]].time - 0.1 &&
+                        if (lastHitLifts[lane] != -1) {
+                            if (eventTime > curChart.notes[lastHitLifts[lane]].time - 0.1 &&
                             eventTime < curChart.notes[lastHitLifts[lane]].time + 0.1)
-                            continue;
-                    }
-                    player.OverHit();
-                    if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
+                                continue;
+                        }
+                        player.OverHit();
+                        if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
                         eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
                         !curChart.odPhrases[gpr.curODPhrase].missed)
-                        curChart.odPhrases[gpr.curODPhrase].missed = true;
-                    gpr.overhitFrets[lane] = true;
+                            curChart.odPhrases[gpr.curODPhrase].missed = true;
+                        gpr.overhitFrets[lane] = true;
+                    }
                 }
-                */
             }
         }
     }
-	}
+	else {
+        int strummedNote = 0;
+        Note& curNote = curChart.notes[gpr.curNoteInt];
+        int pressedMask = 0b000000;
+
+        for (int pressedButtons = 0; pressedButtons < gpr.heldFrets.size(); pressedButtons++) {
+            if (gpr.heldFrets[pressedButtons])
+                pressedMask += curChart.PlasticFrets[pressedButtons];
+        }
+
+        HeldMaskShow = pressedMask;
+        Note &lastNote = curChart.notes[gpr.curNoteInt == 0 ? 0 : gpr.curNoteInt - 1];
+
+        if (!lastNote.accounted && gpr.curNoteInt != 0)
+            return;
+
+        if (lane == -3) {
+            StrumNoFretTime = eventTime;
+            FAS = true;
+            curNote.hitWithFAS = true;
+            if (gpr.curNoteInt < curChart.notes.size()-1)
+                curChart.notes[gpr.curNoteInt+1].hitWithFAS = false;
+            strummedNote = gpr.curNoteInt;
+        }
+
+        bool chordMatch = (pressedMask == curNote.mask);
+        bool singleMatch = (pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
+        bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
+        //if (eventTime - fretAfterStrumTime >= StrumNoFretTime) {
+        //    FAS = false;
+        //}
+
+        if (noteMatch && FAS && curNote.hitWithFAS && (gpr.curNoteInt == 0 ? true : lastNote.accounted)) {
+            if ((curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && strummedNote == gpr.curNoteInt)) {
+                FAS = false;
+                curNote.hit = true;
+                curNote.HitOffset = curNote.time - eventTime;
+                curNote.hitTime = eventTime;
+                if ((curNote.len) > 0) {
+                    curNote.held = true;
+                }
+                if (curNote.isPerfect(eventTime, player.InputOffset)) {
+                    curNote.perfect = true;
+                }
+                player.HitNote(curNote.perfect, player.instrument);
+                gpr.curNoteInt++;
+                curNote.accounted = true;
+                return;
+            }
+        }
+        if (lane == -3) {
+            if ((FAS && !curNote.hitWithFAS) || curNote.time+goodFrontend < eventTime) {
+                player.OverHit();
+                FAS = false;
+            }
+        }
+        if (noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0) && lane != -3) {
+            if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.accounted) {
+                curNote.hit = true;
+                curNote.HitOffset = curNote.time - eventTime;
+                curNote.hitTime = eventTime;
+
+                if ((curNote.len) > 0) {
+                    curNote.held = true;
+                }
+                if (curNote.isPerfect(eventTime, player.InputOffset)) {
+                    curNote.perfect = true;
+                }
+                player.HitNote(curNote.perfect, player.instrument);
+                gpr.curNoteInt++;
+                curNote.accounted = true;
+                return;
+            }
+        }
+
+        if (!noteMatch && curNote.hit && curNote.held && curNote.len > 0) {
+            curNote.held = false;
+            player.mute = true;
+            return;
+        }
+            /*
+            if ((!gpr.heldFrets[curNote.lane] && !gpr.heldFretsAlt[curNote.lane]) && curNote.held &&
+                (curNote.len) > 0) {
+                curNote.held = false;
+                player.score += player.sustainScoreBuffer[curNote.lane];
+                player.sustainScoreBuffer[curNote.lane] = 0;
+                player.mute = true;
+                // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream, missVolume);
+            }*/
+            /*
+            if (action == GLFW_PRESS &&
+                eventTime > songList.songs[curPlayingSong].music_start &&
+                !curNote.hit &&
+                !curNote.accounted &&
+                ((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
+                eventTime > overdriveHitTime + 0.05
+                && !gpr.overhitFrets[lane]) {
+                if (lastHitLifts[lane] != -1) {
+                    if (eventTime > curChart.notes[lastHitLifts[lane]].time - 0.1 &&
+                        eventTime < curChart.notes[lastHitLifts[lane]].time + 0.1)
+                        continue;
+                }
+                player.OverHit();
+                if (!curChart.odPhrases.empty() && eventTime >= curChart.odPhrases[gpr.curODPhrase].start &&
+                    eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
+                    !curChart.odPhrases[gpr.curODPhrase].missed)
+                    curChart.odPhrases[gpr.curODPhrase].missed = true;
+                gpr.overhitFrets[lane] = true;
+            }
+            */
+
+        }
+    }
 }
 
 // what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
@@ -530,9 +513,23 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                         }
                     }
                 }
-                if (action == GLFW_PRESS && (key == GLFW_KEY_UP || key == GLFW_KEY_DOWN) ) {
-                    lane = -3;
-                    gpr.overstrum = false;
+                if (key == GLFW_KEY_DOWN) {
+                    if (action == GLFW_PRESS) {
+                        lane = -3;
+                        gpr.upStrum = true;
+                        gpr.overstrum = false;
+                    } else if (action == GLFW_RELEASE) {
+                        gpr.upStrum = false;
+                    }
+                }
+                if (key == GLFW_KEY_DOWN) {
+                    if (action == GLFW_PRESS) {
+                        lane = -3;
+                        gpr.downStrum = true;
+                        gpr.overstrum = false;
+                    } else if (action == GLFW_RELEASE) {
+                        gpr.downStrum = false;
+                    }
                 }
                 if (lane != -1 && lane != -2) {
                     handleInputs(lane, action);
@@ -650,9 +647,19 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1 || state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1) {
+        gpr.upStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
+    } else {
+        gpr.upStrum = false;
+    }
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1) {
+        gpr.downStrum = true;
+        gpr.overstrum = false;
+        handleInputs(-3, GLFW_PRESS);
+    } else {
+        gpr.downStrum = false;
     }
 }
 
@@ -773,7 +780,7 @@ int main(int argc, char* argv[])
     settingsMain.loadSettings(directory / "settings.json");
     player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
     player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
-    int targetFPS = 5000; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    int targetFPS = 120; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
     if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -2217,6 +2224,41 @@ int main(int argc, char* argv[])
                 DrawTextEx(assets.rubik, textTime, { GetScreenWidth() - textLength,GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04f), 0, WHITE);
                 DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, GOLD);
                 GuiProgressBar(Rectangle{ 0,(float)GetScreenHeight() - u.hinpct(0.005f),(float)GetScreenWidth(),u.hinpct(0.01f) }, "", "", & floatSongLength, 0, (float)songLength);
+                DrawText(to_string(HeldMaskShow).c_str(), 0, 200, 30, WHITE);
+                DrawText(to_string(gpr.curNoteInt).c_str(), 0, 240, 30, WHITE);
+
+                DrawRectangle(u.wpct(0.5f)-(u.winpct(0.12f)/2),u.hpct(0.02f) - u.winpct(0.01f), u.winpct(0.12f),u.winpct(0.065f),DARKGRAY);
+
+                for (int fretBox = 0; fretBox < gpr.heldFrets.size(); fretBox++) {
+                    float leftInputBoxSize = (5 * u.winpct(0.02f))/2;
+
+                    Color fretColor;
+                    switch (fretBox) {
+                        default:
+                            fretColor = BROWN;
+                            break;
+                        case (0):
+                            fretColor = GREEN;
+                            break;
+                        case (1):
+                            fretColor = RED;
+                            break;
+                        case (2):
+                            fretColor = YELLOW;
+                            break;
+                        case (3):
+                            fretColor = BLUE;
+                            break;
+                        case (4):
+                            fretColor = ORANGE;
+                            break;
+                    }
+
+                    DrawRectangle(u.wpct(0.5f)-leftInputBoxSize+(fretBox * u.winpct(0.02f)),u.hpct(0.02f), u.winpct(0.02f),u.winpct(0.02f),gpr.heldFrets[fretBox]?fretColor:GRAY);
+
+                }
+                DrawRectangle(u.wpct(0.5f)-((5 * u.winpct(0.02f))/2),u.hpct(0.02f) + u.winpct(0.025f), u.winpct(0.1f),u.winpct(0.01f),gpr.upStrum?WHITE:GRAY);
+                DrawRectangle(u.wpct(0.5f)-((5 * u.winpct(0.02f))/2),u.hpct(0.02f) + u.winpct(0.035f), u.winpct(0.1f),u.winpct(0.01f),gpr.downStrum?WHITE:GRAY);
 
                 break;
 

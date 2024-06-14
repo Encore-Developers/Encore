@@ -30,6 +30,7 @@ public:
 
 	// CLASSIC
     // 0-4 for grybo, helps with chords
+    bool hitWithFAS = false;
     int mask;
     bool chord = false;
     std::vector<int> pLanes;
