@@ -3,8 +3,8 @@
 //
 
 #include "game/gameplay/gameplayRenderer.h"
-#include "game/Assets.h"
-#include "game/Settings.h"
+#include "game/assets.h"
+#include "game/settings.h"
 #include "game/menus/gameMenu.h"
 #include "raymath.h"
 #include "game/menus/uiUnits.h"
