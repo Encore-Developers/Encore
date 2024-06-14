@@ -180,6 +180,16 @@ public:
 		perfectHit += perfect ? 1 : 0;
         mute = false;
 	}
+    void HitPlasticNote(Note note, int inst) {
+        notesHit += 1;
+        combo += 1;
+        if (combo > maxCombo)
+            maxCombo = combo;
+        float perfectMult = note.perfect ? 1.2f : 1.0f;
+        score += (note.chordSize * (int)((30.0f * (multiplier(inst)) * perfectMult)));
+        perfectHit += note.perfect ? 1 : 0;
+        mute = false;
+    }
 	void MissNote() {
 		notesMissed += 1;
         if (combo != 0)

@@ -371,7 +371,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             }
         }
         if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < time + player.VideoOffset - player.InputOffset &&
-            !songEnded && curNoteInt <= curChart.notes.size()) {
+            !songEnded && curNoteInt < curChart.notes.size()) {
             curNote.miss = true;
             player.MissNote();
             if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&

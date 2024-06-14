@@ -40,5 +40,6 @@ public:
     bool upStrum = false;
     bool downStrum = false;
     bool FAS = false;
+    bool processingStrum = false;
 };
 
