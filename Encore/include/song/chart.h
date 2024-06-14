@@ -494,13 +494,13 @@ public:
                 }
             }
 
-        int curODPhrasea = 0;
+        curODPhrase = 0;
         if (odPhrases.size() > 0) {
             for (Note &note : notes) {
-                if (note.time > odPhrases[curODPhrasea].end && curODPhrasea<odPhrases.size()-1)
-                    curODPhrasea++;
-                if (note.time >= odPhrases[curODPhrasea].start && note.time <= odPhrases[curODPhrasea].end)
-                    odPhrases[curODPhrasea].noteCount++;
+                if (note.time > odPhrases[curODPhrase].end && curODPhrase<odPhrases.size()-1)
+                    curODPhrase++;
+                if (note.time >= odPhrases[curODPhrase].start && note.time <= odPhrases[curODPhrase].end)
+                    odPhrases[curODPhrase].noteCount++;
             }
         }
         curSolo = 0;

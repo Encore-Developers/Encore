@@ -334,7 +334,9 @@ static void handleInputs(int lane, int action){
         }
     }
 	else {
-
+        if (gpr.curNoteInt >= curChart.notes.size())
+            gpr.curNoteInt = curChart.notes.size()-1;
+        player.notes = gpr.curNoteInt;
         Note &curNote = curChart.notes[gpr.curNoteInt];
         int pressedMask = 0b000000;
 
@@ -349,20 +351,26 @@ static void handleInputs(int lane, int action){
         if (!lastNote.accounted && gpr.curNoteInt != 0)
             return;
 
+
+
         bool firstNote = gpr.curNoteInt == 0;
 
         if (lane == -3 && action == GLFW_PRESS) {
             StrumNoFretTime = eventTime;
             if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS && !FAS) {
-                FAS = true;
+                gpr.FAS = true;
                 curNote.hitWithFAS = true;
                 if (gpr.curNoteInt < curChart.notes.size() - 1)
                     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
                 strummedNote = gpr.curNoteInt;
             }
-            else if (!curNote.isGood(eventTime, player.InputOffset) && curNote.time > eventTime && (!curNote.hit && !curNote.hitWithFAS) && (firstNote ? true : lastNote.accounted) && !FAS && (firstNote ? false : lastNote.time) ) {
+            if (!curNote.isGood(eventTime, player.InputOffset) &&
+                curNote.time > eventTime &&
+                (firstNote ? true : lastNote.accounted) &&
+                strummedNote != gpr.curNoteInt &&
+                gpr.FAS) {
                 gpr.overstrum = true;
-                FAS = false;
+                gpr.FAS = false;
                 player.OverHit();
                 return;
             }
@@ -375,23 +383,23 @@ static void handleInputs(int lane, int action){
         //    FAS = false;
         //}
         if (StrumNoFretTime + fretAfterStrumTime < eventTime) {
-            FAS = false;
+            gpr.FAS = false;
         }
-        if (FAS && curNote.hitWithFAS && (gpr.curNoteInt == 0 ? true : lastNote.accounted)) {
+        if (gpr.FAS && curNote.hitWithFAS && (gpr.curNoteInt == 0 ? true : lastNote.accounted)) {
             if (noteMatch && (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && strummedNote == gpr.curNoteInt)) {
-                FAS = false;
+                gpr.FAS = false;
                 curNote.hit = true;
                 curNote.HitOffset = curNote.time - eventTime;
                 curNote.hitTime = eventTime;
-                if ((curNote.len) > 0) {
-                    curNote.held = true;
-                }
                 if (curNote.isPerfect(eventTime, player.InputOffset)) {
                     curNote.perfect = true;
                 }
                 player.HitNote(curNote.perfect, player.instrument);
-                gpr.curNoteInt++;
                 curNote.accounted = true;
+                if ((curNote.len) > 0) {
+                    curNote.held = true;
+                }
+                gpr.curNoteInt++;
                 return;
             }
         }
@@ -410,8 +418,8 @@ static void handleInputs(int lane, int action){
                     curNote.perfect = true;
                 }
                 player.HitNote(curNote.perfect, player.instrument);
-                gpr.curNoteInt++;
                 curNote.accounted = true;
+                gpr.curNoteInt++;
                 return;
             }
         }
