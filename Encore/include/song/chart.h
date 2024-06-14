@@ -31,6 +31,7 @@ public:
 	// CLASSIC
     // 0-4 for grybo, helps with chords
     int strumCount = 0;
+    int chordSize = 0;
     bool hitWithFAS = false;
     int mask;
     bool chord = false;
@@ -433,13 +434,14 @@ public:
             for (int i = 0; i < notesPre.size(); i++) {
                 Note note = notesPre[i];
                 Note newNote;
-
+                newNote.chordSize = 1;
                 newNote.mask = PlasticFrets[note.lane];
                 for (Note noteMatching : notesPre) {
                     if (noteMatching.tick == note.tick && noteMatching.lane != note.lane) {
                         newNote.pLanes.push_back(noteMatching.lane);
                         newNote.mask |= PlasticFrets[noteMatching.lane];
                         newNote.chord = true;
+                        newNote.chordSize++;
                     }
                 }
 
