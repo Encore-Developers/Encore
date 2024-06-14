@@ -4,6 +4,7 @@
 #include "midifile/MidiFile.h"
 #include "song.h"
 #include "game/timingvalues.h"
+#include <algorithm>
 class Note 
 {
 public:
@@ -25,10 +26,18 @@ public:
     bool perfect = false;
 	bool renderAsOD = false;
     double hitTime = 0;
-	//For plastic support later
+    int tick;
 
-	bool forceStrum;
-	bool forceHopo;
+	// CLASSIC
+    // 0-4 for grybo, helps with chords
+    bool hitWithFAS = false;
+    int mask;
+    bool chord = false;
+    std::vector<int> pLanes;
+	bool pForceOn = false;
+	bool pForceOff = false;
+    bool phopo = false;
+
 	bool isGood(double eventTime, double inputOffset) const {
 		return (time - goodBackend + inputOffset < eventTime &&
 			time + goodFrontend + inputOffset > eventTime);
@@ -39,12 +48,24 @@ public:
 	}
 };
 
+
+
 struct solo {
     double start;
     double end;
     int noteCount = 0;
     int notesHit = 0;
     bool perfect = false;
+};
+
+struct forceOnPhrase {
+    double start;
+    double end;
+};
+
+struct forceOffPhrase {
+    double start;
+    double end;
 };
 
 struct odPhrase 
@@ -62,7 +83,29 @@ class Chart
 private:
 	std::vector<std::vector<int>> diffNotes = { {60,63,66,69}, {72,75,78,81}, {84,87,90,93}, {96,100,102,106} };
     int soloNote = 101;
+
+    std::vector<std::vector<int>> pDiffNotes = { {60,61,62,63,64}, {72,73,74,75,76}, {84,85,86,87,88}, {96,97,98,99,100} };
+    int pSoloNote = 103;
+    int pForceOn = 101;
+    int pForceOff = 102;
+    static bool compareNotes(const Note& a, const Note& b) {
+        return a.time < b.time;
+    }
+    static bool areNotesEqual(const Note& a, const Note& b) {
+        return a.tick == b.tick;
+    }
 public:
+
+    std::vector<int> PlasticFrets = {
+        0b000001, // green
+        0b000010, // red
+        0b000100, // yellow
+        0b001000, // blue
+        0b010000  // orange
+    };
+
+
+    bool plastic = false;
     // plastic stuff :tm:
     // note: clones dont do thresh. they do 12ths
     int hopoThreshold = 170;
@@ -71,12 +114,43 @@ public:
 	std::vector <std::vector<int>> notes_perlane{ {},{},{},{},{} };
 	int baseScore = 0;
 	int findNoteIdx(double time, int lane) {
+        // if i is smaller than the amount of notes
 		for (int i = 0; i < notes.size();i++) {
+            // if a note exists at the time given, and is in the same lane, return that note's value
 			if (notes[i].time == time && notes[i].lane == lane)
 				return i;
 		}
 		return -1;
 	}
+
+
+    std::vector<Note> notesPre;
+
+    int findNotePreIdx(double time, int lane) {
+        // if i is smaller than the amount of notes
+        for (int i = 0; i < notesPre.size();i++) {
+            // if a note exists at the time given, and is in the same lane, return that note's value
+            if (notesPre[i].time == time && notesPre[i].lane == lane)
+                return i;
+        }
+        return -1;
+    }
+
+    std::vector<int> findPNoteIdx(double time) {
+        std::vector<int> sameNotes;
+        // if i is smaller than the amount of notes
+        for (int i = 0; i < notesPre.size();i++) {
+            // if a note exists at the time given, and is in the same lane, return that note's value
+            if (notesPre[i].time == time)
+                sameNotes.push_back(i);
+        } if (sameNotes.empty()) {
+            sameNotes.push_back(-1);
+        }
+        return sameNotes;
+    }
+
+    std::vector<forceOnPhrase> forcedOnPhrases;
+    std::vector<forceOffPhrase> forcedOffPhrases;
 	std::vector<odPhrase> odPhrases;
     std::vector<solo> Solos;
     int resolution = 480;
@@ -185,6 +259,7 @@ public:
                     }
                 }
 			}
+
 		}
 		curODPhrase = 0;
 		if (odPhrases.size() > 0) {
@@ -225,7 +300,220 @@ public:
 				++it;
 			}
 		}
+        std::sort(notes.begin(), notes.end(),
+                  compareNotes);
 	}
+    void parsePlasticNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument) {
+        bool odOn = false;
+        bool soloOn = false;
+        bool forceOn = false;
+        bool forceOff = false;
+        std::vector<int> notePitches = pDiffNotes[diff];
+        std::vector<double> noteOnTime{ 0.0, 0.0, 0.0, 0.0, 0.0};
+        std::vector<int> noteOnTick{ 0,0,0,0,0 };
+        std::vector<bool> notesOn{ false,false,false,false,false};
+
+        midiFile.linkNotePairs();
+        int odNote = 116;
+        int curNote = -1;
+        int curFOn = -1;
+        int curFOff = -1;
+        int curODPhrase = -1;
+        int curSolo = -1;
+        int curBPM = 0;
+        resolution = midiFile.getTicksPerQuarterNote();
+        if (instrument == 5 || instrument == 6) {
+            for (int i = 0; i < events.getSize(); i++) {
+                if (events[i].isNoteOn()) {
+                    if (events[i][1] >= notePitches[0] && events[i][1] <= notePitches[4]) {
+                        double time = midiFile.getTimeInSeconds(trkidx, i);
+                        int tick = midiFile.getAbsoluteTickTime(time);
+                        int pitch = events[i][1];
+                        int lane = pitch - notePitches[0];
+                        if (!notesOn[lane]) {
+                            Note newNote;
+                            newNote.lane = lane;
+                            newNote.tick = tick;
+                            newNote.time = time;
+                            notesPre.push_back(newNote);
+                            notesOn[lane] = true;
+                            noteOnTick[lane] = tick;
+                            noteOnTime[lane] = time;
+                            curNote++;
+                        }
+                    }
+                    else if ((int)events[i][1] == pForceOn) {
+                        if (!forceOn) {
+                            forceOnPhrase newPhrase;
+                            newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                            forcedOnPhrases.push_back(newPhrase);
+                            forceOn = true;
+                            curFOn++;
+                        }
+                    }
+                    else if ((int)events[i][1] == pForceOff) {
+                        if (!forceOff) {
+                            forceOffPhrase newPhrase;
+                            newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                            forcedOffPhrases.push_back(newPhrase);
+                            forceOff = true;
+                            curFOff++;
+                        }
+                    }
+                    else if ((int)events[i][1] == odNote) {
+                        if (!odOn) {
+                            odOn = true;
+                            odPhrase newPhrase;
+                            newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                            odPhrases.push_back(newPhrase);
+                            curODPhrase++;
+
+                        }
+
+                    } else if ((int)events[i][1] == pSoloNote) {
+                        if (!soloOn) {
+                            soloOn = true;
+                            solo newSolo;
+                            newSolo.start = midiFile.getTimeInSeconds(trkidx, i);
+                            Solos.push_back(newSolo);
+                            curSolo++;
+                        }
+                    }
+                    } else if (events[i].isNoteOff()) {
+                        double time = midiFile.getTimeInSeconds(trkidx, i);
+                        int tick = midiFile.getAbsoluteTickTime(time);
+                        if ((int)events[i][1] >= notePitches[0] && (int)events[i][1] <= notePitches[4]) {
+                            int lane = (int)events[i][1] - notePitches[0];
+                            if (notesOn[lane]) {
+                                int noteIdx = findNotePreIdx(noteOnTime[lane], lane);
+                                if (noteIdx != -1) {
+                                    notesPre[noteIdx].beatsLen = (tick - noteOnTick[lane]) / (float)midiFile.getTicksPerQuarterNote();
+                                    if (notesPre[noteIdx].beatsLen > 0.25) {
+                                        notesPre[noteIdx].len = time - notesPre[noteIdx].time;
+                                    }
+                                    else {
+                                        notesPre[noteIdx].beatsLen = 0;
+                                        notesPre[noteIdx].len = 0;
+                                    }
+                                }
+                                noteOnTick[lane] = 0;
+                                noteOnTime[lane] = 0;
+                                notesOn[lane] = false;
+                            }
+                        }
+                        else if ((int)events[i][1] == pForceOn) {
+                            if (forceOn) {
+                                forcedOnPhrases[curFOn].end = time;
+                                forceOn = false;
+                            }
+                        }
+                        else if ((int)events[i][1] == pForceOff) {
+                            if (forceOff) {
+                                forcedOffPhrases[curFOff].end = time;
+                                forceOff = false;
+                            }
+                        }
+                        else if ((int)events[i][1] == odNote) {
+                            if (odOn) {
+                                odPhrases[curODPhrase].end = time;
+                                odOn = false;
+                            }
+                        }
+                        else if ((int)events[i][1] == pSoloNote) {
+                            if (soloOn) {
+                                Solos[curSolo].end = time;
+                                soloOn = false;
+                            }
+                        }
+                    }
+                }
+        };
+
+            for (int i = 0; i < notesPre.size(); i++) {
+                Note note = notesPre[i];
+                Note newNote;
+
+                newNote.mask = PlasticFrets[note.lane];
+                for (Note noteMatching : notesPre) {
+                    if (noteMatching.tick == note.tick && noteMatching.lane != note.lane) {
+                        newNote.pLanes.push_back(noteMatching.lane);
+                        newNote.mask |= PlasticFrets[noteMatching.lane];
+                        newNote.chord = true;
+                    }
+                }
+
+                newNote.pLanes.push_back(note.lane);
+                newNote.tick = note.tick;
+                if (notes.size() > 0) {
+                    Note lastNote = notes[notes.size() - 1];
+                    if (lastNote.tick >= newNote.tick - (midiFile.getTicksPerQuarterNote()/3) && lastNote.pLanes[0] != newNote.pLanes[0] && !newNote.chord) {
+                        newNote.phopo = true;
+                    }
+                }
+                newNote.len = note.len;
+                newNote.time = note.time;
+                newNote.valid = true;
+                notes.push_back(newNote);
+
+            }
+
+            auto it = std::unique(notes.begin(), notes.end(), areNotesEqual);
+            notes.erase(it, notes.end());
+            std::sort(notes.begin(), notes.end(),
+                  compareNotes);
+            auto again = std::unique(notes.begin(), notes.end(), areNotesEqual);
+            notes.erase(again, notes.end());
+
+
+        curFOff = 0;
+        if (forcedOffPhrases.size() > 0) {
+            for (Note &note : notes) {
+                if (note.time > forcedOffPhrases[curFOff].end && curFOff<forcedOffPhrases.size()-1)
+                    curFOff++;
+
+                // std::cout << "fOn: " << forcedOnPhrases[curFOn].start << std::endl << "fOff: "
+                //           << forcedOnPhrases[curFOn].end << std::endl;
+
+                if (note.time >= forcedOffPhrases[curFOff].start && note.time < forcedOffPhrases[curFOff].end) {
+                    note.phopo = false;
+                }
+            }
+        }
+            curFOn = 0;
+            if (forcedOnPhrases.size() > 0) {
+                for (Note &note : notes) {
+                    if (note.time > forcedOnPhrases[curFOn].end && curFOn<forcedOnPhrases.size()-1)
+                        curFOn++;
+
+                    // std::cout << "fOn: " << forcedOnPhrases[curFOn].start << std::endl << "fOff: "
+                    //           << forcedOnPhrases[curFOn].end << std::endl;
+
+                    if (note.time >= forcedOnPhrases[curFOn].start && note.time < forcedOnPhrases[curFOn].end) {
+                        note.phopo = true;
+                    }
+                }
+            }
+
+        int curODPhrasea = 0;
+        if (odPhrases.size() > 0) {
+            for (Note &note : notes) {
+                if (note.time > odPhrases[curODPhrasea].end && curODPhrasea<odPhrases.size()-1)
+                    curODPhrasea++;
+                if (note.time >= odPhrases[curODPhrasea].start && note.time <= odPhrases[curODPhrasea].end)
+                    odPhrases[curODPhrasea].noteCount++;
+            }
+        }
+        curSolo = 0;
+        if (Solos.size() > 0) {
+            for (Note &note : notes) {
+                if (note.time > Solos[curSolo].end && curSolo<Solos.size()-1)
+                    curSolo++;
+                if (note.time >= Solos[curSolo].start && note.time <= Solos[curSolo].end)
+                    Solos[curSolo].noteCount++;
+            }
+        }
+    }
+
 	void resetNotes() {
 		for (Note& note : notes) {
 			note.accounted = false;

@@ -7,8 +7,11 @@
 
 // clone hero defaults
 
+
+
 class Player {
 private:
+    AudioManager &playerAudioManager = AudioManager::getInstance();
     Player() {}
 public:
     static Player& getInstance() {
@@ -59,7 +62,7 @@ public:
     int score = 0;
     std::vector<int> sustainScoreBuffer{ 0,0,0,0,0 };
     int playerOverhits = 0;
-
+    bool plastic = false;
     bool paused = false;
     bool goldStars = false;
 
@@ -97,7 +100,7 @@ public:
     int multiplier(int inst) {
         int od = overdrive ? 2 : 1;
 
-        if (inst == 1 || inst == 3){
+        if (inst == 1 || inst == 3 || inst == 5){
 
             if (combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (overdrive ? 0.5f:0); return 1 * od; }
             else if (combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (overdrive ? 0.5f : 0);  return 2 * od; }
@@ -117,14 +120,14 @@ public:
     }
 
     int maxMultForMeter(int inst) {
-        if (inst == 1 || inst == 3)
+        if (inst == 1 || inst == 3 || inst == 5)
             return 5;
         else
             return 3;
     }
 
     float comboFillCalc(int inst) {
-        if (inst == 0 || inst == 2) {
+        if (inst == 0 || inst == 2 || inst == 4 || inst == 6) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0
@@ -177,29 +180,19 @@ public:
 		perfectHit += perfect ? 1 : 0;
         mute = false;
 	}
-	void HitNoteAudio(bool perfect, int inst) {
-		notesHit += 1;
-		combo += 1;
-		if (combo > maxCombo)
-			maxCombo = combo;
-		float perfectMult = perfect ? 1.2f : 1.0f;
-		score += (int)((30.0f * (multiplier(inst)) * perfectMult));
-		perfectHit += perfect ? 1 : 0;
-		mute = false;
-	}
-	void MissNote(AudioManager audioManager) {
+	void MissNote() {
 		notesMissed += 1;
         if (combo != 0)
-            audioManager.playSample("miss", sfxVolume);
+            playerAudioManager.playSample("miss", sfxVolume);
 		if (combo > maxCombo)
 			maxCombo = combo;
 		combo = 0;
 		FC = false;
         mute = true;
 	}
-    void OverHit(AudioManager audioManager) {
+    void OverHit() {
         if (combo != 0)
-            audioManager.playSample("miss", sfxVolume);
+            playerAudioManager.playSample("miss", sfxVolume);
 		if (combo > maxCombo)
 			maxCombo = combo;
         combo = 0;
