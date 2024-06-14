@@ -150,7 +150,7 @@ std::string scoreCommaFormatter(int value) {
 double StrumNoFretTime = 0.0;
 
 bool FAS = false;
-
+int strummedNote = 0;
 int FASNote = 0;
 
 static void handleInputs(int lane, int action){
@@ -334,8 +334,8 @@ static void handleInputs(int lane, int action){
         }
     }
 	else {
-        int strummedNote = 0;
-        Note& curNote = curChart.notes[gpr.curNoteInt];
+
+        Note &curNote = curChart.notes[gpr.curNoteInt];
         int pressedMask = 0b000000;
 
         for (int pressedButtons = 0; pressedButtons < gpr.heldFrets.size(); pressedButtons++) {
@@ -349,13 +349,22 @@ static void handleInputs(int lane, int action){
         if (!lastNote.accounted && gpr.curNoteInt != 0)
             return;
 
-        if (lane == -3) {
+
+
+        if (lane == -3 && action == GLFW_PRESS) {
             StrumNoFretTime = eventTime;
-            FAS = true;
-            curNote.hitWithFAS = true;
-            if (gpr.curNoteInt < curChart.notes.size()-1)
-                curChart.notes[gpr.curNoteInt+1].hitWithFAS = false;
-            strummedNote = gpr.curNoteInt;
+            if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS && !FAS) {
+                FAS = true;
+                curNote.hitWithFAS = true;
+                if (gpr.curNoteInt < curChart.notes.size() - 1)
+                    curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
+                strummedNote = gpr.curNoteInt;
+            }
+            else if (!curNote.isGood(eventTime, player.InputOffset) && curNote.time < eventTime && ((!curNote.hit && !curNote.hitWithFAS) || FAS)) {
+                gpr.overstrum = true;
+                player.OverHit();
+                return;
+            }
         }
 
         bool chordMatch = (pressedMask == curNote.mask);
@@ -364,9 +373,11 @@ static void handleInputs(int lane, int action){
         //if (eventTime - fretAfterStrumTime >= StrumNoFretTime) {
         //    FAS = false;
         //}
-
-        if (noteMatch && FAS && curNote.hitWithFAS && (gpr.curNoteInt == 0 ? true : lastNote.accounted)) {
-            if ((curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && strummedNote == gpr.curNoteInt)) {
+        if (StrumNoFretTime + fretAfterStrumTime < eventTime) {
+            FAS = false;
+        }
+        if (FAS && curNote.hitWithFAS && (gpr.curNoteInt == 0 ? true : lastNote.accounted)) {
+            if (noteMatch && (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && strummedNote == gpr.curNoteInt)) {
                 FAS = false;
                 curNote.hit = true;
                 curNote.HitOffset = curNote.time - eventTime;
@@ -383,13 +394,8 @@ static void handleInputs(int lane, int action){
                 return;
             }
         }
-        if (lane == -3) {
-            if ((FAS && !curNote.hitWithFAS) || curNote.time+goodFrontend < eventTime) {
-                player.OverHit();
-                FAS = false;
-                return;
-            }
-        }
+
+
         if (noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0) && lane != -3) {
             if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.accounted) {
                 curNote.hit = true;
@@ -588,6 +594,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		}
 	}
 	if (player.diff == 3 || player.plastic) {
+
 		for (int i = 0; i < 5; i++) {
 			if (settingsMain.controller5K[i] >= 0) {
 				if (state.buttons[settingsMain.controller5K[i]] != buttonValues[settingsMain.controller5K[i]]) {
@@ -597,13 +604,12 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
                         gpr.heldFrets[i] = false;
                         gpr.overhitFrets[i] = false;
 					}
-						
 					handleInputs(i, state.buttons[settingsMain.controller5K[i]]);
 					buttonValues[settingsMain.controller5K[i]] = state.buttons[settingsMain.controller5K[i]];
 				}
 			}
 			else {
-				if (state.axes[-(settingsMain.controller5K[i] + 1)] != axesValues[-(settingsMain.controller5K[i]+1)]) {
+				if (state.axes[-(settingsMain.controller5K[i] + 1)] != axesValues[-(settingsMain.controller5K[i] + 1)]) {
 					if (state.axes[-(settingsMain.controller5K[i] + 1)] == 1.0f * (float)settingsMain.controller5KAxisDirection[i]) {
                         gpr.heldFrets[i] = true;
 						handleInputs(i, GLFW_PRESS);
