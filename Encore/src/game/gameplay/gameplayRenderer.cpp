@@ -423,15 +423,19 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             if (relEnd > 1.5) relEnd = 1.5;
             if (curNote.phopo && !curNote.hit) {
                 if (curNote.renderAsOD) {
-                    DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
+                    gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+                    gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+                    DrawModel(gprAssets.noteTopModelHP, Vector3{notePosX, 0, player.smasherPos +
                                                                              (length *
                                                                               (float) relTime)}, 1.1f,
                               WHITE);
-                    DrawModel(gprAssets.noteBottomModelOD, Vector3{notePosX, 0, player.smasherPos +
+                    DrawModel(gprAssets.noteBottomModelHP, Vector3{notePosX, 0, player.smasherPos +
                                                                                 (length *
                                                                                  (float) relTime)}, 1.1f,
                               WHITE);
                 } else {
+                    gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+                    gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
                     DrawModel(gprAssets.noteTopModelHP, Vector3{notePosX, 0, player.smasherPos +
                                                                              (length *
                                                                               (float) relTime)}, 1.1f,
