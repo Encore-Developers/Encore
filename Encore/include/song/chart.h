@@ -341,7 +341,8 @@ public:
                             noteOnTime[lane] = time;
                             curNote++;
                         }
-                    } else if ((int)events[i][1] == pForceOn) {
+                    }
+                    else if ((int)events[i][1] == pForceOn) {
                         if (!forceOn) {
                             forceOnPhrase newPhrase;
                             newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
@@ -349,7 +350,8 @@ public:
                             forceOn = true;
                             curFOn++;
                         }
-                    } else if ((int)events[i][1] == pForceOff) {
+                    }
+                    else if ((int)events[i][1] == pForceOff) {
                         if (!forceOff) {
                             forceOffPhrase newPhrase;
                             newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
@@ -357,7 +359,8 @@ public:
                             forceOff = true;
                             curFOff++;
                         }
-                    } else if ((int)events[i][1] == odNote) {
+                    }
+                    else if ((int)events[i][1] == odNote) {
                         if (!odOn) {
                             odOn = true;
                             odPhrase newPhrase;
@@ -398,29 +401,30 @@ public:
                                 notesOn[lane] = false;
                             }
                         }
-                        if ((int)events[i][1] == pForceOn) {
+                        else if ((int)events[i][1] == pForceOn) {
                             if (forceOn) {
                                 forcedOnPhrases[curFOn].end = time;
                                 forceOn = false;
                             }
-                        } else if ((int)events[i][1] == pForceOff) {
+                        }
+                        else if ((int)events[i][1] == pForceOff) {
                             if (forceOff) {
                                 forcedOffPhrases[curFOff].end = time;
                                 forceOff = false;
+                            }
                         }
                         else if ((int)events[i][1] == odNote) {
-                            if (odOn == true) {
+                            if (odOn) {
                                 odPhrases[curODPhrase].end = time;
                                 odOn = false;
                             }
                         }
                         else if ((int)events[i][1] == pSoloNote) {
-                            if (soloOn == true) {
+                            if (soloOn) {
                                 Solos[curSolo].end = time;
                                 soloOn = false;
                             }
                         }
-                    }
                     }
                 }
         };
@@ -490,13 +494,13 @@ public:
                 }
             }
 
-        curODPhrase = 0;
+        int curODPhrasea = 0;
         if (odPhrases.size() > 0) {
             for (Note &note : notes) {
-                if (note.time > odPhrases[curODPhrase].end && curODPhrase<odPhrases.size()-1)
-                    curODPhrase++;
-                if (note.time >= odPhrases[curODPhrase].start && note.time <= odPhrases[curODPhrase].end)
-                    odPhrases[curODPhrase].noteCount++;
+                if (note.time > odPhrases[curODPhrasea].end && curODPhrasea<odPhrases.size()-1)
+                    curODPhrasea++;
+                if (note.time >= odPhrases[curODPhrasea].start && note.time <= odPhrases[curODPhrasea].end)
+                    odPhrases[curODPhrasea].noteCount++;
             }
         }
         curSolo = 0;
