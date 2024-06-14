@@ -521,7 +521,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                         }
                     }
                 }
-                if (key == GLFW_KEY_DOWN) {
+                if (key == GLFW_KEY_UP) {
                     if (action == GLFW_PRESS) {
                         lane = -3;
                         gpr.upStrum = true;
@@ -655,14 +655,14 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1 && action == GLFW_PRESS) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == 1 &) {
         gpr.upStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
     } else {
         gpr.upStrum = false;
     }
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1 && action = GLFW_PRESS) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == 1) {
         gpr.downStrum = true;
         gpr.overstrum = false;
         handleInputs(-3, GLFW_PRESS);
