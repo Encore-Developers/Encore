@@ -9,7 +9,7 @@
 class gameplayRenderer {
     void RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
     void RenderHud(Player& player, RenderTexture2D&);
-    void RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
+    void RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
     void RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
     void DrawBeatlines(Player& player, Song song, float length, double musicTime);
     void DrawOverdrive(Player& player, Chart& curChart, float length, double musicTime);
@@ -32,14 +32,16 @@ public:
     int curNoteInt = 0;
 
     Mesh sustainPlane;
+    Mesh soloPlane;
 
     Camera3D camera = { 0 };
 
-    void RenderGameplay(Player& player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
+    void RenderGameplay(Player& player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
 
     bool upStrum = false;
     bool downStrum = false;
     bool FAS = false;
     bool processingStrum = false;
+
 };
 
