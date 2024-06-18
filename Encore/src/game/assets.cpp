@@ -141,6 +141,7 @@ void Assets::LoadAssets() {
     discord = Assets::LoadTextureFilter(directory/"Assets/ui/discord-mark-white.png", loadedAssets);
     github = Assets::LoadTextureFilter(directory/"Assets/ui/github-mark-white.png", loadedAssets);
 
+    soloTexture = Assets::LoadTextureFilter(directory / "Assets/highway/solo.png", loadedAssets);
     sustainTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png", loadedAssets);
 
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
@@ -214,10 +215,13 @@ void Assets::LoadAssets() {
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     sustainMat = LoadMaterialDefault();
+    soloMat = LoadMaterialDefault();
     sustainMatHeld = LoadMaterialDefault();
     sustainMatOD = LoadMaterialDefault();
     sustainMatHeldOD = LoadMaterialDefault();
     sustainMatMiss = LoadMaterialDefault();
+    soloMat.maps[MATERIAL_MAP_DIFFUSE].texture = soloTexture;
+    soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(playerAssets.accentColor, { 180,180,180,255 });
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].texture = sustainTexture;

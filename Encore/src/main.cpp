@@ -348,35 +348,41 @@ static void handleInputs(int lane, int action){
             HeldMaskShow = pressedMask;
             Note &lastNote = curChart.notes[gpr.curNoteInt == 0 ? 0 : gpr.curNoteInt - 1];
 
-            if (!lastNote.accounted && gpr.curNoteInt != 0)
-                return;
+            // if (!lastNote.accounted && gpr.curNoteInt != 0) return;
 
             bool firstNote = gpr.curNoteInt == 0;
 
-            if (lane == 8008135 && action == GLFW_PRESS && !gpr.FAS &&
-                (firstNote ? true : lastNote.time + 0.005 < eventTime)) {
+            if (lane == 8008135 && action == GLFW_PRESS && !gpr.FAS
+            // && (firstNote ? true : lastNote.time + 0.005 < eventTime)
+                ) {
                 StrumNoFretTime = eventTime;
                 curNote.strumCount++;
-                if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS &&
-                    (firstNote ? true : lastNote.accounted)) {
-                    curNote.accounted = true;
+                if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS
+                    // && (firstNote ? true : lastNote.accounted)
+                    ) {
                     gpr.FAS = true;
                     curNote.hitWithFAS = true;
-                    if (gpr.curNoteInt < curChart.notes.size() - 1) {
-                        curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
-                        curChart.notes[gpr.curNoteInt + 1].strumCount = 0;
-                    }
+                    // if (gpr.curNoteInt < curChart.notes.size() - 1) {
+                    //     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
+                    //    curChart.notes[gpr.curNoteInt + 1].strumCount = 0;
+                    // }
                     strummedNote = gpr.curNoteInt;
-                } else if (firstNote ? (lastNote.phopo ? lastNote.strumCount > 2 : curNote.strumCount > 1) :
-                           curNote.strumCount > 1) {
+                }
+                if (!curNote.isGood(eventTime, player.InputOffset) || curNote.strumCount > 1) {
                     gpr.overstrum = true;
                     player.OverHit();
-                    return;
+                    if (!curChart.odPhrases.empty() && !curChart.odPhrases[gpr.curODPhrase].missed &&
+                        curNote.time >= curChart.odPhrases[gpr.curODPhrase].start &&
+                        curNote.time < curChart.odPhrases[gpr.curODPhrase].end)
+                        curChart.odPhrases[gpr.curODPhrase].missed = true;
                 }
             } else if (lane == 8008135 && action == GLFW_RELEASE) {
                 gpr.downStrum = false;
                 gpr.upStrum = false;
                 return;
+            }
+            if (StrumNoFretTime > eventTime + fretAfterStrumTime && gpr.FAS) {
+                gpr.FAS = false;
             }
 
 
@@ -384,8 +390,8 @@ static void handleInputs(int lane, int action){
                 bool singleMatch = (pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
                 bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
 
-                if (gpr.FAS && curNote.hitWithFAS) {
-                    if (noteMatch && !curNote.hit && curNote.strumCount > 0) {
+                if (curNote.hitWithFAS) {
+                    if (noteMatch && !curNote.hit) {
                         gpr.FAS = false;
                         curNote.hit = true;
                         curNote.HitOffset = curNote.time - eventTime;
@@ -494,20 +500,20 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                 }
                 if (key == GLFW_KEY_UP) {
                     if (action == GLFW_PRESS) {
-                        lane = -3;
+                        lane = 8008135;
                         gpr.upStrum = true;
-                        gpr.overstrum = false;
                     } else if (action == GLFW_RELEASE) {
                         gpr.upStrum = false;
+                        gpr.overstrum = false;
                     }
                 }
                 if (key == GLFW_KEY_DOWN) {
                     if (action == GLFW_PRESS) {
-                        lane = -3;
+                        lane = 8008135;
                         gpr.downStrum = true;
-                        gpr.overstrum = false;
                     } else if (action == GLFW_RELEASE) {
                         gpr.downStrum = false;
+                        gpr.overstrum = false;
                     }
                 }
                 if (lane != -1 && lane != -2) {
@@ -543,8 +549,8 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
         if (state.axes[-(settingsMain.controllerPause + 1)] != axesValues[-(settingsMain.controllerPause + 1)]) {
             axesValues[-(settingsMain.controllerPause + 1)] = state.axes[-(settingsMain.controllerPause + 1)];
             if (state.axes[-(settingsMain.controllerPause + 1)] == 1.0f * (float)settingsMain.controllerPauseAxisDirection) {
-                
-                    
+
+
             }
         }
     }
@@ -566,7 +572,8 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		}
 	}
 	if (player.diff == 3 || player.plastic) {
-
+        int lane = -2;
+        int action = -2;
 		for (int i = 0; i < 5; i++) {
 			if (settingsMain.controller5K[i] >= 0) {
 				if (state.buttons[settingsMain.controller5K[i]] != buttonValues[settingsMain.controller5K[i]]) {
@@ -578,7 +585,9 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 					}
 					handleInputs(i, state.buttons[settingsMain.controller5K[i]]);
 					buttonValues[settingsMain.controller5K[i]] = state.buttons[settingsMain.controller5K[i]];
-				}
+				    lane = i;
+                }
+
 			}
 			else {
 				if (state.axes[-(settingsMain.controller5K[i] + 1)] != axesValues[-(settingsMain.controller5K[i] + 1)]) {
@@ -592,7 +601,8 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 						handleInputs(i, GLFW_RELEASE);
 					}
 					axesValues[-(settingsMain.controller5K[i] + 1)] = state.axes[-(settingsMain.controller5K[i] + 1)];
-				}
+                    lane = i;
+                }
 			}
 		}
         if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS) {
@@ -840,6 +850,8 @@ int main(int argc, char* argv[])
 
 
     gpr.sustainPlane = GenMeshPlane(0.8f,1.0f,1,1);
+    bool wideSoloPlane = player.diff == 3;
+    gpr.soloPlane = GenMeshPlane(wideSoloPlane ? 6 : 5,1.0f,1,1);
 
     assets.FirstAssets();
     SetWindowIcon(assets.icon);
@@ -848,6 +860,8 @@ int main(int argc, char* argv[])
     RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    RenderTexture2D highwayStatus_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    RenderTexture2D smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     while (!WindowShouldClose())
 
     {
@@ -1438,6 +1452,7 @@ int main(int argc, char* argv[])
                 player.overdrive = false;
                 gpr.curNoteIdx = { 0,0,0,0,0 };
                 gpr.curODPhrase = 0;
+                gpr.curNoteInt = 0;
                 gpr.curSolo = 0;
                 gpr.curBeatLine = 0;
                 gpr.curBPM = 0;
@@ -1907,7 +1922,7 @@ int main(int argc, char* argv[])
                 ClearBackground(BLACK);
                 player.songToBeJudged = songList.songs[curPlayingSong];
 
-                if (IsWindowResized()) {
+                if (IsWindowResized() || notes_tex.texture.width != GetScreenWidth() || notes_tex.texture.height != GetScreenHeight()) {
                     UnloadRenderTexture(notes_tex);
                     RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
                     GenTextureMipmaps(&notes_tex.texture);
@@ -1922,6 +1937,16 @@ int main(int argc, char* argv[])
                     RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
                     GenTextureMipmaps(&highway_tex.texture);
                     SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+
+                    UnloadRenderTexture(highwayStatus_tex);
+                    RenderTexture2D highwayStatus_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+                    GenTextureMipmaps(&highwayStatus_tex.texture);
+                    SetTextureFilter(highwayStatus_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
+
+                    UnloadRenderTexture(smasher_tex);
+                    RenderTexture2D smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+                    GenTextureMipmaps(&smasher_tex.texture);
+                    SetTextureFilter(smasher_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
                 }
 
                 float scorePos = u.RightSide;
@@ -2022,6 +2047,7 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         gpr.curODPhrase = 0;
+                        gpr.curNoteInt = 0;
                         gpr.curSolo = 0;
                         menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
@@ -2044,7 +2070,7 @@ int main(int argc, char* argv[])
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 double songFloat = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 
-                gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex);
+                gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 
                 player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
 
@@ -2120,6 +2146,7 @@ int main(int argc, char* argv[])
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
                         gpr.curODPhrase = 0;
+                        gpr.curNoteInt = 0;
                         gpr.curSolo = 0;
                         gpr.curNoteIdx = { 0,0,0,0,0 };
                         gpr.curBeatLine = 0;
@@ -2149,6 +2176,7 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
+                        gpr.curNoteInt = 0;
                         gpr.curODPhrase = 0;
                         gpr.curSolo = 0;
                         player.paused = false;
