@@ -795,9 +795,11 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 
     if (player.overdrive) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
 
+    float darkYPos = 0.015f;
+
     BeginBlendMode(BLEND_ALPHA);
-    DrawTriangle3D({-diffDistance-0.5f,0.01,player.smasherPos},{-diffDistance-0.5f,0.01,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.01,player.smasherPos},Color{0,0,0,64});
-    DrawTriangle3D({diffDistance+0.5f,0.01,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.01,player.smasherPos},{-diffDistance-0.5f,0.01,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
+    DrawTriangle3D({-diffDistance-0.5f,darkYPos,player.smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,darkYPos,player.smasherPos},Color{0,0,0,64});
+    DrawTriangle3D({diffDistance+0.5f,darkYPos,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,darkYPos,player.smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
 
 
 
@@ -1006,20 +1008,21 @@ void gameplayRenderer::DrawSolo(Player& player, Chart& curChart, float length, d
     // main calc
     bool Beginning = (float)(player.smasherPos + (length * soloStart)) >= (length * 1.5f) + player.smasherPos;
     bool Ending = (float)(player.smasherPos + (length * soloEnd)) >= (length * 1.5f) + player.smasherPos;
-
-    float soloLen =
-            (length * (float) soloEnd) - (length * (float) soloStart);
-    Matrix soloMatrix = MatrixMultiply(MatrixScale(1, 1, soloLen),
-                                       MatrixTranslate(0, 0.004f,
-                                                       player.smasherPos +
-                                                       (length *
-                                                        (float) soloStart) +
-                                                       (soloLen / 2.0f)));
-    gprAssets.soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
-
-    DrawMesh(soloPlane, gprAssets.soloMat, soloMatrix);
-
     float HighwayEnd = (length * 1.5f) + player.smasherPos;
+
+    float soloPlaneStart = Beginning ?  HighwayEnd : (float)(player.smasherPos + (length * soloStart));
+    float soloPlaneEnd = Ending ? HighwayEnd : (float)(player.smasherPos + (length * soloEnd));
+
+    //float soloLen = (length * (float) soloPlaneEnd) - (length * (float) soloPlaneStart);
+    // Matrix soloMatrix = MatrixMultiply(MatrixScale(1, 1, soloLen),
+    //                                   MatrixTranslate(0, 0.005f,
+//                                                       (length *
+    //                                                    (float) soloStart) +
+    //                                                   (soloLen / 2.0f)));
+    //gprAssets.soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
+
+    // DrawMesh(soloPlane, gprAssets.soloMat, soloMatrix);
+
 
     // right calc
     float RightSideX = player.diff == 3 || player.plastic ? 2.7f : 2.2f;
