@@ -1717,6 +1717,7 @@ int main(int argc, char* argv[])
                                                                                    (int) songPart);
                                                     }
                                                     else {
+                                                        newChart.plastic = false;
                                                         newChart.parseNotes(midiFile, i, midiFile[i], diff,
                                                                             (int) songPart);
                                                     }
@@ -1785,8 +1786,9 @@ int main(int argc, char* argv[])
                                 instSelected = true;
                                 player.instrument = i;
                                 int isBassOrVocal = 0;
-                                if (i>3)
-                                    player.plastic = true;
+                                if (i>3) player.plastic = true;
+                                else player.plastic = false;
+                                
                                 if (player.instrument == 1 || player.instrument == 3 || player.instrument == 5) {
                                     isBassOrVocal = 1;
                                 }
