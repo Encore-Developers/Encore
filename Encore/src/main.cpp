@@ -360,6 +360,7 @@ static void handleInputs(int lane, int action){
                 if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS
                     // && (firstNote ? true : lastNote.accounted)
                     ) {
+                    TraceLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
                     gpr.FAS = true;
                     curNote.hitWithFAS = true;
                     // if (gpr.curNoteInt < curChart.notes.size() - 1) {
@@ -369,6 +370,7 @@ static void handleInputs(int lane, int action){
                     strummedNote = gpr.curNoteInt;
                 }
                 if (!curNote.isGood(eventTime, player.InputOffset) || curNote.strumCount > 1) {
+                    TraceLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
                     gpr.overstrum = true;
                     player.OverHit();
                     if (!curChart.odPhrases.empty() && !curChart.odPhrases[gpr.curODPhrase].missed &&
@@ -382,6 +384,7 @@ static void handleInputs(int lane, int action){
                 return;
             }
             if (StrumNoFretTime > eventTime + fretAfterStrumTime && gpr.FAS) {
+                TraceLog(LOG_INFO, TextFormat("FAS Inactive at %f", eventTime));
                 gpr.FAS = false;
             }
 
@@ -392,6 +395,7 @@ static void handleInputs(int lane, int action){
 
                 if (curNote.hitWithFAS) {
                     if (noteMatch && !curNote.hit) {
+                        TraceLog(LOG_INFO, TextFormat("Note hit at %f as a STRUM", eventTime));
                         gpr.FAS = false;
                         curNote.hit = true;
                         curNote.HitOffset = curNote.time - eventTime;
@@ -412,6 +416,7 @@ static void handleInputs(int lane, int action){
 
                 if (noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0)) {
                     if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.accounted) {
+                        TraceLog(LOG_INFO, TextFormat("Note hit at %f as a HOPO", eventTime));
                         curNote.hit = true;
                         curNote.HitOffset = curNote.time - eventTime;
                         curNote.hitTime = eventTime;
