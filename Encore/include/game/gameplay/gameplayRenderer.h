@@ -30,6 +30,7 @@ public:
     int curODPhrase = 0;
     int curSolo = 0;
     int curNoteInt = 0;
+    bool songOver = false;
 
     Mesh sustainPlane;
     Mesh soloPlane;

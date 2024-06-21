@@ -62,7 +62,6 @@ bool diffSelected = false;
 bool diffSelection = false;
 bool instSelection = false;
 bool instSelected = false;
-bool songEnded = false;
 
 int curNoteIndex = 0;
 int curPlayingSong = 0;
@@ -1453,7 +1452,7 @@ int main(int argc, char* argv[])
                 streamsLoaded = false;
                 midiLoaded = false;
                 isPlaying = false;
-                songEnded = false;
+                gpr.songEnded = false;
                 player.overdrive = false;
                 gpr.curNoteIdx = { 0,0,0,0,0 };
                 gpr.curODPhrase = 0;
@@ -2059,7 +2058,7 @@ int main(int argc, char* argv[])
                         menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
                         isPlaying = false;
-                        songEnded = true;
+                        gpr.songEnded = true;
                         songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
 
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
@@ -2070,16 +2069,18 @@ int main(int argc, char* argv[])
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
                         menu.SwitchScreen(RESULTS);
+                        TraceLog(LOG_INFO, TextFormat("Song ended at at %f", songPlayed));
                     }
 
                 }
 
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 double songFloat = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+                player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
 
                 gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 
-                player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
+
 
                 if (curTime < startedPlayingSong + 7.5) {
                     DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
@@ -2196,7 +2197,7 @@ int main(int argc, char* argv[])
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
                         midiLoaded = false;
                         isPlaying = false;
-                        songEnded = true;
+                        gpr.songEnded = true;
                         songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
                         player.quit = true;
                         songAlbumArtLoadedGameplay = false;
