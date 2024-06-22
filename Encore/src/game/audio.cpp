@@ -34,7 +34,7 @@ bool AudioManager::Init() {
     if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
         CHECK_BASS_ERROR();
     }
-    BASS_PluginLoad("libbassopus", 0);
+    BASS_PluginLoad("libbassopus.so", 0);
     CHECK_BASS_ERROR();
 #endif
 
