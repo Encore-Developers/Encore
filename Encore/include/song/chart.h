@@ -527,6 +527,8 @@ public:
 			note.hitTime = 0;
 			note.perfect = false;
 			note.countedForODPhrase = false;
+            note.hitWithFAS = false;
+            note.strumCount = 0;
 		}
 		for (odPhrase& phrase : odPhrases) {
 			phrase.missed = false;

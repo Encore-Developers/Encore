@@ -368,7 +368,7 @@ static void handleInputs(int lane, int action){
                     // }
                     strummedNote = gpr.curNoteInt;
                 }
-                if (!curNote.isGood(eventTime, player.InputOffset) || curNote.strumCount > 1) {
+                if ((!curNote.isGood(eventTime, player.InputOffset) || (!curNote.phopo && curNote.strumCount > 1)) && ((lastNote.phopo && lastNote.hit) ? (eventTime < lastNote.time + 0.05) : (true))) {
                     TraceLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
                     gpr.overstrum = true;
                     player.OverHit();
@@ -2143,11 +2143,16 @@ int main(int argc, char* argv[])
                             note.hitTime = 0;
                             note.perfect = false;
                             note.countedForODPhrase = false;
+                            note.hitWithFAS = false;
+                            note.strumCount = 0;
                         }
                         for (odPhrase& phrase : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].odPhrases) {
                             phrase.missed = false;
                             phrase.notesHit = 0;
                             phrase.added = false;
+                        }
+                        for (solo& solo : songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].Solos) {
+                            solo.notesHit = 0;
                         }
                         player.overdrive = false;
                         player.overdriveFill = 0.0f;
