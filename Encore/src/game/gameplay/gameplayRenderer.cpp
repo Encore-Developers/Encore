@@ -393,6 +393,9 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
         float hopoScale = curNote.phopo ? 0.75f : 1.1f;
 
         for (int lane: curNote.pLanes) {
+
+            int noteLane = gprSettings.mirrorMode ? 4 - lane : lane;
+
             Color NoteColor;
             switch (lane) {
                 case 0:
@@ -418,7 +421,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
             gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 
-            float notePosX = diffDistance - (1.0f * lane);
+            float notePosX = diffDistance - (1.0f * noteLane);
             if (relTime > 1.5) {
                 break;
             }
@@ -821,10 +824,11 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     BeginBlendMode(BLEND_ALPHA);
     for (int i = 0; i < 5;  i++) {
         Color NoteColor; // = gprMenu.hehe && player.diff == 3 ? i == 0 || i == 4 ? SKYBLUE : i == 1 || i == 3 ? PINK : WHITE : player.accentColor;
-
+        int noteColor = gprSettings.mirrorMode ? 4 - i : i;
         if (player.plastic) {
             bool pd = (player.instrument == 4);
-            switch (i) {
+
+            switch (noteColor) {
                 case 0:
                     NoteColor = pd ? ORANGE : GREEN;
                     break;
@@ -851,7 +855,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
         gprAssets.smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
         gprAssets.smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 
-        if (heldFrets[i] || heldFretsAlt[i]) {
+        if (heldFrets[noteColor] || heldFretsAlt[noteColor]) {
             DrawModel(gprAssets.smasherPressed, Vector3{ diffDistance - (float)(i), 0.01f, player.smasherPos }, 1.0f, WHITE);
         }
         else {
