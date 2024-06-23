@@ -502,24 +502,29 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                         }
                     }
                 }
-                if (key == GLFW_KEY_UP) {
-                    if (action == GLFW_PRESS) {
-                        lane = 8008135;
-                        gpr.upStrum = true;
-                    } else if (action == GLFW_RELEASE) {
-                        gpr.upStrum = false;
-                        gpr.overstrum = false;
+                if (player.plastic) {
+                    if (key == GLFW_KEY_UP) {
+                        if (action == GLFW_PRESS) {
+                            lane = 8008135;
+                            gpr.upStrum = true;
+                        }
+                        else if (action == GLFW_RELEASE) {
+                            gpr.upStrum = false;
+                            gpr.overstrum = false;
+                        }
+                    }
+                    if (key == GLFW_KEY_DOWN) {
+                        if (action == GLFW_PRESS) {
+                            lane = 8008135;
+                            gpr.downStrum = true;
+                        }
+                        else if (action == GLFW_RELEASE) {
+                            gpr.downStrum = false;
+                            gpr.overstrum = false;
+                        }
                     }
                 }
-                if (key == GLFW_KEY_DOWN) {
-                    if (action == GLFW_PRESS) {
-                        lane = 8008135;
-                        gpr.downStrum = true;
-                    } else if (action == GLFW_RELEASE) {
-                        gpr.downStrum = false;
-                        gpr.overstrum = false;
-                    }
-                }
+               
                 if (lane != -1 && lane != -2) {
                     handleInputs(lane, action);
                 }
