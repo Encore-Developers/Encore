@@ -268,7 +268,7 @@ public:
 			for (Note &note : notes) {
 				if (note.time > odPhrases[curODPhrase].end && curODPhrase<odPhrases.size()-1)
 					curODPhrase++;
-				if (note.time >= odPhrases[curODPhrase].start && note.time <= odPhrases[curODPhrase].end)
+				if (note.time >= odPhrases[curODPhrase].start && note.time < odPhrases[curODPhrase].end)
 					odPhrases[curODPhrase].noteCount++;
 			}
 		}
@@ -502,7 +502,7 @@ public:
             for (Note &note : notes) {
                 if (note.time > odPhrases[curODPhrase].end && curODPhrase<odPhrases.size()-1)
                     curODPhrase++;
-                if (note.time >= odPhrases[curODPhrase].start && note.time <= odPhrases[curODPhrase].end)
+                if (note.time >= odPhrases[curODPhrase].start && note.time < odPhrases[curODPhrase].end)
                     odPhrases[curODPhrase].noteCount++;
             }
         }
@@ -511,7 +511,7 @@ public:
             for (Note &note : notes) {
                 if (note.time > Solos[curSolo].end && curSolo<Solos.size()-1)
                     curSolo++;
-                if (note.time >= Solos[curSolo].start && note.time <= Solos[curSolo].end)
+                if (note.time >= Solos[curSolo].start && note.time < Solos[curSolo].end)
                     Solos[curSolo].noteCount++;
             }
         }
