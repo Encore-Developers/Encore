@@ -97,7 +97,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
             if (!curChart.odPhrases.empty()) {
 
                 if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
-                    curNote.time <= curChart.odPhrases[curODPhrase].end &&
+                    curNote.time < curChart.odPhrases[curODPhrase].end &&
                     !curChart.odPhrases[curODPhrase].missed) {
                     if (curNote.hit) {
                         if (curNote.hit && !curNote.countedForODPhrase) {
@@ -344,7 +344,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
         if (!curChart.odPhrases.empty()) {
 
             if (curNote.time >= curChart.odPhrases[curODPhrase].start &&
-                curNote.time <= curChart.odPhrases[curODPhrase].end &&
+                curNote.time < curChart.odPhrases[curODPhrase].end &&
                 !curChart.odPhrases[curODPhrase].missed) {
                 if (curNote.hit) {
                     if (curNote.hit && !curNote.countedForODPhrase) {
@@ -399,19 +399,19 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             Color NoteColor;
             switch (lane) {
                 case 0:
-                    NoteColor = GREEN;
+                    NoteColor = gprMenu.hehe ? SKYBLUE : GREEN;
                     break;
                 case 1:
-                    NoteColor = RED;
+                    NoteColor = gprMenu.hehe ? PINK : RED;
                     break;
                 case 2:
-                    NoteColor = YELLOW;
+                    NoteColor = gprMenu.hehe ? RAYWHITE : YELLOW;
                     break;
                 case 3:
-                    NoteColor = BLUE;
+                    NoteColor = gprMenu.hehe ? PINK : BLUE;
                     break;
                 case 4:
-                    NoteColor = ORANGE;
+                    NoteColor = gprMenu.hehe ? SKYBLUE : ORANGE;
                     break;
                 default:
                     NoteColor = player.accentColor;
@@ -830,19 +830,19 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 
             switch (noteColor) {
                 case 0:
-                    NoteColor = pd ? ORANGE : GREEN;
+                    NoteColor = gprMenu.hehe ? SKYBLUE : GREEN;
                     break;
                 case 1:
-                    NoteColor = pd ? RED :RED;
+                    NoteColor = gprMenu.hehe ? PINK :RED;
                     break;
                 case 2:
-                    NoteColor = pd ? YELLOW :YELLOW;
+                    NoteColor = gprMenu.hehe ? RAYWHITE :YELLOW;
                     break;
                 case 3:
-                    NoteColor = pd ? BLUE :BLUE;
+                    NoteColor = gprMenu.hehe ? PINK :BLUE;
                     break;
                 case 4:
-                    NoteColor = pd ? GREEN :ORANGE;
+                    NoteColor = gprMenu.hehe ? SKYBLUE :ORANGE;
                     break;
                 default:
                     NoteColor = player.accentColor;
