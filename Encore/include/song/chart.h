@@ -449,7 +449,7 @@ public:
                 newNote.tick = note.tick;
                 if (notes.size() > 0) {
                     Note lastNote = notes[notes.size() - 1];
-                    if (lastNote.tick >= newNote.tick - (midiFile.getTicksPerQuarterNote()/3) && lastNote.pLanes[0] != newNote.pLanes[0] && !newNote.chord) {
+                    if (lastNote.tick >= newNote.tick - (midiFile.getTicksPerQuarterNote()/2.82) && lastNote.pLanes[0] != newNote.pLanes[0] && !newNote.chord) {
                         newNote.phopo = true;
                     }
                 }
@@ -513,6 +513,27 @@ public:
                     curSolo++;
                 if (note.time >= Solos[curSolo].start && note.time < Solos[curSolo].end)
                     Solos[curSolo].noteCount++;
+            }
+        }
+        int mult = 1;
+        int multCtr = 0;
+        int noteIdx = 0;
+        bool isBassOrVocal = (instrument == 5);
+        for (auto it = notes.begin(); it != notes.end();) {
+            Note& note = *it;
+            if (!note.valid) {
+                it = notes.erase(it);
+            }
+            else {
+                baseScore += ((36 * note.chordSize) * mult);
+                baseScore += (note.beatsLen * 12) * mult;
+                if (noteIdx == 9) mult = 2;
+                else if (noteIdx == 19) mult = 3;
+                else if (noteIdx == 29) mult = 4;
+                else if (noteIdx == 39 && isBassOrVocal) mult = 5;
+                else if (noteIdx == 49 && isBassOrVocal) mult = 6;
+                noteIdx++;
+                ++it;
             }
         }
     }

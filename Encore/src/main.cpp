@@ -340,7 +340,7 @@ static void handleInputs(int lane, int action){
             int pressedMask = 0b000000;
 
             for (int pressedButtons = 0; pressedButtons < gpr.heldFrets.size(); pressedButtons++) {
-                if (gpr.heldFrets[pressedButtons])
+                if (gpr.heldFrets[pressedButtons] || gpr.heldFretsAlt[pressedButtons])
                     pressedMask += curChart.PlasticFrets[pressedButtons];
             }
 
@@ -368,9 +368,12 @@ static void handleInputs(int lane, int action){
                     // }
                     strummedNote = gpr.curNoteInt;
                 }
-                if ((!curNote.isGood(eventTime, player.InputOffset) || (!curNote.phopo && curNote.strumCount > 1)) && ((lastNote.phopo && lastNote.hit) ? (eventTime < lastNote.time + 0.05) : (true))) {
+                if ((!curNote.isGood(eventTime, player.InputOffset))
+                &&
+                ((lastNote.phopo && lastNote.hit) ? (eventTime > lastNote.time + 0.05) : (true))) {
                     TraceLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
                     gpr.overstrum = true;
+                    gpr.FAS = false;
                     player.OverHit();
                     if (!curChart.odPhrases.empty() && !curChart.odPhrases[gpr.curODPhrase].missed &&
                         curNote.time >= curChart.odPhrases[gpr.curODPhrase].start &&
