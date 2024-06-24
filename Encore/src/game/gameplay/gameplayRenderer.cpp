@@ -630,6 +630,19 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     SetShaderValue(gprAssets.odMultShader, gprAssets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
     SetShaderValue(gprAssets.odMultShader, gprAssets.odLoc, &player.overdriveFill, SHADER_UNIFORM_FLOAT);
 
+    int PlayerComboMax = (player.instrument == 1 || player.instrument == 3 || player.instrument == 5) ? 50 : 30;
+
+    Color highwayColor = ColorContrast(player.accentColor, Clamp(Remap(player.combo, 0, PlayerComboMax, -0.6f, 0.0f), -0.6, 0.0f));
+
+    gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
+    gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
+    gprAssets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
+    gprAssets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
+
+    if (player.overdrive) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
+    else gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+
+    /*
     if ((player.overdrive ? player.multiplier(player.instrument) / 2 : player.multiplier(player.instrument))>= (player.instrument == 1 || player.instrument == 3 || player.instrument == 5 ? 6 : 4)) {
         gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
         gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
@@ -642,6 +655,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
         gprAssets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
         gprAssets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
     }
+     */
 
 
     double musicTime = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player.VideoOffset;
@@ -750,8 +764,8 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 
 
 
-    DrawTriangle3D({-diffDistance-0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,-0.002,0},Color{0,0,0,255});
-    DrawTriangle3D({diffDistance+0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,255});
+    //DrawTriangle3D({-diffDistance-0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,-0.002,0},Color{0,0,0,255});
+    //DrawTriangle3D({diffDistance+0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,255});
 
     DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
     DrawModel(gprAssets.expertHighway, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
@@ -763,16 +777,41 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
             DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+player.smasherPos)-40-0.2f }, 1.0f, WHITE);
         }
     }
-    DrawTriangle3D({-diffDistance-0.5f,0.003,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},Color{0,0,0,64});
-    DrawTriangle3D({diffDistance+0.5f,0.003,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,0.002,player.smasherPos},{-diffDistance-0.5f,0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
+    unsigned char laneColor = 0;
+    unsigned char laneAlpha = 48;
+    if (player.overdrive) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
+    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+    DrawTriangle3D({lineDistance - 1.0f,0.003,0},
+                   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + player.smasherPos},
+                   {lineDistance,0.003,0},
+                   Color{laneColor,laneColor,laneColor,laneAlpha});
 
-    for (int i = 0; i < 4; i++) {
-        float radius = player.plastic ? 0.02 : ((i == (gprSettings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02);
+    DrawTriangle3D({lineDistance,0.003,(highwayLength *1.5f) + player.smasherPos},
+                   {lineDistance,0.003,0},
+                   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + player.smasherPos},
+                   Color{laneColor,laneColor,laneColor,laneAlpha});
 
-        DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
-    }
+    //for (int i = 0; i < 4; i++) {
+    //    float radius = player.plastic ? 0.02 : ((i == (gprSettings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02);
+//
+    //    DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, player.smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + player.smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
+    //}
+
+    DrawTriangle3D({0-lineDistance,0.003,0},
+                   {0-lineDistance,0.003,(highwayLength *1.5f) + player.smasherPos},
+                   {0-lineDistance + 1.0f,0.003,0},
+                   Color{laneColor,laneColor,laneColor,laneAlpha});
+
+    DrawTriangle3D({0-lineDistance + 1.0f,0.003,(highwayLength *1.5f) + player.smasherPos},
+                   {0-lineDistance + 1.0f,0.003,0},
+                   {0-lineDistance,0.003,(highwayLength *1.5f) + player.smasherPos},
+                   Color{laneColor,laneColor,laneColor,laneAlpha});
+
+    if (!player.plastic)
+        DrawCylinderEx(Vector3{ lineDistance-1.0f, 0, player.smasherPos}, Vector3{ lineDistance-1.0f, 0, (highwayLength *1.5f) + player.smasherPos }, 0.025f, 0.025f, 15, Color{ 128,128,128,128 });
 
     EndBlendMode();
+
     EndMode3D();
     EndTextureMode();
 
@@ -781,7 +820,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     highway_tex.texture.height = (float)GetScreenHeight();
     DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
 
-    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+    BeginBlendMode(BLEND_ALPHA);
     BeginTextureMode(highwayStatus_tex);
     ClearBackground({0,0,0,0});
     BeginMode3D(camera);
@@ -797,12 +836,9 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
         DrawSolo(player, song.parts[player.instrument]->charts[player.diff], highwayLength, time);
     }
 
-
-    if (player.overdrive) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,WHITE);}
-
     float darkYPos = 0.015f;
 
-    BeginBlendMode(BLEND_ALPHA);
+    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
     DrawTriangle3D({-diffDistance-0.5f,darkYPos,player.smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,darkYPos,player.smasherPos},Color{0,0,0,64});
     DrawTriangle3D({diffDistance+0.5f,darkYPos,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,darkYPos,player.smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,64});
 

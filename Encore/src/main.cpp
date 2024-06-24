@@ -759,6 +759,8 @@ int main(int argc, char* argv[])
     commitHash.erase(7);
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
 	// SetConfigFlags(FLAG_VSYNC_HINT);
 	
 	//SetTraceLogLevel(LOG_NONE);
@@ -807,7 +809,7 @@ int main(int argc, char* argv[])
     settingsMain.loadSettings(directory / "settings.json");
     player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
     player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
-    int targetFPS = 120; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    int targetFPS = 180; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
     if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -2291,8 +2293,8 @@ int main(int argc, char* argv[])
 
 
                 if (curTime < startedPlayingSong + 7.5) {
-                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {25, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hpct(0.04f), 0, WHITE);
-                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hpct(0.04f), 0, LIGHTGRAY);
+                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hinpct(0.04f), 0, WHITE);
+                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hinpct(0.04f), 0, LIGHTGRAY);
                 }
 
                 int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
