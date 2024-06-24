@@ -13,7 +13,8 @@
 
 class settingsOptionRenderer {
 public:
-
+    bool changingStrumUp = false;
+    bool changingStrumDown = false;
     bool changingKey = false;
     bool changing4k = false;
     bool changingOverdrive = false;
@@ -23,10 +24,15 @@ public:
     float sliderEntry(float value, float min, float max, int entryNum, std::string Label, float increment);
     bool toggleEntry(bool value, int entryNum, std::string Label);
     void keybindEntryText(int entryNum, std::string Label);
-    void keybindAltEntry(int altValue, int entryNum, std::string Label, Keybinds keybinds, int lane);
-    void keybindEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
-    void keybindOdEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
-    void keybindOdAltEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybind5kAltEntry(int altValue, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybind5kEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybind4kAltEntry(int altValue, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybind4kEntry(int value, int entryNum, std::string Label, Keybinds keybinds, int lane);
+    void keybindOdEntry(int value, int entryNum, std::string Label, Keybinds keybinds);
+    void keybindOdAltEntry(int value, int entryNum, std::string Label, Keybinds keybinds);
+    void keybindPauseEntry(int value, int entryNum, std::string Label, Keybinds keybinds);
+
+    void keybindStrumEntry(int value, int entryNum, int key, Keybinds keybinds);
 };
 
 

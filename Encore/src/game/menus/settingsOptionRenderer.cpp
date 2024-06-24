@@ -74,7 +74,7 @@ bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, std::string L
     return value;
 };
 
-void settingsOptionRenderer::keybindAltEntry(int altValue, int entryNum, std::string Label,
+void settingsOptionRenderer::keybind5kAltEntry(int altValue, int entryNum, std::string Label,
                                              Keybinds keybinds, int lane) {
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
@@ -97,7 +97,8 @@ void settingsOptionRenderer::keybindAltEntry(int altValue, int entryNum, std::st
     }
 }
 
-void settingsOptionRenderer::keybindEntry(int value, int entryNum, std::string Label,
+
+void settingsOptionRenderer::keybind5kEntry(int value, int entryNum, std::string Label,
                                           Keybinds keybinds, int lane) {
     float OvershellBottom = units.hpct(0.15f);
     float EntryFontSize = units.hinpct(0.03f);
@@ -119,6 +120,145 @@ void settingsOptionRenderer::keybindEntry(int value, int entryNum, std::string L
         changingKey = true;
     }
 }
+
+void settingsOptionRenderer::keybind4kAltEntry(int altValue, int entryNum, std::string Label,
+                                               Keybinds keybinds, int lane) {
+    float OvershellBottom = units.hpct(0.15f);
+    float EntryFontSize = units.hinpct(0.03f);
+    float EntryHeight = units.hinpct(0.05f);
+    float EntryTop = OvershellBottom + units.hinpct(0.1f);
+    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
+    float EntryTextTop = EntryTop + units.hinpct(0.01f);
+    float OptionLeft = units.LeftSide+units.winpct(0.005f)+(units.winpct(width) / 3);
+    float OptionWidth = units.winpct(width) / 3;
+    float OptionRight = OptionLeft + OptionWidth;
+
+    float valueTop = EntryTop + (EntryHeight * (entryNum-1));
+    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum-1));
+
+    if (GuiButton({ OptionLeft+(OptionWidth/2),valueTop,OptionWidth/2,EntryHeight  }, keybinds.getKeyStr(altValue).c_str())) {
+        changing4k = true;
+        changingAlt = true;
+        selLane = lane;
+        changingKey = true;
+    }
+}
+
+
+void settingsOptionRenderer::keybind4kEntry(int value, int entryNum, std::string Label,
+                                            Keybinds keybinds, int lane) {
+    float OvershellBottom = units.hpct(0.15f);
+    float EntryFontSize = units.hinpct(0.03f);
+    float EntryHeight = units.hinpct(0.05f);
+    float EntryTop = OvershellBottom + units.hinpct(0.1f);
+    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
+    float EntryTextTop = EntryTop + units.hinpct(0.01f);
+    float OptionLeft = units.LeftSide+units.winpct(0.005f)+(units.winpct(width) / 3);
+    float OptionWidth = units.winpct(width) / 3;
+    float OptionRight = OptionLeft + OptionWidth;
+
+    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
+    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+
+    if (GuiButton({OptionLeft, valueTop, OptionWidth / 2, EntryHeight}, keybinds.getKeyStr(value).c_str())) {
+        changing4k = true;
+        changingAlt = false;
+        selLane = lane;
+        changingKey = true;
+    }
+}
+
+void settingsOptionRenderer::keybindOdAltEntry(int altValue, int entryNum, std::string Label,
+                                               Keybinds keybinds) {
+    float OvershellBottom = units.hpct(0.15f);
+    float EntryFontSize = units.hinpct(0.03f);
+    float EntryHeight = units.hinpct(0.05f);
+    float EntryTop = OvershellBottom + units.hinpct(0.1f);
+    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
+    float EntryTextTop = EntryTop + units.hinpct(0.01f);
+    float OptionLeft = units.LeftSide+units.winpct(0.005f)+(units.winpct(width) / 3);
+    float OptionWidth = units.winpct(width) / 3;
+    float OptionRight = OptionLeft + OptionWidth;
+
+    float valueTop = EntryTop + (EntryHeight * (entryNum-1));
+    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum-1));
+
+    if (GuiButton({ OptionLeft+(OptionWidth/2),valueTop,OptionWidth/2,EntryHeight  }, keybinds.getKeyStr(altValue).c_str())) {
+        changingAlt = true;
+        changingKey = false;
+        changingOverdrive = true;
+    }
+}
+
+
+void settingsOptionRenderer::keybindOdEntry(int value, int entryNum, std::string Label,
+                                            Keybinds keybinds) {
+    float OvershellBottom = units.hpct(0.15f);
+    float EntryFontSize = units.hinpct(0.03f);
+    float EntryHeight = units.hinpct(0.05f);
+    float EntryTop = OvershellBottom + units.hinpct(0.1f);
+    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
+    float EntryTextTop = EntryTop + units.hinpct(0.01f);
+    float OptionLeft = units.LeftSide+units.winpct(0.005f)+(units.winpct(width) / 3);
+    float OptionWidth = units.winpct(width) / 3;
+    float OptionRight = OptionLeft + OptionWidth;
+
+    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
+    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+
+    if (GuiButton({OptionLeft, valueTop, OptionWidth / 2, EntryHeight}, keybinds.getKeyStr(value).c_str())) {
+        changingAlt = false;
+        changingKey = false;
+        changingOverdrive = true;
+    }
+}
+
+void settingsOptionRenderer::keybindPauseEntry(int value, int entryNum, std::string Label,
+                                            Keybinds keybinds) {
+    float OvershellBottom = units.hpct(0.15f);
+    float EntryFontSize = units.hinpct(0.03f);
+    float EntryHeight = units.hinpct(0.05f);
+    float EntryTop = OvershellBottom + units.hinpct(0.1f);
+    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
+    float EntryTextTop = EntryTop + units.hinpct(0.01f);
+    float OptionLeft = units.LeftSide+units.winpct(0.005f)+(units.winpct(width) / 3);
+    float OptionWidth = units.winpct(width) / 3;
+    float OptionRight = OptionLeft + OptionWidth;
+
+    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
+    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+
+    if (GuiButton({OptionLeft, valueTop, OptionWidth / 2, EntryHeight}, keybinds.getKeyStr(value).c_str())) {
+        changingPause = true;
+    }
+}
+
+void settingsOptionRenderer::keybindStrumEntry(int value, int entryNum, int key,
+                                               Keybinds keybinds) {
+    float OvershellBottom = units.hpct(0.15f);
+    float EntryFontSize = units.hinpct(0.03f);
+    float EntryHeight = units.hinpct(0.05f);
+    float EntryTop = OvershellBottom + units.hinpct(0.1f);
+    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
+    float EntryTextTop = EntryTop + units.hinpct(0.01f);
+    float OptionLeft = units.LeftSide+units.winpct(0.005f)+(units.winpct(width) / 3);
+    float OptionWidth = units.winpct(width) / 3;
+    float OptionRight = OptionLeft + OptionWidth;
+
+    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
+    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+
+    if (GuiButton({OptionLeft, valueTop, OptionWidth / 2, EntryHeight}, keybinds.getKeyStr(key).c_str())) {
+        if (value == 0) {
+            changingStrumUp = true;
+        } else if (value == 1) {
+            changingStrumDown = true;
+        }
+    }
+}
+
+
+
 
 void settingsOptionRenderer::keybindEntryText(int entryNum, std::string Label) {
     float OvershellBottom = units.hpct(0.15f);
