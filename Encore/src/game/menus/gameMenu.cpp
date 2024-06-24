@@ -349,7 +349,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
 
 
         for (auto& stream : menuAudioManager.loadedStreams) {
-            menuAudioManager.SetAudioStreamVolume(stream.handle, settings.MainVolume * 0.15f);
+            menuAudioManager.SetAudioStreamVolume(stream.handle, settings.MainVolume * settings.MenuVolume);
         }
         float played = menuAudioManager.GetMusicTimePlayed(menuAudioManager.loadedStreams[0].handle);
         float length = menuAudioManager.GetMusicTimeLength(menuAudioManager.loadedStreams[0].handle);

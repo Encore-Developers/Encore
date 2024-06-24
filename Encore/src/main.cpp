@@ -1087,6 +1087,8 @@ int main(int argc, char* argv[])
                     settingsMain.PlayerVolume = settingsMain.prevPlayerVolume;
                     settingsMain.BandVolume = settingsMain.prevBandVolume;
                     settingsMain.SFXVolume = settingsMain.prevSFXVolume;
+                    settingsMain.MissVolume = settingsMain.prevMissVolume;
+                    settingsMain.MenuVolume = settingsMain.prevMenuVolume;
 
                     menu.SwitchScreen(MENU);
                 }
@@ -1142,6 +1144,8 @@ int main(int argc, char* argv[])
                     settingsMain.prevPlayerVolume = settingsMain.PlayerVolume;
                     settingsMain.prevBandVolume = settingsMain.BandVolume;
                     settingsMain.prevSFXVolume = settingsMain.SFXVolume;
+                    settingsMain.prevMissVolume = settingsMain.MissVolume;
+                    settingsMain.prevMenuVolume = settingsMain.MenuVolume;
 
                     player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
                     player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
@@ -1311,10 +1315,16 @@ int main(int argc, char* argv[])
                         settingsMain.SFXVolume = sor.sliderEntry(settingsMain.SFXVolume, 0, 1, 4,
                                                                  "SFX Volume", 0.05f);
 
+                        settingsMain.MissVolume = sor.sliderEntry(settingsMain.MissVolume, 0, 1, 5,
+                                                                 "Miss Volume", 0.05f);
+
+                        settingsMain.MenuVolume = sor.sliderEntry(settingsMain.MenuVolume, 0, 1, 6,
+                                                                 "Menu Music Volume", 0.05f);
+
                         player.selInstVolume = settingsMain.MainVolume * settingsMain.PlayerVolume;
                         player.otherInstVolume = settingsMain.MainVolume * settingsMain.BandVolume;
                         player.sfxVolume = settingsMain.MainVolume * settingsMain.SFXVolume;
-                        player.missVolume = settingsMain.MainVolume * 0.15f;
+                        player.missVolume = settingsMain.MainVolume * settingsMain.MissVolume;
 
                         break;
                     }

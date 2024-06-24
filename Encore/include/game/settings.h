@@ -175,21 +175,27 @@ public:
     bool fullscreen = fullscreenDefault;
     bool fullscreenPrev = fullscreen;
 
-
 	float defaultMainVolume = 0.5f;
 	float defaultPlayerVolume = 0.75f;
 	float defaultBandVolume = 0.5f;
 	float defaultSFXVolume = 0.5f;
+    float defaultMissVolume = 0.15f;
+    float defaultMenuVolume = 0.15f;
 
 	float MainVolume = defaultMainVolume;
 	float PlayerVolume = defaultPlayerVolume;
 	float BandVolume = defaultBandVolume;
 	float SFXVolume = defaultSFXVolume;
+    float MissVolume = defaultMissVolume;
+    float MenuVolume = defaultMenuVolume;
 
-	float prevMainVolume = MainVolume;
+
+    float prevMainVolume = MainVolume;
 	float prevPlayerVolume = PlayerVolume;
 	float prevBandVolume = BandVolume;
 	float prevSFXVolume = SFXVolume;
+    float prevMissVolume = MissVolume;
+    float prevMenuVolume = MenuVolume;
 
 
     float highwayLengthMult = 1.0f;
@@ -225,6 +231,8 @@ public:
 		settings["volume"].AddMember("player", rapidjson::Value(defaultPlayerVolume), allocator);
 		settings["volume"].AddMember("band", rapidjson::Value(defaultBandVolume), allocator);
 		settings["volume"].AddMember("sfx", rapidjson::Value(defaultSFXVolume), allocator);
+        settings["volume"].AddMember("miss", rapidjson::Value(defaultMissVolume), allocator);
+        settings["volume"].AddMember("menu", rapidjson::Value(defaultMenuVolume), allocator);
 
 		settings.AddMember("keybinds", rapidjson::Value(rapidjson::kObjectType), allocator);
 		settings["keybinds"].AddMember("4k", array4K, allocator);
@@ -315,6 +323,8 @@ public:
 		bool PlayerVolumeError = false;
 		bool BandVolumeError = false;
 		bool SFXVolumeError = false;
+        bool MissVolumeError = false;
+        bool MenuVolumeError = false;
 
 
 		if (std::filesystem::exists(settingsFile)) {
@@ -353,6 +363,18 @@ public:
 					else {
 						SFXVolumeError = true;
 					}
+                    if (settings["volume"].HasMember("miss") && settings["volume"]["miss"].IsFloat()) {
+                        MissVolume = settings["volume"]["miss"].GetFloat();
+                    }
+                    else {
+                        MissVolumeError = true;
+                    }
+                    if (settings["volume"].HasMember("menu") && settings["volume"]["menu"].IsFloat()) {
+                        MenuVolume = settings["volume"]["menu"].GetFloat();
+                    }
+                    else {
+                        MenuVolumeError = true;
+                    }
 				}
 				else {
 					VolumeError = true;
@@ -661,6 +683,8 @@ public:
 			settings["volume"].AddMember("player", rapidjson::Value(defaultPlayerVolume), allocator);
 			settings["volume"].AddMember("band", rapidjson::Value(defaultBandVolume), allocator);
 			settings["volume"].AddMember("sfx", rapidjson::Value(defaultSFXVolume), allocator);
+            settings["volume"].AddMember("miss", rapidjson::Value(defaultMissVolume), allocator);
+            settings["volume"].AddMember("menu", rapidjson::Value(defaultMenuVolume), allocator);
 		}
 		if (keybindsError) {
 			if (settings.HasMember("keybinds"))
@@ -706,6 +730,16 @@ public:
 				settings["volume"].EraseMember("sfx");
 			settings["volume"].AddMember("sfx", rapidjson::Value(defaultSFXVolume), allocator);
 		}
+        if (MissHighwayError) {
+            if (settings["volume"].HasMember("miss"))
+                settings["volume"].EraseMember("miss");
+            settings["volume"].AddMember("miss", rapidjson::Value(defaultMissVolume), allocator);
+        }
+        if (MenuVolumeError) {
+            if (settings["volume"].HasMember("menu"))
+                settings["volume"].EraseMember("menu");
+            settings["volume"].AddMember("menu", rapidjson::Value(defaultMenuVolume), allocator);
+        }
 		if (keybinds4KError) {
 			if(settings["keybinds"].HasMember("4k"))
 				settings["keybinds"].EraseMember("4k");
@@ -904,7 +938,7 @@ public:
             fullscreenVal.SetBool(fullscreenDefault);
             settings.AddMember("fullscreen", fullscreenVal, allocator);
         }
-		if ( keybindsStrumDownError || keybindsStrumUpError || SFXVolumeError || BandVolumeError || PlayerVolumeError || VolumeError || MainVolumeError || fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if ( MenuVolumeError || MissVolumeError || keybindsStrumDownError || keybindsStrumUpError || SFXVolumeError || BandVolumeError || PlayerVolumeError || VolumeError || MainVolumeError || fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -1007,6 +1041,10 @@ public:
 		BandVolumeMember->value.SetFloat(BandVolume);
 		rapidjson::Value::MemberIterator SfxVolumeMember = settings["volume"].FindMember("sfx");
 		SfxVolumeMember->value.SetFloat(SFXVolume);
+        rapidjson::Value::MemberIterator MissVolumeMember = settings["volume"].FindMember("miss");
+        MissVolumeMember->value.SetFloat(MissVolume);
+        rapidjson::Value::MemberIterator MenuVolumeMember = settings["volume"].FindMember("menu");
+        MenuVolumeMember->value.SetFloat(MenuVolume);
 
         rapidjson::Value::MemberIterator fullscreenMember = settings.FindMember("fullscreen");
         fullscreenMember->value.SetBool(fullscreen);
