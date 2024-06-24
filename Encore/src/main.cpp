@@ -506,7 +506,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                     }
                 }
                 if (player.plastic) {
-                    if (key == GLFW_KEY_UP) {
+                    if (key == settingsMain.keybindStrumUp) {
                         if (action == GLFW_PRESS) {
                             lane = 8008135;
                             gpr.upStrum = true;
@@ -516,7 +516,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
                             gpr.overstrum = false;
                         }
                     }
-                    if (key == GLFW_KEY_DOWN) {
+                    if (key == settingsMain.keybindStrumDown) {
                         if (action == GLFW_PRESS) {
                             lane = 8008135;
                             gpr.downStrum = true;
