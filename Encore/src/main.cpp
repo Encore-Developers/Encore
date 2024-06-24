@@ -1689,6 +1689,8 @@ int main(int argc, char* argv[])
                     if (!selSong)
                         songSelectOffset = menu.ChosenSongInt - 5;
                     albumArtLoaded = true;
+                } else {
+                    menu.ChosenSong = selectedSong;
                 }
 
                 BeginShaderMode(assets.bgShader);

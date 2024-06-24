@@ -178,9 +178,11 @@ void Menu::DrawVersion() {
 };
 
 
+
+
 // todo: text box rendering for splashes, cleanup of buttons
 void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
-
+    AudioManager& menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
     std::ifstream splashes;
@@ -209,7 +211,9 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
                     ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
                     ChosenSongInt = my;
                     randomSongChosen = true;
+
                 } else {
+
                     ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
                 }
 
@@ -222,6 +226,16 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
             albumArtLoaded = true;
 
         };
+        if (!streamsLoaded) {
+            ChosenSong.LoadAudio(ChosenSong.songInfoPath);
+            menuAudioManager.loadStreams(ChosenSong.stemsPath);
+            streamsLoaded = true;
+            for (auto& stream : menuAudioManager.loadedStreams) {
+                menuAudioManager.SetAudioStreamVolume(stream.handle, settings.MainVolume * 0.15f);
+
+            }
+            menuAudioManager.BeginPlayback(menuAudioManager.loadedStreams[0].handle);
+        }
         DrawAlbumArtBackground(AlbumArtBackground);
     }
     float SplashFontSize = u.hinpct(0.03f);
@@ -252,8 +266,6 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     DrawRectangleGradientH(u.LeftSide,u.hpct(0.8f),SplashWidth+u.winpct(0.1f),u.hinpct(0.05f),accentColor,Color{0,0,0,0});
 
     DrawTextEx(menuAss.josefinSansItalic, result.c_str(), StringBox, SplashFontSize, 0, WHITE);
-    DrawTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
-    DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
 
     Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.035f), Remap(menuAss.encoreWhiteLogo.height, 0, menuAss.encoreWhiteLogo.width / 4.25, 0, u.winpct(0.5f)), logoHeight};
     DrawTexturePro(menuAss.encoreWhiteLogo, {0,0,(float)menuAss.encoreWhiteLogo.width,(float)menuAss.encoreWhiteLogo.height}, LogoRect, {0,0}, 0, WHITE);
@@ -276,7 +288,9 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     }
     if (std::filesystem::exists("songCache.encr")) {
         if (GuiButton({u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f)}, "Play")) {
-
+            menuAudioManager.unloadStreams();
+            streamsLoaded = false;
+            streamsPaused = false;
             for (Song &songi: songListMenu.songs) {
                 songi.titleScrollTime = GetTime();
                 songi.titleTextWidth = menuAss.MeasureTextRubik(songi.title.c_str(), 24);
@@ -326,6 +340,54 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     DrawTextureEx(menuAss.github, {(float) GetScreenWidth() - 54, (float) GetScreenHeight() - 54 - u.hpct(0.15f) }, 0, 0.2, WHITE);
     DrawTextureEx(menuAss.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
                       WHITE);
+    if (streamsLoaded) {
+        SongTitleBox.x = SongTitleBox.x - u.hinpct(0.12f);
+        SongArtistBox.x = SongArtistBox.x - u.hinpct(0.12f);
+        DrawTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
+        DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
+
+
+
+        for (auto& stream : menuAudioManager.loadedStreams) {
+            menuAudioManager.SetAudioStreamVolume(stream.handle, settings.MainVolume * 0.15f);
+        }
+        float played = menuAudioManager.GetMusicTimePlayed(menuAudioManager.loadedStreams[0].handle);
+        float length = menuAudioManager.GetMusicTimeLength(menuAudioManager.loadedStreams[0].handle);
+        DrawRectangle(0, u.hpct(0.2f) - u.hinpct(0.01f), Remap(played, 0, length, 0, GetScreenWidth()),
+                      u.hinpct(0.005f), SKYBLUE);
+
+        if (played >= length-0.5) {
+            menuAudioManager.unloadStreams();
+            albumArtLoaded = false;
+            streamsPaused = false;
+            songChosen = false;
+            streamsLoaded = false;
+            randomSongChosen = false;
+        }
+        GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
+        if (GuiButton({u.RightSide-u.hinpct(0.12f),u.hpct(0.2f)-u.hinpct(0.1f)-u.hinpct(0.031f),u.hinpct(0.06f),u.hinpct(0.06f)}, streamsPaused ? ">" : "||")) {
+            if (!streamsPaused) {
+                menuAudioManager.pauseStreams();
+                streamsPaused = true;
+            }
+            else if (streamsPaused) {
+                streamsPaused = false;
+                menuAudioManager.playStreams();
+            }
+        }
+        if (GuiButton({u.RightSide-u.hinpct(0.06f),u.hpct(0.2f)-u.hinpct(0.1f)-u.hinpct(0.031f),u.hinpct(0.06f),u.hinpct(0.06f)}, ">>")) {
+            menuAudioManager.unloadStreams();
+            albumArtLoaded = false;
+            streamsPaused = false;
+            songChosen = false;
+            streamsLoaded = false;
+            randomSongChosen = false;
+        }
+        GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
+    } else {
+        DrawTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
+        DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
+    }
 }
 
 bool AlbumArtLoadingStuff = false;

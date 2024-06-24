@@ -145,6 +145,77 @@ public:
 	std::string loadingPhrase = "";
 	std::vector<std::string> charters{};
 	std::string jsonHash = "";
+    void LoadAudio(std::filesystem::path jsonPath) {
+        std::ifstream ifs(jsonPath);
+
+        if (!ifs.is_open()) {
+            std::cerr << "Failed to open JSON file." << std::endl;
+        }
+        if (!stemsPath.empty())
+            stemsPath.clear();
+        if (!charters.empty())
+            charters.clear();
+        std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        ifs.close();
+        jsonHash = picosha2::hash256_hex_string(jsonString);
+        rapidjson::Document document;
+        document.Parse(jsonString.c_str());
+        songInfoPath = jsonPath.string();
+        songDir = jsonPath.parent_path().string();
+        if (document.IsObject())
+        {
+            for (auto& item : document.GetObject()) {
+                if (item.name=="stems" && item.value.IsObject())
+                {
+                    for (auto &path : item.value.GetObject())
+                    {
+                        std::string stem = std::string(path.name.GetString());
+                        if (path.value.IsString()) {
+                            if (std::filesystem::exists(jsonPath.parent_path() / path.value.GetString()))
+                            {
+                                if (stem == "drums")
+                                    stemsPath.push_back({ (jsonPath.parent_path() / path.value.GetString()).string(),0 });
+
+                                else if (stem == "bass")
+                                    stemsPath.push_back({ (jsonPath.parent_path() / path.value.GetString()).string(),1 });
+
+                                else if (stem == "lead")
+                                    stemsPath.push_back({ (jsonPath.parent_path() / path.value.GetString()).string(),2 });
+
+                                else if (stem == "vocals")
+                                    stemsPath.push_back({ (jsonPath.parent_path() / path.value.GetString()).string(),3 });
+
+                                else if (stem == "backing")
+                                    stemsPath.push_back({ (jsonPath.parent_path() / path.value.GetString()).string(),4 });
+                            }
+                        }
+                        else if (path.value.IsArray()) {
+                            for (auto& path : path.value.GetArray()) {
+                                if (std::filesystem::exists(jsonPath.parent_path() / path.GetString()))
+                                {
+                                    if (stem == "drums")
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),0 });
+
+                                    else if (stem == "bass")
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),1 });
+
+                                    else if (stem == "lead")
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),2 });
+
+                                    else if (stem == "vocals")
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),3 });
+
+                                    else if (stem == "backing")
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),4 });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        ifs.close();
+    }
 
 	void LoadSong(std::filesystem::path jsonPath) 
 	{

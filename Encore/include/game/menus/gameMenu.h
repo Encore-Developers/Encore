@@ -58,6 +58,8 @@ public:
     int ChosenSongInt;
     Screens currentScreen;
     bool songsLoaded{};
+    bool streamsLoaded = false;
+    bool streamsPaused = false;
     bool stringChosen = false;
     Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
