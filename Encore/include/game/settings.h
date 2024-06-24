@@ -104,6 +104,8 @@ public:
 	std::vector<int> defaultKeybinds5K{ KEY_D,KEY_F,KEY_J,KEY_K,KEY_L };
 	std::vector<int> defaultKeybinds4KAlt{ -2,-2,-2,-2 };
 	std::vector<int> defaultKeybinds5KAlt{ -2,-2,-2,-2,-2 };
+    int defaultKeybindStrumUp = KEY_UP;
+    int defaultKeybindStrumDown = KEY_DOWN;
 	int defaultKeybindOverdrive = KEY_SPACE;
 	int defaultKeybindOverdriveAlt = -2;
 	int defaultKeybindPause = KEY_ESCAPE;
@@ -125,6 +127,8 @@ public:
 	std::vector<int> controller4KAxisDirection = defaultController4KAxisDirection;
 	std::vector<int> controller5KAxisDirection = defaultController5KAxisDirection;
 	int controllerType = defaultControllerType;
+    int keybindStrumUp = defaultKeybindStrumUp;
+    int keybindStrumDown = defaultKeybindStrumDown;
 	int keybindOverdrive = defaultKeybindOverdrive;
 	int keybindOverdriveAlt = defaultKeybindOverdriveAlt;
 	int keybindPause = defaultKeybindPause;
@@ -140,6 +144,8 @@ public:
 	std::vector<int> prevController5KAxisDirection = controller5KAxisDirection;
 	std::vector<int> prev4KAlt = keybinds4KAlt;
 	std::vector<int> prev5KAlt = keybinds5KAlt;
+    int prevKeybindStrumDown = keybindStrumDown;
+    int prevKeybindStrumUp = keybindStrumUp;
 	int prevOverdrive = keybindOverdrive;
 	int prevOverdriveAlt = keybindOverdriveAlt;
 	int prevKeybindPause = keybindPause;
@@ -225,7 +231,9 @@ public:
 		settings["keybinds"].AddMember("5k", array5K, allocator);
 		settings["keybinds"].AddMember("4kAlt", array4KAlt, allocator);
 		settings["keybinds"].AddMember("5kAlt", array5KAlt, allocator);
-		settings["keybinds"].AddMember("overdrive", rapidjson::Value(defaultKeybindOverdrive), allocator);
+        settings["keybinds"].AddMember("strumUp", rapidjson::Value(defaultKeybindStrumUp), allocator);
+        settings["keybinds"].AddMember("strumDown", rapidjson::Value(defaultKeybindStrumDown), allocator);
+        settings["keybinds"].AddMember("overdrive", rapidjson::Value(defaultKeybindOverdrive), allocator);
 		settings["keybinds"].AddMember("overdriveAlt", rapidjson::Value(defaultKeybindOverdriveAlt), allocator);
 		settings["keybinds"].AddMember("pause", rapidjson::Value(defaultKeybindPause), allocator);
 		rapidjson::Value arrayController4K(rapidjson::kArrayType);
@@ -277,6 +285,8 @@ public:
 		bool keybinds5KError = false;
 		bool keybinds4KAltError = false;
 		bool keybinds5KAltError = false;
+        bool keybindsStrumUpError = false;
+        bool keybindsStrumDownError = false;
 		bool keybindsOverdriveError = false;
 		bool keybindsOverdriveAltError = false;
 		bool keybindsPauseError = false;
@@ -417,6 +427,20 @@ public:
 							keybinds5KAltError = true;
 						}
 					}
+                    if (settings["keybinds"].HasMember("strumUp") && settings["keybinds"]["strumUp"].IsInt()) {
+                        keybindStrumUp = settings["keybinds"]["strumUp"].GetInt();
+                        prevKeybindStrumDown = keybindStrumUp;
+                    }
+                    else {
+                        keybindsStrumUpError = true;
+                    }
+                    if (settings["keybinds"].HasMember("strumDown") && settings["keybinds"]["strumDown"].IsInt()) {
+                        keybindStrumDown = settings["keybinds"]["strumDown"].GetInt();
+                        prevKeybindStrumDown = keybindStrumDown;
+                    }
+                    else {
+                        keybindsStrumDownError = true;
+                    }
 					if (settings["keybinds"].HasMember("overdrive") && settings["keybinds"]["overdrive"].IsInt()) {
 						keybindOverdrive = settings["keybinds"]["overdrive"].GetInt();
 						prevOverdrive = keybindOverdrive;
@@ -714,6 +738,16 @@ public:
 				array5K.PushBack(rapidjson::Value().SetInt(key), allocator);
 			settings["keybinds"].AddMember("5kAlt", array5K, allocator);
 		}
+        if (keybindsStrumUpError) {
+            if (settings["keybinds"].HasMember("strumUp"))
+                settings["keybinds"].EraseMember("strumUp");
+            settings["keybinds"].AddMember("strumUp", rapidjson::Value(defaultKeybindStrumUp), allocator);
+        }
+        if (keybindsStrumDownError) {
+            if (settings["keybinds"].HasMember("strumDown"))
+                settings["keybinds"].EraseMember("strumDown");
+            settings["keybinds"].AddMember("strumDown", rapidjson::Value(defaultKeybindStrumDown), allocator);
+        }
 		if (keybindsOverdriveError) {
 			if (settings["keybinds"].HasMember("overdrive"))
 				settings["keybinds"].EraseMember("overdrive");
@@ -870,7 +904,7 @@ public:
             fullscreenVal.SetBool(fullscreenDefault);
             settings.AddMember("fullscreen", fullscreenVal, allocator);
         }
-		if ( SFXVolumeError || BandVolumeError || PlayerVolumeError || VolumeError || MainVolumeError || fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
+		if ( keybindsStrumDownError || keybindsStrumUpError || SFXVolumeError || BandVolumeError || PlayerVolumeError || VolumeError || MainVolumeError || fullscreenError || songDirectoryError || highwayLengthError || mirrorError || MissHighwayError || keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError || keybinds5KAltError|| keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError || controllerError || controllerTypeError || controller4KError || controller5KError || controllerOverdriveError || controller4KDirectionError || controller5KDirectionError || controllerOverdriveDirectionError || controllerPauseError || controllerPauseDirectionError || avError || inputError|| trackSpeedError || trackSpeedOptionsError) {
 			ensureValuesExist();
 			saveSettings(settingsFile);
 		}
@@ -1008,6 +1042,10 @@ public:
 		keybinds5KAltMember->value.Clear();
 		for (int& key : keybinds5KAlt)
 			keybinds5KAltMember->value.PushBack(rapidjson::Value().SetInt(key), allocator);
+        rapidjson::Value::MemberIterator strumUpKeyMember = settings["keybinds"].FindMember("strumUp");
+        strumUpKeyMember->value.SetInt(keybindStrumUp);
+        rapidjson::Value::MemberIterator strumDownKeyMember = settings["keybinds"].FindMember("strumDown");
+        strumDownKeyMember->value.SetInt(keybindStrumDown);
 		rapidjson::Value::MemberIterator overdriveKeyMember = settings["keybinds"].FindMember("overdrive");
 		overdriveKeyMember->value.SetInt(keybindOverdrive);
 		rapidjson::Value::MemberIterator overdriveKeyAltMember = settings["keybinds"].FindMember("overdriveAlt");

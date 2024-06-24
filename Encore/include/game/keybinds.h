@@ -77,7 +77,7 @@ public:
             if (it != keymap.end()) {
                 return it->second;
             } else {
-                return keycode == -1 ? "" : "UNK";
+                return keycode == -2 ? "Unbound" : "UNK";
             }
         }
     }
