@@ -21,6 +21,13 @@ public:
     std::vector<bool> overhitFrets{ false,false,false,false,false };
     std::vector<bool> tapRegistered{ false,false,false,false,false };
     std::vector<bool> liftRegistered{ false,false,false,false,false };
+    double startTime = 0.0;
+    bool highwayInAnimation = false;
+    bool highwayInEndAnim = false;
+    bool highwayOutAnimation = false;
+    bool highwayOutEndAnim = false;
+    float animDuration = 1.0f;
+    float highwayLevel = 0;
     std::vector<int> curNoteIdx = { 0,0,0,0,0 };
     bool songEnded = false;
     bool overstrum = false;
@@ -44,5 +51,8 @@ public:
     bool FAS = false;
     bool processingStrum = false;
 
+    void RaiseHighway();
+
+    void LowerHighway();
 };
 

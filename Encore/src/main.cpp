@@ -2241,7 +2241,7 @@ int main(int argc, char* argv[])
                             audioManager.SetAudioStreamVolume(stream.handle, settingsMain.MainVolume * settingsMain.BandVolume);
 
                     }
-                    audioManager.BeginPlayback(audioManager.loadedStreams[0].handle);
+
                     player.resetPlayerStats();
                 }
                 else {
@@ -2268,8 +2268,10 @@ int main(int argc, char* argv[])
                         menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
                         midiLoaded = false;
                         isPlaying = false;
+                        gpr.highwayInAnimation = false;
                         gpr.songEnded = true;
                         songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].resetNotes();
+                        gpr.LowerHighway();
 
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
@@ -2368,6 +2370,7 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
+                        gpr.highwayInAnimation = false;
                         gpr.curODPhrase = 0;
                         gpr.curNoteInt = 0;
                         gpr.curSolo = 0;
@@ -2402,6 +2405,7 @@ int main(int argc, char* argv[])
                         gpr.curNoteInt = 0;
                         gpr.curODPhrase = 0;
                         gpr.curSolo = 0;
+                        gpr.highwayInAnimation = false;
                         player.paused = false;
                         assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = assets.highwayTexture;
