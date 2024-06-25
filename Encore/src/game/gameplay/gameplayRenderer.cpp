@@ -9,12 +9,14 @@
 #include "raymath.h"
 #include "game/menus/uiUnits.h"
 #include "rlgl.h"
+#include "easing/easing.h"
 
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();
 AudioManager &gprAudioManager = AudioManager::getInstance();
 Menu& gprMenu = Menu::getInstance();
 Units& gprU = Units::getInstance();
+
 
 
 void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
@@ -316,7 +318,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
     SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
     notes_tex.texture.width = (float)GetScreenWidth();
     notes_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 }
 
 void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
@@ -588,7 +590,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
     SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
     notes_tex.texture.width = (float)GetScreenWidth();
     notes_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 }
 
 void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex) {
@@ -614,8 +616,32 @@ void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex) {
     SetTextureWrap(hud_tex.texture,TEXTURE_WRAP_CLAMP);
     hud_tex.texture.width = (float)GetScreenWidth();
     hud_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 }
+
+void gameplayRenderer::RaiseHighway() {
+    if (!highwayInAnimation) {
+        startTime = GetTime();
+        highwayInAnimation = true;
+    }
+    if (GetTime() <= startTime + animDuration && highwayInAnimation) {
+        double timeSinceStart = GetTime() - startTime;
+        highwayLevel = Remap(1.0 - getEasingFunction(EaseOutExpo)(timeSinceStart/animDuration), 0, 1.0, 0, -GetScreenHeight());
+        highwayInEndAnim = true;
+    }
+};
+
+void gameplayRenderer::LowerHighway() {
+    if (!highwayOutAnimation) {
+        startTime = GetTime();
+        highwayOutAnimation = true;
+    }
+    if (GetTime() <= startTime + animDuration && highwayOutAnimation) {
+        double timeSinceStart = GetTime() - startTime;
+        highwayLevel = Remap(1.0 - getEasingFunction(EaseInExpo)(timeSinceStart/animDuration), 1.0, 0, 0, -GetScreenHeight());
+        highwayOutEndAnim = true;
+    }
+};
 
 void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, RenderTexture2D& highway_tex, RenderTexture2D& hud_tex, RenderTexture2D& notes_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex) {
 
@@ -641,6 +667,13 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
 
     if (player.overdrive) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
     else gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+
+
+    RaiseHighway();
+    if (GetTime() >= startTime + animDuration && highwayInEndAnim) {
+        gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
+        highwayInEndAnim = false;
+    }
 
     /*
     if ((player.overdrive ? player.multiplier(player.instrument) / 2 : player.multiplier(player.instrument))>= (player.instrument == 1 || player.instrument == 3 || player.instrument == 5 ? 6 : 4)) {
@@ -818,7 +851,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     SetTextureWrap(highway_tex.texture,TEXTURE_WRAP_CLAMP);
     highway_tex.texture.width = (float)GetScreenWidth();
     highway_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 
     BeginBlendMode(BLEND_ALPHA);
     BeginTextureMode(highwayStatus_tex);
@@ -850,7 +883,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     SetTextureWrap(highwayStatus_tex.texture,TEXTURE_WRAP_CLAMP);
     highwayStatus_tex.texture.width = (float)GetScreenWidth();
     highwayStatus_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(highwayStatus_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(highwayStatus_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 
     BeginTextureMode(smasher_tex);
     ClearBackground({0,0,0,0});
@@ -906,7 +939,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
     SetTextureWrap(smasher_tex.texture,TEXTURE_WRAP_CLAMP);
     smasher_tex.texture.width = (float)GetScreenWidth();
     smasher_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(smasher_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(smasher_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 
 
 
@@ -977,7 +1010,7 @@ void gameplayRenderer::RenderEmhHighway(Player& player, Song song, double time, 
     SetTextureWrap(highway_tex.texture,TEXTURE_WRAP_CLAMP);
     highway_tex.texture.width = (float)GetScreenWidth();
     highway_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,0}, 0, WHITE );
+    DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 
 }
 
@@ -989,15 +1022,35 @@ void gameplayRenderer::DrawBeatlines(Player& player, Song song, float length, do
     if (beatlines.size() >= 0) {
         for (int i = curBeatLine; i < beatlines.size(); i++) {
             if (beatlines[i].first >= song.music_start-1 && beatlines[i].first <= song.end) {
+                Color BeatLineColor = {255,255,255,128};
                 double relTime = ((song.beatLines[i].first - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed]  * ( 11.5f / length);
+                if (i > 0) {
+                    double secondLine = ((((song.beatLines[i-1].first + song.beatLines[i].first)/2) - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed]  * ( 11.5f / length);
+                    if (secondLine > 1.5) break;
+
+                    if (song.beatLines[i].first - song.beatLines[i-1].first <= 0.2 || (player.smasherPos + (length * (float)relTime)) - (player.smasherPos + (length * (float)secondLine)) <= 1.5) BeatLineColor = {0,0,0,0};
+                    else BeatLineColor = {128,128,128,128};
+                    DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (length * (float)secondLine) },
+                                   Vector3{ diffDistance + 0.5f,0,player.smasherPos + (length * (float)secondLine) },
+                                   0.01f,
+                                   0.01f,
+                                   4,
+                                   BeatLineColor);
+                }
+
                 if (relTime > 1.5) break;
-                float radius = beatlines[i].second ? 0.05f : 0.01f;
+                float radius = beatlines[i].second ? 0.06f : 0.03f;
+
+                BeatLineColor = (beatlines[i].second) ? Color{ 255, 255, 255, 196 } : Color{ 255, 255, 255, 128 };
+
                 DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,player.smasherPos + (length * (float)relTime) },
                                Vector3{ diffDistance + 0.5f,0,player.smasherPos + (length * (float)relTime) },
                                radius,
                                radius,
                                4,
-                               DARKGRAY);
+                               BeatLineColor);
+
+
                 if (relTime < -1 && curBeatLine < beatlines.size() - 1) {
                     curBeatLine++;
                 }
