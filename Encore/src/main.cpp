@@ -2112,6 +2112,7 @@ int main(int argc, char* argv[])
                     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
                     if (GuiButton({ u.LeftSide, BottomOvershell, u.winpct(0.2f), u.hinpct(0.05f)}, "Ready Up!")) {
                         ReadyUpMenu = false;
+                        gpr.highwayInAnimation = false;
                         menu.SwitchScreen(GAMEPLAY);
                         glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
                         glfwSetGamepadStateCallback(gamepadStateCallback);
@@ -2127,7 +2128,6 @@ int main(int argc, char* argv[])
                             instSelected = false;
                             diffSelected = false;
                             ReadyUpMenu = false;
-                            gpr.highwayInAnimation = false;
                             menu.SwitchScreen(SONG_SELECT);
                         }
                     
