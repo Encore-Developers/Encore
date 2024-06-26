@@ -134,6 +134,16 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
                     curChart.odPhrases[curODPhrase].missed = true;
                 player.combo = 0;
                 curNote.accounted = true;
+            } else if (bot) {
+                if (!curNote.hit && !curNote.accounted && curNote.time < time &&
+                curNoteInt < curChart.notes.size() && !songEnded) {
+                    curNote.hit = true;
+                    if (curNote.len > 0) curNote.held = true;
+                    curNote.accounted = true;
+                    player.combo++;
+                    curNote.accounted = true;
+                    curNote.hitTime = time;
+                }
             }
 
             double relTime = ((curNote.time - time)) *
@@ -168,15 +178,19 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
                         if (curNote.heldTime <
                             (curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
                             curNote.heldTime = 0.0 - relTime;
-                            player.sustainScoreBuffer[curNote.lane] =
-                                    (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
-                                    player.multiplier(player.instrument);
+                            if (!bot) {
+                                player.sustainScoreBuffer[curNote.lane] =
+                                        (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
+                                        player.multiplier(player.instrument);
+                            }
                             if (relTime < 0.0) relTime = 0.0;
                         }
                         if (relEnd <= 0.0) {
                             if (relTime < 0.0) relTime = relEnd;
-                            player.score += player.sustainScoreBuffer[curNote.lane];
-                            player.sustainScoreBuffer[curNote.lane] = 0;
+                            if (!bot) {
+                                player.score += player.sustainScoreBuffer[curNote.lane];
+                                player.sustainScoreBuffer[curNote.lane] = 0;
+                            }
                             curNote.held = false;
                         }
                     } else if (curNote.hit && !curNote.held) {
@@ -386,11 +400,13 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             curNote.accounted = true;
             curNoteInt++;
         } else if (bot) {
-            if (!curNote.hit && !curNote.accounted && curNote.isPerfect(time, 0) && curNoteInt < curChart.notes.size() && !songEnded) {
+            if (!curNote.hit && !curNote.accounted && curNote.time < time && curNoteInt < curChart.notes.size() && !songEnded) {
                 curNote.hit = true;
+                if (curNote.len > 0) curNote.held = true;
                 curNote.accounted = true;
                 player.combo++;
                 curNote.accounted = true;
+                curNote.hitTime = time;
                 curNoteInt++;
             }
         }
@@ -674,8 +690,17 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     gprAssets.smasherBoardEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
 
     if (player.overdrive) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
-    else gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    else if (!bot) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    if (bot) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
 
+    if (player.overdrive) gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.overdriveColor;
+    else if (!bot) gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.accentColor;
+    if (bot) gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+
+    if (bot) player.FC = false;
+
+    if (bot) player.bot = true;
+    else player.bot = false;
 
     RaiseHighway();
     if (GetTime() >= startTime + animDuration && highwayInEndAnim) {
@@ -789,7 +814,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     } else {
         RenderNotes(player, curChart, time, notes_tex, highwayLength);
     }
-    RenderHud(player, hud_tex);
+    if (!bot) RenderHud(player, hud_tex);
 }
 
 void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex)  {

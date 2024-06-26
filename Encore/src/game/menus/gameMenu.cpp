@@ -34,6 +34,7 @@ Assets &menuAss = Assets::getInstance();
 Settings& settings = Settings::getInstance();
 SongList &songListMenu = SongList::getInstance();
 Units u = Units::getInstance();
+
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
 void Menu::DrawTopOvershell(float TopOvershell) {
@@ -64,16 +65,19 @@ void Menu::renderPlayerResults(Player player, Song song) {
 
     DrawRectangleGradientV(cardPos,u.hpct(0.2f), u.winpct(0.22f), u.hinpct(0.2f), ColorBrightness(player.accentColor, -0.5f), GetColor(0x181827FF));
 
-    bool rendAsFC = player.FC && !player.quit;
-
-    if (player.quit) {
+    bool rendAsFC = player.FC && !player.quit && !player.bot;
+    if (player.bot) {
+        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
+                               ColorContrast(ColorBrightness(SKYBLUE, -0.5f), -0.25f));
+    }
+    if (player.quit && !player.bot) {
         DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF), ColorBrightness(RED, -0.5f));
     }
-    if (rendAsFC) {
+    if (rendAsFC && !player.bot) {
         DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
                                ColorContrast(ColorBrightness(GOLD, -0.5f), -0.25f));
     }
-    if (player.perfectHit==player.notes && rendAsFC) {
+    if (player.perfectHit==player.notes && rendAsFC && !player.bot) {
         DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
                                ColorBrightness(WHITE, -0.5f));
     }
@@ -110,7 +114,8 @@ void Menu::renderPlayerResults(Player player, Song song) {
                 u.hinpct(flawlessFontSize),
                 0.0f,
                 WHITE);
-    } if (player.quit) {
+    }
+    if (player.quit && !player.bot) {
         float flawlessFontSize = 0.05f;
         DrawTextEx(
                 menuAss.rubikBoldItalic,
@@ -121,6 +126,18 @@ void Menu::renderPlayerResults(Player player, Song song) {
                 u.hinpct(flawlessFontSize),
                 0.0f,
                 RED);
+    }
+    if (player.bot) {
+        float flawlessFontSize = 0.05f;
+        DrawTextEx(
+                menuAss.rubikBoldItalic,
+                "BOT",
+                {
+                        (cardPos + u.winpct(0.11f))-(MeasureTextEx(menuAss.rubikBoldItalic, "BOT", u.hinpct(flawlessFontSize), 0.0f).x/2),
+                        u.hpct(0.335f)},
+                u.hinpct(flawlessFontSize),
+                0.0f,
+                SKYBLUE);
     }
     DrawTextEx(menuAss.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {(cardPos + u.winpct(0.11f)) - (MeasureTextEx(menuAss.redHatDisplayItalicLarge, rendAsFC ? TextFormat("%3.0f", Percent) : TextFormat("%3.0f%%", Percent), u.hinpct(0.1f),0).x/(rendAsFC ? 1.5f : 2.0f)),u.hpct(0.24f)},u.hinpct(0.1f),0, rendAsFC ? YELLOW : WHITE);
 

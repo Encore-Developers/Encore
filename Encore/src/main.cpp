@@ -459,10 +459,10 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
             }
 
         }
-        else if (key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) {
+        else if ((key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) && !gpr.bot) {
 			handleInputs(-1, action);
 		}
-        else {
+        else if (!gpr.bot) {
             if (player.instrument != 4) {
                 if (player.diff == 3) {
                     for (int i = 0; i < 5; i++) {
@@ -557,7 +557,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
             }
         }
     }
-    else {
+    else if (!gpr.bot) {
         if (state.axes[-(settingsMain.controllerPause + 1)] != axesValues[-(settingsMain.controllerPause + 1)]) {
             axesValues[-(settingsMain.controllerPause + 1)] = state.axes[-(settingsMain.controllerPause + 1)];
             if (state.axes[-(settingsMain.controllerPause + 1)] == 1.0f * (float)settingsMain.controllerPauseAxisDirection) {
@@ -566,13 +566,13 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
             }
         }
     }
-	if (settingsMain.controllerOverdrive >= 0) {
+	if (settingsMain.controllerOverdrive >= 0 && !gpr.bot) {
 		if (state.buttons[settingsMain.controllerOverdrive] != buttonValues[settingsMain.controllerOverdrive]) {
 			buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.controllerOverdrive];
 			handleInputs(-1, state.buttons[settingsMain.controllerOverdrive]);
 		}
 	}
-	else {
+	else if (!gpr.bot) {
 		if (state.axes[-(settingsMain.controllerOverdrive+1)] != axesValues[-(settingsMain.controllerOverdrive + 1)]) {
 			axesValues[-(settingsMain.controllerOverdrive + 1)] = state.axes[-(settingsMain.controllerOverdrive + 1)];
 			if (state.axes[-(settingsMain.controllerOverdrive + 1)] == 1.0f*(float)settingsMain.controllerOverdriveAxisDirection) {
@@ -583,7 +583,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-	if (player.diff == 3 || player.plastic) {
+	if ((player.diff == 3 || player.plastic) && !gpr.bot ){
         int lane = -2;
         int action = -2;
 		for (int i = 0; i < 5; i++) {
@@ -635,7 +635,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
             handleInputs(8008135, GLFW_RELEASE);
         }
 	}
-	else{
+	else if (!gpr.bot) {
 		for (int i = 0; i < 4; i++) {
 			if (settingsMain.controller4K[i] >= 0) {
 				if (state.buttons[settingsMain.controller4K[i]] != buttonValues[settingsMain.controller4K[i]]) {
@@ -2116,10 +2116,9 @@ int main(int argc, char* argv[])
                         ReadyUpMenu = false;
                         gpr.highwayInAnimation = false;
                         menu.SwitchScreen(GAMEPLAY);
-                        if (!gpr.bot) {
-                            glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-                            glfwSetGamepadStateCallback(gamepadStateCallback);
-                        }
+                        glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+                        glfwSetGamepadStateCallback(gamepadStateCallback);
+
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
                     GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
@@ -2464,9 +2463,10 @@ int main(int argc, char* argv[])
                 menu.DrawFPS(u.LeftSide,u.hpct(0.0025f) + u.hinpct(0.025f));
                 menu.DrawVersion();
 
-                DrawTextEx(assets.rubik, textTime, { GetScreenWidth() - textLength,GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04f), 0, WHITE);
-                DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, GOLD);
-                GuiProgressBar(Rectangle{ 0,(float)GetScreenHeight() - u.hinpct(0.005f),(float)GetScreenWidth(),u.hinpct(0.01f) }, "", "", & floatSongLength, 0, (float)songLength);
+                DrawTextEx(assets.rubik, textTime, { GetScreenWidth() - textLength,GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04f), 0, gpr.bot ? SKYBLUE : WHITE );
+                if (!gpr.bot) DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""), { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, GOLD);
+                if (gpr.bot) DrawTextEx(assets.rubikBold, "BOT", { 5, GetScreenHeight() - u.hinpct(0.05f) }, u.hinpct(0.04), 0, SKYBLUE);
+                if (!gpr.bot) GuiProgressBar(Rectangle{ 0,(float)GetScreenHeight() - u.hinpct(0.005f),(float)GetScreenWidth(),u.hinpct(0.01f) }, "", "", & floatSongLength, 0, (float)songLength);
                 DrawText(to_string(HeldMaskShow).c_str(), 0, 200, 30, WHITE);
                 DrawText(to_string(gpr.curNoteInt).c_str(), 0, 240, 30, WHITE);
 
