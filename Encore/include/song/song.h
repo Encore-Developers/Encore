@@ -216,7 +216,81 @@ public:
         }
         ifs.close();
     }
+    void LoadInfo(std::filesystem::path jsonPath) {
+        std::ifstream ifs(jsonPath);
 
+        if (!ifs.is_open()) {
+            std::cerr << "Failed to open JSON file." << std::endl;
+        }
+        if (!stemsPath.empty())
+            stemsPath.clear();
+        if (!charters.empty())
+            charters.clear();
+        std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+        ifs.close();
+        jsonHash = picosha2::hash256_hex_string(jsonString);
+        rapidjson::Document document;
+        document.Parse(jsonString.c_str());
+        songInfoPath = jsonPath.string();
+        songDir = jsonPath.parent_path().string();
+        for (auto& item : document.GetObject()) {
+            if (item.name == "title" && item.value.IsString())
+                title = item.value.GetString();
+            if (item.name == "artist" && item.value.IsString())
+                artist = item.value.GetString();
+            if (item.name == "album" && item.value.IsString())
+                album = item.value.GetString();
+            if (item.name == "length" && item.value.IsInt())
+                length = item.value.GetInt();
+            if (item.name == "release_year" && item.value.IsInt())
+                releaseYear = item.value.GetInt();
+            if (item.name == "loading_phrase" && item.value.IsString())
+                loadingPhrase = item.value.GetString();
+            if ((item.name == "sid" || item.name == "icon_drums") && item.value.IsString())
+                partIcons[0] = iconFromString(item.value.GetString());
+            if ((item.name == "sib" || item.name == "icon_bass") && item.value.IsString())
+                partIcons[1] = iconFromString(item.value.GetString());
+            if ((item.name == "sig" || item.name == "icon_guitar") && item.value.IsString())
+                partIcons[2] = iconFromString(item.value.GetString());
+            if ((item.name == "siv" || item.name == "icon_vocals") && item.value.IsString())
+                partIcons[3] = iconFromString(item.value.GetString());
+            if (item.name == "midi" && item.value.IsString())
+                midiPath = jsonPath.parent_path() / item.value.GetString();
+            if (item.name == "art" && item.value.IsString()) {
+                albumArtPath = (jsonPath.parent_path() / item.value.GetString()).string();
+            }
+            if (item.name == "diff" && item.value.IsObject()) {
+                for (auto &diff: item.value.GetObject()) {
+                    std::string part = std::string(diff.name.GetString());
+                    if (diff.value.IsInt()) {
+                        if (part == "ds" || part == "drums") {
+                            parts[0]->diff = diff.value.GetInt();
+                        } else if (part == "ba" || part == "bass") {
+                            parts[1]->diff = diff.value.GetInt();
+                        } else if (part == "gr" || part == "guitar") {
+                            parts[2]->diff = diff.value.GetInt();
+                        } else if (part == "vl" || part == "vocals") {
+                            parts[3]->diff = diff.value.GetInt();
+                        } else if (part == "pd" || part == "plastic_drums") {
+                            parts[4]->diff = diff.value.GetInt();
+                        } else if (part == "pb" || part == "plastic_bass") {
+                            parts[5]->diff = diff.value.GetInt();
+                        } else if (part == "pg" || part == "plastic_guitar") {
+                            parts[6]->diff = diff.value.GetInt();
+                        }
+                    }
+                }
+            }
+            if (item.name == "charters" && item.value.IsObject()) {
+                for(auto& charter:item.value.GetObject()){
+                    if (charter.value.IsString()) {
+                        charters.push_back(charter.value.GetString());
+                    }
+                }
+            }
+        }
+        ifs.close();
+    }
 	void LoadSong(std::filesystem::path jsonPath) 
 	{
 		std::ifstream ifs(jsonPath);

@@ -1706,15 +1706,17 @@ int main(int argc, char* argv[])
                 } else {
                     menu.ChosenSong = selectedSong;
                 }
-
+                Song SongToDisplayInfo;
                 BeginShaderMode(assets.bgShader);
                 if (selSong){
-
+                    SongToDisplayInfo = selectedSong;
+                    selectedSong.LoadInfo(selectedSong.songInfoPath);
                     menu.DrawAlbumArtBackground(selectedSong.albumArtBlur);
                 }
                 else {
-
                     Song art = menu.ChosenSong;
+                    SongToDisplayInfo = menu.ChosenSong;
+                    art.LoadInfo(art.songInfoPath);
                     menu.DrawAlbumArtBackground(art.albumArtBlur);
                 }
                 EndShaderMode();
@@ -1830,6 +1832,45 @@ int main(int argc, char* argv[])
                 float TextPlacementTB = u.TopSide + u.hinpct(0.15f) - u.hinpct(0.11f);
                 float TextPlacementLR = u.LeftSide + u.winpct(0.01f);
                 DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.10f),0, WHITE);
+
+                std::string AlbumArtText = SongToDisplayInfo.album.empty() ? "No Album Listed" : SongToDisplayInfo.album;
+
+                float AlbumTextHeight = MeasureTextEx(assets.rubikBold, AlbumArtText.c_str(), u.hinpct(0.035f), 0).y;
+                float AlbumTextWidth = MeasureTextEx(assets.rubikBold, AlbumArtText.c_str(), u.hinpct(0.035f), 0).x;
+                float AlbumNameTextCenter = u.RightSide - u.winpct(0.125f) - AlbumInner;
+                float AlbumTTop = AlbumY + AlbumHeight + u.hinpct(0.011f);
+                float AlbumNameFontSize = AlbumTextWidth <= u.winpct(0.25f) ? u.hinpct(0.035f) : u.winpct(0.23f) / (AlbumTextWidth/AlbumTextHeight);
+                float AlbumNameLeft = AlbumNameTextCenter - (MeasureTextEx(assets.rubikBold, AlbumArtText.c_str(), AlbumNameFontSize, 0).x/2);
+                float AlbumNameTextTop = AlbumTextWidth <= u.winpct(0.25f) ? AlbumTTop : AlbumTTop + ((u.hinpct(0.035f)/2)-(AlbumNameFontSize/2));
+
+                DrawTextEx(assets.rubikBold, AlbumArtText.c_str(), {AlbumNameLeft, AlbumNameTextTop}, AlbumNameFontSize,0, WHITE);
+
+                DrawLine(u.RightSide-AlbumHeight-AlbumOuter, AlbumY + AlbumHeight + AlbumOuter +(u.hinpct(0.04f)), u.RightSide, AlbumY + AlbumHeight + AlbumOuter +(u.hinpct(0.04f)), WHITE);
+
+                float DiffTop = AlbumY + AlbumHeight + AlbumOuter +(u.hinpct(0.045f));
+
+                float DiffHeight = u.hinpct(0.035f);
+                float DiffTextSize = u.hinpct(0.03f);
+                float DiffDotLeft = u.RightSide - MeasureTextEx(assets.rubikBold, "OOOOO  ", DiffHeight, 0).x;
+
+                for (int i = 0; i < 7; i++) {
+                    if (SongToDisplayInfo.parts[i]->diff != -1) {
+                        std::string DiffDot;
+                        bool red = false;
+                        if (SongToDisplayInfo.parts[i]->diff == 6) red = true;
+                        for (int g = 0; g < 7; g++) {
+                            if (g < SongToDisplayInfo.parts[i]->diff - 1)
+                                DiffDot += "O";
+                            if (g > SongToDisplayInfo.parts[i]->diff - 1) { DiffDot += " ";}
+                        }
+                        DrawTextEx(assets.rubikBold, "OOOOO", {DiffDotLeft, DiffTop + (DiffHeight * i) }, DiffHeight, 0, DARKGRAY);
+                        DrawTextEx(assets.rubikBold, DiffDot.c_str(), {DiffDotLeft, DiffTop + (DiffHeight * i) }, DiffHeight, 0, red?RED:WHITE);
+                    } else {
+                        DrawTextEx(assets.rubikBold, "N/A", {DiffDotLeft, DiffTop + (DiffHeight * i) }, DiffHeight, 0, GRAY);
+                    }
+                    DrawTextEx(assets.rubik,
+                               songPartsList[i].c_str(), {u.RightSide-AlbumHeight+AlbumInner, DiffTop + u.hinpct(0.0025f)+ (DiffHeight * i) }, DiffTextSize, 0, WHITE);
+                }
 
                 menu.DrawBottomOvershell();
                 float BottomOvershell = (float)GetScreenHeight() - 120;
@@ -1998,7 +2039,9 @@ int main(int argc, char* argv[])
                             
                             GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(Color{ 255,255,255,255 }));
                             GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-                            if (GuiButton({ u.LeftSide,BottomOvershell - u.hinpct(0.05f) - (u.hinpct(0.05f) * (float)i),u.winpct(0.2f),u.hinpct(0.05f) }, TextFormat("  %s", songPartsList[i].c_str()))) {
+                            if (GuiButton(
+                                    { u.LeftSide,BottomOvershell - u.hinpct(0.05f) - (u.hinpct(0.05f) * (float)i),u.winpct(0.2f),u.hinpct(0.05f) },
+                                    TextFormat("  %s", songPartsList[i].c_str()))) {
                                 instSelected = true;
                                 player.instrument = i;
                                 int isBassOrVocal = 0;
@@ -2015,8 +2058,10 @@ int main(int argc, char* argv[])
                             DrawTextRubik((std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(), u.LeftSide + u.winpct(0.165f), BottomOvershell - u.hinpct(0.04f) - (u.hinpct(0.05f) * (float)i), u.hinpct(0.03f), WHITE);
                         } else {
 
-                            GuiButton({ u.LeftSide,BottomOvershell - 60 - (60 * (float)i),u.winpct(0.2f),60 }, "");
-                            DrawRectangle( u.LeftSide+2,BottomOvershell+2 - 60 - (60 * (float)i), u.winpct(0.2f) -4,60-4, Color{0,0,0,128});
+                            GuiButton({ u.LeftSide,BottomOvershell - u.hinpct(0.05f) - (u.hinpct(0.05f) * (float)i),u.winpct(0.2f),u.hinpct(0.05f) },
+                                    "");
+                            DrawRectangle(  u.LeftSide+2,BottomOvershell - u.hinpct(0.05f) - (u.hinpct(0.05f) * (float)i)+2,u.winpct(0.2f)-4,u.hinpct(0.05f)-4,
+                                           Color{0,0,0,128});
                         }
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                         if (instSelected) {
