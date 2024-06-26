@@ -373,7 +373,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             }
         }
         if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < time + player.VideoOffset - player.InputOffset &&
-            !songEnded && curNoteInt < curChart.notes.size() && !songEnded) {
+            !songEnded && curNoteInt < curChart.notes.size() && !songEnded && !bot) {
             TraceLog(LOG_INFO, TextFormat("Missed note at %f, note %01i", time, curNoteInt));
             curNote.miss = true;
             FAS = false;
@@ -385,6 +385,14 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
             player.combo = 0;
             curNote.accounted = true;
             curNoteInt++;
+        } else if (bot) {
+            if (!curNote.hit && !curNote.accounted && curNote.isPerfect(time, 0) && curNoteInt < curChart.notes.size() && !songEnded) {
+                curNote.hit = true;
+                curNote.accounted = true;
+                player.combo++;
+                curNote.accounted = true;
+                curNoteInt++;
+            }
         }
 
         double relTime = ((curNote.time - time)) *

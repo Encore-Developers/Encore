@@ -21,6 +21,7 @@ public:
     std::vector<bool> overhitFrets{ false,false,false,false,false };
     std::vector<bool> tapRegistered{ false,false,false,false,false };
     std::vector<bool> liftRegistered{ false,false,false,false,false };
+    bool bot = false;
     double startTime = 0.0;
     bool highwayInAnimation = false;
     bool highwayInEndAnim = false;
