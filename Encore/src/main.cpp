@@ -1294,6 +1294,8 @@ int main(int argc, char* argv[])
                         settingsMain.mirrorMode = sor.toggleEntry(settingsMain.mirrorMode, 4, "Mirror/Lefty Mode");
 
                         menu.hehe = sor.toggleEntry(menu.hehe, 5, "Super Cool Highway Colors");
+
+                        gpr.bot = sor.toggleEntry(gpr.bot, 6, "Bot");
                         break;
                     }
                     case VOLUME: { // audio tab
@@ -2114,8 +2116,10 @@ int main(int argc, char* argv[])
                         ReadyUpMenu = false;
                         gpr.highwayInAnimation = false;
                         menu.SwitchScreen(GAMEPLAY);
-                        glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-                        glfwSetGamepadStateCallback(gamepadStateCallback);
+                        if (!gpr.bot) {
+                            glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+                            glfwSetGamepadStateCallback(gamepadStateCallback);
+                        }
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
                     GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
