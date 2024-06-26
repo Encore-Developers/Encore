@@ -2127,6 +2127,7 @@ int main(int argc, char* argv[])
                             instSelected = false;
                             diffSelected = false;
                             ReadyUpMenu = false;
+                            gpr.highwayInAnimation = false;
                             menu.SwitchScreen(SONG_SELECT);
                         }
                     
