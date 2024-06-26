@@ -617,20 +617,20 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
                 }
 			}
 		}
-        if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS) {
+        if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS && player.plastic) {
             gpr.upStrum = true;
             gpr.overstrum = false;
             handleInputs(8008135, GLFW_PRESS);
         }
-        else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE) {
+        else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE && player.plastic) {
             gpr.upStrum = false;
             handleInputs(8008135, GLFW_RELEASE);
         }
-        if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS) {
+        if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS && player.plastic) {
             gpr.downStrum = true;
             gpr.overstrum = false;
             handleInputs(8008135, GLFW_PRESS);
-        } else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE){
+        } else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE && player.plastic){
             gpr.downStrum = false;
             handleInputs(8008135, GLFW_RELEASE);
         }
