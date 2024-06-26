@@ -210,5 +210,7 @@ public:
         FC = false;
         mute = true;
     }
+
+    bool bot = false;
 };
 
