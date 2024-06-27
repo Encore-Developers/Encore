@@ -1661,7 +1661,6 @@ int main(int argc, char* argv[])
                     menu.songsLoaded = true;
 
                 }
-                u.calcUnits();
                 streamsLoaded = false;
                 midiLoaded = false;
                 isPlaying = false;
@@ -1683,7 +1682,7 @@ int main(int argc, char* argv[])
 
                 SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
                 SetTextureFilter(selectedSong.albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
-
+				// -5 -4 -3 -2 -1 0 1 2 3 4 5 6
                 Vector2 mouseWheel = GetMouseWheelMoveV();
                 int lastIntChosen = (int)mouseWheel.y;
                 // set to specified height
@@ -1695,9 +1694,11 @@ int main(int argc, char* argv[])
                 if (songSelectOffset < 0)
                     songSelectOffset = 0;
 
+				int topCount = songList.songs.size() - 12 < 0 ? 0 : songList.songs.size() - 12;
+
                 // prevent going past bottom
-                if (songSelectOffset >= songList.songs.size() - 12)
-                    songSelectOffset = (int)songList.songs.size() - 12;
+                if (songSelectOffset >= topCount)
+                    songSelectOffset = topCount;
 
                 if (!albumArtLoaded) {
                     selectedSong = menu.ChosenSong;
@@ -1754,7 +1755,7 @@ int main(int argc, char* argv[])
                     // float buttonX = ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
                     //LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
                     float songXPos = u.LeftSide+u.winpct(0.005f)-2;
-                    float songYPos = (u.hpct(0.15f)-2) + ((songEntryHeight-1) * (i - songSelectOffset));
+                    float songYPos = std::floor((u.hpct(0.15f)-3) + ((songEntryHeight-1) * ((i - songSelectOffset))));
 
                     if (i == menu.ChosenSongInt) {
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(player.accentColor, -0.4)));
