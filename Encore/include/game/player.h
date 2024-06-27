@@ -68,6 +68,7 @@ public:
 
     bool overdrive = false;
 
+
     bool FC = true;
 
     float health = 100.0f;
@@ -79,6 +80,7 @@ public:
     float overdriveFill = 0.0f;
     float overdriveActiveFill=0.0f;
     double overdriveActiveTime = 0.0;
+	double overdriveActivateTime = 0.0;
 
     float uvOffsetX = 0;
     float uvOffsetY = 0;
