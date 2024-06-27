@@ -8,7 +8,7 @@
 
 class gameplayRenderer {
     void RenderNotes(Player& player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
-    void RenderHud(Player& player, RenderTexture2D&);
+    void RenderHud(Player& player, RenderTexture2D&, float);
     void RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
     void RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
     void DrawBeatlines(Player& player, Song song, float length, double musicTime);
@@ -33,6 +33,7 @@ public:
     bool songEnded = false;
     bool overstrum = false;
     int selectedSongInt = 0;
+    bool showHitwindow = false;
     int curBPM = 0;
     int curBeatLine = 0;
     int curODPhrase = 0;

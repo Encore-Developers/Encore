@@ -1296,6 +1296,8 @@ int main(int argc, char* argv[])
                         menu.hehe = sor.toggleEntry(menu.hehe, 5, "Super Cool Highway Colors");
 
                         gpr.bot = sor.toggleEntry(gpr.bot, 6, "Bot");
+
+                        gpr.showHitwindow = sor.toggleEntry(gpr.showHitwindow, 7, "Show Hitwindow");
                         break;
                     }
                     case VOLUME: { // audio tab
