@@ -170,6 +170,7 @@ static void handleInputs(int lane, int action){
             player.overdrive = true;
             overdriveHitAvailable = true;
             overdriveHitTime = eventTime;
+
         }
 
         if (!player.plastic) {
@@ -2313,6 +2314,7 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
+						player.overdriveActivateTime = 0.0f;
                         gpr.curODPhrase = 0;
                         gpr.curNoteInt = 0;
                         gpr.curSolo = 0;
@@ -2421,6 +2423,7 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
+						player.overdriveActivateTime = 0.0f;
                         gpr.highwayInAnimation = false;
                         gpr.curODPhrase = 0;
                         gpr.curNoteInt = 0;
@@ -2453,6 +2456,7 @@ int main(int argc, char* argv[])
                         player.overdriveFill = 0.0f;
                         player.overdriveActiveFill = 0.0f;
                         player.overdriveActiveTime = 0.0;
+						player.overdriveActivateTime = 0.0f;
                         gpr.curNoteInt = 0;
                         gpr.curODPhrase = 0;
                         gpr.curSolo = 0;
