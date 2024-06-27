@@ -2345,13 +2345,32 @@ int main(int argc, char* argv[])
                 player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
 
                 gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+				double SongNameDuration = 0.5f;
+				unsigned char SongNameAlpha = 255;
+				float SongNamePosition = 35;
+				unsigned char SongArtistAlpha = 255;
+				float SongArtistPosition = 35;
+				if (curTime > startedPlayingSong + 7.5 && curTime < startedPlayingSong + 7.5 + SongNameDuration) {
+					double timeSinceStart = GetTime() - (startedPlayingSong + 7.5);
+					SongNameAlpha = Remap(getEasingFunction(EaseOutCirc)(timeSinceStart/SongNameDuration), 0, 1.0, 255, 0);
+					SongNamePosition = Remap(getEasingFunction(EaseInOutBack)(timeSinceStart/SongNameDuration), 0, 1.0, 35, -(MeasureTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), u.hinpct(0.04f), 0).y));
+
+				} else if (curTime > startedPlayingSong + 7.5 + SongNameDuration) SongNameAlpha = 0;
+
+				if (curTime > startedPlayingSong + 7.75 && curTime < startedPlayingSong + 7.75 + SongNameDuration) {
+					double timeSinceStart = GetTime() - (startedPlayingSong + 7.75);
+					SongArtistAlpha = Remap(getEasingFunction(EaseOutCirc)(timeSinceStart/SongNameDuration), 0, 1.0, 255, 0);
+
+					SongArtistPosition = Remap(getEasingFunction(EaseInOutBack)(timeSinceStart/SongNameDuration), 0, 1.0, 35, -(MeasureTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].artist.c_str(), u.hinpct(0.04f), 0).y));
+				}
 
 
 
-                if (curTime < startedPlayingSong + 7.5) {
-                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hinpct(0.04f), 0, WHITE);
-                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {35, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hinpct(0.04f), 0, LIGHTGRAY);
+				if (curTime < startedPlayingSong + 7.75 + SongNameDuration) {
+                    DrawTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), {SongNamePosition, (float)((GetScreenHeight()/3)*2) - u.hpct(0.08f)}, u.hinpct(0.04f), 0, Color{255,255,255,SongNameAlpha});
+                    DrawTextEx(assets.rubikItalic, songList.songs[curPlayingSong].artist.c_str(), {SongArtistPosition, (float)((GetScreenHeight()/3)*2) - u.hpct(0.04f)}, u.hinpct(0.04f), 0, Color{200,200,200,SongArtistAlpha});
                 }
+
 
                 int songLength = songList.songs[curPlayingSong].end == 0 ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) : songList.songs[curPlayingSong].end;
                 int playedMinutes = songPlayed/60;
