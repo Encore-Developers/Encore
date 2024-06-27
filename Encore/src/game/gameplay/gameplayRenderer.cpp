@@ -617,10 +617,52 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
     DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
 }
 
-void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex) {
+void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex, float length) {
     BeginTextureMode(hud_tex);
     ClearBackground({0,0,0,0});
     BeginMode3D(camera);
+    if (showHitwindow) {
+        BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+        float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
+        float highwayLength = player.defaultHighwayLength * gprSettings.highwayLengthMult;
+        float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
+        double hitwindowFront = ((0.1)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+        double hitwindowBack = ((-0.1)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+        bool Beginning = (float) (player.smasherPos + (length * hitwindowFront)) >= (length * 1.5f) + player.smasherPos;
+        bool Ending = (float) (player.smasherPos + (length * hitwindowBack)) >= (length * 1.5f) + player.smasherPos;
+
+        float Front = (float) (player.smasherPos + (length * hitwindowFront));
+        float Back = (float) (player.smasherPos + (length * hitwindowBack));
+
+        DrawTriangle3D({0 - lineDistance - 1.0f, 0.003, Back},
+                       {0 - lineDistance - 1.0f, 0.003, Front},
+                       {lineDistance + 1.0f, 0.003, Back},
+                       Color{96, 96, 96, 64});
+
+        DrawTriangle3D({lineDistance + 1.0f, 0.003, Front},
+                       {lineDistance + 1.0f, 0.003, Back},
+                       {0 - lineDistance - 1.0f, 0.003, Front},
+                       Color{96, 96, 96, 64});
+
+        double perfectFront = ((0.025f)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+        double perfectBack = ((-0.025f)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+        bool pBeginning = (float) (player.smasherPos + (length * perfectFront)) >= (length * 1.5f) + player.smasherPos;
+        bool pEnding = (float) (player.smasherPos + (length * perfectBack)) >= (length * 1.5f) + player.smasherPos;
+
+        float pFront = (float) (player.smasherPos + (length * perfectFront));
+        float pBack = (float) (player.smasherPos + (length * perfectBack));
+
+        DrawTriangle3D({0 - lineDistance - 1.0f, 0.006, pBack},
+                       {0 - lineDistance - 1.0f, 0.006, pFront},
+                       {lineDistance + 1.0f, 0.006, pBack},
+                       Color{32, 32, 32, 8});
+
+        DrawTriangle3D({lineDistance + 1.0f, 0.006, pFront},
+                       {lineDistance + 1.0f, 0.006, pBack},
+                       {0 - lineDistance - 1.0f, 0.006, pFront},
+                       Color{32, 32, 32, 8});
+        BeginBlendMode(BLEND_ALPHA);
+    }
     DrawModel(gprAssets.odFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
     DrawModel(gprAssets.odBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
     DrawModel(gprAssets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
@@ -814,7 +856,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
     } else {
         RenderNotes(player, curChart, time, notes_tex, highwayLength);
     }
-    if (!bot) RenderHud(player, hud_tex);
+    if (!bot) RenderHud(player, hud_tex, highwayLength);
 }
 
 void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex)  {
