@@ -316,12 +316,6 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 
 				DrawCube(Vector3{notePosX, 0.125, player.smasherPos}, 1.0f, 0.25f, 0.5f,
 						 curNote.perfect ? Color{255, 215, 0, HitAlpha} : Color{255, 255, 255, HitAlpha});
-				if (curNote.perfect) {
-					DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
-							 0.5f, Color{255,161,0,HitAlpha});
-				}
-
-
 			}
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							   curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
