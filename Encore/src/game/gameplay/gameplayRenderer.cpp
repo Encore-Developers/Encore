@@ -125,7 +125,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 					curChart.odPhrases[curODPhrase].added = true;
 				}
 			}
-			if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < time+player.VideoOffset-player.InputOffset && !songEnded) {
+			if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 + player.InputOffset < time && !songEnded) {
 				curNote.miss = true;
 				player.MissNote();
 				if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
@@ -397,7 +397,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				curChart.odPhrases[curODPhrase].added = true;
 			}
 		}
-		if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 < time + player.VideoOffset - player.InputOffset &&
+		if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 + player.InputOffset < time &&
 			!songEnded && curNoteInt < curChart.notes.size() && !songEnded && !bot) {
 			TraceLog(LOG_INFO, TextFormat("Missed note at %f, note %01i", time, curNoteInt));
 			curNote.miss = true;
