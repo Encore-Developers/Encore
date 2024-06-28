@@ -1694,7 +1694,7 @@ int main(int argc, char* argv[])
                 if (songSelectOffset < 0)
                     songSelectOffset = 0;
 
-				int topCount = songList.songs.size() - 12 < 0 ? 0 : songList.songs.size() - 12;
+				int topCount = songList.songs.size() - 12 < 0 ? songList.songs.size() : songList.songs.size() - 12;
 
                 // prevent going past bottom
                 if (songSelectOffset >= topCount)
