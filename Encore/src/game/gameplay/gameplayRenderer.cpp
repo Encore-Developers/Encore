@@ -359,7 +359,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 
 		if (!curChart.Solos.empty()) {
 			if (curNote.time >= curChart.Solos[curSolo].start &&
-				curNote.time <= curChart.Solos[curSolo].end) {
+				curNote.time < curChart.Solos[curSolo].end) {
 				if (curNote.hit) {
 					if (curNote.hit && !curNote.countedForSolo) {
 						curChart.Solos[curSolo].notesHit++;
