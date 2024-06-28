@@ -125,7 +125,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 					curChart.odPhrases[curODPhrase].added = true;
 				}
 			}
-			if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 + player.InputOffset < time && !songEnded) {
+			if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend + player.InputOffset < time && !songEnded) {
 				curNote.miss = true;
 				player.MissNote();
 				if (!curChart.odPhrases.empty() && !curChart.odPhrases[curODPhrase].missed &&
@@ -397,7 +397,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				curChart.odPhrases[curODPhrase].added = true;
 			}
 		}
-		if (!curNote.hit && !curNote.accounted && curNote.time + 0.1 + player.InputOffset < time &&
+		if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend + player.InputOffset < time &&
 			!songEnded && curNoteInt < curChart.notes.size() && !songEnded && !bot) {
 			TraceLog(LOG_INFO, TextFormat("Missed note at %f, note %01i", time, curNoteInt));
 			curNote.miss = true;
@@ -654,8 +654,8 @@ void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex, float
 		float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
 		float highwayLength = player.defaultHighwayLength * gprSettings.highwayLengthMult;
 		float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
-		double hitwindowFront = ((0.1)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
-		double hitwindowBack = ((-0.1)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+		double hitwindowFront = ((0.1-(player.InputOffset))) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+		double hitwindowBack = ((-0.1-(player.InputOffset))) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
 		bool Beginning = (float) (player.smasherPos + (length * hitwindowFront)) >= (length * 1.5f) + player.smasherPos;
 		bool Ending = (float) (player.smasherPos + (length * hitwindowBack)) >= (length * 1.5f) + player.smasherPos;
 
@@ -672,8 +672,8 @@ void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex, float
 					   {0 - lineDistance - 1.0f, 0.003, Front},
 					   Color{96, 96, 96, 64});
 
-		double perfectFront = ((0.025f)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
-		double perfectBack = ((-0.025f)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+		double perfectFront = ((0.025f-(player.InputOffset))) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+		double perfectBack = ((-0.025f-(player.InputOffset))) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
 		bool pBeginning = (float) (player.smasherPos + (length * perfectFront)) >= (length * 1.5f) + player.smasherPos;
 		bool pEnding = (float) (player.smasherPos + (length * perfectBack)) >= (length * 1.5f) + player.smasherPos;
 
