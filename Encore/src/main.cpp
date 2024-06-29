@@ -1690,7 +1690,7 @@ int main(int argc, char* argv[])
                 Vector2 mouseWheel = GetMouseWheelMoveV();
                 int lastIntChosen = (int)mouseWheel.y;
                 // set to specified height
-                if (songSelectOffset <= songList.songs.size() && songSelectOffset >= 0) {
+                if (songSelectOffset <= songList.songs.size() && songSelectOffset >= 0 && songList.songs.size() >= 12) {
                     songSelectOffset -= (int)mouseWheel.y;
                 }
 
@@ -1698,11 +1698,9 @@ int main(int argc, char* argv[])
                 if (songSelectOffset < 0)
                     songSelectOffset = 0;
 
-				int topCount = songList.songs.size() - 12 < 0 ? songList.songs.size() : songList.songs.size() - 12;
-
                 // prevent going past bottom
-                if (songSelectOffset >= topCount)
-                    songSelectOffset = topCount;
+                if (songSelectOffset >= songList.songs.size() - 12)
+                    songSelectOffset = songList.songs.size() - 12;
 
                 if (!albumArtLoaded) {
                     selectedSong = menu.ChosenSong;
