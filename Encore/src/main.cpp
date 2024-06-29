@@ -762,7 +762,7 @@ int main(int argc, char* argv[])
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-	// SetConfigFlags(FLAG_VSYNC_HINT);
+	SetConfigFlags(FLAG_VSYNC_HINT);
 	
 	//SetTraceLogLevel(LOG_NONE);
 
@@ -810,7 +810,11 @@ int main(int argc, char* argv[])
     settingsMain.loadSettings(directory / "settings.json");
     player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
     player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
-    int targetFPS = 180; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+#ifdef NDEBUG
+    int targetFPS = 180;
+#else
+	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+#endif
     if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
