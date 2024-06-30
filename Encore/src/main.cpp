@@ -417,7 +417,7 @@ static void handleInputs(int lane, int action){
                 }
 
 
-                if (noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0)) {
+                if ((noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0)) || (curNote.pTap && noteMatch)) {
                     if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.accounted) {
                         TraceLog(LOG_INFO, TextFormat("Note hit at %f as a HOPO", eventTime));
                         curNote.hit = true;
@@ -2306,7 +2306,7 @@ int main(int argc, char* argv[])
 
                     }
                     float songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
-                    double songEnd = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) <= (songList.songs[curPlayingSong].end == 0 ? 0 : songList.songs[curPlayingSong].end) ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle)-0.01 : songList.songs[curPlayingSong].end-0.01;
+                    double songEnd = audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle) <= (songList.songs[curPlayingSong].end <= 0 ? 0 : songList.songs[curPlayingSong].end) ? audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle)-0.01 : songList.songs[curPlayingSong].end-0.01;
                     if (songEnd < songPlayed) {
                         glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
                         glfwSetGamepadStateCallback(origGamepadCallback);

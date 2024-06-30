@@ -468,7 +468,8 @@ public:
 				std::cout << evt_string << events[i].tick << std::endl;
 				if (evt_string == "[music_start]")
 					music_start = time;
-				else if (evt_string == "[end]")
+
+				if (evt_string == "[end]")
 					end = time;
 			}
 		}
