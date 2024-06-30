@@ -463,7 +463,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				break;
 			}
 			if (relEnd > 1.5) relEnd = 1.5;
-			if (curNote.phopo && !curNote.hit) {
+			if ((curNote.phopo || curNote.pTap) && !curNote.hit) {
 				if (curNote.renderAsOD) {
 					gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
 					gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
@@ -476,8 +476,8 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 																				 (float) relTime)}, 1.1f,
 							  WHITE);
 				} else {
-					gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-					gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+					gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = curNote.pTap ? BLACK : NoteColor;
+					gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = curNote.pTap ? NoteColor : WHITE;
 					DrawModel(gprAssets.noteTopModelHP, Vector3{notePosX, 0, player.smasherPos +
 																			 (length *
 																			  (float) relTime)}, 1.1f,
@@ -551,8 +551,8 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				}
 				EndBlendMode();
 			}
-			if (!curNote.phopo && ((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
-				((curNote.len) == 0 && !curNote.hit) && !curNote.phopo) {
+			if (!curNote.phopo  && ((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
+				((curNote.len) == 0 && !curNote.hit) && !curNote.phopo && !curNote.pTap) {
 				if (curNote.renderAsOD) {
 					if ((!curNote.held && !curNote.miss && !curNote.phopo) || !curNote.hit) {
 						DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
@@ -566,7 +566,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 					}
 
 				} else {
-					if ((!curNote.held && !curNote.miss && !curNote.phopo) || !curNote.hit) {
+					if ((!curNote.held && !curNote.miss && !curNote.pTap && !curNote.phopo) || !curNote.hit) {
 						DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
 																			   (length *
 																				(float) relTime)}, 1.1f,

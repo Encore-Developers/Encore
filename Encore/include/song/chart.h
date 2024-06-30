@@ -48,6 +48,9 @@ public:
 		return (time - perfectBackend + inputOffset < eventTime &&
 			time + perfectFrontend + inputOffset > eventTime);
 	}
+
+	bool pTap = false;
+	bool pOpen = false;
 };
 
 
@@ -58,6 +61,11 @@ struct solo {
     int noteCount = 0;
     int notesHit = 0;
     bool perfect = false;
+};
+
+struct tapPhrase {
+	double start;
+	double end;
 };
 
 struct forceOnPhrase {
@@ -89,6 +97,7 @@ private:
     std::vector<std::vector<int>> pDiffNotes = { {60,61,62,63,64}, {72,73,74,75,76}, {84,85,86,87,88}, {96,97,98,99,100} };
     int pSoloNote = 103;
     int pForceOn = 101;
+	int pTapNote = 104;
     int pForceOff = 102;
     static bool compareNotes(const Note& a, const Note& b) {
         return a.time < b.time;
@@ -152,6 +161,7 @@ public:
     }
 
     std::vector<forceOnPhrase> forcedOnPhrases;
+	std::vector<tapPhrase> tapPhrases;
     std::vector<forceOffPhrase> forcedOffPhrases;
 	std::vector<odPhrase> odPhrases;
     std::vector<solo> Solos;
@@ -164,6 +174,7 @@ public:
 		std::vector<int> noteOnTick{ 0,0,0,0,0 };
 		std::vector<int> notePitches = diffNotes[diff];
 		int odNote = 116;
+
 		int curODPhrase = -1;
         int curSolo = -1;
 		int curBPM = 0;
@@ -309,6 +320,7 @@ public:
         bool odOn = false;
         bool soloOn = false;
         bool forceOn = false;
+		bool tapOn = false;
         bool forceOff = false;
         std::vector<int> notePitches = pDiffNotes[diff];
         std::vector<double> noteOnTime{ 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -319,6 +331,7 @@ public:
         int odNote = 116;
         int curNote = -1;
         int curFOn = -1;
+		int curTap = -1;
         int curFOff = -1;
         int curODPhrase = -1;
         int curSolo = -1;
@@ -344,6 +357,15 @@ public:
                             curNote++;
                         }
                     }
+					else if ((int)events[i][1] == pTapNote) {
+						if (!tapOn) {
+							tapPhrase newPhrase;
+							newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+							tapPhrases.push_back(newPhrase);
+							tapOn = true;
+							curTap++;
+						}
+					}
                     else if ((int)events[i][1] == pForceOn) {
                         if (!forceOn) {
                             forceOnPhrase newPhrase;
@@ -403,6 +425,12 @@ public:
                                 notesOn[lane] = false;
                             }
                         }
+						else if ((int)events[i][1] == pTapNote) {
+							if (tapOn) {
+								tapPhrases[curTap].end = time;
+								tapOn = false;
+							}
+						}
                         else if ((int)events[i][1] == pForceOn) {
                             if (forceOn) {
                                 forcedOnPhrases[curFOn].end = time;
@@ -466,7 +494,21 @@ public:
                   compareNotes);
             auto again = std::unique(notes.begin(), notes.end(), areNotesEqual);
             notes.erase(again, notes.end());
+		curTap = 0;
+		if (tapPhrases.size() > 0) {
+			for (Note &note : notes) {
+				if (note.time > tapPhrases[curTap].end && curTap<tapPhrases.size()-1)
+					curTap++;
 
+				// std::cout << "fOn: " << forcedOnPhrases[curFOn].start << std::endl << "fOff: "
+				//           << forcedOnPhrases[curFOn].end << std::endl;
+
+				if (note.time >= tapPhrases[curTap].start && note.time < tapPhrases[curTap].end) {
+					note.pTap = true;
+					note.phopo = false;
+				}
+			}
+		}
 
         curFOff = 0;
         if (forcedOffPhrases.size() > 0) {
@@ -478,7 +520,8 @@ public:
                 //           << forcedOnPhrases[curFOn].end << std::endl;
 
                 if (note.time >= forcedOffPhrases[curFOff].start && note.time < forcedOffPhrases[curFOff].end) {
-                    note.phopo = false;
+					if (!note.pTap)
+                    	note.phopo = false;
                 }
             }
         }
@@ -492,10 +535,12 @@ public:
                     //           << forcedOnPhrases[curFOn].end << std::endl;
 
                     if (note.time >= forcedOnPhrases[curFOn].start && note.time < forcedOnPhrases[curFOn].end) {
-                        note.phopo = true;
+						if (!note.pTap)
+                        	note.phopo = true;
                     }
                 }
             }
+
 
         curODPhrase = 0;
         if (odPhrases.size() > 0) {
