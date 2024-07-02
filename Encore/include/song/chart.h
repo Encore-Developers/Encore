@@ -571,7 +571,7 @@ public:
             }
             else {
                 baseScore += ((36 * note.chordSize) * mult);
-                baseScore += (note.beatsLen * 12) * mult;
+                // baseScore += (note.beatsLen * 12) * mult;
                 if (noteIdx == 9) mult = 2;
                 else if (noteIdx == 19) mult = 3;
                 else if (noteIdx == 29) mult = 4;
