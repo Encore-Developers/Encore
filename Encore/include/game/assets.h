@@ -118,6 +118,7 @@ public:
     Texture2D github;
 
     Texture2D sustainTexture;
+	Texture2D sustainHeldTexture;
     Texture2D soloTexture;
     Material soloMat;
     Material sustainMat;
