@@ -40,11 +40,21 @@ public:
     int curSolo = 0;
     int curNoteInt = 0;
     bool songOver = false;
-
+	float renderPos = 0;
+	int cameraSel = 0;
     Mesh sustainPlane;
     Mesh soloPlane;
 
     Camera3D camera = { 0 };
+	Camera3D camera1 = { 0 };
+	Camera3D camera2 = { 0 };
+	Camera3D camera3 = { 0 };
+	/*
+	gpr.camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
+	// 0.0f, 0.0f, 6.5f
+	gpr.camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
+	 */
+	std::vector<Camera3D> camera3pVector;
 
     void RenderGameplay(Player& player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
 

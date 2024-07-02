@@ -25,7 +25,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 	// glDisable(GL_CULL_FACE);
 	for (int lane = 0; lane < (player.diff == 3 ? 5 : 4); lane++) {
 		for (int i = curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
@@ -307,7 +307,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 				}
 			}
 			double HitAnimDuration = 0.15f;
-			double PerfectHitAnimDuration = 0.5f;
+			double PerfectHitAnimDuration = 1.0f;
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							   curNote.hitTime + HitAnimDuration) {
 
@@ -316,15 +316,24 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 
 				DrawCube(Vector3{notePosX, 0.125, player.smasherPos}, 1.0f, 0.25f, 0.5f,
 						 curNote.perfect ? Color{255, 215, 0, HitAlpha} : Color{255, 255, 255, HitAlpha});
+				// if (curNote.perfect) {
+				// 	DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
+				// 			 0.5f, Color{255,161,0,HitAlpha});
+				// }
+
+
 			}
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							   curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
 
 				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
-				unsigned char HitAlpha = Remap(getEasingFunction(EaseInOutExpo)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
+				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
+				float HitPosLeft = Remap(getEasingFunction(EaseInOutBack)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 3.4, 3.0);
 
-				DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
+				DrawCube(Vector3{HitPosLeft, -0.1f, player.smasherPos}, 1.0f, 0.01f,
 						 0.5f, Color{255,161,0,HitAlpha});
+				DrawCube(Vector3{HitPosLeft, -0.11f, player.smasherPos}, 1.0f, 0.01f,
+						 1.0f, Color{255,161,0,(unsigned char)(HitAlpha/2)});
 			}
 			// DrawText3D(gprAssets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
 
@@ -343,7 +352,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 	SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
 	notes_tex.texture.width = (float)GetScreenWidth();
 	notes_tex.texture.height = (float)GetScreenHeight();
-	DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
+	DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }
 
 void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
@@ -351,7 +360,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 	float lineDistance = 1.5f;
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 	// glDisable(GL_CULL_FACE);
 
 
@@ -609,7 +618,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				}
 			}
 			double HitAnimDuration = 0.15f;
-			double PerfectHitAnimDuration = 0.5f;
+			double PerfectHitAnimDuration = 1.0f;
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							   curNote.hitTime + HitAnimDuration) {
 
@@ -618,10 +627,10 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 
 				DrawCube(Vector3{notePosX, 0.125, player.smasherPos}, 1.0f, 0.25f, 0.5f,
 						 curNote.perfect ? Color{255, 215, 0, HitAlpha} : Color{255, 255, 255, HitAlpha});
-				if (curNote.perfect) {
-					DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
-							 0.5f, Color{255,161,0,HitAlpha});
-				}
+				// if (curNote.perfect) {
+				// 	DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
+				// 			 0.5f, Color{255,161,0,HitAlpha});
+				// }
 
 
 			}
@@ -629,10 +638,13 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 							   curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
 
 				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
-				unsigned char HitAlpha = Remap(getEasingFunction(EaseInOutExpo)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
+				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
+				float HitPosLeft = Remap(getEasingFunction(EaseInOutBack)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 3.4, 3.0);
 
-				DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
+				DrawCube(Vector3{HitPosLeft, -0.1f, player.smasherPos}, 1.0f, 0.01f,
 						 0.5f, Color{255,161,0,HitAlpha});
+				DrawCube(Vector3{HitPosLeft, -0.11f, player.smasherPos}, 1.0f, 0.01f,
+						 1.0f, Color{255,161,0,(unsigned char)(HitAlpha/2)});
 			}
 		}
 	}
@@ -642,13 +654,14 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 	SetTextureWrap(notes_tex.texture,TEXTURE_WRAP_CLAMP);
 	notes_tex.texture.width = (float)GetScreenWidth();
 	notes_tex.texture.height = (float)GetScreenHeight();
-	DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
+	DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }
+
 
 void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex, float length) {
 	BeginTextureMode(hud_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 	if (showHitwindow) {
 		BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 		float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
@@ -710,7 +723,7 @@ void gameplayRenderer::RenderHud(Player& player, RenderTexture2D& hud_tex, float
 	SetTextureWrap(hud_tex.texture,TEXTURE_WRAP_CLAMP);
 	hud_tex.texture.width = (float)GetScreenWidth();
 	hud_tex.texture.height = (float)GetScreenHeight();
-	DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
+	DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }
 
 void gameplayRenderer::RaiseHighway() {
@@ -891,7 +904,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
 void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex)  {
 	BeginTextureMode(highway_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 
 	float diffDistance = 2.0f;
 	float lineDistance = 1.5f;
@@ -969,12 +982,12 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 	SetTextureWrap(highway_tex.texture,TEXTURE_WRAP_CLAMP);
 	highway_tex.texture.width = (float)GetScreenWidth();
 	highway_tex.texture.height = (float)GetScreenHeight();
-	DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
+	DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 
 	BeginBlendMode(BLEND_ALPHA);
 	BeginTextureMode(highwayStatus_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 
 	if (!song.beatLines.empty()) {
 		DrawBeatlines(player, song, highwayLength, time);
@@ -1001,11 +1014,11 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 	SetTextureWrap(highwayStatus_tex.texture,TEXTURE_WRAP_CLAMP);
 	highwayStatus_tex.texture.width = (float)GetScreenWidth();
 	highwayStatus_tex.texture.height = (float)GetScreenHeight();
-	DrawTexturePro(highwayStatus_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
+	DrawTexturePro(highwayStatus_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 
 	BeginTextureMode(smasher_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 	BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 	DrawModel(gprAssets.smasherBoard, Vector3{ 0, 0.004f, 0 }, 1.0f, WHITE);
 	BeginBlendMode(BLEND_ALPHA);
@@ -1057,7 +1070,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 	SetTextureWrap(smasher_tex.texture,TEXTURE_WRAP_CLAMP);
 	smasher_tex.texture.width = (float)GetScreenWidth();
 	smasher_tex.texture.height = (float)GetScreenHeight();
-	DrawTexturePro(smasher_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
+	DrawTexturePro(smasher_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 
 
 
@@ -1067,7 +1080,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 void gameplayRenderer::RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D &highway_tex) {
 	BeginTextureMode(highway_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera);
+	BeginMode3D(camera3pVector[cameraSel]);
 
 	float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
 	float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
