@@ -465,7 +465,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
 		}
         else if (!gpr.bot) {
             if (player.instrument != 4) {
-                if (player.diff == 3) {
+                if (player.diff == 3 || player.plastic) {
                     for (int i = 0; i < 5; i++) {
                         if (key == settingsMain.keybinds5K[i] && !gpr.heldFretsAlt[i]) {
                             if (action == GLFW_PRESS) {
@@ -842,13 +842,37 @@ int main(int argc, char* argv[])
     //							  x,    y,     z
     //                         0.0f, 5.0f, -3.5f
     //								 6.5f
+	float renderPosSideThingFuckerTittiesBoobsFUckingGOddamn = 1.25f;
+	float renderheight = 8.0f;
+	float renderback = 12.0f;
     gpr.camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
     // 0.0f, 0.0f, 6.5f
     gpr.camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
 
     gpr.camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
     gpr.camera.fovy = 35.0f;
-    gpr.camera.projection = CAMERA_PERSPECTIVE;
+
+	gpr.camera1.position = Vector3{ 0.0f, renderheight, -10.0f };
+	// 0.0f, 0.0f, 6.5f
+	gpr.camera1.target = Vector3{ 0.0f, 0.0f, renderback };
+
+	gpr.camera1.up = Vector3{ 0.0f, 1.0f, 0.0f };
+	gpr.camera1.fovy = 37.5f;
+
+	gpr.camera2.position = Vector3{ renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, renderheight, -10.0f };
+	// 0.0f, 0.0f, 6.5f
+	gpr.camera2.target = Vector3{ renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, 0.0f, renderback };
+
+	gpr.camera2.up = Vector3{ 0.0f, 1.0f, 0.0f };
+	gpr.camera2.fovy = 37.5f;
+
+	gpr.camera3.position = Vector3{ -renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, renderheight, -10.0f };
+	// 0.0f, 0.0f, 6.5f
+	gpr.camera3.target = Vector3{ -renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, 0.0f, renderback };
+
+	gpr.camera3.up = Vector3{ 0.0f, 1.0f, 0.0f };
+	gpr.camera3.fovy = 37.5f;
+    gpr.camera3.projection = CAMERA_PERSPECTIVE;
 
 
 
@@ -2167,6 +2191,7 @@ int main(int argc, char* argv[])
                         menu.SwitchScreen(GAMEPLAY);
                         glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
                         glfwSetGamepadStateCallback(gamepadStateCallback);
+						gpr.camera3pVector = {gpr.camera, gpr.camera3, gpr.camera2};
 
                     }
                     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
@@ -2343,8 +2368,18 @@ int main(int argc, char* argv[])
                 int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 double songFloat = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
                 player.notes = (int)songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size();
+				// gpr.cameraSel = 1;
+				// gpr.renderPos = 1920/4;
+				// gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+				// gpr.cameraSel = 2;
+				// gpr.renderPos = -1920/4;
+				// gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+				gpr.renderPos = 0;
+				gpr.cameraSel = 0;
+				gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 
-                gpr.RenderGameplay(player, songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+
+
 				float SongNameWidth = MeasureTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].title.c_str(), u.hinpct(0.05f), 0).x;
 				float SongArtistWidth = MeasureTextEx(assets.rubikBoldItalic, songList.songs[curPlayingSong].artist.c_str(), u.hinpct(0.045f), 0).x;
 
