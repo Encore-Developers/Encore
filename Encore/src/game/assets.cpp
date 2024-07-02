@@ -13,6 +13,8 @@ Player playerAssets = Player::getInstance();
 class Assets;
 
 
+
+
 Texture2D Assets::LoadTextureFilter(const std::filesystem::path &texturePath, int& loadedAssets) {
     Texture2D tex = LoadTexture(texturePath.string().c_str());
     GenTextureMipmaps(&tex);
@@ -143,6 +145,7 @@ void Assets::LoadAssets() {
 
     soloTexture = Assets::LoadTextureFilter(directory / "Assets/highway/solo.png", loadedAssets);
     sustainTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png", loadedAssets);
+	sustainHeldTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain-held.png", loadedAssets);
 
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
@@ -224,14 +227,14 @@ void Assets::LoadAssets() {
     soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(playerAssets.accentColor, { 180,180,180,255 });
-    sustainMatHeld.maps[MATERIAL_MAP_EMISSION].texture = sustainTexture;
+    sustainMatHeld.maps[MATERIAL_MAP_EMISSION].texture = sustainHeldTexture;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].color = WHITE;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].value = 1;
-    sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].texture = sustainHeldTexture;
     sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = playerAssets.accentColor;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].color = { 180,180,180,255 };
-    sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
+    sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainHeldTexture;
     sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].color = DARKGRAY;
