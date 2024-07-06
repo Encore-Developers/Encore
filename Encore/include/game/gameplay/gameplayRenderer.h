@@ -23,6 +23,7 @@ public:
     std::vector<bool> liftRegistered{ false,false,false,false,false };
     bool bot = false;
     double startTime = 0.0;
+	double songStartTime = 0.0;
     bool highwayInAnimation = false;
     bool highwayInEndAnim = false;
     bool highwayOutAnimation = false;
