@@ -2550,6 +2550,7 @@ int main(int argc, char *argv[]) {
 								"Ready Up!")) {
 						ReadyUpMenu = false;
 						gpr.highwayInAnimation = false;
+						gpr.songStartTime = GetTime();
 						menu.SwitchScreen(GAMEPLAY);
 						glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 						glfwSetGamepadStateCallback(gamepadStateCallback);
@@ -2928,6 +2929,7 @@ int main(int argc, char *argv[]) {
 							->charts[player.diff].Solos) {
 							solo.notesHit = 0;
 						}
+						gpr.songStartTime = GetTime();
 						player.overdrive = false;
 						player.overdriveFill = 0.0f;
 						player.overdriveActiveFill = 0.0f;

@@ -158,7 +158,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 				break;
 			}
 			if (relEnd > 1.5) relEnd = 1.5;
-			if (curNote.lift && !curNote.hit) {
+			if (curNote.lift && !curNote.hit && !curNote.miss) {
 				// lifts						//  distance between notes
 				//									(furthest left - lane distance)
 				if (curNote.renderAsOD)                    //  1.6f	0.8
@@ -254,7 +254,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 				if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
 					((curNote.len) == 0 && !curNote.hit)) {
 					if (curNote.renderAsOD) {
-						if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+						if ((!curNote.held && !curNote.miss) && !curNote.hit) {
 							DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
 																					 (length *
 																					  (float) relTime)}, 1.1f,
@@ -266,7 +266,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 						}
 
 					} else {
-						if ((!curNote.held && !curNote.miss) || !curNote.hit) {
+						if ((!curNote.held && !curNote.miss) && !curNote.hit) {
 							DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
 																				   (length *
 																					(float) relTime)}, 1.1f,
@@ -309,7 +309,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 			double HitAnimDuration = 0.15f;
 			double PerfectHitAnimDuration = 1.0f;
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
-							   curNote.hitTime + HitAnimDuration) {
+							   (curNote.hitTime) + HitAnimDuration) {
 
 				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
 				unsigned char HitAlpha = Remap(getEasingFunction(EaseInBack)(TimeSinceHit/HitAnimDuration), 0, 1.0, 196, 0);
@@ -324,7 +324,7 @@ void gameplayRenderer::RenderNotes(Player& player, Chart& curChart, double time,
 
 			}
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
-							   curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
+							(curNote.hitTime) + PerfectHitAnimDuration && curNote.perfect) {
 
 				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
 				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
@@ -472,7 +472,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				break;
 			}
 			if (relEnd > 1.5) relEnd = 1.5;
-			if ((curNote.phopo || curNote.pTap) && !curNote.hit) {
+			if ((curNote.phopo || curNote.pTap) && !curNote.hit && !curNote.miss) {
 				if (curNote.renderAsOD) {
 					gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
 					gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
@@ -496,6 +496,17 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 																				 (float) relTime)}, 1.1f,
 							  WHITE);
 				}
+			} else if (curNote.miss && (curNote.phopo || curNote.pTap)) {
+				gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				gprAssets.noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				DrawModel(gprAssets.noteTopModelHP, Vector3{notePosX, 0, player.smasherPos +
+																		 (length *
+																		  (float) relTime)}, 1.1f,
+						  WHITE);
+				DrawModel(gprAssets.noteBottomModelHP, Vector3{notePosX, 0, player.smasherPos +
+																			(length *
+																			 (float) relTime)}, 1.1f,
+						  WHITE);
 			}
 			if ((curNote.len) > 0) {
 				if (curNote.hit && curNote.held) {
@@ -560,10 +571,10 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 				}
 				EndBlendMode();
 			}
-			if (!curNote.phopo  && ((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
-				((curNote.len) == 0 && !curNote.hit) && !curNote.phopo && !curNote.pTap) {
+			if ((!curNote.phopo  && ((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
+				((curNote.len) == 0 && !curNote.hit) && !curNote.phopo && !curNote.pTap) && !curNote.miss) {
 				if (curNote.renderAsOD) {
-					if ((!curNote.held && !curNote.miss && !curNote.phopo) || !curNote.hit) {
+					if ((!curNote.held && !curNote.miss && !curNote.phopo) && !curNote.hit) {
 						DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, player.smasherPos +
 																				 (length *
 																				  (float) relTime)}, 1.1f,
@@ -575,7 +586,7 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 					}
 
 				} else {
-					if ((!curNote.held && !curNote.miss && !curNote.pTap && !curNote.phopo) || !curNote.hit) {
+					if ((!curNote.held && !curNote.miss && !curNote.pTap && !curNote.phopo) && !curNote.hit) {
 						DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
 																			   (length *
 																				(float) relTime)}, 1.1f,
@@ -585,14 +596,21 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 																				   (float) relTime)}, 1.1f,
 								  WHITE);
 					}
-
 				}
 
+			} else if ((!curNote.phopo && !curNote.pTap) && curNote.miss) {
+				gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, player.smasherPos +
+																			   (length *
+																				(float) relTime)}, 1.1f,
+								  RED);
+				DrawModel(gprAssets.noteBottomModel, Vector3{notePosX, 0, player.smasherPos +
+																		  (length *
+																		   (float) relTime)}, 1.1f,
+						  RED);
 			}
 
 			if (curNote.miss && curNote.time + 0.5 < time) {
-
-
 				if (curNote.phopo) {
 					DrawModel(gprAssets.noteBottomModelHP,
 							  Vector3{notePosX, 0, player.smasherPos + (length * (float) relTime)},
