@@ -453,7 +453,7 @@ static void keyCallback(GLFWwindow* wind, int key, int scancode, int action, int
             if(player.paused)
                 audioManager.pauseStreams();
             else {
-                audioManager.playStreams();
+                audioManager.unpauseStreams();
                 for (int i = 0; i < (player.diff == 3 ? 5 : 4); i++) {
                     handleInputs(i, -1);
                 }
@@ -550,7 +550,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
                 if (player.paused)
                     audioManager.pauseStreams();
                 else {
-                    audioManager.playStreams();
+                    audioManager.unpauseStreams();
                     for (int i = 0; i < (player.diff == 3 ? 5 : 4); i++) {
                         handleInputs(i, -1);
                     }
