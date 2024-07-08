@@ -39,6 +39,7 @@ public:
 	bool pForceOn = false;
 	bool pForceOff = false;
     bool phopo = false;
+	bool extendedSustain = false;;
 
 	bool isGood(double eventTime, double inputOffset) const {
 		return (time - goodBackend + inputOffset < eventTime &&
@@ -272,7 +273,6 @@ public:
                     }
                 }
 			}
-
 		}
 		curODPhrase = 0;
 		if (odPhrases.size() > 0) {
@@ -411,7 +411,7 @@ public:
                             if (notesOn[lane]) {
                                 int noteIdx = findNotePreIdx(noteOnTime[lane], lane);
                                 if (noteIdx != -1) {
-                                    notesPre[noteIdx].beatsLen = (tick - noteOnTick[lane]) / (float)midiFile.getTicksPerQuarterNote();
+                                    notesPre[noteIdx].beatsLen = (tick - notesPre[noteIdx].tick) / (float)midiFile.getTicksPerQuarterNote();
                                     if (notesPre[noteIdx].beatsLen > 0.25) {
                                         notesPre[noteIdx].len = time - notesPre[noteIdx].time;
                                     }
@@ -470,9 +470,13 @@ public:
                         newNote.mask |= PlasticFrets[noteMatching.lane];
                         newNote.chord = true;
                         newNote.chordSize++;
+                    	if (noteMatching.beatsLen > note.beatsLen) {
+							newNote.beatsLen = noteMatching.beatsLen;
+                    	} else {
+                    		newNote.beatsLen = note.beatsLen;
+                    	}
                     }
                 }
-
                 newNote.pLanes.push_back(note.lane);
                 newNote.tick = note.tick;
                 if (notes.size() > 0) {
@@ -560,6 +564,14 @@ public:
                     Solos[curSolo].noteCount++;
             }
         }
+		int esc = 0;
+		if (notes.size() > 0) {
+			if (esc < notes.size() - 1) {
+				if (notes[esc].len + notes[esc].time > notes[esc+1].time && notes[esc].len > 0) {
+					notes[esc].extendedSustain = true;
+				}
+			}
+		}
         int mult = 1;
         int multCtr = 0;
         int noteIdx = 0;
@@ -571,7 +583,7 @@ public:
             }
             else {
                 baseScore += ((36 * note.chordSize) * mult);
-                // baseScore += (note.beatsLen * 12) * mult;
+                baseScore += (note.beatsLen * 12) * mult;
                 if (noteIdx == 9) mult = 2;
                 else if (noteIdx == 19) mult = 3;
                 else if (noteIdx == 29) mult = 4;
