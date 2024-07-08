@@ -265,16 +265,11 @@ static void handleInputs(int lane, int action) {
 							if (chordLane != -1) {
 								Note &chordNote = curChart.notes[chordLane];
 								if (chordNote.held && chordNote.len > 0) {
-									if (!((player.diff == 3 && settingsMain.
-											keybinds5K[chordNote.lane]) ||
-										(player.diff != 3 && settingsMain.
-										keybinds4K[chordNote.lane]))) {
+									if (!((player.diff == 3 && settingsMain.keybinds5K[chordNote.lane])
+										|| (player.diff != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
 										chordNote.held = false;
-										player.score += player.
-												sustainScoreBuffer[
-													chordNote.lane];
-										player.sustainScoreBuffer[chordNote.
-											lane] = 0;
+										player.score += player.sustainScoreBuffer[chordNote.lane];
+										player.sustainScoreBuffer[chordNote.lane] = 0;
 										player.mute = true;
 									}
 								}
@@ -408,8 +403,8 @@ static void handleInputs(int lane, int action) {
 			}
 
 
-			bool chordMatch = (pressedMask == curNote.mask);
-			bool singleMatch = (pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
+			bool chordMatch = (gpr.extendedSustainActive ? pressedMask >= curNote.mask : pressedMask == curNote.mask);
+			bool singleMatch = (gpr.extendedSustainActive ? pressedMask >= curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
 			bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
 
 			if (curNote.hitWithFAS) {
@@ -426,6 +421,8 @@ static void handleInputs(int lane, int action) {
 					curNote.accounted = true;
 					if ((curNote.len) > 0) {
 						curNote.held = true;
+						if (curNote.extendedSustain == true)
+							gpr.extendedSustainActive = true;
 					}
 					gpr.curNoteInt++;
 					return;
@@ -444,6 +441,8 @@ static void handleInputs(int lane, int action) {
 
 					if ((curNote.len) > 0) {
 						curNote.held = true;
+						if (curNote.extendedSustain == true)
+							gpr.extendedSustainActive = true;
 					}
 					if (curNote.isPerfect(eventTime, player.InputOffset)) {
 						curNote.perfect = true;

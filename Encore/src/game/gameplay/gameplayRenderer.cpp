@@ -509,20 +509,40 @@ void gameplayRenderer::RenderClassicNotes(Player& player, Chart& curChart, doubl
 						  WHITE);
 			}
 			if ((curNote.len) > 0) {
-				if (curNote.hit && curNote.held) {
-					if (curNote.heldTime <
-						(curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
+				int pressedMask = 0b000000;
+
+				for (int pressedButtons = 0; pressedButtons < heldFrets.size(); pressedButtons++) {
+					if (heldFrets[pressedButtons] || heldFretsAlt[pressedButtons])
+						pressedMask += curChart.PlasticFrets[pressedButtons];
+				}
+
+				Note &lastNote = curChart.notes[curNoteInt == 0 ? 0 : curNoteInt - 1];
+				bool chordMatch = (extendedSustainActive ? pressedMask >= curNote.mask : pressedMask == curNote.mask);
+				bool singleMatch = (extendedSustainActive ? pressedMask >= curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
+				bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
+
+				if (curNote.extendedSustain)
+					TraceLog(LOG_INFO, "extended sustain lol");
+
+				if ((!noteMatch && curNote.held) && curNote.time + curNote.len + 0.1 > time) {
+					curNote.held = false;
+					if (curNote.extendedSustain == true)
+						extendedSustainActive = false;
+				}
+
+				if ((curNote.hit && curNote.held) && curNote.time + curNote.len + 0.1 > time) {
+					if (curNote.heldTime < (curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
 						curNote.heldTime = 0.0 - relTime;
-						// player.sustainScoreBuffer[curNote.lane] =
-						//         (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
-						//         player.multiplier(player.instrument);
+						player.score +=
+						        (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
+						        player.multiplier(player.instrument);
 						if (relTime < 0.0) relTime = 0.0;
 					}
 					if (relEnd <= 0.0) {
 						if (relTime < 0.0) relTime = relEnd;
-						// player.score += player.sustainScoreBuffer[curNote.lane];
-						// player.sustainScoreBuffer[curNote.lane] = 0;
 						curNote.held = false;
+						if (curNote.extendedSustain == true)
+							extendedSustainActive = false;
 					}
 				} else if (curNote.hit && !curNote.held) {
 					relTime = relTime + curNote.heldTime;
