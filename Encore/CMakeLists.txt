@@ -28,6 +28,13 @@ endif()
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 # Add all subdirectories of src
+
+# Include extern libs
+file(GLOB_RECURSE SRC_FILES "extern/include/sol/*.cpp")
+file(GLOB_RECURSE INC_FILES "extern/include/sol/*.hpp")
+
+file(GLOB_RECURSE INC_FILES "extern/include/lua/*.hpp")
+
 file(GLOB_RECURSE SRC_FILES "include/*.cpp" "extern/include/*.cpp")
 file(GLOB_RECURSE INC_FILES "include/*.h" "extern/include/*.h")
 # Add source files to the executable
@@ -42,6 +49,10 @@ if(WIN32)
     file(COPY "extern/lib/bass/windows/x86/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "extern/lib/bass/windows/x86/")
     file(COPY "extern/lib/bass/windows/x86/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+
+    find_library(LUA NAMES lua PATHS "extern/lib/lua/windows/x32")
+    file(COPY "extern/lib/lua/windows/x32/lua.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+
   endif() 
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     find_library(BASS NAMES bass PATHS "extern/lib/bass/windows/x64/")
@@ -49,8 +60,8 @@ if(WIN32)
     find_library(BASSOPUS NAMES bassopus PATHS "extern/lib/bass/windows/x64/")
     file(COPY "extern/lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 
-    find_library(LUA NAMES lua PATHS "extern/lib/lua/linux/x86")
-    file(COPY "extern/lib/lua/windows/x64/lua54.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    find_library(LUA NAMES lua PATHS "extern/lib/lua/windows/x64")
+    file(COPY "extern/lib/lua/windows/x64/lua.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 
   endif()
 endif()
@@ -68,8 +79,8 @@ if(UNIX AND NOT APPLE)
     find_library(BASSOPUS NAMES bassopus PATHS "extern/lib/bass/linux/x86_64")
     file(COPY "extern/lib/bass/linux/x86_64/libbassopus.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 
-    find_library(LUA NAMES lua PATHS "extern/lib/lua/linux/x86")
-    file(COPY "extern/lib/lua/linux/x64/liblua54.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    find_library(LUA NAMES lua PATHS "extern/lib/lua/linux/x64")
+    file(COPY "extern/lib/lua/linux/x64/liblua.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
@@ -98,4 +109,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DCACHE_VERSION=3")
 
-target_link_libraries(Encore raylib ${BASS} ${BASSOPUS})
+target_link_libraries(Encore raylib ${BASS} ${BASSOPUS} ${LUA})
