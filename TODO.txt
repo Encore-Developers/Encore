@@ -1,0 +1,60 @@
+player management - singleton
+ - save files
+ - band management
+ - custom options in lua? for UI related things
+
+
+ui system - singleton
+ - button functions
+ - element functions
+ - integration with lua
+ - binding screen. also maybe scene management? have scenes defined in lua
+ - please for the love of god add button clipping/layering 
+
+
+songs
+ - chart loading
+ - audio loading
+ - song cache loading
+ - song list management
+ - to support: .sng, .ini (detect .ini and force Classic), create .chart pad format
+
+
+gameplay - instances
+ - integration with ui
+ - better time base instead of using BASS's inaccurate time
+ - scripts for changing hitwindow variables
+ - checks for default hitwindow variables, display changes
+ - support for multiple players
+ - use lua to help display and place notes and highway stuff (maybe a function made in lua called in cpp)
+
+
+controllers
+ - binding management
+ - callbacks (maybe set up SDL3?)
+ - player assignment !!!!!
+ - proper controller connection handling
+
+
+localization - singleton
+ - translation keys for UI
+ - set up translation contributions?
+ - also keys for button icons (would this be a UI thing?)
+
+
+main.cpp
+ - set up better logger
+ - I FUCKING HATE VECTORS
+ - debugging launch args
+ - write crashes to logs
+
+
+settings
+ - settings save file
+ - do NOT store player stuff in it
+ - maybe allow custom options to be written in lua too?
+
+
+audio manager
+ - playing multiple samples at once
+ - actually the audio manager is perfect as it is tbh

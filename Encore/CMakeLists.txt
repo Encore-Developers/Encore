@@ -41,6 +41,7 @@ file(GLOB_RECURSE INC_FILES "include/*.h" "extern/include/*.h")
 add_executable(Encore ${SRC_FILES} ${INC_FILES})
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+file(COPY "Scripts" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include" "extern/include")
 if(WIN32)
