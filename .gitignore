@@ -2,7 +2,7 @@
 .vscode/
 .idea/
 CMakeFiles/
-out
+out/
 Encore/Songs/*
 !Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/
 !Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/*

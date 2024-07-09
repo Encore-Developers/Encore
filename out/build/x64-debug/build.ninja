@@ -132,7 +132,7 @@ build install\local: phony CMakeFiles\install\local.util
 build cmake_object_order_depends_target_Encore: phony || cmake_object_order_depends_target_glfw cmake_object_order_depends_target_raylib
 
 build Encore\CMakeFiles\Encore.dir\include\main.cpp.obj: CXX_COMPILER__Encore_unscanned_Debug C$:\Users\marie\CLionProjects\Encore-2\Encore\include\main.cpp || cmake_object_order_depends_target_Encore
-  DEFINES = -DCACHE_VERSION=3 -DENCORE_VERSION=\"v0.2.0\" -DGIT_COMMIT_HASH=\"fa4b20f9827ecd8592bc7a7419aede0f1b6ad028\" -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP
+  DEFINES = -DCACHE_VERSION=3 -DENCORE_VERSION=\"v0.2.0\" -DGIT_COMMIT_HASH=\"ac74c009373d009268d7f1b4a28692b7a43271ab\" -DGRAPHICS_API_OPENGL_33 -DPLATFORM_DESKTOP
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -std:c++20 -ZI
   INCLUDES = -IC:\Users\marie\CLionProjects\Encore-2\Encore\include -IC:\Users\marie\CLionProjects\Encore-2\Encore\extern\include -IC:\Users\marie\CLionProjects\Encore-2\out\build\x64-debug\_deps\raylib-src\src -IC:\Users\marie\CLionProjects\Encore-2\out\build\x64-debug\_deps\raylib-src\src\external\glfw\include
   OBJECT_DIR = Encore\CMakeFiles\Encore.dir
@@ -148,10 +148,10 @@ build Encore\CMakeFiles\Encore.dir\include\main.cpp.obj: CXX_COMPILER__Encore_un
 #############################################
 # Link the executable Encore\Encore.exe
 
-build Encore\Encore.exe: CXX_EXECUTABLE_LINKER__Encore_Debug Encore\CMakeFiles\Encore.dir\include\main.cpp.obj | _deps\raylib-build\raylib\raylib.lib C$:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bass.lib C$:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bassopus.lib || _deps\raylib-build\raylib\external\glfw\src\glfw _deps\raylib-build\raylib\raylib.lib
+build Encore\Encore.exe: CXX_EXECUTABLE_LINKER__Encore_Debug Encore\CMakeFiles\Encore.dir\include\main.cpp.obj | _deps\raylib-build\raylib\raylib.lib C$:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bass.lib C$:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bassopus.lib C$:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\lua\windows\x64\lua.lib || _deps\raylib-build\raylib\external\glfw\src\glfw _deps\raylib-build\raylib\raylib.lib
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Ob0 /Od /RTC1 -ZI
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
-  LINK_LIBRARIES = _deps\raylib-build\raylib\raylib.lib  C:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bass.lib  C:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bassopus.lib  opengl32.lib  glu32.lib  winmm.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = _deps\raylib-build\raylib\raylib.lib  C:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bass.lib  C:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\bass\windows\x64\bassopus.lib  C:\Users\marie\CLionProjects\Encore-2\Encore\extern\lib\lua\windows\x64\lua.lib  opengl32.lib  glu32.lib  winmm.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = Encore\CMakeFiles\Encore.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
