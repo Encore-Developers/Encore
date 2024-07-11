@@ -370,7 +370,7 @@ static void handleInputs(int lane, int action) {
 				if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS
 					// && (firstNote ? true : lastNote.accounted)
 				) {
-					TraceLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
+					// TraceLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
 					gpr.FAS = true;
 					curNote.hitWithFAS = true;
 					// if (gpr.curNoteInt < curChart.notes.size() - 1) {
@@ -381,7 +381,7 @@ static void handleInputs(int lane, int action) {
 				}
 				if ((!curNote.isGood(eventTime, player.InputOffset))
 					&&
-					((lastNote.phopo && lastNote.hit) ? (eventTime > lastNote.time + 0.05) : (true))) {
+					((lastNote.phopo && lastNote.hit && !firstNote) ? (eventTime > lastNote.hitTime + 0.1f) : (true))) {
 					TraceLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
 					gpr.overstrum = true;
 					gpr.FAS = false;

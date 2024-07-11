@@ -42,6 +42,7 @@ public:
     int curNoteInt = 0;
     bool songOver = false;
 	bool extendedSustainActive = false;
+	float textureOffset = 0;
 	float renderPos = 0;
 	int cameraSel = 0;
     Mesh sustainPlane;
