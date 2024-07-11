@@ -386,6 +386,9 @@ static void handleInputs(int lane, int action) {
 					gpr.overstrum = true;
 					gpr.FAS = false;
 					player.OverHit();
+					if (lastNote.held && !firstNote) {
+						lastNote.held = false;
+					}
 					if (!curChart.odPhrases.empty() && !curChart.odPhrases[gpr.curODPhrase].missed
 						&&
 						curNote.time >= curChart.odPhrases[gpr.curODPhrase].start &&
