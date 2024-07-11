@@ -950,7 +950,7 @@ void gameplayRenderer::RenderExpertHighway(Player& player, Song song, double tim
 	float highwayLength = player.defaultHighwayLength * gprSettings.highwayLengthMult;
 	float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
 
-
+	textureOffset += 0.1f;
 
 	//DrawTriangle3D({-diffDistance-0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,-0.002,0},Color{0,0,0,255});
 	//DrawTriangle3D({diffDistance+0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},{diffDistance+0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + player.smasherPos},Color{0,0,0,255});
