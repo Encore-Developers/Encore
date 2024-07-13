@@ -79,6 +79,7 @@ void Assets::LoadAssets() {
     multNumberTex = Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png", loadedAssets);
     odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
+    multNumberShader = LoadShader(0, "Assets/highway/fade.fs");
 
     odLoc = GetShaderLocation(odMultShader, "overdrive");
     comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
@@ -86,6 +87,9 @@ void Assets::LoadAssets() {
     isBassOrVocalLoc = GetShaderLocation(odMultShader, "isBassOrVocal");
     uvOffsetXLoc = GetShaderLocation(multNumberShader, "uvOffsetX");
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
+
+    fStartLoc = GetShaderLocation(HighwayFade, "fadeStart");
+    fEndLoc = GetShaderLocation(HighwayFade, "fadeEnd");
 
 
     expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
@@ -130,10 +134,7 @@ void Assets::LoadAssets() {
     rubikItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets);
 
     josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets);
-    
-    fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.fs").string().c_str());
-    texLoc = GetShaderLocation(fxaa, "texture0");
-    resLoc = GetShaderLocation(fxaa, "resolution");
+
     sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
     bgShader = LoadShader(0, (directory / "Assets/ui/wavy.fs").string().c_str());
     bgTimeLoc= GetShaderLocation(bgShader, "time");
@@ -198,8 +199,10 @@ void Assets::LoadAssets() {
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    expertHighwaySides.materials[0].shader = HighwayFade;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
+    expertHighway.materials[0].shader = HighwayFade;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
@@ -207,15 +210,23 @@ void Assets::LoadAssets() {
 
     noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    noteTopModel.materials[0].shader = HighwayFade;
+    noteBottomModel.materials[0].shader = HighwayFade;
 
     noteTopModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
+    noteTopModelOD.materials[0].shader = HighwayFade;
+    noteBottomModelOD.materials[0].shader = HighwayFade;
 
     noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    noteTopModelHP.materials[0].shader = HighwayFade;
+    noteBottomModelHP.materials[0].shader = HighwayFade;
 
     liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    liftModel.materials[0].shader = HighwayFade;
+    liftModelOD.materials[0].shader = HighwayFade;
 
     sustainMat = LoadMaterialDefault();
     soloMat = LoadMaterialDefault();
@@ -225,18 +236,24 @@ void Assets::LoadAssets() {
     sustainMatMiss = LoadMaterialDefault();
     soloMat.maps[MATERIAL_MAP_DIFFUSE].texture = soloTexture;
     soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
+    soloMat.shader = HighwayFade;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(playerAssets.accentColor, { 180,180,180,255 });
+    sustainMat.shader = HighwayFade;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].texture = sustainHeldTexture;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].color = WHITE;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].value = 1;
     sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].texture = sustainHeldTexture;
     sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = playerAssets.accentColor;
+    sustainMatHeld.shader = HighwayFade;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].color = { 180,180,180,255 };
+    sustainMatOD.shader = HighwayFade;
     sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainHeldTexture;
     sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].color = WHITE;
+    sustainMatHeldOD.shader = HighwayFade;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].color = DARKGRAY;
+    sustainMatMiss.shader = HighwayFade;
 }
 

@@ -54,10 +54,13 @@ public:
     Texture2D multNumberTex;
     Shader odMultShader;
     Shader multNumberShader;
-    Shader fxaa;
+    Shader HighwayFade;
 
     int texLoc;
     int resLoc;
+
+    int fStartLoc;
+    int fEndLoc;
 
     int odLoc;
     int comboCounterLoc;
