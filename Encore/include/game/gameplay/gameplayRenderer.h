@@ -44,6 +44,7 @@ public:
 	bool extendedSustainActive = false;
 	float textureOffset = 0;
 	float renderPos = 0;
+	Color highwayColor{0,0,0,0};
 	int cameraSel = 0;
     Mesh sustainPlane;
     Mesh soloPlane;
