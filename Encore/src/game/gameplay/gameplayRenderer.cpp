@@ -800,10 +800,7 @@ void gameplayRenderer::RenderGameplay(Player& player, double time, Song song, Re
 	float comboFill = player.comboFillCalc(player.instrument);
 	SetShaderValue(gprAssets.odMultShader, gprAssets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.odMultShader, gprAssets.odLoc, &player.overdriveFill, SHADER_UNIFORM_FLOAT);
-	float highwayStart = (highwayLength /3)*2;
 
-	SetShaderValue(gprAssets.HighwayFade, gprAssets.fEndLoc, &highwayLength, SHADER_UNIFORM_FLOAT);
-	SetShaderValue(gprAssets.HighwayFade, gprAssets.fStartLoc, &highwayStart, SHADER_UNIFORM_FLOAT);
 	int PlayerComboMax = (player.instrument == 1 || player.instrument == 3 || player.instrument == 5) ? 50 : 30;
 
 	Color highwayColor = ColorContrast(player.accentColor, Clamp(Remap(player.combo, 0, PlayerComboMax, -0.6f, 0.0f), -0.6, 0.0f));
