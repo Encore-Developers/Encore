@@ -61,7 +61,6 @@ public:
 
     int fStartLoc;
     int fEndLoc;
-    int fColorLoc;
 
     int odLoc;
     int comboCounterLoc;

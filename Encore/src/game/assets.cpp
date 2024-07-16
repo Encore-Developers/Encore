@@ -79,7 +79,7 @@ void Assets::LoadAssets() {
     multNumberTex = Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png", loadedAssets);
     odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
-    HighwayFade = LoadShader("Assets/highway/fLighting.vs", "Assets/highway/fade.fs");
+    multNumberShader = LoadShader(0, "Assets/highway/fade.fs");
 
     odLoc = GetShaderLocation(odMultShader, "overdrive");
     comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
@@ -90,7 +90,6 @@ void Assets::LoadAssets() {
 
     fStartLoc = GetShaderLocation(HighwayFade, "fadeStart");
     fEndLoc = GetShaderLocation(HighwayFade, "fadeEnd");
-    fColorLoc = GetShaderLocation(HighwayFade, "colorForAccent");
 
 
     expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
@@ -135,7 +134,6 @@ void Assets::LoadAssets() {
     rubikItalic = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets);
 
     josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets);
-
 
     sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
     bgShader = LoadShader(0, (directory / "Assets/ui/wavy.fs").string().c_str());
@@ -189,9 +187,6 @@ void Assets::LoadAssets() {
     multCtr5.materials[0].shader = odMultShader;
 
     odMultShader.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(odMultShader, "fillTex");
-    HighwayFade.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(HighwayFade, "matModel");
-    // HighwayFade.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(HighwayFade, "vertexColor");
-    // HighwayFade.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(HighwayFade, "vertexColor");
 
     multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
     multNumber.materials[0].shader = multNumberShader;
@@ -204,12 +199,10 @@ void Assets::LoadAssets() {
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
-    // expertHighwaySides.meshes[0].colors = (unsigned char*)ColorToInt(playerAssets.accentColor);
-    // expertHighwaySides.materials[0].shader = HighwayFade;
+    expertHighwaySides.materials[0].shader = HighwayFade;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
-    // expertHighway.meshes[0].colors = (unsigned char*)ColorToInt(playerAssets.accentColor);
-    // expertHighway.materials[0].shader = HighwayFade;
+    expertHighway.materials[0].shader = HighwayFade;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;

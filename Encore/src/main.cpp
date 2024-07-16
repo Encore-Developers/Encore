@@ -2758,6 +2758,10 @@ int main(int argc, char *argv[]) {
 							diff].resetNotes();
 						gpr.LowerHighway();
 
+						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+								assets.highwayTexture;
+						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+								assets.highwayTexture;
 						assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets
 								.odMultFill;
 						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
@@ -2979,12 +2983,20 @@ int main(int argc, char *argv[]) {
 						gpr.curSolo = 0;
 						gpr.highwayInAnimation = false;
 						player.paused = false;
+						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+								assets.highwayTexture;
+						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+								assets.highwayTexture;
 						assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets
 								.odMultFill;
 						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
 								assets.odMultFill;
 						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
 								assets.odMultFill;
+						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+								DARKGRAY;
+						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+								DARKGRAY;
 						midiLoaded = false;
 						isPlaying = false;
 						gpr.songEnded = true;
