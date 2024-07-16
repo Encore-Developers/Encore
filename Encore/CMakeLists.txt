@@ -66,6 +66,13 @@ if(UNIX AND NOT APPLE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
 endif()
+if(APPLE)
+  find_library(BASS NAMES bass PATHS "lib/bass/macos")
+  file(COPY "lib/bass/macos/libbass.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/macos")
+  file(COPY "lib/bass/macos/libbassopus.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+endif()
 
 # Get the current working branch
 execute_process(

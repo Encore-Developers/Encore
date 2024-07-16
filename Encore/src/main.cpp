@@ -1966,7 +1966,7 @@ int main(int argc, char *argv[]) {
 
 				float TopOvershell = u.hpct(0.15f);
 				DrawRectangle((int) u.LeftSide, 0, u.RightSide - u.LeftSide, (float) GetScreenHeight(),
-							Color(0, 0, 0, 128));
+							GetColor(0x00000080));
 				DrawLineEx({u.LeftSide + u.winpct(0.0025f), 0}, {
 								u.LeftSide + u.winpct(0.0025f), (float) GetScreenHeight()
 							}, u.winpct(0.005f), WHITE);
@@ -2255,7 +2255,7 @@ int main(int argc, char *argv[]) {
 				float AlbumArtRight = u.winpct(0.15f);
 				float AlbumArtBottom = u.winpct(0.15f);
 				DrawRectangle(0, 0, (int) GetScreenWidth(), (int) GetScreenHeight(),
-							Color(0, 0, 0, 128));
+							GetColor(0x00000080));
 
 				menu.DrawTopOvershell(0.2f);
 				menu.DrawVersion();
