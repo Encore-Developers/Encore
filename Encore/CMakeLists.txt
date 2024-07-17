@@ -4,6 +4,7 @@
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_OSX_ARCHITECTURES x86_64;arm64)
+set(CMAKE_INSTALL_RPATH .)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -72,7 +73,6 @@ if(APPLE)
   file(COPY "lib/bass/macos/libbass.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/macos")
   file(COPY "lib/bass/macos/libbassopus.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 
 # Get the current working branch

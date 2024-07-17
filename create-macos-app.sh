@@ -21,3 +21,5 @@ rm out/Encore.app/Contents/MacOS/.gitkeep
 
 # Copy out the Songs folder
 cp -r build_macos/Encore/Songs out/Songs
+
+echo "Copy the Encore app and the Songs folder to a folder on your computer." > out/Copy_to_your_computer!.txt

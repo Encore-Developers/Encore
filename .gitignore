@@ -13,3 +13,5 @@ cmake-build-debug/
 Encore/build/
 Encore/build/*
 *.app
+*.dmg
+*.exe

@@ -131,8 +131,12 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ./create-macos-app.sh
     
+    - name: Create Disk Image
+      working-directory: ${{github.workspace}}
+      run: hdiutil create -volname Encore -srcfolder out -ov -format UDZO Encore.dmg
+    
     - uses: actions/upload-artifact@v4
       with:
         name: Encore_macOS
-        path: ${{github.workspace}}/out/*
+        path: ${{github.workspace}}/Encore.dmg
 
