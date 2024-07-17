@@ -126,8 +126,13 @@ jobs:
     - name: Remove CMake files
       working-directory: ${{github.workspace}}/build_macos/Encore
       run: rm -r -f CMakeFiles Makefile cmake_install.cmake
-      
+    
+    - name: Create .app Bundle
+      working-directory: ${{github.workspace}}
+      run: ./create-macos-app.sh
+    
     - uses: actions/upload-artifact@v4
       with:
         name: Encore_macOS
-        path: ${{github.workspace}}/build_macos/Encore/*
+        path: ${{github.workspace}}/out/*
+

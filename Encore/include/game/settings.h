@@ -201,6 +201,16 @@ public:
     float highwayLengthMult = 1.0f;
     float prevHighwayLengthMult = highwayLengthMult;
 
+	void setDirectory(std::filesystem::path appConfigDirectory) {
+		directory = appConfigDirectory;
+		// HACK!! to fix defaultSongPaths being assigned earlier
+		// TODO(InvoxiPlayGames): do it proper
+		defaultSongPaths.clear();
+		defaultSongPaths.push_back(directory / "Songs");
+		songPaths.clear();
+		songPaths.push_back(directory / "Songs");
+	}
+
 	void writeDefaultSettings(std::filesystem::path settingsFile, bool migrate = false) {
 		rapidjson::Document::AllocatorType& allocator = settings.GetAllocator();
 		settings.SetObject();
