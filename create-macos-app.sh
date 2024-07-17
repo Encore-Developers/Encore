@@ -14,7 +14,7 @@ cp -r build_macos/Encore/Assets out/Encore.app/Contents/Resources
 
 # Copy out the game executable and any used dynamic libraries
 cp build_macos/Encore/Encore out/Encore.app/Contents/MacOS/Encore
-cp build_macos/Encore/*.dylib out/Encore.app/Contents/Macos
+cp build_macos/Encore/*.dylib out/Encore.app/Contents/MacOS
 
 # Fix executable so dynamic libraries work from the executable path
 install_name_tool -add_rpath @executable_path out/Encore.app/Contents/MacOS/Encore
