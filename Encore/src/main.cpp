@@ -1928,7 +1928,7 @@ int main(int argc, char *argv[]) {
 				int lastIntChosen = (int) mouseWheel.y;
 				// set to specified height
 				if (songSelectOffset <= songList.songs.size() && songSelectOffset >= 0 && songList.songs
-					.size() >= 12) {
+					.size() >= 10) {
 					songSelectOffset -= (int) mouseWheel.y;
 				}
 
@@ -1937,8 +1937,8 @@ int main(int argc, char *argv[]) {
 					songSelectOffset = 0;
 
 				// prevent going past bottom
-				if (songSelectOffset >= songList.songs.size() - 12)
-					songSelectOffset = songList.songs.size() - 12;
+				if (songSelectOffset >= songList.songs.size() - 10)
+					songSelectOffset = songList.songs.size() - 10;
 
 				if (!albumArtLoaded) {
 					selectedSong = menu.ChosenSong;
@@ -1965,12 +1965,15 @@ int main(int argc, char *argv[]) {
 				EndShaderMode();
 
 				float TopOvershell = u.hpct(0.15f);
-				DrawRectangle((int) u.LeftSide, 0, u.RightSide - u.LeftSide, (float) GetScreenHeight(),
+				DrawRectangle(0, 0, u.RightSide - u.LeftSide, (float) GetScreenHeight(),
 							Color(0, 0, 0, 128));
-				DrawLineEx({u.LeftSide + u.winpct(0.0025f), 0}, {
-								u.LeftSide + u.winpct(0.0025f), (float) GetScreenHeight()
-							}, u.winpct(0.005f), WHITE);
-
+				// DrawLineEx({u.LeftSide + u.winpct(0.0025f), 0}, {
+				// 				u.LeftSide + u.winpct(0.0025f), (float) GetScreenHeight()
+				// 			}, u.winpct(0.005f), WHITE);
+				BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f),
+									u.hinpct(0.7f));
+				menu.DrawTopOvershell(0.208333f);
+				EndScissorMode();
 				menu.DrawTopOvershell(0.15f);
 
 
@@ -1985,13 +1988,9 @@ int main(int argc, char *argv[]) {
 
 				DrawTextEx(assets.josefinSansItalic,
 							TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {
-								AlbumX - (AlbumOuter * 2) - MeasureTextEx(
-									assets.josefinSansItalic,
-									TextFormat("Sorted by: %s",
-												sortTypes[currentSortValue].c_str()), u.hinpct(0.025f),
-									0).x,
-								AlbumY + u.hinpct(0.0075)
-							}, u.hinpct(0.025f), 0, WHITE);
+								u.LeftSide,
+								u.hinpct(0.165f)
+							}, u.hinpct(0.03f), 0, WHITE);
 				DrawTextEx(assets.josefinSansItalic,
 							TextFormat("Songs loaded: %01i", songList.songs.size()), {
 								AlbumX - (AlbumOuter * 2) - MeasureTextEx(
@@ -2002,9 +2001,14 @@ int main(int argc, char *argv[]) {
 							}, u.hinpct(0.025f), 0, WHITE);
 
 
-				float songEntryHeight = u.hinpct(0.06f);
-				for (int i = songSelectOffset; i < songList.songs.size() && i < songSelectOffset + 12; i
-					++) {
+				float songEntryHeight = u.hinpct(0.058333f);
+				DrawRectangle(0, u.hinpct(0.208333f), (u.RightSide - u.winpct(0.25f)), songEntryHeight, ColorBrightness(player.accentColor, -0.75f));
+
+				for (int j = 0; j < 5; j++) {
+					DrawRectangle(0, ((songEntryHeight * 2) * j) + u.hinpct(0.208333f) + songEntryHeight, (u.RightSide - u.winpct(0.25f)), songEntryHeight,Color{0,0,0,64});
+				}
+
+				for (int i = songSelectOffset; i < songList.songs.size() && i < songSelectOffset + 10; i++) {
 					if (songList.songs.size() == i)
 						break;
 					Font &songFont = i == menu.ChosenSongInt ? assets.rubikBoldItalic : assets.rubikBold;
@@ -2014,16 +2018,17 @@ int main(int argc, char *argv[]) {
 					//LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" + std::to_string(i), EaseOutCirc, 0.4f);
 					float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
 					float songYPos = std::floor(
-						(u.hpct(0.15f) - 3) + (
-							(songEntryHeight - 1) * ((i - songSelectOffset))));
-
+						(u.hpct(0.266666f)) + (
+							(songEntryHeight) * ((i - songSelectOffset))));
+					GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
+					GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
 					if (i == menu.ChosenSongInt) {
 						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
 									ColorToInt(ColorBrightness(player.accentColor, -0.4)));
 					}
-					BeginScissorMode(u.LeftSide, u.hpct(0.15f), BorderBetweenAlbumStuff,
+					BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f),
 									u.hinpct(0.7f));
-					if (GuiButton(Rectangle{songXPos, songYPos, (u.winpct(0.75f)), songEntryHeight},
+					if (GuiButton(Rectangle{0, songYPos, (u.RightSide - u.winpct(0.25f)), songEntryHeight},
 								"")) {
 						curPlayingSong = i;
 						selSong = true;
@@ -2054,13 +2059,10 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					auto LightText = Color{203, 203, 203, 255};
-					BeginScissorMode((int) songXPos + 20, (int) songYPos, songTitleWidth, songEntryHeight);
+					BeginScissorMode((int) songXPos + (i == menu.ChosenSongInt ? 5 : 20), (int) songYPos, songTitleWidth, songEntryHeight);
 					DrawTextEx(songFont, songi.title.c_str(),
 								{
-									songXPos + 20 + songi.titleXOffset + (i == menu.ChosenSongInt
-																			? u.winpct(
-																				0.005f)
-																			: 0),
+									songXPos + songi.titleXOffset + (i == menu.ChosenSongInt ? 5 : 20),
 									songYPos + u.hinpct(0.0125f)
 								}, u.hinpct(0.035f), 0, i == menu.ChosenSongInt ? WHITE : LightText);
 					EndScissorMode();
@@ -2096,6 +2098,15 @@ int main(int argc, char *argv[]) {
 							AlbumHeight + AlbumOuter, WHITE);
 				DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
 
+				// TODO: replace this with actual sorting/category hiding
+
+				std::string SongTitleForCharThingyThatsTemporary = songList.songs[songSelectOffset].title;
+				DrawTextEx(assets.rubikBold, SongTitleForCharThingyThatsTemporary.erase(1, string::npos).c_str(),
+								{
+									u.LeftSide + 5,
+									u.hpct(0.218333f)
+								}, u.hinpct(0.035f), 0, WHITE);
+
 
 				// bottom
 				if (selSong) {
@@ -2122,10 +2133,10 @@ int main(int argc, char *argv[]) {
 				}
 				// hehe
 
-				float TextPlacementTB = u.TopSide + u.hinpct(0.15f) - u.hinpct(0.11f);
-				float TextPlacementLR = u.LeftSide + u.winpct(0.01f);
-				DrawTextEx(assets.redHatDisplayBlack, "Song Select", {TextPlacementLR, TextPlacementTB},
-							u.hinpct(0.10f), 0, WHITE);
+				float TextPlacementTB = u.hpct(0.05f);
+				float TextPlacementLR = u.LeftSide;
+				DrawTextEx(assets.redHatDisplayBlack, "MUSIC LIBRARY", {TextPlacementLR, TextPlacementTB},
+							u.hinpct(0.125f), 0, WHITE);
 
 				std::string AlbumArtText = SongToDisplayInfo.album.empty()
 												? "No Album Listed"
