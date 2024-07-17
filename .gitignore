@@ -1,7 +1,10 @@
 .vs/
 .vscode/
 .idea/
+build/
+build_*/
 CMakeFiles/
+.DS_Store
 out
 Encore/Songs/*
 !Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/
@@ -9,3 +12,6 @@ Encore/Songs/*
 cmake-build-debug/
 Encore/build/
 Encore/build/*
+*.app
+*.dmg
+*.exe
