@@ -3,6 +3,9 @@
 #if defined(WIN32) && defined(NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 #include "raylib.h"
 #include <vector>
 #include <iostream>
@@ -816,6 +819,27 @@ int main(int argc, char *argv[]) {
 	std::filesystem::path executablePath(GetApplicationDirectory());
 
 	std::filesystem::path directory = executablePath.parent_path();
+
+#ifdef __APPLE__
+	CFBundleRef bundle = CFBundleGetMainBundle();
+	if (bundle != NULL) {
+		// get the Resources directory for our binary for the Assets handling
+		CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(bundle);
+		if (resourceURL != NULL) {
+			char resourcePath[PATH_MAX];
+			if (CFURLGetFileSystemRepresentation(resourceURL, true, (UInt8 *)resourcePath, PATH_MAX))
+				assets.setDirectory(resourcePath);
+			CFRelease(resourceURL);
+		}
+		// do the next step manually (settings/config handling)
+		// "directory" is our executable directory here, hop up to the external dir
+		if (directory.filename().compare("MacOS") == 0)
+			directory = directory.parent_path().parent_path().parent_path(); // hops "MacOS", "Contents", "Encore.app" into containing folder
+
+		CFRelease(bundle);
+	}
+#endif
+	settingsMain.setDirectory(directory);
 
 	if (std::filesystem::exists(directory / "keybinds.json")) {
 		settingsMain.migrateSettings(directory / "keybinds.json", directory / "settings.json");
@@ -1966,7 +1990,7 @@ int main(int argc, char *argv[]) {
 
 				float TopOvershell = u.hpct(0.15f);
 				DrawRectangle(0, 0, u.RightSide - u.LeftSide, (float) GetScreenHeight(),
-							Color(0, 0, 0, 128));
+							GetColor(0x00000080));
 				// DrawLineEx({u.LeftSide + u.winpct(0.0025f), 0}, {
 				// 				u.LeftSide + u.winpct(0.0025f), (float) GetScreenHeight()
 				// 			}, u.winpct(0.005f), WHITE);
@@ -2310,7 +2334,7 @@ int main(int argc, char *argv[]) {
 				float AlbumArtRight = u.winpct(0.15f);
 				float AlbumArtBottom = u.winpct(0.15f);
 				DrawRectangle(0, 0, (int) GetScreenWidth(), (int) GetScreenHeight(),
-							Color(0, 0, 0, 128));
+							GetColor(0x00000080));
 
 				menu.DrawTopOvershell(0.2f);
 				menu.DrawVersion();
