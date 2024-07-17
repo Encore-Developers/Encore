@@ -12,6 +12,12 @@ class SongList
 {
     SongList() {}
 public:
+    struct ListMenuEntry {
+        bool isHeader;
+        int songListID;
+        std::string headerChar;
+        bool hiddenEntry;
+    };
 
     static SongList& getInstance() {
         static SongList instance; // This is the single instance
@@ -27,6 +33,7 @@ public:
     static bool sortLen(const Song& a, const Song& b) {
         return a.length < b.length;
     }
+    std::vector<ListMenuEntry> listMenuEntries;
     std::vector<Song> songs;
     int songCount = 0;
     int directoryCount  = 0;
@@ -46,6 +53,7 @@ public:
                 std::sort(songs.begin(), songs.end(), sortLen);
                 break;
         }
+        listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
     }
     void sortList(int sortType,int& selectedSong) {
         Song curSong = songs[selectedSong];
@@ -66,6 +74,7 @@ public:
                 selectedSong = i;
             }
         }
+        listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
     }
 
     void WriteCache(std::vector<Song> songs) {
@@ -138,6 +147,41 @@ public:
         }
         TraceLog(LOG_INFO, "Rewriting song cache");
         WriteCache(list.songs);
+    }
+
+    std::vector<ListMenuEntry> GenerateSongEntriesWithHeaders(const std::vector<Song>& songs, int sortType) {
+        std::vector<ListMenuEntry> songEntries;
+        std::string currentHeader = "";
+
+        for (int i = 0; i < songs.size(); i++) {
+            Song song = songs[i];
+            switch (sortType) {
+                case 0: {
+                    if (toupper(song.title[0]) != currentHeader[0]) {
+                        currentHeader = toupper(song.title[0]);
+                        songEntries.push_back({true, 0, currentHeader, false});
+                    }
+                    break;
+                }
+                case 1: {
+                    if (song.artist != currentHeader) {
+                        currentHeader = song.artist;
+                        songEntries.push_back({true, 0, currentHeader, false});
+                    }
+                    break;
+                }
+                case 2: {
+                    if (std::to_string(song.length) != currentHeader) {
+                        currentHeader = std::to_string(song.length);
+                        songEntries.push_back({true, 0, currentHeader, false});
+                    }
+                    break;
+                }
+            }
+            songEntries.push_back({false, i, "", false});
+        }
+
+        return songEntries;
     }
 
     SongList LoadCache(const std::vector<std::filesystem::path>& songsFolder) {
