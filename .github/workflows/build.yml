@@ -33,7 +33,16 @@ jobs:
     - name: Move Assets/Songs folders and bass.dll x64
       working-directory: ${{github.workspace}}/build_x64/Encore
       run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll
+        
+    - uses: actions/upload-artifact@v4
+      with:
+        name: Encore_Win_x64
+        path: ${{github.workspace}}/build_x64/Encore/Release/*
 
+  build-windows-x86:
+    runs-on: windows-latest
+
+    steps:
     - name: Configure CMake x86
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -51,11 +60,6 @@ jobs:
       with:
         name: Encore_Win_x86
         path: ${{github.workspace}}/build_x86/Encore/Release/*
-        
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Encore_Win_x64
-        path: ${{github.workspace}}/build_x64/Encore/Release/*
         
   build-linux:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
