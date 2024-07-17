@@ -85,28 +85,28 @@ Refer to the chart below for the different difficulties and pitch information.
 ### Tap Lanes
 |Difficulty|1|2|3|4|5|
 |:-|:-:|:-:|:-:|:-:|:-:|
-|Expert|96|97|98|99|100|
-|Hard|84|85|86|87| |
-|Medium|72|73|74|75| |
-|Easy|60|61|62|63| |
+|Expert|96  C6|97  C#6|98  D6|99  D#6|100  E6|
+|Hard|84  C5|85  C#5|86  D5|87  D#5| |
+|Medium|72  C4|73  C#4|74  D4|75  D#4| |
+|Easy|60  C3|61  C#3|62  D3|63  D#3| |
 
 ### Lift Markers
 |Difficulty|1|2|3|4|5|
 |:-|:-:|:-:|:-:|:-:|:-:|
-|Expert|102|103|104|105|106|
-|Hard|90|91|92|93| |
-|Medium|78|79|80|81| |
-|Easy|66|67|68|69| |
+|Expert|102  F#6|103  G6|104  G#6|105  A6|106  B6|
+|Hard|90  F#5|91  G5|92 G#5|93  A5| |
+|Medium|78  F#4|79  G4|80  G#4|81  A4| |
+|Easy|66  F#3|67  G3|68  G#3|69  A3| |
 
 ### Overdrive
 
 |Difficulty|Lane|
 |:-|:-:|
-|All Diffs|116|
+|All Diffs|116 G#7|
 
 ### Solos
 
-Solos are marked per instrument at pitch 101, between Expert's lift and tap pitches.
+Solos are marked per instrument at pitch 101 (F6), between Expert's lift and tap pitches.
 
 ## `EVENTS` and `BEAT`
 Every `notes.mid` needs an `EVENTS` track and a `BEAT` track.

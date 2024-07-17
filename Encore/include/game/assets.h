@@ -17,6 +17,11 @@ public:
         return instance;
     }
 
+    void setDirectory(std::filesystem::path assetsDirectory)
+    {
+        directory = assetsDirectory;
+    }
+
     Assets(const Assets&) = delete;
     void operator=(const Assets&) = delete;
 

@@ -131,16 +131,18 @@ public:
     {
         SongList list;
         for (const auto & i : songsFolder) {
-            for (const auto &entry: std::filesystem::directory_iterator(i)) {
-                if (std::filesystem::is_directory(entry)) {
-                    list.directoryCount++;
-                    if (std::filesystem::exists(entry.path() / "info.json")) {
-                        Song song;
-                        song.LoadSong(entry.path() / "info.json");
-                        list.songs.push_back(song);
-                        list.songCount++;
-                    } else {
-                        list.badSongCount++;
+            if (std::filesystem::is_directory(i)) {
+                for (const auto &entry: std::filesystem::directory_iterator(i)) {
+                    if (std::filesystem::is_directory(entry)) {
+                        list.directoryCount++;
+                        if (std::filesystem::exists(entry.path() / "info.json")) {
+                            Song song;
+                            song.LoadSong(entry.path() / "info.json");
+                            list.songs.push_back(song);
+                            list.songCount++;
+                        } else {
+                            list.badSongCount++;
+                        }
                     }
                 }
             }
