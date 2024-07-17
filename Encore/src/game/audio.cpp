@@ -30,11 +30,15 @@ bool AudioManager::Init() {
     }
     BASS_PluginLoad("bassopus", 0);
     CHECK_BASS_ERROR();
-#elif __linux__
+#else
     if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
         CHECK_BASS_ERROR();
     }
+#ifdef __APPLE__
+    BASS_PluginLoad("libbassopus.dylib", 0);
+#else
     BASS_PluginLoad("libbassopus.so", 0);
+#endif
     CHECK_BASS_ERROR();
 #endif
 
