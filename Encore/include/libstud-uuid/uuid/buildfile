@@ -1,0 +1,72 @@
+lib{stud-uuid}: {hxx ixx cxx}{uuid} {hxx cxx}{uuid-io} hxx{export version} \
+  ../hxx{uuid}
+
+tcls = $cxx.target.class
+tsys = $cxx.target.system
+
+lib{stud-uuid}: cxx{uuid-linux}:      include = ($tcls  == 'linux')
+lib{stud-uuid}: cxx{uuid-macos}:      include = ($tcls  == 'macos')
+lib{stud-uuid}: cxx{uuid-windows}:    include = ($tcls  == 'windows')
+lib{stud-uuid}: cxx{uuid-freebsd}:    include = ($tsys == 'freebsd' || \
+                                                 $tsys == 'netbsd')
+lib{stud-uuid}: cxx{uuid-openbsd}:    include = ($tsys == 'openbsd')
+lib{stud-uuid}: cxx{uuid-emscripten}: include = ($tsys == 'emscripten')
+
+switch $tcls, $tsys
+{
+  case 'linux'
+    cxx.libs += -ldl
+
+  case 'macos'
+    cxx.libs += -framework CoreFoundation
+
+  case 'windows', 'mingw32'
+    cxx.libs += -lrpcrt4
+
+  case 'windows'
+    cxx.libs += rpcrt4.lib
+}
+
+# Include the generated version header into the distribution (so that we don't
+# pick up an installed one) and don't remove it when cleaning in src (so that
+# clean results in a state identical to distributed).
+#
+hxx{version}: in{version} $src_root/manifest
+{
+  dist  = true
+  clean = ($src_root != $out_root)
+}
+
+hxx{export}@./: cxx.importable = false
+
+# Build options.
+#
+cxx.poptions =+ "-I$out_root" "-I$src_root"
+
+obja{*}: cxx.poptions += -DLIBSTUD_UUID_STATIC_BUILD
+objs{*}: cxx.poptions += -DLIBSTUD_UUID_SHARED_BUILD
+
+# Export options.
+#
+lib{stud-uuid}: cxx.export.poptions = "-I$out_root" "-I$src_root"
+
+liba{stud-uuid}: cxx.export.poptions += -DLIBSTUD_UUID_STATIC
+libs{stud-uuid}: cxx.export.poptions += -DLIBSTUD_UUID_SHARED
+
+# For pre-releases use the complete version to make sure they cannot be used
+# in place of another pre-release or the final version. See the version module
+# for details on the version.* variable values.
+#
+if $version.pre_release
+  lib{stud-uuid}: bin.lib.version = @"-$version.project_id"
+else
+  lib{stud-uuid}: bin.lib.version = @"-$version.major.$version.minor"
+
+# Install into the libstud/uuid/ subdirectory of, say, /usr/include/
+# recreating subdirectories.
+#
+../{hxx ixx txx}{*}:
+{
+  install         = include/libstud/
+  install.subdirs = true
+}

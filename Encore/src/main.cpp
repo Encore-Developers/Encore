@@ -29,8 +29,10 @@
 #include "game/timingvalues.h"
 #include "game/gameplay/gameplayRenderer.h"
 
+
 #include <thread>
 #include <atomic>
+#include <sol/sol.hpp>
 
 Menu &menu = Menu::getInstance();
 Player player = Player::getInstance();
@@ -49,6 +51,8 @@ vector<std::string> ArgumentList::arguments;
 #define ENCORE_VERSION
 #endif
 
+#define SOL_ALL_SAFETIES_ON 1
+#define SOL_USE_LUA_HPP 1
 
 bool midiLoaded = false;
 bool isPlaying = false;
@@ -779,7 +783,9 @@ int main(int argc, char *argv[]) {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
-
+	sol::state lua;
+	lua.open_libraries(sol::lib::base);
+	lua.script_file("scripts/testing.lua");
 	SetConfigFlags(FLAG_VSYNC_HINT);
 
 	//SetTraceLogLevel(LOG_NONE);
@@ -3163,6 +3169,12 @@ int main(int argc, char *argv[]) {
 										0, (float) GetScreenHeight() - u.hinpct(0.005f),
 										(float) GetScreenWidth(), u.hinpct(0.01f)
 									}, "", "", &floatSongLength, 0, (float) songLength);
+				std::string ScriptDisplayString = "";
+				lua.script_file("scripts/testing.lua");
+				ScriptDisplayString = lua["TextDisplay"];
+				DrawTextEx(assets.rubikBold, ScriptDisplayString.c_str(),
+												{5, GetScreenHeight() - u.hinpct(0.1f)}, u.hinpct(0.04), 0,
+												GOLD);
 
 				DrawRectangle(u.wpct(0.5f) - (u.winpct(0.12f) / 2), u.hpct(0.02f) - u.winpct(0.01f),
 							u.winpct(0.12f), u.winpct(0.065f),DARKGRAY);

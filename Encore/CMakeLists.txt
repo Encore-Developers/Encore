@@ -30,12 +30,18 @@ endif()
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 # Add all subdirectories of src
+file(GLOB_RECURSE SRC_FILES "include/sol/*.cpp")
+file(GLOB_RECURSE INC_FILES "include/sol/*.hpp")
+
+file(GLOB_RECURSE INC_FILES "include/lua/*.hpp")
+
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
-file(GLOB_RECURSE INC_FILES "include/*.h" "src/*.h")
+file(GLOB_RECURSE INC_FILES "include/*.h" "include/*.h*" "src/*.h")
 # Add source files to the executable
 add_executable(Encore ${SRC_FILES} ${INC_FILES})
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+file(COPY "scripts" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include")
 if(WIN32)
@@ -44,12 +50,16 @@ if(WIN32)
     file(COPY "lib/bass/windows/x86/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x86/")
     file(COPY "lib/bass/windows/x86/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    find_library(LUA NAMES lua PATHS "extern/lib/lua/windows/x32")
+    file(COPY "extern/lib/lua/windows/x32/lua.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif() 
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     find_library(BASS NAMES bass PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    find_library(LUA NAMES lua PATHS "lib/lua/windows/x64")
+    file(COPY "lib/lua/windows/x64/lua54.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
 endif()
 if(UNIX AND NOT APPLE)
@@ -98,4 +108,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DCACHE_VERSION=3")
 
-target_link_libraries(Encore raylib ${BASS} ${BASSOPUS})
+target_link_libraries(Encore raylib ${BASS} ${BASSOPUS} ${LUA})

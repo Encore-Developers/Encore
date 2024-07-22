@@ -10,6 +10,7 @@
 #include "game/menus/uiUnits.h"
 #include "rlgl.h"
 #include "easing/easing.h"
+#include "sol/sol.hpp"
 
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();
