@@ -14,7 +14,7 @@
 #include "song/songlist.h"
 #include "game/arguments.h"
 #include "game/utility.h"
-#include "game/player.h"
+#include "game/users/player.h"
 #include "game/lerp.h"
 #include "game/keybinds.h"
 #include "game/settings.h"
@@ -35,7 +35,7 @@
 #include <sol/sol.hpp>
 
 Menu &menu = Menu::getInstance();
-Player player = Player::getInstance();
+PlayerManager &playerManager = PlayerManager::getInstance();
 Settings &settingsMain = Settings::getInstance();
 AudioManager &audioManager = AudioManager::getInstance();
 
@@ -81,7 +81,7 @@ bool changingAlt = false;
 bool changingPause = false;
 double startedPlayingSong = 0.0;
 Vector2 viewScroll = {0, 0};
-Rectangle view = {0};
+Rectangle view = {0,0,0,0};
 
 int HeldMaskShow;
 
@@ -95,7 +95,7 @@ bool showInputFeedback = false;
 double inputFeedbackStartTime = 0.0;
 const double inputFeedbackDuration = 0.6;
 float inputFeedbackAlpha = 1.0f;
-
+Color accentColor = {255,0,255,255};
 std::string trackSpeedButton;
 
 std::string encoreVersion = ENCORE_VERSION;
@@ -161,33 +161,35 @@ int strummedNote = 0;
 int FASNote = 0;
 
 static void handleInputs(int lane, int action) {
-	if (player.paused) return;
+	Player* player = playerManager.ActivePlayers[0];
+	PlayerGameplayStats* stats = player->stats;
+	if (stats->Paused) return;
 	if (lane == -2) return;
-	if (settingsMain.mirrorMode && lane != -1 && !player.plastic) {
-		lane = (player.diff == 3 ? 4 : 3) - lane;
+	if (settingsMain.mirrorMode && lane != -1 && !player->ClassicMode) {
+		lane = (player->Difficulty == 3 ? 4 : 3) - lane;
 	}
 	if (!streamsLoaded) {
 		return;
 	}
-	Chart &curChart = songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff];
+	Chart &curChart = songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty];
 	float eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
-	if (player.instrument != 4) {
-		if (action == GLFW_PRESS && (lane == -1) && player.overdriveFill > 0 && !player.overdrive) {
-			player.overdriveActiveTime = eventTime;
-			player.overdriveActiveFill = player.overdriveFill;
-			player.overdrive = true;
+	if (player->Instrument != 4) {
+		if (action == GLFW_PRESS && (lane == -1) && stats->overdriveFill > 0 && !stats->Overdrive) {
+			stats->overdriveActiveTime = eventTime;
+			stats->overdriveActiveFill = stats->overdriveFill;
+			stats->Overdrive = true;
 			overdriveHitAvailable = true;
 			overdriveHitTime = eventTime;
 		}
 
-		if (!player.plastic) {
+		if (!player->ClassicMode) {
 			if (lane == -1) {
 				if ((action == GLFW_PRESS && !overdriveHitAvailable) ||
 					(action == GLFW_RELEASE && !overdriveLiftAvailable))
 					return;
 				Note *curNote = &curChart.notes[0];
 				for (auto &note: curChart.notes) {
-					if (note.isGood(eventTime, player.InputOffset) &&
+					if (note.isGood(eventTime, player->InputCalibration) &&
 						!note.hit) {
 						curNote = &note;
 						break;
@@ -199,7 +201,7 @@ static void handleInputs(int lane, int action) {
 					overdriveHeld = false;
 				}
 				if (action == GLFW_PRESS && overdriveHitAvailable) {
-					if (curNote->isGood(eventTime, player.InputOffset) &&
+					if (curNote->isGood(eventTime, player->InputCalibration) &&
 						!curNote->hit) {
 						for (int newlane = 0; newlane < 5; newlane++) {
 							int chordLane = curChart.findNoteIdx(curNote->time, newlane);
@@ -214,16 +216,12 @@ static void handleInputs(int lane, int action) {
 										chordNote.held = true;
 									}
 									if (chordNote.isPerfect(
-										eventTime, player.InputOffset)) {
+										eventTime, player->InputCalibration)) {
 										chordNote.perfect = true;
 									}
-									if (chordNote.perfect)
-										player.lastNotePerfect = true;
-									else player.lastNotePerfect = false;
 									chordNote.HitOffset =
 											chordNote.time - eventTime;
-									player.HitNote(
-										chordNote.perfect, player.instrument);
+									stats->HitNote(chordNote.perfect);
 									chordNote.accounted = true;
 								}
 							}
@@ -232,12 +230,11 @@ static void handleInputs(int lane, int action) {
 						overdriveLiftAvailable = true;
 					}
 				} else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
-					if (curNote->isGood(eventTime, player.InputOffset) &&
+					if (curNote->isGood(eventTime, player->InputCalibration) &&
 						!curNote->hit) {
 						for (int newlane = 0; newlane < 5; newlane++) {
 							if (overdriveLanesHit[newlane]) {
-								int chordLane = curChart.findNoteIdx(
-									curNote->time, newlane);
+								int chordLane = curChart.findNoteIdx(curNote->time, newlane);
 								if (chordLane != -1) {
 									Note &chordNote = curChart.notes[chordLane];
 									if (chordNote.lift) {
@@ -250,13 +247,10 @@ static void handleInputs(int lane, int action) {
 
 										if (chordNote.isPerfect(
 											eventTime,
-											player.InputOffset)) {
+											player->InputCalibration)) {
 											chordNote.perfect = true;
 										}
 										chordNote.accounted = true;
-										if (chordNote.perfect)
-											player.lastNotePerfect = true;
-										else player.lastNotePerfect = false;
 									}
 								}
 							}
@@ -272,12 +266,12 @@ static void handleInputs(int lane, int action) {
 							if (chordLane != -1) {
 								Note &chordNote = curChart.notes[chordLane];
 								if (chordNote.held && chordNote.len > 0) {
-									if (!((player.diff == 3 && settingsMain.keybinds5K[chordNote.lane])
-										|| (player.diff != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
+									if (!((player->Difficulty == 3 && settingsMain.keybinds5K[chordNote.lane])
+										|| (player->Difficulty != 3 && settingsMain.keybinds4K[chordNote.lane]))) {
 										chordNote.held = false;
-										player.score += player.sustainScoreBuffer[chordNote.lane];
-										player.sustainScoreBuffer[chordNote.lane] = 0;
-										player.mute = true;
+										// player.score += player.sustainScoreBuffer[chordNote.lane];
+										// player.sustainScoreBuffer[chordNote.lane] = 0;
+										// player.mute = true;
 									}
 								}
 							}
@@ -290,9 +284,9 @@ static void handleInputs(int lane, int action) {
 
 
 					if (lane != curNote.lane) continue;
-					if (!player.plastic) {
+					if (!player->ClassicMode) {
 						if ((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS) {
-							if (curNote.isGood(eventTime, player.InputOffset) &&
+							if (curNote.isGood(eventTime, player->InputCalibration) &&
 								!curNote.hit) {
 								if (curNote.lift && action == GLFW_RELEASE) {
 									lastHitLifts[lane] = curChart.notes_perlane[
@@ -304,24 +298,21 @@ static void handleInputs(int lane, int action) {
 								if ((curNote.len) > 0 && !curNote.lift) {
 									curNote.held = true;
 								}
-								if (curNote.isPerfect(eventTime, player.InputOffset)) {
+								if (curNote.isPerfect(eventTime, player->InputCalibration)) {
 									curNote.perfect = true;
 								}
-								if (curNote.perfect) player.lastNotePerfect = true;
-								else player.lastNotePerfect = false;
-								player.HitNote(curNote.perfect, player.instrument);
+								stats->HitNote(curNote.perfect);
 								curNote.accounted = true;
 								break;
 							}
-							if (curNote.miss) player.lastNotePerfect = false;
 						}
 						if ((!gpr.heldFrets[curNote.lane] && !gpr.heldFretsAlt[curNote.lane]) &&
 							curNote.held &&
 							(curNote.len) > 0) {
 							curNote.held = false;
-							player.score += player.sustainScoreBuffer[curNote.lane];
-							player.sustainScoreBuffer[curNote.lane] = 0;
-							player.mute = true;
+							// stats->Score += player.sustainScoreBuffer[curNote.lane];
+							// player.sustainScoreBuffer[curNote.lane] = 0;
+							// player.mute = true;
 							// SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream, missVolume);
 						}
 
@@ -329,7 +320,7 @@ static void handleInputs(int lane, int action) {
 							eventTime > songList.songs[curPlayingSong].music_start &&
 							!curNote.hit &&
 							!curNote.accounted &&
-							((curNote.time) - goodBackend) + player.InputOffset > eventTime &&
+							((curNote.time) - goodBackend) + player->InputCalibration > eventTime &&
 							eventTime > overdriveHitTime + 0.05
 							&& !gpr.overhitFrets[lane]) {
 							if (lastHitLifts[lane] != -1) {
@@ -339,7 +330,7 @@ static void handleInputs(int lane, int action) {
 									0.1)
 									continue;
 							}
-							player.OverHit();
+							stats->OverHit();
 							if (!curChart.odPhrases.empty() && eventTime >= curChart.
 								odPhrases[gpr.curODPhrase].start &&
 								eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
@@ -353,7 +344,7 @@ static void handleInputs(int lane, int action) {
 		} else {
 			if (gpr.curNoteInt >= curChart.notes.size())
 				gpr.curNoteInt = curChart.notes.size() - 1;
-			player.notes = gpr.curNoteInt;
+			stats->Notes = gpr.curNoteInt;
 			Note &curNote = curChart.notes[gpr.curNoteInt];
 			int pressedMask = 0b000000;
 
@@ -374,7 +365,7 @@ static void handleInputs(int lane, int action) {
 			) {
 				StrumNoFretTime = eventTime;
 				curNote.strumCount++;
-				if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.hitWithFAS
+				if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit && !curNote.hitWithFAS
 					// && (firstNote ? true : lastNote.accounted)
 				) {
 					// TraceLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
@@ -386,13 +377,13 @@ static void handleInputs(int lane, int action) {
 					// }
 					strummedNote = gpr.curNoteInt;
 				}
-				if ((!curNote.isGood(eventTime, player.InputOffset))
+				if ((!curNote.isGood(eventTime, player->InputCalibration))
 					&&
 					((lastNote.phopo && lastNote.hit && !firstNote) ? (eventTime > lastNote.hitTime + 0.1f) : (true))) {
 					TraceLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
 					gpr.overstrum = true;
 					gpr.FAS = false;
-					player.OverHit();
+					stats->OverHit();
 					if (lastNote.held && !firstNote) {
 						lastNote.held = false;
 					}
@@ -424,10 +415,10 @@ static void handleInputs(int lane, int action) {
 					curNote.hit = true;
 					curNote.HitOffset = curNote.time - eventTime;
 					curNote.hitTime = eventTime;
-					if (curNote.isPerfect(eventTime, player.InputOffset)) {
+					if (curNote.isPerfect(eventTime, player->InputCalibration)) {
 						curNote.perfect = true;
 					}
-					player.HitPlasticNote(curNote, player.instrument);
+					stats->HitPlasticNote(curNote);
 					curNote.accounted = true;
 					if ((curNote.len) > 0) {
 						curNote.held = true;
@@ -440,9 +431,9 @@ static void handleInputs(int lane, int action) {
 			}
 
 
-			if ((noteMatch && curNote.phopo && (player.combo > 0 || gpr.curNoteInt == 0)) || (
+			if ((noteMatch && curNote.phopo && (stats->Combo > 0 || gpr.curNoteInt == 0)) || (
 					curNote.pTap && noteMatch)) {
-				if (curNote.isGood(eventTime, player.InputOffset) && !curNote.hit && !curNote.
+				if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit && !curNote.
 					accounted) {
 					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a HOPO", eventTime));
 					curNote.hit = true;
@@ -454,10 +445,10 @@ static void handleInputs(int lane, int action) {
 						if (curNote.extendedSustain == true)
 							gpr.extendedSustainActive = true;
 					}
-					if (curNote.isPerfect(eventTime, player.InputOffset)) {
+					if (curNote.isPerfect(eventTime, player->InputCalibration)) {
 						curNote.perfect = true;
 					}
-					player.HitNote(curNote.perfect, player.instrument);
+					stats->HitPlasticNote(curNote);
 					curNote.accounted = true;
 					gpr.curNoteInt++;
 					return;
@@ -469,6 +460,8 @@ static void handleInputs(int lane, int action) {
 
 // what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
 static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
+	Player* player = playerManager.ActivePlayers[0];
+	PlayerGameplayStats* stats = player->stats;
 	if (!streamsLoaded) {
 		return;
 	}
@@ -476,12 +469,12 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 		// if the key action is NOT repeat (release is 0, press is 1)
 		int lane = -2;
 		if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
-			player.paused = !player.paused;
-			if (player.paused)
+			stats->Paused = !stats->Paused;
+			if (stats->Paused)
 				audioManager.pauseStreams();
 			else {
 				audioManager.unpauseStreams();
-				for (int i = 0; i < (player.diff == 3 ? 5 : 4); i++) {
+				for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
 					handleInputs(i, -1);
 				}
 			}
@@ -489,8 +482,8 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 					bot) {
 			handleInputs(-1, action);
 		} else if (!gpr.bot) {
-			if (player.instrument != 4) {
-				if (player.diff == 3 || player.plastic) {
+			if (player->Instrument != 4) {
+				if (player->Difficulty == 3 || player->ClassicMode) {
 					for (int i = 0; i < 5; i++) {
 						if (key == settingsMain.keybinds5K[i] && !gpr.heldFretsAlt[i]) {
 							if (action == GLFW_PRESS) {
@@ -531,7 +524,7 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 						}
 					}
 				}
-				if (player.plastic) {
+				if (player->ClassicMode) {
 					if (key == settingsMain.keybindStrumUp) {
 						if (action == GLFW_PRESS) {
 							lane = 8008135;
@@ -561,6 +554,8 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 }
 
 static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
+	Player* player = playerManager.ActivePlayers[0];
+	PlayerGameplayStats* stats = player->stats;
 	if (!streamsLoaded) {
 		return;
 	}
@@ -569,12 +564,12 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 		if (state.buttons[settingsMain.controllerPause] != buttonValues[settingsMain.controllerPause]) {
 			buttonValues[settingsMain.controllerPause] = state.buttons[settingsMain.controllerPause];
 			if (state.buttons[settingsMain.controllerPause] == 1) {
-				player.paused = !player.paused;
-				if (player.paused)
+				stats->Paused = !stats->Paused;
+				if (stats->Paused)
 					audioManager.pauseStreams();
 				else {
 					audioManager.unpauseStreams();
-					for (int i = 0; i < (player.diff == 3 ? 5 : 4); i++) {
+					for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
 						handleInputs(i, -1);
 					}
 				}
@@ -609,7 +604,7 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 			}
 		}
 	}
-	if ((player.diff == 3 || player.plastic) && !gpr.bot) {
+	if ((player->Difficulty == 3 || player->ClassicMode) && !gpr.bot) {
 		int lane = -2;
 		int action = -2;
 		for (int i = 0; i < 5; i++) {
@@ -645,19 +640,19 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 				}
 			}
 		}
-		if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS && player.plastic) {
+		if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS && player->ClassicMode) {
 			gpr.upStrum = true;
 			gpr.overstrum = false;
 			handleInputs(8008135, GLFW_PRESS);
-		} else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE && player.plastic) {
+		} else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE && player->ClassicMode) {
 			gpr.upStrum = false;
 			handleInputs(8008135, GLFW_RELEASE);
 		}
-		if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS && player.plastic) {
+		if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS && player->ClassicMode) {
 			gpr.downStrum = true;
 			gpr.overstrum = false;
 			handleInputs(8008135, GLFW_PRESS);
-		} else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE && player.plastic) {
+		} else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE && player->ClassicMode) {
 			gpr.downStrum = false;
 			handleInputs(8008135, GLFW_RELEASE);
 		}
@@ -851,8 +846,9 @@ int main(int argc, char *argv[]) {
 		settingsMain.migrateSettings(directory / "keybinds.json", directory / "settings.json");
 	}
 	settingsMain.loadSettings(directory / "settings.json");
-	player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
-	player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
+	playerManager.LoadPlayerList(directory / "players.json");
+	// player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
+	// player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
 #ifdef NDEBUG
     int targetFPS = 180;
 #else
@@ -935,8 +931,8 @@ int main(int argc, char *argv[]) {
 	// GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
 
 	GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-	GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-	GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.3)));
+	GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(accentColor, -0.5)));
+	GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(accentColor, -0.3)));
 	GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
 	GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
 	GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
@@ -948,8 +944,8 @@ int main(int argc, char *argv[]) {
 
 
 	GuiSetStyle(TOGGLE, BASE_COLOR_NORMAL, 0x181827FF);
-	GuiSetStyle(TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-	GuiSetStyle(TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(player.accentColor, -0.3)));
+	GuiSetStyle(TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(accentColor, -0.5)));
+	GuiSetStyle(TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(accentColor, -0.3)));
 	GuiSetStyle(TOGGLE, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
 	GuiSetStyle(TOGGLE, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
 	GuiSetStyle(TOGGLE, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
@@ -958,8 +954,8 @@ int main(int argc, char *argv[]) {
 
 
 	gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
-	bool wideSoloPlane = player.diff == 3;
-	gpr.soloPlane = GenMeshPlane(wideSoloPlane ? 6 : 5, 1.0f, 1, 1);
+	// bool wideSoloPlane = player.diff == 3;
+	// gpr.soloPlane = GenMeshPlane(wideSoloPlane ? 6 : 5, 1.0f, 1, 1);
 
 	assets.FirstAssets();
 	SetWindowIcon(assets.icon);
@@ -991,8 +987,8 @@ int main(int argc, char *argv[]) {
 		}
 
 
-		float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
-		float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
+		// float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
+		// float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
 		BeginDrawing();
 
 		// menu.loadTitleScreen();
@@ -1257,8 +1253,8 @@ int main(int argc, char *argv[]) {
 					settingsMain.prevMissVolume = settingsMain.MissVolume;
 					settingsMain.prevMenuVolume = settingsMain.MenuVolume;
 
-					player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
-					player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
+					// player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
+					// player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
 
 					settingsMain.saveSettings(directory / "settings.json");
 
@@ -1300,9 +1296,9 @@ int main(int argc, char *argv[]) {
 
 				GuiSetStyle(SLIDER, BASE_COLOR_NORMAL, 0x181827FF);
 				GuiSetStyle(SLIDER, BASE_COLOR_PRESSED,
-							ColorToInt(ColorBrightness(player.accentColor, -0.25f)));
+							ColorToInt(ColorBrightness(accentColor, -0.25f)));
 				GuiSetStyle(SLIDER, TEXT_COLOR_FOCUSED,
-							ColorToInt(ColorBrightness(player.accentColor, -0.5f)));
+							ColorToInt(ColorBrightness(accentColor, -0.5f)));
 				GuiSetStyle(SLIDER, BORDER, 0xFFFFFFFF);
 				GuiSetStyle(SLIDER, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
 				GuiSetStyle(SLIDER, BORDER_WIDTH, 2);
@@ -1477,10 +1473,10 @@ int main(int argc, char *argv[]) {
 							settingsMain.MenuVolume, 0, 1, 6,
 							"Menu Music Volume", 0.05f);
 
-						player.selInstVolume = settingsMain.MainVolume * settingsMain.PlayerVolume;
-						player.otherInstVolume = settingsMain.MainVolume * settingsMain.BandVolume;
-						player.sfxVolume = settingsMain.MainVolume * settingsMain.SFXVolume;
-						player.missVolume = settingsMain.MainVolume * settingsMain.MissVolume;
+						// player.selInstVolume = settingsMain.MainVolume * settingsMain.PlayerVolume;
+						// player.otherInstVolume = settingsMain.MainVolume * settingsMain.BandVolume;
+						// player.sfxVolume = settingsMain.MainVolume * settingsMain.SFXVolume;
+						// player.missVolume = settingsMain.MainVolume * settingsMain.MissVolume;
 
 						break;
 					}
@@ -1937,7 +1933,7 @@ int main(int argc, char *argv[]) {
 				midiLoaded = false;
 				isPlaying = false;
 				gpr.songEnded = false;
-				player.overdrive = false;
+				// player.overdrive = false;
 				gpr.curNoteIdx = {0, 0, 0, 0, 0};
 				gpr.curODPhrase = 0;
 				gpr.curNoteInt = 0;
@@ -2032,7 +2028,7 @@ int main(int argc, char *argv[]) {
 
 
 				float songEntryHeight = u.hinpct(0.058333f);
-				DrawRectangle(0, u.hinpct(0.208333f), (u.RightSide - u.winpct(0.25f)), songEntryHeight, ColorBrightness(player.accentColor, -0.75f));
+				DrawRectangle(0, u.hinpct(0.208333f), (u.RightSide - u.winpct(0.25f)), songEntryHeight, ColorBrightness(accentColor, -0.75f));
 
 				for (int j = 0; j < 5; j++) {
 					DrawRectangle(0, ((songEntryHeight * 2) * j) + u.hinpct(0.208333f) + songEntryHeight, (u.RightSide - u.winpct(0.25f)), songEntryHeight,Color{0,0,0,64});
@@ -2046,7 +2042,7 @@ int main(int argc, char *argv[]) {
 						float songYPos = std::floor(
 							(u.hpct(0.266666f)) + (
 								(songEntryHeight) * ((i - songSelectOffset))));
-						DrawRectangle(0, songYPos, (u.RightSide - u.winpct(0.25f)), songEntryHeight, ColorBrightness(player.accentColor, -0.75f));
+						DrawRectangle(0, songYPos, (u.RightSide - u.winpct(0.25f)), songEntryHeight, ColorBrightness(accentColor, -0.75f));
 
 						DrawTextEx(assets.rubikBold, songList.listMenuEntries[i].headerChar.c_str(),
 										{

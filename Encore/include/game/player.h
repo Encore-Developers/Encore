@@ -9,13 +9,13 @@
 
 
 
-class Player {
+class LegacyPlayer {
 private:
     AudioManager &playerAudioManager = AudioManager::getInstance();
-    Player() {}
+    LegacyPlayer() {}
 public:
-    static Player& getInstance() {
-        static Player instance; // This is the single instance
+    static LegacyPlayer& getInstance() {
+        static LegacyPlayer instance; // This is the single instance
         return instance;
     }
     int instrument = 0;
