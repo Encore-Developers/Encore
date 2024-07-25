@@ -4,6 +4,7 @@
 #include "midifile/MidiFile.h"
 #include "song.h"
 #include "game/timingvalues.h"
+#include <atomic>
 #include <algorithm>
 class Note 
 {

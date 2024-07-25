@@ -30,7 +30,6 @@
 #include "game/gameplay/gameplayRenderer.h"
 
 #include <thread>
-#include <atomic>
 #include <condition_variable>
 
 Menu &menu = Menu::getInstance();
