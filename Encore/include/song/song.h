@@ -122,7 +122,8 @@ public:
 	Texture albumArt;
 	std::string album = "";
 	int length = 0;
-	
+
+
 	std::vector<BPM> bpms{};
 	std::vector<TimeSig> timesigs{};
 

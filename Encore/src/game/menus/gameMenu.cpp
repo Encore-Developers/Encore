@@ -451,6 +451,8 @@ void Menu::SwitchScreen(Screens screen){
             break;
         case CALIBRATION:
             break;
+        case CHART_LOADING_SCREEN:
+            break;
     }
 }
 
