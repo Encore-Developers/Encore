@@ -52,10 +52,14 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 
 [midifile](https://github.com/craigsapp/midifile)
 
-[nicolausYes's easing-functions](https://github.com/nicolausYes/easing-functions)
+[nicolausYes/easing-functions](https://github.com/nicolausYes/easing-functions)
 
 [BASS](https://www.un4seen.com/bass.html)
 
 [PicoSHA2](https://github.com/okdshin/PicoSHA2)
 
 [osu! resources](https://github.com/ppy/osu-resources/)
+
+[mariusbancila/stduuid](https://github.com/mariusbancila/stduuid)
+
+[ThePhD/Sol3 (Lua C++ interop)](https://github.com/ThePhD/sol2)
