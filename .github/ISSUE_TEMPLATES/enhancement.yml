@@ -1,0 +1,8 @@
+name: Bug Report
+description: Suggest a feature for Encore
+labels: ["bug"]
+title: "Enhancement: "
+body:
+  - type: textarea
+    attributes:
+      label: What is your suggestion?
