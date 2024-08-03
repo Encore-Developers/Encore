@@ -2,10 +2,11 @@
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
 name: Build Windows x86, Windows x64, Linux, macOS
 on:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
   pull_request:
-    branches: [ "main" ]
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '00 4,16 * * *'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
