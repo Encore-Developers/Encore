@@ -1,0 +1,8 @@
+name: Enhancement
+description: Suggest a feature for Encore
+labels: ["enhancement"]
+title: "Enhancement: "
+body:
+  - type: textarea
+    attributes:
+      label: What is your suggestion?
