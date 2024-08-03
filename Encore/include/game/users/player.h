@@ -284,6 +284,7 @@ public:
     rapidjson::Document PlayerListFile;
     std::vector<Player> PlayerList;
     std::vector<int> ActivePlayers;
+    int PlayersActive = 0;
 
     Player* GetActivePlayer(int slot) {
         return &PlayerList[ActivePlayers[slot]];
@@ -291,10 +292,12 @@ public:
 
     void AddActivePlayer(int slot) {
         ActivePlayers.push_back(slot);
+        PlayersActive += 1;
     }
 
     void RemoveActivePlayer(int slot) {
         ActivePlayers.erase(ActivePlayers.begin() + slot);
+        PlayersActive -= 1;
     }
 
     Player* GetPlayerGamepad(int joystickID) {

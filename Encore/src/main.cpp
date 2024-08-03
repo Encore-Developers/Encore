@@ -23,6 +23,7 @@
 #include "game/menus/gameMenu.h"
 #include "game/assets.h"
 #include "raymath.h"
+#include "game/menus/overshellRenderer.h"
 #include "game/menus/uiUnits.h"
 #include "game/menus/settingsOptionRenderer.h"
 #include "game/timingvalues.h"
@@ -143,6 +144,8 @@ double StrumNoFretTime = 0.0;
 bool FAS = false;
 int strummedNote = 0;
 int FASNote = 0;
+
+OvershellRenderer overshellRenderer;
 
 static void handleInputs(Player *player, int lane, int action) {
 	PlayerGameplayStats* stats = player->stats;
@@ -907,6 +910,10 @@ int main(int argc, char *argv[]) {
 	trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
 						+ "x";
 
+	Player newPlayer;
+	newPlayer.Name = "3drosalia";
+	playerManager.PlayerList.push_back(newPlayer);
+	playerManager.AddActivePlayer(0);
 
 	ChangeDirectory(GetApplicationDirectory());
 
@@ -2305,6 +2312,7 @@ int main(int argc, char *argv[]) {
 					menu.SwitchScreen(MENU);
 				}
 				menu.DrawBottomBottomOvershell();
+				overshellRenderer.DrawOvershell();
 				break;
 			}
 			case READY_UP: {
@@ -2352,7 +2360,7 @@ int main(int argc, char *argv[]) {
 				// load midi
 				menu.DrawBottomOvershell();
 				menu.DrawBottomBottomOvershell();
-				for (int playerInt : playerManager.ActivePlayers) {
+				for (int playerInt = 0; playerInt < playerManager.ActivePlayers.size(); playerInt++) {
 					Player* player = playerManager.GetActivePlayer(playerInt);
 					bool ReadyUpMenu = false;
 					bool diffSelected = false;
@@ -2636,16 +2644,14 @@ int main(int argc, char *argv[]) {
 									ColorToInt(ColorBrightness(accentColor, -0.5)));
 						GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
 						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-						if (GuiButton({0, 0, 60, 60}, "<")) {
-							midiLoaded = false;
-							instSelection = false;
-							diffSelection = false;
-							instSelected = false;
-							diffSelected = false;
-							ReadyUpMenu = false;
-							menu.SwitchScreen(SONG_SELECT);
-						}
+
 					}
+
+				}
+				overshellRenderer.DrawOvershell();
+				if (GuiButton({0, 0, 60, 60}, "<")) {
+					midiLoaded = false;
+					menu.SwitchScreen(SONG_SELECT);
 				}
 				break;
 			}
