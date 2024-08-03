@@ -5,10 +5,6 @@
 #include "game/assets.h"
 #include <filesystem>
 #include "raygui.h"
-#include "game/player.h"
-
-
-Player playerAssets = Player::getInstance();
 
 class Assets;
 
@@ -48,6 +44,8 @@ void Assets::FirstAssets() {
     rubik = Assets::LoadFontFilter((directory / "Assets/fonts/Rubik-Regular.ttf"), 256, loadedAssets);
 }
 void Assets::LoadAssets() {
+    Color accentColor = {255,0,255,255};
+    Color overdriveColor = Color{255,200,0,255};
     smasherReg = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
     smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png", loadedAssets);
 
@@ -148,12 +146,12 @@ void Assets::LoadAssets() {
 	sustainHeldTexture = Assets::LoadTextureFilter(directory / "Assets/notes/sustain-held.png", loadedAssets);
 
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 
     smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
-    smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 
     smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherBoardTex;
     smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
@@ -165,17 +163,17 @@ void Assets::LoadAssets() {
     lanes.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    odFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    odBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    multFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    multBar.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    multCtr3.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = odMultFrame;
-    multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    multCtr5.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     odBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
     multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
     multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = odMultFill;
@@ -194,27 +192,27 @@ void Assets::LoadAssets() {
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
 
-    odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
-    odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
+    odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;
+    odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
-    expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
     emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwaySidesTexture;
-    emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTexture;
     emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
 
-    noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     noteTopModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-    noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.overdriveColor;
+    noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;
 
-    noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     noteBottomModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
-    liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = playerAssets.accentColor;
+    liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     liftModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     sustainMat = LoadMaterialDefault();
@@ -226,12 +224,12 @@ void Assets::LoadAssets() {
     soloMat.maps[MATERIAL_MAP_DIFFUSE].texture = soloTexture;
     soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
     sustainMat.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
-    sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(playerAssets.accentColor, { 180,180,180,255 });
+    sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(accentColor, { 180,180,180,255 });
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].texture = sustainHeldTexture;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].color = WHITE;
     sustainMatHeld.maps[MATERIAL_MAP_EMISSION].value = 1;
     sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].texture = sustainHeldTexture;
-    sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = playerAssets.accentColor;
+    sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = accentColor;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatOD.maps[MATERIAL_MAP_DIFFUSE].color = { 180,180,180,255 };
     sustainMatHeldOD.maps[MATERIAL_MAP_DIFFUSE].texture = sustainHeldTexture;

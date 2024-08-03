@@ -10,11 +10,13 @@
 #include "game/menus/uiUnits.h"
 #include "rlgl.h"
 #include "easing/easing.h"
+#include "game/users/player.h"
 #include "sol/sol.hpp"
 
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();
 AudioManager &gprAudioManager = AudioManager::getInstance();
+PlayerManager &gprPlayerManager = PlayerManager::getInstance();
 Menu& gprMenu = Menu::getInstance();
 Units& gprU = Units::getInstance();
 

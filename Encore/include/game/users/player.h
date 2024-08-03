@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <map>
 
+#include "raylib.h"
 #include "rapidjson/document.h"
 #include "uuid.h"
 #include "song/chart.h"
@@ -52,6 +53,7 @@ class PlayerGameplayStats {
 public:
     PlayerGameplayStats();
 
+
     bool Quit;
     bool FC;
     bool Paused;
@@ -67,6 +69,44 @@ public:
     int PerfectHit;
     int NotesMissed;
 
+    std::vector<bool> HeldFrets{ false,false,false,false,false };
+    std::vector<bool> HeldFretsAlt{ false,false,false,false,false };
+    std::vector<bool> OverhitFrets{ false,false,false,false,false };
+    std::vector<bool> TapRegistered{ false,false,false,false,false };
+    std::vector<bool> LiftRegistered{ false,false,false,false,false };
+    double StartTime = 0.0;
+    double SongStartTime = 0.0;
+
+    int curBPM = 0;
+    int curBeatLine = 0;
+    int curODPhrase = 0;
+    int curSolo = 0;
+    int curNoteInt = 0;
+
+    double lastAxesTime = 0.0;
+    std::vector<float> axesValues{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    std::vector<int> buttonValues{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    std::vector<float> axesValues2{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    int pressedGamepadInput = -999;
+    int axisDirection = -1;
+    bool FAS = false;
+    double StrumNoFretTime = -1.0;
+    int strummedNote;
+    bool Overstrum = false;
+    bool DownStrum = false;
+    bool UpStrum = false;
+    bool extendedSustainActive = false;
+
+    bool overdriveHeld = false;
+    bool overdriveAltHeld = false;
+    bool overdriveHitAvailable = false;
+    bool overdriveLiftAvailable = false;
+    std::vector<bool> overdriveLanesHit{false, false, false, false, false};
+    double overdriveHitTime = 0.0;
+    std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
+
+    float highwayLevel = 0;
+    std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 
     float Health;
 
@@ -196,7 +236,7 @@ public:
 class Player {
 public:
     Player();
-
+    Color AccentColor = {255,0,255,255};
     std::string Name;       // display name
     std::string PlayerID;   // UUID
     // std::filesystem::path SettingsFile;
@@ -209,6 +249,7 @@ public:
     bool ReadiedUpBefore;
     bool Bot;
     int SongsPlayed;
+    int joypadID;
     bool LeftyFlip;
     bool Online;
     int ActiveSlot;
@@ -218,9 +259,13 @@ public:
     // not actually shared information. i was thinking of a UUID system for online
 };
 
+class BandGameplayStats : public PlayerGameplayStats {
+public:
+    bool EligibleForGoldStars = false;
+};
+
 class PlayerManager {
     PlayerManager() {}
-
 public:
 
     static PlayerManager& getInstance() {
@@ -235,21 +280,31 @@ public:
     void MakePlayerDirectory(); // run on initialization?
     void LoadPlayerList(std::filesystem::path PlayerListSaveFile); // make player, load player stuff to PlayerList
     void SavePlayerList(std::filesystem::path PlayerListSaveFile);
+    BandGameplayStats BandStats = BandGameplayStats();
     rapidjson::Document PlayerListFile;
     std::vector<Player> PlayerList;
-    std::vector<Player*> ActivePlayers;
+    std::vector<int> ActivePlayers;
 
     Player* GetActivePlayer(int slot) {
-        return ActivePlayers[slot];
+        return &PlayerList[ActivePlayers[slot]];
     }
 
-    void AddActivePlayer(Player* player) {
-        ActivePlayers.push_back(player);
-        player->ActiveSlot = 0;
+    void AddActivePlayer(int slot) {
+        ActivePlayers.push_back(slot);
     }
 
     void RemoveActivePlayer(int slot) {
         ActivePlayers.erase(ActivePlayers.begin() + slot);
+    }
+
+    Player* GetPlayerGamepad(int joystickID) {
+        for (auto player : ActivePlayers) {
+            if (GetActivePlayer(player)->joypadID == joystickID) {
+                return GetActivePlayer(player);
+            }
+
+        }
+        return nullptr;
     }
 
     void CreatePlayer(Player player);

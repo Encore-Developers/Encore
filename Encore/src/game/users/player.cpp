@@ -24,6 +24,7 @@ Player::Player() {
 	uuids::uuid_random_generator gen{generator};
 	uuids::uuid const id = gen();
 
+	joypadID = -1;
 	PlayerID = uuids::to_string(id);
 	SongsPlayed = 0;
 	LeftyFlip = false;

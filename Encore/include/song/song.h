@@ -1,7 +1,7 @@
 #pragma once
 #include "rapidjson/document.h"
 #include "raylib.h"
-#include "chart.h"
+#include "song/chart.h"
 #include "midifile/MidiFile.h"
 #include <vector>
 #include <iostream>
@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <cmath>
 #include "picosha2.h"
+
 enum PartIcon {
 	IconDrum,
 	IconBass,

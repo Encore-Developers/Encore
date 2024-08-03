@@ -14,7 +14,6 @@
 #include "song/songlist.h"
 #include "game/arguments.h"
 #include "game/utility.h"
-#include "game/users/player.h"
 #include "game/lerp.h"
 #include "game/keybinds.h"
 #include "game/settings.h"
@@ -27,7 +26,8 @@
 #include "game/menus/uiUnits.h"
 #include "game/menus/settingsOptionRenderer.h"
 #include "game/timingvalues.h"
-#include "game/gameplay/gameplayRenderer.h"
+// #include "game/gameplay/gameplayRenderer.h"
+#include "game/users/player.h"
 
 
 #include <thread>
@@ -63,11 +63,7 @@ bool ShowHighwaySettings = true;
 bool ShowCalibrationSettings = true;
 bool ShowGeneralSettings = true;
 
-bool ReadyUpMenu = false;
-bool diffSelected = false;
-bool diffSelection = false;
-bool instSelection = false;
-bool instSelected = false;
+
 
 int curNoteIndex = 0;
 int curPlayingSong = 0;
@@ -100,25 +96,13 @@ std::string trackSpeedButton;
 
 std::string encoreVersion = ENCORE_VERSION;
 std::string commitHash = GIT_COMMIT_HASH;
-bool overdriveHeld = false;
-bool overdriveAltHeld = false;
-bool overdriveHitAvailable = false;
-bool overdriveLiftAvailable = false;
-std::vector<bool> overdriveLanesHit{false, false, false, false, false};
-double overdriveHitTime = 0.0;
-std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
 
-gameplayRenderer gpr;
+
+// gameplayRenderer gpr;
 
 SongList &songList = SongList::getInstance();
 Assets &assets = Assets::getInstance();
-double lastAxesTime = 0.0;
-std::vector<float> axesValues{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-std::vector<int> buttonValues{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-std::vector<float> axesValues2{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-int pressedGamepadInput = -999;
-int axisDirection = -1;
-int controllerID = -1;
+
 
 int currentSortValue = 0;
 std::vector<std::string> sortTypes{"Title", "Artist", "Length"};
@@ -160,8 +144,7 @@ bool FAS = false;
 int strummedNote = 0;
 int FASNote = 0;
 
-static void handleInputs(int lane, int action) {
-	Player* player = playerManager.ActivePlayers[0];
+static void handleInputs(Player *player, int lane, int action) {
 	PlayerGameplayStats* stats = player->stats;
 	if (stats->Paused) return;
 	if (lane == -2) return;
@@ -178,14 +161,14 @@ static void handleInputs(int lane, int action) {
 			stats->overdriveActiveTime = eventTime;
 			stats->overdriveActiveFill = stats->overdriveFill;
 			stats->Overdrive = true;
-			overdriveHitAvailable = true;
-			overdriveHitTime = eventTime;
+			stats->overdriveHitAvailable = true;
+			stats->overdriveHitTime = eventTime;
 		}
 
 		if (!player->ClassicMode) {
 			if (lane == -1) {
-				if ((action == GLFW_PRESS && !overdriveHitAvailable) ||
-					(action == GLFW_RELEASE && !overdriveLiftAvailable))
+				if ((action == GLFW_PRESS && !stats->overdriveHitAvailable) ||
+					(action == GLFW_RELEASE && !stats->overdriveLiftAvailable))
 					return;
 				Note *curNote = &curChart.notes[0];
 				for (auto &note: curChart.notes) {
@@ -195,12 +178,12 @@ static void handleInputs(int lane, int action) {
 						break;
 					}
 				}
-				if (action == GLFW_PRESS && !overdriveHeld) {
-					overdriveHeld = true;
-				} else if (action == GLFW_RELEASE && overdriveHeld) {
-					overdriveHeld = false;
+				if (action == GLFW_PRESS && !stats->overdriveHeld) {
+					stats->overdriveHeld = true;
+				} else if (action == GLFW_RELEASE && stats->overdriveHeld) {
+					stats->overdriveHeld = false;
 				}
-				if (action == GLFW_PRESS && overdriveHitAvailable) {
+				if (action == GLFW_PRESS && stats->overdriveHitAvailable) {
 					if (curNote->isGood(eventTime, player->InputCalibration) &&
 						!curNote->hit) {
 						for (int newlane = 0; newlane < 5; newlane++) {
@@ -209,7 +192,7 @@ static void handleInputs(int lane, int action) {
 								Note &chordNote = curChart.notes[chordLane];
 								if (!chordNote.accounted) {
 									chordNote.hit = true;
-									overdriveLanesHit[newlane] = true;
+									stats->overdriveLanesHit[newlane] = true;
 									chordNote.hitTime = eventTime;
 
 									if ((chordNote.len) > 0 && !chordNote.lift) {
@@ -226,14 +209,14 @@ static void handleInputs(int lane, int action) {
 								}
 							}
 						}
-						overdriveHitAvailable = false;
-						overdriveLiftAvailable = true;
+						stats->overdriveHitAvailable = false;
+						stats->overdriveLiftAvailable = true;
 					}
-				} else if (action == GLFW_RELEASE && overdriveLiftAvailable) {
+				} else if (action == GLFW_RELEASE && stats->overdriveLiftAvailable) {
 					if (curNote->isGood(eventTime, player->InputCalibration) &&
 						!curNote->hit) {
 						for (int newlane = 0; newlane < 5; newlane++) {
-							if (overdriveLanesHit[newlane]) {
+							if (stats->overdriveLanesHit[newlane]) {
 								int chordLane = curChart.findNoteIdx(curNote->time, newlane);
 								if (chordLane != -1) {
 									Note &chordNote = curChart.notes[chordLane];
@@ -242,7 +225,7 @@ static void handleInputs(int lane, int action) {
 										chordNote.HitOffset =
 												chordNote.time -
 												eventTime;
-										overdriveLanesHit[newlane] = false;
+										stats->overdriveLanesHit[newlane] = false;
 										chordNote.hitTime = eventTime;
 
 										if (chordNote.isPerfect(
@@ -255,13 +238,13 @@ static void handleInputs(int lane, int action) {
 								}
 							}
 						}
-						overdriveLiftAvailable = false;
+						stats->overdriveLiftAvailable = false;
 					}
 				}
 				if (action == GLFW_RELEASE && curNote->held && (curNote->len) > 0 &&
-					overdriveLiftAvailable) {
+					stats->overdriveLiftAvailable) {
 					for (int newlane = 0; newlane < 5; newlane++) {
-						if (overdriveLanesHit[newlane]) {
+						if (stats->overdriveLanesHit[newlane]) {
 							int chordLane = curChart.findNoteIdx(curNote->time, newlane);
 							if (chordLane != -1) {
 								Note &chordNote = curChart.notes[chordLane];
@@ -279,7 +262,7 @@ static void handleInputs(int lane, int action) {
 					}
 				}
 			} else {
-				for (int i = gpr.curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
+				for (int i = stats->curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 					Note &curNote = curChart.notes[curChart.notes_perlane[lane][i]];
 
 
@@ -289,7 +272,7 @@ static void handleInputs(int lane, int action) {
 							if (curNote.isGood(eventTime, player->InputCalibration) &&
 								!curNote.hit) {
 								if (curNote.lift && action == GLFW_RELEASE) {
-									lastHitLifts[lane] = curChart.notes_perlane[
+									stats->lastHitLifts[lane] = curChart.notes_perlane[
 										lane][i];
 								}
 								curNote.hit = true;
@@ -306,7 +289,7 @@ static void handleInputs(int lane, int action) {
 								break;
 							}
 						}
-						if ((!gpr.heldFrets[curNote.lane] && !gpr.heldFretsAlt[curNote.lane]) &&
+						if ((!stats->HeldFrets[curNote.lane] && !stats->HeldFretsAlt[curNote.lane]) &&
 							curNote.held &&
 							(curNote.len) > 0) {
 							curNote.held = false;
@@ -321,97 +304,97 @@ static void handleInputs(int lane, int action) {
 							!curNote.hit &&
 							!curNote.accounted &&
 							((curNote.time) - goodBackend) + player->InputCalibration > eventTime &&
-							eventTime > overdriveHitTime + 0.05
-							&& !gpr.overhitFrets[lane]) {
-							if (lastHitLifts[lane] != -1) {
-								if (eventTime > curChart.notes[lastHitLifts[lane]].time
+							eventTime > stats->overdriveHitTime + 0.05
+							&& !stats->OverhitFrets[lane]) {
+							if (stats->lastHitLifts[lane] != -1) {
+								if (eventTime > curChart.notes[stats->lastHitLifts[lane]].time
 									- 0.1 &&
-									eventTime < curChart.notes[lastHitLifts[lane]].time +
+									eventTime < curChart.notes[stats->lastHitLifts[lane]].time +
 									0.1)
 									continue;
 							}
 							stats->OverHit();
 							if (!curChart.odPhrases.empty() && eventTime >= curChart.
-								odPhrases[gpr.curODPhrase].start &&
-								eventTime < curChart.odPhrases[gpr.curODPhrase].end &&
-								!curChart.odPhrases[gpr.curODPhrase].missed)
-								curChart.odPhrases[gpr.curODPhrase].missed = true;
-							gpr.overhitFrets[lane] = true;
+								odPhrases[stats->curODPhrase].start &&
+								eventTime < curChart.odPhrases[stats->curODPhrase].end &&
+								!curChart.odPhrases[stats->curODPhrase].missed)
+								curChart.odPhrases[stats->curODPhrase].missed = true;
+							stats->OverhitFrets[lane] = true;
 						}
 					}
 				}
 			}
 		} else {
-			if (gpr.curNoteInt >= curChart.notes.size())
-				gpr.curNoteInt = curChart.notes.size() - 1;
-			stats->Notes = gpr.curNoteInt;
-			Note &curNote = curChart.notes[gpr.curNoteInt];
+			if (stats->curNoteInt >= curChart.notes.size())
+				stats->curNoteInt = curChart.notes.size() - 1;
+			stats->Notes = stats->curNoteInt;
+			Note &curNote = curChart.notes[stats->curNoteInt];
 			int pressedMask = 0b000000;
 
-			for (int pressedButtons = 0; pressedButtons < gpr.heldFrets.size(); pressedButtons++) {
-				if (gpr.heldFrets[pressedButtons] || gpr.heldFretsAlt[pressedButtons])
+			for (int pressedButtons = 0; pressedButtons < stats->HeldFrets.size(); pressedButtons++) {
+				if (stats->HeldFrets[pressedButtons] || stats->HeldFretsAlt[pressedButtons])
 					pressedMask += curChart.PlasticFrets[pressedButtons];
 			}
 
 			HeldMaskShow = pressedMask;
-			Note &lastNote = curChart.notes[gpr.curNoteInt == 0 ? 0 : gpr.curNoteInt - 1];
+			Note &lastNote = curChart.notes[stats->curNoteInt == 0 ? 0 : stats->curNoteInt - 1];
 
 			// if (!lastNote.accounted && gpr.curNoteInt != 0) return;
 
-			bool firstNote = gpr.curNoteInt == 0;
+			bool firstNote = stats->curNoteInt == 0;
 
-			if (lane == 8008135 && action == GLFW_PRESS && !gpr.FAS
+			if (lane == 8008135 && action == GLFW_PRESS && !stats->FAS
 				// && (firstNote ? true : lastNote.time + 0.005 < eventTime)
 			) {
-				StrumNoFretTime = eventTime;
+				stats->StrumNoFretTime = eventTime;
 				curNote.strumCount++;
 				if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit && !curNote.hitWithFAS
 					// && (firstNote ? true : lastNote.accounted)
 				) {
 					// TraceLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
-					gpr.FAS = true;
+					stats->FAS = true;
 					curNote.hitWithFAS = true;
 					// if (gpr.curNoteInt < curChart.notes.size() - 1) {
 					//     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
 					//    curChart.notes[gpr.curNoteInt + 1].strumCount = 0;
 					// }
-					strummedNote = gpr.curNoteInt;
+					stats->strummedNote = stats->curNoteInt;
 				}
 				if ((!curNote.isGood(eventTime, player->InputCalibration))
 					&&
 					((lastNote.phopo && lastNote.hit && !firstNote) ? (eventTime > lastNote.hitTime + 0.1f) : (true))) {
 					TraceLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
-					gpr.overstrum = true;
-					gpr.FAS = false;
+					stats->Overstrum = true;
+					stats->FAS = false;
 					stats->OverHit();
 					if (lastNote.held && !firstNote) {
 						lastNote.held = false;
 					}
-					if (!curChart.odPhrases.empty() && !curChart.odPhrases[gpr.curODPhrase].missed
+					if (!curChart.odPhrases.empty() && !curChart.odPhrases[stats->curODPhrase].missed
 						&&
-						curNote.time >= curChart.odPhrases[gpr.curODPhrase].start &&
-						curNote.time < curChart.odPhrases[gpr.curODPhrase].end)
-						curChart.odPhrases[gpr.curODPhrase].missed = true;
+						curNote.time >= curChart.odPhrases[stats->curODPhrase].start &&
+						curNote.time < curChart.odPhrases[stats->curODPhrase].end)
+						curChart.odPhrases[stats->curODPhrase].missed = true;
 				}
 			} else if (lane == 8008135 && action == GLFW_RELEASE) {
-				gpr.downStrum = false;
-				gpr.upStrum = false;
+				stats->DownStrum = false;
+				stats->UpStrum = false;
 				return;
 			}
-			if (StrumNoFretTime > eventTime + fretAfterStrumTime && gpr.FAS) {
+			if (stats->StrumNoFretTime > eventTime + fretAfterStrumTime && stats->FAS) {
 				TraceLog(LOG_INFO, TextFormat("FAS Inactive at %f", eventTime));
-				gpr.FAS = false;
+				stats->FAS = false;
 			}
 
 
-			bool chordMatch = (gpr.extendedSustainActive ? pressedMask >= curNote.mask : pressedMask == curNote.mask);
-			bool singleMatch = (gpr.extendedSustainActive ? pressedMask >= curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
+			bool chordMatch = (stats->extendedSustainActive ? pressedMask >= curNote.mask : pressedMask == curNote.mask);
+			bool singleMatch = (stats->extendedSustainActive ? pressedMask >= curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
 			bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
 
 			if (curNote.hitWithFAS) {
 				if (noteMatch && !curNote.hit) {
 					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a STRUM", eventTime));
-					gpr.FAS = false;
+					stats->FAS = false;
 					curNote.hit = true;
 					curNote.HitOffset = curNote.time - eventTime;
 					curNote.hitTime = eventTime;
@@ -423,15 +406,15 @@ static void handleInputs(int lane, int action) {
 					if ((curNote.len) > 0) {
 						curNote.held = true;
 						if (curNote.extendedSustain == true)
-							gpr.extendedSustainActive = true;
+							stats->extendedSustainActive = true;
 					}
-					gpr.curNoteInt++;
+					stats->curNoteInt++;
 					return;
 				}
 			}
 
 
-			if ((noteMatch && curNote.phopo && (stats->Combo > 0 || gpr.curNoteInt == 0)) || (
+			if ((noteMatch && curNote.phopo && (stats->Combo > 0 || stats->curNoteInt == 0)) || (
 					curNote.pTap && noteMatch)) {
 				if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit && !curNote.
 					accounted) {
@@ -443,14 +426,14 @@ static void handleInputs(int lane, int action) {
 					if ((curNote.len) > 0) {
 						curNote.held = true;
 						if (curNote.extendedSustain == true)
-							gpr.extendedSustainActive = true;
+							stats->extendedSustainActive = true;
 					}
 					if (curNote.isPerfect(eventTime, player->InputCalibration)) {
 						curNote.perfect = true;
 					}
 					stats->HitPlasticNote(curNote);
 					curNote.accounted = true;
-					gpr.curNoteInt++;
+					stats->curNoteInt++;
 					return;
 				}
 			}
@@ -460,7 +443,7 @@ static void handleInputs(int lane, int action) {
 
 // what to check when a key changes states (what was the change? was it pressed? or released? what time? what window? were any modifiers pressed?)
 static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
-	Player* player = playerManager.ActivePlayers[0];
+	Player* player = playerManager.GetActivePlayer(0);
 	PlayerGameplayStats* stats = player->stats;
 	if (!streamsLoaded) {
 		return;
@@ -475,50 +458,49 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 			else {
 				audioManager.unpauseStreams();
 				for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
-					handleInputs(i, -1);
+					handleInputs(player, i, -1);
 				}
 			}
-		} else if ((key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) && !gpr.
-					bot) {
-			handleInputs(-1, action);
-		} else if (!gpr.bot) {
+		} else if ((key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) && !player->Bot) {
+			handleInputs(player,-1, action);
+		} else if (!player->Bot) {
 			if (player->Instrument != 4) {
 				if (player->Difficulty == 3 || player->ClassicMode) {
 					for (int i = 0; i < 5; i++) {
-						if (key == settingsMain.keybinds5K[i] && !gpr.heldFretsAlt[i]) {
+						if (key == settingsMain.keybinds5K[i] && !stats->HeldFretsAlt[i]) {
 							if (action == GLFW_PRESS) {
-								gpr.heldFrets[i] = true;
+								stats->HeldFrets[i] = true;
 							} else if (action == GLFW_RELEASE) {
-								gpr.heldFrets[i] = false;
-								gpr.overhitFrets[i] = false;
+								stats->HeldFrets[i] = false;
+								stats->OverhitFrets[i] = false;
 							}
 							lane = i;
-						} else if (key == settingsMain.keybinds5KAlt[i] && !gpr.heldFrets[i]) {
+						} else if (key == settingsMain.keybinds5KAlt[i] && !stats->HeldFrets[i]) {
 							if (action == GLFW_PRESS) {
-								gpr.heldFretsAlt[i] = true;
+								stats->HeldFretsAlt[i] = true;
 							} else if (action == GLFW_RELEASE) {
-								gpr.heldFretsAlt[i] = false;
-								gpr.overhitFrets[i] = false;
+								stats->HeldFrets[i] = false;
+								stats->OverhitFrets[i] = false;
 							}
 							lane = i;
 						}
 					}
 				} else {
 					for (int i = 0; i < 4; i++) {
-						if (key == settingsMain.keybinds4K[i] && !gpr.heldFretsAlt[i]) {
+						if (key == settingsMain.keybinds4K[i] && !stats->HeldFretsAlt[i]) {
 							if (action == GLFW_PRESS) {
-								gpr.heldFrets[i] = true;
+								stats->HeldFrets[i] = true;
 							} else if (action == GLFW_RELEASE) {
-								gpr.heldFrets[i] = false;
-								gpr.overhitFrets[i] = false;
+								stats->HeldFrets[i] = false;
+								stats->OverhitFrets[i] = false;
 							}
 							lane = i;
-						} else if (key == settingsMain.keybinds4KAlt[i] && !gpr.heldFrets[i]) {
+						} else if (key == settingsMain.keybinds4KAlt[i] && !stats->HeldFrets[i]) {
 							if (action == GLFW_PRESS) {
-								gpr.heldFretsAlt[i] = true;
+								stats->HeldFretsAlt[i] = true;
 							} else if (action == GLFW_RELEASE) {
-								gpr.heldFretsAlt[i] = false;
-								gpr.overhitFrets[i] = false;
+								stats->HeldFretsAlt[i] = false;
+								stats->OverhitFrets[i] = false;
 							}
 							lane = i;
 						}
@@ -528,41 +510,44 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 					if (key == settingsMain.keybindStrumUp) {
 						if (action == GLFW_PRESS) {
 							lane = 8008135;
-							gpr.upStrum = true;
+							stats->UpStrum = true;
 						} else if (action == GLFW_RELEASE) {
-							gpr.upStrum = false;
-							gpr.overstrum = false;
+							stats->UpStrum = false;
+							stats->Overstrum = false;
 						}
 					}
 					if (key == settingsMain.keybindStrumDown) {
 						if (action == GLFW_PRESS) {
 							lane = 8008135;
-							gpr.downStrum = true;
+							stats->DownStrum = true;
 						} else if (action == GLFW_RELEASE) {
-							gpr.downStrum = false;
-							gpr.overstrum = false;
+							stats->DownStrum = false;
+							stats->Overstrum = false;
 						}
 					}
 				}
 
 				if (lane != -1 && lane != -2) {
-					handleInputs(lane, action);
+					handleInputs(player,lane, action);
 				}
 			}
 		}
 	}
 }
 
-static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
-	Player* player = playerManager.ActivePlayers[0];
+static void gamepadStateCallback(int joypadID, GLFWgamepadstate state)
+{
+	Player* player = playerManager.GetPlayerGamepad(joypadID);
+	if (!IsGamepadAvailable(player->joypadID))
+		return;
 	PlayerGameplayStats* stats = player->stats;
 	if (!streamsLoaded) {
 		return;
 	}
 	double eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 	if (settingsMain.controllerPause >= 0) {
-		if (state.buttons[settingsMain.controllerPause] != buttonValues[settingsMain.controllerPause]) {
-			buttonValues[settingsMain.controllerPause] = state.buttons[settingsMain.controllerPause];
+		if (state.buttons[settingsMain.controllerPause] != stats->buttonValues[settingsMain.controllerPause]) {
+			stats->buttonValues[settingsMain.controllerPause] = state.buttons[settingsMain.controllerPause];
 			if (state.buttons[settingsMain.controllerPause] == 1) {
 				stats->Paused = !stats->Paused;
 				if (stats->Paused)
@@ -570,127 +555,127 @@ static void gamepadStateCallback(int jid, GLFWgamepadstate state) {
 				else {
 					audioManager.unpauseStreams();
 					for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
-						handleInputs(i, -1);
+						handleInputs(player,i, -1);
 					}
 				}
 			}
 		}
-	} else if (!gpr.bot) {
-		if (state.axes[-(settingsMain.controllerPause + 1)] != axesValues[-(
+	} else if (!player->Bot) {
+		if (state.axes[-(settingsMain.controllerPause + 1)] != stats->axesValues[-(
 				settingsMain.controllerPause + 1)]) {
-			axesValues[-(settingsMain.controllerPause + 1)] = state.axes[-(
+			stats->axesValues[-(settingsMain.controllerPause + 1)] = state.axes[-(
 				settingsMain.controllerPause + 1)];
 			if (state.axes[-(settingsMain.controllerPause + 1)] == 1.0f * (float) settingsMain.
 				controllerPauseAxisDirection) {
 			}
 		}
 	}
-	if (settingsMain.controllerOverdrive >= 0 && !gpr.bot) {
-		if (state.buttons[settingsMain.controllerOverdrive] != buttonValues[settingsMain.controllerOverdrive]) {
-			buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.
+	if (settingsMain.controllerOverdrive >= 0 && !player->Bot) {
+		if (state.buttons[settingsMain.controllerOverdrive] != stats->buttonValues[settingsMain.controllerOverdrive]) {
+			stats->buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.
 				controllerOverdrive];
-			handleInputs(-1, state.buttons[settingsMain.controllerOverdrive]);
+			handleInputs(player,-1, state.buttons[settingsMain.controllerOverdrive]);
 		}
-	} else if (!gpr.bot) {
-		if (state.axes[-(settingsMain.controllerOverdrive + 1)] != axesValues[-(
+	} else if (!player->Bot) {
+		if (state.axes[-(settingsMain.controllerOverdrive + 1)] != stats->axesValues[-(
 				settingsMain.controllerOverdrive + 1)]) {
-			axesValues[-(settingsMain.controllerOverdrive + 1)] = state.axes[-(
+			stats->axesValues[-(settingsMain.controllerOverdrive + 1)] = state.axes[-(
 				settingsMain.controllerOverdrive + 1)];
 			if (state.axes[-(settingsMain.controllerOverdrive + 1)] == 1.0f * (float) settingsMain.
 				controllerOverdriveAxisDirection) {
-				handleInputs(-1, GLFW_PRESS);
+				handleInputs(player,-1, GLFW_PRESS);
 			} else {
-				handleInputs(-1, GLFW_RELEASE);
+				handleInputs(player,-1, GLFW_RELEASE);
 			}
 		}
 	}
-	if ((player->Difficulty == 3 || player->ClassicMode) && !gpr.bot) {
+	if ((player->Difficulty == 3 || player->ClassicMode) && !player->Bot) {
 		int lane = -2;
 		int action = -2;
 		for (int i = 0; i < 5; i++) {
 			if (settingsMain.controller5K[i] >= 0) {
-				if (state.buttons[settingsMain.controller5K[i]] != buttonValues[settingsMain.
+				if (state.buttons[settingsMain.controller5K[i]] != stats->buttonValues[settingsMain.
 						controller5K[i]]) {
 					if (state.buttons[settingsMain.controller5K[i]] == 1)
-						gpr.heldFrets[i] = true;
+						stats->HeldFrets[i] = true;
 					else {
-						gpr.heldFrets[i] = false;
-						gpr.overhitFrets[i] = false;
+						stats->HeldFrets[i] = false;
+						stats->OverhitFrets[i] = false;
 					}
-					handleInputs(i, state.buttons[settingsMain.controller5K[i]]);
-					buttonValues[settingsMain.controller5K[i]] = state.buttons[settingsMain.
+					handleInputs(player,i, state.buttons[settingsMain.controller5K[i]]);
+					stats->buttonValues[settingsMain.controller5K[i]] = state.buttons[settingsMain.
 						controller5K[i]];
 					lane = i;
 				}
 			} else {
-				if (state.axes[-(settingsMain.controller5K[i] + 1)] != axesValues[-(
+				if (state.axes[-(settingsMain.controller5K[i] + 1)] != stats->axesValues[-(
 						settingsMain.controller5K[i] + 1)]) {
 					if (state.axes[-(settingsMain.controller5K[i] + 1)] == 1.0f * (float)
 						settingsMain.controller5KAxisDirection[i]) {
-						gpr.heldFrets[i] = true;
-						handleInputs(i, GLFW_PRESS);
+						stats->HeldFrets[i] = true;
+						handleInputs(player,i, GLFW_PRESS);
 					} else {
-						gpr.heldFrets[i] = false;
-						gpr.overhitFrets[i] = false;
-						handleInputs(i, GLFW_RELEASE);
+						stats->HeldFrets[i] = false;
+						stats->OverhitFrets[i] = false;
+						handleInputs(player,i, GLFW_RELEASE);
 					}
-					axesValues[-(settingsMain.controller5K[i] + 1)] = state.axes[-(
+					stats->axesValues[-(settingsMain.controller5K[i] + 1)] = state.axes[-(
 						settingsMain.controller5K[i] + 1)];
 					lane = i;
 				}
 			}
 		}
 		if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS && player->ClassicMode) {
-			gpr.upStrum = true;
-			gpr.overstrum = false;
-			handleInputs(8008135, GLFW_PRESS);
+			stats->UpStrum = true;
+			stats->Overstrum = false;
+			handleInputs(player,8008135, GLFW_PRESS);
 		} else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE && player->ClassicMode) {
-			gpr.upStrum = false;
-			handleInputs(8008135, GLFW_RELEASE);
+			stats->UpStrum = false;
+			handleInputs(player,8008135, GLFW_RELEASE);
 		}
 		if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS && player->ClassicMode) {
-			gpr.downStrum = true;
-			gpr.overstrum = false;
-			handleInputs(8008135, GLFW_PRESS);
+			stats->DownStrum = true;
+			stats->Overstrum = false;
+			handleInputs(player,8008135, GLFW_PRESS);
 		} else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE && player->ClassicMode) {
-			gpr.downStrum = false;
-			handleInputs(8008135, GLFW_RELEASE);
+			stats->DownStrum = false;
+			handleInputs(player,8008135, GLFW_RELEASE);
 		}
-	} else if (!gpr.bot) {
+	} else if (!player->Bot) {
 		for (int i = 0; i < 4; i++) {
 			if (settingsMain.controller4K[i] >= 0) {
-				if (state.buttons[settingsMain.controller4K[i]] != buttonValues[settingsMain.
+				if (state.buttons[settingsMain.controller4K[i]] != stats->buttonValues[settingsMain.
 						controller4K[i]]) {
 					if (state.buttons[settingsMain.controller4K[i]] == 1)
-						gpr.heldFrets[i] = true;
+						stats->HeldFrets[i] = true;
 					else {
-						gpr.heldFrets[i] = false;
-						gpr.overhitFrets[i] = false;
+						stats->HeldFrets[i] = false;
+						stats->OverhitFrets[i] = false;
 					}
-					handleInputs(i, state.buttons[settingsMain.controller4K[i]]);
-					buttonValues[settingsMain.controller4K[i]] = state.buttons[settingsMain.
+					handleInputs(player,i, state.buttons[settingsMain.controller4K[i]]);
+					stats->buttonValues[settingsMain.controller4K[i]] = state.buttons[settingsMain.
 						controller4K[i]];
 				}
 			} else {
-				if (state.axes[-(settingsMain.controller4K[i] + 1)] != axesValues[-(
+				if (state.axes[-(settingsMain.controller4K[i] + 1)] != stats->axesValues[-(
 						settingsMain.controller4K[i] + 1)]) {
 					if (state.axes[-(settingsMain.controller4K[i] + 1)] == 1.0f * (float)
 						settingsMain.controller4KAxisDirection[i]) {
-						gpr.heldFrets[i] = true;
-						handleInputs(i, GLFW_PRESS);
+						stats->HeldFrets[i] = true;
+						handleInputs(player,i, GLFW_PRESS);
 					} else {
-						gpr.heldFrets[i] = false;
-						gpr.overhitFrets[i] = false;
-						handleInputs(i, GLFW_RELEASE);
+						stats->HeldFrets[i] = false;
+						stats->OverhitFrets[i] = false;
+						handleInputs(player,i, GLFW_RELEASE);
 					}
-					axesValues[-(settingsMain.controller4K[i] + 1)] = state.axes[-(
+					stats->axesValues[-(settingsMain.controller4K[i] + 1)] = state.axes[-(
 						settingsMain.controller4K[i] + 1)];
 				}
 			}
 		}
 	}
 }
-
+/*
 static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
 	for (int i = 0; i < 6; i++) {
 		axesValues2[i] = state.axes[i];
@@ -729,7 +714,7 @@ static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
 		pressedGamepadInput = -999;
 	}
 }
-
+*/
 int minWidth = 640;
 int minHeight = 480;
 
@@ -888,6 +873,7 @@ int main(int argc, char *argv[]) {
 	float renderPosSideThingFuckerTittiesBoobsFUckingGOddamn = 1.25f;
 	float renderheight = 8.0f;
 	float renderback = 12.0f;
+	/*
 	gpr.camera.position = Vector3{0.0f, 7.0f, -10.0f};
 	// 0.0f, 0.0f, 6.5f
 	gpr.camera.target = Vector3{0.0f, 0.0f, 13.0f};
@@ -916,7 +902,7 @@ int main(int argc, char *argv[]) {
 	gpr.camera3.up = Vector3{0.0f, 1.0f, 0.0f};
 	gpr.camera3.fovy = 37.5f;
 	gpr.camera3.projection = CAMERA_PERSPECTIVE;
-
+*/
 
 	trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
 						+ "x";
@@ -953,7 +939,7 @@ int main(int argc, char *argv[]) {
 	GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
 
 
-	gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
+	// gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
 	// bool wideSoloPlane = player.diff == 3;
 	// gpr.soloPlane = GenMeshPlane(wideSoloPlane ? 6 : 5, 1.0f, 1, 1);
 
@@ -1008,7 +994,7 @@ int main(int argc, char *argv[]) {
 					}
 				}
 
-				menu.loadMenu(gamepadStateCallbackSetControls);
+				menu.loadMenu();
 				break;
 			}
 			case CALIBRATION: {
@@ -1127,10 +1113,10 @@ int main(int argc, char *argv[]) {
 			case SETTINGS: {
 				if (menu.songsLoaded)
 					menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur);
-				if (settingsMain.controllerType == -1 && controllerID != -1) {
-					std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
-					settingsMain.controllerType = keybinds.getControllerType(gamepadName);
-				}
+				// if (settingsMain.controllerType == -1 && controllerID != -1) {
+				//	std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
+				//	settingsMain.controllerType = keybinds.getControllerType(gamepadName);
+				//}
 				float TextPlacementTB = u.hpct(0.15f) - u.hinpct(0.11f);
 				float TextPlacementLR = u.wpct(0.01f);
 				DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0, 0, 0, 128});
@@ -1432,10 +1418,10 @@ int main(int argc, char *argv[]) {
 
 						menu.hehe = sor.toggleEntry(menu.hehe, 5, "Super Cool Highway Colors");
 
-						gpr.bot = sor.toggleEntry(gpr.bot, 6, "Bot");
+						// gpr.bot = sor.toggleEntry(gpr.bot, 6, "Bot");
 
-						gpr.showHitwindow = sor.toggleEntry(
-							gpr.showHitwindow, 7, "Show Hitwindow");
+						// gpr.showHitwindow = sor.toggleEntry(
+							//gpr.showHitwindow, 7, "Show Hitwindow");
 						break;
 					}
 					case VOLUME: {
@@ -1770,7 +1756,7 @@ int main(int argc, char *argv[]) {
 						}
 						break;
 					}
-					case GAMEPAD: {
+					case GAMEPAD: {/*
 						//Controller bindings tab
 						GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 						for (int i = 0; i < 5; i++) {
@@ -1919,7 +1905,7 @@ int main(int argc, char *argv[]) {
 							}
 						}
 						GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
-						break;
+						break;*/
 					}
 				}
 				break;
@@ -1932,19 +1918,19 @@ int main(int argc, char *argv[]) {
 				streamsLoaded = false;
 				midiLoaded = false;
 				isPlaying = false;
-				gpr.songEnded = false;
+				//gpr.songEnded = false;
 				// player.overdrive = false;
-				gpr.curNoteIdx = {0, 0, 0, 0, 0};
-				gpr.curODPhrase = 0;
-				gpr.curNoteInt = 0;
-				gpr.curSolo = 0;
-				gpr.curBeatLine = 0;
-				gpr.curBPM = 0;
+				//gpr.curNoteIdx = {0, 0, 0, 0, 0};
+				//gpr.curODPhrase = 0;
+				//gpr.curNoteInt = 0;
+				//gpr.curSolo = 0;
+				//gpr.curBeatLine = 0;
+				//gpr.curBPM = 0;
 
-				if (selSong)
-					gpr.selectedSongInt = curPlayingSong;
-				else
-					gpr.selectedSongInt = menu.ChosenSongInt;
+				//if (selSong)
+					//gpr.selectedSongInt = curPlayingSong;
+				//else
+					//gpr.selectedSongInt = menu.ChosenSongInt;
 
 
 				SetTextureWrap(selectedSong.albumArtBlur, TEXTURE_WRAP_REPEAT);
@@ -1968,7 +1954,7 @@ int main(int argc, char *argv[]) {
 
 				if (!albumArtLoaded) {
 					selectedSong = menu.ChosenSong;
-					gpr.selectedSongInt = menu.ChosenSongInt;
+					//gpr.selectedSongInt = menu.ChosenSongInt;
 					selectedSong.LoadAlbumArt(selectedSong.albumArtPath);
 					if (!selSong)
 						songSelectOffset = menu.ChosenSongInt - 5;
@@ -2065,7 +2051,7 @@ int main(int argc, char *argv[]) {
 						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
 						if (songID == menu.ChosenSongInt) {
 							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
-										ColorToInt(ColorBrightness(player.accentColor, -0.4)));
+										ColorToInt(ColorBrightness(accentColor, -0.4)));
 						}
 						BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f),
 										u.hinpct(0.7f));
@@ -2277,7 +2263,7 @@ int main(int argc, char *argv[]) {
 				float BottomOvershell = (float) GetScreenHeight() - 120;
 
 				GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
-							ColorToInt(ColorBrightness(player.accentColor, -0.25)));
+							ColorToInt(ColorBrightness(accentColor, -0.25)));
 				if (GuiButton(Rectangle{
 								u.LeftSide, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f),
 								u.hinpct(0.05f)
@@ -2366,299 +2352,306 @@ int main(int argc, char *argv[]) {
 				// load midi
 				menu.DrawBottomOvershell();
 				menu.DrawBottomBottomOvershell();
-				if (!midiLoaded) {
-					if (!songList.songs[curPlayingSong].midiParsed) {
-						smf::MidiFile midiFile;
-						midiFile.read(songList.songs[curPlayingSong].midiPath.string());
-						songList.songs[curPlayingSong].getTiming(midiFile, 0, midiFile[0]);
-						for (int i = 0; i < midiFile.getTrackCount(); i++) {
-							std::string trackName;
-							for (int j = 0; j < midiFile[i].getSize(); j++) {
-								if (midiFile[i][j].isMeta()) {
-									if ((int) midiFile[i][j][1] == 3) {
-										for (int k = 3; k < midiFile[i][j].
-														getSize(); k++) {
-											trackName += midiFile[i][j][k];
-										}
-										SongParts songPart = song.partFromString(trackName);
-										if (trackName == "BEAT")
-											songList.songs[curPlayingSong].parseBeatLines(midiFile, i, midiFile[i]);
-										else if (trackName == "EVENTS") {
-											songList.songs[curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
-										} else {
-											if (songPart != SongParts::Invalid &&
-												songPart != SongParts::PlasticDrums) {
-												for (int diff = 0; diff < 4; diff++) {
-													Chart newChart;
-													std::cout << trackName << " " << diff << endl;
+				for (int playerInt : playerManager.ActivePlayers) {
+					Player* player = playerManager.GetActivePlayer(playerInt);
+					bool ReadyUpMenu = false;
+					bool diffSelected = false;
+					bool diffSelection = false;
+					bool instSelection = false;
+					bool instSelected = false;
+					if (!midiLoaded) {
+						if (!songList.songs[curPlayingSong].midiParsed) {
+							smf::MidiFile midiFile;
+							midiFile.read(songList.songs[curPlayingSong].midiPath.string());
+							songList.songs[curPlayingSong].getTiming(midiFile, 0, midiFile[0]);
+							for (int i = 0; i < midiFile.getTrackCount(); i++) {
+								std::string trackName;
+								for (int j = 0; j < midiFile[i].getSize(); j++) {
+									if (midiFile[i][j].isMeta()) {
+										if ((int) midiFile[i][j][1] == 3) {
+											for (int k = 3; k < midiFile[i][j].
+															getSize(); k++) {
+												trackName += midiFile[i][j][k];
+															}
+											SongParts songPart = song.partFromString(trackName);
+											if (trackName == "BEAT")
+												songList.songs[curPlayingSong].parseBeatLines(midiFile, i, midiFile[i]);
+											else if (trackName == "EVENTS") {
+												songList.songs[curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
+											} else {
+												if (songPart != SongParts::Invalid &&
+													songPart != SongParts::PlasticDrums) {
+													for (int diff = 0; diff < 4; diff++) {
+														Chart newChart;
+														std::cout << trackName << " " << diff << endl;
 
-													if (songPart == SongParts::PlasticBass
-														|| songPart == SongParts::PlasticGuitar) {
-														newChart.plastic = true;
-														newChart.parsePlasticNotes(midiFile, i, midiFile[i],
-																	diff, (int)songPart);
-													} else {
-														newChart.plastic = false;
-														newChart.parseNotes(midiFile, i, midiFile[i],
-																	diff, (int)songPart);
-													}
+														if (songPart == SongParts::PlasticBass
+															|| songPart == SongParts::PlasticGuitar) {
+															newChart.plastic = true;
+															newChart.parsePlasticNotes(midiFile, i, midiFile[i],
+																		diff, (int)songPart);
+															} else {
+																newChart.plastic = false;
+																newChart.parseNotes(midiFile, i, midiFile[i],
+																			diff, (int)songPart);
+															}
 
 
-													if (!newChart.plastic) {
-														int noteIdx = 0;
-														for (Note &note : newChart.notes) {
-															newChart.notes_perlane[note.lane].push_back(noteIdx);
-															noteIdx++;
+														if (!newChart.plastic) {
+															int noteIdx = 0;
+															for (Note &note : newChart.notes) {
+																newChart.notes_perlane[note.lane].push_back(noteIdx);
+																noteIdx++;
+															}
 														}
+														if (newChart.notes.size() > 0) {
+															songList.songs[curPlayingSong].parts[(int)songPart] -> hasPart = true;
+														}
+														songList.songs[curPlayingSong].parts[(int)songPart] -> charts.push_back(newChart);
 													}
-													if (newChart.notes.size() > 0) {
-														songList.songs[curPlayingSong].parts[(int)songPart] -> hasPart = true;
 													}
-													songList.songs[curPlayingSong].parts[(int)songPart] -> charts.push_back(newChart);
-												}
 											}
 										}
 									}
 								}
 							}
+							songList.songs[curPlayingSong].midiParsed = true;
 						}
-						songList.songs[curPlayingSong].midiParsed = true;
-					}
-					midiLoaded = true;
-					if (player.firstReadyUp || !songList.songs[curPlayingSong].parts[player.instrument]->hasPart) {
-						instSelection = true;
-					} else if (songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.size() < 1) {
-						diffSelection = true;
-					} else if (!player.firstReadyUp) {
-						ReadyUpMenu = true;
-					}
-				}
-				// load instrument select
-
-				else if (midiLoaded && instSelection) {
-					if (GuiButton({0, 0, 60, 60}, "<")) {
-						if (player.firstReadyUp || !songList.songs[curPlayingSong].parts[player.instrument]->hasPart) {
-							instSelection = false;
-							diffSelection = false;
-							instSelected = false;
-							diffSelected = false;
-							midiLoaded = false;
-							albumArtSelectedAndLoaded = false;
-							albumArtLoaded = false;
-							menu.SwitchScreen(SONG_SELECT);
-						} else {
-							instSelection = false;
+						midiLoaded = true;
+						if (player->ReadiedUpBefore || !songList.songs[curPlayingSong].parts[player->Instrument]->hasPart) {
+							instSelection = true;
+						} else if (songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty].notes.size() < 1) {
+							diffSelection = true;
+						} else if (!player->ReadiedUpBefore) {
 							ReadyUpMenu = true;
 						}
 					}
-					// DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-					for (int i = 0; i < 7; i++) {
-						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player.instrument && instSelected
-											? ColorToInt(ColorBrightness(player.accentColor, -0.25)) : 0x181827FF);
-							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
-										ColorToInt(Color{255, 255, 255, 255}));
-							GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-							if (GuiButton(
-								{
-									u.LeftSide,
-									BottomOvershell - u.hinpct(0.05f) - (
-										u.hinpct(0.05f) * (float) i),
-									u.winpct(0.2f), u.hinpct(0.05f)
-								},
-								TextFormat("  %s", songPartsList[i].c_str()))) {
-								instSelected = true;
-								player.instrument = i;
-								int isBassOrVocal = 0;
-								if (i > 3) player.plastic = true;
-								else player.plastic = false;
-								if (player.instrument == 1 || player.instrument == 3 ||
-									player.instrument == 5) {
-									isBassOrVocal = 1;
-								}
-								SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
-							}
-							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-							GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-							DrawTextRubik(
-								(std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(),
-								u.LeftSide + u.winpct(0.165f), BottomOvershell - u.hinpct(0.04f) -
-								(u.hinpct(0.05f) * (float) i), u.hinpct(0.03f), WHITE);
-						} else {
-							GuiButton({
-										u.LeftSide,
-										BottomOvershell - u.hinpct(0.05f) - (
-											u.hinpct(0.05f) * (float) i),
-										u.winpct(0.2f), u.hinpct(0.05f)
-									},
-									"");
-							DrawRectangle(u.LeftSide + 2,
-										BottomOvershell - u.hinpct(0.05f) - (
-											u.hinpct(0.05f) * (float) i) + 2,
-										u.winpct(0.2f) - 4, u.hinpct(0.05f) - 4,
-										Color{0, 0, 0, 128});
-						}
-						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-						if (instSelected) {
-							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
-										ColorToInt(Color{255, 255, 255, 255}));
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
-							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
-							if (GuiButton({
-											u.LeftSide, BottomOvershell,
-											u.winpct(0.2f), u.hinpct(0.05f)
-										}, "Done")) {
-								if (player.firstReadyUp || songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].notes.empty()) {
-									instSelection = false;
-									diffSelection = true;
-								} else {
-									instSelection = false;
-									ReadyUpMenu = true;
-								}
-							}
-							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-										ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-						}
-					}
-				}
-				// load difficulty select
-				if (midiLoaded && diffSelection) {
-					for (int a = 0; a < 4; a++) {
-						if (songList.songs[curPlayingSong].parts[player.instrument]->charts[a].
-							notes.size() > 0) {
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
-										a == player.diff && diffSelected
-											? ColorToInt(
-												ColorBrightness(
-													player.accentColor, -0.25))
-											: 0x181827FF);
-							if (GuiButton({
-											u.LeftSide,
-											BottomOvershell - u.hinpct(0.05f) - (
-												u.hinpct(0.05f) * (float) a),
-											u.winpct(0.2f), u.hinpct(0.05f)
-										}, diffList[a].c_str())) {
-								player.diff = a;
-								diffSelected = true;
-							}
-						} else {
-							GuiButton({
-										u.LeftSide,
-										BottomOvershell - u.hinpct(0.05f) - (
-											u.hinpct(0.05f) * (float) a),
-										u.winpct(0.2f), u.hinpct(0.05f)
-									}, "");
-							DrawRectangle(u.LeftSide + 2,
-										BottomOvershell + 2 - u.hinpct(0.05f) - (
-											u.hinpct(0.05f) * (float) a),
-										u.winpct(0.2f) - 4, u.hinpct(0.05f) - 4,
-										Color{0, 0, 0, 128});
-						}
-						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-						if (diffSelected) {
-							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
-										ColorToInt(Color{255, 255, 255, 255}));
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
-							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
-							if (GuiButton({
-											u.LeftSide,
-											BottomOvershell - u.hinpct(0.25f),
-											u.winpct(0.2f), u.hinpct(0.05f)
-										}, "Done")) {
-								diffSelection = false;
-								ReadyUpMenu = true;
-								player.firstReadyUp = false;
-								startedPlayingSong = GetTime();
-							}
-							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-										ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-						}
+					// load instrument select
+
+					else if (midiLoaded && instSelection) {
 						if (GuiButton({0, 0, 60, 60}, "<")) {
-							if (player.firstReadyUp || !songList.songs[curPlayingSong].parts
-								[player.instrument]->hasPart) {
-								instSelection = true;
-								diffSelection = false;
-								instSelected = false;
-								diffSelected = false;
-							} else {
+							if (player->ReadiedUpBefore || !songList.songs[curPlayingSong].parts[player->Instrument]->hasPart) {
 								instSelection = false;
 								diffSelection = false;
 								instSelected = false;
 								diffSelected = false;
+								midiLoaded = false;
+								albumArtSelectedAndLoaded = false;
+								albumArtLoaded = false;
+								menu.SwitchScreen(SONG_SELECT);
+							} else {
+								instSelection = false;
 								ReadyUpMenu = true;
 							}
 						}
+						// DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
+						for (int i = 0; i < 7; i++) {
+							if (songList.songs[curPlayingSong].parts[i]->hasPart) {
+								GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player->Instrument && instSelected
+												? ColorToInt(ColorBrightness(accentColor, -0.25)) : 0x181827FF);
+								GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
+											ColorToInt(Color{255, 255, 255, 255}));
+								GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+								if (GuiButton(
+									{
+										u.LeftSide*(playerInt+1),
+										BottomOvershell - u.hinpct(0.05f) - (
+											u.hinpct(0.05f) * (float) i),
+										u.winpct(0.2f), u.hinpct(0.05f)
+									},
+									TextFormat("  %s", songPartsList[i].c_str()))) {
+									instSelected = true;
+									player->Instrument = i;
+									int isBassOrVocal = 0;
+									if (i > 3) player->ClassicMode = true;
+									else player->ClassicMode = false;
+									if (player->Instrument == 1 || player->Instrument == 3 ||
+										player->Instrument == 5) {
+										isBassOrVocal = 1;
+										}
+									SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
+									}
+								GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+								GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+								DrawTextRubik(
+									(std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(),
+									(u.LeftSide*(playerInt+1)) + u.winpct(0.165f), BottomOvershell - u.hinpct(0.04f) -
+									(u.hinpct(0.05f) * (float) i), u.hinpct(0.03f), WHITE);
+							} else {
+								GuiButton({
+											(u.LeftSide*(playerInt+1)),
+											BottomOvershell - u.hinpct(0.05f) - (
+												u.hinpct(0.05f) * (float) i),
+											u.winpct(0.2f), u.hinpct(0.05f)
+										},
+										"");
+								DrawRectangle((u.LeftSide*(playerInt+1)) + 2,
+											BottomOvershell - u.hinpct(0.05f) - (
+												u.hinpct(0.05f) * (float) i) + 2,
+											u.winpct(0.2f) - 4, u.hinpct(0.05f) - 4,
+											Color{0, 0, 0, 128});
+							}
+							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+							if (instSelected) {
+								GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
+											ColorToInt(Color{255, 255, 255, 255}));
+								GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
+								GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
+								if (GuiButton({
+												(u.LeftSide*(playerInt+1)), BottomOvershell,
+												u.winpct(0.2f), u.hinpct(0.05f)
+											}, "Done")) {
+									if (player->ReadiedUpBefore || songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty].notes.empty()) {
+										instSelection = false;
+										diffSelection = true;
+									} else {
+										instSelection = false;
+										ReadyUpMenu = true;
+									}
+											}
+								GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
+											ColorToInt(ColorBrightness(accentColor, -0.5)));
+								GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+								GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+							}
+						}
 					}
-				}
-				if (midiLoaded && ReadyUpMenu) {
-					if (GuiButton({
-									u.LeftSide, BottomOvershell - u.hinpct(0.05f),
-									u.winpct(0.2f), u.hinpct(0.05f)
-								}, "")) {
-						ReadyUpMenu = false;
-						diffSelection = true;
+					// load difficulty select
+					if (midiLoaded && diffSelection) {
+						for (int a = 0; a < 4; a++) {
+							if (songList.songs[curPlayingSong].parts[player->Instrument]->charts[a].
+								notes.size() > 0) {
+								GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
+											a == player->Difficulty && diffSelected
+												? ColorToInt(
+													ColorBrightness(
+														accentColor, -0.25))
+												: 0x181827FF);
+								if (GuiButton({
+												(u.LeftSide*(playerInt+1)),
+												BottomOvershell - u.hinpct(0.05f) - (
+													u.hinpct(0.05f) * (float) a),
+												u.winpct(0.2f), u.hinpct(0.05f)
+											}, diffList[a].c_str())) {
+									player->Difficulty = a;
+									diffSelected = true;
+											}
+								} else {
+									GuiButton({
+												(u.LeftSide*(playerInt+1)),
+												BottomOvershell - u.hinpct(0.05f) - (
+													u.hinpct(0.05f) * (float) a),
+												u.winpct(0.2f), u.hinpct(0.05f)
+											}, "");
+									DrawRectangle((u.LeftSide*(playerInt+1)) + 2,
+												BottomOvershell + 2 - u.hinpct(0.05f) - (
+													u.hinpct(0.05f) * (float) a),
+												u.winpct(0.2f) - 4, u.hinpct(0.05f) - 4,
+												Color{0, 0, 0, 128});
+								}
+							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+							if (diffSelected) {
+								GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
+											ColorToInt(Color{255, 255, 255, 255}));
+								GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
+								GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
+								if (GuiButton({
+												(u.LeftSide*(playerInt+1)),
+												BottomOvershell - u.hinpct(0.25f),
+												u.winpct(0.2f), u.hinpct(0.05f)
+											}, "Done")) {
+									diffSelection = false;
+									ReadyUpMenu = true;
+									player->ReadiedUpBefore = false;
+									startedPlayingSong = GetTime();
+											}
+								GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
+											ColorToInt(ColorBrightness(accentColor, -0.5)));
+								GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+								GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+							}
+							if (GuiButton({0, 0, 60, 60}, "<")) {
+								if (player->Difficulty || !songList.songs[curPlayingSong].parts
+									[player->Instrument]->hasPart) {
+									instSelection = true;
+									diffSelection = false;
+									instSelected = false;
+									diffSelected = false;
+									} else {
+										instSelection = false;
+										diffSelection = false;
+										instSelected = false;
+										diffSelected = false;
+										ReadyUpMenu = true;
+									}
+							}
+						}
 					}
-					DrawTextRubik("  Difficulty", u.LeftSide, BottomOvershell - u.hinpct(0.04f),
-								u.hinpct(0.03f), WHITE);
-					DrawTextEx(assets.rubikBold, diffList[player.diff].c_str(), {
-									u.LeftSide + u.winpct(0.19f) - MeasureTextEx(
-										assets.rubikBold, diffList[player.diff].c_str(),
-										u.hinpct(0.03f), 0).x,
-									BottomOvershell - u.hinpct(0.04f)
-								}, u.hinpct(0.03f), 0, WHITE);
-					if (GuiButton({
-									u.LeftSide, BottomOvershell - u.hinpct(0.10f),
-									u.winpct(0.2f), u.hinpct(0.05f)
-								}, "")) {
-						ReadyUpMenu = false;
-						instSelection = true;
-					}
-					DrawTextRubik("  Instrument", u.LeftSide, BottomOvershell - u.hinpct(0.09f),
-								u.hinpct(0.03f), WHITE);
-					DrawTextEx(assets.rubikBold, songPartsList[player.instrument].c_str(), {
-									u.LeftSide + u.winpct(0.19f) - MeasureTextEx(
-										assets.rubikBold,
-										songPartsList[player.instrument].c_str(),
-										u.hinpct(0.03f), 0).x,
-									BottomOvershell - u.hinpct(0.09f)
-								}, u.hinpct(0.03f), 0, WHITE);
-					GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(Color{255, 255, 255, 255}));
-					GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
-					GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
-					if (GuiButton({u.LeftSide, BottomOvershell, u.winpct(0.2f), u.hinpct(0.05f)},
-								"Ready Up!")) {
-						ReadyUpMenu = false;
-						gpr.highwayInAnimation = false;
-						gpr.songStartTime = GetTime();
-						menu.SwitchScreen(GAMEPLAY);
-						glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-						glfwSetGamepadStateCallback(gamepadStateCallback);
-						gpr.camera3pVector = {gpr.camera, gpr.camera3, gpr.camera2};
-					}
-					GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-								ColorToInt(ColorBrightness(player.accentColor, -0.5)));
-					GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-					GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-					if (GuiButton({0, 0, 60, 60}, "<")) {
-						midiLoaded = false;
-						instSelection = false;
-						diffSelection = false;
-						instSelected = false;
-						diffSelected = false;
-						ReadyUpMenu = false;
-						menu.SwitchScreen(SONG_SELECT);
+					if (midiLoaded && ReadyUpMenu) {
+						if (GuiButton({
+										(u.LeftSide*(playerInt+1)), BottomOvershell - u.hinpct(0.05f),
+										u.winpct(0.2f), u.hinpct(0.05f)
+									}, "")) {
+							ReadyUpMenu = false;
+							diffSelection = true;
+									}
+						DrawTextRubik("  Difficulty", (u.LeftSide*(playerInt+1)), BottomOvershell - u.hinpct(0.04f),
+									u.hinpct(0.03f), WHITE);
+						DrawTextEx(assets.rubikBold, diffList[player->Difficulty].c_str(), {
+										(u.LeftSide*(playerInt+1)) + u.winpct(0.19f) - MeasureTextEx(
+											assets.rubikBold, diffList[player->Difficulty].c_str(),
+											u.hinpct(0.03f), 0).x,
+										BottomOvershell - u.hinpct(0.04f)
+									}, u.hinpct(0.03f), 0, WHITE);
+						if (GuiButton({
+										(u.LeftSide*(playerInt+1)), BottomOvershell - u.hinpct(0.10f),
+										u.winpct(0.2f), u.hinpct(0.05f)
+									}, "")) {
+							ReadyUpMenu = false;
+							instSelection = true;
+									}
+						DrawTextRubik("  Instrument", (u.LeftSide*(playerInt+1)), BottomOvershell - u.hinpct(0.09f),
+									u.hinpct(0.03f), WHITE);
+						DrawTextEx(assets.rubikBold, songPartsList[player->Instrument].c_str(), {
+										(u.LeftSide*(playerInt+1)) + u.winpct(0.19f) - MeasureTextEx(
+											assets.rubikBold,
+											songPartsList[player->Instrument].c_str(),
+											u.hinpct(0.03f), 0).x,
+										BottomOvershell - u.hinpct(0.09f)
+									}, u.hinpct(0.03f), 0, WHITE);
+						GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, ColorToInt(Color{255, 255, 255, 255}));
+						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
+						GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
+						if (GuiButton({(u.LeftSide*(playerInt+1)), BottomOvershell, u.winpct(0.2f), u.hinpct(0.05f)},
+									"Ready Up!")) {
+							ReadyUpMenu = false;
+							// gpr.highwayInAnimation = false;
+							// gpr.songStartTime = GetTime();
+							menu.SwitchScreen(SONG_SELECT);
+							glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+							glfwSetGamepadStateCallback(gamepadStateCallback);
+							// gpr.camera3pVector = {gpr.camera, gpr.camera3, gpr.camera2};
+									}
+						GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
+									ColorToInt(ColorBrightness(accentColor, -0.5)));
+						GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+						if (GuiButton({0, 0, 60, 60}, "<")) {
+							midiLoaded = false;
+							instSelection = false;
+							diffSelection = false;
+							instSelected = false;
+							diffSelected = false;
+							ReadyUpMenu = false;
+							menu.SwitchScreen(SONG_SELECT);
+						}
 					}
 				}
 				break;
 			}
-			case GAMEPLAY: {
+			case GAMEPLAY: {/*
 				// IMAGE BACKGROUNDS??????
 				ClearBackground(BLACK);
-				player.songToBeJudged = songList.songs[curPlayingSong];
 				if (IsWindowResized() || notes_tex.texture.width != GetScreenWidth()
 						|| notes_tex.texture.height != GetScreenHeight()) {
 					UnloadRenderTexture(notes_tex);
@@ -2701,12 +2694,9 @@ int main(int argc, char *argv[]) {
 				DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{0, 0, 0, 128});
 				// DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
 
-				int starsval = player.stars(
-					songList.songs[curPlayingSong].parts[player.instrument]->charts[player.diff].
-					baseScore, player.diff);
+				int starsval = playerManager.BandStats.Stars();
 				float starPercent =
-						(float) player.score / (float) player.songToBeJudged.parts[player.
-							instrument]->charts[player.diff].baseScore;
+						(float) playerManager.BandStats.Score / (float) playerManager.BandStats.BaseScore;
 				for (int i = 0; i < 5; i++) {
 					bool firstStar = (i == 0);
 					float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.05));
@@ -2717,45 +2707,45 @@ int main(int argc, char *argv[]) {
 					Rectangle starRect = {starX, starY, starWH, starWH};
 					DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, {0, 0}, 0, WHITE);
 					float yMaskPos = Remap(starPercent,
-											firstStar ? 0 : player.xStarThreshold[i - 1],
-											player.xStarThreshold[i], 0, u.hinpct(0.05));
+											firstStar ? 0 : playerManager.BandStats.xStarThreshold[i - 1],
+											playerManager.BandStats.xStarThreshold[i], 0, u.hinpct(0.05));
 					BeginScissorMode(starX, (starY + starWH) - yMaskPos, starWH, yMaskPos);
 					DrawTexturePro(assets.star, emptyStarWH, starRect, {0, 0}, 0,
 									i != starsval ? WHITE : Color{192, 192, 192, 128});
 					EndScissorMode();
 				}
-				if (starPercent >= player.xStarThreshold[4] && player.diff == 3) {
+				if (starPercent >= playerManager.BandStats.xStarThreshold[4] && playerManager.BandStats.EligibleForGoldStars) {
 					float starWH = u.hinpct(0.05);
 					Rectangle emptyStarWH = {
 						0, 0, (float) assets.goldStar.width, (float) assets.goldStar.height
 					};
-					float yMaskPos = Remap(starPercent, player.xStarThreshold[4],
-											player.xStarThreshold[5], 0, u.hinpct(0.05));
+					float yMaskPos = Remap(starPercent, playerManager.BandStats.xStarThreshold[4],
+											playerManager.BandStats.xStarThreshold[5], 0, u.hinpct(0.05));
 					BeginScissorMode(scorePos - (starWH * 6), (starY + starWH) - yMaskPos, scorePos,
 									yMaskPos);
 					for (int i = 0; i < 5; i++) {
 						float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.05));
 						Rectangle starRect = {starX, starY, starWH, starWH};
 						DrawTexturePro(
-							player.goldStars ? assets.goldStar : assets.goldStarUnfilled,
+							playerManager.BandStats.GoldStars ? assets.goldStar : assets.goldStarUnfilled,
 							emptyStarWH, starRect,
 							{0, 0}, 0, WHITE);
 					}
 					EndScissorMode();
 				}
-				int totalScore =
-						player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[
-							1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3]
-						+ player.sustainScoreBuffer[4];
-				DrawTextRHDI(scoreCommaFormatter(totalScore).c_str(),
+				// int totalScore =
+				// 		player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[
+				// 			1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3]
+				// 		+ player.sustainScoreBuffer[4];
+				DrawTextRHDI(scoreCommaFormatter(playerManager.BandStats.Score).c_str(),
 							u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(
-								scoreCommaFormatter(totalScore).c_str(), u.hinpct(0.05f)),
+								scoreCommaFormatter(playerManager.BandStats.Score).c_str(), u.hinpct(0.05f)),
 							scoreY, u.hinpct(0.05f), Color{107, 161, 222, 255});
-				DrawTextRHDI(scoreCommaFormatter(player.combo).c_str(),
+				DrawTextRHDI(scoreCommaFormatter(playerManager.BandStats.Combo).c_str(),
 							u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(
-								scoreCommaFormatter(player.combo).c_str(), u.hinpct(0.05f)),
+								scoreCommaFormatter(playerManager.BandStats.Combo).c_str(), u.hinpct(0.05f)),
 							comboY, u.hinpct(0.05f),
-							player.FC ? GOLD : (player.combo <= 3) ? RED : WHITE);
+							playerManager.BandStats.FC ? GOLD : (playerManager.BandStats.Combo <= 3) ? RED : WHITE);
 				if (player.extraGameplayStats) {
 					DrawTextRubik(TextFormat("Perfect Hit: %01i", player.perfectHit), 5,
 								GetScreenHeight() - 280, 24,
@@ -2763,9 +2753,9 @@ int main(int argc, char *argv[]) {
 					DrawTextRubik(TextFormat("Max Combo: %01i", player.maxCombo), 5,
 								GetScreenHeight() - 130, 24, WHITE);
 					DrawTextRubik(
-						TextFormat("Multiplier: %01i", player.multiplier(player.instrument)), 5,
+						TextFormat("Multiplier: %01i", player.multiplier(player.Instrument)), 5,
 						GetScreenHeight() - 100, 24,
-						(player.multiplier(player.instrument) >= 4) ? SKYBLUE : WHITE);
+						(player.multiplier(player.Instrument) >= 4) ? SKYBLUE : WHITE);
 					DrawTextRubik(TextFormat("Notes Hit: %01i", player.notesHit), 5,
 								GetScreenHeight() - 250, 24, player.FC ? GOLD : WHITE);
 					DrawTextRubik(TextFormat("Notes Missed: %01i", player.notesMissed), 5,
@@ -2778,8 +2768,8 @@ int main(int argc, char *argv[]) {
 					audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
 					streamsLoaded = true;
 					for (auto &stream: audioManager.loadedStreams) {
-						if ((player.plastic ? player.instrument - 4 : player.instrument) ==
-							stream.instrument)
+						if ((player.plastic ? player.Instrument - 4 : player.Instrument) ==
+							stream.Instrument)
 							audioManager.SetAudioStreamVolume(
 								stream.handle,
 								player.mute
@@ -2794,8 +2784,8 @@ int main(int argc, char *argv[]) {
 					player.resetPlayerStats();
 				} else {
 					for (auto &stream: audioManager.loadedStreams) {
-						if ((player.plastic ? player.instrument - 4 : player.instrument) ==
-							stream.instrument)
+						if ((player.plastic ? player.Instrument - 4 : player.Instrument) ==
+							stream.Instrument)
 							audioManager.SetAudioStreamVolume(
 								stream.handle,
 								player.mute
@@ -2821,7 +2811,7 @@ int main(int argc, char *argv[]) {
 					if (songEnd < songPlayed) {
 						glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
 						glfwSetGamepadStateCallback(origGamepadCallback);
-						// notes = (int)songList.songs[curPlayingSong].parts[instrument]->charts[diff].notes.size();
+						// notes = (int)songList.songs[curPlayingSong].parts[Instrument]->charts[diff].notes.size();
 						player.overdrive = false;
 						player.overdriveFill = 0.0f;
 						player.overdriveActiveFill = 0.0f;
@@ -2835,7 +2825,7 @@ int main(int argc, char *argv[]) {
 						isPlaying = false;
 						gpr.highwayInAnimation = false;
 						gpr.songEnded = true;
-						songList.songs[curPlayingSong].parts[player.instrument]->charts[player.
+						songList.songs[curPlayingSong].parts[player.Instrument]->charts[player.
 							diff].resetNotes();
 						gpr.LowerHighway();
 
@@ -2850,7 +2840,7 @@ int main(int argc, char *argv[]) {
 						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
 								assets.odMultFill;
 						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-								player.accentColor;
+								accentColor;
 						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.
 								accentColor;
 						menu.SwitchScreen(RESULTS);
@@ -2945,13 +2935,13 @@ int main(int argc, char *argv[]) {
 
 				GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
 				GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL,
-							ColorToInt(player.FC ? GOLD : player.accentColor));
+							ColorToInt(player.FC ? GOLD : accentColor));
 				GuiSetStyle(PROGRESSBAR, BASE_COLOR_FOCUSED,
-							ColorToInt(player.FC ? GOLD : player.accentColor));
+							ColorToInt(player.FC ? GOLD : accentColor));
 				GuiSetStyle(PROGRESSBAR, BASE_COLOR_DISABLED,
-							ColorToInt(player.FC ? GOLD : player.accentColor));
+							ColorToInt(player.FC ? GOLD : accentColor));
 				GuiSetStyle(PROGRESSBAR, BASE_COLOR_PRESSED,
-							ColorToInt(player.FC ? GOLD : player.accentColor));
+							ColorToInt(player.FC ? GOLD : accentColor));
 				GuiSetStyle(DEFAULT, TEXT_SIZE, static_cast<int>(u.hinpct(0.03f)));
 				GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 				GuiSetFont(assets.rubik);
@@ -3211,7 +3201,7 @@ int main(int argc, char *argv[]) {
 							u.hpct(0.02f) + u.winpct(0.035f), u.winpct(0.1f), u.winpct(0.01f),
 							gpr.downStrum ? WHITE : GRAY);
 
-				break;
+				break;*/
 			}
 			case RESULTS: {
 				if (streamsLoaded) {
@@ -3221,9 +3211,9 @@ int main(int argc, char *argv[]) {
 
 
 				menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur);
-				menu.showResults(player);
+				// menu.showResults(player);
 				if (GuiButton({0, 0, 60, 60}, "<")) {
-					player.quit = false;
+					// player.quit = false;
 					menu.SwitchScreen(SONG_SELECT);
 				}
 				break;

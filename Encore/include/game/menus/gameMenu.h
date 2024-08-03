@@ -7,6 +7,7 @@
 #include "song/songlist.h"
 #include "game/assets.h"
 #include "game/player.h"
+#include "game/users/player.h"
 
 enum Screens {
     MENU,
@@ -41,7 +42,7 @@ private:
         return ss.str();
     }
     void renderPlayerResults(Player player, Song song);
-    void renderStars(Player player, float xPos, float yPos, float scale, bool left);
+    // void renderStars(Player player, float xPos, float yPos, float scale, bool left);
 public:
 
     void DrawTopOvershell(float TopOvershell);
@@ -64,7 +65,7 @@ public:
     Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
     void showResults(Player &player);
-    void loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls);
+    void loadMenu();
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);
