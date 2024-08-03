@@ -19,7 +19,7 @@ class gameplayRenderer {
 public:
 	float highwayLevel = 0;
 	float smasherPos = 2.4f;
-    bool bot = false;
+
 	bool highwayInAnimation = false;
 	bool highwayInEndAnim = false;
 	bool highwayOutAnimation = false;

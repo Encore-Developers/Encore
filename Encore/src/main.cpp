@@ -912,16 +912,19 @@ int main(int argc, char *argv[]) {
 
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
+	newPlayer.Bot = true;
 	playerManager.PlayerList.push_back(newPlayer);
 	playerManager.AddActivePlayer(0,0);
 
 	Player newPlayer2;
 	newPlayer2.Name = "lothycat";
+	newPlayer2.Bot = true;
 	playerManager.PlayerList.push_back(newPlayer2);
 	playerManager.AddActivePlayer(1,1);
 
 	Player newPlayer3;
 	newPlayer3.Name = "cameron44251";
+	newPlayer3.Bot = true;
 	playerManager.PlayerList.push_back(newPlayer3);
 	playerManager.AddActivePlayer(2,2);
 
@@ -2866,17 +2869,17 @@ int main(int argc, char *argv[]) {
 						TraceLog(LOG_INFO, TextFormat("Song ended at at %f", songPlayed));
 					}
 				}
-
+				menu.DrawFPS(u.LeftSide, 0);
 				int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 				double songFloat = audioManager.
 						GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 				// player.notes = (int) songList.songs[curPlayingSong].parts[player.instrument]->charts[
 				//	player.diff].notes.size();
 				gpr.cameraSel = 1;
-				gpr.renderPos = 1920/4;
+				gpr.renderPos = GetScreenWidth()/4;
 				gpr.RenderGameplay(playerManager.GetActivePlayer(0), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 				gpr.cameraSel = 2;
-				gpr.renderPos = -1920/4;
+				gpr.renderPos = -GetScreenWidth()/4;
 				gpr.RenderGameplay(playerManager.GetActivePlayer(1), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 
 				gpr.cameraSel = 0;
