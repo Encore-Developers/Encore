@@ -105,7 +105,7 @@ public:
     double overdriveHitTime = 0.0;
     std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
 
-    float highwayLevel = 0;
+
     std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 
     float Health;
@@ -254,6 +254,12 @@ public:
     bool Online;
     int ActiveSlot;
     void ResetGameplayStats();
+
+    bool ReadyUpMenu = false;
+    bool diffSelected = false;
+    bool diffSelection = false;
+    bool instSelection = true;
+    bool instSelected = false;
     // zero indexed. local would be 0-3, online would be 4-7.
     // NOTE! this is only for like. local information and
     // not actually shared information. i was thinking of a UUID system for online
@@ -283,20 +289,20 @@ public:
     BandGameplayStats BandStats = BandGameplayStats();
     rapidjson::Document PlayerListFile;
     std::vector<Player> PlayerList;
-    std::vector<int> ActivePlayers;
+    std::vector<int> ActivePlayers{-1,-1,-1,-1};
     int PlayersActive = 0;
 
     Player* GetActivePlayer(int slot) {
         return &PlayerList[ActivePlayers[slot]];
     }
 
-    void AddActivePlayer(int slot) {
-        ActivePlayers.push_back(slot);
+    void AddActivePlayer(int playerNum, int slot) {
+        ActivePlayers[slot] = playerNum;
         PlayersActive += 1;
     }
 
     void RemoveActivePlayer(int slot) {
-        ActivePlayers.erase(ActivePlayers.begin() + slot);
+        ActivePlayers[slot] = -1;
         PlayersActive -= 1;
     }
 

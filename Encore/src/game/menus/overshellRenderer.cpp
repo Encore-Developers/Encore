@@ -29,35 +29,23 @@ void OvershellRenderer::DrawOvershell() {
 		float OvershellLeftLoc = (unit.wpct(0.125) + (unit.winpct(0.25)*i))-unit.winpct(0.1);
 		float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25)*i));
 
-		if (!playerManager.ActivePlayers.empty()) {
-			if (i < playerManager.ActivePlayers.size()) {
-				if (GuiButton({OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f)}, "")) {
-					playerManager.RemoveActivePlayer(i);
-				} else {
-					float playerNameSize = MeasureTextEx(assets.redHatDisplayBlack, playerManager.GetActivePlayer(i)->Name.c_str(), unit.winpct(0.03f), 0).x;
-
-					DrawRectangle(OvershellLeftLoc, OvershellTopLoc, unit.winpct(0.2f), unit.winpct(0.05f), GRAY);
-					DrawTextEx(assets.redHatDisplayBlack, playerManager.GetActivePlayer(i)->Name.c_str(), {OvershellCenterLoc-(playerNameSize/2), OvershellTopLoc+unit.winpct(0.01f)}, unit.winpct(0.03f), 0, WHITE);
-				}
+		if (playerManager.ActivePlayers[i] != -1) {
+			if (GuiButton({OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f)}, "")) {
+				playerManager.RemoveActivePlayer(i);
 			} else {
-				if (GuiButton({OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f)}, "")) {
-					playerManager.AddActivePlayer(playerManager.PlayersActive);
-				} else {
-					float playerNameSize = MeasureTextEx(assets.redHatDisplayBlack, "JOIN", unit.winpct(0.02f), 0).x;
-					DrawRectangle(OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f), DARKGRAY);
-					DrawTextEx(assets.redHatDisplayBlack, "JOIN", {OvershellCenterLoc-(playerNameSize/2), OvershellTopLoc+unit.winpct(0.02f)}, unit.winpct(0.02f), 0, WHITE);
-				}
+				float playerNameSize = MeasureTextEx(assets.redHatDisplayBlack, playerManager.GetActivePlayer(i)->Name.c_str(), unit.winpct(0.03f), 0).x;
+
+				DrawRectangle(OvershellLeftLoc, OvershellTopLoc, unit.winpct(0.2f), unit.winpct(0.05f), GRAY);
+				DrawTextEx(assets.redHatDisplayBlack, playerManager.GetActivePlayer(i)->Name.c_str(), {OvershellCenterLoc-(playerNameSize/2), OvershellTopLoc+unit.winpct(0.01f)}, unit.winpct(0.03f), 0, WHITE);
 			}
 		} else {
 			if (GuiButton({OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f)}, "")) {
-				playerManager.AddActivePlayer(playerManager.PlayersActive);
+				playerManager.AddActivePlayer(i, i);
 			} else {
 				float playerNameSize = MeasureTextEx(assets.redHatDisplayBlack, "JOIN", unit.winpct(0.02f), 0).x;
 				DrawRectangle(OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f), DARKGRAY);
 				DrawTextEx(assets.redHatDisplayBlack, "JOIN", {OvershellCenterLoc-(playerNameSize/2), OvershellTopLoc+unit.winpct(0.02f)}, unit.winpct(0.02f), 0, WHITE);
 			}
 		}
-
-
 	}
 };
