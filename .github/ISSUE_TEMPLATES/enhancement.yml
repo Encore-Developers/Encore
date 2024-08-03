@@ -1,6 +1,6 @@
-name: Bug Report
+name: Enhancement
 description: Suggest a feature for Encore
-labels: ["bug"]
+labels: ["enhancement"]
 title: "Enhancement: "
 body:
   - type: textarea
