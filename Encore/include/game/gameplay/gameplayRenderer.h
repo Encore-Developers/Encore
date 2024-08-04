@@ -47,6 +47,8 @@ public:
 	// 0.0f, 0.0f, 6.5f
 	gpr.camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
 	 */
+	double startTime = 0.0;
+
 	std::vector<Camera3D> camera3pVector;
 
     void RenderGameplay(Player* player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
@@ -56,8 +58,8 @@ public:
     bool FAS = false;
     bool processingStrum = false;
 
-    // void RaiseHighway();
+    void RaiseHighway();
 
-    // void LowerHighway();
+    void LowerHighway();
 };
 

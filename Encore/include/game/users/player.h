@@ -110,7 +110,7 @@ public:
 
     float Health;
 
-
+    bool Multiplayer = false;
     float overdriveFill;
     float overdriveActiveFill;
     double overdriveActiveTime;
@@ -187,23 +187,23 @@ public:
     float uvOffsetY = 0;
 
     int multiplier() {
-        int od = Overdrive ? 2 : 1;
+        int od = Overdrive && !Multiplayer ? 2 : 1;
 
         if (Instrument == 1 || Instrument == 3 || Instrument == 5){
 
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5f:0); return 1 * od; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 2 * od; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 3 * od; }
-            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0); return 4 * od; }
-            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0); return 5 * od; }
-            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0); return 6 * od; }
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f:0); return 1 * od; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f : 0);  return 2 * od; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f : 0);  return 3 * od; }
+            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f : 0); return 4 * od; }
+            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f + (Overdrive && !Multiplayer ? 0.5f : 0); return 5 * od; }
+            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f + (Overdrive && !Multiplayer ? 0.5f : 0); return 6 * od; }
             else { return 1 * od; };
         }
         else {
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 1 * od; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 2 * od; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 3 * od; }
-            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 4 * od; }
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 1 * od; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 2 * od; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 3 * od; }
+            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 4 * od; }
             else { return 1 * od; }
         };
     }
@@ -267,7 +267,13 @@ public:
 
 class BandGameplayStats : public PlayerGameplayStats {
 public:
+    BandGameplayStats();
+    void ResetBandGameplayStats();
     bool EligibleForGoldStars = false;
+    bool Multiplayer = false;
+    std::vector<int> OverdriveMultiplier{1,2,4,6,8};
+    int PlayersInOverdrive = 0;
+    void AddNotePoint(bool perfect, int playerMult);
 };
 
 class PlayerManager {
@@ -307,11 +313,10 @@ public:
     }
 
     Player* GetPlayerGamepad(int joystickID) {
-        for (auto player : ActivePlayers) {
-            if (GetActivePlayer(player)->joypadID == joystickID) {
-                return GetActivePlayer(player);
+        for (int playesr = 0 ; playesr < PlayersActive; playesr++) {
+            if (GetActivePlayer(playesr)->joypadID == joystickID) {
+                return GetActivePlayer(playesr);
             }
-
         }
         return nullptr;
     }

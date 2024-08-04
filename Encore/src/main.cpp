@@ -166,6 +166,10 @@ static void handleInputs(Player *player, int lane, int action) {
 			stats->Overdrive = true;
 			stats->overdriveHitAvailable = true;
 			stats->overdriveHitTime = eventTime;
+			if (playerManager.BandStats.Multiplayer) {
+				playerManager.BandStats.PlayersInOverdrive += 1;
+				playerManager.BandStats.Overdrive = true;
+			}
 		}
 
 		if (!player->ClassicMode) {
@@ -208,6 +212,9 @@ static void handleInputs(Player *player, int lane, int action) {
 									chordNote.HitOffset =
 											chordNote.time - eventTime;
 									stats->HitNote(chordNote.perfect);
+									if (playerManager.BandStats.Multiplayer) {
+										playerManager.BandStats.AddNotePoint(chordNote.perfect, stats->multiplier());
+									}
 									chordNote.accounted = true;
 								}
 							}
@@ -288,6 +295,9 @@ static void handleInputs(Player *player, int lane, int action) {
 									curNote.perfect = true;
 								}
 								stats->HitNote(curNote.perfect);
+								if (playerManager.BandStats.Multiplayer) {
+									playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
+								}
 								curNote.accounted = true;
 								break;
 							}
@@ -405,6 +415,10 @@ static void handleInputs(Player *player, int lane, int action) {
 						curNote.perfect = true;
 					}
 					stats->HitPlasticNote(curNote);
+					// TODO: fix for plastic
+					if (playerManager.BandStats.Multiplayer) {
+						playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
+					}
 					curNote.accounted = true;
 					if ((curNote.len) > 0) {
 						curNote.held = true;
@@ -435,6 +449,10 @@ static void handleInputs(Player *player, int lane, int action) {
 						curNote.perfect = true;
 					}
 					stats->HitPlasticNote(curNote);
+					// TODO: fix for plastic
+					if (playerManager.BandStats.Multiplayer) {
+						playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
+					}
 					curNote.accounted = true;
 					stats->curNoteInt++;
 					return;
@@ -463,8 +481,8 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 				for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
 					handleInputs(player, i, -1);
 				}
-			}
-		} else if ((key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) && !player->Bot) {
+			} // && !player->Bot
+		} else if ((key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt)) {
 			handleInputs(player,-1, action);
 		} else if (!player->Bot) {
 			if (player->Instrument != 4) {
@@ -572,13 +590,13 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state)
 				controllerPauseAxisDirection) {
 			}
 		}
-	}
-	if (settingsMain.controllerOverdrive >= 0 && !player->Bot) {
+	} //  && !player->Bot
+	if (settingsMain.controllerOverdrive >= 0) {
 		if (state.buttons[settingsMain.controllerOverdrive] != stats->buttonValues[settingsMain.controllerOverdrive]) {
 			stats->buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.
 				controllerOverdrive];
 			handleInputs(player,-1, state.buttons[settingsMain.controllerOverdrive]);
-		}
+		} //
 	} else if (!player->Bot) {
 		if (state.axes[-(settingsMain.controllerOverdrive + 1)] != stats->axesValues[-(
 				settingsMain.controllerOverdrive + 1)]) {
@@ -919,12 +937,14 @@ int main(int argc, char *argv[]) {
 	Player newPlayer2;
 	newPlayer2.Name = "lothycat";
 	newPlayer2.Bot = true;
+	newPlayer2.joypadID = GLFW_JOYSTICK_1;
 	playerManager.PlayerList.push_back(newPlayer2);
 	playerManager.AddActivePlayer(1,1);
 
 	Player newPlayer3;
 	newPlayer3.Name = "cameron44251";
 	newPlayer3.Bot = true;
+	newPlayer3.joypadID = GLFW_JOYSTICK_2;
 	playerManager.PlayerList.push_back(newPlayer3);
 	playerManager.AddActivePlayer(2,2);
 
@@ -2758,15 +2778,40 @@ int main(int argc, char *argv[]) {
 				// 		player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[
 				// 			1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3]
 				// 		+ player.sustainScoreBuffer[4];
+				*/
+				int Score = 0;
+				int Combo = 0;
+				/*
+				for (int player = 0; player < playerManager.PlayersActive; player++) {
+					Score += playerManager.GetActivePlayer(player)->stats->Score;
+					Combo += playerManager.GetActivePlayer(player)->stats->Combo;
+				}
+				playerManager.BandStats.Score = Score;
+				playerManager.BandStats.Combo = Combo;
+*/
+				if (playerManager.PlayersActive > 0) {
+					playerManager.BandStats.Multiplayer = true;
+					for (int player = 0; player < playerManager.PlayersActive; player++) {
+						playerManager.GetActivePlayer(player)->stats->Multiplayer = true;;
+					}
+				} else {
+					playerManager.BandStats.Multiplayer = false;
+					for (int player = 0; player < playerManager.PlayersActive; player++) {
+						playerManager.GetActivePlayer(player)->stats->Multiplayer = false;;
+					}
+				}
 				DrawTextRHDI(scoreCommaFormatter(playerManager.BandStats.Score).c_str(),
 							u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(
 								scoreCommaFormatter(playerManager.BandStats.Score).c_str(), u.hinpct(0.05f)),
 							scoreY, u.hinpct(0.05f), Color{107, 161, 222, 255});
+				DrawTextRHDI(TextFormat("%01ix",playerManager.BandStats.OverdriveMultiplier[playerManager.BandStats.PlayersInOverdrive]),
+							u.RightSide, scoreY, u.hinpct(0.05f), RAYWHITE);
 				DrawTextRHDI(scoreCommaFormatter(playerManager.BandStats.Combo).c_str(),
 							u.RightSide - u.winpct(0.01f) - MeasureTextRHDI(
 								scoreCommaFormatter(playerManager.BandStats.Combo).c_str(), u.hinpct(0.05f)),
 							comboY, u.hinpct(0.05f),
 							playerManager.BandStats.FC ? GOLD : (playerManager.BandStats.Combo <= 3) ? RED : WHITE);
+				/*
 				if (player.extraGameplayStats) {
 					DrawTextRubik(TextFormat("Perfect Hit: %01i", player.perfectHit), 5,
 								GetScreenHeight() - 280, 24,
@@ -2845,11 +2890,11 @@ int main(int argc, char *argv[]) {
 						menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
 						midiLoaded = false;
 						isPlaying = false;
-						// gpr.highwayInAnimation = false;
-						// gpr.songEnded = true;
+						gpr.highwayInAnimation = false;
+						gpr.songEnded = true;
 						// songList.songs[curPlayingSong].parts[player.Instrument]->charts[player.
 						//	diff].resetNotes();
-						// gpr.LowerHighway();
+						gpr.LowerHighway();
 
 						// assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
 						// 		assets.highwayTexture;
@@ -2869,7 +2914,7 @@ int main(int argc, char *argv[]) {
 						TraceLog(LOG_INFO, TextFormat("Song ended at at %f", songPlayed));
 					}
 				}
-				menu.DrawFPS(u.LeftSide, 0);
+				// menu.DrawFPS(u.LeftSide, 0);
 				int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 				double songFloat = audioManager.
 						GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
@@ -3158,26 +3203,27 @@ int main(int argc, char *argv[]) {
 								WHITE);
 				}
 
-
+				*/
 				menu.DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
 				menu.DrawVersion();
 
 				DrawTextEx(assets.rubik, textTime,
 							{GetScreenWidth() - textLength, GetScreenHeight() - u.hinpct(0.05f)},
-							u.hinpct(0.04f), 0, gpr.bot ? SKYBLUE : WHITE);
-				if (!gpr.bot)
-					DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
-								{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
-								GOLD);
-				if (gpr.bot)
-					DrawTextEx(assets.rubikBold, "BOT",
-								{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
-								SKYBLUE);
-				if (!gpr.bot)
+							u.hinpct(0.04f), 0, WHITE);
+				//if (!gpr.bot)
+				//	DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
+				//				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
+				//				GOLD);
+				//if (gpr.bot)
+				//	DrawTextEx(assets.rubikBold, "BOT",
+				//				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
+				//				SKYBLUE);
+				//if (!gpr.bot)
 					GuiProgressBar(Rectangle{
 										0, (float) GetScreenHeight() - u.hinpct(0.005f),
 										(float) GetScreenWidth(), u.hinpct(0.01f)
 									}, "", "", &floatSongLength, 0, (float) songLength);
+				/*
 				std::string ScriptDisplayString = "";
 				lua.script_file("scripts/testing.lua");
 				ScriptDisplayString = lua["TextDisplay"];

@@ -144,9 +144,13 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				if (!curNote.hit && !curNote.accounted && curNote.time < time &&
 					player->stats->curNoteInt < curChart.notes.size() && !songEnded) {
 					curNote.hit = true;
+					player->stats->HitNote(false);
+					if (gprPlayerManager.BandStats.Multiplayer) {
+						gprPlayerManager.BandStats.AddNotePoint(curNote.perfect, player->stats->multiplier());
+					}
 					if (curNote.len > 0) curNote.held = true;
 					curNote.accounted = true;
-					player->stats->Combo++;
+					// player->stats->Combo++;
 					curNote.accounted = true;
 					curNote.hitTime = time;
 				}
@@ -770,7 +774,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }
 
-/*
+
 void gameplayRenderer::RaiseHighway() {
 	if (!highwayInAnimation) {
 		startTime = GetTime();
@@ -794,14 +798,14 @@ void gameplayRenderer::LowerHighway() {
 		highwayOutEndAnim = true;
 	}
 };
-*/
+
 
 void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, RenderTexture2D& highway_tex, RenderTexture2D& hud_tex, RenderTexture2D& notes_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex) {
 
 	Chart& curChart = song.parts[player->Instrument]->charts[player->Difficulty];
 	float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
 
-	float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : ((float)(player->stats->multiplier() / 2) - 1)) / (float)player->stats->maxMultForMeter();
+	float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : (!player->stats->Multiplayer ? ((float)(player->stats->multiplier() / 2) - 1) / (float)player->stats->maxMultForMeter() : (float)(player->stats->multiplier() - 1)));
 	SetShaderValue(gprAssets.odMultShader, gprAssets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetXLoc, &player->stats->uvOffsetX, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetYLoc, &player->stats->uvOffsetY, SHADER_UNIFORM_FLOAT);
@@ -831,11 +835,10 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	if (player->Bot) player->Bot = true;
 	else player->Bot = false;
 	gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
-	// RaiseHighway();
-	// if (GetTime() >= startTime + animDuration && highwayInEndAnim) {
-	//
-	//	highwayInEndAnim = false;
-	// }
+	RaiseHighway();
+	if (GetTime() >= startTime + animDuration && highwayInEndAnim) {
+		highwayInEndAnim = false;
+	}
 
 	/*
 	if ((player->stats->Overdrive ? player.multiplier(player->Instrument) / 2 : player.multiplier(player->Instrument))>= (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5 ? 6 : 4)) {
@@ -858,9 +861,11 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 
 		// gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = gprAssets.highwayTextureOD;
 		// gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = gprAssets.highwayTextureOD;
-		gprAssets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gprAssets.odMultFillActive;
-		gprAssets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gprAssets.odMultFillActive;
-		gprAssets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gprAssets.odMultFillActive;
+		if (!gprPlayerManager.BandStats.Multiplayer) {
+			gprAssets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gprAssets.odMultFillActive;
+			gprAssets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gprAssets.odMultFillActive;
+			gprAssets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture = gprAssets.odMultFillActive;
+		}
 		// THIS IS LOGIC!
 		player->stats->overdriveFill = player->stats->overdriveActiveFill - (float)((musicTime - player->stats->overdriveActiveTime) / (1920 / song.bpms[player->stats->curBPM].bpm));
 		if (player->stats->overdriveFill <= 0) {
@@ -868,6 +873,10 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 			player->stats->Overdrive = false;
 			player->stats->overdriveActiveFill = 0;
 			player->stats->overdriveActiveTime = 0.0;
+			if (gprPlayerManager.BandStats.Multiplayer) {
+				gprPlayerManager.BandStats.PlayersInOverdrive -= 1;
+				gprPlayerManager.BandStats.Overdrive = false;;
+			}
 
 			gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = gprAssets.highwayTexture;
 			gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = gprAssets.highwayTexture;
@@ -944,7 +953,8 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	} else {
 		RenderNotes(player, curChart, time, notes_tex, highwayLength);
 	}
-	if (!player->Bot) RenderHud(player, hud_tex, highwayLength);
+	// if (!player->Bot)
+		RenderHud(player, hud_tex, highwayLength);
 }
 
 void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex)  {

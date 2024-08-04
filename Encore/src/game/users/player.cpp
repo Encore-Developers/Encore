@@ -60,6 +60,81 @@ void Player::ResetGameplayStats() {
 	stats->BaseScore = 0;
 }
 
+BandGameplayStats::BandGameplayStats() {
+	Quit = false;
+	FC = true;
+	Paused = false;
+	GoldStars = false;
+	Overdrive = false;
+
+	Score = 0;
+	Combo = 0;
+	MaxCombo = 0;
+	Overhits = 0;
+	Notes = 0;
+	NotesHit = 0;
+	NotesMissed = 0;
+	PerfectHit = 0;
+	Health = 100.0f;
+
+	overdriveFill = 0.0f;
+	overdriveActiveFill = 0.0f;
+	overdriveActiveTime = 0.0;
+	overdriveActivateTime = 0.0;
+
+	BaseScore = 0;
+
+	StartTime = 0.0;
+	SongStartTime = 0.0;
+
+	Health = 100;
+
+	BaseScore = 0;
+	EligibleForGoldStars = false;
+}
+
+void BandGameplayStats::ResetBandGameplayStats() {
+	Quit = false;
+	FC = true;
+	Paused = false;
+	GoldStars = false;
+	Overdrive = false;
+
+	Score = 0;
+	Combo = 0;
+	MaxCombo = 0;
+	Overhits = 0;
+	Notes = 0;
+	NotesHit = 0;
+	NotesMissed = 0;
+	PerfectHit = 0;
+	Health = 100.0f;
+
+	overdriveFill = 0.0f;
+	overdriveActiveFill = 0.0f;
+	overdriveActiveTime = 0.0;
+	overdriveActivateTime = 0.0;
+
+	BaseScore = 0;
+
+	StartTime = 0.0;
+	SongStartTime = 0.0;
+
+	Health = 100;
+
+	BaseScore = 0;
+	EligibleForGoldStars = false;
+}
+
+void BandGameplayStats::AddNotePoint(bool perfect, int playerMult) {
+	Combo += 1;
+	if (Combo > MaxCombo)
+		MaxCombo = Combo;
+	float perfectMult = perfect ? 1.2f : 1.0f;
+	Score += (int)(((30.0f) * playerMult * perfectMult * OverdriveMultiplier[PlayersInOverdrive]));
+	// mute = false;
+}
+
 PlayerGameplayStats::PlayerGameplayStats() {
 	Quit = false;
 	FC = true;
