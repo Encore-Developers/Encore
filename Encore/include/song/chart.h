@@ -26,6 +26,7 @@ public:
 	bool countedForODPhrase = false;
     bool perfect = false;
 	bool renderAsOD = false;
+
     double hitTime = 0;
     int tick;
 
@@ -40,7 +41,9 @@ public:
 	bool pForceOn = false;
 	bool pForceOff = false;
     bool phopo = false;
-	bool extendedSustain = false;;
+	bool extendedSustain = false;
+
+    bool pDrumTom = false;
 
 	bool isGood(double eventTime, double inputOffset) const {
 		return (time - goodBackend + inputOffset < eventTime &&
@@ -116,6 +119,12 @@ private:
 	int pTapNote = 104;
     int pForceOff = 102;
     static bool compareNotes(const Note& a, const Note& b) {
+        return a.time < b.time;
+    }
+    static bool compareNotesTL(const Note& a, const Note& b) {
+        if (a.time == b.time) {
+            return a.lane < b.lane;
+        }
         return a.time < b.time;
     }
     static bool areNotesEqual(const Note& a, const Note& b) {
@@ -631,6 +640,261 @@ public:
         }
 		std::cout << "ENC: Processed base score for " << instrument << " " << diff << std::endl;
 		std::cout << "ENC: Processed plastic chart for " << instrument << " " << diff << std::endl;
+    }
+
+    void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, bool proDrums) {
+
+        /*
+        * Note:
+        * Tap = Yellow Tom
+        * Force On = Blue Tom
+        * Force Off = Green Tom
+        */
+        notes = {};
+        bool odOn = false;
+        bool soloOn = false;
+        bool forceOn = false;
+        bool tapOn = false;
+        bool forceOff = false;
+        bool discoFlip = false;
+        std::vector<int> notePitches = pDiffNotes[diff];
+        
+        midiFile.linkNotePairs();
+        int odNote = 116;
+
+        int yellowTom = 110;
+        int blueTom = 111;
+        int greenTom = 112;
+        int curNote = -1;
+        int curFOn = -1;
+        int curTap = -1;
+        int curFOff = -1;
+        int curODPhrase = -1;
+        int curSolo = -1;
+        int curBPM = 0;
+        resolution = midiFile.getTicksPerQuarterNote();
+        for (int i = 0; i < events.getSize(); i++) {
+            if (proDrums) {
+                if (events[i].isMeta() && (int)events[i][1] == 1) {
+                    std::string evt_string = "";
+                    for (int k = 3; k < events[i].getSize(); k++) {
+                        evt_string += events[i][k];
+                    }
+                    int mixDiff = evt_string[5] - '0';
+                    if (diff == mixDiff) {
+                        int drumMixType = evt_string[12] - '0';
+                        if (evt_string[13] == ']')
+                            discoFlip = false;
+                        else {
+                            if (evt_string[14] == ']')
+                                discoFlip = true;
+                            else
+                                discoFlip = false;
+                        }
+                    }
+                }
+            }
+            if (events[i].isNoteOn()) {
+                if (events[i][1] >= notePitches[0] && events[i][1] <= notePitches[4]) {
+                    double time = midiFile.getTimeInSeconds(trkidx, i);
+                    int tick = midiFile.getAbsoluteTickTime(time);
+                    int pitch = events[i][1];
+                    int lane = pitch - notePitches[0];
+                    Note newNote;
+                    if (discoFlip) {
+                        if (lane == 1) lane = 2;
+                        else if (lane == 2) lane = 1;
+                    }
+                    newNote.lane = lane;
+                    newNote.tick = tick;
+                    newNote.time = time;
+                    newNote.len = 0;
+                    newNote.valid = true;
+                    notes.push_back(newNote);
+                    curNote++;
+                }
+                else if ((int)events[i][1] == yellowTom) {
+                    if (!tapOn) {
+                        tapPhrase newPhrase;
+                        newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                        tapPhrases.push_back(newPhrase);
+                        tapOn = true;
+                        curTap++;
+                    }
+                }
+                else if ((int)events[i][1] == blueTom) {
+                    if (!forceOn) {
+                        forceOnPhrase newPhrase;
+                        newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                        forcedOnPhrases.push_back(newPhrase);
+                        forceOn = true;
+                        curFOn++;
+                    }
+                }
+                else if ((int)events[i][1] == greenTom) {
+                    if (!forceOff) {
+                        forceOffPhrase newPhrase;
+                        newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                        forcedOffPhrases.push_back(newPhrase);
+                        forceOff = true;
+                        curFOff++;
+                    }
+                }
+                else if ((int)events[i][1] == odNote) {
+                    if (!odOn) {
+                        odOn = true;
+                        odPhrase newPhrase;
+                        newPhrase.start = midiFile.getTimeInSeconds(trkidx, i);
+                        odPhrases.push_back(newPhrase);
+                        curODPhrase++;
+
+                    }
+
+                }
+                else if ((int)events[i][1] == pSoloNote) {
+                    if (!soloOn) {
+                        soloOn = true;
+                        solo newSolo;
+                        newSolo.start = midiFile.getTimeInSeconds(trkidx, i);
+                        Solos.push_back(newSolo);
+                        curSolo++;
+                    }
+                }
+            }
+            else if (events[i].isNoteOff()) {
+                double time = midiFile.getTimeInSeconds(trkidx, i);
+                int tick = midiFile.getAbsoluteTickTime(time);
+                if ((int)events[i][1] == yellowTom) {
+                    if (tapOn) {
+                        tapPhrases[curTap].end = time;
+                        tapOn = false;
+                    }
+                }
+                else if ((int)events[i][1] == blueTom) {
+                    if (forceOn) {
+                        forcedOnPhrases[curFOn].end = time;
+                        forceOn = false;
+                    }
+                }
+                else if ((int)events[i][1] == greenTom) {
+                    if (forceOff) {
+                        forcedOffPhrases[curFOff].end = time;
+                        forceOff = false;
+                    }
+                }
+                else if ((int)events[i][1] == odNote) {
+                    if (odOn) {
+                        odPhrases[curODPhrase].end = time;
+                        odOn = false;
+                    }
+                }
+                else if ((int)events[i][1] == pSoloNote) {
+                    if (soloOn) {
+                        Solos[curSolo].end = time;
+                        soloOn = false;
+                    }
+                }
+            }
+        }
+        std::cout << "ENC: Loaded base notes for " << instrument << " " << diff << std::endl;
+
+        LoadingState = NOTE_SORTING;
+        std::sort(notes.begin(), notes.end(),
+            compareNotesTL);
+        std::cout << "ENC: Sorted notes for " << instrument << " " << diff << std::endl;
+        curTap = 0;
+        if (proDrums) {
+            LoadingState = NOTE_MODIFIERS;
+            if (tapPhrases.size() > 0) {
+                for (Note& note : notes) {
+                    if (note.time > tapPhrases[curTap].end && curTap < tapPhrases.size() - 1)
+                        curTap++;
+
+                    // std::cout << "fOn: " << forcedOnPhrases[curFOn].start << std::endl << "fOff: "
+                    //           << forcedOnPhrases[curFOn].end << std::endl;
+
+                    if (note.lane == 2 && note.time >= tapPhrases[curTap].start && note.time < tapPhrases[curTap].end) {
+                        note.pDrumTom = true;
+                    }
+                }
+            }
+            std::cout << "ENC: Processed yellow toms for " << instrument << " " << diff << std::endl;
+            curFOn = 0;
+            if (forcedOnPhrases.size() > 0) {
+                for (Note& note : notes) {
+                    if (note.time > forcedOnPhrases[curFOn].end && curFOn < forcedOnPhrases.size() - 1)
+                        curFOn++;
+
+                    // std::cout << "fOn: " << forcedOnPhrases[curFOn].start << std::endl << "fOff: "
+                    //           << forcedOnPhrases[curFOn].end << std::endl;
+
+                    if (note.lane == 3 && note.time >= forcedOnPhrases[curFOn].start && note.time < forcedOnPhrases[curFOn].end) {
+                        note.pDrumTom = true;
+                    }
+                }
+            }
+            std::cout << "ENC: Processed blue toms for " << instrument << " " << diff << std::endl;
+            curFOff = 0;
+            if (forcedOffPhrases.size() > 0) {
+                for (Note& note : notes) {
+                    if (note.time > forcedOffPhrases[curFOff].end && curFOff < forcedOffPhrases.size() - 1)
+                        curFOff++;
+
+                    // std::cout << "fOn: " << forcedOnPhrases[curFOn].start << std::endl << "fOff: "
+                    //           << forcedOnPhrases[curFOn].end << std::endl;
+
+                    if (note.lane == 4 && note.time >= forcedOffPhrases[curFOff].start && note.time < forcedOffPhrases[curFOff].end) {
+                        note.pDrumTom = true;
+                    }
+                }
+            }
+            std::cout << "ENC: Processed green toms for " << instrument << " " << diff << std::endl;
+        }
+        LoadingState = OVERDRIVE;
+        curODPhrase = 0;
+        if (odPhrases.size() > 0) {
+            for (Note& note : notes) {
+                if (note.time > odPhrases[curODPhrase].end && curODPhrase < odPhrases.size() - 1)
+                    curODPhrase++;
+                if (note.time >= odPhrases[curODPhrase].start && note.time < odPhrases[curODPhrase].end)
+                    odPhrases[curODPhrase].noteCount++;
+            }
+        }
+        std::cout << "ENC: Processed overdrive for " << instrument << " " << diff << std::endl;
+        LoadingState = SOLOS;
+        curSolo = 0;
+        if (Solos.size() > 0) {
+            for (Note& note : notes) {
+                if (note.time > Solos[curSolo].end && curSolo < Solos.size() - 1)
+                    curSolo++;
+                if (note.time >= Solos[curSolo].start && note.time < Solos[curSolo].end)
+                    Solos[curSolo].noteCount++;
+            }
+        }
+        std::cout << "ENC: Processed solos for " << instrument << " " << diff << std::endl;
+        int esc = 0;
+        int mult = 1;
+        int multCtr = 0;
+        int noteIdx = 0;
+        std::cout << "NOTECOUNT: " << notes.size() << std::endl;
+        LoadingState = BASE_SCORE;
+        for (auto it = notes.begin(); it != notes.end();) {
+            Note& note = *it;
+            if (!note.valid) {
+                it = notes.erase(it);
+            }
+            else {
+                baseScore += ((36 * note.chordSize) * mult);
+                baseScore += (note.beatsLen * 12) * mult;
+                if (noteIdx == 9) mult = 2;
+                else if (noteIdx == 19) mult = 3;
+                else if (noteIdx == 29) mult = 4;
+                noteIdx++;
+                ++it;
+            }
+        }
+        std::cout << "ENC: Processed base score for " << instrument << " " << diff << std::endl;
+        std::cout << "ENC: Processed plastic chart for " << instrument << " " << diff << std::endl;
     }
 
 	void resetNotes() {

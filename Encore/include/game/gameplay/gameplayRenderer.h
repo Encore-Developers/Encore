@@ -11,10 +11,13 @@ class gameplayRenderer {
     void RenderHud(Player& player, RenderTexture2D&, float);
     void RenderExpertHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
     void RenderEmhHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
+    void RenderPDrumsHighway(Player& player, Song song, double time, RenderTexture2D& highway_tex);
+
     void DrawBeatlines(Player& player, Song song, float length, double musicTime);
     void DrawOverdrive(Player& player, Chart& curChart, float length, double musicTime);
     void DrawSolo(Player& player,  Chart& curChart, float length, double musicTime);
     void RenderClassicNotes(Player& player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length);
+    void RenderPDrumsNotes(Player& player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
 public:
     std::vector<bool> heldFrets{ false,false,false,false,false };
     std::vector<bool> heldFretsAlt{ false,false,false,false,false };
@@ -22,6 +25,7 @@ public:
     std::vector<bool> tapRegistered{ false,false,false,false,false };
     std::vector<bool> liftRegistered{ false,false,false,false,false };
     bool bot = false;
+    bool proDrum = false;
     double startTime = 0.0;
 	double songStartTime = 0.0;
     bool highwayInAnimation = false;

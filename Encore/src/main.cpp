@@ -804,7 +804,13 @@ void LoadCharts() {
 										chart.plastic = true;
 										chart.parsePlasticNotes(midiFile, track, midiFile[track],
 																player.diff, (int) songPart);
-										} else {
+									}
+									else if (songPart == SongParts::PlasticDrums){
+										chart.plastic = true;
+										chart.parsePlasticDrums(midiFile, track, midiFile[track], player.diff, (int)songPart, gpr.proDrum);
+									}
+									else
+									{
 											chart.plastic = false;
 											chart.parseNotes(midiFile, track, midiFile[track],
 															player.diff, (int) songPart);
@@ -1493,8 +1499,10 @@ int main(int argc, char *argv[]) {
 
 						gpr.bot = sor.toggleEntry(gpr.bot, 6, "Bot");
 
+
 						gpr.showHitwindow = sor.toggleEntry(
 							gpr.showHitwindow, 7, "Show Hitwindow");
+						gpr.proDrum = sor.toggleEntry(gpr.proDrum, 8, "Pro Drums");
 						break;
 					}
 					case VOLUME: {
@@ -2444,8 +2452,7 @@ int main(int argc, char *argv[]) {
 										 	songList.songs[curPlayingSong].getStartEnd(midiFile, track, midiFile[track]);
 										}
 										else if (trackName != "BEAT") {
-											if (songPart != SongParts::Invalid &&
-												songPart != SongParts::PlasticDrums) {
+											if (songPart != SongParts::Invalid) {
 												for (int diff = 0; diff < 4; diff++) {
 
 													bool StopChecking = false;
