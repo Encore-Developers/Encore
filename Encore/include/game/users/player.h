@@ -109,7 +109,7 @@ public:
     std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 
     float Health;
-
+    Chart CurPlayingChart;
     bool Multiplayer = false;
     float overdriveFill;
     float overdriveActiveFill;
@@ -123,6 +123,7 @@ public:
 
     void HitNote(bool perfect) {
         NotesHit += 1;
+        Notes += 1;
         Combo += 1;
         if (Combo > MaxCombo)
             MaxCombo = Combo;
@@ -133,6 +134,7 @@ public:
     }
     void HitPlasticNote(Note note) {
         NotesHit += 1;
+        Notes += 1;
         Combo += 1;
         if (Combo > MaxCombo)
             MaxCombo = Combo;
@@ -143,6 +145,7 @@ public:
     }
     void MissNote() {
         NotesMissed += 1;
+        Notes += 1;
         // if (combo != 0)
         //     playerAudioManager.playSample("miss", sfxVolume);
         if (Combo > MaxCombo)
@@ -253,6 +256,7 @@ public:
     bool LeftyFlip;
     bool Online;
     int ActiveSlot;
+
     void ResetGameplayStats();
 
     bool ReadyUpMenu = false;

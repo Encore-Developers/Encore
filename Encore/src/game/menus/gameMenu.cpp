@@ -55,9 +55,9 @@ void Menu::DrawBottomBottomOvershell() {
 }
 
 // should be reduced to just PlayerSongStats (instead of Player) eventually
-void Menu::renderPlayerResults(Player player, Song song) {
+void Menu::renderPlayerResults(Player player, Song song, int playerslot) {
 
-    float cardPos = u.LeftSide + (u.winpct(0.26f) * (float)player.ActiveSlot);
+    float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
 
 
     DrawRectangle(cardPos-6, u.hpct(0.2f), u.winpct(0.22f)+12, u.hpct(0.85f), WHITE);
@@ -409,26 +409,27 @@ void Menu::loadMenu() {
     }
 }
 
-bool AlbumArtLoadingStuff = false;
-void Menu::showResults(Player &player) {
 
-    for (int i = 0; i < 4; i++) {
-        renderPlayerResults(player, ChosenSong);
+bool AlbumArtLoadingStuff = false;
+void Menu::showResults() {
+    PlayerManager &player_manager = PlayerManager::getInstance();
+    for (int i = 0; i < player_manager.PlayersActive; i++) {
+        renderPlayerResults(*player_manager.GetActivePlayer(i), ChosenSong, i);
     }
 
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
 
-    DrawTextEx(menuAss.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0), u.hpct(0)}, u.hinpct(0.025f), 0, WHITE);
+    DrawVersion();
 
-    // float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(menuAss.redHatDisplayBlack,player.songToBeJudged.title.c_str(), u.hinpct(0.09f), 0).x/2;
-    float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player.stats->Score).c_str(), u.hinpct(0.08f), 0).x;
+    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(menuAss.redHatDisplayBlack,ChosenSong.title.c_str(), u.hinpct(0.09f), 0).x/2;
+    float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.08f), 0).x;
     float bigStarPos = (float)GetScreenWidth()/2 + u.winpct(0.005f);
 
 
-    // DrawTextEx(menuAss.redHatDisplayBlack, player.songtobejudged.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.09f),0,WHITE);
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player.stats->Score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),0, GetColor(0x00adffFF));
+    DrawTextEx(menuAss.redHatDisplayBlack, ChosenSong.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.09f),0,WHITE);
+    DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player_manager.BandStats.Score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),0, GetColor(0x00adffFF));
     // renderStars(player, bigStarPos, u.hpct(0.1125f), u.hinpct(0.055f),true);
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
 }

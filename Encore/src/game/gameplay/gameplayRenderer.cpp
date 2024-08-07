@@ -24,6 +24,180 @@ Color accentColor = {255,0,255,255};
 float defaultHighwayLength = 11.5f;
 Color OverdriveColor = {255,200,0,255};
 
+#define LETTER_BOUNDRY_SIZE     0.25f
+#define TEXT_MAX_LAYERS         32
+#define LETTER_BOUNDRY_COLOR    VIOLET
+
+bool SHOW_LETTER_BOUNDRY = false;
+bool SHOW_TEXT_BOUNDRY = false;
+
+// code from examples lol
+static void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint)
+{
+    // Character index position in sprite font
+    // NOTE: In case a codepoint is not available in the font, index returned points to '?'
+    int index = GetGlyphIndex(font, codepoint);
+    float scale = fontSize/(float)font.baseSize;
+
+    // Character destination rectangle on screen
+    // NOTE: We consider charsPadding on drawing
+    position.x += (float)(font.glyphs[index].offsetX - font.glyphPadding)/(float)font.baseSize*scale;
+    position.z += (float)(font.glyphs[index].offsetY - font.glyphPadding)/(float)font.baseSize*scale;
+
+    // Character source rectangle from font texture atlas
+    // NOTE: We consider chars padding when drawing, it could be required for outline/glow shader effects
+    Rectangle srcRec = { font.recs[index].x - (float)font.glyphPadding, font.recs[index].y - (float)font.glyphPadding,
+                         font.recs[index].width + 2.0f*font.glyphPadding, font.recs[index].height + 2.0f*font.glyphPadding };
+
+    float width = (float)(font.recs[index].width + 2.0f*font.glyphPadding)/(float)font.baseSize*scale;
+    float height = (float)(font.recs[index].height + 2.0f*font.glyphPadding)/(float)font.baseSize*scale;
+
+    if (font.texture.id > 0)
+    {
+        const float x = 0.0f;
+        const float y = 0.0f;
+        const float z = 0.0f;
+
+        // normalized texture coordinates of the glyph inside the font texture (0.0f -> 1.0f)
+        const float tx = srcRec.x/font.texture.width;
+        const float ty = srcRec.y/font.texture.height;
+        const float tw = (srcRec.x+srcRec.width)/font.texture.width;
+        const float th = (srcRec.y+srcRec.height)/font.texture.height;
+
+        if (SHOW_LETTER_BOUNDRY) {
+	        DrawCubeWiresV(Vector3{ position.x + width/2, position.y, position.z + height/2}, Vector3{ width, LETTER_BOUNDRY_SIZE, height }, LETTER_BOUNDRY_COLOR);
+        }
+
+        rlCheckRenderBatchLimit(4 + 4*backface);
+        rlSetTexture(font.texture.id);
+
+        rlPushMatrix();
+            rlTranslatef(position.x, position.y, position.z);
+
+            rlBegin(RL_QUADS);
+                rlColor4ub(tint.r, tint.g, tint.b, tint.a);
+
+                // Front Face
+                rlNormal3f(0.0f, 1.0f, 0.0f);                                   // Normal Pointing Up
+                rlTexCoord2f(tx, ty); rlVertex3f(x,         y, z);              // Top Left Of The Texture and Quad
+                rlTexCoord2f(tx, th); rlVertex3f(x,         y, z + height);     // Bottom Left Of The Texture and Quad
+                rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height);     // Bottom Right Of The Texture and Quad
+                rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);              // Top Right Of The Texture and Quad
+
+                if (backface)
+                {
+                    // Back Face
+                    rlNormal3f(0.0f, -1.0f, 0.0f);                              // Normal Pointing Down
+                    rlTexCoord2f(tx, ty); rlVertex3f(x,         y, z);          // Top Right Of The Texture and Quad
+                    rlTexCoord2f(tw, ty); rlVertex3f(x + width, y, z);          // Top Left Of The Texture and Quad
+                    rlTexCoord2f(tw, th); rlVertex3f(x + width, y, z + height); // Bottom Left Of The Texture and Quad
+                    rlTexCoord2f(tx, th); rlVertex3f(x,         y, z + height); // Bottom Right Of The Texture and Quad
+                }
+            rlEnd();
+        rlPopMatrix();
+
+        rlSetTexture(0);
+    }
+}
+
+
+static void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint)
+{
+	int length = TextLength(text);          // Total length in bytes of the text, scanned by codepoints in loop
+
+	float textOffsetY = 0.0f;               // Offset between lines (on line break '\n')
+	float textOffsetX = 0.0f;               // Offset X to next character to draw
+
+	float scale = fontSize/(float)font.baseSize;
+
+	for (int i = 0; i < length;)
+	{
+		// Get next codepoint from byte string and glyph index in font
+		int codepointByteCount = 0;
+		int codepoint = GetCodepoint(&text[i], &codepointByteCount);
+		int index = GetGlyphIndex(font, codepoint);
+
+		// NOTE: Normally we exit the decoding sequence as soon as a bad byte is found (and return 0x3f)
+		// but we need to draw all of the bad bytes using the '?' symbol moving one byte
+		if (codepoint == 0x3f) codepointByteCount = 1;
+
+		if (codepoint == '\n')
+		{
+			// NOTE: Fixed line spacing of 1.5 line-height
+			// TODO: Support custom line spacing defined by user
+			textOffsetY += scale + lineSpacing/(float)font.baseSize*scale;
+			textOffsetX = 0.0f;
+		}
+		else
+		{
+			if ((codepoint != ' ') && (codepoint != '\t'))
+			{
+				DrawTextCodepoint3D(font, codepoint, Vector3{ position.x + textOffsetX, position.y, position.z + textOffsetY }, fontSize, backface, tint);
+			}
+
+			if (font.glyphs[index].advanceX == 0) textOffsetX += (float)(font.recs[index].width + fontSpacing)/(float)font.baseSize*scale;
+			else textOffsetX += (float)(font.glyphs[index].advanceX + fontSpacing)/(float)font.baseSize*scale;
+		}
+
+		i += codepointByteCount;   // Move text bytes counter to next codepoint
+	}
+}
+
+static Vector3 MeasureText3D(Font font, const char* text, float fontSize, float fontSpacing, float lineSpacing)
+{
+	int len = TextLength(text);
+	int tempLen = 0;                // Used to count longer text line num chars
+	int lenCounter = 0;
+
+	float tempTextWidth = 0.0f;     // Used to count longer text line width
+
+	float scale = fontSize/(float)font.baseSize;
+	float textHeight = scale;
+	float textWidth = 0.0f;
+
+	int letter = 0;                 // Current character
+	int index = 0;                  // Index position in sprite font
+
+	for (int i = 0; i < len; i++)
+	{
+		lenCounter++;
+
+		int next = 0;
+		letter = GetCodepoint(&text[i], &next);
+		index = GetGlyphIndex(font, letter);
+
+		// NOTE: normally we exit the decoding sequence as soon as a bad byte is found (and return 0x3f)
+		// but we need to draw all of the bad bytes using the '?' symbol so to not skip any we set next = 1
+		if (letter == 0x3f) next = 1;
+		i += next - 1;
+
+		if (letter != '\n')
+		{
+			if (font.glyphs[index].advanceX != 0) textWidth += (font.glyphs[index].advanceX+fontSpacing)/(float)font.baseSize*scale;
+			else textWidth += (font.recs[index].width + font.glyphs[index].offsetX)/(float)font.baseSize*scale;
+		}
+		else
+		{
+			if (tempTextWidth < textWidth) tempTextWidth = textWidth;
+			lenCounter = 0;
+			textWidth = 0.0f;
+			textHeight += scale + lineSpacing/(float)font.baseSize*scale;
+		}
+
+		if (tempLen < lenCounter) tempLen = lenCounter;
+	}
+
+	if (tempTextWidth < textWidth) tempTextWidth = textWidth;
+
+	Vector3 vec = { 0 };
+	vec.x = tempTextWidth + (float)((tempLen - 1)*fontSpacing/(float)font.baseSize*scale); // Adds chars spacing to measure
+	vec.y = 0.25f;
+	vec.z = textHeight;
+
+	return vec;
+}
+
+
 void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
 	float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
@@ -44,38 +218,38 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 						} else {
 							NoteColor = GREEN;
 						}
-						break;
+					break;
 					case 1:
 						if (pd) {
 							NoteColor = RED;
 						} else {
 							NoteColor = RED;
 						}
-						break;
+					break;
 					case 2:
 						if (pd) {
 							NoteColor = YELLOW;
 						} else {
 							NoteColor = YELLOW;
 						}
-						break;
+					break;
 					case 3:
 						if (pd) {
 							NoteColor = BLUE;
 						} else {
 							NoteColor = BLUE;
 						}
-						break;
+					break;
 					case 4:
 						if (pd) {
 							NoteColor = GREEN;
 						} else {
 							NoteColor = ORANGE;
 						}
-						break;
+					break;
 					default:
 						NoteColor = accentColor;
-						break;
+					break;
 				}
 			}   else {
 				NoteColor = gprMenu.hehe && player->Difficulty == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : accentColor;
@@ -99,7 +273,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 							curNote.countedForSolo = true;
 						}
 					}
-				}
+					}
 			}
 			if (!curChart.odPhrases.empty()) {
 
@@ -114,7 +288,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					}
 					curNote.renderAsOD = true;
 
-				}
+					}
 				if (curChart.odPhrases[player->stats->curODPhrase].missed) {
 					curNote.renderAsOD = false;
 				}
@@ -128,7 +302,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 						player->stats->overdriveActiveTime = time;
 					}
 					curChart.odPhrases[player->stats->curODPhrase].added = true;
-				}
+					}
 			}
 			if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend < time && !songEnded) {
 				curNote.miss = true;
@@ -137,7 +311,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start &&
 					curNote.time < curChart.odPhrases[player->stats->curODPhrase].end) {
 					curChart.odPhrases[player->stats->curODPhrase].missed = true;
-				};
+					};
 				player->stats->Combo = 0;
 				curNote.accounted = true;
 			} else if (player->Bot) {
@@ -150,10 +324,11 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					}
 					if (curNote.len > 0) curNote.held = true;
 					curNote.accounted = true;
+					// player->stats->Notes += 1;
 					// player->stats->Combo++;
 					curNote.accounted = true;
 					curNote.hitTime = time;
-				}
+					}
 			}
 
 			double relTime = ((curNote.time - time)) *
@@ -175,7 +350,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					DrawModel(gprAssets.liftModelOD, Vector3{notePosX, 0, smasherPos +
 																		  (length *
 																		   (float) relTime)}, 1.1f, WHITE);
-					// energy phrase
+				// energy phrase
 				else
 					DrawModel(gprAssets.liftModel, Vector3{notePosX, 0, smasherPos +
 																		(length * (float) relTime)},
@@ -189,17 +364,17 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 							(curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
 							curNote.heldTime = 0.0 - relTime;
 							//if (!bot) {
-								//player.sustainScoreBuffer[curNote.lane] =
-								//		(float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
-								//		player.multiplier(player->Instrument);
+							//player.sustainScoreBuffer[curNote.lane] =
+							//		(float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
+							//		player.multiplier(player->Instrument);
 							//}
 							if (relTime < 0.0) relTime = 0.0;
-						}
+							}
 						if (relEnd <= 0.0) {
 							if (relTime < 0.0) relTime = relEnd;
 							//if (!bot) {
-								//player.score += player.sustainScoreBuffer[curNote.lane];
-								//player.sustainScoreBuffer[curNote.lane] = 0;
+							//player.score += player.sustainScoreBuffer[curNote.lane];
+							//player.sustainScoreBuffer[curNote.lane] = 0;
 							//}
 							curNote.held = false;
 						}
@@ -289,7 +464,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 
 					}
 
-				}
+					}
 				gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 			}
 			if (curNote.miss) {
@@ -312,9 +487,9 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 					curNote.time + 0.4 && gprSettings.missHighwayColor) {
 					gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-				} else {
-					gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
-				}
+					} else {
+						gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
+					}
 			}
 			double HitAnimDuration = 0.15f;
 			double PerfectHitAnimDuration = 1.0f;
@@ -332,7 +507,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				// }
 
 
-			}
+							   }
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							(curNote.hitTime) + PerfectHitAnimDuration && curNote.perfect) {
 
@@ -344,7 +519,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 						 0.5f, Color{255,161,0,HitAlpha});
 				DrawCube(Vector3{HitPosLeft, -0.11f, smasherPos}, 1.0f, 0.01f,
 						 1.0f, Color{255,161,0,(unsigned char)(HitAlpha/2)});
-			}
+							}
 			// DrawText3D(gprAssets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
 
 
@@ -432,6 +607,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 		} else if (player->Bot) {
 			if (!curNote.hit && !curNote.accounted && curNote.time < time && player->stats->curNoteInt < curChart.notes.size() && !songEnded) {
 				curNote.hit = true;
+				player->stats->Notes++;
 				if (curNote.len > 0) curNote.held = true;
 				curNote.accounted = true;
 				player->stats->Combo++;
@@ -765,6 +941,28 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 		DrawModel(gprAssets.multCtr3, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 	}
 	DrawModel(gprAssets.multNumber, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+
+	float angle = 90;
+	float rotateX = 0;
+	float rotateY = 1;
+	float rotateZ = 0;
+
+
+	float posX = -7.5;
+	float posY = 0;
+	float posZ = -3.3;
+
+	float scaleX = 2;
+	float scaleY = 1;
+	float scaleZ = 1;
+
+	float fontSize = 80;
+	rlPushMatrix();
+		rlRotatef(angle, rotateX, rotateY, rotateZ);
+		rlScalef(scaleX, scaleY, scaleZ);
+		//rlRotatef(90.0f, 0.0f, 0.0f, 1.0f);								//0, 1, 2.4
+		DrawText3D(gprAssets.rubikBold, player->Name.c_str(), Vector3{ posX,posY,posZ }, fontSize, 0, 0, 1, WHITE);
+	rlPopMatrix();
 	EndMode3D();
 	EndTextureMode();
 
@@ -1130,7 +1328,6 @@ void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double tim
 
 
 
-
 }
 
 void gameplayRenderer::RenderEmhHighway(Player* player, Song song, double time, RenderTexture2D &highway_tex) {
@@ -1198,7 +1395,6 @@ void gameplayRenderer::RenderEmhHighway(Player* player, Song song, double time, 
 	highway_tex.texture.width = (float)GetScreenWidth();
 	highway_tex.texture.height = (float)GetScreenHeight();
 	DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {0,highwayLevel}, 0, WHITE );
-
 }
 
 void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, double musicTime) {

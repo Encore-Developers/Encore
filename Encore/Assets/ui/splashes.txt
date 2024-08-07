@@ -1,70 +1,67 @@
 ﻿
 It's Encore-ing time.
-Definitely not ripping off a popular battle royale game!
-Now available: The Encore Battle Pass! Including 30 unique skins!
-Friday Night Funkin' Modding
-Do NOT drink the Among Us potion at 3 AM.
+Now available: The Encore Battle Pass! Including 30 unique skins!+
+Do NOT drink the Among Us potion at 3 AM!
 What's better? Encore Raylib or Encore Unity?
-Player player = new Player;
-gameMenu.cpp.obj : error LNK2001: unresolved external symbol "public: static struct Player Player::player" (?player@Player@@2UPlayer@@A)
+Player player = new Player;!
+gameMenu.cpp.obj : error LNK2001: unresolved external symbol "public: static struct Player Player::player" (?player@Player@@2UPlayer@@A)!
 case gameplay? like phoenix wright?
-wow it's an encore in here
-error C2065: 'FretAfterStrumTime': undeclared identifier
-NullReferenceException: "randomizedText" is null or undefined.
+wow it's an encore in here!
+error C2065: 'FretAfterStrumTime': undeclared identifier!
+NullReferenceException: "randomizedText" is null or undefined!
 If En, then only Core!
-Encore better add the balls or else I am going to be sad
-#1 on the Cake By The Ocean leaderboard
+Encore better add the balls or else I am going to be sad!
+#1 on the Cake By The Ocean leaderboard!
 In loving memory of Zwarkledarg... gone too soon.
 Now comes with a calculator!
-Powered by Unreal Engine
-All my boys HATE 28.30
+Powered by Unreal Engine!
 Also try YARG!
 Also try Rock Band 3 Deluxe!
 Also try Clone Hero!
 Also try GHWT:DE!
 Also try Partypack!
 Also try GHTV Reloaded!
-SlowFNF
-Powered by Unity
-Powered by Scratch
-Powered by Assets assets;
-We do NOT support piracy.
-The band's back together again. And again. And again. And again.
-FREE MONEY FREE GENERATOR 2024 FREE MONEY CODES [LATEST UPDATES]
+SlowFNF!
+Powered by Unity!
+Powered by Scratch!
+Powered by Assets assets;!
+We do NOT support piracy!
+The band's back together again. And again. And again. And again!
 Popular shooter game's rhythm mode - but made in China!
 Gyatt!
-const const = "const"
+const const = "const"!
 Finally... charts can be butchered by pull-off notes!
 What are those arrow notes for?
-acai if you see this please dm me "banana"
-S O N G S  I N  B I O
-harmonix binder
-What if Raven Team Leader had a built-in emote where she gave you a hug
+acai if you see this please dm me "banana"!
+S O N G S  I N  B I O!
+harmonix binder!
+What if Raven Team Leader had a built-in emote where she gave you a hug!
 I hope this grabs your attention!
 We don't talk about the Encore Discord.
 hey if u have time can i ask u if you want a commission?
-i forgor
-i rember
+i forgor!
+i rember!
 The overshell was the best invention since sliced bread!
 encore
-Hi mom
-Handmade with care
+Hi mom!
+Handmade with care!
 Whammy for points!
 When shit hit the fan, is you still a fan?
 John Encore thanks you!
 Technical difficulties!
-Ohio State University Frenzy but easy
+Ohio State University Frenzy but easy!
 Trans Rights!
 Queer Rights!
 Love yourself!
-cannot discussion that here
-DISABLE YOUR PROXY
-Media Streaming Error
-Narrik was here
-Marie was here
-Gona was here
-Kimicake was here
-GHNerd was here
+cannot discussion that here!
+DISABLE YOUR PROXY!
+Media Streaming Error!
+Narrik was here!
+Marie was here!
+Gona was here!
+Kimicake was here!
+GHNerd was here!
 YOUR JORDANS ARE FAKE, SOLDIER!!
-tposejank was here
+tposejank was here!
 Also try FNLookup!
+and multiplayer is being worked on as well!

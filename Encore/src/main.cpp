@@ -500,7 +500,7 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 							if (action == GLFW_PRESS) {
 								stats->HeldFretsAlt[i] = true;
 							} else if (action == GLFW_RELEASE) {
-								stats->HeldFrets[i] = false;
+								stats->HeldFretsAlt[i] = false;
 								stats->OverhitFrets[i] = false;
 							}
 							lane = i;
@@ -930,13 +930,13 @@ int main(int argc, char *argv[]) {
 
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
-	newPlayer.Bot = true;
+	newPlayer.Bot = false;
 	playerManager.PlayerList.push_back(newPlayer);
 	playerManager.AddActivePlayer(0,0);
 
 	Player newPlayer2;
 	newPlayer2.Name = "lothycat";
-	newPlayer2.Bot = true;
+	newPlayer2.Bot = false;
 	newPlayer2.joypadID = GLFW_JOYSTICK_1;
 	playerManager.PlayerList.push_back(newPlayer2);
 	playerManager.AddActivePlayer(1,1);
@@ -984,7 +984,7 @@ int main(int argc, char *argv[]) {
 	GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
 
 
-	// gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
+	gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
 	// bool wideSoloPlane = player.diff == 3;
 	// gpr.soloPlane = GenMeshPlane(wideSoloPlane ? 6 : 5, 1.0f, 1, 1);
 
@@ -2701,6 +2701,7 @@ int main(int argc, char *argv[]) {
 					GenTextureMipmaps(&notes_tex.texture);
 					SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
+
 					UnloadRenderTexture(hud_tex);
 					RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&hud_tex.texture);
@@ -2876,8 +2877,8 @@ int main(int argc, char *argv[]) {
 									audioManager.loadedStreams[0].handle) - 0.01
 								: songList.songs[curPlayingSong].end - 0.01;
 					if (songEnd < songPlayed) {
-						// glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-						// glfwSetGamepadStateCallback(origGamepadCallback);
+						glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
+						glfwSetGamepadStateCallback(origGamepadCallback);
 						// notes = (int)songList.songs[curPlayingSong].parts[Instrument]->charts[diff].notes.size();
 						// player.overdrive = false;
 						// player.overdriveFill = 0.0f;
@@ -2920,17 +2921,49 @@ int main(int argc, char *argv[]) {
 						GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 				// player.notes = (int) songList.songs[curPlayingSong].parts[player.instrument]->charts[
 				//	player.diff].notes.size();
-				gpr.cameraSel = 1;
-				gpr.renderPos = GetScreenWidth()/4;
-				gpr.RenderGameplay(playerManager.GetActivePlayer(0), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
-				gpr.cameraSel = 2;
-				gpr.renderPos = -GetScreenWidth()/4;
-				gpr.RenderGameplay(playerManager.GetActivePlayer(1), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+				for (int pnum = 0; pnum < playerManager.PlayersActive; pnum++) {
 
-				gpr.cameraSel = 0;
-				gpr.renderPos = 0;
-				gpr.RenderGameplay(playerManager.GetActivePlayer(2), songFloat, songList.songs[curPlayingSong], highway_tex,
-									hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+					switch (playerManager.PlayersActive) {
+						case (1): {
+							gpr.cameraSel = 0;
+							gpr.renderPos = 0;
+							break;
+						}
+						case (2): {
+							if (pnum == 0) {
+								gpr.cameraSel = 0;
+								gpr.renderPos = -GetScreenWidth()/4;
+							} else {
+								gpr.cameraSel = 2;
+								gpr.renderPos = GetScreenWidth()/4;
+							}
+							break;
+						}
+						case (3): {
+							if (pnum == 0) {
+								gpr.cameraSel = 1;
+								gpr.renderPos = GetScreenWidth()/4;
+							} else if (pnum == 1) {
+								gpr.cameraSel = 0;
+								gpr.renderPos = 0;
+							} else if (pnum == 2) {
+								gpr.cameraSel = 2;
+								gpr.renderPos = -GetScreenWidth()/4;
+							}
+							break;
+						}
+					}
+					gpr.RenderGameplay(playerManager.GetActivePlayer(pnum), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+					//DrawTextEx(assets.rubik, playerManager.GetActivePlayer(pnum)->Name.c_str(), {u.wpct((pnum * 0.33)+(0.33/2)),u.hpct(0.9)}, u.hinpct(0.05), 0, WHITE);
+				}
+				//gpr.cameraSel = 2;
+				//gpr.renderPos = -GetScreenWidth()/4;
+				//gpr.RenderGameplay(playerManager.GetActivePlayer(1), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+
+				//gpr.cameraSel = 0;
+				//gpr.renderPos = 0;
+				//gpr.RenderGameplay(playerManager.GetActivePlayer(2), songFloat, songList.songs[curPlayingSong], highway_tex,
+				//					hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 
 
 				float SongNameWidth = MeasureTextEx(assets.rubikBoldItalic,
@@ -3280,7 +3313,8 @@ int main(int argc, char *argv[]) {
 
 
 				menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur);
-				// menu.showResults(player);
+				menu.showResults();
+				overshellRenderer.DrawOvershell();
 				if (GuiButton({0, 0, 60, 60}, "<")) {
 					// player.quit = false;
 					menu.SwitchScreen(SONG_SELECT);
