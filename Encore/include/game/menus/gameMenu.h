@@ -41,7 +41,7 @@ private:
         ss << std::fixed << value;
         return ss.str();
     }
-    void renderPlayerResults(Player player, Song song);
+    void renderPlayerResults(Player player, Song song, int playerNum);
     // void renderStars(Player player, float xPos, float yPos, float scale, bool left);
 public:
 
@@ -64,7 +64,7 @@ public:
     bool stringChosen = false;
     Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
-    void showResults(Player &player);
+    void showResults();
     void loadMenu();
     inline void loadTitleScreen() {};
 
