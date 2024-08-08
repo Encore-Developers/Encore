@@ -159,7 +159,7 @@ static void handleInputs(Player *player, int lane, int action) {
 	}
 	Chart &curChart = songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty];
 	float eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
-	if (player->Instrument != 4) {
+	if (true) {
 		if (action == GLFW_PRESS && (lane == -1) && stats->overdriveFill > 0 && !stats->Overdrive) {
 			stats->overdriveActiveTime = eventTime;
 			stats->overdriveActiveFill = stats->overdriveFill;
@@ -596,8 +596,8 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state)
 			stats->buttonValues[settingsMain.controllerOverdrive] = state.buttons[settingsMain.
 				controllerOverdrive];
 			handleInputs(player,-1, state.buttons[settingsMain.controllerOverdrive]);
-		} //
-	} else if (!player->Bot) {
+		} // // if (!player->Bot)
+	} else  {
 		if (state.axes[-(settingsMain.controllerOverdrive + 1)] != stats->axesValues[-(
 				settingsMain.controllerOverdrive + 1)]) {
 			stats->axesValues[-(settingsMain.controllerOverdrive + 1)] = state.axes[-(
@@ -930,13 +930,14 @@ int main(int argc, char *argv[]) {
 
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
-	newPlayer.Bot = false;
+	newPlayer.Bot = true;
 	playerManager.PlayerList.push_back(newPlayer);
 	playerManager.AddActivePlayer(0,0);
 
 	Player newPlayer2;
 	newPlayer2.Name = "lothycat";
-	newPlayer2.Bot = false;
+	newPlayer2.ProDrums = true;
+	newPlayer2.Bot = true;
 	newPlayer2.joypadID = GLFW_JOYSTICK_1;
 	playerManager.PlayerList.push_back(newPlayer2);
 	playerManager.AddActivePlayer(1,1);
@@ -2421,8 +2422,7 @@ int main(int argc, char *argv[]) {
 												else if (trackName == "EVENTS") {
 													songList.songs[curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
 												} else {
-													if (songPart != SongParts::Invalid &&
-														songPart != SongParts::PlasticDrums) {
+													if (songPart != SongParts::Invalid) {
 														for (int diff = 0; diff < 4; diff++) {
 															Chart newChart;
 															std::cout << trackName << " " << diff << endl;
@@ -2431,27 +2431,34 @@ int main(int argc, char *argv[]) {
 																|| songPart == SongParts::PlasticGuitar) {
 																newChart.plastic = true;
 																newChart.parsePlasticNotes(midiFile, i, midiFile[i],
-																			diff, (int)songPart);
-																} else {
-																	newChart.plastic = false;
-																	newChart.parseNotes(midiFile, i, midiFile[i],
-																				diff, (int)songPart);
-																}
-
-
+																							diff, (int) songPart);
+															} else if (songPart == SongParts::PlasticDrums) {
+																newChart.plastic = true;
+																newChart.parsePlasticDrums(
+																	midiFile, i, midiFile[i], diff,
+																	(int) songPart, true);
+																// TODO: implement new chart loader
+															} else {
+																newChart.plastic = false;
+																newChart.parseNotes(midiFile, i, midiFile[i],
+																					diff, (int) songPart);
+															}
 															if (!newChart.plastic) {
 																int noteIdx = 0;
-																for (Note &note : newChart.notes) {
-																	newChart.notes_perlane[note.lane].push_back(noteIdx);
+																for (Note &note: newChart.notes) {
+																	newChart.notes_perlane[note.lane].
+																			push_back(noteIdx);
 																	noteIdx++;
 																}
 															}
 															if (newChart.notes.size() > 0) {
-																songList.songs[curPlayingSong].parts[(int)songPart] -> hasPart = true;
+																songList.songs[curPlayingSong].parts[(int) songPart]->
+																		hasPart = true;
 															}
-															songList.songs[curPlayingSong].parts[(int)songPart] -> charts.push_back(newChart);
+															songList.songs[curPlayingSong].parts[(int) songPart]->charts
+																	.push_back(newChart);
 														}
-														}
+													}
 												}
 											}
 										}
@@ -2667,15 +2674,17 @@ int main(int argc, char *argv[]) {
 										"Ready Up!")) {
 								player->instSelection = true;
 								player->ReadyUpMenu = false;
+								player->stats->Difficulty = player->Difficulty;
+								player->stats->Instrument = player->Instrument;
 								// gpr.highwayInAnimation = false;
 								// gpr.songStartTime = GetTime();
 								menu.SwitchScreen(GAMEPLAY);
 								glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 								glfwSetGamepadStateCallback(gamepadStateCallback);
 								gpr.camera3pVector = {gpr.camera1, gpr.camera3, gpr.camera2};
-										}
+							}
 							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-										ColorToInt(ColorBrightness(AccentColor, -0.5)));
+							ColorToInt(ColorBrightness(AccentColor, -0.5)));
 							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
 							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
 
@@ -2880,14 +2889,8 @@ int main(int argc, char *argv[]) {
 						glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
 						glfwSetGamepadStateCallback(origGamepadCallback);
 						// notes = (int)songList.songs[curPlayingSong].parts[Instrument]->charts[diff].notes.size();
-						// player.overdrive = false;
-						// player.overdriveFill = 0.0f;
-						// player.overdriveActiveFill = 0.0f;
-						// player.overdriveActiveTime = 0.0;
-						// player.overdriveActivateTime = 0.0f;
-						// gpr.curODPhrase = 0;
-						// gpr.curNoteInt = 0;
-						// gpr.curSolo = 0;
+
+
 						menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
 						midiLoaded = false;
 						isPlaying = false;
@@ -3317,6 +3320,12 @@ int main(int argc, char *argv[]) {
 				overshellRenderer.DrawOvershell();
 				if (GuiButton({0, 0, 60, 60}, "<")) {
 					// player.quit = false;
+					for (int i = 0; i < playerManager.PlayersActive; i++){
+						Player *player = playerManager.GetActivePlayer(i);
+						player->ResetGameplayStats();
+						songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty].resetNotes();
+					}
+					playerManager.BandStats.ResetBandGameplayStats();
 					menu.SwitchScreen(SONG_SELECT);
 				}
 				break;

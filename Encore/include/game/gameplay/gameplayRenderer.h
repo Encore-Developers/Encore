@@ -11,15 +11,17 @@ class gameplayRenderer {
     void RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
     void RenderHud(Player* player, RenderTexture2D&, float);
     void RenderExpertHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
+	void RenderPDrumsHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
     void RenderEmhHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex);
     void DrawBeatlines(Player* player, Song song, float length, double musicTime);
     void DrawOverdrive(Player* player, Chart& curChart, float length, double musicTime);
     void DrawSolo(Player* player,  Chart& curChart, float length, double musicTime);
-    void RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length);
+	void RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length);
+	void RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
 public:
 	float highwayLevel = 0;
 	float smasherPos = 2.4f;
-
+	float HitAnimDuration = 0.15f;
 	bool highwayInAnimation = false;
 	bool highwayInEndAnim = false;
 	bool highwayOutAnimation = false;

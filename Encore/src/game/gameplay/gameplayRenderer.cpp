@@ -100,7 +100,6 @@ static void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, floa
     }
 }
 
-
 static void DrawText3D(Font font, const char *text, Vector3 position, float fontSize, float fontSpacing, float lineSpacing, bool backface, Color tint)
 {
 	int length = TextLength(text);          // Total length in bytes of the text, scanned by codepoints in loop
@@ -196,7 +195,6 @@ static Vector3 MeasureText3D(Font font, const char* text, float fontSize, float 
 
 	return vec;
 }
-
 
 void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
@@ -320,7 +318,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					curNote.hit = true;
 					player->stats->HitNote(false);
 					if (gprPlayerManager.BandStats.Multiplayer) {
-						gprPlayerManager.BandStats.AddNotePoint(curNote.perfect, player->stats->multiplier());
+						gprPlayerManager.BandStats.AddNotePoint(curNote.perfect, player->stats->noODmultiplier());
 					}
 					if (curNote.len > 0) curNote.held = true;
 					curNote.accounted = true;
@@ -491,23 +489,15 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 						gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 					}
 			}
-			double HitAnimDuration = 0.15f;
+			BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 			double PerfectHitAnimDuration = 1.0f;
-			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
-							   (curNote.hitTime) + HitAnimDuration) {
-
+			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) < (curNote.hitTime) + HitAnimDuration) {
 				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
-				unsigned char HitAlpha = Remap(getEasingFunction(EaseInBack)(TimeSinceHit/HitAnimDuration), 0, 1.0, 196, 0);
-
+				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutExpo)(TimeSinceHit/HitAnimDuration), 0, 1.0, 196, 0);
 				DrawCube(Vector3{notePosX, 0.125, smasherPos}, 1.0f, 0.25f, 0.5f,
 						 curNote.perfect ? Color{255, 215, 0, HitAlpha} : Color{255, 255, 255, HitAlpha});
-				// if (curNote.perfect) {
-				// 	DrawCube(Vector3{3.3f, 0, smasherPos}, 1.0f, 0.01f,
-				// 			 0.5f, Color{255,161,0,HitAlpha});
-				// }
-
-
-							   }
+			}
+			EndBlendMode();
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							(curNote.hitTime) + PerfectHitAnimDuration && curNote.perfect) {
 
@@ -607,10 +597,14 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 		} else if (player->Bot) {
 			if (!curNote.hit && !curNote.accounted && curNote.time < time && player->stats->curNoteInt < curChart.notes.size() && !songEnded) {
 				curNote.hit = true;
-				player->stats->Notes++;
+				player->stats->HitNote(false);
+				if (gprPlayerManager.BandStats.Multiplayer) {
+					gprPlayerManager.BandStats.AddNotePoint(curNote.perfect, player->stats->noODmultiplier());
+				}
+				// player->stats->Notes++;
 				if (curNote.len > 0) curNote.held = true;
 				curNote.accounted = true;
-				player->stats->Combo++;
+				// player->stats->Combo++;
 				curNote.accounted = true;
 				curNote.hitTime = time;
 				player->stats->curNoteInt++;
@@ -710,7 +704,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				if (curNote.extendedSustain)
 					TraceLog(LOG_INFO, "extended sustain lol");
 
-				if ((!noteMatch && curNote.held) && curNote.time + curNote.len + 0.1 > time) {
+				if ((!noteMatch && curNote.held) && curNote.time + curNote.len + 0.1 > time && !player->Bot) {
 					curNote.held = false;
 					if (curNote.extendedSustain == true)
 						extendedSustainActive = false;
@@ -730,7 +724,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 						if (curNote.extendedSustain == true)
 							extendedSustainActive = false;
 					}
-				} else if (curNote.hit && !curNote.held) {
+				} else if (curNote.hit && !curNote.held && !player->Bot) {
 					relTime = relTime + curNote.heldTime;
 				}
 				float sustainLen =
@@ -841,7 +835,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 					gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 				}
 			}
-			double HitAnimDuration = 0.15f;
+
 			double PerfectHitAnimDuration = 1.0f;
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							   curNote.hitTime + HitAnimDuration) {
@@ -858,6 +852,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 
 
 			}
+
 			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 							   curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
 
@@ -880,7 +875,6 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 	notes_tex.texture.height = (float)GetScreenHeight();
 	DrawTexturePro(notes_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }
-
 
 void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float length) {
 	BeginTextureMode(hud_tex);
@@ -957,12 +951,15 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	float scaleZ = 1;
 
 	float fontSize = 80;
+
 	rlPushMatrix();
 		rlRotatef(angle, rotateX, rotateY, rotateZ);
 		rlScalef(scaleX, scaleY, scaleZ);
 		//rlRotatef(90.0f, 0.0f, 0.0f, 1.0f);								//0, 1, 2.4
 		DrawText3D(gprAssets.rubikBold, player->Name.c_str(), Vector3{ posX,posY,posZ }, fontSize, 0, 0, 1, WHITE);
 	rlPopMatrix();
+
+
 	EndMode3D();
 	EndTextureMode();
 
@@ -971,7 +968,6 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	hud_tex.texture.height = (float)GetScreenHeight();
 	DrawTexturePro(hud_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }
-
 
 void gameplayRenderer::RaiseHighway() {
 	if (!highwayInAnimation) {
@@ -997,17 +993,27 @@ void gameplayRenderer::LowerHighway() {
 	}
 };
 
-
 void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, RenderTexture2D& highway_tex, RenderTexture2D& hud_tex, RenderTexture2D& notes_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex) {
 
 	Chart& curChart = song.parts[player->Instrument]->charts[player->Difficulty];
 	float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
+	player->stats->Difficulty = player->Difficulty;
+	player->stats->Instrument = player->Instrument;
+	//float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : (!player->stats->Multiplayer ? ((float)(player->stats->multiplier() / 2) - 1) / (float)player->stats->maxMultForMeter() : (float)(player->stats->multiplier() - 1)));
+	float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : ((float)(player->stats->multiplier() / 2) - 1)) / (float)player->stats->maxMultForMeter();
 
-	float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : (!player->stats->Multiplayer ? ((float)(player->stats->multiplier() / 2) - 1) / (float)player->stats->maxMultForMeter() : (float)(player->stats->multiplier() - 1)));
+	//float multFill = 0.0;
+
+
 	SetShaderValue(gprAssets.odMultShader, gprAssets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetXLoc, &player->stats->uvOffsetX, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetYLoc, &player->stats->uvOffsetY, SHADER_UNIFORM_FLOAT);
 	float comboFill = player->stats->comboFillCalc();
+	int isBassOrVocal = 0;
+	if (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5) {
+		isBassOrVocal = 1;
+	}
+	SetShaderValue(gprAssets.odMultShader, gprAssets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
 	SetShaderValue(gprAssets.odMultShader, gprAssets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.odMultShader, gprAssets.odLoc, &player->stats->overdriveFill, SHADER_UNIFORM_FLOAT);
 
@@ -1141,13 +1147,21 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 		}
 	}
 
-	if (player->Difficulty == 3 || player->ClassicMode) {
+	if (player->Instrument == 4) {
+		RenderPDrumsHighway(player, song, time, highway_tex, highwayStatus_tex, smasher_tex);
+	}
+	else if (player->Difficulty == 3 || (player->ClassicMode && player->Instrument!=4)) {
 		RenderExpertHighway(player, song, time, highway_tex, highwayStatus_tex, smasher_tex);
 	} else {
 		RenderEmhHighway(player, song, time, highway_tex);
 	}
 	if (player->ClassicMode) {
-		RenderClassicNotes(player, curChart, time, notes_tex, highwayLength);
+		if (player->Instrument == 4) {
+			RenderPDrumsNotes(player, curChart, time, notes_tex, highwayLength);
+		}
+		else {
+			RenderClassicNotes(player, curChart, time, notes_tex, highwayLength);
+		}
 	} else {
 		RenderNotes(player, curChart, time, notes_tex, highwayLength);
 	}
@@ -1517,4 +1531,366 @@ void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, d
 	// draw
 	DrawCylinderEx(RightSideStart, RightSideEnd, 0.07, 0.07, 10, SKYBLUE);
 	DrawCylinderEx(LeftSideStart, LeftSideEnd, 0.07, 0.07, 10, SKYBLUE);
+}
+
+// classic drums
+enum DrumNotes {
+	KICK,
+	RED_DRUM,
+	YELLOW_DRUM,
+	BLUE_DRUM,
+	GREEN_DRUM
+};
+
+void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length) {
+	float diffDistance = 2.0f;
+	float lineDistance = 1.0f;
+	BeginTextureMode(notes_tex);
+	ClearBackground({ 0,0,0,0 });
+	BeginMode3D(camera3pVector[cameraSel]);
+	// glDisable(GL_CULL_FACE);
+	PlayerGameplayStats *stats = player->stats;
+
+	for (auto& curNote : curChart.notes) {
+
+		if (!curChart.Solos.empty()) {
+			if (curNote.time >= curChart.Solos[stats->curSolo].start &&
+				curNote.time < curChart.Solos[stats->curSolo].end) {
+				if (curNote.hit) {
+					if (curNote.hit && !curNote.countedForSolo) {
+						curChart.Solos[stats->curSolo].notesHit++;
+						curNote.countedForSolo = true;
+					}
+				}
+			}
+		}
+		if (!curChart.odPhrases.empty()) {
+
+			if (curNote.time >= curChart.odPhrases[stats->curODPhrase].start &&
+				curNote.time < curChart.odPhrases[stats->curODPhrase].end &&
+				!curChart.odPhrases[stats->curODPhrase].missed) {
+				if (curNote.hit) {
+					if (curNote.hit && !curNote.countedForODPhrase) {
+						curChart.odPhrases[stats->curODPhrase].notesHit++;
+						curNote.countedForODPhrase = true;
+					}
+				}
+				curNote.renderAsOD = true;
+
+			}
+			if (curChart.odPhrases[stats->curODPhrase].missed) {
+				curNote.renderAsOD = false;
+			}
+			if (curChart.odPhrases[stats->curODPhrase].notesHit ==
+				curChart.odPhrases[stats->curODPhrase].noteCount &&
+				!curChart.odPhrases[stats->curODPhrase].added && stats->overdriveFill < 1.0f) {
+				stats->overdriveFill += 0.25f;
+				if (stats->overdriveFill > 1.0f) stats->overdriveFill = 1.0f;
+				if (stats->Overdrive) {
+					stats->overdriveActiveFill = stats->overdriveFill;
+					stats->overdriveActiveTime = time;
+				}
+				curChart.odPhrases[stats->curODPhrase].added = true;
+			}
+		}
+		if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend + player->InputCalibration < time &&
+			!songEnded && stats->curNoteInt < curChart.notes.size() && !songEnded && !player->Bot) {
+			TraceLog(LOG_INFO, TextFormat("Missed note at %f, note %01i", time, stats->curNoteInt));
+			curNote.miss = true;
+			FAS = false;
+			stats->MissNote();
+			if (!curChart.odPhrases.empty() && !curChart.odPhrases[stats->curODPhrase].missed &&
+				curNote.time >= curChart.odPhrases[stats->curODPhrase].start &&
+				curNote.time < curChart.odPhrases[stats->curODPhrase].end)
+				curChart.odPhrases[stats->curODPhrase].missed = true;
+			stats->Combo = 0;
+			curNote.accounted = true;
+			stats->curNoteInt++;
+		}
+		else if (player->Bot) {
+			if (!curNote.hit && !curNote.accounted && curNote.time < time && stats->curNoteInt < curChart.notes.size() && !songEnded) {
+				curNote.hit = true;
+				player->stats->HitDrumsNote(false, !curNote.pDrumTom);
+				if (gprPlayerManager.BandStats.Multiplayer) {
+					gprPlayerManager.BandStats.DrumNotePoint(false, player->stats->noODmultiplier(), !curNote.pDrumTom);
+				}
+				if (curNote.len > 0) curNote.held = true;
+				curNote.accounted = true;
+				// stats->Combo++;
+				curNote.accounted = true;
+				curNote.hitTime = time;
+				stats->curNoteInt++;
+			}
+		}
+
+		double relTime = ((curNote.time - time)) *
+			gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+
+		Color NoteColor;
+		switch (curNote.lane) {
+		case 0:
+			NoteColor = gprMenu.hehe ? SKYBLUE : ORANGE;
+			break;
+		case 1:
+			NoteColor = gprMenu.hehe ? PINK : RED;
+			break;
+		case 2:
+			NoteColor = gprMenu.hehe ? RAYWHITE : YELLOW;
+			break;
+		case 3:
+			NoteColor = gprMenu.hehe ? PINK : BLUE;
+			break;
+		case 4:
+			NoteColor = gprMenu.hehe ? SKYBLUE : GREEN;
+			break;
+		default:
+			NoteColor = accentColor;
+			break;
+		}
+
+		gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+		gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+
+		float notePosX = curNote.lane == KICK ? 0 : (diffDistance - (1.25f * (curNote.lane - 1)))-0.125f;
+		float notePosY = curNote.lane == KICK ? 0.01f : 0;
+		if (relTime > 1.5) {
+			break;
+		}
+		Vector3 NoteScale = { 1.35f,1.35f,1.35f };
+		if (curNote.lane == KICK) {
+			NoteScale.x = 6.5f;
+			NoteScale.y = 0.6f;
+			NoteScale.z = 0.75f;
+		}
+		else if(curNote.lane>RED_DRUM && player->ProDrums) {
+			if (!curNote.pDrumTom) {
+				NoteScale.x = 0.75f;
+			}
+		}
+		if (!curNote.hit && !curNote.miss) {
+			if (curNote.renderAsOD) {
+				DrawModelEx(gprAssets.noteTopModelOD, Vector3{ notePosX, notePosY, smasherPos +
+																			(length *
+																			(float)relTime) },Vector3{0,0,0},0, NoteScale,
+					WHITE);
+				DrawModelEx(gprAssets.noteBottomModelOD, Vector3{ notePosX, notePosY, smasherPos +
+																			(length *
+																				(float)relTime) }, Vector3{ 0,0,0 },0, NoteScale,
+					WHITE);
+			}
+			else {
+				DrawModelEx(gprAssets.noteTopModel, Vector3{ notePosX, notePosY, smasherPos +
+																	   (length *
+																		(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
+					WHITE);
+				DrawModelEx(gprAssets.noteBottomModel, Vector3{ notePosX, notePosY, smasherPos +
+																		  (length *
+																		   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
+					WHITE);
+			}
+		}
+		else if (curNote.miss) {
+			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+			DrawModelEx(gprAssets.noteTopModel, Vector3{ notePosX, notePosY, smasherPos +
+																		   (length *
+																			(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
+				WHITE);
+			DrawModelEx(gprAssets.noteBottomModel, Vector3{ notePosX, notePosY, smasherPos +
+																	  (length *
+																	   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
+				WHITE);
+		}
+
+		if (curNote.miss && curNote.time + 0.5 < time) {
+			if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+				curNote.time + 0.4 && gprSettings.missHighwayColor) {
+				gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+			}
+			else {
+				gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
+			}
+		}
+		double PerfectHitAnimDuration = 1.0f;
+		if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			curNote.hitTime + HitAnimDuration) {
+
+			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			unsigned char HitAlpha = Remap(getEasingFunction(EaseInBack)(TimeSinceHit / HitAnimDuration), 0, 1.0, 196, 0);
+
+			DrawCube(Vector3{ notePosX, curNote.lane == KICK ? 0 : 0.125f, smasherPos }, curNote.lane == KICK ? 5.0f: 1.3f, curNote.lane == KICK ? 0.125f : 0.25f, curNote.lane == KICK ? 0.5f : 0.75f,
+				curNote.perfect ? Color{ 255, 215, 0, HitAlpha } : Color{ 255, 255, 255, HitAlpha });
+			// if (curNote.perfect) {
+			// 	DrawCube(Vector3{3.3f, 0, player.smasherPos}, 1.0f, 0.01f,
+			// 			 0.5f, Color{255,161,0,HitAlpha});
+			// }
+
+
+		}
+		EndBlendMode();
+		if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
+
+			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit / PerfectHitAnimDuration), 0, 1.0, 255, 0);
+			float HitPosLeft = Remap(getEasingFunction(EaseInOutBack)(TimeSinceHit / PerfectHitAnimDuration), 0, 1.0, 3.4, 3.0);
+
+			DrawCube(Vector3{ HitPosLeft, -0.1f, smasherPos }, 1.0f, 0.01f,
+				0.5f, Color{ 255,161,0,HitAlpha });
+			DrawCube(Vector3{ HitPosLeft, -0.11f, smasherPos }, 1.0f, 0.01f,
+				1.0f, Color{ 255,161,0,(unsigned char)(HitAlpha / 2) });
+		}
+	}
+	EndMode3D();
+	EndTextureMode();
+
+	SetTextureWrap(notes_tex.texture, TEXTURE_WRAP_CLAMP);
+	notes_tex.texture.width = (float)GetScreenWidth();
+	notes_tex.texture.height = (float)GetScreenHeight();
+	DrawTexturePro(notes_tex.texture, { 0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() }, { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, { renderPos,highwayLevel }, 0, WHITE);
+}
+
+void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex) {
+	BeginTextureMode(highway_tex);
+	ClearBackground({0,0,0,0});
+	BeginMode3D(camera3pVector[cameraSel]);
+	PlayerGameplayStats *stats = player->stats;
+
+	float diffDistance = 2.0f;
+	float lineDistance = 1.5f;
+
+	float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
+	float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
+
+	textureOffset += 0.1f;
+
+	//DrawTriangle3D({-diffDistance-0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,-0.002,0},Color{0,0,0,255});
+	//DrawTriangle3D({diffDistance+0.5f,-0.002,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + smasherPos},Color{0,0,0,255});
+
+	DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
+	DrawModel(gprAssets.expertHighway, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
+	if (gprSettings.highwayLengthMult > 1.0f) {
+		DrawModel(gprAssets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20-0.2f }, 1.0f, WHITE);
+		DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20-0.2f }, 1.0f, WHITE);
+		if (highwayLength > 23.0f) {
+			DrawModel(gprAssets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40-0.2f }, 1.0f, WHITE);
+			DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40-0.2f }, 1.0f, WHITE);
+		}
+	}
+	unsigned char laneColor = 0;
+	unsigned char laneAlpha = 48;
+	unsigned char OverdriveAlpha = 255;
+
+	double OverdriveAnimDuration = 0.25f;
+
+	if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
+		double TimeSinceOverdriveActivate = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player->stats->overdriveActiveTime;
+		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 0, 255);
+	} else OverdriveAlpha = 255;
+
+	if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActivateTime + OverdriveAnimDuration && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) > 0.0) {
+		double TimeSinceOverdriveActivate = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player->stats->overdriveActivateTime;
+		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 255, 0);
+	} else if (!player->stats->Overdrive) OverdriveAlpha = 0;
+
+	if (player->stats->Overdrive || gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,Color{255,255,255,OverdriveAlpha});}
+	BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+	//DrawTriangle3D({lineDistance - 1.0f,0.003,0},
+	//			   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
+	//			   {lineDistance,0.003,0},
+	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
+
+	//DrawTriangle3D({lineDistance,0.003,(highwayLength *1.5f) + smasherPos},
+	//			   {lineDistance,0.003,0},
+	//			   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
+	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
+
+	//for (int i = 0; i < 4; i++) {
+	//    float radius = player->ClassicMode ? 0.02 : ((i == (gprSettings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02);
+//
+	//    DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
+	//}
+
+	//DrawTriangle3D({0-lineDistance,0.003,0},
+	//			   {0-lineDistance,0.003,(highwayLength *1.5f) + smasherPos},
+	//			   {0-lineDistance + 1.0f,0.003,0},
+	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
+
+	//DrawTriangle3D({0-lineDistance + 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
+	//			   {0-lineDistance + 1.0f,0.003,0},
+	//			   {0-lineDistance,0.003,(highwayLength *1.5f) + smasherPos},
+	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
+
+	if (!player->ClassicMode)
+		DrawCylinderEx(Vector3{ lineDistance-1.0f, 0, smasherPos}, Vector3{ lineDistance-1.0f, 0, (highwayLength *1.5f) + smasherPos }, 0.025f, 0.025f, 15, Color{ 128,128,128,128 });
+
+	EndBlendMode();
+
+	EndMode3D();
+	EndTextureMode();
+
+	SetTextureWrap(highway_tex.texture,TEXTURE_WRAP_CLAMP);
+	highway_tex.texture.width = (float)GetScreenWidth();
+	highway_tex.texture.height = (float)GetScreenHeight();
+	DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
+
+	BeginBlendMode(BLEND_ALPHA);
+	BeginTextureMode(highwayStatus_tex);
+	ClearBackground({0,0,0,0});
+	BeginMode3D(camera3pVector[cameraSel]);
+
+	if (!song.beatLines.empty()) {
+		DrawBeatlines(player, song, highwayLength, time);
+	}
+
+	if (!song.parts[player->Instrument]->charts[player->Difficulty].odPhrases.empty()) {
+		DrawOverdrive(player, song.parts[player->Instrument]->charts[player->Difficulty], highwayLength, time);
+	}
+	if (!song.parts[player->Instrument]->charts[player->Difficulty].Solos.empty()) {
+		DrawSolo(player, song.parts[player->Instrument]->charts[player->Difficulty], highwayLength, time);
+	}
+
+	float darkYPos = 0.015f;
+
+	BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+	DrawTriangle3D({-diffDistance-0.5f,darkYPos,smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,darkYPos,smasherPos},Color{0,0,0,64});
+	DrawTriangle3D({diffDistance+0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,darkYPos,smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},Color{0,0,0,64});
+	EndBlendMode();
+	EndMode3D();
+	EndTextureMode();
+	SetTextureWrap(highwayStatus_tex.texture,TEXTURE_WRAP_CLAMP);
+	highwayStatus_tex.texture.width = (float)GetScreenWidth();
+	highwayStatus_tex.texture.height = (float)GetScreenHeight();
+	DrawTexturePro(highwayStatus_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
+
+	BeginTextureMode(smasher_tex);
+	ClearBackground({0,0,0,0});
+	BeginMode3D(camera3pVector[cameraSel]);
+	BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+	DrawModel(gprAssets.smasherBoard, Vector3{ 0, 0.004f, 0 }, 1.0f, WHITE);
+	BeginBlendMode(BLEND_ALPHA);
+	for (int i = 0; i < 4; i++) {
+		Color NoteColor = RED;
+		if (i == 1) NoteColor = YELLOW;
+		else if (i == 2) NoteColor = BLUE;
+		else if (i == 3) NoteColor = GREEN;
+		gprAssets.smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+		gprAssets.smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+
+		if (stats->HeldFrets[i] || stats->HeldFretsAlt[i]) {
+			DrawModel(gprAssets.smasherPressed, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.01f, smasherPos }, 1.25f, WHITE);
+		}
+		else {
+			DrawModel(gprAssets.smasherReg, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.01f, smasherPos }, 1.25f, WHITE);
+
+		}
+	}
+	//DrawModel(gprAssets.lanes, Vector3 {0,0.1f,0}, 1.0f, WHITE);
+
+	EndBlendMode();
+	EndMode3D();
+	EndTextureMode();
+	SetTextureWrap(smasher_tex.texture,TEXTURE_WRAP_CLAMP);
+	smasher_tex.texture.width = (float)GetScreenWidth();
+	smasher_tex.texture.height = (float)GetScreenHeight();
+	DrawTexturePro(smasher_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 }

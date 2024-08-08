@@ -132,6 +132,18 @@ public:
         PerfectHit += perfect ? 1 : 0;
         // mute = false;
     }
+    void HitDrumsNote(bool perfect, bool cymbal) {
+        NotesHit += 1;
+        Notes += 1;
+        Combo += 1;
+        if (Combo > MaxCombo)
+            MaxCombo = Combo;
+        float cymbMult = cymbal ? 1.3f : 1.0f;
+        float perfectMult = perfect ? 1.2f : 1.0f;
+        Score += (int)((30.0f * (multiplier()) * perfectMult) * cymbMult);
+        PerfectHit += perfect ? 1 : 0;
+        // mute = false;
+    }
     void HitPlasticNote(Note note) {
         NotesHit += 1;
         Notes += 1;
@@ -190,24 +202,45 @@ public:
     float uvOffsetY = 0;
 
     int multiplier() {
-        int od = Overdrive && !Multiplayer ? 2 : 1;
+        int od = Overdrive ? 2 : 1;
 
         if (Instrument == 1 || Instrument == 3 || Instrument == 5){
 
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f:0); return 1 * od; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f : 0);  return 2 * od; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f : 0);  return 3 * od; }
-            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5f : 0); return 4 * od; }
-            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f + (Overdrive && !Multiplayer ? 0.5f : 0); return 5 * od; }
-            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f + (Overdrive && !Multiplayer ? 0.5f : 0); return 6 * od; }
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5f:0); return 1 * od; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 2 * od; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 3 * od; }
+            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0); return 4 * od; }
+            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0); return 5 * od; }
+            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0); return 6 * od; }
             else { return 1 * od; };
         }
         else {
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 1 * od; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 2 * od; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 3 * od; }
-            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive && !Multiplayer ? 0.5 : 0); return 4 * od; }
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 1 * od; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 2 * od; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 3 * od; }
+            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 4 * od; }
             else { return 1 * od; }
+        };
+    }
+
+    int noODmultiplier() {
+
+        if (Instrument == 1 || Instrument == 3 || Instrument == 5){
+
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0;  return 2; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0;  return 3; }
+            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0; return 4; }
+            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f; return 5; }
+            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f; return 6; }
+            else { return 1; };
+        }
+        else {
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0; return 2; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0; return 3; }
+            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0; return 4; }
+            else { return 1; }
         };
     }
 
@@ -249,6 +282,7 @@ public:
     float InputCalibration = 0.0f;
     float NoteSpeed = 1.0f;
     bool ClassicMode;
+    bool ProDrums;
     bool ReadiedUpBefore;
     bool Bot;
     int SongsPlayed;
@@ -272,12 +306,14 @@ public:
 class BandGameplayStats : public PlayerGameplayStats {
 public:
     BandGameplayStats();
+
     void ResetBandGameplayStats();
     bool EligibleForGoldStars = false;
     bool Multiplayer = false;
     std::vector<int> OverdriveMultiplier{1,2,4,6,8};
     int PlayersInOverdrive = 0;
     void AddNotePoint(bool perfect, int playerMult);
+    void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
 };
 
 class PlayerManager {
