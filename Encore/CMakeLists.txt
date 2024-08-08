@@ -35,7 +35,7 @@ file(GLOB_RECURSE INC_FILES "include/sol/*.hpp")
 
 file(GLOB_RECURSE INC_FILES "include/lua/*.hpp")
 
-file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp")
 file(GLOB_RECURSE INC_FILES "include/*.h" "include/*.h*" "src/*.h")
 # Add source files to the executable
 add_executable(Encore ${SRC_FILES} ${INC_FILES})

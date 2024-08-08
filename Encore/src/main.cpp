@@ -16,7 +16,8 @@
 #include "game/utility.h"
 #include "game/lerp.h"
 #include "game/keybinds.h"
-#include "game/settings.h"
+#include "game/settings/settings.h"
+//#include "game/settings.h"
 #include "raygui.h"
 #include <random>
 #include "GLFW/glfw3.h"
@@ -37,7 +38,7 @@
 
 Menu &menu = Menu::getInstance();
 PlayerManager &playerManager = PlayerManager::getInstance();
-Settings &settingsMain = Settings::getInstance();
+Settings &settingsMain = Settings::GetInstance();
 AudioManager &audioManager = AudioManager::getInstance();
 
 
@@ -151,7 +152,7 @@ static void handleInputs(Player *player, int lane, int action) {
 	PlayerGameplayStats* stats = player->stats;
 	if (stats->Paused) return;
 	if (lane == -2) return;
-	if (settingsMain.mirrorMode && lane != -1 && !player->ClassicMode) {
+	if (player->LeftyFlip && lane != -1 && !player->ClassicMode) {
 		lane = (player->Difficulty == 3 ? 4 : 3) - lane;
 	}
 	if (!streamsLoaded) {
