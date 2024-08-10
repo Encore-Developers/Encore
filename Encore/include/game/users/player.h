@@ -108,8 +108,6 @@ public:
 
     std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 
-
-
     float Health;
     Chart CurPlayingChart;
     bool Multiplayer = false;

@@ -4,7 +4,7 @@
 
 #include "game/gameplay/gameplayRenderer.h"
 #include "game/assets.h"
-// #include "game/settings.h"
+#include "game/settings.h"
 #include "game/menus/gameMenu.h"
 #include "raymath.h"
 #include "game/menus/uiUnits.h"
