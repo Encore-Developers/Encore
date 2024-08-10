@@ -1104,49 +1104,6 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 		player->stats->curSolo++;
 	}
 
-	if (!curChart.Solos.empty() && time >= curChart.Solos[player->stats->curSolo].start - 1 && time <= curChart.Solos[player->stats->curSolo].end + 2.5) {
-
-
-		int solopctnum = Remap(curChart.Solos[player->stats->curSolo].notesHit, 0, curChart.Solos[player->stats->curSolo].noteCount, 0, 100);
-		Color accColor = solopctnum == 100 ? GOLD : WHITE;
-		const char* soloPct = TextFormat("%i%%", solopctnum);
-		float soloPercentLength = MeasureTextEx(gprAssets.rubikBold, soloPct, gprU.hinpct(0.09f), 0).x;
-
-		Vector2 SoloBoxPos = {(GetScreenWidth()/2) - (soloPercentLength/2), gprU.hpct(0.2f)};
-
-		DrawTextEx(gprAssets.rubikBold, soloPct, SoloBoxPos, gprU.hinpct(0.09f), 0, accColor);
-
-		const char* soloHit = TextFormat("%i/%i", curChart.Solos[player->stats->curSolo].notesHit, curChart.Solos[player->stats->curSolo].noteCount);
-		float soloHitLength = MeasureTextEx(gprAssets.josefinSansItalic, soloHit, gprU.hinpct(0.04f), 0).x;
-
-		Vector2 SoloHitPos = {(GetScreenWidth()/2) - (soloHitLength/2), gprU.hpct(0.2f) + gprU.hinpct(0.1f)};
-
-		DrawTextEx(gprAssets.josefinSansItalic, soloHit, SoloHitPos, gprU.hinpct(0.04f), 0, accColor);
-
-		if (time >= curChart.Solos[player->stats->curSolo].end && time <= curChart.Solos[player->stats->curSolo].end + 2.5) {
-
-			const char* PraiseText = "";
-			if (solopctnum == 100) {
-				PraiseText = "Perfect Solo!";
-			} else if (solopctnum == 99) {
-				PraiseText  = "Awesome Choke!";
-			} else if (solopctnum > 90) {
-				PraiseText  = "Awesome solo!";
-			} else if (solopctnum > 80) {
-				PraiseText  = "Great solo!";
-			} else if (solopctnum > 75) {
-				PraiseText  = "Decent solo";
-			} else if (solopctnum > 50) {
-				PraiseText  = "OK solo";
-			} else if (solopctnum > 0) {
-				PraiseText  = "Bad solo";
-			}
-			int PraiseWidth = MeasureTextEx(gprAssets.josefinSansItalic, PraiseText, gprU.hinpct(0.05f), 0).x;
-			Vector2 PraisePos = {gprU.wpct(0.5f) - (PraiseWidth/2), gprU.hpct(0.2f) - gprU.hinpct(0.06f)};
-			DrawTextEx(gprAssets.josefinSansItalic, PraiseText, PraisePos, gprU.hinpct(0.05f), 0, accColor);
-		}
-	}
-
 	if (player->Instrument == 4) {
 		RenderPDrumsHighway(player, song, time, highway_tex, highwayStatus_tex, smasher_tex);
 	}
@@ -1492,7 +1449,72 @@ void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, d
 	float soloStart = (float)((curChart.Solos[player->stats->curSolo].start - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
 	float soloEnd = (float)((curChart.Solos[player->stats->curSolo].end - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
 
+	if (!curChart.Solos.empty() && musicTime >= curChart.Solos[player->stats->curSolo].start - 1 && musicTime <= curChart.Solos[player->stats->curSolo].end + 2.5) {
+		int solopctnum = Remap(curChart.Solos[player->stats->curSolo].notesHit, 0, curChart.Solos[player->stats->curSolo].noteCount, 0, 100);
+		Color accColor = solopctnum == 100 ? GOLD : WHITE;
+		const char* soloPct = TextFormat("%i%%", solopctnum);
+		float soloPercentLength = MeasureTextEx(gprAssets.rubikBold, soloPct, gprU.hinpct(0.09f), 0).x;
 
+		Vector2 SoloBoxPos = {(GetScreenWidth()/2) - (soloPercentLength/2), gprU.hpct(0.2f)};
+
+		//DrawTextEx(gprAssets.rubikBold, soloPct, SoloBoxPos, gprU.hinpct(0.09f), 0, accColor);
+
+		const char* soloHit = TextFormat("%i/%i", curChart.Solos[player->stats->curSolo].notesHit, curChart.Solos[player->stats->curSolo].noteCount);
+		float soloHitLength = MeasureTextEx(gprAssets.josefinSansItalic, soloHit, gprU.hinpct(0.04f), 0).x;
+
+		Vector2 SoloHitPos = {(GetScreenWidth()/2) - (soloHitLength/2), gprU.hpct(0.2f) + gprU.hinpct(0.1f)};
+
+		//DrawTextEx(gprAssets.josefinSansItalic, soloHit, SoloHitPos, gprU.hinpct(0.04f), 0, accColor);
+		sol::state lua;
+		lua.script_file("scripts/ui/solo.lua");
+
+		float posY =  lua["posY"];
+
+		float height = lua["height"];
+		float pctDist = lua["pctDist"];
+		float praiseDist = lua["praiseDist"];
+
+		float fontSize = lua["fontSize"];
+		float fontSizee = lua["fontSizee"];
+
+		rlPushMatrix();
+			rlRotatef(180, 0, 1, 0);
+			rlRotatef(90, 1, 0, 0);
+			//rlRotatef(90.0f, 0.0f, 0.0f, 1.0f);								//0, 1, 2.4
+			float soloWidth = MeasureText3D(gprAssets.rubikBold, soloPct, fontSizee, 0, 0).x/2;
+			float hitWidth = MeasureText3D(gprAssets.josefinSansItalic, soloHit, fontSize, 0, 0).x/2;
+			DrawText3D(gprAssets.rubikBold, soloPct, Vector3{ 0-soloWidth,posY,height-pctDist }, fontSizee, 0, 0, 1, accColor);
+			if (musicTime <= curChart.Solos[player->stats->curSolo].end)
+				DrawText3D(gprAssets.josefinSansItalic, soloHit, Vector3{ 0-hitWidth,posY,height }, fontSize, 0, 0, 1, accColor);
+		rlPopMatrix();
+		if (musicTime >= curChart.Solos[player->stats->curSolo].end && musicTime <= curChart.Solos[player->stats->curSolo].end + 2.5) {
+
+			const char* PraiseText = "";
+			if (solopctnum == 100) {
+				PraiseText = "Perfect Solo!";
+			} else if (solopctnum == 99) {
+				PraiseText  = "Awesome Choke!";
+			} else if (solopctnum > 90) {
+				PraiseText  = "Awesome solo!";
+			} else if (solopctnum > 80) {
+				PraiseText  = "Great solo!";
+			} else if (solopctnum > 75) {
+				PraiseText  = "Decent solo";
+			} else if (solopctnum > 50) {
+				PraiseText  = "OK solo";
+			} else if (solopctnum > 0) {
+				PraiseText  = "Bad solo";
+			}
+			rlPushMatrix();
+				rlRotatef(180, 0, 1, 0);
+				rlRotatef(90, 1, 0, 0);
+				//rlRotatef(90.0f, 0.0f, 0.0f, 1.0f);								//0, 1, 2.4
+				float praiseWidth = MeasureText3D(gprAssets.josefinSansItalic, PraiseText, fontSize, 0, 0).x/2;
+				DrawText3D(gprAssets.josefinSansItalic, PraiseText, Vector3{ 0-praiseWidth,posY,height-praiseDist }, fontSize, 0, 0, 1, accColor);
+			rlPopMatrix();
+			// DrawTextEx(gprAssets.josefinSansItalic, PraiseText, PraisePos, gprU.hinpct(0.05f), 0, accColor);
+		}
+	}
 
 	// can be flipped. btw
 
