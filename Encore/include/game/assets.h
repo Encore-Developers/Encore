@@ -57,6 +57,24 @@ public:
     Texture2D odMultFill;
     Texture2D odMultFillActive;
     Texture2D multNumberTex;
+
+    Texture2D MultFillBase;
+    Texture2D MultFCTex1;
+    Texture2D MultFCTex2;
+    Texture2D MultFCTex3;
+
+    Model MultInnerDot;
+    Model MultFill;
+    Model MultOuterFrame;
+    Model MultInnerFrame;
+
+    int MultTextureLoc;
+    int MultiplierColorLoc;
+    int FillPercentageLoc;
+
+    Shader MultiplierFill;
+    Shader FullComboIndicator;
+
     Shader odMultShader;
     Shader multNumberShader;
     Shader fxaa;
@@ -89,6 +107,14 @@ public:
     Model noteTopModel;
     Texture2D noteTexture;
     Texture2D emitTexture;
+
+    Model KickBottomModel;
+    Model KickSideModel;
+    Texture2D KickBottom;
+    Texture2D KickSide;
+
+    Model CymbalInner;
+    Model CymbalOuter;
 
     Model noteBottomModelOD;
     Model noteTopModelOD;

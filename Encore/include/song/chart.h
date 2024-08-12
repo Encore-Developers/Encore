@@ -41,6 +41,7 @@ public:
     bool phopo = false;
 	bool extendedSustain = false;
 	bool pDrumTom = false;
+	bool pDrumAct = false;
 
 	bool isGood(double eventTime, double inputOffset) const {
 		return (time - goodBackend + inputOffset < eventTime &&
@@ -78,6 +79,15 @@ struct forceOnPhrase {
 struct forceOffPhrase {
     double start;
     double end;
+};
+
+struct DrumFill
+{
+	double start;
+	double end;
+	int noteCount = 0;
+	int notesHit = 0;
+	bool ready = false;
 };
 
 struct odPhrase 
@@ -173,6 +183,7 @@ public:
     std::vector<forceOffPhrase> forcedOffPhrases;
 	std::vector<odPhrase> odPhrases;
     std::vector<solo> Solos;
+	std::vector<DrumFill> fills;
     int resolution = 480;
 	void parseNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument) {
 		std::vector<bool> notesOn{ false,false,false,false,false};
@@ -617,6 +628,8 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
         bool tapOn = false;
         bool forceOff = false;
         bool discoFlip = false;
+		bool drumFill = false;
+		std::vector<int> fillNotes = {120,121,122,123,124};
         std::vector<int> notePitches = pDiffNotes[diff];
 
         midiFile.linkNotePairs();
@@ -632,6 +645,7 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
         int curODPhrase = -1;
         int curSolo = -1;
         int curBPM = 0;
+		int curFill = -1;
         resolution = midiFile.getTicksPerQuarterNote();
         for (int i = 0; i < events.getSize(); i++) {
             if (proDrums) {
@@ -720,6 +734,15 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
                         curSolo++;
                     }
                 }
+                else if ((int)events[i][1] == fillNotes[1]) {
+                	if (!drumFill) {
+                		drumFill = true;
+                		DrumFill newFill;
+                		newFill.start = midiFile.getTimeInSeconds(trkidx, i);
+                		fills.push_back(newFill);
+                		curFill++;
+                	}
+                }
             }
             else if (events[i].isNoteOff()) {
                 double time = midiFile.getTimeInSeconds(trkidx, i);
@@ -753,6 +776,12 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
                         Solos[curSolo].end = time;
                         soloOn = false;
                     }
+                }
+                else if ((int)events[i][1] == fillNotes[1]) {
+                	if (drumFill) {
+                		fills[curFill].end = time;
+                		drumFill = false;
+                	}
                 }
             }
         }
@@ -820,6 +849,21 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
                     odPhrases[curODPhrase].noteCount++;
             }
         }
+		curFill = 0;
+		if (fills.size() > 0) {
+			for (Note& note : notes) {
+				if (note.time == fills[curFill].end)
+					note.pDrumAct = true;
+				if (note.time > fills[curFill].end && curFill < fills.size() - 1)
+					curFill++;
+				if (note.time >= fills[curFill].start && note.time <= fills[curFill].end) {
+					fills[curFill].noteCount++;
+
+				}
+
+			}
+		}
+
         std::cout << "ENC: Processed overdrive for " << instrument << " " << diff << std::endl;
         // LoadingState = SOLOS;
         curSolo = 0;

@@ -1,20 +1,9 @@
-angle = 90
-rotateX =  0
-rotateY =  1
-rotateZ =  0
 
+posY = -20
 
-oposX =  -7.5
-oposY =  0
-oposZ =  -3.3
+height = -1
+pctDist = 1.2
+praiseDist = 0
 
-posX =  -7.5
-posY = 0
-posZ =  -3.3
-
-scaleX =  2
-scaleY =  1
-scaleZ =  1
-
-fontSizee = 80
-fontSize = 80
+fontSizee = 160
+fontSize = 75

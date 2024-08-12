@@ -16,6 +16,9 @@ class gameplayRenderer {
     void DrawBeatlines(Player* player, Song song, float length, double musicTime);
     void DrawOverdrive(Player* player, Chart& curChart, float length, double musicTime);
     void DrawSolo(Player* player,  Chart& curChart, float length, double musicTime);
+
+	void DrawFill(Player *player, Chart &curChart, float length, double musicTime);
+
 	void RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length);
 	void RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
 public:

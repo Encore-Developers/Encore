@@ -81,6 +81,7 @@ public:
     int curBeatLine = 0;
     int curODPhrase = 0;
     int curSolo = 0;
+    int curFill = 0;
     int curNoteInt = 0;
 
     double lastAxesTime = 0.0;
@@ -244,25 +245,43 @@ public:
         };
     }
 
+    bool IsBassOrVox(){
+        if (Instrument == 0 || Instrument == 2 || Instrument == 4 || Instrument == 6) {
+            return false;
+        } else {
+            return true;
+        }
 
+    }
 
     float comboFillCalc() {
+        if (Combo == 0) {
+            return 0;
+        }
         if (Instrument == 0 || Instrument == 2 || Instrument == 4 || Instrument == 6) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (Combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0
             }
             else {
-                return static_cast<float>(Combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
+                int ComboMod = Combo % 10;
+                if (ComboMod == 0)
+                    return 1.0f;
+                else {
+                    return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to 0.9 every 10 notes
+                }
             }
         }
         else {
-            // For instruments 1 and 3, limit the float value to 0.0 to 0.6
             if (Combo >= 50) {
-                return 1.0f; // If combo is 50 or more, set float value to 1.0
+                return 1.0f; // If combo is 30 or more, set float value to 1.0
             }
+            // For instruments 1 and 3, limit the float value to 0.0 to 0.6
+            int ComboMod = Combo % 10;
+            if (ComboMod == 0)
+                return 1.0f;
             else {
-                return static_cast<float>(Combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
+                return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to 0.9 every 10 notes
             }
         }
     }

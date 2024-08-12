@@ -47,7 +47,7 @@ void Assets::LoadAssets() {
     Color accentColor = {255,0,255,255};
     Color overdriveColor = Color{255,200,0,255};
     smasherReg = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
-    smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png", loadedAssets);
+    smasherRegTex = LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
 
     smasherBoardTex = Assets::LoadTextureFilter(directory / "Assets/highway/board.png", loadedAssets);
     smasherBoard = Assets::LoadModel_((directory / "Assets/highway/board_x.obj"), loadedAssets);
@@ -57,7 +57,7 @@ void Assets::LoadAssets() {
     lanesTex = Assets::LoadTextureFilter(directory / "Assets/highway/lanes.png", loadedAssets);
 
     smasherPressed = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
-    smasherPressTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_press.png", loadedAssets);
+    smasherPressTex = LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
 
     star = Assets::LoadTextureFilter(directory/ "Assets/ui/star.png", loadedAssets);
     goldStar = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star.png", loadedAssets);
@@ -77,6 +77,22 @@ void Assets::LoadAssets() {
     multNumberTex = Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png", loadedAssets);
     odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
+
+    MultInnerDot = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultCenterDot.obj"), loadedAssets);
+    MultFill = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultFill.obj"), loadedAssets);
+    MultOuterFrame = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultOuterFrame.obj"), loadedAssets);
+    MultInnerFrame = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultInnerFrame.obj"), loadedAssets);
+
+    MultFillBase = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/Untitled.png"), loadedAssets);
+    MultFCTex1 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine.png"), loadedAssets);
+    MultFCTex2 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine2.png"), loadedAssets);
+    MultFCTex3 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine3.png"), loadedAssets);
+
+    MultiplierFill = LoadShader(0, "Assets/highway/multiplier/MultiplierFill.fsh");
+
+    MultTextureLoc = GetShaderLocation(MultiplierFill, "BaseTexture"); // sampler
+    MultiplierColorLoc= GetShaderLocation(MultiplierFill, "MultiplierColor"); // vec4
+    FillPercentageLoc= GetShaderLocation(MultiplierFill, "FillPercentage"); // 0-1 float
 
     odLoc = GetShaderLocation(odMultShader, "overdrive");
     comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
@@ -98,6 +114,15 @@ void Assets::LoadAssets() {
 
     noteTopModel = Assets::LoadModel_((directory / "Assets/notes/note_top.obj"), loadedAssets);
     noteBottomModel = Assets::LoadModel_((directory / "Assets/notes/note_bottom.obj"), loadedAssets);
+
+    KickBottomModel = Assets::LoadModel_((directory / "Assets/notes/kick.obj"), loadedAssets);
+    KickSideModel = Assets::LoadModel_((directory / "Assets/notes/kickSides.obj"), loadedAssets);
+    KickBottom = Assets::LoadTextureFilter(directory / "Assets/notes/kick.png", loadedAssets);
+    KickSide = Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
+
+    CymbalInner = Assets::LoadModel_((directory / "Assets/notes/cymbalInner.obj"), loadedAssets);
+    CymbalOuter = Assets::LoadModel_((directory / "Assets/notes/cymbalColor.obj"), loadedAssets);
+    CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 
     // noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
     // emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
@@ -188,6 +213,8 @@ void Assets::LoadAssets() {
     multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
     multNumber.materials[0].shader = multNumberShader;
 
+    MultFill.materials[0].shader = MultiplierFill;
+
     SetTextureWrap(highwayTextureOD, TEXTURE_WRAP_CLAMP);
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
@@ -205,6 +232,9 @@ void Assets::LoadAssets() {
 
     noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
+    KickBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = KickBottom;
+    KickSideModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = KickSide;
 
     noteTopModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;
