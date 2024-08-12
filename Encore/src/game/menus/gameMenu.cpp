@@ -85,7 +85,7 @@ void Menu::renderPlayerResults(Player player, Song song, int playerslot) {
     DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.2f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.2f),WHITE);
     DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.4f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.4f),WHITE);
 
-    float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(menuAss.redHatDisplayItalic, scoreCommaFormatter(player.stats->Score).c_str(), u.hinpct(0.07f), 0).x /2);
+    float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(menuAss.redHatDisplayItalic, scoreCommaFormatter(player.stats->Score).c_str(), u.hinpct(0.065f), 0).x /2);
     float Percent = floorf(((float)player.stats->NotesHit/ (float)player.stats->Notes) * 100.0f);
 
     DrawTextEx(

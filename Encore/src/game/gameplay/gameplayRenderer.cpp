@@ -199,7 +199,7 @@ static Vector3 MeasureText3D(Font font, const char* text, float fontSize, float 
 void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
 	float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
-
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(camera3pVector[cameraSel]);
@@ -330,11 +330,11 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 			}
 
 			double relTime = ((curNote.time - time)) *
-							 gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+							 (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 			double relEnd = (((curNote.time + curNote.len) - time)) *
-							gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+							(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 			float notePosX = diffDistance - (1.0f *
-											 (float) (gprSettings.mirrorMode ? (player->Difficulty == 3 ? 4 : 3) -
+											 (float) (player->LeftyFlip ? (player->Difficulty == 3 ? 4 : 3) -
 																			   curNote.lane
 																			 : curNote.lane));
 			if (relTime > 1.5) {
@@ -359,7 +359,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				if ((curNote.len) > 0) {
 					if (curNote.hit && curNote.held) {
 						if (curNote.heldTime <
-							(curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
+							(curNote.len * player->NoteSpeed)) {
 							curNote.heldTime = 0.0 - relTime;
 							//if (!bot) {
 							//player.sustainScoreBuffer[curNote.lane] =
@@ -533,6 +533,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = 2.0f;
 	float lineDistance = 1.5f;
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(camera3pVector[cameraSel]);
@@ -612,9 +613,9 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 		}
 
 		double relTime = ((curNote.time - time)) *
-						 gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+						 (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 		double relEnd = (((curNote.time + curNote.len) - time)) *
-						gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+						(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
 		float hopoScale = curNote.phopo ? 0.75f : 1.1f;
 
@@ -711,7 +712,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				}
 
 				if ((curNote.hit && curNote.held) && curNote.time + curNote.len + 0.1 > time) {
-					if (curNote.heldTime < (curNote.len * gprSettings.trackSpeedOptions[gprSettings.trackSpeed])) {
+					if (curNote.heldTime < (curNote.len * (player->NoteSpeed * DiffMultiplier))) {
 						curNote.heldTime = 0.0 - relTime;
 						player->stats->Score +=
 						        (float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
@@ -878,6 +879,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 
 void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float length) {
 	BeginTextureMode(hud_tex);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(camera3pVector[cameraSel]);
 	if (showHitwindow) {
@@ -885,8 +887,8 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 		float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
 		float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
 		float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
-		double hitwindowFront = ((0.1)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
-		double hitwindowBack = ((-0.1)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+		double hitwindowFront = ((0.1)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
+		double hitwindowBack = ((-0.1)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 		bool Beginning = (float) (smasherPos + (length * hitwindowFront)) >= (length * 1.5f) + smasherPos;
 		bool Ending = (float) (smasherPos + (length * hitwindowBack)) >= (length * 1.5f) + smasherPos;
 
@@ -903,8 +905,8 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 					   {0 - lineDistance - 1.0f, 0.003, Front},
 					   Color{96, 96, 96, 64});
 
-		double perfectFront = ((0.025f)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
-		double perfectBack = ((-0.025f)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+		double perfectFront = ((0.025f)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
+		double perfectBack = ((-0.025f)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 		bool pBeginning = (float) (smasherPos + (length * perfectFront)) >= (length * 1.5f) + smasherPos;
 		bool pEnding = (float) (smasherPos + (length * perfectBack)) >= (length * 1.5f) + smasherPos;
 
@@ -924,6 +926,12 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	}
 	DrawModel(gprAssets.odFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 	DrawModel(gprAssets.odBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
+
+	// DrawModel(gprAssets.MultInnerDot, Vector3{0,1.0f,-0.3}, 1, WHITE);
+	// DrawModel(gprAssets.MultFill, Vector3{0,1.0f,-0.3}, 1, WHITE);
+	// DrawModel(gprAssets.MultOuterFrame, Vector3{0,1.0f,-0.3}, 1, WHITE);
+	// DrawModel(gprAssets.MultInnerFrame, Vector3{0,1.0f,-0.3}, 1, WHITE);
+
 	DrawModel(gprAssets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 	DrawModel(gprAssets.multBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 	if (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5) {
@@ -1369,6 +1377,7 @@ void gameplayRenderer::RenderEmhHighway(Player* player, Song song, double time, 
 }
 
 void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, double musicTime) {
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
 	float diffDistance = player->Difficulty == 3 || player->ClassicMode ? 2.0f : 1.5f;
 	float lineDistance = player->Difficulty == 3 || player->ClassicMode ? 1.5f : 1.0f;
 	std::vector<std::pair<double, bool>> beatlines = song.beatLines;
@@ -1377,9 +1386,9 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 		for (int i = player->stats->curBeatLine; i < beatlines.size(); i++) {
 			if (beatlines[i].first >= song.music_start-1 && beatlines[i].first <= song.end) {
 				Color BeatLineColor = {255,255,255,128};
-				double relTime = ((song.beatLines[i].first - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed]  * ( 11.5f / length);
+				double relTime = ((song.beatLines[i].first - musicTime)) * (player->NoteSpeed * DiffMultiplier) * ( 11.5f / length);
 				if (i > 0) {
-					double secondLine = ((((song.beatLines[i-1].first + song.beatLines[i].first)/2) - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed]  * ( 11.5f / length);
+					double secondLine = ((((song.beatLines[i-1].first + song.beatLines[i].first)/2) - musicTime)) * (player->NoteSpeed * DiffMultiplier)  * ( 11.5f / length);
 					if (secondLine > 1.5) break;
 
 					if (song.beatLines[i].first - song.beatLines[i-1].first <= 0.2 || (smasherPos + (length * (float)relTime)) - (smasherPos + (length * (float)secondLine)) <= 1.5) BeatLineColor = {0,0,0,0};
@@ -1414,9 +1423,9 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 }
 
 void gameplayRenderer::DrawOverdrive(Player* player,  Chart& curChart, float length, double musicTime) {
-
-	float odStart = (float)((curChart.odPhrases[player->stats->curODPhrase].start - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
-	float odEnd = (float)((curChart.odPhrases[player->stats->curODPhrase].end - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float odStart = (float)((curChart.odPhrases[player->stats->curODPhrase].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
+	float odEnd = (float)((curChart.odPhrases[player->stats->curODPhrase].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
 	// can be flipped. btw
 
@@ -1445,9 +1454,9 @@ void gameplayRenderer::DrawOverdrive(Player* player,  Chart& curChart, float len
 }
 
 void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, double musicTime) {
-
-	float soloStart = (float)((curChart.Solos[player->stats->curSolo].start - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
-	float soloEnd = (float)((curChart.Solos[player->stats->curSolo].end - musicTime)) * gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float soloStart = (float)((curChart.Solos[player->stats->curSolo].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
+	float soloEnd = (float)((curChart.Solos[player->stats->curSolo].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
 	if (!curChart.Solos.empty() && musicTime >= curChart.Solos[player->stats->curSolo].start - 1 && musicTime <= curChart.Solos[player->stats->curSolo].end + 2.5) {
 		int solopctnum = Remap(curChart.Solos[player->stats->curSolo].notesHit, 0, curChart.Solos[player->stats->curSolo].noteCount, 0, 100);
@@ -1567,6 +1576,7 @@ enum DrumNotes {
 void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length) {
 	float diffDistance = 2.0f;
 	float lineDistance = 1.0f;
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
 	BeginTextureMode(notes_tex);
 	ClearBackground({ 0,0,0,0 });
 	BeginMode3D(camera3pVector[cameraSel]);
@@ -1646,7 +1656,7 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		}
 
 		double relTime = ((curNote.time - time)) *
-			gprSettings.trackSpeedOptions[gprSettings.trackSpeed] * (11.5f / length);
+			(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
 		Color NoteColor;
 		switch (curNote.lane) {
@@ -1749,6 +1759,7 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 
 		}
 		EndBlendMode();
+		float KickBounceDuration = 0.5f;
 		if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 			curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
 
@@ -1760,6 +1771,14 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 				0.5f, Color{ 255,161,0,HitAlpha });
 			DrawCube(Vector3{ HitPosLeft, -0.11f, smasherPos }, 1.0f, 0.01f,
 				1.0f, Color{ 255,161,0,(unsigned char)(HitAlpha / 2) });
+		}
+		if (curNote.hit && curNote.lane == KICK && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			curNote.hitTime + KickBounceDuration) {
+			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			float CameraPos = Remap(getEasingFunction(EaseOutBounce)(TimeSinceHit / KickBounceDuration), 0, 1.0, 7.75f, 8.0f);
+			camera3pVector[cameraSel].position.y = CameraPos;
+
+			//	float renderheight = 8.0f;
 		}
 	}
 	EndMode3D();

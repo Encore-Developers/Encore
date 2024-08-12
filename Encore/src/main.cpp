@@ -931,14 +931,17 @@ int main(int argc, char *argv[]) {
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
 	newPlayer.Bot = true;
+	newPlayer.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer);
 	playerManager.AddActivePlayer(0,0);
+
 
 	Player newPlayer2;
 	newPlayer2.Name = "lothycat";
 	newPlayer2.ProDrums = true;
 	newPlayer2.Bot = true;
 	newPlayer2.joypadID = GLFW_JOYSTICK_1;
+	newPlayer2.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer2);
 	playerManager.AddActivePlayer(1,1);
 
@@ -946,6 +949,7 @@ int main(int argc, char *argv[]) {
 	newPlayer3.Name = "cameron44251";
 	newPlayer3.Bot = true;
 	newPlayer3.joypadID = GLFW_JOYSTICK_2;
+	newPlayer3.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer3);
 	playerManager.AddActivePlayer(2,2);
 
