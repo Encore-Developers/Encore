@@ -2735,28 +2735,28 @@ int main(int argc, char *argv[]) {
 				if (IsWindowResized() || notes_tex.texture.width != GetScreenWidth()
 						|| notes_tex.texture.height != GetScreenHeight()) {
 					UnloadRenderTexture(notes_tex);
-					RenderTexture2D notes_tex = LoadRenderTexture(
+					notes_tex = LoadRenderTexture(
 						GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&notes_tex.texture);
 					SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(hud_tex);
-					RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&hud_tex.texture);
 					SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(highway_tex);
-					RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&highway_tex.texture);
 					SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(highwayStatus_tex);
-					RenderTexture2D highwayStatus_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					highwayStatus_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&highwayStatus_tex.texture);
 					SetTextureFilter(highwayStatus_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(smasher_tex);
-					RenderTexture2D smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&smasher_tex.texture);
 					SetTextureFilter(smasher_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 				}
