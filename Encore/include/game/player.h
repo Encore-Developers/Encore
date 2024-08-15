@@ -19,7 +19,9 @@ public:
         return instance;
     }
     int instrument = 0;
+    int selInstrument = 0;
     int diff = 0;
+    int selDiff = 0;
     int persistentInst = 0;
     int persistentDiff = 0;
     bool firstReadyUp = true;

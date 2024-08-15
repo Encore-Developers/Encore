@@ -642,7 +642,7 @@ public:
 		std::cout << "ENC: Processed plastic chart for " << instrument << " " << diff << std::endl;
     }
 
-    void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, bool proDrums) {
+    void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, bool proDrums, bool dblKick) {
 
         /*
         * Note:
@@ -658,7 +658,8 @@ public:
         bool forceOff = false;
         bool discoFlip = false;
         std::vector<int> notePitches = pDiffNotes[diff];
-        
+        if (dblKick)
+            notePitches[0]--;
         midiFile.linkNotePairs();
         int odNote = 116;
 
@@ -696,10 +697,13 @@ public:
             }
             if (events[i].isNoteOn()) {
                 if (events[i][1] >= notePitches[0] && events[i][1] <= notePitches[4]) {
+                    
                     double time = midiFile.getTimeInSeconds(trkidx, i);
                     int tick = midiFile.getAbsoluteTickTime(time);
                     int pitch = events[i][1];
                     int lane = pitch - notePitches[0];
+                    if (dblKick&& pitch > notePitches[0])
+                        lane--;
                     Note newNote;
                     if (discoFlip) {
                         if (lane == 1) lane = 2;

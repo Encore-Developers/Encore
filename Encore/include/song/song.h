@@ -118,6 +118,7 @@ public:
 	float artistXOffset = 0;
 	float artistTextWidth = 0;
 	double artistScrollTime = 0.0;
+	bool hasDoubleKick = false;
     Texture albumArtBlur;
 	Texture albumArt;
 	std::string album = "";

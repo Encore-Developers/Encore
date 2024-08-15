@@ -807,7 +807,7 @@ void LoadCharts() {
 									}
 									else if (songPart == SongParts::PlasticDrums){
 										chart.plastic = true;
-										chart.parsePlasticDrums(midiFile, track, midiFile[track], player.diff, (int)songPart, gpr.proDrum);
+										chart.parsePlasticDrums(midiFile, track, midiFile[track], player.diff, (int)songPart, gpr.proDrum, gpr.dblKick);
 									}
 									else
 									{
@@ -937,9 +937,9 @@ int main(int argc, char *argv[]) {
 		SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
 	}
 	std::vector<std::string> songPartsList{
-		"Drums", "Bass", "Guitar", "Vocals", "Classic Drums", "Classic Bass", "Classic Lead"
+		"Drums", "Bass", "Guitar", "Vocals", "Classic Drums","Pro Drums", "Classic Bass", "Classic Lead"
 	};
-	std::vector<std::string> diffList{"Easy", "Medium", "Hard", "Expert"};
+	std::vector<std::string> diffList{"Easy", "Medium", "Hard", "Expert", "Expert+"};
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
 	audioManager.Init();
@@ -2452,6 +2452,14 @@ int main(int argc, char *argv[]) {
 										 	songList.songs[curPlayingSong].getStartEnd(midiFile, track, midiFile[track]);
 										}
 										else if (trackName != "BEAT") {
+											if (songPart==SongParts::PlasticDrums) {
+												for (int i = 0; i < midiFile[track].getSize(); i++) {
+													if (midiFile[track][i].isNoteOn() && midiFile[track][i][1] == 95){
+														songList.songs[curPlayingSong].hasDoubleKick = true;
+														break;
+													}
+												}
+											}
 											if (songPart != SongParts::Invalid) {
 												for (int diff = 0; diff < 4; diff++) {
 
@@ -2530,9 +2538,10 @@ int main(int argc, char *argv[]) {
 						}
 					}
 					// DrawTextRHDI(TextFormat("%s - %s", songList.songs[curPlayingSong].title.c_str(), songList.songs[curPlayingSong].artist.c_str()), 70,7, WHITE);
-					for (int i = 0; i < 7; i++) {
-						if (songList.songs[curPlayingSong].parts[i]->hasPart) {
-							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player.instrument && instSelected
+					for (int i = 0; i < 8; i++) {
+						int actualInst = i > 4 ? i - 1 : i;
+						if (songList.songs[curPlayingSong].parts[actualInst]->hasPart) {
+							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player.selInstrument && instSelected
 											? ColorToInt(ColorBrightness(player.accentColor, -0.25)) : 0x181827FF);
 							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
 										ColorToInt(Color{255, 255, 255, 255}));
@@ -2546,7 +2555,9 @@ int main(int argc, char *argv[]) {
 								},
 								TextFormat("  %s", songPartsList[i].c_str()))) {
 								instSelected = true;
-								player.instrument = i;
+								gpr.proDrum = i == 5;
+								player.selInstrument = i;
+								player.instrument = actualInst;
 								int isBassOrVocal = 0;
 								if (i > 3) player.plastic = true;
 								else player.plastic = false;
@@ -2559,7 +2570,7 @@ int main(int argc, char *argv[]) {
 							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
 							GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
 							DrawTextRubik(
-								(std::to_string(songList.songs[curPlayingSong].parts[i]->diff + 1) + "/7").c_str(),
+								(std::to_string(songList.songs[curPlayingSong].parts[actualInst]->diff + 1) + "/7").c_str(),
 								u.LeftSide + u.winpct(0.165f), BottomOvershell - u.hinpct(0.04f) -
 								(u.hinpct(0.05f) * (float) i), u.hinpct(0.03f), WHITE);
 						} else {
@@ -2603,11 +2614,12 @@ int main(int argc, char *argv[]) {
 				}
 				// load difficulty select
 				if (midiLoaded && diffSelection) {
-					for (int a = 0; a < 4; a++) {
-						if (songList.songs[curPlayingSong].parts[player.instrument]->charts[a].valid) {
+					for (int a = 0; a < ((player.instrument==4 && songList.songs[curPlayingSong].hasDoubleKick)?5:4); a++) {
+						int actualDiff = a == 4 ? 3 : a;
+						if (songList.songs[curPlayingSong].parts[player.instrument]->charts[actualDiff].valid) {
 
 							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
-										songList.songs[curPlayingSong].parts[player.instrument]->charts[a].diff == player.diff && diffSelected
+										a == player.selDiff && diffSelected
 											? ColorToInt(
 												ColorBrightness(
 													player.accentColor, -0.25))
@@ -2618,8 +2630,10 @@ int main(int argc, char *argv[]) {
 												u.hinpct(0.05f) * (float) a),
 											u.winpct(0.2f), u.hinpct(0.05f)
 										}, diffList[a].c_str())) {
-								CurrentChart = a;
-								player.diff = songList.songs[curPlayingSong].parts[player.instrument]->charts[a].diff;
+								CurrentChart = actualDiff;
+								gpr.dblKick = a == 4;
+								player.diff = actualDiff;
+								player.selDiff = a;
 								diffSelected = true;
 							}
 						} else {
@@ -2683,9 +2697,9 @@ int main(int argc, char *argv[]) {
 					}
 					DrawTextRubik("  Difficulty", u.LeftSide, BottomOvershell - u.hinpct(0.04f),
 								u.hinpct(0.03f), WHITE);
-					DrawTextEx(assets.rubikBold, diffList[player.diff].c_str(), {
+					DrawTextEx(assets.rubikBold, diffList[player.selDiff].c_str(), {
 									u.LeftSide + u.winpct(0.19f) - MeasureTextEx(
-										assets.rubikBold, diffList[player.diff].c_str(),
+										assets.rubikBold, diffList[player.selDiff].c_str(),
 										u.hinpct(0.03f), 0).x,
 									BottomOvershell - u.hinpct(0.04f)
 								}, u.hinpct(0.03f), 0, WHITE);
@@ -2698,10 +2712,10 @@ int main(int argc, char *argv[]) {
 					}
 					DrawTextRubik("  Instrument", u.LeftSide, BottomOvershell - u.hinpct(0.09f),
 								u.hinpct(0.03f), WHITE);
-					DrawTextEx(assets.rubikBold, songPartsList[player.instrument].c_str(), {
+					DrawTextEx(assets.rubikBold, songPartsList[player.selInstrument].c_str(), {
 									u.LeftSide + u.winpct(0.19f) - MeasureTextEx(
 										assets.rubikBold,
-										songPartsList[player.instrument].c_str(),
+										songPartsList[player.selInstrument].c_str(),
 										u.hinpct(0.03f), 0).x,
 									BottomOvershell - u.hinpct(0.09f)
 								}, u.hinpct(0.03f), 0, WHITE);
