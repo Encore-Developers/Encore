@@ -2016,12 +2016,18 @@ int main(int argc, char *argv[]) {
 				BeginShaderMode(assets.bgShader);
 				if (selSong) {
 					SongToDisplayInfo = selectedSong;
-					selectedSong.LoadInfo(selectedSong.songInfoPath);
+					if (selectedSong.ini)
+						selectedSong.LoadInfoINI(selectedSong.songInfoPath);
+					else
+						selectedSong.LoadInfo(selectedSong.songInfoPath);
 					menu.DrawAlbumArtBackground(selectedSong.albumArtBlur);
 				} else {
 					Song art = menu.ChosenSong;
 					SongToDisplayInfo = menu.ChosenSong;
-					art.LoadInfo(art.songInfoPath);
+					if (art.ini)
+						art.LoadInfoINI(art.songInfoPath);
+					else
+						art.LoadInfo(art.songInfoPath);
 					menu.DrawAlbumArtBackground(art.albumArtBlur);
 				}
 				EndShaderMode();
@@ -2281,6 +2287,21 @@ int main(int argc, char *argv[]) {
 										assets.rubikBold, "OOOOO  ", DiffHeight, 0).x;
 
 				for (int i = 0; i < 7; i++) {
+					float IconWidth = (float)AlbumHeight /5.0f;
+					float BoxTopPos = DiffTop + (float)(IconWidth * (i < 4 ? 0 : 1));
+					float ResetToLeftPos = (float)(i > 3 ? i-4 : i);
+					int asdasd = (float)(i > 3 ? i-4 : i);
+					float IconLeftPos = (float)(u.RightSide - AlbumHeight) + IconWidth*ResetToLeftPos;
+					Rectangle Placement = {IconLeftPos,BoxTopPos, IconWidth, IconWidth};
+					Color TintColor = WHITE;
+					if (SongToDisplayInfo.parts[i]->diff == -1)
+						TintColor = DARKGRAY;
+					DrawTexturePro(assets.InstIcons[asdasd], {0,0,(float)assets.InstIcons[asdasd].width, (float)assets.InstIcons[asdasd].height}, Placement, {0,0}, 0, TintColor);
+					DrawTexturePro(assets.BaseRingTexture, {0,0,(float)assets.BaseRingTexture.width, (float)assets.BaseRingTexture.height}, Placement, {0,0}, 0, ColorBrightness(WHITE, 2));
+					if (SongToDisplayInfo.parts[i]->diff > 0)
+						DrawTexturePro(assets.YargRings[SongToDisplayInfo.parts[i]->diff-1], {0,0,(float)assets.YargRings[SongToDisplayInfo.parts[i]->diff-1].width, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff-1].height}, Placement, {0,0}, 0, WHITE);
+
+					/*
 					if (SongToDisplayInfo.parts[i]->diff != -1) {
 						std::string DiffDot;
 						bool red = false;
@@ -2307,6 +2328,7 @@ int main(int argc, char *argv[]) {
 									u.RightSide - AlbumHeight + AlbumInner,
 									DiffTop + u.hinpct(0.0025f) + (DiffHeight * i)
 								}, DiffTextSize, 0, WHITE);
+								*/
 				}
 
 				menu.DrawBottomOvershell();
@@ -2319,8 +2341,12 @@ int main(int argc, char *argv[]) {
 								u.hinpct(0.05f)
 							}, "Play Song")) {
 					curPlayingSong = menu.ChosenSongInt;
-					songList.songs[curPlayingSong].LoadSong(
-						songList.songs[curPlayingSong].songInfoPath);
+					if (!songList.songs[curPlayingSong].ini) {
+						songList.songs[curPlayingSong].LoadSong(
+							songList.songs[curPlayingSong].songInfoPath);
+					} else {
+						songList.songs[curPlayingSong].LoadSongIni(songList.songs[curPlayingSong].songDir);
+					}
 					menu.SwitchScreen(READY_UP);
 					albumArtLoaded = false;
 				}
@@ -2430,37 +2456,60 @@ int main(int argc, char *argv[]) {
 														for (int diff = 0; diff < 4; diff++) {
 															Chart newChart;
 															std::cout << trackName << " " << diff << endl;
-
-															if (songPart == SongParts::PlasticBass
-																|| songPart == SongParts::PlasticGuitar) {
-																newChart.plastic = true;
-																newChart.parsePlasticNotes(midiFile, i, midiFile[i],
+															if (!songList.songs[curPlayingSong].ini) {
+																if (songPart == SongParts::PlasticBass
+																	|| songPart == SongParts::PlasticGuitar) {
+																	newChart.plastic = true;
+																	newChart.parsePlasticNotes(midiFile, i, midiFile[i],
+																								diff, (int) songPart);
+																	} else if (songPart == SongParts::PlasticDrums) {
+																		newChart.plastic = true;
+																		newChart.parsePlasticDrums(
+																			midiFile, i, midiFile[i], diff,
+																			(int) songPart, true);
+																		// TODO: implement new chart loader
+																	} else {
+																		newChart.plastic = false;
+																		newChart.parseNotes(midiFile, i, midiFile[i],
 																							diff, (int) songPart);
-															} else if (songPart == SongParts::PlasticDrums) {
-																newChart.plastic = true;
-																newChart.parsePlasticDrums(
-																	midiFile, i, midiFile[i], diff,
-																	(int) songPart, true);
-																// TODO: implement new chart loader
-															} else {
-																newChart.plastic = false;
-																newChart.parseNotes(midiFile, i, midiFile[i],
-																					diff, (int) songPart);
+																	}
+																if (!newChart.plastic) {
+																	int noteIdx = 0;
+																	for (Note &note: newChart.notes) {
+																		newChart.notes_perlane[note.lane].
+																				push_back(noteIdx);
+																		noteIdx++;
+																	}
+																}
+																if (newChart.notes.size() > 0) {
+																	songList.songs[curPlayingSong].parts[(int) songPart]->
+																			hasPart = true;
+																}
+																songList.songs[curPlayingSong].parts[(int) songPart]->charts
+																	.push_back(newChart);
 															}
-															if (!newChart.plastic) {
-																int noteIdx = 0;
-																for (Note &note: newChart.notes) {
-																	newChart.notes_perlane[note.lane].
-																			push_back(noteIdx);
-																	noteIdx++;
+															else {
+																newChart.plastic = true;
+																if (songPart == PartBass) {
+
+																	newChart.parsePlasticNotes(midiFile, i, midiFile[i],
+																							diff, (int) PlasticBass);
+																	songList.songs[curPlayingSong].parts[(int) PlasticBass]->hasPart = true;
+																	songList.songs[curPlayingSong].parts[(int) PlasticBass]->charts.push_back(newChart);
+																}
+																if (songPart == PartGuitar) {
+																	newChart.parsePlasticNotes(midiFile, i, midiFile[i],
+																							diff, (int) PlasticGuitar);
+																	songList.songs[curPlayingSong].parts[PlasticGuitar]->hasPart = true;
+																	songList.songs[curPlayingSong].parts[PlasticGuitar]->charts.push_back(newChart);
+																}
+																if (songPart == PartDrums) {
+																	newChart.parsePlasticDrums(midiFile, i, midiFile[i],
+																							diff, PlasticDrums, true);
+																	songList.songs[curPlayingSong].parts[PlasticDrums]->hasPart = true;
+																	songList.songs[curPlayingSong].parts[PlasticDrums]->charts.push_back(newChart);
 																}
 															}
-															if (newChart.notes.size() > 0) {
-																songList.songs[curPlayingSong].parts[(int) songPart]->
-																		hasPart = true;
-															}
-															songList.songs[curPlayingSong].parts[(int) songPart]->charts
-																	.push_back(newChart);
 														}
 													}
 												}
@@ -2709,29 +2758,28 @@ int main(int argc, char *argv[]) {
 				if (IsWindowResized() || notes_tex.texture.width != GetScreenWidth()
 						|| notes_tex.texture.height != GetScreenHeight()) {
 					UnloadRenderTexture(notes_tex);
-					RenderTexture2D notes_tex = LoadRenderTexture(
-						GetScreenWidth(), GetScreenHeight());
+					notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&notes_tex.texture);
 					SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 
 					UnloadRenderTexture(hud_tex);
-					RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&hud_tex.texture);
 					SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(highway_tex);
-					RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&highway_tex.texture);
 					SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(highwayStatus_tex);
-					RenderTexture2D highwayStatus_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					highwayStatus_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&highwayStatus_tex.texture);
 					SetTextureFilter(highwayStatus_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 
 					UnloadRenderTexture(smasher_tex);
-					RenderTexture2D smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+					smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 					GenTextureMipmaps(&smasher_tex.texture);
 					SetTextureFilter(smasher_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
 				}

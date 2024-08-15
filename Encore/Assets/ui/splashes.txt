@@ -1,6 +1,5 @@
 ﻿
-It's Encore-ing time.
-Now available: The Encore Battle Pass! Including 30 unique skins!+
+It's Encore-ing time!
 Do NOT drink the Among Us potion at 3 AM!
 What's better? Encore Raylib or Encore Unity?
 Player player = new Player;!
@@ -11,23 +10,19 @@ error C2065: 'FretAfterStrumTime': undeclared identifier!
 NullReferenceException: "randomizedText" is null or undefined!
 If En, then only Core!
 Encore better add the balls or else I am going to be sad!
-#1 on the Cake By The Ocean leaderboard!
-In loving memory of Zwarkledarg... gone too soon.
+In loving memory of Zwarkledarg... gone too soon!
 Now comes with a calculator!
 Powered by Unreal Engine!
 Also try YARG!
 Also try Rock Band 3 Deluxe!
 Also try Clone Hero!
 Also try GHWT:DE!
-Also try Partypack!
 Also try GHTV Reloaded!
-SlowFNF!
 Powered by Unity!
 Powered by Scratch!
 Powered by Assets assets;!
 We do NOT support piracy!
 The band's back together again. And again. And again. And again!
-Popular shooter game's rhythm mode - but made in China!
 Gyatt!
 const const = "const"!
 Finally... charts can be butchered by pull-off notes!
@@ -35,7 +30,6 @@ What are those arrow notes for?
 acai if you see this please dm me "banana"!
 S O N G S  I N  B I O!
 harmonix binder!
-What if Raven Team Leader had a built-in emote where she gave you a hug!
 I hope this grabs your attention!
 We don't talk about the Encore Discord.
 hey if u have time can i ask u if you want a commission?
@@ -65,3 +59,15 @@ YOUR JORDANS ARE FAKE, SOLDIER!!
 tposejank was here!
 Also try FNLookup!
 and multiplayer is being worked on as well!
+No practice mode; it's cheating!
+Do not do that!
+Dangerous from a culinary perspective!
+You might've lost....
+No longer a homie!
+No million dollars here!
+YBOOBYYO!
+INTERNAL BUILD ONLY. DO NOT DISTRIBUTE IN ANY FORM.
+We say Nickleback often!
+LOCKED DOWN BABY! Autism, let's go!
+It's a Psychobilly Freakout!
+0-0-0-0 downstrumming will hurt in THIS game!

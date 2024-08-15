@@ -140,8 +140,16 @@ public:
                             song.LoadSong(entry.path() / "info.json");
                             list.songs.push_back(song);
                             list.songCount++;
-                        } else {
-                            list.badSongCount++;
+                        }
+                        if (std::filesystem::exists(entry.path() / "song.ini")) {
+                            Song song;
+
+                            song.songInfoPath = (entry.path() / "song.ini").string();
+                            song.songDir = entry.path().string();
+                            song.LoadSongIni(entry.path());
+                            song.ini = true;
+                            list.songs.push_back(song);
+                            list.songCount++;
                         }
                     }
                 }
@@ -246,6 +254,8 @@ public:
             SongCacheIn.read(reinterpret_cast<char*>(&jsonPathLen), 8);
             song.songInfoPath.resize(jsonPathLen);
             SongCacheIn.read(&song.songInfoPath[0], jsonPathLen);
+            if (song.songInfoPath == ((std::filesystem::path)song.songDir / "song.ini"))
+                song.ini = true;
             song.jsonHash.resize(64);
             SongCacheIn.read(&song.jsonHash[0], 64);
 
@@ -288,13 +298,29 @@ public:
                             list.badSongCount++;
                         }
                     }
+                    if (std::filesystem::exists(entry.path() / "song.ini")) {
+                        if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
+                            Song song;
+
+                            song.songInfoPath = (entry.path() / "song.ini").string();
+                            song.songDir = entry.path().string();
+                            song.LoadSongIni(entry.path());
+                            song.ini = true;
+                            list.songs.push_back(song);
+                            list.songCount++;
+                        } else {
+                            list.badSongCount++;
+                        }
+                    }
                 }
             }
         }
+
         if (size!=loadedFromCache || list.songs.size() > loadedFromCache) {
             TraceLog(LOG_INFO, "Updating song cache");
             WriteCache(list.songs);
         }
+        // ScanSongs(songsFolder);
         list.sortList(0);
         return list;
     }

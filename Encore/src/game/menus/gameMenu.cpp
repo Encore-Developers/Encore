@@ -246,7 +246,10 @@ void Menu::loadMenu() {
 
         };
         if (!streamsLoaded) {
-            ChosenSong.LoadAudio(ChosenSong.songInfoPath);
+            if (ChosenSong.ini)
+                ChosenSong.LoadAudioINI(ChosenSong.songDir);
+            else
+                ChosenSong.LoadAudio(ChosenSong.songInfoPath);
             menuAudioManager.loadStreams(ChosenSong.stemsPath);
             streamsLoaded = true;
             for (auto& stream : menuAudioManager.loadedStreams) {

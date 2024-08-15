@@ -23,6 +23,13 @@
     } \
 }
 
+#define CHECK_BASS_ERROR2() { \
+    int errorCode = BASS_ErrorGetCode(); \
+    if (errorCode != BASS_OK) { \
+        std::cerr << "BASS error " << errorCode << " at line " << __LINE__ << std::endl; \
+    } \
+}
+
 bool AudioManager::Init() {
 #ifdef WIN32
     if (!BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
@@ -53,9 +60,12 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int>>& paths) 
             loadedStreams.push_back({ streamHandle, path.second });
             if (streams != 0) {
                 BASS_ChannelSetLink(loadedStreams[0].handle, loadedStreams[streams].handle);
+                if (BASS_ChannelFlags(streamHandle, 0, 0) & BASS_SAMPLE_LOOP) // looping is currently enabled
+                    BASS_ChannelFlags(streamHandle, 0, BASS_SAMPLE_LOOP); // remove the LOOP flag
             }
             streams++;
         } else {
+            CHECK_BASS_ERROR2();
             std::cerr << "Failed to load stream: " << path.first << std::endl;
         }
     }
@@ -109,26 +119,33 @@ void AudioManager::unpauseStreams() {
 
 double AudioManager::GetMusicTimePlayed(unsigned int handle) {
     return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle, BASS_POS_BYTE));
+    CHECK_BASS_ERROR2();
 }
 
 double AudioManager::GetMusicTimeLength(unsigned int handle) {
     return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetLength(handle, BASS_POS_BYTE));
+    CHECK_BASS_ERROR2();
 }
 
 void AudioManager::SetAudioStreamVolume(unsigned int handle, float volume) {
     BASS_ChannelSetAttribute(handle, BASS_ATTRIB_VOL, volume);
+    CHECK_BASS_ERROR2();
 }
 
 void AudioManager::UpdateMusicStream(unsigned int handle) {
     BASS_ChannelUpdate(handle, 0);
+    CHECK_BASS_ERROR2();
 }
 
 void AudioManager::BeginPlayback(unsigned int handle) {
+    CHECK_BASS_ERROR2();
     BASS_ChannelStart(handle);
+
 }
 
 void AudioManager::StopPlayback(unsigned int handle) {
     BASS_ChannelStop(handle);
+    CHECK_BASS_ERROR2();
 }
 
 void AudioManager::loadSample(const std::string& path, const std::string& name) {

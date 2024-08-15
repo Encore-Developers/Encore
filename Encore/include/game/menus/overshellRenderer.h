@@ -9,6 +9,7 @@
 
 class OvershellRenderer {
 	public:
+	int AvailableControllers = 0; //keyb is always available
 	void DrawOvershell();
 };
 

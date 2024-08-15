@@ -948,6 +948,21 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	gprAssets.MultInnerDot.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(player->AccentColor, -0.5);
 	gprAssets.MultInnerFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(player->AccentColor, -0.4);
 	gprAssets.MultOuterFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(player->AccentColor, -0.7);
+	Vector4 FColor = { 0.5f, 0.4f, 0.1, 1.0f };
+	float ForFCTime = GetTime();
+	int FCING = player->stats->FC ? 1 : 0;
+	SetTextureWrap(gprAssets.MultFCTex1,TEXTURE_WRAP_REPEAT);
+	SetTextureWrap(gprAssets.MultFCTex2,TEXTURE_WRAP_REPEAT);
+	SetTextureWrap(gprAssets.MultFCTex3,TEXTURE_WRAP_REPEAT);
+
+	SetShaderValue(gprAssets.FullComboIndicator, gprAssets.FCIndLoc, &FCING, SHADER_UNIFORM_INT);
+	SetShaderValue(gprAssets.FullComboIndicator, gprAssets.TimeLoc, &ForFCTime, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.FullComboIndicator, gprAssets.FCColorLoc, &FColor, SHADER_UNIFORM_VEC4);
+	SetShaderValueTexture(gprAssets.FullComboIndicator, gprAssets.BottomTextureLoc, gprAssets.MultFCTex3);
+	SetShaderValueTexture(gprAssets.FullComboIndicator, gprAssets.MiddleTextureLoc, gprAssets.MultFCTex1);
+	SetShaderValueTexture(gprAssets.FullComboIndicator, gprAssets.TopTextureLoc, gprAssets.MultFCTex2);
+
+
 	DrawModel(gprAssets.MultInnerDot, Vector3{ 0,0.0f,1.225f }, 1, WHITE);
 	DrawModel(gprAssets.MultFill, Vector3{ 0,0.0f,1.225f  }, 1, WHITE);
 	DrawModel(gprAssets.MultOuterFrame, Vector3{ 0,0.0f,1.225f }, 1, WHITE);
@@ -977,7 +992,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	float posY = 0;
 	float posZ = -3.3;
 
-	float scaleX = 2;
+	float scaleX = 3;
 	float scaleY = 1;
 	float scaleZ = 1;
 
@@ -986,10 +1001,10 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	rlPushMatrix();
 		rlRotatef(180, 0, 1, 0);
 		rlRotatef(90, 1, 0, 0);
-		rlScalef(1,2.5,1);
+		rlScalef(1,5,1);
 		//rlRotatef(90.0f, 0.0f, 0.0f, 1.0f);								//0, 1, 2.4
 		float nameWidth = MeasureText3D(gprAssets.rubikBold, player->Name.c_str(), fontSize, 0, 0).x/2;
-		DrawText3D(gprAssets.rubikBold, player->Name.c_str(), Vector3{ 0-nameWidth,0.0,-0.35 }, fontSize, 0, 0, 1, WHITE);
+		DrawText3D(gprAssets.rubikBold, player->Name.c_str(), Vector3{ 0-nameWidth,0.0,-0.5 }, fontSize, 0, 0, 1, WHITE);
 	rlPopMatrix();
 
 
@@ -1511,16 +1526,19 @@ void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, d
 		float height = lua["height"];
 		float pctDist = lua["pctDist"];
 		float praiseDist = lua["praiseDist"];
+		float backgroundHeight = lua["backgroundHeight"];
+		float soloScale = lua["soloScale"];
 
 		float fontSize = lua["fontSize"];
 		float fontSizee = lua["fontSizee"];
-
+		gprAssets.SoloBox.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
 		rlPushMatrix();
 			rlRotatef(180, 0, 1, 0);
 			rlRotatef(90, 1, 0, 0);
 			//rlRotatef(90.0f, 0.0f, 0.0f, 1.0f);								//0, 1, 2.4
 			float soloWidth = MeasureText3D(gprAssets.rubikBold, soloPct, fontSizee, 0, 0).x/2;
 			float hitWidth = MeasureText3D(gprAssets.josefinSansItalic, soloHit, fontSize, 0, 0).x/2;
+			DrawModel(gprAssets.SoloBox, Vector3{0, posY-1, backgroundHeight}, soloScale, WHITE);
 			DrawText3D(gprAssets.rubikBold, soloPct, Vector3{ 0-soloWidth,posY,height-pctDist }, fontSizee, 0, 0, 1, accColor);
 			if (musicTime <= curChart.Solos[player->stats->curSolo].end)
 				DrawText3D(gprAssets.josefinSansItalic, soloHit, Vector3{ 0-hitWidth,posY,height }, fontSize, 0, 0, 1, accColor);
@@ -1768,8 +1786,9 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 		gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 		gprAssets.KickBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-		gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(NoteColor, -0.25);
-		gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(NoteColor, -0.15);
+		gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
+		gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
 		float notePosX = curNote.lane == KICK ? 0 : (diffDistance - (1.25f * (curNote.lane - 1)))-0.125f;
 		float notePosY = curNote.lane == KICK ? 0.01f : 0;
 		if (relTime > 1.5) {
@@ -1783,6 +1802,9 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		}
 		if (curNote.pDrumAct && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
 			NoteScale.y = 2.0f;
+			gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
+			gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
+			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
 		}
 
 		Model bottomModel = curNote.lane == KICK ? gprAssets.KickBottomModel : gprAssets.noteBottomModel;
@@ -1796,13 +1818,18 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		if (!curNote.hit && !curNote.miss) {
 			if (!curNote.pDrumTom && curNote.lane != KICK && curNote.lane != RED_DRUM) {
 				if (curNote.renderAsOD) {
-					gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
-					gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+					gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+					gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
+					gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(GOLD, -0.5);
 					DrawModelEx(gprAssets.CymbalInner, Vector3{ notePosX, notePosY, smasherPos +
 																	   (length *
 																		(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
 					WHITE);
 					DrawModelEx(gprAssets.CymbalOuter, Vector3{ notePosX, notePosY, smasherPos +
+																			  (length *
+																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
+						WHITE);
+					DrawModelEx(gprAssets.CymbalBottom, Vector3{ notePosX, notePosY, smasherPos +
 																			  (length *
 																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
 						WHITE);
@@ -1812,6 +1839,10 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 																		(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
 					WHITE);
 					DrawModelEx(gprAssets.CymbalOuter, Vector3{ notePosX, notePosY, smasherPos +
+																			  (length *
+																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
+						WHITE);
+					DrawModelEx(gprAssets.CymbalBottom, Vector3{ notePosX, notePosY, smasherPos +
 																			  (length *
 																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
 						WHITE);
@@ -1892,7 +1923,7 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		if (curNote.hit && curNote.lane == KICK && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
 			curNote.hitTime + KickBounceDuration) {
 			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
-			float CameraPos = Remap(getEasingFunction(EaseOutBounce)(TimeSinceHit / KickBounceDuration), 0, 1.0, 7.75f, 8.0f);
+			float CameraPos = Remap(getEasingFunction(EaseOutBounce)(TimeSinceHit / KickBounceDuration), 0, 1.0, 7.5f, 8.0f);
 			camera3pVector[cameraSel].position.y = CameraPos;
 
 			//	float renderheight = 8.0f;

@@ -83,10 +83,21 @@ void Assets::LoadAssets() {
     MultOuterFrame = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultOuterFrame.obj"), loadedAssets);
     MultInnerFrame = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultInnerFrame.obj"), loadedAssets);
 
+
     MultFillBase = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/Untitled.png"), loadedAssets);
     MultFCTex1 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine.png"), loadedAssets);
     MultFCTex2 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine2.png"), loadedAssets);
     MultFCTex3 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine3.png"), loadedAssets);
+
+
+    FullComboIndicator = LoadShader(0, "Assets/ui/fc_ind.fsh");
+    BottomTextureLoc = GetShaderLocation(FullComboIndicator, "baseTex");
+    MiddleTextureLoc = GetShaderLocation(FullComboIndicator, "tex1");
+    TopTextureLoc = GetShaderLocation(FullComboIndicator, "tex2");
+    TimeLoc = GetShaderLocation(FullComboIndicator, "time");
+    FCColorLoc = GetShaderLocation(FullComboIndicator, "color");
+    FCIndLoc = GetShaderLocation(FullComboIndicator, "isFC");
+    MultInnerFrame.materials[0].shader = FullComboIndicator;
 
     MultiplierFill = LoadShader(0, "Assets/highway/multiplier/MultiplierFill.fsh");
 
@@ -120,9 +131,29 @@ void Assets::LoadAssets() {
     KickBottom = Assets::LoadTextureFilter(directory / "Assets/notes/kick.png", loadedAssets);
     KickSide = Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
 
-    CymbalInner = Assets::LoadModel_((directory / "Assets/notes/cymbalInner.obj"), loadedAssets);
-    CymbalOuter = Assets::LoadModel_((directory / "Assets/notes/cymbalColor.obj"), loadedAssets);
+    CymbalInner = Assets::LoadModel_((directory / "Assets/notes/cymbal/CymbalWhite.obj"), loadedAssets);
+    CymbalOuter = Assets::LoadModel_((directory / "Assets/notes/cymbal/CymbalColor.obj"), loadedAssets);
+    CymbalBottom = Assets::LoadModel_((directory / "Assets/notes/cymbal/CymbalBottom.obj"), loadedAssets);
     CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
+
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-1.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-2.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-3.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-4.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-5.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-6.png"), loadedAssets));
+
+    BaseRingTexture = LoadTextureFilter((directory /"Assets/ui/hugh ring/rings.png"), loadedAssets);
+
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/bass-inv.png"), loadedAssets));
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/drums-inv.png"), loadedAssets));
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/lead-inv.png"), loadedAssets));
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/vox-inv.png"), loadedAssets));
+
+    SoloBox = Assets::LoadModel_((directory /"Assets/highway/Solo.obj"), loadedAssets);
+    SoloBackground = Assets::LoadTextureFilter(directory / "Assets/highway/SoloBox.png", loadedAssets);
+    SoloBox.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = SoloBackground;
 
     // noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
     // emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);

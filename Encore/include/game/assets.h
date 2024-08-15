@@ -74,6 +74,12 @@ public:
 
     Shader MultiplierFill;
     Shader FullComboIndicator;
+    int BottomTextureLoc;
+    int MiddleTextureLoc;
+    int TopTextureLoc;
+    int TimeLoc;
+    int FCColorLoc;
+    int FCIndLoc;
 
     Shader odMultShader;
     Shader multNumberShader;
@@ -115,6 +121,10 @@ public:
 
     Model CymbalInner;
     Model CymbalOuter;
+    Model CymbalBottom;
+
+    Model SoloBox;
+    Texture2D SoloBackground;
 
     Model noteBottomModelOD;
     Model noteTopModelOD;
@@ -124,6 +134,9 @@ public:
     Model liftModel;
     Model liftModelOD;
 
+    std::vector<Texture2D> YargRings;
+    Texture2D BaseRingTexture;
+    std::vector<Texture2D> InstIcons;
 
     Image icon;
     Texture2D encoreWhiteLogo;
