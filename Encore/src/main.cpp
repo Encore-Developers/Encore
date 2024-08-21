@@ -64,7 +64,8 @@ bool ShowHighwaySettings = true;
 bool ShowCalibrationSettings = true;
 bool ShowGeneralSettings = true;
 
-
+double startTime = 0.0;
+double songTime = 0.0;
 
 int curNoteIndex = 0;
 int curPlayingSong = 0;
@@ -158,7 +159,7 @@ static void handleInputs(Player *player, int lane, int action) {
 		return;
 	}
 	Chart &curChart = songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty];
-	float eventTime = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
+	float eventTime = songTime;
 	if (true) {
 		if (action == GLFW_PRESS && (lane == -1) && stats->overdriveFill > 0 && !stats->Overdrive) {
 			stats->overdriveActiveTime = eventTime;
@@ -930,7 +931,7 @@ int main(int argc, char *argv[]) {
 
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
-	newPlayer.Bot = true;
+	// newPlayer.Bot = true;
 	newPlayer.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer);
 	playerManager.AddActivePlayer(0,0);
@@ -2664,7 +2665,7 @@ int main(int argc, char *argv[]) {
 										player->diffSelection = false;
 										player->ReadyUpMenu = true;
 										player->ReadiedUpBefore = true;
-										startedPlayingSong = GetTime();
+
 												}
 									GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
 												ColorToInt(ColorBrightness(AccentColor, -0.5)));
@@ -2735,6 +2736,8 @@ int main(int argc, char *argv[]) {
 								glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 								glfwSetGamepadStateCallback(gamepadStateCallback);
 								gpr.camera3pVector = {gpr.camera1, gpr.camera3, gpr.camera2};
+								startedPlayingSong = GetTime()+gpr.animDuration;
+
 							}
 							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
 							ColorToInt(ColorBrightness(AccentColor, -0.5)));
@@ -2755,6 +2758,7 @@ int main(int argc, char *argv[]) {
 			case GAMEPLAY: {
 				// IMAGE BACKGROUNDS??????
 				ClearBackground(BLACK);
+
 				if (IsWindowResized() || notes_tex.texture.width != GetScreenWidth()
 						|| notes_tex.texture.height != GetScreenHeight()) {
 					UnloadRenderTexture(notes_tex);
@@ -2895,7 +2899,7 @@ int main(int argc, char *argv[]) {
 				*/
 				if (!streamsLoaded) {
 					audioManager.loadStreams(songList.songs[curPlayingSong].stemsPath);
-					streamsLoaded = true;
+
 					for (auto &stream: audioManager.loadedStreams) {
 						// if ((player.plastic ? player.Instrument - 4 : player.Instrument) ==
 						//	stream.Instrument)
@@ -2910,6 +2914,8 @@ int main(int argc, char *argv[]) {
 								stream.handle,
 								settingsMain.MainVolume * settingsMain.BandVolume);
 					}
+					streamsLoaded = true;
+					startTime = GetTime();
 					// player.resetPlayerStats();
 				} else {
 					for (auto &stream: audioManager.loadedStreams) {
@@ -2925,19 +2931,17 @@ int main(int argc, char *argv[]) {
 							audioManager.SetAudioStreamVolume(
 								stream.handle,
 								settingsMain.MainVolume * settingsMain.BandVolume);
+						if (gpr.songPlaying)
+							songTime = GetTime()-gpr.audioStartTime;
 					}
 					float songPlayed = audioManager.GetMusicTimePlayed(
 						audioManager.loadedStreams[0].handle);
 					double songEnd =
-							audioManager.
-							GetMusicTimeLength(audioManager.loadedStreams[0].handle) <= (
-								songList.songs[curPlayingSong].end <= 0
-									? 0
-									: songList.songs[curPlayingSong].end)
-								? audioManager.GetMusicTimeLength(
-									audioManager.loadedStreams[0].handle) - 0.01
+							floor(audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle)) <= (songList.songs[curPlayingSong].end <= 0 ? 0 : songList.songs[curPlayingSong].end)
+								? floor(audioManager.GetMusicTimeLength(
+									audioManager.loadedStreams[0].handle) )
 								: songList.songs[curPlayingSong].end - 0.01;
-					if (songEnd < songPlayed) {
+					if (songEnd < songTime) {
 						glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
 						glfwSetGamepadStateCallback(origGamepadCallback);
 						// notes = (int)songList.songs[curPlayingSong].parts[Instrument]->charts[diff].notes.size();
@@ -2970,7 +2974,13 @@ int main(int argc, char *argv[]) {
 						TraceLog(LOG_INFO, TextFormat("Song ended at at %f", songPlayed));
 					}
 				}
+				double songEnd =
+							floor(audioManager.GetMusicTimeLength(audioManager.loadedStreams[0].handle)) <= (songList.songs[curPlayingSong].end <= 0 ? 0 : songList.songs[curPlayingSong].end)
+								? floor(audioManager.GetMusicTimeLength(
+									audioManager.loadedStreams[0].handle) )
+								: songList.songs[curPlayingSong].end - 0.01;
 				// menu.DrawFPS(u.LeftSide, 0);
+
 				int songPlayed = audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
 				double songFloat = audioManager.
 						GetMusicTimePlayed(audioManager.loadedStreams[0].handle);
@@ -3008,7 +3018,7 @@ int main(int argc, char *argv[]) {
 							break;
 						}
 					}
-					gpr.RenderGameplay(playerManager.GetActivePlayer(pnum), songFloat, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+					gpr.RenderGameplay(playerManager.GetActivePlayer(pnum), songTime, songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
 					//DrawTextEx(assets.rubik, playerManager.GetActivePlayer(pnum)->Name.c_str(), {u.wpct((pnum * 0.33)+(0.33/2)),u.hpct(0.9)}, u.hinpct(0.05), 0, WHITE);
 				}
 				//gpr.cameraSel = 2;
@@ -3086,8 +3096,8 @@ int main(int argc, char *argv[]) {
 					songLength = static_cast<int>(songList.songs[curPlayingSong].end);
 				int playedMinutes = songPlayed / 60;
 				int playedSeconds = songPlayed % 60;
-				int songMinutes = songLength / 60;
-				int songSeconds = songLength % 60;
+				int songMinutes = (int)songEnd / 60;
+				int songSeconds = (int)songEnd % 60;
 
 				GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
 				//GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL,
@@ -3358,6 +3368,8 @@ int main(int argc, char *argv[]) {
 							u.hpct(0.02f) + u.winpct(0.035f), u.winpct(0.1f), u.winpct(0.01f),
 							gpr.downStrum ? WHITE : GRAY);
 				*/
+				DrawTextEx(assets.rubik,TextFormat("song time: %f", songTime), {0,u.hpct(0.5f)}, u.hinpct(0.05f),0,WHITE);
+				DrawTextEx(assets.rubik,TextFormat("audio time: %f", audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)), {0,u.hpct(0.56f)}, u.hinpct(0.05f),0,WHITE);
 				break;
 			}
 			case RESULTS: {

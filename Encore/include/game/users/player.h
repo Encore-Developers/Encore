@@ -185,6 +185,13 @@ public:
             return 3;
     }
 
+    int maxComboForMeter() {
+        if (Instrument == 1 || Instrument == 3 || Instrument == 5)
+            return 50;
+        else
+            return 30;
+    }
+
     int Stars() {
         float starPercent = (float)MaxCombo/(float)BaseScore;
         if (starPercent < xStarThreshold[0]) {return 0;}

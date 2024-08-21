@@ -80,6 +80,9 @@ public:
     int TimeLoc;
     int FCColorLoc;
     int FCIndLoc;
+    Shader Highway;
+    int RenderTextureLoc;
+    int CurveMaxLoc;
 
     Shader odMultShader;
     Shader multNumberShader;

@@ -196,6 +196,35 @@ static Vector3 MeasureText3D(Font font, const char* text, float fontSize, float 
 	return vec;
 }
 
+void gameplayRenderer::NoteMultiplierEffect(double time, double hitTime, bool miss, Player &player) {
+	if (time < hitTime + multiplierEffectTime && time >= hitTime) {
+		Color missColor = {200,0,0,255};
+		Color comboColor = {200,200,200,255};
+
+		Color RingDefault = ColorBrightness(player.AccentColor, -0.7);
+		unsigned char r = RingDefault.r;
+		unsigned char g = RingDefault.g;
+		unsigned char b = RingDefault.b;
+		unsigned char a = 255;
+		double TimeSinceHit = time - hitTime;
+		if (!miss) {
+			if (player.stats->Combo <= player.stats->maxMultForMeter() * 10 && player.stats->Combo % 10 == 0) {
+				r = Remap(getEasingFunction(EaseOutQuart)(TimeSinceHit/multiplierEffectTime), 0, 1.0, comboColor.r, RingDefault.r);
+				g = Remap(getEasingFunction(EaseOutQuart)(TimeSinceHit/multiplierEffectTime), 0, 1.0, comboColor.g, RingDefault.g);
+				b = Remap(getEasingFunction(EaseOutQuart)(TimeSinceHit/multiplierEffectTime), 0, 1.0, comboColor.b, RingDefault.b);
+			}
+		} else {
+
+				r = Remap(getEasingFunction(EaseOutQuart)(TimeSinceHit/multiplierEffectTime), 0, 1.0, missColor.r, RingDefault.r);
+				g = Remap(getEasingFunction(EaseOutQuart)(TimeSinceHit/multiplierEffectTime), 0, 1.0, missColor.g, RingDefault.g);
+				b = Remap(getEasingFunction(EaseOutQuart)(TimeSinceHit/multiplierEffectTime), 0, 1.0, missColor.b, RingDefault.b);
+
+		}
+		gprAssets.MultOuterFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = {r,g,b,a};
+	}
+}
+
+
 void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
 	float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
@@ -482,7 +511,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				}
 
 
-				if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+				if (time <
 					curNote.time + 0.4 && gprSettings.missHighwayColor) {
 					gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
 					} else {
@@ -491,17 +520,17 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 			}
 			BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 			double PerfectHitAnimDuration = 1.0f;
-			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) < (curNote.hitTime) + HitAnimDuration) {
-				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			if (curNote.hit && time < (curNote.hitTime) + HitAnimDuration) {
+				double TimeSinceHit = time - curNote.hitTime;
 				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutExpo)(TimeSinceHit/HitAnimDuration), 0, 1.0, 196, 0);
 				DrawCube(Vector3{notePosX, 0.125, smasherPos}, 1.0f, 0.25f, 0.5f,
 						 curNote.perfect ? Color{255, 215, 0, HitAlpha} : Color{255, 255, 255, HitAlpha});
 			}
 			EndBlendMode();
-			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			if (curNote.hit && time <
 							(curNote.hitTime) + PerfectHitAnimDuration && curNote.perfect) {
 
-				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+				double TimeSinceHit = time - curNote.hitTime;
 				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
 				float HitPosLeft = Remap(getEasingFunction(EaseInOutBack)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 3.4, 3.0);
 
@@ -511,6 +540,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 						 1.0f, Color{255,161,0,(unsigned char)(HitAlpha/2)});
 							}
 			// DrawText3D(gprAssets.rubik, TextFormat("%01i", combo), Vector3{2.8f, 0, smasherPos}, 32, 0.5,0,false,FC ? GOLD : (combo <= 3) ? RED : WHITE);
+			NoteMultiplierEffect(time, curNote.time, curNote.miss, *player);
 
 
 			if (relEnd < -1 && player->stats->curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1)
@@ -586,6 +616,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 			!songEnded && player->stats->curNoteInt < curChart.notes.size() && !songEnded && !player->Bot) {
 			TraceLog(LOG_INFO, TextFormat("Missed note at %f, note %01i", time, player->stats->curNoteInt));
 			curNote.miss = true;
+			player->stats->FAS = false;
 			FAS = false;
 			player->stats->MissNote();
 			if (!curChart.odPhrases.empty() && !curChart.odPhrases[player->stats->curODPhrase].missed &&
@@ -830,7 +861,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				}
 
 
-				if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+				if (time <
 					curNote.time + 0.4 && gprSettings.missHighwayColor) {
 					gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
 				} else {
@@ -839,10 +870,10 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 			}
 
 			double PerfectHitAnimDuration = 1.0f;
-			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			if (curNote.hit && time <
 							   curNote.hitTime + HitAnimDuration) {
 
-				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+				double TimeSinceHit = time - curNote.hitTime;
 				unsigned char HitAlpha = Remap(getEasingFunction(EaseInBack)(TimeSinceHit/HitAnimDuration), 0, 1.0, 196, 0);
 
 				DrawCube(Vector3{notePosX, 0.125, smasherPos}, 1.0f, 0.25f, 0.5f,
@@ -855,10 +886,10 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 
 			}
 
-			if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			if (curNote.hit && time <
 							   curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
 
-				double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+				double TimeSinceHit = time - curNote.hitTime;
 				unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 255, 0);
 				float HitPosLeft = Remap(getEasingFunction(EaseInOutBack)(TimeSinceHit/PerfectHitAnimDuration), 0, 1.0, 3.4, 3.0);
 
@@ -867,6 +898,9 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				DrawCube(Vector3{HitPosLeft, -0.11f, smasherPos}, 1.0f, 0.01f,
 						 1.0f, Color{255,161,0,(unsigned char)(HitAlpha/2)});
 			}
+
+			NoteMultiplierEffect(time, curNote.time, curNote.miss, *player);
+
 		}
 	}
 	EndMode3D();
@@ -947,7 +981,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 
 	gprAssets.MultInnerDot.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(player->AccentColor, -0.5);
 	gprAssets.MultInnerFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(player->AccentColor, -0.4);
-	gprAssets.MultOuterFrame.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(player->AccentColor, -0.7);
+
 	Vector4 FColor = { 0.5f, 0.4f, 0.1, 1.0f };
 	float ForFCTime = GetTime();
 	int FCING = player->stats->FC ? 1 : 0;
@@ -1086,9 +1120,13 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 
 	if (player->Bot) player->Bot = true;
 	else player->Bot = false;
-	gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
+
+
 	RaiseHighway();
 	if (GetTime() >= startTime + animDuration && highwayInEndAnim) {
+		gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
+		songPlaying = true;
+		audioStartTime = GetTime();
 		highwayInEndAnim = false;
 	}
 
@@ -1210,17 +1248,17 @@ void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double tim
 
 	double OverdriveAnimDuration = 0.25f;
 
-	if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
-		double TimeSinceOverdriveActivate = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player->stats->overdriveActiveTime;
+	if (time <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
+		double TimeSinceOverdriveActivate = time - player->stats->overdriveActiveTime;
 		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 0, 255);
 	} else OverdriveAlpha = 255;
 
-	if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActivateTime + OverdriveAnimDuration && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) > 0.0) {
-		double TimeSinceOverdriveActivate = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player->stats->overdriveActivateTime;
+	if (time <= player->stats->overdriveActivateTime + OverdriveAnimDuration && time > 0.0) {
+		double TimeSinceOverdriveActivate = time - player->stats->overdriveActivateTime;
 		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 255, 0);
 	} else if (!player->stats->Overdrive) OverdriveAlpha = 0;
 
-	if (player->stats->Overdrive || gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,Color{255,255,255,OverdriveAlpha});}
+	if (player->stats->Overdrive || time <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,Color{255,255,255,OverdriveAlpha});}
 	BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 	DrawTriangle3D({lineDistance - 1.0f,0.003,0},
 				   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
@@ -1882,7 +1920,7 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		}
 
 		if (curNote.miss && curNote.time + 0.5 < time) {
-			if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+			if (time <
 				curNote.time + 0.4 && gprSettings.missHighwayColor) {
 				gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
 			}
@@ -1891,10 +1929,10 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 			}
 		}
 		double PerfectHitAnimDuration = 1.0f;
-		if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+		if (curNote.hit && time <
 			curNote.hitTime + HitAnimDuration) {
 
-			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			double TimeSinceHit = time - curNote.hitTime;
 			unsigned char HitAlpha = Remap(getEasingFunction(EaseInBack)(TimeSinceHit / HitAnimDuration), 0, 1.0, 196, 0);
 
 			DrawCube(Vector3{ notePosX, curNote.lane == KICK ? 0 : 0.125f, smasherPos }, curNote.lane == KICK ? 5.0f: 1.3f, curNote.lane == KICK ? 0.125f : 0.25f, curNote.lane == KICK ? 0.5f : 0.75f,
@@ -1908,10 +1946,10 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		}
 		EndBlendMode();
 		float KickBounceDuration = 0.5f;
-		if (curNote.hit && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+		if (curNote.hit && time <
 			curNote.hitTime + PerfectHitAnimDuration && curNote.perfect) {
 
-			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			double TimeSinceHit = time - curNote.hitTime;
 			unsigned char HitAlpha = Remap(getEasingFunction(EaseOutQuad)(TimeSinceHit / PerfectHitAnimDuration), 0, 1.0, 255, 0);
 			float HitPosLeft = Remap(getEasingFunction(EaseInOutBack)(TimeSinceHit / PerfectHitAnimDuration), 0, 1.0, 3.4, 3.0);
 
@@ -1920,14 +1958,15 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 			DrawCube(Vector3{ HitPosLeft, -0.11f, smasherPos }, 1.0f, 0.01f,
 				1.0f, Color{ 255,161,0,(unsigned char)(HitAlpha / 2) });
 		}
-		if (curNote.hit && curNote.lane == KICK && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <
+		if (curNote.hit && curNote.lane == KICK && time <
 			curNote.hitTime + KickBounceDuration) {
-			double TimeSinceHit = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - curNote.hitTime;
+			double TimeSinceHit = time - curNote.hitTime;
 			float CameraPos = Remap(getEasingFunction(EaseOutBounce)(TimeSinceHit / KickBounceDuration), 0, 1.0, 7.5f, 8.0f);
 			camera3pVector[cameraSel].position.y = CameraPos;
 
 			//	float renderheight = 8.0f;
 		}
+		NoteMultiplierEffect(time, curNote.time, curNote.miss, *player);
 	}
 	EndMode3D();
 	EndTextureMode();
@@ -1971,17 +2010,17 @@ void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double tim
 
 	double OverdriveAnimDuration = 0.25f;
 
-	if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
-		double TimeSinceOverdriveActivate = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player->stats->overdriveActiveTime;
+	if (time <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
+		double TimeSinceOverdriveActivate = time - player->stats->overdriveActiveTime;
 		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 0, 255);
 	} else OverdriveAlpha = 255;
 
-	if (gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActivateTime + OverdriveAnimDuration && gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) > 0.0) {
-		double TimeSinceOverdriveActivate = gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) - player->stats->overdriveActivateTime;
+	if (time <= player->stats->overdriveActivateTime + OverdriveAnimDuration && time > 0.0) {
+		double TimeSinceOverdriveActivate = time - player->stats->overdriveActivateTime;
 		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 255, 0);
 	} else if (!player->stats->Overdrive) OverdriveAlpha = 0;
 
-	if (player->stats->Overdrive || gprAudioManager.GetMusicTimePlayed(gprAudioManager.loadedStreams[0].handle) <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,Color{255,255,255,OverdriveAlpha});}
+	if (player->stats->Overdrive || time <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.001f,0},1,Color{255,255,255,OverdriveAlpha});}
 	BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 	//DrawTriangle3D({lineDistance - 1.0f,0.003,0},
 	//			   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + smasherPos},

@@ -33,11 +33,13 @@ public:
     bool songEnded = false;
     bool overstrum = false;
     int selectedSongInt = 0;
+	bool songPlaying = false;
     bool showHitwindow = false;
 
     bool songOver = false;
 	bool extendedSustainActive = false;
 	float textureOffset = 0;
+	double audioStartTime = 0.0;
 	float renderPos = 0;
 	int cameraSel = 0;
     Mesh sustainPlane;
@@ -66,5 +68,8 @@ public:
     void RaiseHighway();
 
     void LowerHighway();
+
+	void NoteMultiplierEffect(double time, double hitTime, bool miss, Player& player);
+	double multiplierEffectTime = 1.0;
 };
 

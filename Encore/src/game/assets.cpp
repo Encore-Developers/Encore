@@ -64,6 +64,9 @@ void Assets::LoadAssets() {
     goldStarUnfilled = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star_unfilled.png", loadedAssets);
     emptyStar = Assets::LoadTextureFilter(directory/ "Assets/ui/empty-star.png", loadedAssets);
 
+    Highway = LoadShader((directory / "Assets/highway/fLighting.vsh").string().c_str(), (directory / "Assets/highway/highwayShader.fsh").string().c_str());
+    RenderTextureLoc = GetShaderLocation(Highway, "texture0");
+
     odFrame = Assets::LoadModel_((directory / "Assets/ui/od_frame.obj"), loadedAssets);
     odBar = Assets::LoadModel_((directory / "Assets/ui/od_fill.obj"), loadedAssets);
     multFrame = Assets::LoadModel_((directory / "Assets/ui/multcircle_frame.obj"), loadedAssets);
