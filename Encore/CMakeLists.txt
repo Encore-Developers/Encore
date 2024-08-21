@@ -78,7 +78,7 @@ if(APPLE)
   file(COPY "lib/bass/macos/libbass.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/macos")
   file(COPY "lib/bass/macos/libbassopus.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-  find_library(LUA NAMES lua PATHS "lib/lua")
+  find_library(LUA NAMES lua52 PATHS "lib/lua")
   file(COPY "lib/lua/liblua52.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 endif()
 
