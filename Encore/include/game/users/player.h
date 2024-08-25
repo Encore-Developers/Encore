@@ -152,7 +152,7 @@ public:
         if (Combo > MaxCombo)
             MaxCombo = Combo;
         float perfectMult = note.perfect ? 1.2f : 1.0f;
-        Score += (note.chordSize * (int)((30.0f * (multiplier()) * perfectMult)));
+        Score += (note.chordSize * (int)(30.0f * (multiplier()) * perfectMult));
         PerfectHit += note.perfect ? 1 : 0;
         // mute = false;
     }
@@ -340,6 +340,9 @@ public:
     std::vector<int> OverdriveMultiplier{1,2,4,6,8};
     int PlayersInOverdrive = 0;
     void AddNotePoint(bool perfect, int playerMult);
+
+    void AddClassicNotePoint(bool perfect, int playerMult, int chordSize);
+
     void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
 };
 

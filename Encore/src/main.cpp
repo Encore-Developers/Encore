@@ -102,6 +102,7 @@ std::string commitHash = GIT_COMMIT_HASH;
 
 gameplayRenderer gpr;
 
+
 SongList &songList = SongList::getInstance();
 Assets &assets = Assets::getInstance();
 
@@ -823,7 +824,7 @@ int main(int argc, char *argv[]) {
 	float deltaTime = 0.0f;
 
 	float timeCounter = 0.0f;
-
+	gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
 	std::filesystem::path executablePath(GetApplicationDirectory());
 
 	std::filesystem::path directory = executablePath.parent_path();
@@ -931,8 +932,8 @@ int main(int argc, char *argv[]) {
 
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
-	// newPlayer.Bot = true;
-	newPlayer.NoteSpeed = 1.0;
+	newPlayer.Bot = true;
+	newPlayer.NoteSpeed = 1.5;
 	playerManager.PlayerList.push_back(newPlayer);
 	playerManager.AddActivePlayer(0,0);
 
@@ -941,6 +942,7 @@ int main(int argc, char *argv[]) {
 	newPlayer2.Name = "lothycat";
 	newPlayer2.ProDrums = true;
 	newPlayer2.Bot = true;
+	newPlayer2.AccentColor = RED;
 	newPlayer2.joypadID = GLFW_JOYSTICK_1;
 	newPlayer2.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer2);
@@ -949,6 +951,7 @@ int main(int argc, char *argv[]) {
 	Player newPlayer3;
 	newPlayer3.Name = "cameron44251";
 	newPlayer3.Bot = true;
+	newPlayer3.AccentColor = BLUE;
 	newPlayer3.joypadID = GLFW_JOYSTICK_2;
 	newPlayer3.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer3);
@@ -2800,7 +2803,13 @@ int main(int argc, char *argv[]) {
 				menu.DrawAlbumArtBackground(menu.ChosenSong.albumArtBlur);
 				DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{0, 0, 0, 128});
 				// DrawTextureEx(assets.songBackground, {0,0},0, (float)GetScreenHeight()/assets.songBackground.height,WHITE);
-				/*
+				for (int i = 0; i < playerManager.PlayersActive; i++) {
+					if (i == 0)
+						playerManager.BandStats.BaseScore = songList.songs[curPlayingSong].parts[playerManager.GetActivePlayer(i)->Instrument]->charts[playerManager.GetActivePlayer(i)->Difficulty].baseScore;
+					else
+						playerManager.BandStats.BaseScore += songList.songs[curPlayingSong].parts[playerManager.GetActivePlayer(i)->Instrument]->charts[playerManager.GetActivePlayer(i)->Difficulty].baseScore;
+
+				}
 				int starsval = playerManager.BandStats.Stars();
 				float starPercent =
 						(float) playerManager.BandStats.Score / (float) playerManager.BandStats.BaseScore;
@@ -2818,7 +2827,7 @@ int main(int argc, char *argv[]) {
 											playerManager.BandStats.xStarThreshold[i], 0, u.hinpct(0.05));
 					BeginScissorMode(starX, (starY + starWH) - yMaskPos, starWH, yMaskPos);
 					DrawTexturePro(assets.star, emptyStarWH, starRect, {0, 0}, 0,
-									i != starsval ? WHITE : Color{192, 192, 192, 128});
+									i == starsval ? WHITE : Color{192, 192, 192, 128});
 					EndScissorMode();
 				}
 				if (starPercent >= playerManager.BandStats.xStarThreshold[4] && playerManager.BandStats.EligibleForGoldStars) {
@@ -2844,7 +2853,7 @@ int main(int argc, char *argv[]) {
 				// 		player.score + player.sustainScoreBuffer[0] + player.sustainScoreBuffer[
 				// 			1] + player.sustainScoreBuffer[2] + player.sustainScoreBuffer[3]
 				// 		+ player.sustainScoreBuffer[4];
-				*/
+
 				int Score = 0;
 				int Combo = 0;
 				/*

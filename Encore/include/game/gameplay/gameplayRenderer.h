@@ -65,11 +65,13 @@ public:
     bool FAS = false;
     bool processingStrum = false;
 
+
+
     void RaiseHighway();
 
     void LowerHighway();
 
-	void NoteMultiplierEffect(double time, double hitTime, bool miss, Player& player);
+	void NoteMultiplierEffect(double time, double hitTime, bool miss, Player*player);
 	double multiplierEffectTime = 1.0;
 };
 

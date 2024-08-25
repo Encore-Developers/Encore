@@ -65,7 +65,8 @@ void Assets::LoadAssets() {
     emptyStar = Assets::LoadTextureFilter(directory/ "Assets/ui/empty-star.png", loadedAssets);
 
     Highway = LoadShader((directory / "Assets/highway/fLighting.vsh").string().c_str(), (directory / "Assets/highway/highwayShader.fsh").string().c_str());
-    RenderTextureLoc = GetShaderLocation(Highway, "texture0");
+    HighwayTexShaderLoc = GetShaderLocation(Highway, "highwayTex");
+    HighwayTimeShaderLoc = GetShaderLocation(Highway, "time");
 
     odFrame = Assets::LoadModel_((directory / "Assets/ui/od_frame.obj"), loadedAssets);
     odBar = Assets::LoadModel_((directory / "Assets/ui/od_fill.obj"), loadedAssets);
@@ -100,6 +101,7 @@ void Assets::LoadAssets() {
     TimeLoc = GetShaderLocation(FullComboIndicator, "time");
     FCColorLoc = GetShaderLocation(FullComboIndicator, "color");
     FCIndLoc = GetShaderLocation(FullComboIndicator, "isFC");
+    BasicColorLoc = GetShaderLocation(FullComboIndicator, "basicColor");
     MultInnerFrame.materials[0].shader = FullComboIndicator;
 
     MultiplierFill = LoadShader(0, "Assets/highway/multiplier/MultiplierFill.fsh");
@@ -115,9 +117,11 @@ void Assets::LoadAssets() {
     uvOffsetXLoc = GetShaderLocation(multNumberShader, "uvOffsetX");
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
-
+    Highway.locs[SHADER_UNIFORM_SAMPLER2D] = GetShaderLocation(Highway, "highwayTex");
+    HighwayColorShaderLoc = GetShaderLocation(Highway, "highwayColor");
     expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
     expertHighway = Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
+    expertHighway.materials[0].shader = Highway;
     emhHighwaySides = Assets::LoadModel_((directory / "Assets/highway/sides_emh.obj"), loadedAssets);
     emhHighway = Assets::LoadModel_((directory / "Assets/highway/highway_emh.obj"), loadedAssets);
     odHighwayEMH = Assets::LoadModel_((directory / "Assets/highway/overdrive_emh.obj"), loadedAssets);

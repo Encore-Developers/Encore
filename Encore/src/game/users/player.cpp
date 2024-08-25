@@ -135,6 +135,15 @@ void BandGameplayStats::AddNotePoint(bool perfect, int playerMult) {
 	// mute = false;
 }
 
+void BandGameplayStats::AddClassicNotePoint(bool perfect, int playerMult, int chordSize) {
+	Combo += 1;
+	if (Combo > MaxCombo)
+		MaxCombo = Combo;
+	float perfectMult = perfect ? 1.2f : 1.0f;
+	Score += (int)((chordSize * (30.0f) * playerMult * perfectMult * OverdriveMultiplier[PlayersInOverdrive]));
+	// mute = false;
+}
+
 void BandGameplayStats::DrumNotePoint(bool perfect, int playerMult, bool cymbal) {
 	Combo += 1;
 	if (Combo > MaxCombo)

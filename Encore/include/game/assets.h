@@ -77,11 +77,14 @@ public:
     int BottomTextureLoc;
     int MiddleTextureLoc;
     int TopTextureLoc;
+    int BasicColorLoc;
     int TimeLoc;
     int FCColorLoc;
     int FCIndLoc;
     Shader Highway;
-    int RenderTextureLoc;
+    int HighwayTexShaderLoc;
+    int HighwayTimeShaderLoc;
+    int HighwayColorShaderLoc;
     int CurveMaxLoc;
 
     Shader odMultShader;
