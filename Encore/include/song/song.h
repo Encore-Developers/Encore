@@ -104,6 +104,16 @@ public:
             {"PLASTIC GUITAR",SongParts::PlasticGuitar}
     };
 
+	std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
+		{"PAD DRUMS",SongParts::PartDrums},
+		{"PAD BASS",SongParts::PartBass},
+		{"PAD GUITAR",SongParts::PartGuitar},
+		{"PAD VOCALS",SongParts::PartVocals},
+		{"PART DRUMS",SongParts::PlasticDrums},
+		{"PART BASS",SongParts::PlasticBass},
+		{"PART GUITAR",SongParts::PlasticGuitar}
+	};
+
     SongParts partFromString(const std::string& str)
     {
         auto it = midiNameToEnum.find(str);
@@ -115,6 +125,19 @@ public:
         {
             return SongParts::Invalid;
         }
+    }
+
+	SongParts partFromStringINI(const std::string& str)
+    {
+    	auto it = midiNameToEnumINI.find(str);
+    	if (it != midiNameToEnumINI.end())
+    	{
+    		return it->second;
+    	}
+    	else
+    	{
+    		return SongParts::Invalid;
+    	}
     }
 
 	bool midiParsed=false;
@@ -130,7 +153,8 @@ public:
 	Texture albumArt;
 	std::string album = "";
 	int length = 0;
-	
+
+
 	std::vector<BPM> bpms{};
 	std::vector<TimeSig> timesigs{};
 

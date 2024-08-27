@@ -1,0 +1,35 @@
+name: Bug Report
+description: Report a bug with Encore
+labels: ["bug"]
+title: "Bug Report: "
+body:
+  - type: dropdown
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - MacOS
+        - Linux
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: Release
+      options:
+        - Nightly
+        - Stable
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Version
+      description: Version
+      placeholder: ex. 0.1.3 or 83d718a
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Context (Provide images, videos, etc.)

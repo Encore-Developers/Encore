@@ -4,6 +4,7 @@
 #include "midifile/MidiFile.h"
 // #include "song.h"
 #include "game/timingvalues.h"
+#include <atomic>
 #include <algorithm>
 class Note 
 {
@@ -56,7 +57,21 @@ public:
 	bool pOpen = false;
 };
 
+enum ChartLoadingState {
+	BEATLINES,
+	NOTE_PARSING,
+	NOTE_SORTING,
+	PLASTIC_CALC,
+	NOTE_MODIFIERS,
+	OVERDRIVE,
+	SOLOS,
+	BASE_SCORE,
+	EXTRA_PROCESSING,
+	READY
+};
 
+inline std::atomic<int> CurrentChart = -1;
+inline std::atomic<int> LoadingState = -1;
 
 struct solo {
     double start;
@@ -124,7 +139,7 @@ private:
         return a.tick == b.tick;
     }
 public:
-
+	bool valid = false;
     std::vector<int> PlasticFrets = {
         0b000001, // green
         0b000010, // red
@@ -152,7 +167,7 @@ public:
 		return -1;
 	}
 
-
+	int diff = -1;
     std::vector<Note> notesPre;
 
     int findNotePreIdx(double time, int lane) {
@@ -292,8 +307,11 @@ public:
                 }
 			}
 		}
+		std::cout << "ENC: Processed base notes for " << instrument << " " << diff << std::endl;
+
 		curODPhrase = 0;
 		if (odPhrases.size() > 0) {
+			LoadingState = OVERDRIVE;
 			for (Note &note : notes) {
 				if (note.time > odPhrases[curODPhrase].end && curODPhrase<odPhrases.size()-1)
 					curODPhrase++;
@@ -301,8 +319,10 @@ public:
 					odPhrases[curODPhrase].noteCount++;
 			}
 		}
+		std::cout << "ENC: Processed overdrive for " << instrument << " " << diff << std::endl;
         curSolo = 0;
         if (Solos.size() > 0) {
+        	LoadingState = SOLOS;
             for (Note &note : notes) {
                 if (note.time > Solos[curSolo].end && curSolo<Solos.size()-1)
                     curSolo++;
@@ -310,11 +330,13 @@ public:
                     Solos[curSolo].noteCount++;
             }
         }
+		std::cout << "ENC: Processed solos for " << instrument << " " << diff << std::endl;
 		int mult = 1;
 		int multCtr = 0;
 		int noteIdx = 0;
 		bool isBassOrVocal = (instrument == 1 || instrument == 3);
 		for (auto it = notes.begin(); it != notes.end();) {
+			LoadingState = BASE_SCORE;
 			Note& note = *it;
 			if (!note.valid) {
 				it = notes.erase(it);
@@ -331,8 +353,11 @@ public:
 				++it;
 			}
 		}
+		std::cout << "ENC: Processed base score for " << instrument << " " << diff << std::endl;
+		LoadingState = NOTE_SORTING;
         std::sort(notes.begin(), notes.end(),
                   compareNotes);
+		std::cout << "ENC: Processed notes for " << instrument << " " << diff << std::endl;
 	}
     void parsePlasticNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument) {
         bool odOn = false;
@@ -476,8 +501,10 @@ public:
                     }
                 }
         };
+		std::cout << "ENC: Loaded base notes for " << instrument << " " << diff << std::endl;
 
             for (int i = 0; i < notesPre.size(); i++) {
+            	LoadingState = PLASTIC_CALC;
                 Note note = notesPre[i];
                 Note newNote;
                 newNote.chordSize = 1;
@@ -509,14 +536,16 @@ public:
                 notes.push_back(newNote);
 
             }
-
+			LoadingState = NOTE_SORTING;
             auto it = std::unique(notes.begin(), notes.end(), areNotesEqual);
             notes.erase(it, notes.end());
             std::sort(notes.begin(), notes.end(),
                   compareNotes);
             auto again = std::unique(notes.begin(), notes.end(), areNotesEqual);
             notes.erase(again, notes.end());
+		std::cout << "ENC: Sorted notes for " << instrument << " " << diff << std::endl;
 		curTap = 0;
+		LoadingState = NOTE_MODIFIERS;
 		if (tapPhrases.size() > 0) {
 			for (Note &note : notes) {
 				if (note.time > tapPhrases[curTap].end && curTap<tapPhrases.size()-1)
@@ -531,7 +560,7 @@ public:
 				}
 			}
 		}
-
+		std::cout << "ENC: Processed taps for " << instrument << " " << diff << std::endl;
         curFOff = 0;
         if (forcedOffPhrases.size() > 0) {
             for (Note &note : notes) {
@@ -563,7 +592,8 @@ public:
                 }
             }
 
-
+		std::cout << "ENC: Processed hopos for " << instrument << " " << diff << std::endl;
+		LoadingState = OVERDRIVE;
         curODPhrase = 0;
         if (odPhrases.size() > 0) {
             for (Note &note : notes) {
@@ -573,6 +603,8 @@ public:
                     odPhrases[curODPhrase].noteCount++;
             }
         }
+		std::cout << "ENC: Processed overdrive for " << instrument << " " << diff << std::endl;
+		LoadingState = SOLOS;
         curSolo = 0;
         if (Solos.size() > 0) {
             for (Note &note : notes) {
@@ -582,18 +614,22 @@ public:
                     Solos[curSolo].noteCount++;
             }
         }
+		std::cout << "ENC: Processed solos for " << instrument << " " << diff << std::endl;
 		int esc = 0;
+		LoadingState = PLASTIC_CALC;
 		if (notes.size() > 0) {
 			if (esc < notes.size() - 1) {
-				if (notes[esc].len + notes[esc].time > notes[esc+1].time && notes[esc].len > 0) {
+				if ((notes[esc].len + notes[esc].time > notes[esc+1].time) && notes[esc].len > 0) {
 					notes[esc].extendedSustain = true;
 				}
 			}
 		}
+		std::cout << "ENC: Processed extended sustains for " << instrument << " " << diff << std::endl;
         int mult = 1;
         int multCtr = 0;
         int noteIdx = 0;
         bool isBassOrVocal = (instrument == 5);
+		LoadingState = BASE_SCORE;
         for (auto it = notes.begin(); it != notes.end();) {
             Note& note = *it;
             if (!note.valid) {
@@ -611,6 +647,8 @@ public:
                 ++it;
             }
         }
+		std::cout << "ENC: Processed base score for " << instrument << " " << diff << std::endl;
+		std::cout << "ENC: Processed plastic chart for " << instrument << " " << diff << std::endl;
     }
 
 void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, bool proDrums) {

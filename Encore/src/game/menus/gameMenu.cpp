@@ -197,7 +197,6 @@ void Menu::DrawVersion() {
     DrawTextEx(menuAss.josefinSansItalic, TextFormat("%s-%s:%s",menuVersion.c_str() , gitBranch.c_str(),menuCommitHash.c_str()),
         {u.wpct(0.0025f), u.hpct(0.0025f)},
         u.hinpct(0.025f), 0, WHITE);
-    DrawTextEx(menuAss.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0.0025f), u.hpct(0.0025f)}, u.hinpct(0.025f), 0, WHITE);
 };
 
 
@@ -461,6 +460,8 @@ void Menu::SwitchScreen(Screens screen){
         case SETTINGS:
             break;
         case CALIBRATION:
+            break;
+        case CHART_LOADING_SCREEN:
             break;
     }
 }

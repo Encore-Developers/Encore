@@ -16,7 +16,8 @@ enum Screens {
     GAMEPLAY,
     RESULTS,
     SETTINGS,
-    CALIBRATION
+    CALIBRATION,
+    CHART_LOADING_SCREEN
 };
 
 class Menu {

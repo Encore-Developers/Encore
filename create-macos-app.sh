@@ -16,6 +16,9 @@ cp -r build_macos/Encore/Assets out/Encore.app/Contents/Resources
 cp build_macos/Encore/Encore out/Encore.app/Contents/MacOS/Encore
 cp build_macos/Encore/*.dylib out/Encore.app/Contents/MacOS
 
+# Fix executable so dynamic libraries work from the executable path
+install_name_tool -add_rpath @executable_path out/Encore.app/Contents/MacOS/Encore
+
 # Delete the gitkeep file if it exists
 rm out/Encore.app/Contents/MacOS/.gitkeep
 

@@ -6,34 +6,37 @@
 #if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
 #endif
-#include "raylib.h"
-#include <vector>
-#include <iostream>
+
 #include <filesystem>
-#include "song/song.h"
-#include "song/songlist.h"
-#include "game/arguments.h"
-#include "game/utility.h"
-#include "game/lerp.h"
-#include "game/keybinds.h"
-#include "game/settings.h"
-#include "raygui.h"
+#include <iostream>
 #include <random>
-#include "GLFW/glfw3.h"
-#include "game/menus/gameMenu.h"
-#include "game/assets.h"
-#include "raymath.h"
-#include "game/menus/overshellRenderer.h"
-#include "game/menus/uiUnits.h"
-#include "game/menus/settingsOptionRenderer.h"
-#include "game/timingvalues.h"
-#include "game/gameplay/gameplayRenderer.h"
-#include "game/users/player.h"
-
-
+#include <vector>
+#include <thread>
+#include <condition_variable>
 #include <thread>
 #include <atomic>
-#include <sol/sol.hpp>
+
+#include "sol/sol.hpp"
+#include "raylib.h"
+#include "raygui.h"
+#include "raymath.h"
+#include "GLFW/glfw3.h"
+
+#include "game/arguments.h"
+#include "game/assets.h"
+#include "game/gameplay/gameplayRenderer.h"
+#include "game/keybinds.h"
+#include "game/lerp.h"
+#include "game/menus/gameMenu.h"
+#include "game/menus/overshellRenderer.h"
+#include "game/menus/settingsOptionRenderer.h"
+#include "game/menus/uiUnits.h"
+#include "game/users/player.h"
+#include "game/settings.h"
+#include "game/timingvalues.h"
+#include "song/song.h"
+#include "song/songlist.h"
+
 
 Menu &menu = Menu::getInstance();
 PlayerManager &playerManager = PlayerManager::getInstance();
@@ -768,6 +771,7 @@ Keybinds keybinds;
 
 Song song;
 
+bool FinishedLoading = false;
 bool firstInit = true;
 int loadedAssets;
 bool albumArtLoaded = false;
@@ -779,6 +783,78 @@ Song selectedSong;
 bool ReloadGameplayTexture = true;
 bool songAlbumArtLoadedGameplay = false;
 
+void LoadCharts() {
+	smf::MidiFile midiFile;
+	midiFile.read(songList.songs[curPlayingSong].midiPath.string());
+	for (int playerNum = 0; playerNum < playerManager.PlayersActive; playerNum++) {
+		Player* player = playerManager.GetActivePlayer(playerNum);
+		int diff = player->Difficulty;
+		int inst = player->Instrument;
+		for (int track = 0; track < midiFile.getTrackCount(); track++) {
+			std::string trackName;
+			for (int events = 0; events < midiFile[track].getSize(); events++) {
+				if (midiFile[track][events].isMeta()) {
+					if ((int) midiFile[track][events][1] == 3) {
+						for (int k = 3; k < midiFile[track][events].getSize(); k++) {
+							trackName += midiFile[track][events][k];
+						}
+						SongParts songPart;
+						if (songList.songs[curPlayingSong].ini)
+							songPart = song.partFromStringINI(trackName);
+						else
+							songPart = song.partFromString(trackName);
+
+						if (trackName == "BEAT") {
+							LoadingState = BEATLINES;
+							songList.songs[curPlayingSong].parseBeatLines(midiFile, track, midiFile[track]);
+						}
+						else {
+							if (songPart != SongParts::Invalid && songPart == inst) {
+								for (int forDiff = 0; forDiff < songList.songs[curPlayingSong].parts[inst]->charts.size(); forDiff++) {
+									Chart &chart = songList.songs[curPlayingSong].parts[inst]->charts[forDiff];
+									if (chart.valid){
+
+										std::cout << trackName << " " << forDiff << endl;
+										LoadingState = NOTE_PARSING;
+										if (songPart == SongParts::PlasticBass
+											|| songPart == SongParts::PlasticGuitar) {
+											chart.plastic = true;
+											chart.parsePlasticNotes(midiFile, track, midiFile[track],
+																	forDiff, (int) songPart);
+											} else if (songPart == PlasticDrums) {
+												chart.plastic = true;
+												chart.parsePlasticDrums(midiFile, track, midiFile[track],
+																		forDiff, (int) songPart, player->ProDrums);
+											} else {
+												chart.plastic = false;
+												chart.parseNotes(midiFile, track, midiFile[track],
+																forDiff, (int) songPart);
+											}
+
+										if (!chart.plastic) {
+											LoadingState = EXTRA_PROCESSING;
+											int noteIdx = 0;
+											for (Note &note: chart.notes) {
+												chart.notes_perlane[note.lane].push_back(noteIdx);
+												noteIdx++;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	LoadingState = READY;
+	this_thread::sleep_for(chrono::seconds(1));
+	FinishedLoading = true;
+}
+
+
+bool StartLoading = true;
 
 int main(int argc, char *argv[]) {
 	Units u = Units::getInstance();
@@ -806,11 +882,7 @@ int main(int argc, char *argv[]) {
 
 
 	if (!FPSCapStringVal.empty()) {
-#ifdef NDEBUG
-        str2int(&targetFPSArg, FPSCapStringVal.c_str());
-#else
-		assert(str2int(&targetFPSArg, FPSCapStringVal.c_str()) == STR2INT_SUCCESS);
-#endif
+        targetFPSArg = strtol(FPSCapStringVal.c_str(), NULL, 10);
 		TraceLog(LOG_INFO, "Argument overridden target FPS: %d", targetFPSArg);
 	}
 
@@ -949,26 +1021,27 @@ int main(int argc, char *argv[]) {
 	gpr.camera3p1.target = Vector3{0.0f, 0.0f, TargetDistance3p};
 	gpr.camera3p1.up = Vector3{0.0f, 1.0f, 0.0f};
 	gpr.camera3p1.fovy = FOV3p;
-	gpr.camera2pVector.push_back(gpr.camera3p1);
+	gpr.camera3pVector.push_back(gpr.camera3p1);
 
 	gpr.camera3p2.position = Vector3{SideDisplacement3p, Height3p, -10.0f};
 	gpr.camera3p2.target = Vector3{SideDisplacement3p, 0.0f, TargetDistance3p};
 	gpr.camera3p2.up = Vector3{0.0f, 1.0f, 0.0f};
 	gpr.camera3p2.fovy = FOV3p;
-	gpr.camera2pVector.push_back(gpr.camera3p2);
+	gpr.camera3pVector.push_back(gpr.camera3p2);
 
 	gpr.camera3p3.position = Vector3{-SideDisplacement3p, Height3p, -10.0f};
 	gpr.camera3p3.target = Vector3{-SideDisplacement3p, 0.0f, TargetDistance3p};
 	gpr.camera3p3.up = Vector3{0.0f, 1.0f, 0.0f};
 	gpr.camera3p3.fovy = FOV3p;
-	gpr.camera2pVector.push_back(gpr.camera3p3);
+	gpr.camera3pVector.push_back(gpr.camera3p3);
 
 	gpr.cameraVectors.push_back(gpr.camera1pVector);
 	gpr.cameraVectors.push_back(gpr.camera2pVector);
 	gpr.cameraVectors.push_back(gpr.camera3pVector);
 
-	trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
-						+ "x";
+	char trackSpeedStr[256];
+	snprintf(trackSpeedStr, 255, "%.3f", settingsMain.trackSpeedOptions[settingsMain.trackSpeed]);
+	trackSpeedButton = "Track Speed " + std::string(trackSpeedStr) + "x";
 
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
@@ -2138,7 +2211,6 @@ int main(int argc, char *argv[]) {
 										}, u.hinpct(0.035f), 0, WHITE);
 					}
 					else if (!songList.listMenuEntries[i].hiddenEntry) {
-						Font &songFont = songList.listMenuEntries[i].songListID == menu.ChosenSongInt ? assets.rubikBoldItalic : assets.rubikBold;
 						Font &artistFont = songList.listMenuEntries[i].songListID == menu.ChosenSongInt ? assets.josefinSansItalic : assets.josefinSansItalic;
 						Song &songi = songList.songs[songList.listMenuEntries[i].songListID];
 						int songID = songList.listMenuEntries[i].songListID;
@@ -2188,9 +2260,9 @@ int main(int argc, char *argv[]) {
 						}
 						auto LightText = Color{203, 203, 203, 255};
 						BeginScissorMode((int) songXPos + (songID == menu.ChosenSongInt ? 5 : 20), (int) songYPos, songTitleWidth, songEntryHeight);
-						DrawTextEx(songFont, songi.title.c_str(),
+						DrawTextEx(assets.rubikBold, songi.title.c_str(),
 									{
-										songXPos + songi.titleXOffset + (songID == menu.ChosenSongInt ? 5 : 20),
+										songXPos + songi.titleXOffset + (songID == menu.ChosenSongInt ? 10 : 20),
 										songYPos + u.hinpct(0.0125f)
 									}, u.hinpct(0.035f), 0, songID == menu.ChosenSongInt ? WHITE : LightText);
 						EndScissorMode();
@@ -2475,86 +2547,73 @@ int main(int argc, char *argv[]) {
 				menu.DrawBottomOvershell();
 				menu.DrawBottomBottomOvershell();
 				for (int playerInt = 0; playerInt < 4; playerInt++) {
-						if (playerManager.ActivePlayers[playerInt] != -1) {
-							Player* player = playerManager.GetActivePlayer(playerInt);
+					if (playerManager.ActivePlayers[playerInt] != -1) {
+						Player* player = playerManager.GetActivePlayer(playerInt);
 						if (!midiLoaded) {
 							if (!songList.songs[curPlayingSong].midiParsed) {
 								smf::MidiFile midiFile;
 								midiFile.read(songList.songs[curPlayingSong].midiPath.string());
 								songList.songs[curPlayingSong].getTiming(midiFile, 0, midiFile[0]);
-								for (int i = 0; i < midiFile.getTrackCount(); i++) {
+								for (int track = 0; track < midiFile.getTrackCount(); track++) {
 									std::string trackName;
-									for (int j = 0; j < midiFile[i].getSize(); j++) {
-										if (midiFile[i][j].isMeta()) {
-											if ((int) midiFile[i][j][1] == 3) {
-												for (int k = 3; k < midiFile[i][j].
-																getSize(); k++) {
-													trackName += midiFile[i][j][k];
-																}
-												SongParts songPart = song.partFromString(trackName);
-												if (trackName == "BEAT")
-													songList.songs[curPlayingSong].parseBeatLines(midiFile, i, midiFile[i]);
-												else if (trackName == "EVENTS") {
-													songList.songs[curPlayingSong].getStartEnd(midiFile, i, midiFile[i]);
-												} else {
+									for (int events = 0; events < midiFile[track].getSize(); events++) {
+										if (midiFile[track][events].isMeta()) {
+											if ((int) midiFile[track][events][1] == 3) {
+												for (int k = 3; k < midiFile[track][events].getSize(); k++) {
+													trackName += midiFile[track][events][k];
+												}
+												SongParts songPart;
+												if (songList.songs[curPlayingSong].ini)
+													songPart = song.partFromStringINI(trackName);
+												else
+													songPart = song.partFromString(trackName);
+												// if (trackName == "BEAT")
+												// 	songList.songs[curPlayingSong].parseBeatLines(midiFile, track, midiFile[track]);
+												if (trackName == "EVENTS") {
+													songList.songs[curPlayingSong].getStartEnd(midiFile, track, midiFile[track]);
+												}
+												else if (trackName != "BEAT") {
 													if (songPart != SongParts::Invalid) {
 														for (int diff = 0; diff < 4; diff++) {
-															Chart newChart;
-															std::cout << trackName << " " << diff << endl;
-															if (!songList.songs[curPlayingSong].ini) {
-																if (songPart == SongParts::PlasticBass
-																	|| songPart == SongParts::PlasticGuitar) {
-																	newChart.plastic = true;
-																	newChart.parsePlasticNotes(midiFile, i, midiFile[i],
-																								diff, (int) songPart);
-																	} else if (songPart == SongParts::PlasticDrums) {
-																		newChart.plastic = true;
-																		newChart.parsePlasticDrums(
-																			midiFile, i, midiFile[i], diff,
-																			(int) songPart, true);
-																		// TODO: implement new chart loader
-																	} else {
-																		newChart.plastic = false;
-																		newChart.parseNotes(midiFile, i, midiFile[i],
-																							diff, (int) songPart);
-																	}
-																if (!newChart.plastic) {
-																	int noteIdx = 0;
-																	for (Note &note: newChart.notes) {
-																		newChart.notes_perlane[note.lane].
-																				push_back(noteIdx);
-																		noteIdx++;
-																	}
-																}
-																if (newChart.notes.size() > 0) {
-																	songList.songs[curPlayingSong].parts[(int) songPart]->
-																			hasPart = true;
-																}
-																songList.songs[curPlayingSong].parts[(int) songPart]->charts
-																	.push_back(newChart);
-															}
-															else {
-																newChart.plastic = true;
-																if (songPart == PartBass) {
 
-																	newChart.parsePlasticNotes(midiFile, i, midiFile[i],
-																							diff, (int) PlasticBass);
-																	songList.songs[curPlayingSong].parts[(int) PlasticBass]->hasPart = true;
-																	songList.songs[curPlayingSong].parts[(int) PlasticBass]->charts.push_back(newChart);
-																}
-																if (songPart == PartGuitar) {
-																	newChart.parsePlasticNotes(midiFile, i, midiFile[i],
-																							diff, (int) PlasticGuitar);
-																	songList.songs[curPlayingSong].parts[PlasticGuitar]->hasPart = true;
-																	songList.songs[curPlayingSong].parts[PlasticGuitar]->charts.push_back(newChart);
-																}
-																if (songPart == PartDrums) {
-																	newChart.parsePlasticDrums(midiFile, i, midiFile[i],
-																							diff, PlasticDrums, true);
-																	songList.songs[curPlayingSong].parts[PlasticDrums]->hasPart = true;
-																	songList.songs[curPlayingSong].parts[PlasticDrums]->charts.push_back(newChart);
+															bool StopChecking = false;
+															std::cout << trackName << " " << diff << endl;
+															/*
+															if (songPart == SongParts::PlasticBass
+																 || songPart == SongParts::PlasticGuitar) {
+																newChart.plastic = true;
+																newChart.parsePlasticNotes(midiFile, i, midiFile[i],
+																			diff, (int)songPart);
+															} else {
+																newChart.plastic = false;
+																newChart.parseNotes(midiFile, i, midiFile[i],
+																			diff, (int)songPart);
+															}
+
+															if (!newChart.plastic) {
+																int noteIdx = 0;
+																for (Note &note : newChart.notes) {
+																	newChart.notes_perlane[note.lane].push_back(noteIdx);
+																	noteIdx++;
 																}
 															}
+															if (newChart.notes.size() > 0) {
+
+						*/
+															Chart newChart;
+															std::vector<std::vector<int>> pDiffNotes = { {60,64}, {72,76}, {84,88}, {96,100} };
+															for (int i = 0; i < midiFile[track].getSize(); i++) {
+																if (midiFile[track][i].isNoteOn() && !midiFile[track][i].isMeta() && (int)midiFile[track][i][1] >= pDiffNotes[diff][0] && (int)midiFile[track][i][1] <= pDiffNotes[diff][1] && !StopChecking) {
+																	// songList.songs[curPlayingSong].parts[(int)songPart]->diff = diff;
+
+																	newChart.valid = true;
+																	newChart.diff = diff;
+																	songList.songs[curPlayingSong].parts[(int)songPart] -> hasPart = true;
+
+																	StopChecking = true;
+																}
+															}
+															songList.songs[curPlayingSong].parts[(int)songPart] -> charts.push_back(newChart);
 														}
 													}
 												}
@@ -2567,12 +2626,13 @@ int main(int argc, char *argv[]) {
 							midiLoaded = true;
 							if (!player->ReadiedUpBefore || !songList.songs[curPlayingSong].parts[player->Instrument]->hasPart) {
 								player->instSelection = true;
-							} else if (songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty].notes.size() < 1) {
+							} else if (songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty].valid) {
 								player->diffSelection = true;
 							} else if (player->ReadiedUpBefore) {
 								player->ReadyUpMenu = true;
 							}
 						}
+
 						// load instrument select
 
 						else if (midiLoaded && player->instSelection) {
@@ -2595,7 +2655,7 @@ int main(int argc, char *argv[]) {
 							for (int i = 0; i < 7; i++) {
 								if (songList.songs[curPlayingSong].parts[i]->hasPart) {
 									GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, i == player->Instrument && player->instSelected
-													? ColorToInt(ColorBrightness(AccentColor, -0.25)) : 0x181827FF);
+													? ColorToInt(ColorBrightness(player->AccentColor, -0.25)) : 0x181827FF);
 									GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL,
 												ColorToInt(Color{255, 255, 255, 255}));
 									GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
@@ -2656,7 +2716,7 @@ int main(int argc, char *argv[]) {
 										}
 												}
 									GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-												ColorToInt(ColorBrightness(AccentColor, -0.5)));
+												ColorToInt(ColorBrightness(player->AccentColor, -0.5)));
 									GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
 									GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
 								}
@@ -2665,13 +2725,12 @@ int main(int argc, char *argv[]) {
 						// load difficulty select
 						if (midiLoaded && player->diffSelection) {
 							for (int a = 0; a < 4; a++) {
-								if (songList.songs[curPlayingSong].parts[player->Instrument]->charts[a].
-									notes.size() > 0) {
+								if (songList.songs[curPlayingSong].parts[player->Instrument]->charts[a].valid) {
 									GuiSetStyle(BUTTON, BASE_COLOR_NORMAL,
 												a == player->Difficulty && player->diffSelected
 													? ColorToInt(
 														ColorBrightness(
-															AccentColor, -0.25))
+															player->AccentColor, -0.25))
 													: 0x181827FF);
 									if (GuiButton({
 													(u.LeftSide+ ((playerInt) * u.winpct(0.25f))),
@@ -2712,12 +2771,12 @@ int main(int argc, char *argv[]) {
 
 												}
 									GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-												ColorToInt(ColorBrightness(AccentColor, -0.5)));
+												ColorToInt(ColorBrightness(player->AccentColor, -0.5)));
 									GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
 									GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
 								}
 								if (GuiButton({0, 0, 60, 60}, "<")) {
-									if (player->Difficulty || !songList.songs[curPlayingSong].parts
+									if (player->ReadiedUpBefore || !songList.songs[curPlayingSong].parts
 										[player->Instrument]->hasPart) {
 										player->instSelection = true;
 										player->diffSelection = false;
@@ -2776,26 +2835,23 @@ int main(int argc, char *argv[]) {
 								player->stats->Instrument = player->Instrument;
 								// gpr.highwayInAnimation = false;
 								// gpr.songStartTime = GetTime();
-								menu.SwitchScreen(GAMEPLAY);
+								menu.SwitchScreen(CHART_LOADING_SCREEN);
 								glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 								glfwSetGamepadStateCallback(gamepadStateCallback);
 								startedPlayingSong = GetTime()+gpr.animDuration;
-
-							}
+										}
 							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-							ColorToInt(ColorBrightness(AccentColor, -0.5)));
+										ColorToInt(ColorBrightness(player->AccentColor, -0.5)));
 							GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
 							GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-
 						}
-
 					}
-				}
-				overshellRenderer.DrawOvershell();
-				if (GuiButton({0, 0, 60, 60}, "<")) {
-					midiLoaded = false;
-					menu.SwitchScreen(SONG_SELECT);
-				}
+						overshellRenderer.DrawOvershell();
+						if (GuiButton({0, 0, 60, 60}, "<")) {
+							midiLoaded = false;
+							menu.SwitchScreen(SONG_SELECT);
+						}
+					}
 				break;
 			}
 			case GAMEPLAY: {
@@ -3055,13 +3111,13 @@ int main(int argc, char *argv[]) {
 						}
 						case (3): {
 							if (pnum == 0) {
-								gpr.cameraSel = 0;
+								gpr.cameraSel = 2;
 								gpr.renderPos = GetScreenWidth()/4;
 							} else if (pnum == 1) {
-								gpr.cameraSel = 1;
+								gpr.cameraSel = 0;
 								gpr.renderPos = 0;
 							} else if (pnum == 2) {
-								gpr.cameraSel = 2;
+								gpr.cameraSel = 1;
 								gpr.renderPos = -GetScreenWidth()/4;
 							}
 							break;
@@ -3433,8 +3489,8 @@ int main(int argc, char *argv[]) {
 							u.hpct(0.02f) + u.winpct(0.035f), u.winpct(0.1f), u.winpct(0.01f),
 							gpr.downStrum ? WHITE : GRAY);
 				*/
-				DrawTextEx(assets.rubik,TextFormat("song time: %f", songTime), {0,u.hpct(0.5f)}, u.hinpct(0.05f),0,WHITE);
-				DrawTextEx(assets.rubik,TextFormat("audio time: %f", audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)), {0,u.hpct(0.56f)}, u.hinpct(0.05f),0,WHITE);
+				DrawTextEx(assets.rubik,TextFormat("song time: %f", songTime), {0,u.hpct(0.1f)}, u.hinpct(0.05f),0,WHITE);
+				DrawTextEx(assets.rubik,TextFormat("audio time: %f", audioManager.GetMusicTimePlayed(audioManager.loadedStreams[0].handle)), {0,u.hpct(0.16f)}, u.hinpct(0.05f),0,WHITE);
 				break;
 			}
 			case RESULTS: {
@@ -3456,6 +3512,50 @@ int main(int argc, char *argv[]) {
 					}
 					playerManager.BandStats.ResetBandGameplayStats();
 					menu.SwitchScreen(SONG_SELECT);
+				}
+				break;
+			}
+			case CHART_LOADING_SCREEN: {
+				ClearBackground(BLACK);
+				if (StartLoading) {
+					songList.songs[curPlayingSong].LoadAlbumArt(songList.songs[curPlayingSong].albumArtPath);
+					std::thread ChartLoader(LoadCharts);
+					ChartLoader.detach();
+					StartLoading = false;
+				}
+				menu.DrawAlbumArtBackground(songList.songs[curPlayingSong].albumArtBlur);
+				menu.DrawTopOvershell(0.15f);
+				DrawTextEx(assets.redHatDisplayBlack, "LOADING...  ", {u.LeftSide, u.hpct(0.05f)},
+							u.hinpct(0.125f), 0,
+							WHITE);
+				float AfterLoadingTextPos = MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
+
+				std::string LoadingPhrase = "";
+
+				switch (LoadingState) {
+					case BEATLINES: {LoadingPhrase = "Setting metronome";break;}
+					case NOTE_PARSING: {LoadingPhrase = "Loading notes";break;}
+					case NOTE_SORTING: {LoadingPhrase = "Cleaning up notes";break;}
+					case PLASTIC_CALC: {LoadingPhrase = "Fixing up Classic";break;}
+					case NOTE_MODIFIERS: {LoadingPhrase = "HOPO on, HOPO off";break;}
+					case OVERDRIVE: {LoadingPhrase = "Gettin' your double points on";break;}
+					case SOLOS: {LoadingPhrase = "Shuffling through solos";break;}
+					case BASE_SCORE: {LoadingPhrase = "Calculating stars";break;}
+					case EXTRA_PROCESSING: {LoadingPhrase = "Finishing touch-ups";break;}
+					case READY: {LoadingPhrase = "Ready!";break;}
+					default: {LoadingPhrase = "";break;}
+				}
+
+				DrawTextEx(assets.rubikBold, LoadingPhrase.c_str(), {u.LeftSide + AfterLoadingTextPos + u.winpct(0.02f), u.hpct(0.09f)},
+							u.hinpct(0.05f), 0,
+							LIGHTGRAY);
+				menu.DrawBottomOvershell();
+				menu.DrawBottomBottomOvershell();
+
+				if (FinishedLoading) {
+					FinishedLoading = false;
+					StartLoading = true;
+					menu.SwitchScreen(GAMEPLAY);
 				}
 				break;
 			}
