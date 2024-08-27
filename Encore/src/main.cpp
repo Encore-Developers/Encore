@@ -6,31 +6,33 @@
 #if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
 #endif
-#include "raylib.h"
-#include <vector>
-#include <iostream>
-#include <filesystem>
-#include "song/song.h"
-#include "song/songlist.h"
-#include "game/arguments.h"
-#include "game/utility.h"
-#include "game/player.h"
-#include "game/lerp.h"
-#include "game/keybinds.h"
-#include "game/settings.h"
-#include "raygui.h"
-#include <random>
-#include "GLFW/glfw3.h"
-#include "game/menus/gameMenu.h"
-#include "game/assets.h"
-#include "raymath.h"
-#include "game/menus/uiUnits.h"
-#include "game/menus/settingsOptionRenderer.h"
-#include "game/timingvalues.h"
-#include "game/gameplay/gameplayRenderer.h"
 
+#include <filesystem>
+#include <iostream>
+#include <random>
+#include <vector>
 #include <thread>
 #include <condition_variable>
+
+#include "raylib.h"
+#include "raygui.h"
+#include "raymath.h"
+#include "GLFW/glfw3.h"
+
+#include "game/arguments.h"	
+#include "game/assets.h"
+#include "game/gameplay/gameplayRenderer.h"
+#include "game/keybinds.h"
+#include "game/lerp.h"
+#include "game/menus/gameMenu.h"
+#include "game/menus/settingsOptionRenderer.h"
+#include "game/menus/uiUnits.h"
+#include "game/player.h"
+#include "game/settings.h"
+#include "game/timingvalues.h"
+#include "song/song.h"
+#include "song/songlist.h"
+
 
 Menu &menu = Menu::getInstance();
 Player player = Player::getInstance();
@@ -858,11 +860,7 @@ int main(int argc, char *argv[]) {
 
 
 	if (!FPSCapStringVal.empty()) {
-#ifdef NDEBUG
-        str2int(&targetFPSArg, FPSCapStringVal.c_str());
-#else
-		assert(str2int(&targetFPSArg, FPSCapStringVal.c_str()) == STR2INT_SUCCESS);
-#endif
+        targetFPSArg = atoi(FPSCapStringVal.c_str());
 		TraceLog(LOG_INFO, "Argument overridden target FPS: %d", targetFPSArg);
 	}
 
@@ -976,9 +974,9 @@ int main(int argc, char *argv[]) {
 	gpr.camera3.fovy = 37.5f;
 	gpr.camera3.projection = CAMERA_PERSPECTIVE;
 
-
-	trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
-						+ "x";
+	char* trackSpeedStr;
+	sprintf(trackSpeedStr, "%.3f", settingsMain.trackSpeedOptions[settingsMain.trackSpeed]);
+	trackSpeedButton = "Track Speed " + std::string(trackSpeedStr) + "x";
 
 
 	ChangeDirectory(GetApplicationDirectory());
