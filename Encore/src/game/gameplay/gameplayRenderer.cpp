@@ -3,6 +3,7 @@
 //
 
 #include "game/gameplay/gameplayRenderer.h"
+
 #include "game/assets.h"
 #include "game/settings.h"
 #include "game/menus/gameMenu.h"
@@ -231,7 +232,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
-	BeginMode3D(camera3pVector[cameraSel]);
+	BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive-1][cameraSel]);
 	// glDisable(GL_CULL_FACE);
 	for (int lane = 0; lane < (player->Difficulty == 3 ? 5 : 4); lane++) {
 		for (int i = player->stats->curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
@@ -1088,7 +1089,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 
 	//float multFill = 0.0;
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
-	float relTime = (time * ((player->NoteSpeed * DiffMultiplier)))/1.75;
+	float relTime = (time * ((player->NoteSpeed * DiffMultiplier)))/2;//1.75;
 	float highwaySpeedTime = (relTime - smasherPos);
 
 	int PlayerComboMax = (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5) ? 50 : 30;
@@ -1134,8 +1135,8 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 
 	if (player->Bot) player->stats->FC = false;
 
-	if (player->Bot) player->Bot = true;
-	else player->Bot = false;
+	// if (player->Bot) player->Bot = true;
+	// else player->Bot = false;
 
 
 	RaiseHighway();

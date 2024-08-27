@@ -862,6 +862,7 @@ int main(int argc, char *argv[]) {
 #else
 	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
 #endif
+	/*
 	if (!settingsMain.fullscreen) {
 		if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
 			ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -879,6 +880,23 @@ int main(int argc, char *argv[]) {
 		SetWindowPosition(0, 0);
 		SetWindowSize(GetMonitorWidth(CurrentMonitor), GetMonitorHeight(CurrentMonitor));
 	}
+
+	*/
+	if (!settingsMain.fullscreen) {
+		if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
+			ClearWindowState(FLAG_WINDOW_UNDECORATED);
+			SetWindowState(FLAG_MSAA_4X_HINT);
+		}
+		SetWindowSize(GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
+					GetMonitorHeight(GetCurrentMonitor()) * 0.75f);
+		SetWindowPosition(
+			(GetMonitorWidth(GetCurrentMonitor()) * 0.5f) - (GetMonitorWidth(GetCurrentMonitor()) * 0.375f),
+			(GetMonitorHeight(GetCurrentMonitor()) * 0.5f) -
+			(GetMonitorHeight(GetCurrentMonitor()) * 0.375f));
+
+	} else {
+		ToggleBorderlessWindowed();
+	}
 	std::vector<std::string> songPartsList{
 		"Drums", "Bass", "Guitar", "Vocals", "Classic Drums", "Classic Bass", "Classic Lead"
 	};
@@ -893,39 +911,61 @@ int main(int argc, char *argv[]) {
 	//							  x,    y,     z
 	//                         0.0f, 5.0f, -3.5f
 	//								 6.5f
-	float renderPosSideThingFuckerTittiesBoobsFUckingGOddamn = 1.25f;
-	float renderheight = 8.0f;
-	float renderback = 12.0f;
 
-	gpr.camera.position = Vector3{0.0f, 7.0f, -10.0f};
+
+	// singleplayer
 	// 0.0f, 0.0f, 6.5f
-	gpr.camera.target = Vector3{0.0f, 0.0f, 13.0f};
+	gpr.camera1p.position = Vector3{0.0f, 7.0f, -10.0f};
+	gpr.camera1p.target = Vector3{0.0f, 0.0f, 13.0f};
+	gpr.camera1p.up = Vector3{0.0f, 1.0f, 0.0f};
+	gpr.camera1p.fovy = 35.0f;
 
-	gpr.camera.up = Vector3{0.0f, 1.0f, 0.0f};
-	gpr.camera.fovy = 35.0f;
+	gpr.camera1pVector.push_back(gpr.camera1p);
 
-	gpr.camera1.position = Vector3{0.0f, renderheight, -10.0f};
-	// 0.0f, 0.0f, 6.5f
-	gpr.camera1.target = Vector3{0.0f, 0.0f, renderback};
+	// 2 player
+	float SideDisplacement2p = 0.75f;
+	float Height2p = 8.0f;
+	float TargetDistance2p = 12.0f;
+	float FOV2p = 37.5f;
+	gpr.camera2p1.position = Vector3{SideDisplacement2p, Height2p, -10.0f};
+	gpr.camera2p1.target = Vector3{SideDisplacement2p, 0.0f, TargetDistance2p};
+	gpr.camera2p1.up = Vector3{0.0f, 1.0f, 0.0f};
+	gpr.camera2p1.fovy = FOV2p;
 
-	gpr.camera1.up = Vector3{0.0f, 1.0f, 0.0f};
-	gpr.camera1.fovy = 37.5f;
+	gpr.camera2p2.position = Vector3{-SideDisplacement2p, Height2p, -10.0f};
+	gpr.camera2p2.target = Vector3{-SideDisplacement2p, 0.0f, TargetDistance2p};
+	gpr.camera2p2.up = Vector3{0.0f, 1.0f, 0.0f};
+	gpr.camera2p2.fovy = FOV2p;
 
-	gpr.camera2.position = Vector3{renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, renderheight, -10.0f};
-	// 0.0f, 0.0f, 6.5f
-	gpr.camera2.target = Vector3{renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, 0.0f, renderback};
+	gpr.camera2pVector.push_back(gpr.camera2p1);
+	gpr.camera2pVector.push_back(gpr.camera2p2);
 
-	gpr.camera2.up = Vector3{0.0f, 1.0f, 0.0f};
-	gpr.camera2.fovy = 37.5f;
+	// 3 player
+	float SideDisplacement3p = 1.25f;
+	float Height3p = 8.0f;
+	float TargetDistance3p = 12.0f;
+	float FOV3p = 37.5f;
+	gpr.camera3p1.position = Vector3{0.0f, Height3p, -10.0f};
+	gpr.camera3p1.target = Vector3{0.0f, 0.0f, TargetDistance3p};
+	gpr.camera3p1.up = Vector3{0.0f, 1.0f, 0.0f};
+	gpr.camera3p1.fovy = FOV3p;
+	gpr.camera2pVector.push_back(gpr.camera3p1);
 
-	gpr.camera3.position = Vector3{-renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, renderheight, -10.0f};
-	// 0.0f, 0.0f, 6.5f
-	gpr.camera3.target = Vector3{-renderPosSideThingFuckerTittiesBoobsFUckingGOddamn, 0.0f, renderback};
+	gpr.camera3p2.position = Vector3{SideDisplacement3p, Height3p, -10.0f};
+	gpr.camera3p2.target = Vector3{SideDisplacement3p, 0.0f, TargetDistance3p};
+	gpr.camera3p2.up = Vector3{0.0f, 1.0f, 0.0f};
+	gpr.camera3p2.fovy = FOV3p;
+	gpr.camera2pVector.push_back(gpr.camera3p2);
 
-	gpr.camera3.up = Vector3{0.0f, 1.0f, 0.0f};
-	gpr.camera3.fovy = 37.5f;
-	gpr.camera3.projection = CAMERA_PERSPECTIVE;
+	gpr.camera3p3.position = Vector3{-SideDisplacement3p, Height3p, -10.0f};
+	gpr.camera3p3.target = Vector3{-SideDisplacement3p, 0.0f, TargetDistance3p};
+	gpr.camera3p3.up = Vector3{0.0f, 1.0f, 0.0f};
+	gpr.camera3p3.fovy = FOV3p;
+	gpr.camera2pVector.push_back(gpr.camera3p3);
 
+	gpr.cameraVectors.push_back(gpr.camera1pVector);
+	gpr.cameraVectors.push_back(gpr.camera2pVector);
+	gpr.cameraVectors.push_back(gpr.camera3pVector);
 
 	trackSpeedButton = "Track Speed " + truncateFloatString(settingsMain.trackSpeedOptions[settingsMain.trackSpeed])
 						+ "x";
@@ -1240,12 +1280,13 @@ int main(int argc, char *argv[]) {
 							"Apply") && !(changingKey || changingOverdrive || changingPause)) {
 					glfwSetGamepadStateCallback(origGamepadCallback);
 					if (settingsMain.fullscreen) {
-						SetWindowState(FLAG_WINDOW_UNDECORATED);
-						SetWindowState(FLAG_MSAA_4X_HINT);
-						int CurrentMonitor = GetCurrentMonitor();
-						SetWindowPosition(0, 0);
-						SetWindowSize(GetMonitorWidth(CurrentMonitor),
-									GetMonitorHeight(CurrentMonitor));
+						ToggleBorderlessWindowed();
+						//SetWindowState(FLAG_WINDOW_UNDECORATED);
+						//SetWindowState(FLAG_MSAA_4X_HINT);
+						//int CurrentMonitor = GetCurrentMonitor();
+						//SetWindowPosition(0, 0);
+						//SetWindowSize(GetMonitorWidth(CurrentMonitor),
+						//			GetMonitorHeight(CurrentMonitor));
 					} else {
 						if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
 							ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -2738,7 +2779,6 @@ int main(int argc, char *argv[]) {
 								menu.SwitchScreen(GAMEPLAY);
 								glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 								glfwSetGamepadStateCallback(gamepadStateCallback);
-								gpr.camera3pVector = {gpr.camera1, gpr.camera3, gpr.camera2};
 								startedPlayingSong = GetTime()+gpr.animDuration;
 
 							}
@@ -3008,19 +3048,35 @@ int main(int argc, char *argv[]) {
 								gpr.cameraSel = 0;
 								gpr.renderPos = -GetScreenWidth()/4;
 							} else {
-								gpr.cameraSel = 2;
+								gpr.cameraSel = 1;
 								gpr.renderPos = GetScreenWidth()/4;
 							}
 							break;
 						}
 						case (3): {
 							if (pnum == 0) {
-								gpr.cameraSel = 1;
+								gpr.cameraSel = 0;
 								gpr.renderPos = GetScreenWidth()/4;
 							} else if (pnum == 1) {
-								gpr.cameraSel = 0;
+								gpr.cameraSel = 1;
 								gpr.renderPos = 0;
 							} else if (pnum == 2) {
+								gpr.cameraSel = 2;
+								gpr.renderPos = -GetScreenWidth()/4;
+							}
+							break;
+						}
+						case (4): {
+							if (pnum == 0) {
+								gpr.cameraSel = 0;
+								gpr.renderPos = GetScreenWidth()/4;
+							} else if (pnum == 1) {
+								gpr.cameraSel = 1;
+								gpr.renderPos = GetScreenWidth()/2;
+							} else if (pnum == 2) {
+								gpr.cameraSel = 2;
+								gpr.renderPos = -GetScreenWidth()/2;
+							} else if (pnum == 3) {
 								gpr.cameraSel = 2;
 								gpr.renderPos = -GetScreenWidth()/4;
 							}

@@ -103,6 +103,12 @@ execute_process(
         OUTPUT_VARIABLE GIT_COMMIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+execute_process(
+        COMMAND git rev-parse HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
 
@@ -111,5 +117,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DCACHE_VERSION=3")
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
 
 target_link_libraries(Encore raylib ${BASS} ${BASSOPUS} ${LUA})

@@ -44,11 +44,26 @@ public:
 	int cameraSel = 0;
     Mesh sustainPlane;
     Mesh soloPlane;
+	std::vector<std::vector<Camera3D>> cameraVectors;
+	std::vector<Camera3D> camera1pVector;
+	std::vector<Camera3D> camera2pVector;
+	std::vector<Camera3D> camera3pVector;
+	std::vector<Camera3D> camera4pVector;
 
-    Camera3D camera = { 0 };
-	Camera3D camera1 = { 0 };
-	Camera3D camera2 = { 0 };
-	Camera3D camera3 = { 0 };
+    Camera3D camera1p = { 0 };
+
+	Camera3D camera2p1 = { 0 };
+	Camera3D camera2p2 = { 0 };
+
+	Camera3D camera3p1 = { 0 };
+	Camera3D camera3p2 = { 0 };
+	Camera3D camera3p3 = { 0 };
+
+	Camera3D camera4p1 = { 0 };
+	Camera3D camera4p2 = { 0 };
+	Camera3D camera4p3 = { 0 };
+	Camera3D camera4p4 = { 0 };
+
 	/*
 	gpr.camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
 	// 0.0f, 0.0f, 6.5f
@@ -56,7 +71,7 @@ public:
 	 */
 	double startTime = 0.0;
 
-	std::vector<Camera3D> camera3pVector;
+
 
     void RenderGameplay(Player* player, double time, Song song, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&, RenderTexture2D&);
 

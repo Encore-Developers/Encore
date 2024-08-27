@@ -30,6 +30,7 @@ bool randomSongChosen = false;
 
 std::string menuCommitHash = GIT_COMMIT_HASH;
 std::string menuVersion = ENCORE_VERSION;
+std::string gitBranch = GIT_BRANCH;
 Assets &menuAss = Assets::getInstance();
 Settings& settings = Settings::getInstance();
 SongList &songListMenu = SongList::getInstance();
@@ -193,6 +194,9 @@ void Menu::DrawAlbumArtBackground(Texture2D song) {
 };
 
 void Menu::DrawVersion() {
+    DrawTextEx(menuAss.josefinSansItalic, TextFormat("%s-%s:%s",menuVersion.c_str() , gitBranch.c_str(),menuCommitHash.c_str()),
+        {u.wpct(0.0025f), u.hpct(0.0025f)},
+        u.hinpct(0.025f), 0, WHITE);
     DrawTextEx(menuAss.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0.0025f), u.hpct(0.0025f)}, u.hinpct(0.025f), 0, WHITE);
 };
 
@@ -223,6 +227,7 @@ void Menu::loadMenu() {
 
             if (!songChosen && songsLoaded) {
                 if (!randomSongChosen) {
+                    SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
                     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count() * GetTime());
                     int my = GetRandomValue(0, (int) songListMenu.songs.size() - 1);
 
