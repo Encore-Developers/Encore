@@ -860,7 +860,7 @@ int main(int argc, char *argv[]) {
 
 
 	if (!FPSCapStringVal.empty()) {
-        targetFPSArg = atoi(FPSCapStringVal.c_str());
+        targetFPSArg = strtol(FPSCapStringVal.c_str(), NULL, 10);
 		TraceLog(LOG_INFO, "Argument overridden target FPS: %d", targetFPSArg);
 	}
 
@@ -974,8 +974,8 @@ int main(int argc, char *argv[]) {
 	gpr.camera3.fovy = 37.5f;
 	gpr.camera3.projection = CAMERA_PERSPECTIVE;
 
-	char* trackSpeedStr;
-	sprintf(trackSpeedStr, "%.3f", settingsMain.trackSpeedOptions[settingsMain.trackSpeed]);
+	char trackSpeedStr[256];
+	snprintf(trackSpeedStr, 255, "%.3f", settingsMain.trackSpeedOptions[settingsMain.trackSpeed]);
 	trackSpeedButton = "Track Speed " + std::string(trackSpeedStr) + "x";
 
 
