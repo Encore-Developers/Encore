@@ -46,6 +46,7 @@ public:
 	// Load and play samples
 	void loadSample(const std::string& path, const std::string& name);
 	void playSample(const std::string& name, float volume);
+	void unloadSample(const std::string& name);
 
 private:
 	std::unordered_map<std::string, unsigned int> samples; // Loaded audio samples

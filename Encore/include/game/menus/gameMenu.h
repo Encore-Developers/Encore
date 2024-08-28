@@ -6,7 +6,6 @@
 #include "GLFW/glfw3.h"
 #include "song/songlist.h"
 #include "game/assets.h"
-#include "game/player.h"
 #include "game/users/player.h"
 
 enum Screens {
@@ -17,14 +16,13 @@ enum Screens {
     RESULTS,
     SETTINGS,
     CALIBRATION,
-    CHART_LOADING_SCREEN
+    CHART_LOADING_SCREEN,
+    SOUND_TEST
 };
 
-class Menu {
+class GameMenu {
 private:
 
-
-    Menu() {}
 
     template<typename CharT>
     struct Separators : public std::numpunct<CharT>
@@ -45,15 +43,12 @@ private:
     void renderPlayerResults(Player player, Song song, int playerNum);
     // void renderStars(Player player, float xPos, float yPos, float scale, bool left);
 public:
+    GameMenu() {}
 
     void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();
     void DrawBottomBottomOvershell();
 
-    static Menu& getInstance() {
-        static Menu instance; // This is the single instance
-        return instance;
-    }
     void DrawFPS(int posX, int posY);
     bool hehe = false;
     Song ChosenSong;
@@ -66,7 +61,7 @@ public:
     Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
     void showResults();
-    void loadMenu();
+    void loadMainMenu();
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);
@@ -76,4 +71,4 @@ public:
     void DrawVersion();
 };
 
-
+extern GameMenu TheGameMenu;

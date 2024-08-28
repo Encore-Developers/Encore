@@ -1,4 +1,6 @@
-﻿#define RAYGUI_IMPLEMENTATION
+﻿#include "game/menus/menu.h"
+#include "game/menus/sndTestMenu.h"
+#define RAYGUI_IMPLEMENTATION
 
 #if defined(WIN32) && defined(NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
@@ -9,7 +11,6 @@
 
 #include <filesystem>
 #include <iostream>
-#include <random>
 #include <vector>
 #include <thread>
 #include <condition_variable>
@@ -38,7 +39,7 @@
 #include "song/songlist.h"
 
 
-Menu &menu = Menu::getInstance();
+GameMenu &menu = TheGameMenu;
 PlayerManager &playerManager = PlayerManager::getInstance();
 Settings &settingsMain = Settings::getInstance();
 AudioManager &audioManager = AudioManager::getInstance();
@@ -101,7 +102,7 @@ std::string trackSpeedButton;
 
 std::string encoreVersion = ENCORE_VERSION;
 std::string commitHash = GIT_COMMIT_HASH;
-
+bool Menu::onNewMenu = false;
 
 gameplayRenderer gpr;
 
@@ -779,6 +780,7 @@ bool albumArtLoaded = false;
 settingsOptionRenderer sor;
 
 Song selectedSong;
+Menu* ActiveMenu = NULL;
 
 bool ReloadGameplayTexture = true;
 bool songAlbumArtLoadedGameplay = false;
@@ -973,7 +975,7 @@ int main(int argc, char *argv[]) {
 	std::vector<std::string> songPartsList{
 		"Drums", "Bass", "Guitar", "Vocals", "Classic Drums", "Classic Bass", "Classic Lead"
 	};
-	std::vector<std::string> diffList{"Easy", "Medium", "Hard", "Expert"};
+	std::string diffList[4] = {"Easy", "Medium", "Hard", "Expert"};
 	TraceLog(LOG_INFO, "Target FPS: %d", targetFPS);
 
 	audioManager.Init();
@@ -1145,13 +1147,25 @@ int main(int argc, char *argv[]) {
 		// float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
 		BeginDrawing();
 
-		// menu.loadTitleScreen();
-
 		ClearBackground(DARKGRAY);
 
 
 		SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
 
+
+		if (Menu::onNewMenu) {
+			Menu::onNewMenu = false;
+			delete ActiveMenu;
+			ActiveMenu = NULL;
+			switch (menu.currentScreen) {	// NOTE: when adding a new Menu derivative, you must put its enum value in Screens,
+											// and its assignment in this switch/case. You will also add its case to the
+											// `ActiveMenu->Draw();` cases.
+				case SOUND_TEST:
+					ActiveMenu = new SoundTestMenu;
+					ActiveMenu->Load();
+				default:;
+			}
+		}
 
 		switch (menu.currentScreen) {
 			case MENU: {
@@ -1162,7 +1176,7 @@ int main(int argc, char *argv[]) {
 					}
 				}
 
-				menu.loadMenu();
+				menu.loadMainMenu();
 				break;
 			}
 			case CALIBRATION: {
@@ -3560,6 +3574,7 @@ int main(int argc, char *argv[]) {
 				}
 				break;
 			}
+			case SOUND_TEST: ActiveMenu->Draw();
 		}
 		EndDrawing();
 

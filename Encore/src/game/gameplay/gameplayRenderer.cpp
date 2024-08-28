@@ -17,8 +17,8 @@
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();
 AudioManager &gprAudioManager = AudioManager::getInstance();
+GameMenu& gprMenu = TheGameMenu;
 PlayerManager &gprPlayerManager = PlayerManager::getInstance();
-Menu& gprMenu = Menu::getInstance();
 Units& gprU = Units::getInstance();
 
 // Color accentColor = {255,0,255,255};
