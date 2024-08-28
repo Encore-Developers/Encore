@@ -1,4 +1,5 @@
 #include "game/audio.h"
+#include "bass/bass.h"
 #include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
 
@@ -146,6 +147,16 @@ void AudioManager::playSample(const std::string& name, float volume) {
         HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
         BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
         BASS_ChannelPlay(channel, true);
+    } else {
+        std::cerr << "Sample not found: " << name << std::endl;
+    }
+}
+
+void AudioManager::unloadSample(const std::string& name) {
+    auto it = samples.find(name);
+    if (it != samples.end()) {
+        BASS_SampleFree(it->second);
+        samples.erase(it);
     } else {
         std::cerr << "Sample not found: " << name << std::endl;
     }

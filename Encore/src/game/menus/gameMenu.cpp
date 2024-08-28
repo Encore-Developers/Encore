@@ -6,6 +6,7 @@
 #include <functional>
 #include <random>
 #include "game/menus/gameMenu.h"
+#include "game/menus/menu.h"
 #include "raylib.h"
 #include "raygui.h"
 #include "song/songlist.h"
@@ -35,27 +36,29 @@ Settings& settings = Settings::getInstance();
 SongList &songListMenu = SongList::getInstance();
 Units u = Units::getInstance();
 
+GameMenu TheGameMenu;
+
 std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
-void Menu::DrawTopOvershell(float TopOvershell) {
+void GameMenu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),WHITE);
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)-u.hinpct(0.005f),ColorBrightness(GetColor(0x181827FF),-0.25f));
 }
 
-void Menu::DrawBottomOvershell() {
+void GameMenu::DrawBottomOvershell() {
     float BottomOvershell = GetScreenHeight() - u.hpct(0.15f);
     DrawRectangle(0,BottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomOvershell+u.hinpct(0.005f),(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
 }
 
-void Menu::DrawBottomBottomOvershell() {
+void GameMenu::DrawBottomBottomOvershell() {
     float BottomBottomOvershell = GetScreenHeight() - u.hpct(0.1f);
     DrawRectangle(0,BottomBottomOvershell,(float)(GetScreenWidth()), (float)GetScreenHeight(),WHITE);
     DrawRectangle(0,BottomBottomOvershell+u.hinpct(0.005f),(float)(GetScreenWidth()), (float)GetScreenHeight(),ColorBrightness(GetColor(0x181827FF),-0.5f));
 }
 
 // should be reduced to just PlayerSongStats (instead of Player) eventually
-void Menu::renderPlayerResults(Player player, Song song) {
+void GameMenu::renderPlayerResults(Player player, Song song) {
 
     float cardPos = u.LeftSide + (u.winpct(0.26f) * (float)player.playerNum);
 
@@ -164,7 +167,7 @@ void Menu::renderPlayerResults(Player player, Song song) {
 };
 
 // todo: replace player with band stats
-void Menu::renderStars(Player player, float xPos, float yPos, float scale, bool left) {
+void GameMenu::renderStars(Player player, float xPos, float yPos, float scale, bool left) {
     int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
     float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
 
@@ -176,7 +179,7 @@ void Menu::renderStars(Player player, float xPos, float yPos, float scale, bool 
         DrawTexturePro(player.goldStars?menuAss.goldStar:menuAss.star, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
     }
 };
-void Menu::DrawAlbumArtBackground(Texture2D song) {
+void GameMenu::DrawAlbumArtBackground(Texture2D song) {
     float diagonalLength = sqrtf((float)(GetScreenWidth() * GetScreenWidth()) + (float)(GetScreenHeight() * GetScreenHeight()));
     float RectXPos = GetScreenWidth() / 2;
     float RectYPos = diagonalLength / 2;
@@ -190,15 +193,12 @@ void Menu::DrawAlbumArtBackground(Texture2D song) {
     EndShaderMode();
 };
 
-void Menu::DrawVersion() {
+void GameMenu::DrawVersion() {
     DrawTextEx(menuAss.josefinSansItalic, TextFormat("%s-%s",menuVersion.c_str() , menuCommitHash.c_str()), {u.wpct(0.0025f), u.hpct(0.0025f)}, u.hinpct(0.025f), 0, WHITE);
 };
 
-
-
-
 // todo: text box rendering for splashes, cleanup of buttons
-void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
+void GameMenu::loadMainMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     AudioManager& menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
@@ -260,13 +260,11 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     float SplashWidth = MeasureTextEx(menuAss.josefinSansItalic, result.c_str(), SplashFontSize, 0).x;
 
     float SongFontSize = u.hinpct(0.03f);
-    float TitleHeight = MeasureTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongFontSize, 0).y;
-    float TitleWidth = MeasureTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongFontSize, 0).x;
-    float ArtistHeight = MeasureTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongFontSize, 0).y;
-    float ArtistWidth = MeasureTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongFontSize, 0).x;
+    Vector2 TitleSize = MeasureTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongFontSize, 0);
+    Vector2 ArtistSize = MeasureTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongFontSize, 0);
 
-    Vector2 SongTitleBox = {u.RightSide - TitleWidth - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (TitleHeight*1.1f)};
-    Vector2 SongArtistBox = {u.RightSide - ArtistWidth - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f)};
+    Vector2 SongTitleBox = {u.RightSide - TitleSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (TitleSize.y*1.1f)};
+    Vector2 SongArtistBox = {u.RightSide - ArtistSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f)};
 
     Vector2 StringBox = {u.wpct(0.01f),  u.hpct(0.8125f)};
     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,128});
@@ -314,7 +312,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
                 songi.artistScrollTime = GetTime();
                 songi.artistTextWidth = menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
             }
-            Menu::SwitchScreen(SONG_SELECT);
+            SwitchScreen(SONG_SELECT);
         }
     } else {
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, ColorToInt(Color{128,0,0,255}));
@@ -327,10 +325,13 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     if (GuiButton({u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.2f), u.hinpct(0.08f)},
                   "Options")) {
         glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
-        Menu::SwitchScreen(SETTINGS);
+        SwitchScreen(SETTINGS);
     }
     if (GuiButton({u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f)}, "Quit")) {
         exit(0);
+    }
+    if (GuiButton({u.wpct(0.8f), u.hpct(0.90f), u.winpct(0.5f), u.hinpct(0.05f)}, "Sound Test")) {
+        SwitchScreen(SOUND_TEST);
     }
 
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
@@ -343,7 +344,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
     GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
 
     if (GuiButton({(float) GetScreenWidth() - 60, (float) GetScreenHeight() - u.hpct(0.15f) - 60, 60, 60}, "")) {
-        OpenURL("https://github.com/Encore-Developers/Encore-Raylib");
+        OpenURL("https://github.com/Encore-Developers/Encore");
     }
 
 
@@ -408,7 +409,7 @@ void Menu::loadMenu(GLFWgamepadstatefun gamepadStateCallbackSetControls) {
 }
 
 bool AlbumArtLoadingStuff = false;
-void Menu::showResults(Player &player) {
+void GameMenu::showResults(Player &player) {
 
     for (int i = 0; i < 4; i++) {
         renderPlayerResults(player, ChosenSong);
@@ -431,32 +432,31 @@ void Menu::showResults(Player &player) {
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
 }
 
-void Menu::SwitchScreen(Screens screen){
+void GameMenu::SwitchScreen(Screens screen){
     currentScreen = screen;
+    Menu::onNewMenu = true;
     switch (screen) {
         case MENU:
             // reset lerps
             stringChosen = false;
             break;
         case SONG_SELECT:
-            break;
         case READY_UP:
-            break;
         case GAMEPLAY:
             break;
         case RESULTS:
             AlbumArtLoadingStuff = false;
             break;
         case SETTINGS:
-            break;
         case CALIBRATION:
-            break;
         case CHART_LOADING_SCREEN:
+        case SOUND_TEST:
+        default:
             break;
     }
 }
 
-void Menu::DrawFPS(int posX, int posY) {
+void GameMenu::DrawFPS(int posX, int posY) {
         Color color = LIME;                         // Good FPS
         int fps = GetFPS();
 
