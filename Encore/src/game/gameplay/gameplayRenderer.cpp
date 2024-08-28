@@ -14,7 +14,7 @@
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();
 AudioManager &gprAudioManager = AudioManager::getInstance();
-Menu& gprMenu = Menu::getInstance();
+GameMenu& gprMenu = TheGameMenu;
 Units& gprU = Units::getInstance();
 
 
