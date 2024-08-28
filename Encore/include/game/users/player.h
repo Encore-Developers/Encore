@@ -49,6 +49,16 @@ class Band {
     bool SoloGameplay = true; // to be true until multiple players
 };
 
+enum Instruments {
+    PAD_DRUMS,
+    PAD_BASS,
+    PAD_LEAD,
+    PAD_VOCALS,
+    PLASTIC_DRUMS,
+    PLASTIC_BASS,
+    PLASTIC_LEAD
+};
+
 class PlayerGameplayStats {
 public:
     PlayerGameplayStats();
@@ -179,14 +189,14 @@ public:
     }
 
     int maxMultForMeter() {
-        if (Instrument == 1 || Instrument == 3 || Instrument == 5)
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
             return 5;
         else
             return 3;
     }
 
     int maxComboForMeter() {
-        if (Instrument == 1 || Instrument == 3 || Instrument == 5)
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
             return 50;
         else
             return 30;
@@ -212,7 +222,7 @@ public:
     int multiplier() {
         int od = Overdrive ? 2 : 1;
 
-        if (Instrument == 1 || Instrument == 3 || Instrument == 5){
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS){
 
             if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5f:0); return 1 * od; }
             else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 2 * od; }
@@ -233,7 +243,7 @@ public:
 
     int noODmultiplier() {
 
-        if (Instrument == 1 || Instrument == 3 || Instrument == 5){
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS){
 
             if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
             else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0;  return 2; }
@@ -253,10 +263,10 @@ public:
     }
 
     bool IsBassOrVox(){
-        if (Instrument == 0 || Instrument == 2 || Instrument == 4 || Instrument == 6) {
-            return false;
-        } else {
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS) {
             return true;
+        } else {
+            return false;
         }
 
     }
@@ -265,7 +275,7 @@ public:
         if (Combo == 0) {
             return 0;
         }
-        if (Instrument == 0 || Instrument == 2 || Instrument == 4 || Instrument == 6) {
+        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (Combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0

@@ -238,7 +238,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 		for (int i = player->stats->curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
 			Color NoteColor;
 			if (player->ClassicMode) {
-				bool pd = (player->Instrument == 4);
+				bool pd = (player->Instrument == PLASTIC_DRUMS);
 				switch (lane) {
 					case 0:
 						if (pd) {
@@ -1009,7 +1009,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 
 	//DrawModel(gprAssets.multFrame, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 	//DrawModel(gprAssets.multBar, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
-	if (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5) {
+	if (player->Instrument == PAD_BASS|| player->Instrument == PAD_VOCALS || player->Instrument == PLASTIC_BASS) {
 
 		//DrawModel(gprAssets.multCtr5, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 	}
@@ -1092,7 +1092,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	float relTime = (time * ((player->NoteSpeed * DiffMultiplier)))/2;//1.75;
 	float highwaySpeedTime = (relTime - smasherPos);
 
-	int PlayerComboMax = (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5) ? 50 : 30;
+	int PlayerComboMax = (player->Instrument == PAD_BASS|| player->Instrument == PAD_VOCALS || player->Instrument == PLASTIC_BASS) ? 50 : 30;
 	Color highwayColor = ColorContrast(player->AccentColor, Clamp(Remap(player->stats->Combo, 0, PlayerComboMax, -0.6f, 0.0f), -0.6, 0.0f));
 
 	Vector4 ColorForHighway = Vector4{highwayColor.r/255.0f, highwayColor.g/255.0f, highwayColor.b/255.0f, highwayColor.a/255.0f};
@@ -1104,7 +1104,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetYLoc, &player->stats->uvOffsetY, SHADER_UNIFORM_FLOAT);
 	float comboFill = player->stats->comboFillCalc();
 	int isBassOrVocal = 0;
-	if (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5) {
+	if (player->Instrument == PAD_BASS|| player->Instrument == PAD_VOCALS || player->Instrument == PLASTIC_BASS) {
 		isBassOrVocal = 1;
 	}
 	SetShaderValue(gprAssets.odMultShader, gprAssets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
@@ -1148,7 +1148,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	}
 
 	/*
-	if ((player->stats->Overdrive ? player.multiplier(player->Instrument) / 2 : player.multiplier(player->Instrument))>= (player->Instrument == 1 || player->Instrument == 3 || player->Instrument == 5 ? 6 : 4)) {
+	if ((player->stats->Overdrive ? player.multiplier(player->Instrument) / 2 : player.multiplier(player->Instrument))>= (player->Instrument == PAD_BASS|| player->Instrument == PAD_VOCALS || player->Instrument == PLASTIC_BASS ? 6 : 4)) {
 		gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 		gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 		gprAssets.smasherBoard.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
@@ -1210,7 +1210,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 		player->stats->curFill++;
 	}
 
-	if (player->Instrument == 4) {
+	if (player->Instrument == PLASTIC_DRUMS) {
 		RenderPDrumsHighway(player, song, time, highway_tex, highwayStatus_tex, smasher_tex);
 	}
 	else if (player->Difficulty == 3 || (player->ClassicMode && player->Instrument!=4)) {
@@ -1219,7 +1219,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 		RenderEmhHighway(player, song, time, highway_tex);
 	}
 	if (player->ClassicMode) {
-		if (player->Instrument == 4) {
+		if (player->Instrument == PLASTIC_DRUMS) {
 			RenderPDrumsNotes(player, curChart, time, notes_tex, highwayLength);
 		}
 		else {
@@ -1361,7 +1361,7 @@ void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double tim
 		Color NoteColor; // = gprMenu.hehe && player->Difficulty == 3 ? i == 0 || i == 4 ? SKYBLUE : i == 1 || i == 3 ? PINK : WHITE : accentColor;
 		int noteColor = gprSettings.mirrorMode ? 4 - i : i;
 		if (player->ClassicMode) {
-			bool pd = (player->Instrument == 4);
+			bool pd = (player->Instrument == PLASTIC_DRUMS);
 
 			switch (noteColor) {
 				case 0:

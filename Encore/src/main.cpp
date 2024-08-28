@@ -490,7 +490,7 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 		} else if ((key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt)) {
 			handleInputs(player,-1, action);
 		} else if (!player->Bot) {
-			if (player->Instrument != 4) {
+			if (player->Instrument != PLASTIC_DRUMS) {
 				if (player->Difficulty == 3 || player->ClassicMode) {
 					for (int i = 0; i < 5; i++) {
 						if (key == settingsMain.keybinds5K[i] && !stats->HeldFretsAlt[i]) {
@@ -811,7 +811,8 @@ void LoadCharts() {
 						else {
 							if (songPart != SongParts::Invalid && songPart == inst) {
 								for (int forDiff = 0; forDiff < songList.songs[curPlayingSong].parts[inst]->charts.size(); forDiff++) {
-									Chart &chart = songList.songs[curPlayingSong].parts[inst]->charts[forDiff];
+									Chart &
+										chart = songList.songs[curPlayingSong].parts[inst]->charts[forDiff];
 									if (chart.valid){
 
 										std::cout << trackName << " " << forDiff << endl;
@@ -2672,8 +2673,8 @@ int main(int argc, char *argv[]) {
 										int isBassOrVocal = 0;
 										if (i > 3) player->ClassicMode = true;
 										else player->ClassicMode = false;
-										if (player->Instrument == 1 || player->Instrument == 3 ||
-											player->Instrument == 5) {
+										if (player->Instrument == PAD_BASS || player->Instrument == PAD_VOCALS ||
+											player->Instrument == PLASTIC_BASS) {
 											isBassOrVocal = 1;
 											}
 										SetShaderValue(assets.odMultShader, assets.isBassOrVocalLoc, &isBassOrVocal, SHADER_UNIFORM_INT);
