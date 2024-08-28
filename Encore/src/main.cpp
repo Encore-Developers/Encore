@@ -25,12 +25,14 @@
 
 #include "game/arguments.h"
 #include "game/assets.h"
+#include "game/audio.h"
 #include "game/gameplay/gameplayRenderer.h"
 #include "game/keybinds.h"
 #include "game/lerp.h"
 #include "game/menus/gameMenu.h"
 #include "game/menus/overshellRenderer.h"
 #include "game/menus/settingsOptionRenderer.h"
+#include "game/menus/sndTestMenu.h"
 #include "game/menus/uiUnits.h"
 #include "game/users/player.h"
 #include "game/settings.h"
@@ -1045,7 +1047,7 @@ int main(int argc, char *argv[]) {
 	char trackSpeedStr[256];
 	snprintf(trackSpeedStr, 255, "%.3f", settingsMain.trackSpeedOptions[settingsMain.trackSpeed]);
 	trackSpeedButton = "Track Speed " + std::string(trackSpeedStr) + "x";
-
+/*
 	Player newPlayer;
 	newPlayer.Name = "3drosalia";
 	newPlayer.Bot = true;
@@ -1072,7 +1074,7 @@ int main(int argc, char *argv[]) {
 	newPlayer3.NoteSpeed = 1.0;
 	playerManager.PlayerList.push_back(newPlayer3);
 	playerManager.AddActivePlayer(2,2);
-
+*/
 	// Player newPlayer4;
 	// newPlayer4.Name = "gonakil1ya";
 	// playerManager.PlayerList.push_back(newPlayer4);

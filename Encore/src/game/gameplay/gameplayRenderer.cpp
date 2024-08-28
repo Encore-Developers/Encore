@@ -11,6 +11,7 @@
 #include "game/menus/uiUnits.h"
 #include "rlgl.h"
 #include "easing/easing.h"
+#include "game/audio.h"
 #include "game/users/player.h"
 #include "sol/sol.hpp"
 

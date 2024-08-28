@@ -27,6 +27,20 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
   endif()
 endif()
 
+find_package(json QUIET)
+if (NOT json_FOUND)
+  include(FetchContent)
+  FetchContent_Declare(
+          json
+          DOWNLOAD_EXTRACT_TIMESTAMP OFF
+          URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+  FetchContent_GetProperties(json)
+  if (NOT json_POPULATED)
+    set(FETCHCONTENT_QUIET NO)
+    FetchContent_Populate(json)
+    add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR})
+  endif()
+endif()
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 # Add all subdirectories of src
@@ -39,6 +53,9 @@ file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp" "include/*.c")
 file(GLOB_RECURSE INC_FILES "include/*.h" "include/*.h*" "src/*.h")
 # Add source files to the executable
 add_executable(Encore ${SRC_FILES} ${INC_FILES})
+# Temp player file
+file(COPY "players.json" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "scripts" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
@@ -121,4 +138,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
 
-target_link_libraries(Encore raylib ${BASS} ${BASSOPUS} ${LUA})
+target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${LUA})

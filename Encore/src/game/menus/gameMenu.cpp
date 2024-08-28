@@ -13,6 +13,7 @@
 #include "game/lerp.h"
 #include "game/settings.h"
 #include "game/assets.h"
+#include "game/audio.h"
 #include "game/menus/uiUnits.h"
 #include "raymath.h"
 

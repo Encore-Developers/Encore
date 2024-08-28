@@ -4,9 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <game/users/player.h>
-#include "rapidjson/document.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/prettywriter.h"
+#include <nlohmann/json.hpp>
 
 Player::Player() {
 	Name = "New Player";
@@ -179,66 +177,31 @@ PlayerGameplayStats::PlayerGameplayStats() {
 	BaseScore = 0;
 }
 
+using json = nlohmann::json;
+
 void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
-	if (std::filesystem::exists(PlayerListSaveFile)) {
-		std::ifstream ifs(PlayerListSaveFile);
-		if (!ifs.is_open()) {
-			std::cerr << "Failed to open PlayerList JSON file" << std::endl;
-		}
-		std::string jsonString((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
-		ifs.close();
-		PlayerListFile.Parse(jsonString.c_str());
-
-		if (PlayerListFile.IsObject()) {
-			for (auto it = PlayerListFile.MemberBegin(); it != PlayerListFile.MemberEnd(); ++it) {
-				const rapidjson::Value& entry = it->value;
-				if (entry.IsObject()) {
-					Player player;
-					// important string things
-					if (entry.HasMember("name") && entry["name"].IsString()) {
-						player.Name = entry["name"].GetString();
-					}
-					if (entry.HasMember("id") && entry["id"].IsString()) {
-						player.PlayerID = entry["id"].GetString();
-					}
-
-					// int things
-					if (entry.HasMember("difficulty") && entry["difficulty"].IsInt()) {
-						player.Difficulty = entry["difficulty"].GetInt();
-					}
-					if (entry.HasMember("instrument") && entry["instrument"].IsInt()) {
-						player.Instrument = entry["instrument"].GetInt();
-					}
-					if (entry.HasMember("songsPlayed") && entry["songsPlayed"].IsInt()) {
-						player.SongsPlayed = entry["songsPlayed"].GetInt();
-					}
-
-					// float things
-					if (entry.HasMember("inputOffset") && entry["inputOffset"].IsFloat()) {
-						player.InputCalibration = entry["inputOffset"].IsFloat();
-					}
-					if (entry.HasMember("noteSpeed") && entry["noteSpeed"].IsFloat()) {
-						player.NoteSpeed = entry["noteSpeed"].IsFloat();
-					}
-
-					// bool things
-					if (entry.HasMember("bot") && entry["bot"].IsBool()) {
-						player.Bot = entry["bot"].IsBool();
-					}
-					if (entry.HasMember("classic") && entry["classic"].IsBool()) {
-						player.ClassicMode = entry["classic"].IsBool();
-					}
-					if (entry.HasMember("leftyFlip") && entry["leftyFlip"].IsBool()) {
-						player.LeftyFlip = entry["leftyFlip"].IsBool();
-					}
-					PlayerList.push_back(player);
-				}
-			}
-		}
-	}
+	std::ifstream f(PlayerListSaveFile);
+	json PlayerListJson = json::parse(f);
+	TraceLog(LOG_INFO, "Loading player list");
+	for (auto jsonObject: PlayerListJson) {
+		Player newPlayer;
+		newPlayer.Name = jsonObject.at("name").get<std::string>();
+		newPlayer.PlayerID = jsonObject.at("UUID").get<std::string>();
+		newPlayer.Difficulty = jsonObject.at("diff").get<int>();
+		newPlayer.Instrument = jsonObject.at("inst").get<int>();
+		newPlayer.NoteSpeed = jsonObject.at("NoteSpeed").get<float>();
+		newPlayer.InputCalibration = jsonObject.at("inputOffset").get<float>();
+		newPlayer.Bot = jsonObject.at("bot").get<bool>();
+		newPlayer.ClassicMode = jsonObject.at("classic").get<bool>();
+		newPlayer.ProDrums = jsonObject.at("proDrums").get<bool>();
+		newPlayer.LeftyFlip = jsonObject.at("lefty").get<bool>();
+		TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
+		PlayerList.push_back(newPlayer);
+	};
 }; // make player, load player stuff to PlayerList
 
 void PlayerManager::SavePlayerList(std::filesystem::path PlayerListSaveFile) {
+	json PlayerListJson;
 
 }; // ough this is gonna be complicated
 

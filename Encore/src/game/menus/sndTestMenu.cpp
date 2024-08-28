@@ -36,10 +36,10 @@ void SoundTestMenu::Draw() {
 void SoundTestMenu::Load() {
     std::filesystem::path assetsdir = GetApplicationDirectory();
     assetsdir /= "Assets";
-    mFont = LoadFont((assetsdir / "fonts/Rubik-Regular.ttf").c_str());
+    mFont = LoadFont((assetsdir / "fonts/Rubik-Regular.ttf").string().c_str());
     
     mSoundIds.push_back(std::string("combobreak"));
-    TheAudioMgr.loadSample(assetsdir / "combobreak.mp3", "combobreak");
+    TheAudioMgr.loadSample((assetsdir / "combobreak.mp3").string(), "combobreak");
     mSoundIds.push_back(std::string("kick"));
-    TheAudioMgr.loadSample(assetsdir / "kick.wav", "kick");
+    TheAudioMgr.loadSample((assetsdir / "kick.wav").string(), "kick");
 }
