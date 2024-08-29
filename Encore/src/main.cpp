@@ -17,7 +17,6 @@
 #include <thread>
 #include <atomic>
 
-#include "sol/sol.hpp"
 #include "raylib.h"
 #include "raygui.h"
 #include "raymath.h"
@@ -866,9 +865,6 @@ int main(int argc, char *argv[]) {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
-	sol::state lua;
-	lua.open_libraries(sol::lib::base);
-	lua.script_file("scripts/testing.lua");
 	// SetConfigFlags(FLAG_VSYNC_HINT);
 
 	//SetTraceLogLevel(LOG_NONE);

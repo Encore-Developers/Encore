@@ -6,22 +6,13 @@
 #include "raylib.h"
 #include "raygui.h"
 #include "game/menus/uiUnits.h"
-#include "sol/sol.hpp"
 #include "game/assets.h"
 
 std::vector<bool> SlotSelectingState = {false, false, false, false};
 
 void OvershellRenderer::DrawOvershell() {
-	//sol::state lua;
-	//lua.open_libraries(sol::lib::base);
 	Assets &assets = Assets::getInstance();
 	Units &unit = Units::getInstance();
-	//lua.set_function("hpct", &Units::hpct);
-	//lua.set_function("hinpct", &Units::hinpct);
-	//lua.set_function("winpct", &Units::winpct);
-	//lua["leftside"] = unit.LeftSide;
-	//lua.set_function("DrawRectangle", DrawRectangle);
-	//lua.script_file("scripts/ui/overshell.lua");
 	PlayerManager &playerManager = PlayerManager::getInstance();
 	float LeftMin = unit.wpct(0.1);
 	float LeftMax = unit.wpct(0.9);

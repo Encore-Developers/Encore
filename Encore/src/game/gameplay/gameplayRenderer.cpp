@@ -13,7 +13,6 @@
 #include "easing/easing.h"
 #include "game/audio.h"
 #include "game/users/player.h"
-#include "sol/sol.hpp"
 
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();
@@ -1579,19 +1578,18 @@ void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, d
 		Vector2 SoloHitPos = {(GetScreenWidth()/2) - (soloHitLength/2), gprU.hpct(0.2f) + gprU.hinpct(0.1f)};
 
 		//DrawTextEx(gprAssets.josefinSansItalic, soloHit, SoloHitPos, gprU.hinpct(0.04f), 0, accColor);
-		sol::state lua;
-		lua.script_file("scripts/ui/solo.lua");
 
-		float posY =  lua["posY"];
+		float posY = -20;
 
-		float height = lua["height"];
-		float pctDist = lua["pctDist"];
-		float praiseDist = lua["praiseDist"];
-		float backgroundHeight = lua["backgroundHeight"];
-		float soloScale = lua["soloScale"];
+		float height = -1;
+		float pctDist = 1.2;
+		float praiseDist = 0;
+		float backgroundHeight = -2.2;
+		float soloScale = 1.15;
 
-		float fontSize = lua["fontSize"];
-		float fontSizee = lua["fontSizee"];
+		float fontSizee = 160;
+		float fontSize = 75;
+
 		gprAssets.SoloBox.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
 		rlPushMatrix();
 			rlRotatef(180, 0, 1, 0);
