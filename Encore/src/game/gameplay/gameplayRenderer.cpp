@@ -26,13 +26,15 @@ Units& gprU = Units::getInstance();
 float defaultHighwayLength = 11.5f;
 Color OverdriveColor = {255,200,0,255};
 
+float MaxHighwaySpeed = 1.25f;
+float MinHighwaySpeed = 0.5f;
+
 #define LETTER_BOUNDRY_SIZE     0.25f
 #define TEXT_MAX_LAYERS         32
 #define LETTER_BOUNDRY_COLOR    VIOLET
 
 bool SHOW_LETTER_BOUNDRY = false;
 bool SHOW_TEXT_BOUNDRY = false;
-
 // code from examples lol
 static void DrawTextCodepoint3D(Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint)
 {
@@ -230,7 +232,7 @@ void gameplayRenderer::NoteMultiplierEffect(double time, double hitTime, bool mi
 void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
 	float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive-1][cameraSel]);
@@ -565,7 +567,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = 2.0f;
 	float lineDistance = 1.5f;
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	BeginTextureMode(notes_tex);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(camera3pVector[cameraSel]);
@@ -916,7 +918,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 
 void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float length) {
 	BeginTextureMode(hud_tex);
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(camera3pVector[cameraSel]);
 	if (showHitwindow) {
@@ -1089,7 +1091,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : ((float)(player->stats->multiplier() / 2) - 1)) / (float)player->stats->maxMultForMeter();
 
 	//float multFill = 0.0;
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float relTime = (time * ((player->NoteSpeed * DiffMultiplier)))/2;//1.75;
 	float highwaySpeedTime = (relTime - smasherPos);
 
@@ -1480,22 +1482,22 @@ void gameplayRenderer::RenderEmhHighway(Player* player, Song song, double time, 
 }
 
 void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, double musicTime) {
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float diffDistance = player->Difficulty == 3 || player->ClassicMode ? 2.0f : 1.5f;
 	float lineDistance = player->Difficulty == 3 || player->ClassicMode ? 1.5f : 1.0f;
 	std::vector<std::pair<double, bool>> beatlines = song.beatLines;
 
 	if (beatlines.size() >= 0) {
 		for (int i = player->stats->curBeatLine; i < beatlines.size(); i++) {
-			if (beatlines[i].first >= song.music_start-1 && beatlines[i].first <= song.end) {
+			if (beatlines[i].first <= song.end) {
 				Color BeatLineColor = {255,255,255,128};
 				double relTime = ((song.beatLines[i].first - musicTime)) * (player->NoteSpeed * DiffMultiplier) * ( 11.5f / length);
+
 				if (i > 0) {
 					double secondLine = ((((song.beatLines[i-1].first + song.beatLines[i].first)/2) - musicTime)) * (player->NoteSpeed * DiffMultiplier)  * ( 11.5f / length);
 					if (secondLine > 1.5) break;
 
-					if (song.beatLines[i].first - song.beatLines[i-1].first <= 0.2 || (smasherPos + (length * (float)relTime)) - (smasherPos + (length * (float)secondLine)) <= 1.5) BeatLineColor = {0,0,0,0};
-					else BeatLineColor = {128,128,128,128};
+					BeatLineColor = { 255, 255, 255, 128 };
 					DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (length * (float)secondLine) },
 								   Vector3{ diffDistance + 0.5f,0,smasherPos + (length * (float)secondLine) },
 								   0.01f,
@@ -1503,8 +1505,8 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 								   4,
 								   BeatLineColor);
 				}
-
 				if (relTime > 1.5) break;
+
 				float radius = beatlines[i].second ? 0.06f : 0.03f;
 
 				BeatLineColor = (beatlines[i].second) ? Color{ 255, 255, 255, 196 } : Color{ 255, 255, 255, 128 };
@@ -1516,17 +1518,17 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 							   4,
 							   BeatLineColor);
 
-
-				if (relTime < -1 && player->stats->curBeatLine < beatlines.size() - 1) {
-					player->stats->curBeatLine++;
-				}
+				// if (relTime < -1) break;
+				//if (relTime < -1 && player->stats->curBeatLine < beatlines.size() - 1) {
+				//	player->stats->curBeatLine++;
+				//}
 			}
 		}
 	}
 }
 
 void gameplayRenderer::DrawOverdrive(Player* player,  Chart& curChart, float length, double musicTime) {
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float odStart = (float)((curChart.odPhrases[player->stats->curODPhrase].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 	float odEnd = (float)((curChart.odPhrases[player->stats->curODPhrase].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
@@ -1557,7 +1559,7 @@ void gameplayRenderer::DrawOverdrive(Player* player,  Chart& curChart, float len
 }
 
 void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, double musicTime) {
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float soloStart = (float)((curChart.Solos[player->stats->curSolo].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 	float soloEnd = (float)((curChart.Solos[player->stats->curSolo].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
@@ -1671,7 +1673,7 @@ void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, d
 }
 
 void gameplayRenderer::DrawFill(Player* player, Chart& curChart, float length, double musicTime) {
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float soloStart = (float)((curChart.fills[player->stats->curFill].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 	float soloEnd = (float)((curChart.fills[player->stats->curFill].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
@@ -1725,7 +1727,7 @@ enum DrumNotes {
 void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length) {
 	float diffDistance = 2.0f;
 	float lineDistance = 1.0f;
-	float DiffMultiplier = Remap(player->Difficulty, 0, 3, 1.0f, 1.75f);
+	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	BeginTextureMode(notes_tex);
 	ClearBackground({ 0,0,0,0 });
 	BeginMode3D(camera3pVector[cameraSel]);

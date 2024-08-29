@@ -858,7 +858,6 @@ void LoadCharts() {
 	FinishedLoading = true;
 }
 
-
 bool StartLoading = true;
 
 int main(int argc, char *argv[]) {
@@ -870,7 +869,7 @@ int main(int argc, char *argv[]) {
 	sol::state lua;
 	lua.open_libraries(sol::lib::base);
 	lua.script_file("scripts/testing.lua");
-	SetConfigFlags(FLAG_VSYNC_HINT);
+	// SetConfigFlags(FLAG_VSYNC_HINT);
 
 	//SetTraceLogLevel(LOG_NONE);
 
@@ -937,7 +936,7 @@ int main(int argc, char *argv[]) {
 #ifdef NDEBUG
     int targetFPS = 180;
 #else
-	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+	int targetFPS = 500000; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
 #endif
 	/*
 	if (!settingsMain.fullscreen) {
