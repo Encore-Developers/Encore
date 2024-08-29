@@ -40,7 +40,7 @@ jobs:
         
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x64_${{ github.head_ref }}-${{ github.sha }}
+        name: Encore_Win_x64_${{ git_hash }}
         path: ${{github.workspace}}/build_x64/Encore/Release/*
 
   build-windows-x86:
@@ -66,7 +66,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x86_${{ github.head_ref }}-${{ github.sha }}
+        name: Encore_Win_x86_${{ git_hash }}
         path: ${{github.workspace}}/build_x86/Encore/Release/*
         
   build-linux:
@@ -110,7 +110,7 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Linux_x64_${{ github.head_ref }}-${{ github.sha }}
+        name: Encore_Linux_x64_${{ git_hash }}
         path: ${{github.workspace}}/build_linux_x64/Encore/*
     
 #    - uses: actions/upload-artifact@v4
@@ -153,6 +153,6 @@ jobs:
     
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_macOS_${{ github.head_ref }}-${{ github.sha }}
+        name: Encore_macOS_${{ git_hash }}
         path: ${{github.workspace}}/Encore.dmg
 
