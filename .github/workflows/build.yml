@@ -11,8 +11,6 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  git_hash: $(git rev-parse --short "$GITHUB_SHA")
-  git_branch: ${GITHUB_REF#refs/heads/}
 
 jobs:
   build-windows:
@@ -40,7 +38,7 @@ jobs:
         
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x64_${{ env.git_hash }}
+        name: Encore_Win_x64-Indev
         path: ${{github.workspace}}/build_x64/Encore/Release/*
 
   build-windows-x86:
@@ -66,7 +64,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x86_${{ env.git_hash }}
+        name: Encore_Win_x86-Indev
         path: ${{github.workspace}}/build_x86/Encore/Release/*
         
   build-linux:
@@ -110,7 +108,7 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Linux_x64_${{ env.git_hash }}
+        name: Encore_Linux_x64-Indev
         path: ${{github.workspace}}/build_linux_x64/Encore/*
     
 #    - uses: actions/upload-artifact@v4
@@ -153,6 +151,6 @@ jobs:
     
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_macOS_${{ env.git_hash }}
+        name: Encore_macOS-Indev
         path: ${{github.workspace}}/Encore.dmg
 
