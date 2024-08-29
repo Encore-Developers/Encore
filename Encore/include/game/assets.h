@@ -57,6 +57,36 @@ public:
     Texture2D odMultFill;
     Texture2D odMultFillActive;
     Texture2D multNumberTex;
+
+    Texture2D MultFillBase;
+    Texture2D MultFCTex1;
+    Texture2D MultFCTex2;
+    Texture2D MultFCTex3;
+
+    Model MultInnerDot;
+    Model MultFill;
+    Model MultOuterFrame;
+    Model MultInnerFrame;
+
+    int MultTextureLoc;
+    int MultiplierColorLoc;
+    int FillPercentageLoc;
+
+    Shader MultiplierFill;
+    Shader FullComboIndicator;
+    int BottomTextureLoc;
+    int MiddleTextureLoc;
+    int TopTextureLoc;
+    int BasicColorLoc;
+    int TimeLoc;
+    int FCColorLoc;
+    int FCIndLoc;
+    Shader Highway;
+    int HighwayTexShaderLoc;
+    int HighwayTimeShaderLoc;
+    int HighwayColorShaderLoc;
+    int CurveMaxLoc;
+
     Shader odMultShader;
     Shader multNumberShader;
     Shader fxaa;
@@ -90,6 +120,18 @@ public:
     Texture2D noteTexture;
     Texture2D emitTexture;
 
+    Model KickBottomModel;
+    Model KickSideModel;
+    Texture2D KickBottom;
+    Texture2D KickSide;
+
+    Model CymbalInner;
+    Model CymbalOuter;
+    Model CymbalBottom;
+
+    Model SoloBox;
+    Texture2D SoloBackground;
+
     Model noteBottomModelOD;
     Model noteTopModelOD;
     Texture2D noteTextureOD;
@@ -98,6 +140,9 @@ public:
     Model liftModel;
     Model liftModelOD;
 
+    std::vector<Texture2D> YargRings;
+    Texture2D BaseRingTexture;
+    std::vector<Texture2D> InstIcons;
 
     Image icon;
     Texture2D encoreWhiteLogo;

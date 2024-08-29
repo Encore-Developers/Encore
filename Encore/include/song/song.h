@@ -1,5 +1,9 @@
 #pragma once
-#include "rapidjson/document.h"
+
+#ifndef ENCORE_SONG_H
+#define ENCORE_SONG_H
+
+
 #include "raylib.h"
 #include "song/chart.h"
 #include "midifile/MidiFile.h"
@@ -9,7 +13,10 @@
 #include <unordered_map>
 #include <filesystem>
 #include <cmath>
+
+
 #include "picosha2.h"
+#include "rapidjson/document.h"
 
 enum PartIcon {
 	IconDrum,
@@ -97,6 +104,16 @@ public:
             {"PLASTIC GUITAR",SongParts::PlasticGuitar}
     };
 
+	std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
+		{"PAD DRUMS",SongParts::PartDrums},
+		{"PAD BASS",SongParts::PartBass},
+		{"PAD GUITAR",SongParts::PartGuitar},
+		{"PAD VOCALS",SongParts::PartVocals},
+		{"PART DRUMS",SongParts::PlasticDrums},
+		{"PART BASS",SongParts::PlasticBass},
+		{"PART GUITAR",SongParts::PlasticGuitar}
+	};
+
     SongParts partFromString(const std::string& str)
     {
         auto it = midiNameToEnum.find(str);
@@ -108,6 +125,19 @@ public:
         {
             return SongParts::Invalid;
         }
+    }
+
+	SongParts partFromStringINI(const std::string& str)
+    {
+    	auto it = midiNameToEnumINI.find(str);
+    	if (it != midiNameToEnumINI.end())
+    	{
+    		return it->second;
+    	}
+    	else
+    	{
+    		return SongParts::Invalid;
+    	}
     }
 
 	bool midiParsed=false;
@@ -123,7 +153,8 @@ public:
 	Texture albumArt;
 	std::string album = "";
 	int length = 0;
-	
+
+
 	std::vector<BPM> bpms{};
 	std::vector<TimeSig> timesigs{};
 
@@ -146,6 +177,12 @@ public:
 	std::string loadingPhrase = "";
 	std::vector<std::string> charters{};
 	std::string jsonHash = "";
+	bool ini = false;
+
+
+
+	void LoadAudioINI(std::filesystem::path songPath);
+
     void LoadAudio(std::filesystem::path jsonPath) {
         std::ifstream ifs(jsonPath);
 
@@ -163,6 +200,7 @@ public:
         document.Parse(jsonString.c_str());
         songInfoPath = jsonPath.string();
         songDir = jsonPath.parent_path().string();
+
         if (document.IsObject())
         {
             for (auto& item : document.GetObject()) {
@@ -191,23 +229,23 @@ public:
                             }
                         }
                         else if (path.value.IsArray()) {
-                            for (auto& path : path.value.GetArray()) {
-                                if (std::filesystem::exists(jsonPath.parent_path() / path.GetString()))
+                            for (auto& path2 : path.value.GetArray()) {
+                                if (std::filesystem::exists(jsonPath.parent_path() / path2.GetString()))
                                 {
                                     if (stem == "drums")
-                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),0 });
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),0 });
 
                                     else if (stem == "bass")
-                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),1 });
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),1 });
 
                                     else if (stem == "lead")
-                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),2 });
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),2 });
 
                                     else if (stem == "vocals")
-                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),3 });
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),3 });
 
                                     else if (stem == "backing")
-                                        stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),4 });
+                                        stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),4 });
                                 }
                             }
                         }
@@ -217,6 +255,9 @@ public:
         }
         ifs.close();
     }
+
+	void LoadInfoINI(std::filesystem::path iniPath);
+
     void LoadInfo(std::filesystem::path jsonPath) {
         std::ifstream ifs(jsonPath);
 
@@ -292,6 +333,9 @@ public:
         }
         ifs.close();
     }
+
+	void LoadSongIni(std::filesystem::path songPath);
+
 	void LoadSong(std::filesystem::path jsonPath) 
 	{
 		std::ifstream ifs(jsonPath);
@@ -400,23 +444,23 @@ public:
 							}
 						}
 						else if (path.value.IsArray()) {
-							for (auto& path : path.value.GetArray()) {
-								if (std::filesystem::exists(jsonPath.parent_path() / path.GetString()))
+							for (auto& path2 : path.value.GetArray()) {
+								if (std::filesystem::exists(jsonPath.parent_path() / path2.GetString()))
 								{
 									if (stem == "drums")
-										stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),0 });
+										stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),0 });
 
 									else if (stem == "bass")
-										stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),1 });
+										stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),1 });
 
 									else if (stem == "lead")
-										stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),2 });
+										stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),2 });
 
 									else if (stem == "vocals")
-										stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),3 });
+										stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),3 });
 
 									else if (stem == "backing")
-										stemsPath.push_back({ (jsonPath.parent_path() / path.GetString()).string(),4 });
+										stemsPath.push_back({ (jsonPath.parent_path() / path2.GetString()).string(),4 });
 								}
 							}
 						}
@@ -492,3 +536,5 @@ public:
         UnloadImage(albumImage);
     };
 };
+
+#endif // ENCORE_SONG_H

@@ -47,7 +47,7 @@ void Assets::LoadAssets() {
     Color accentColor = {255,0,255,255};
     Color overdriveColor = Color{255,200,0,255};
     smasherReg = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
-    smasherRegTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_reg.png", loadedAssets);
+    smasherRegTex = LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
 
     smasherBoardTex = Assets::LoadTextureFilter(directory / "Assets/highway/board.png", loadedAssets);
     smasherBoard = Assets::LoadModel_((directory / "Assets/highway/board_x.obj"), loadedAssets);
@@ -57,12 +57,16 @@ void Assets::LoadAssets() {
     lanesTex = Assets::LoadTextureFilter(directory / "Assets/highway/lanes.png", loadedAssets);
 
     smasherPressed = Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
-    smasherPressTex = Assets::LoadTextureFilter(directory / "Assets/highway/smasher_press.png", loadedAssets);
+    smasherPressTex = LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
 
     star = Assets::LoadTextureFilter(directory/ "Assets/ui/star.png", loadedAssets);
     goldStar = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star.png", loadedAssets);
     goldStarUnfilled = Assets::LoadTextureFilter(directory/ "Assets/ui/gold-star_unfilled.png", loadedAssets);
     emptyStar = Assets::LoadTextureFilter(directory/ "Assets/ui/empty-star.png", loadedAssets);
+
+    Highway = LoadShader((directory / "Assets/highway/fLighting.vsh").string().c_str(), (directory / "Assets/highway/highwayShader.fsh").string().c_str());
+    HighwayTexShaderLoc = GetShaderLocation(Highway, "highwayTex");
+    HighwayTimeShaderLoc = GetShaderLocation(Highway, "time");
 
     odFrame = Assets::LoadModel_((directory / "Assets/ui/od_frame.obj"), loadedAssets);
     odBar = Assets::LoadModel_((directory / "Assets/ui/od_fill.obj"), loadedAssets);
@@ -78,6 +82,34 @@ void Assets::LoadAssets() {
     odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 
+    MultInnerDot = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultCenterDot.obj"), loadedAssets);
+    MultFill = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultFill.obj"), loadedAssets);
+    MultOuterFrame = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultOuterFrame.obj"), loadedAssets);
+    MultInnerFrame = Assets::LoadModel_((directory / "Assets/highway/multiplier/MultInnerFrame.obj"), loadedAssets);
+
+
+    MultFillBase = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/Untitled.png"), loadedAssets);
+    MultFCTex1 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine.png"), loadedAssets);
+    MultFCTex2 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine2.png"), loadedAssets);
+    MultFCTex3 = Assets::LoadTextureFilter((directory / "Assets/highway/multiplier/od shine3.png"), loadedAssets);
+
+
+    FullComboIndicator = LoadShader(0, "Assets/ui/fc_ind.fsh");
+    BottomTextureLoc = GetShaderLocation(FullComboIndicator, "baseTex");
+    MiddleTextureLoc = GetShaderLocation(FullComboIndicator, "tex1");
+    TopTextureLoc = GetShaderLocation(FullComboIndicator, "tex2");
+    TimeLoc = GetShaderLocation(FullComboIndicator, "time");
+    FCColorLoc = GetShaderLocation(FullComboIndicator, "color");
+    FCIndLoc = GetShaderLocation(FullComboIndicator, "isFC");
+    BasicColorLoc = GetShaderLocation(FullComboIndicator, "basicColor");
+    MultInnerFrame.materials[0].shader = FullComboIndicator;
+
+    MultiplierFill = LoadShader(0, "Assets/highway/multiplier/MultiplierFill.fsh");
+
+    MultTextureLoc = GetShaderLocation(MultiplierFill, "BaseTexture"); // sampler
+    MultiplierColorLoc= GetShaderLocation(MultiplierFill, "MultiplierColor"); // vec4
+    FillPercentageLoc= GetShaderLocation(MultiplierFill, "FillPercentage"); // 0-1 float
+
     odLoc = GetShaderLocation(odMultShader, "overdrive");
     comboCounterLoc = GetShaderLocation(odMultShader, "comboCounter");
     multLoc = GetShaderLocation(odMultShader, "multBar");
@@ -85,9 +117,11 @@ void Assets::LoadAssets() {
     uvOffsetXLoc = GetShaderLocation(multNumberShader, "uvOffsetX");
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
-
+    Highway.locs[SHADER_UNIFORM_SAMPLER2D] = GetShaderLocation(Highway, "highwayTex");
+    HighwayColorShaderLoc = GetShaderLocation(Highway, "highwayColor");
     expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
     expertHighway = Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
+    expertHighway.materials[0].shader = Highway;
     emhHighwaySides = Assets::LoadModel_((directory / "Assets/highway/sides_emh.obj"), loadedAssets);
     emhHighway = Assets::LoadModel_((directory / "Assets/highway/highway_emh.obj"), loadedAssets);
     odHighwayEMH = Assets::LoadModel_((directory / "Assets/highway/overdrive_emh.obj"), loadedAssets);
@@ -98,6 +132,35 @@ void Assets::LoadAssets() {
 
     noteTopModel = Assets::LoadModel_((directory / "Assets/notes/note_top.obj"), loadedAssets);
     noteBottomModel = Assets::LoadModel_((directory / "Assets/notes/note_bottom.obj"), loadedAssets);
+
+    KickBottomModel = Assets::LoadModel_((directory / "Assets/notes/kick.obj"), loadedAssets);
+    KickSideModel = Assets::LoadModel_((directory / "Assets/notes/kickSides.obj"), loadedAssets);
+    KickBottom = Assets::LoadTextureFilter(directory / "Assets/notes/kick.png", loadedAssets);
+    KickSide = Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
+
+    CymbalInner = Assets::LoadModel_((directory / "Assets/notes/cymbal/CymbalWhite.obj"), loadedAssets);
+    CymbalOuter = Assets::LoadModel_((directory / "Assets/notes/cymbal/CymbalColor.obj"), loadedAssets);
+    CymbalBottom = Assets::LoadModel_((directory / "Assets/notes/cymbal/CymbalBottom.obj"), loadedAssets);
+    CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+    CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
+
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-1.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-2.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-3.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-4.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-5.png"), loadedAssets));
+    YargRings.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/rings-6.png"), loadedAssets));
+
+    BaseRingTexture = LoadTextureFilter((directory /"Assets/ui/hugh ring/rings.png"), loadedAssets);
+
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/bass-inv.png"), loadedAssets));
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/drums-inv.png"), loadedAssets));
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/lead-inv.png"), loadedAssets));
+    InstIcons.push_back(LoadTextureFilter((directory /"Assets/ui/hugh ring/vox-inv.png"), loadedAssets));
+
+    SoloBox = Assets::LoadModel_((directory /"Assets/highway/Solo.obj"), loadedAssets);
+    SoloBackground = Assets::LoadTextureFilter(directory / "Assets/highway/SoloBox.png", loadedAssets);
+    SoloBox.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = SoloBackground;
 
     // noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png", loadedAssets);
     // emitTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note_e_new.png", loadedAssets);
@@ -188,6 +251,8 @@ void Assets::LoadAssets() {
     multNumber.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = multNumberTex;
     multNumber.materials[0].shader = multNumberShader;
 
+    MultFill.materials[0].shader = MultiplierFill;
+
     SetTextureWrap(highwayTextureOD, TEXTURE_WRAP_CLAMP);
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
@@ -205,6 +270,9 @@ void Assets::LoadAssets() {
 
     noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
     noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
+    KickBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = KickBottom;
+    KickSideModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = KickSide;
 
     noteTopModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     noteBottomModelOD.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;

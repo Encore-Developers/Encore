@@ -49,6 +49,16 @@ class Band {
     bool SoloGameplay = true; // to be true until multiple players
 };
 
+enum Instruments {
+    PAD_DRUMS,
+    PAD_BASS,
+    PAD_LEAD,
+    PAD_VOCALS,
+    PLASTIC_DRUMS,
+    PLASTIC_BASS,
+    PLASTIC_LEAD
+};
+
 class PlayerGameplayStats {
 public:
     PlayerGameplayStats();
@@ -81,6 +91,7 @@ public:
     int curBeatLine = 0;
     int curODPhrase = 0;
     int curSolo = 0;
+    int curFill = 0;
     int curNoteInt = 0;
 
     double lastAxesTime = 0.0;
@@ -109,8 +120,8 @@ public:
     std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 
     float Health;
-
-
+    Chart CurPlayingChart;
+    bool Multiplayer = false;
     float overdriveFill;
     float overdriveActiveFill;
     double overdriveActiveTime;
@@ -123,6 +134,7 @@ public:
 
     void HitNote(bool perfect) {
         NotesHit += 1;
+        Notes += 1;
         Combo += 1;
         if (Combo > MaxCombo)
             MaxCombo = Combo;
@@ -131,18 +143,32 @@ public:
         PerfectHit += perfect ? 1 : 0;
         // mute = false;
     }
+    void HitDrumsNote(bool perfect, bool cymbal) {
+        NotesHit += 1;
+        Notes += 1;
+        Combo += 1;
+        if (Combo > MaxCombo)
+            MaxCombo = Combo;
+        float cymbMult = cymbal ? 1.3f : 1.0f;
+        float perfectMult = perfect ? 1.2f : 1.0f;
+        Score += (int)((30.0f * (multiplier()) * perfectMult) * cymbMult);
+        PerfectHit += perfect ? 1 : 0;
+        // mute = false;
+    }
     void HitPlasticNote(Note note) {
         NotesHit += 1;
+        Notes += 1;
         Combo += 1;
         if (Combo > MaxCombo)
             MaxCombo = Combo;
         float perfectMult = note.perfect ? 1.2f : 1.0f;
-        Score += (note.chordSize * (int)((30.0f * (multiplier()) * perfectMult)));
+        Score += (note.chordSize * (int)(30.0f * (multiplier()) * perfectMult));
         PerfectHit += note.perfect ? 1 : 0;
         // mute = false;
     }
     void MissNote() {
         NotesMissed += 1;
+        Notes += 1;
         // if (combo != 0)
         //     playerAudioManager.playSample("miss", sfxVolume);
         if (Combo > MaxCombo)
@@ -163,10 +189,17 @@ public:
     }
 
     int maxMultForMeter() {
-        if (Instrument == 1 || Instrument == 3 || Instrument == 5)
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
             return 5;
         else
             return 3;
+    }
+
+    int maxComboForMeter() {
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
+            return 50;
+        else
+            return 30;
     }
 
     int Stars() {
@@ -189,7 +222,7 @@ public:
     int multiplier() {
         int od = Overdrive ? 2 : 1;
 
-        if (Instrument == 1 || Instrument == 3 || Instrument == 5){
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS){
 
             if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5f:0); return 1 * od; }
             else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 2 * od; }
@@ -208,25 +241,64 @@ public:
         };
     }
 
+    int noODmultiplier() {
 
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS){
+
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0;  return 2; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0;  return 3; }
+            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0; return 4; }
+            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f; return 5; }
+            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f; return 6; }
+            else { return 1; };
+        }
+        else {
+            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
+            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0; return 2; }
+            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0; return 3; }
+            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0; return 4; }
+            else { return 1; }
+        };
+    }
+
+    bool IsBassOrVox(){
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
 
     float comboFillCalc() {
-        if (Instrument == 0 || Instrument == 2 || Instrument == 4 || Instrument == 6) {
+        if (Combo == 0) {
+            return 0;
+        }
+        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (Combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0
             }
             else {
-                return static_cast<float>(Combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
+                int ComboMod = Combo % 10;
+                if (ComboMod == 0)
+                    return 1.0f;
+                else {
+                    return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to 0.9 every 10 notes
+                }
             }
         }
         else {
-            // For instruments 1 and 3, limit the float value to 0.0 to 0.6
             if (Combo >= 50) {
-                return 1.0f; // If combo is 50 or more, set float value to 1.0
+                return 1.0f; // If combo is 30 or more, set float value to 1.0
             }
+            // For instruments 1 and 3, limit the float value to 0.0 to 0.6
+            int ComboMod = Combo % 10;
+            if (ComboMod == 0)
+                return 1.0f;
             else {
-                return static_cast<float>(Combo % 10) / 10.0f; // Float value from 0.0 to 0.9 every 10 notes
+                return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to 0.9 every 10 notes
             }
         }
     }
@@ -246,6 +318,7 @@ public:
     float InputCalibration = 0.0f;
     float NoteSpeed = 1.0f;
     bool ClassicMode;
+    bool ProDrums;
     bool ReadiedUpBefore;
     bool Bot;
     int SongsPlayed;
@@ -253,6 +326,8 @@ public:
     bool LeftyFlip;
     bool Online;
     int ActiveSlot;
+    int HighwayLength;
+
     void ResetGameplayStats();
 
     bool ReadyUpMenu = false;
@@ -267,7 +342,18 @@ public:
 
 class BandGameplayStats : public PlayerGameplayStats {
 public:
+    BandGameplayStats();
+
+    void ResetBandGameplayStats();
     bool EligibleForGoldStars = false;
+    bool Multiplayer = false;
+    std::vector<int> OverdriveMultiplier{1,2,4,6,8};
+    int PlayersInOverdrive = 0;
+    void AddNotePoint(bool perfect, int playerMult);
+
+    void AddClassicNotePoint(bool perfect, int playerMult, int chordSize);
+
+    void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
 };
 
 class PlayerManager {
@@ -307,11 +393,10 @@ public:
     }
 
     Player* GetPlayerGamepad(int joystickID) {
-        for (auto player : ActivePlayers) {
-            if (GetActivePlayer(player)->joypadID == joystickID) {
-                return GetActivePlayer(player);
+        for (int playesr = 0 ; playesr < PlayersActive; playesr++) {
+            if (GetActivePlayer(playesr)->joypadID == joystickID) {
+                return GetActivePlayer(playesr);
             }
-
         }
         return nullptr;
     }
