@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
-name: Build Windows x86, Windows x64, Linux, macOS
+name: Indev: Build Windows x86, Windows x64, Linux, macOS
 on:
   workflow_dispatch:
   pull_request:
@@ -11,6 +11,8 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  git_hash: $(git rev-parse --short "$GITHUB_SHA")
+  git_branch: ${GITHUB_REF#refs/heads/}
 
 jobs:
   build-windows:
@@ -18,7 +20,7 @@ jobs:
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: windows-latest
-
+    
     steps:
     - uses: actions/checkout@v4
       with:
@@ -38,7 +40,7 @@ jobs:
         
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x64
+        name: Encore_Win_x64_${{ github.head_ref }}-${{ github.sha }}
         path: ${{github.workspace}}/build_x64/Encore/Release/*
 
   build-windows-x86:
@@ -64,7 +66,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x86
+        name: Encore_Win_x86_${{ github.head_ref }}-${{ github.sha }}
         path: ${{github.workspace}}/build_x86/Encore/Release/*
         
   build-linux:
@@ -108,7 +110,7 @@ jobs:
       
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Linux_x64
+        name: Encore_Linux_x64_${{ github.head_ref }}-${{ github.sha }}
         path: ${{github.workspace}}/build_linux_x64/Encore/*
     
 #    - uses: actions/upload-artifact@v4
@@ -151,6 +153,6 @@ jobs:
     
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_macOS
+        name: Encore_macOS_${{ github.head_ref }}-${{ github.sha }}
         path: ${{github.workspace}}/Encore.dmg
 
