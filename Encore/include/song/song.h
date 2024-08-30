@@ -177,6 +177,7 @@ public:
 	std::string loadingPhrase = "";
 	std::vector<std::string> charters{};
 	std::string jsonHash = "";
+	int hopoThreshold = 170;
 	bool ini = false;
 
 

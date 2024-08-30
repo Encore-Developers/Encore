@@ -36,6 +36,7 @@
 #include "game/users/player.h"
 #include "game/settings.h"
 #include "game/timingvalues.h"
+#include "inih/INIReader.h"
 #include "song/song.h"
 #include "song/songlist.h"
 
@@ -802,8 +803,11 @@ void LoadCharts() {
 							trackName += midiFile[track][events][k];
 						}
 						SongParts songPart;
-						if (songList.songs[curPlayingSong].ini)
+						if (songList.songs[curPlayingSong].ini) {
 							songPart = song.partFromStringINI(trackName);
+							INIReader ini(songList.songs[curPlayingSong].songInfoPath);
+							songList.songs[curPlayingSong].hopoThreshold = ini.GetInteger("song", "hopo_frequency", 170);
+						}
 						else
 							songPart = song.partFromString(trackName);
 
@@ -824,7 +828,7 @@ void LoadCharts() {
 											|| songPart == SongParts::PlasticGuitar) {
 											chart.plastic = true;
 											chart.parsePlasticNotes(midiFile, track, midiFile[track],
-																	forDiff, (int) songPart);
+																	forDiff, (int) songPart, songList.songs[curPlayingSong].hopoThreshold);
 											} else if (songPart == PlasticDrums) {
 												chart.plastic = true;
 												chart.parsePlasticDrums(midiFile, track, midiFile[track],
@@ -3569,7 +3573,6 @@ int main(int argc, char *argv[]) {
 							u.hinpct(0.05f), 0,
 							LIGHTGRAY);
 				menu.DrawBottomOvershell();
-				menu.DrawBottomBottomOvershell();
 
 				if (FinishedLoading) {
 					FinishedLoading = false;

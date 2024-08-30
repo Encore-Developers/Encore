@@ -361,7 +361,7 @@ public:
                   compareNotes);
 		std::cout << "ENC: Processed notes for " << instrument << " " << diff << std::endl;
 	}
-    void parsePlasticNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument) {
+    void parsePlasticNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, int hopoThresh) {
         bool odOn = false;
         bool soloOn = false;
         bool forceOn = false;
@@ -528,7 +528,7 @@ public:
                 newNote.tick = note.tick;
                 if (notes.size() > 0) {
                     Note lastNote = notes[notes.size() - 1];
-                    if (lastNote.tick >= newNote.tick - (midiFile.getTicksPerQuarterNote()/2.82) && lastNote.pLanes[0] != newNote.pLanes[0] && !newNote.chord) {
+                    if (lastNote.tick >= newNote.tick - hopoThresh && lastNote.pLanes[0] != newNote.pLanes[0] && !newNote.chord) {
                         newNote.phopo = true;
                     }
                 }
