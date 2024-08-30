@@ -21,6 +21,8 @@ class gameplayRenderer {
 
 	void RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length);
 	void RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
+
+	void nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix);
 public:
 	float highwayLevel = 0;
 	float smasherPos = 2.4f;

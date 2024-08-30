@@ -227,6 +227,8 @@ void gameplayRenderer::NoteMultiplierEffect(double time, double hitTime, bool mi
 	}
 }
 
+std::vector<Color> GRYBO = {GREEN, RED, YELLOW, BLUE, ORANGE};
+std::vector<Color> TRANS = {SKYBLUE, PINK, WHITE, PINK, SKYBLUE};
 
 void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length) {
 	float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
@@ -238,51 +240,12 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 	// glDisable(GL_CULL_FACE);
 	for (int lane = 0; lane < (player->Difficulty == 3 ? 5 : 4); lane++) {
 		for (int i = player->stats->curNoteIdx[lane]; i < curChart.notes_perlane[lane].size(); i++) {
+
 			Color NoteColor;
 			if (player->ClassicMode) {
-				bool pd = (player->Instrument == PLASTIC_DRUMS);
-				switch (lane) {
-					case 0:
-						if (pd) {
-							NoteColor = ORANGE;
-						} else {
-							NoteColor = GREEN;
-						}
-					break;
-					case 1:
-						if (pd) {
-							NoteColor = RED;
-						} else {
-							NoteColor = RED;
-						}
-					break;
-					case 2:
-						if (pd) {
-							NoteColor = YELLOW;
-						} else {
-							NoteColor = YELLOW;
-						}
-					break;
-					case 3:
-						if (pd) {
-							NoteColor = BLUE;
-						} else {
-							NoteColor = BLUE;
-						}
-					break;
-					case 4:
-						if (pd) {
-							NoteColor = GREEN;
-						} else {
-							NoteColor = ORANGE;
-						}
-					break;
-					default:
-						NoteColor = player->AccentColor;
-					break;
-				}
+				NoteColor = GRYBO[lane];
 			}   else {
-				NoteColor = gprMenu.hehe && player->Difficulty == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : player->AccentColor;
+				NoteColor = gprMenu.hehe && player->Difficulty == 3 ? TRANS[lane] : player->AccentColor;
 			}
 
 			// Color NoteColor = gprMenu.hehe && player->Difficulty == 3 ? (lane == 0 || lane == 4 ? SKYBLUE : (lane == 1 || lane == 3 ? PINK : WHITE)) : accentColor;
@@ -373,18 +336,16 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				break;
 			}
 			if (relEnd > 1.5) relEnd = 1.5;
+
+			Vector3 NotePos = {notePosX, 0, smasherPos + (length * (float) relTime)};
 			if (curNote.lift && !curNote.hit && !curNote.miss) {
 				// lifts						//  distance between notes
 				//									(furthest left - lane distance)
 				if (curNote.renderAsOD)                    //  1.6f	0.8
-					DrawModel(gprAssets.liftModelOD, Vector3{notePosX, 0, smasherPos +
-																		  (length *
-																		   (float) relTime)}, 1.1f, WHITE);
+					DrawModel(gprAssets.liftModelOD, NotePos, 1.1f, WHITE);
 				// energy phrase
 				else
-					DrawModel(gprAssets.liftModel, Vector3{notePosX, 0, smasherPos +
-																		(length * (float) relTime)},
-							  1.1f, WHITE);
+					DrawModel(gprAssets.liftModel, NotePos, 1.1f, WHITE);
 				// regular
 			} else {
 				// sustains
@@ -412,13 +373,6 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 						relTime = relTime + curNote.heldTime;
 					}
 
-					/*Color SustainColor = Color{ 69,69,69,255 };
-					if (curNote.held) {
-						if (od) {
-							Color SustainColor = Color{ 217, 183, 82 ,255 };
-						}
-						Color SustainColor = Color{ 172,82,217,255 };
-					}*/
 					float sustainLen =
 							(length * (float) relEnd) - (length * (float) relTime);
 					Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
@@ -427,43 +381,9 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 																		  (length *
 																		   (float) relTime) +
 																		  (sustainLen / 2.0f)));
-					BeginBlendMode(BLEND_ALPHA);
-					gprAssets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(NoteColor, { 180,180,180,255 });
-					gprAssets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(NoteColor, 0.5f);
 
+					nDrawSustain(curNote, NoteColor, notePosX, sustainMatrix);
 
-					if (curNote.held && !curNote.renderAsOD) {
-						DrawMesh(sustainPlane, gprAssets.sustainMatHeld, sustainMatrix);
-						DrawCube(Vector3{notePosX, 0.1, smasherPos}, 0.4f, 0.2f, 0.4f,
-								 player->AccentColor);
-						//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, accentColor);
-					}
-					if (curNote.renderAsOD && curNote.held) {
-						DrawMesh(sustainPlane, gprAssets.sustainMatHeldOD, sustainMatrix);
-						DrawCube(Vector3{notePosX, 0.1, smasherPos}, 0.4f, 0.2f, 0.4f, WHITE);
-						//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
-					}
-					if (!curNote.held && curNote.hit || curNote.miss) {
-
-						DrawMesh(sustainPlane, gprAssets.sustainMatMiss, sustainMatrix);
-						//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
-					}
-					if (!curNote.hit && !curNote.accounted && !curNote.miss) {
-						if (curNote.renderAsOD) {
-							DrawMesh(sustainPlane, gprAssets.sustainMatOD, sustainMatrix);
-							//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
-						} else {
-							DrawMesh(sustainPlane, gprAssets.sustainMat, sustainMatrix);
-							/*DrawCylinderEx(Vector3{notePosX, 0.05f,
-													smasherPos + (highwayLength * (float)relTime) },
-										   Vector3{ notePosX, 0.05f,
-													smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-										   accentColor);*/
-						}
-					}
-					EndBlendMode();
-
-					// DrawLine3D(Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relTime) }, Vector3{ diffDistance - (1.0f * curNote.lane),0.05f,smasherPos + (12.5f * (float)relEnd) }, Color{ 172,82,217,255 });
 				}
 				// regular notes
 				if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
@@ -662,27 +582,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 
 			int noteLane = gprSettings.mirrorMode ? 4 - lane : lane;
 
-			Color NoteColor;
-			switch (lane) {
-				case 0:
-					NoteColor = gprMenu.hehe ? SKYBLUE : GREEN;
-					break;
-				case 1:
-					NoteColor = gprMenu.hehe ? PINK : RED;
-					break;
-				case 2:
-					NoteColor = gprMenu.hehe ? RAYWHITE : YELLOW;
-					break;
-				case 3:
-					NoteColor = gprMenu.hehe ? PINK : BLUE;
-					break;
-				case 4:
-					NoteColor = gprMenu.hehe ? SKYBLUE : ORANGE;
-					break;
-				default:
-					NoteColor = player->AccentColor;
-					break;
-			}
+			Color NoteColor = gprMenu.hehe ? TRANS[lane] : GRYBO[lane];
 
 			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 			gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
@@ -728,6 +628,9 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 																			 (float) relTime)}, 1.1f,
 						  WHITE);
 			}
+			// todo: REMOVE SUSTAIN CHECK FROM RENDERER
+			// todo: PLEASE REMOVE SUSTAIN CHECK FROM RENDERER
+			// todo: PLEASE REMOVE LOGIC FROM RENDERER PLEASE :sob:
 			if ((curNote.len) > 0) {
 				int pressedMask = 0b000000;
 
@@ -775,41 +678,9 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 																	  (length *
 																	   (float) relTime) +
 																	  (sustainLen / 2.0f)));
-				BeginBlendMode(BLEND_ALPHA);
-				gprAssets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(NoteColor, {180, 180, 180, 255});
-				gprAssets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(NoteColor, 0.5f);
 
+				nDrawSustain(curNote, NoteColor, notePosX, sustainMatrix);
 
-				if (curNote.held && !curNote.renderAsOD) {
-					DrawMesh(sustainPlane, gprAssets.sustainMatHeld, sustainMatrix);
-					DrawCube(Vector3{notePosX, 0.1, smasherPos}, 0.4f, 0.2f, 0.4f,
-							 player->AccentColor);
-					//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, accentColor);
-				}
-				if (curNote.renderAsOD && curNote.held) {
-					DrawMesh(sustainPlane, gprAssets.sustainMatHeldOD, sustainMatrix);
-					DrawCube(Vector3{notePosX, 0.1, smasherPos}, 0.4f, 0.2f, 0.4f, WHITE);
-					//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 255, 255, 255 ,255 });
-				}
-				if (!curNote.held && curNote.hit || curNote.miss) {
-
-					DrawMesh(sustainPlane, gprAssets.sustainMatMiss, sustainMatrix);
-					//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 69,69,69,255 });
-				}
-				if (!curNote.hit && !curNote.accounted && !curNote.miss) {
-					if (curNote.renderAsOD) {
-						DrawMesh(sustainPlane, gprAssets.sustainMatOD, sustainMatrix);
-						//DrawCylinderEx(Vector3{ notePosX, 0.05f, smasherPos + (highwayLength * (float)relTime) }, Vector3{ notePosX,0.05f, smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15, Color{ 200, 200, 200 ,255 });
-					} else {
-						DrawMesh(sustainPlane, gprAssets.sustainMat, sustainMatrix);
-						/*DrawCylinderEx(Vector3{notePosX, 0.05f,
-												smasherPos + (highwayLength * (float)relTime) },
-									   Vector3{ notePosX, 0.05f,
-												smasherPos + (highwayLength * (float)relEnd) }, 0.1f, 0.1f, 15,
-									   accentColor);*/
-					}
-				}
-				EndBlendMode();
 			}
 			if ((!curNote.phopo  && ((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
 				((curNote.len) == 0 && !curNote.hit) && !curNote.phopo && !curNote.pTap) && !curNote.miss) {
@@ -1827,27 +1698,8 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		double relTime = ((curNote.time - time)) *
 			(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
-		Color NoteColor;
-		switch (curNote.lane) {
-		case 0:
-			NoteColor = gprMenu.hehe ? SKYBLUE : ORANGE;
-			break;
-		case 1:
-			NoteColor = gprMenu.hehe ? PINK : RED;
-			break;
-		case 2:
-			NoteColor = gprMenu.hehe ? RAYWHITE : YELLOW;
-			break;
-		case 3:
-			NoteColor = gprMenu.hehe ? PINK : BLUE;
-			break;
-		case 4:
-			NoteColor = gprMenu.hehe ? SKYBLUE : GREEN;
-			break;
-		default:
-			NoteColor = player->AccentColor;
-			break;
-		}
+		std::vector<Color> DRUMS = {ORANGE, RED, YELLOW, BLUE, GREEN};
+		Color NoteColor = DRUMS[curNote.lane];
 
 		gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 		gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
@@ -2003,6 +1855,31 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 	notes_tex.texture.width = (float)GetScreenWidth();
 	notes_tex.texture.height = (float)GetScreenHeight();
 	DrawTexturePro(notes_tex.texture, { 0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() }, { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, { renderPos,highwayLevel }, 0, WHITE);
+}
+
+void gameplayRenderer::nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix) {
+	BeginBlendMode(BLEND_ALPHA);
+	gprAssets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(noteColor, {180, 180, 180, 255});
+	gprAssets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(noteColor, 0.5f);
+
+	Material Sustain = gprAssets.sustainMat;
+
+	// use default... by default
+	if (note.held && !note.renderAsOD) // normal held
+		Sustain = gprAssets.sustainMatHeld;
+	else if (note.held && note.renderAsOD) // OD hold
+		Sustain = gprAssets.sustainMatHeldOD;
+	else if (!note.held && note.accounted) // released
+		Sustain = gprAssets.sustainMatMiss;
+	else if (note.renderAsOD) // not hit but OD
+		Sustain = gprAssets.sustainMatOD;
+
+	DrawMesh(sustainPlane, Sustain, sustainMatrix);
+
+	if (note.held)
+		DrawCube(Vector3{notePosX, 0.1, smasherPos}, 0.4f, 0.2f, 0.4f, noteColor);
+
+	EndBlendMode();
 }
 
 
