@@ -41,7 +41,8 @@ private:
         return ss.str();
     }
     void renderPlayerResults(Player player, Song song, int playerNum);
-    // void renderStars(Player player, float xPos, float yPos, float scale, bool left);
+    void renderStars(PlayerGameplayStats* player, float xPos, float yPos, float scale, bool left);
+    void renderStars(BandGameplayStats* player, float xPos, float yPos, float scale, bool left);
 public:
     GameMenu() {}
 

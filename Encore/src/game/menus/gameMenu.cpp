@@ -5,17 +5,23 @@
 
 #include <functional>
 #include <random>
-#include "game/menus/gameMenu.h"
-#include "game/menus/menu.h"
-#include "raylib.h"
-#include "raygui.h"
-#include "song/songlist.h"
-#include "game/lerp.h"
-#include "game/settings.h"
+#include <raylib.h>
+#include <raygui.h>
+#include <raymath.h>
+
 #include "game/assets.h"
 #include "game/audio.h"
+#include "game/lerp.h"
+#include "game/menus/gameMenu.h"
+
+#include <variant>
+
+#include "game/menus/menu.h"
+#include "game/menus/overshellRenderer.h"
 #include "game/menus/uiUnits.h"
-#include "raymath.h"
+#include "game/settings.h"
+#include "song/songlist.h"
+
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH
@@ -103,7 +109,7 @@ void GameMenu::renderPlayerResults(Player player, Song song, int playerslot) {
             0,
             GetColor(0x00adffFF));
 
-    // renderStars(player,  (cardPos + u.winpct(0.11f)), (float)GetScreenHeight()/2 - u.hinpct(0.06f), u.hinpct(0.055f),false);
+    renderStars(player.stats,  (cardPos + u.winpct(0.11f)), (float)GetScreenHeight()/2 - u.hinpct(0.06f), u.hinpct(0.055f),false);
 
 
     if (rendAsFC) {
@@ -169,20 +175,31 @@ void GameMenu::renderPlayerResults(Player player, Song song, int playerslot) {
 };
 
 // todo: replace player with band stats
-/*
-void GameMenu::renderStars(Player player, float xPos, float yPos, float scale, bool left) {
-    int starsval = player.stars(player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore,player.diff);
-    float starPercent = (float)player.score/(float)player.songToBeJudged.parts[player.instrument]->charts[player.diff].baseScore;
+
+void GameMenu::renderStars(PlayerGameplayStats* stats, float xPos, float yPos, float scale, bool left) {
+    int starsval = stats->Stars();
 
     float starX = left ? 0 : scale*2.5f;
     for (int i = 0; i < 5; i++) {
         DrawTexturePro(menuAss.emptyStar, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale},{0,0},0,WHITE);
     }
     for (int i = 0; i < starsval ; i++) {
-        DrawTexturePro(player.goldStars?menuAss.goldStar:menuAss.star, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
+        DrawTexturePro(stats->GoldStars?menuAss.goldStar:menuAss.star, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
     }
 };
-*/
+
+void GameMenu::renderStars(BandGameplayStats* stats, float xPos, float yPos, float scale, bool left) {
+    int starsval = stats->Stars();
+
+    float starX = left ? 0 : scale*2.5f;
+    for (int i = 0; i < 5; i++) {
+        DrawTexturePro(menuAss.emptyStar, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale},{0,0},0,WHITE);
+    }
+    for (int i = 0; i < starsval ; i++) {
+        DrawTexturePro(stats->GoldStars?menuAss.goldStar:menuAss.star, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
+    }
+};
+
 void GameMenu::DrawAlbumArtBackground(Texture2D song) {
     float diagonalLength = sqrtf((float)(GetScreenWidth() * GetScreenWidth()) + (float)(GetScreenHeight() * GetScreenHeight()));
     float RectXPos = GetScreenWidth() / 2;
@@ -205,6 +222,7 @@ void GameMenu::DrawVersion() {
 
 // todo: text box rendering for splashes, cleanup of buttons
 void GameMenu::loadMainMenu() {
+    OvershellRenderer osr;
     AudioManager& menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
@@ -416,6 +434,7 @@ void GameMenu::loadMainMenu() {
         DrawTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
         DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
     }
+    osr.DrawOvershell();
 }
 
 
@@ -435,11 +454,14 @@ void GameMenu::showResults() {
     float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(menuAss.redHatDisplayBlack,ChosenSong.title.c_str(), u.hinpct(0.09f), 0).x/2;
     float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.08f), 0).x;
     float bigStarPos = (float)GetScreenWidth()/2 + u.winpct(0.005f);
+    float scoreWidth = MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.06f), 0).x;
 
 
-    DrawTextEx(menuAss.redHatDisplayBlack, ChosenSong.title.c_str(), {songNamePos,u.hpct(0.01f)},u.hinpct(0.09f),0,WHITE);
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player_manager.BandStats.Score).c_str(), {bigScorePos,u.hpct(0.1f)},u.hinpct(0.08f),0, GetColor(0x00adffFF));
-    // renderStars(player, bigStarPos, u.hpct(0.1125f), u.hinpct(0.055f),true);
+
+    DrawTextEx(menuAss.redHatDisplayItalicLarge, ChosenSong.title.c_str(), {u.LeftSide,u.hpct(0.02125f)},u.hinpct(0.05f),0,WHITE);
+    DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), {u.LeftSide,u.hpct(0.07f)},u.hinpct(0.035f),0,WHITE);
+    DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player_manager.BandStats.Score).c_str(), {u.LeftSide,u.hpct(0.1f)},u.hinpct(0.06f),0, GetColor(0x00adffFF));
+    renderStars(&player_manager.BandStats, scoreWidth + u.LeftSide + u.winpct(0.01f), u.hpct(0.105f), u.hinpct(0.05f),true);
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
 }
 

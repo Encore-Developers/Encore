@@ -203,7 +203,7 @@ public:
     }
 
     int Stars() {
-        float starPercent = (float)MaxCombo/(float)BaseScore;
+        float starPercent = (float)Score/(float)BaseScore;
         if (starPercent < xStarThreshold[0]) {return 0;}
         else if (starPercent < xStarThreshold[1]) { return 1; }
         else if (starPercent < xStarThreshold[2]) {return 2;}
@@ -350,7 +350,19 @@ public:
     std::vector<int> OverdriveMultiplier{1,2,4,6,8};
     int PlayersInOverdrive = 0;
     void AddNotePoint(bool perfect, int playerMult);
+    int Stars() {
+        float starPercent = (float)Score/(float)BaseScore;
+        if (starPercent < xStarThreshold[0]) {return 0;}
+        else if (starPercent < xStarThreshold[1]) { return 1; }
+        else if (starPercent < xStarThreshold[2]) {return 2;}
+        else if (starPercent < xStarThreshold[3]) {return 3;}
+        else if (starPercent < xStarThreshold[4]) {return 4;}
+        else if (starPercent < xStarThreshold[5]) {return 5;}
+        else if (starPercent >= xStarThreshold[5] && EligibleForGoldStars) { GoldStars = true; return 5; }
+        else return 5;
 
+        return 0;
+    }
     void AddClassicNotePoint(bool perfect, int playerMult, int chordSize);
 
     void DrumNotePoint(bool perfect, int playerMult, bool cymbal);

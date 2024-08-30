@@ -6,7 +6,8 @@
 #include "game/timingvalues.h"
 #include <atomic>
 #include <algorithm>
-class Note 
+
+class Note
 {
 public:
 	double time;
@@ -42,6 +43,7 @@ public:
     bool phopo = false;
 	bool extendedSustain = false;
 	bool pDrumTom = false;
+	bool pSnare = false;
 	bool pDrumAct = false;
 
 	bool isGood(double eventTime, double inputOffset) const {
@@ -637,7 +639,7 @@ public:
             }
             else {
                 baseScore += ((36 * note.chordSize) * mult);
-                baseScore += (note.beatsLen * 12) * mult;
+                // baseScore += (note.beatsLen * 12) * mult;
                 if (noteIdx == 9) mult = 2;
                 else if (noteIdx == 19) mult = 3;
                 else if (noteIdx == 29) mult = 4;
@@ -648,6 +650,7 @@ public:
             }
         }
 		std::cout << "ENC: Processed base score for " << instrument << " " << diff << std::endl;
+		std::cout << "ENC: Base score: " << baseScore << std::endl;
 		std::cout << "ENC: Processed plastic chart for " << instrument << " " << diff << std::endl;
     }
 
@@ -713,6 +716,7 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
                     int pitch = events[i][1];
                     int lane = pitch - notePitches[0];
                     Note newNote;
+                	if (lane == 1) newNote.pSnare = true;
                     if (discoFlip) {
                         if (lane == 1) lane = 2;
                         else if (lane == 2) lane = 1;
@@ -926,8 +930,7 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
                 it = notes.erase(it);
             }
             else {
-                baseScore += ((36 * note.chordSize) * mult);
-                baseScore += (note.beatsLen * 12) * mult;
+                baseScore += (int)(36.0f * mult * ( proDrums ? (note.pSnare || note.pDrumTom ? 1.0f : 1.3f) : 1));
                 if (noteIdx == 9) mult = 2;
                 else if (noteIdx == 19) mult = 3;
                 else if (noteIdx == 29) mult = 4;
@@ -936,17 +939,21 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
             }
         }
         std::cout << "ENC: Processed base score for " << instrument << " " << diff << std::endl;
+		std::cout << "ENC: Base score: " << baseScore << std::endl;
         std::cout << "ENC: Processed plastic chart for " << instrument << " " << diff << std::endl;
     }
 
 	void resetNotes() {
 		for (Note& note : notes) {
 			note.accounted = false;
+			note.countedForSolo = false;
+			note.countedForODPhrase = false;
 			note.hit = false;
 			note.miss = false;
 			note.held = false;
 			note.heldTime = 0;
 			note.hitTime = 0;
+			note.HitOffset = 0.0;
 			note.perfect = false;
 			note.countedForODPhrase = false;
             note.hitWithFAS = false;
@@ -959,6 +966,12 @@ void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList e
 		}
         for (solo& Solo : Solos) {
             Solo.notesHit = 0;
+        	Solo.perfect = false;
         }
+		for (DrumFill& Fill : fills )
+		{
+			Fill.notesHit = 0;
+			Fill.ready = false;
+		};
 	}
 };

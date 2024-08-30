@@ -30,7 +30,7 @@ public:
 	bool highwayOutAnimation = false;
 	bool highwayOutEndAnim = false;
 	float animDuration = 1.0f;
-    bool songEnded = false;
+    bool songEnded = true;
     bool overstrum = false;
     int selectedSongInt = 0;
 	bool songPlaying = false;

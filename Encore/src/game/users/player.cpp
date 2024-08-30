@@ -39,7 +39,21 @@ void Player::ResetGameplayStats() {
 	stats->Paused = false;
 	stats->GoldStars = false;
 	stats->Overdrive = false;
+	stats->FAS = false;
+	stats->Overstrum = false;
 
+	stats->curFill = 0;
+	stats->curSolo = 0;
+	stats->curBeatLine = 0;
+	stats->curNoteInt = 0;
+	stats->curODPhrase = 0;
+	stats->curNoteIdx = {0,0,0,0,0};
+	stats->curBPM = 0;
+
+	stats->StartTime = 0.0;
+	stats->SongStartTime = 0.0;
+
+	std::vector<int> curNoteIdx = { 0,0,0,0,0 };
 	stats->Score = 0;
 	stats->Combo = 0;
 	stats->MaxCombo = 0;
@@ -88,7 +102,7 @@ BandGameplayStats::BandGameplayStats() {
 	Health = 100;
 
 	BaseScore = 0;
-	EligibleForGoldStars = false;
+	EligibleForGoldStars = true;
 }
 
 void BandGameplayStats::ResetBandGameplayStats() {

@@ -855,6 +855,7 @@ void LoadCharts() {
 	LoadingState = READY;
 	this_thread::sleep_for(chrono::seconds(1));
 	FinishedLoading = true;
+	gpr.startTime = GetTime();
 }
 
 bool StartLoading = true;
@@ -932,7 +933,7 @@ int main(int argc, char *argv[]) {
 #ifdef NDEBUG
     int targetFPS = 180;
 #else
-	int targetFPS = 500000; // targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+	int targetFPS = targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
 #endif
 	/*
 	if (!settingsMain.fullscreen) {
@@ -2850,7 +2851,7 @@ int main(int argc, char *argv[]) {
 								menu.SwitchScreen(CHART_LOADING_SCREEN);
 								glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 								glfwSetGamepadStateCallback(gamepadStateCallback);
-								startedPlayingSong = GetTime()+gpr.animDuration;
+
 										}
 							GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
 										ColorToInt(ColorBrightness(player->AccentColor, -0.5)));
@@ -2918,6 +2919,7 @@ int main(int argc, char *argv[]) {
 						playerManager.BandStats.BaseScore += songList.songs[curPlayingSong].parts[playerManager.GetActivePlayer(i)->Instrument]->charts[playerManager.GetActivePlayer(i)->Difficulty].baseScore;
 
 				}
+
 				int starsval = playerManager.BandStats.Stars();
 				float starPercent =
 						(float) playerManager.BandStats.Score / (float) playerManager.BandStats.BaseScore;
@@ -2935,7 +2937,7 @@ int main(int argc, char *argv[]) {
 											playerManager.BandStats.xStarThreshold[i], 0, u.hinpct(0.05));
 					BeginScissorMode(starX, (starY + starWH) - yMaskPos, starWH, yMaskPos);
 					DrawTexturePro(assets.star, emptyStarWH, starRect, {0, 0}, 0,
-									i == starsval ? WHITE : Color{192, 192, 192, 128});
+									i == starsval ?  Color{192, 192, 192, 128} : WHITE);
 					EndScissorMode();
 				}
 				if (starPercent >= playerManager.BandStats.xStarThreshold[4] && playerManager.BandStats.EligibleForGoldStars) {
@@ -3031,8 +3033,9 @@ int main(int argc, char *argv[]) {
 								stream.handle,
 								settingsMain.MainVolume * settingsMain.BandVolume);
 					}
-					streamsLoaded = true;
 					startTime = GetTime();
+					streamsLoaded = true;
+
 					// player.resetPlayerStats();
 				} else {
 					for (auto &stream: audioManager.loadedStreams) {
@@ -3045,11 +3048,13 @@ int main(int argc, char *argv[]) {
 						//			: settingsMain.MainVolume * settingsMain.
 						//			PlayerVolume);
 						// else
-							audioManager.SetAudioStreamVolume(
-								stream.handle,
-								settingsMain.MainVolume * settingsMain.BandVolume);
-						if (gpr.songPlaying)
+						audioManager.SetAudioStreamVolume(
+							stream.handle,
+							settingsMain.MainVolume * settingsMain.BandVolume);
+						if (!gpr.songEnded) {
 							songTime = GetTime()-gpr.audioStartTime;
+
+						} else songTime = 0;
 					}
 					float songPlayed = audioManager.GetMusicTimePlayed(
 						audioManager.loadedStreams[0].handle);
@@ -3062,7 +3067,6 @@ int main(int argc, char *argv[]) {
 						glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
 						glfwSetGamepadStateCallback(origGamepadCallback);
 						// notes = (int)songList.songs[curPlayingSong].parts[Instrument]->charts[diff].notes.size();
-
 
 						menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
 						midiLoaded = false;
@@ -3113,11 +3117,11 @@ int main(int argc, char *argv[]) {
 						}
 						case (2): {
 							if (pnum == 0) {
-								gpr.cameraSel = 0;
-								gpr.renderPos = -GetScreenWidth()/4;
-							} else {
 								gpr.cameraSel = 1;
-								gpr.renderPos = GetScreenWidth()/4;
+								gpr.renderPos = GetScreenWidth()/8;
+							} else {
+								gpr.cameraSel = 0;
+								gpr.renderPos = -GetScreenWidth()/8;
 							}
 							break;
 						}
@@ -3509,6 +3513,7 @@ int main(int argc, char *argv[]) {
 				if (streamsLoaded) {
 					audioManager.unloadStreams();
 					streamsLoaded = false;
+
 				}
 
 
@@ -3517,10 +3522,12 @@ int main(int argc, char *argv[]) {
 				overshellRenderer.DrawOvershell();
 				if (GuiButton({0, 0, 60, 60}, "<")) {
 					// player.quit = false;
-					for (int i = 0; i < playerManager.PlayersActive; i++){
-						Player *player = playerManager.GetActivePlayer(i);
+					for (int PlayersToReset = 0; PlayersToReset < playerManager.PlayersActive; PlayersToReset++) {
+						Player *player = playerManager.GetActivePlayer(PlayersToReset);
 						player->ResetGameplayStats();
 						songList.songs[curPlayingSong].parts[player->Instrument]->charts[player->Difficulty].resetNotes();
+						gpr.highwayLevel = 0;
+						gpr.audioStartTime = 0.0;
 					}
 					playerManager.BandStats.ResetBandGameplayStats();
 					menu.SwitchScreen(SONG_SELECT);
