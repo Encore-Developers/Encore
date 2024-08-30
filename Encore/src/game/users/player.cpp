@@ -209,6 +209,14 @@ void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
 		newPlayer.ClassicMode = jsonObject.at("classic").get<bool>();
 		newPlayer.ProDrums = jsonObject.at("proDrums").get<bool>();
 		newPlayer.LeftyFlip = jsonObject.at("lefty").get<bool>();
+		if (!jsonObject["accentColor"].is_null()) {
+			int r  = 0, g  = 0, b = 0;
+			r = jsonObject["accentColor"].at("r").get<int>();
+			g = jsonObject["accentColor"].at("g").get<int>();
+			b = jsonObject["accentColor"].at("b").get<int>();
+			newPlayer.AccentColor = Color{unsigned char (r),unsigned char (g),unsigned char (b),255};
+		} else newPlayer.AccentColor = {255,0,255,255};
+
 		TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
 		PlayerList.push_back(newPlayer);
 	};

@@ -24,14 +24,27 @@ void OvershellRenderer::DrawOvershell() {
 		float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25)*i));
 
 		if (SlotSelectingState[i]) {
+			if (GuiButton({OvershellLeftLoc, unit.hpct(1.0f)-(unit.winpct(0.03f)), unit.winpct(0.2f), unit.winpct(0.03f)}, "Cancel")) {
+				SlotSelectingState[i] = false;
+			}
+			BeginBlendMode(BLEND_MULTIPLIED);
+			DrawRectangleRec({OvershellLeftLoc, unit.hpct(1.0f)-(unit.winpct(0.03f)), unit.winpct(0.2f), unit.winpct(0.03f)}, Color{255,0,0,128});
+			EndBlendMode();
 			for (int x = 0; x < playerManager.PlayerList.size(); x++) {
-				if (playerManager.ActivePlayers[x] == -1) {
-					if (GuiButton({OvershellLeftLoc, OvershellTopLoc-(unit.winpct(0.03f)*(x+1))+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.03f)}, playerManager.PlayerList[x].Name.c_str())) {
+
+				if (playerManager.ActivePlayers[i] == -1) {
+					if (GuiButton({OvershellLeftLoc, unit.hpct(1.0f)-(unit.winpct(0.03f)*(x+2)), unit.winpct(0.2f), unit.winpct(0.03f)}, playerManager.PlayerList[x].Name.c_str())) {
 						playerManager.AddActivePlayer(x, i);
 						SlotSelectingState[i] = false;
 					}
 				}
 			}
+			float playerNameSize = MeasureTextEx(assets.redHatDisplayBlack, "Select a player", unit.winpct(0.03f), 0).x;
+			float InfoLoc = unit.winpct(0.03f)*(playerManager.PlayerList.size()+1);
+
+			DrawRectangle(OvershellLeftLoc, unit.hpct(1.0f)-InfoLoc-unit.winpct(0.05f), unit.winpct(0.2f), unit.winpct(0.05f), GRAY);
+			DrawTextEx(assets.redHatDisplayBlack, "Select a player", {OvershellCenterLoc-(playerNameSize/2), unit.hpct(1.0f)-InfoLoc+unit.winpct(0.01f)-unit.winpct(0.05f)}, unit.winpct(0.03f), 0, WHITE);
+
 		} else if (playerManager.ActivePlayers[i] != -1) { //player active
 			if (GuiButton({OvershellLeftLoc, OvershellTopLoc+unit.winpct(0.01f), unit.winpct(0.2f), unit.winpct(0.04f)}, "")) {
 				playerManager.RemoveActivePlayer(i);

@@ -461,6 +461,8 @@ void GameMenu::showResults() {
     DrawTextEx(menuAss.redHatDisplayItalicLarge, ChosenSong.title.c_str(), {u.LeftSide,u.hpct(0.02125f)},u.hinpct(0.05f),0,WHITE);
     DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), {u.LeftSide,u.hpct(0.07f)},u.hinpct(0.035f),0,WHITE);
     DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player_manager.BandStats.Score).c_str(), {u.LeftSide,u.hpct(0.1f)},u.hinpct(0.06f),0, GetColor(0x00adffFF));
+    DrawTextEx(menuAss.redHatDisplayItalicLarge, "!", {u.LeftSide,u.hpct(0.15f)},u.hinpct(0.05f),0, RED);
+    DrawTextEx(menuAss.josefinSansItalic, "  Scoring is disabled in indev builds", {u.LeftSide,u.hpct(0.1575f)},u.hinpct(0.025f),0.125,WHITE);
     renderStars(&player_manager.BandStats, scoreWidth + u.LeftSide + u.winpct(0.01f), u.hpct(0.105f), u.hinpct(0.05f),true);
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
 }
