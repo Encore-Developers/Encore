@@ -1746,10 +1746,8 @@ void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double tim
 		}
 		else {
 			DrawModel(gprAssets.smasherReg, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.01f, smasherPos }, 1.25f, WHITE);
-
 		}
 	}
-
 	EndBlendMode();
 	EndMode3D();
 	EndTextureMode();
