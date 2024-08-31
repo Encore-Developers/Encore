@@ -1,10 +1,10 @@
 #pragma once
-#include "../include/rapidjson/document.h"
-#include "../include/rapidjson/filewritestream.h"
-#include "../include/rapidjson/prettywriter.h"
-#include "../../out/build/x64-debug/_deps/raylib-src/src/external/glfw/include/GLFW/glfw3.h"
+#include "rapidjson/document.h"
+#include "rapidjson/filewritestream.h"
+#include "rapidjson/prettywriter.h"
+#include "GLFW/glfw3.h"
 #include "keybinds.h"
-#include "../../out/build/x64-debug/_deps/raylib-src/src/raylib.h"
+#include "raylib.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
