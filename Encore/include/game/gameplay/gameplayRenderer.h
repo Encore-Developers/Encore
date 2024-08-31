@@ -28,7 +28,7 @@ class gameplayRenderer {
 	void nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
 	void nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix);
 
-
+	void eDrawSides(float scrollPos, double time, double start, double end, float length, double radius, Color color);
 public:
 	float highwayLevel = 0;
 	float smasherPos = 2.4f;

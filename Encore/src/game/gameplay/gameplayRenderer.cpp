@@ -540,7 +540,12 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				}
 				float sustainLen = (length * (float) relEnd) - (length * (float) relTime);
 				Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
-													  MatrixTranslate(notePosX, 0.01f, NoteScroll + sustainLen / 2.0f));
+													  MatrixTranslate(notePosX, 0.01f,
+																	  smasherPos +
+																	  (length *
+																	   (float) relTime) +
+																	  (sustainLen / 2.0f)));
+
 				nDrawSustain(curNote, NoteColor, notePosX, sustainMatrix);
 			}
 			nDrawFiveLaneHitEffects(curNote, time, notePosX);
@@ -1171,39 +1176,16 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 
 void gameplayRenderer::DrawOverdrive(Player* player,  Chart& curChart, float length, double musicTime) {
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-	float odStart = (float)((curChart.odPhrases[player->stats->curODPhrase].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
-	float odEnd = (float)((curChart.odPhrases[player->stats->curODPhrase].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
-
-	// can be flipped. btw
-
-	// horrifying.
-	// main calc
-	bool Beginning = (float)(smasherPos + (length * odStart)) >= (length * 1.5f) + smasherPos;
-	bool Ending = (float)(smasherPos + (length * odEnd)) >= (length * 1.5f) + smasherPos;
-
-	float HighwayEnd = (length * 1.5f) + smasherPos;
-
-	// right calc
-	float RightSideX = player->Difficulty == 3 || player->ClassicMode ? 2.7f : 2.2f;
-
-	Vector3 RightSideStart = {RightSideX ,0,Beginning ?  HighwayEnd : (float)(smasherPos + (length * odStart)) };
-	Vector3 RightSideEnd = { RightSideX,0, Ending ? HighwayEnd : (float)(smasherPos + (length * odEnd)) };
-
-	// left calc
-	float LeftSideX = player->Difficulty == 3 || player->ClassicMode ? -2.7f : -2.2f;
-
-	Vector3 LeftSideStart = {LeftSideX ,0,Beginning ?  HighwayEnd : (float)(smasherPos + (length * odStart)) };
-	Vector3 LeftSideEnd = { LeftSideX,0, Ending ? HighwayEnd : (float)(smasherPos + (length * odEnd)) };
-
-	// draw
-	DrawCylinderEx(RightSideStart, RightSideEnd, 0.07, 0.07, 10, RAYWHITE);
-	DrawCylinderEx(LeftSideStart, LeftSideEnd, 0.07, 0.07, 10, RAYWHITE);
+	float start = curChart.odPhrases[player->stats->curODPhrase].start;
+	float end = curChart.odPhrases[player->stats->curODPhrase].end;
+	eDrawSides((player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.1, WHITE);
 }
 
 void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, double musicTime) {
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-	float soloStart = (float)((curChart.Solos[player->stats->curSolo].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
-	float soloEnd = (float)((curChart.Solos[player->stats->curSolo].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
+	float start = curChart.Solos[player->stats->curSolo].start;
+	float end = curChart.Solos[player->stats->curSolo].end;
+	eDrawSides((player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.09, SKYBLUE);
 
 	if (!curChart.Solos.empty() && musicTime >= curChart.Solos[player->stats->curSolo].start - 1 && musicTime <= curChart.Solos[player->stats->curSolo].end + 2.5) {
 		int solopctnum = Remap(curChart.Solos[player->stats->curSolo].notesHit, 0, curChart.Solos[player->stats->curSolo].noteCount, 0, 100);
@@ -1273,52 +1255,19 @@ void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, d
 			// DrawTextEx(gprAssets.josefinSansItalic, PraiseText, PraisePos, gprU.hinpct(0.05f), 0, accColor);
 		}
 	}
-
-	// can be flipped. btw
-
-	// horrifying.
-	// main calc
-	bool Beginning = (float)(smasherPos + (length * soloStart)) >= (length * 1.5f) + smasherPos;
-	bool Ending = (float)(smasherPos + (length * soloEnd)) >= (length * 1.5f) + smasherPos;
-	float HighwayEnd = (length * 1.5f) + smasherPos;
-
-	float soloPlaneStart = Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart));
-	float soloPlaneEnd = Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd));
-
-	//float soloLen = (length * (float) soloPlaneEnd) - (length * (float) soloPlaneStart);
-	// Matrix soloMatrix = MatrixMultiply(MatrixScale(1, 1, soloLen),
-	//                                   MatrixTranslate(0, 0.005f,
-//                                                       (length *
-	//                                                    (float) soloStart) +
-	//                                                   (soloLen / 2.0f)));
-	//gprAssets.soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
-
-	// DrawMesh(soloPlane, gprAssets.soloMat, soloMatrix);
-
-
-	// right calc
-	float RightSideX = player->Difficulty == 3 || player->ClassicMode ? 2.7f : 2.2f;
-
-	Vector3 RightSideStart = {RightSideX ,-0.0025,Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart)) };
-	Vector3 RightSideEnd = { RightSideX,-0.0025, Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd)) };
-
-	// left calc
-	float LeftSideX = player->Difficulty == 3 || player->ClassicMode ? -2.7f : -2.2f;
-
-	Vector3 LeftSideStart = {LeftSideX ,-0.0025,Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart)) };
-	Vector3 LeftSideEnd = { LeftSideX,-0.0025, Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd)) };
-
-	// draw
-	DrawCylinderEx(RightSideStart, RightSideEnd, 0.07, 0.07, 10, SKYBLUE);
-	DrawCylinderEx(LeftSideStart, LeftSideEnd, 0.07, 0.07, 10, SKYBLUE);
 }
 
 void gameplayRenderer::DrawFill(Player* player, Chart& curChart, float length, double musicTime) {
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-	float soloStart = (float)((curChart.fills[player->stats->curFill].start - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
-	float soloEnd = (float)((curChart.fills[player->stats->curFill].end - musicTime)) * (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
-	// can be flipped. btw
+	float start = curChart.fills[player->stats->curFill].start;
+	float end = curChart.fills[player->stats->curFill].end;
+	eDrawSides((player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.075, GREEN);
+}
+
+void gameplayRenderer::eDrawSides(float scrollPos, double time, double start, double end, float length, double radius, Color color) {
+	float soloStart = (float)((start - time)) * scrollPos * (11.5f / length);
+	float soloEnd = (float)((end - time)) * scrollPos * (11.5f / length);
 
 	// horrifying.
 	// main calc
@@ -1326,35 +1275,22 @@ void gameplayRenderer::DrawFill(Player* player, Chart& curChart, float length, d
 	bool Ending = (float)(smasherPos + (length * soloEnd)) >= (length * 1.5f) + smasherPos;
 	float HighwayEnd = (length * 1.5f) + smasherPos;
 
-	float soloPlaneStart = Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart));
-	float soloPlaneEnd = Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd));
-
-	//float soloLen = (length * (float) soloPlaneEnd) - (length * (float) soloPlaneStart);
-	// Matrix soloMatrix = MatrixMultiply(MatrixScale(1, 1, soloLen),
-	//                                   MatrixTranslate(0, 0.005f,
-//                                                       (length *
-	//                                                    (float) soloStart) +
-	//                                                   (soloLen / 2.0f)));
-	//gprAssets.soloMat.maps[MATERIAL_MAP_DIFFUSE].color = SKYBLUE;
-
-	// DrawMesh(soloPlane, gprAssets.soloMat, soloMatrix);
-
-
 	// right calc
-	float RightSideX = player->Difficulty == 3 || player->ClassicMode ? 2.7f : 2.2f;
-
-	Vector3 RightSideStart = {RightSideX ,-0.0025,Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart)) };
-	Vector3 RightSideEnd = { RightSideX,-0.0025, Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd)) };
+	float RightSideX = 2.7f;
+	float StartPos = Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart));
+	float EndPos = Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd));
+	Vector3 RightSideStart = {RightSideX ,-0.0025, StartPos};
+	Vector3 RightSideEnd = { RightSideX,-0.0025, EndPos };
 
 	// left calc
-	float LeftSideX = player->Difficulty == 3 || player->ClassicMode ? -2.7f : -2.2f;
+	float LeftSideX = -2.7f;
 
-	Vector3 LeftSideStart = {LeftSideX ,-0.0025,Beginning ?  HighwayEnd : (float)(smasherPos + (length * soloStart)) };
-	Vector3 LeftSideEnd = { LeftSideX,-0.0025, Ending ? HighwayEnd : (float)(smasherPos + (length * soloEnd)) };
+	Vector3 LeftSideStart = {LeftSideX ,-0.0025,StartPos };
+	Vector3 LeftSideEnd = { LeftSideX,-0.0025, EndPos };
 
 	// draw
-	DrawCylinderEx(RightSideStart, RightSideEnd, 0.1, 0.1, 10, GREEN);
-	DrawCylinderEx(LeftSideStart, LeftSideEnd, 0.1, 0.1, 10, GREEN);
+	DrawCylinderEx(RightSideStart, RightSideEnd, radius, radius, 10, color);
+	DrawCylinderEx(LeftSideStart, LeftSideEnd, radius, radius, 10, color);
 }
 // classic drums
 enum DrumNotes {
@@ -1458,110 +1394,68 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 			}
 		}
 
-
-
 		double relTime = ((curNote.time - time)) *
 			(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 
 		std::vector<Color> DRUMS = {ORANGE, RED, YELLOW, BLUE, GREEN};
 		Color NoteColor = DRUMS[curNote.lane];
 
-		gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-		gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-		gprAssets.KickBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-		gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(NoteColor, -0.15);
-		gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
-		gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
 		float notePosX = curNote.lane == KICK ? 0 : (diffDistance - (1.25f * (curNote.lane - 1)))-0.125f;
 		float notePosY = curNote.lane == KICK ? 0.01f : 0;
 		if (relTime > 1.5) {
 			break;
 		}
 		Vector3 NoteScale = { 1.35f,1.35f,1.35f };
-		if (curNote.lane == KICK || !curNote.pDrumTom && curNote.lane != RED_DRUM) {
-			NoteScale.x = 1.0f;
-			NoteScale.y = 1.0f;
-			NoteScale.z = 1.0f;
-		}
-		if (curNote.pDrumAct && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
-			NoteScale.y = 2.0f;
-			gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
-			gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
-			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
-		}
-
+		Vector3 NotePos = { notePosX, notePosY, smasherPos + (length * (float)relTime) };
 		Model bottomModel = curNote.lane == KICK ? gprAssets.KickBottomModel : gprAssets.noteBottomModel;
 		Model topModel = curNote.lane == KICK ? gprAssets.KickSideModel : gprAssets.noteTopModel;
-
-		//if(curNote.lane>RED_DRUM && player->ProDrums) {
-		//	if (!curNote.pDrumTom) {
-		//		NoteScale.x = 0.75f;
-		//	}
-		//}
-		if (!curNote.hit && !curNote.miss) {
-			if (!curNote.pDrumTom && curNote.lane != KICK && curNote.lane != RED_DRUM) {
-				if (curNote.renderAsOD) {
-					gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-					gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
-					gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(GOLD, -0.5);
-					DrawModelEx(gprAssets.CymbalInner, Vector3{ notePosX, notePosY, smasherPos +
-																	   (length *
-																		(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-					WHITE);
-					DrawModelEx(gprAssets.CymbalOuter, Vector3{ notePosX, notePosY, smasherPos +
-																			  (length *
-																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-						WHITE);
-					DrawModelEx(gprAssets.CymbalBottom, Vector3{ notePosX, notePosY, smasherPos +
-																			  (length *
-																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-						WHITE);
-				} else {
-					DrawModelEx(gprAssets.CymbalInner, Vector3{ notePosX, notePosY, smasherPos +
-																	   (length *
-																		(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-					WHITE);
-					DrawModelEx(gprAssets.CymbalOuter, Vector3{ notePosX, notePosY, smasherPos +
-																			  (length *
-																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-						WHITE);
-					DrawModelEx(gprAssets.CymbalBottom, Vector3{ notePosX, notePosY, smasherPos +
-																			  (length *
-																			   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-						WHITE);
-				}
+		if (!curNote.pDrumTom && !curNote.pSnare && !curNote.hit && curNote.lane != KICK) { // render cymbals
+			gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(NoteColor, -0.15);
+			gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
+			gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+			NoteScale = {1.0f,1.0f,1.0f};
+			if (curNote.renderAsOD) {
+				gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+				gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
+				gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(GOLD, -0.5);
+			} else if (curNote.miss) {
+				gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
 			}
-			else if (curNote.renderAsOD && curNote.lane != KICK) {
-				DrawModelEx(gprAssets.noteTopModelOD, Vector3{ notePosX, notePosY, smasherPos +
-																			(length *
-																			(float)relTime) },Vector3{0,0,0},0, NoteScale,
-					WHITE);
-				DrawModelEx(gprAssets.noteBottomModelOD, Vector3{ notePosX, notePosY, smasherPos +
-																			(length *
-																				(float)relTime) }, Vector3{ 0,0,0 },0, NoteScale,
-					WHITE);
+			if (curNote.pDrumAct && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
+				NoteScale.y = 2.0f;
+				gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
+				gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
 			}
-			else {
-				DrawModelEx(topModel, Vector3{ notePosX, notePosY, smasherPos +
-																	   (length *
-																		(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-					WHITE);
-				DrawModelEx(bottomModel, Vector3{ notePosX, notePosY, smasherPos +
-																		  (length *
-																		   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-					WHITE);
+			DrawModelEx(gprAssets.CymbalInner, NotePos, {0}, 0, NoteScale, WHITE);
+			DrawModelEx(gprAssets.CymbalOuter, NotePos, {0}, 0, NoteScale, WHITE);
+			DrawModelEx(gprAssets.CymbalBottom, NotePos, {0}, 0, NoteScale, WHITE);
+		} else if (!curNote.hit) {
+			Model TopModel = gprAssets.noteTopModel;
+			Model BottomModel = gprAssets.noteBottomModel;
+			TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+			BottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+			if (curNote.lane == KICK) {
+				TopModel = gprAssets.KickBottomModel;
+				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+				BottomModel = gprAssets.KickSideModel;
+				NoteScale = {1.0f,1.0f,1.0f};
 			}
-		}
-		else if (curNote.miss) {
-			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-			DrawModelEx(gprAssets.noteTopModel, Vector3{ notePosX, notePosY, smasherPos +
-																		   (length *
-																			(float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-				WHITE);
-			DrawModelEx(gprAssets.noteBottomModel, Vector3{ notePosX, notePosY, smasherPos +
-																	  (length *
-																	   (float)relTime) }, Vector3{ 0,0,0 }, 0, NoteScale,
-				WHITE);
+			if (curNote.miss) {
+				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				BottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+			}
+			if (curNote.renderAsOD) {
+				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+				BottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+			}
+			if (curNote.pDrumAct && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
+				NoteScale.y = 2.0f;
+				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
+			}
+			DrawModelEx(TopModel, NotePos,{0},0, NoteScale, WHITE);
+			DrawModelEx(BottomModel, NotePos, { 0},0, NoteScale, WHITE);
 		}
 
 		nDrawDrumsHitEffects(curNote, time, notePosX);
