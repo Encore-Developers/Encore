@@ -4,7 +4,7 @@
 
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
-#include "../assets.h"
+#include "assets.h"
 #include "raygui.h"
 
 std::string trFloatString(float& input) {

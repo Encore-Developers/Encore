@@ -6,7 +6,7 @@
 #include "raylib.h"
 #include "raygui.h"
 #include "uiUnits.h"
-#include "../assets.h"
+#include "assets.h"
 
 std::vector<bool> SlotSelectingState = {false, false, false, false};
 

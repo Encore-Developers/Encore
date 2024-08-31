@@ -53,7 +53,7 @@ file(COPY "players.json" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
-target_include_directories(Encore PRIVATE "include")
+target_include_directories(Encore PRIVATE "include" "src")
 if(WIN32)
   if (CMAKE_SIZEOF_VOID_P EQUAL 4) 
     find_library(BASS NAMES bass PATHS "lib/bass/windows/x86/")

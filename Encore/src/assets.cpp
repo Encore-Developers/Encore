@@ -4,7 +4,7 @@
 
 #include "assets.h"
 #include <filesystem>
-#include "../include/raygui.h"
+#include "raygui.h"
 
 class Assets;
 

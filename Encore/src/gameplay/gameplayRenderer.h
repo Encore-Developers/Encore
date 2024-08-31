@@ -4,8 +4,8 @@
 //
 
 #include <utility>
-#include "../users/player.h"
-#include "../song/song.h"
+#include "users/player.h"
+#include "song/song.h"
 
 class gameplayRenderer {
     void RenderNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);

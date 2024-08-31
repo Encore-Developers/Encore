@@ -4,15 +4,15 @@
 
 #include "gameplayRenderer.h"
 
-#include "../assets.h"
-#include "../settings.h"
-#include "../menus/gameMenu.h"
+#include "assets.h"
+#include "settings.h"
+#include "menus/gameMenu.h"
 #include "raymath.h"
-#include "../menus/uiUnits.h"
+#include "menus/uiUnits.h"
 #include "rlgl.h"
 #include "easing/easing.h"
-#include "../song/audio.h"
-#include "../users/player.h"
+#include "song/audio.h"
+#include "users/player.h"
 
 Assets &gprAssets = Assets::getInstance();
 Settings& gprSettings = Settings::getInstance();

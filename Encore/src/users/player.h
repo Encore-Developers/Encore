@@ -12,7 +12,7 @@
 #include "raylib.h"
 #include "rapidjson/document.h"
 #include "uuid.h"
-#include "../song/chart.h"
+#include "song/chart.h"
 // #include "libstud-uuid/uuid/uuid.hxx"
 /*
 

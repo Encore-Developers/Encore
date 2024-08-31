@@ -1,7 +1,7 @@
 #include "sndTestMenu.h"
-#include "../song/audio.h"
+#include "song/audio.h"
 #include "gameMenu.h"
-#include "../menus/uiUnits.h"
+#include "menus/uiUnits.h"
 #include "raylib.h"
 #include "raygui.h"
 #include <filesystem>

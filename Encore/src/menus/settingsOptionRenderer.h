@@ -8,8 +8,8 @@
 
 #include <string>
 #include "uiUnits.h"
-#include "../assets.h"
-#include "../keybinds.h"
+#include "assets.h"
+#include "keybinds.h"
 
 class settingsOptionRenderer {
 public:

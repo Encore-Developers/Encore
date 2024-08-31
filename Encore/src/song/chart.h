@@ -3,7 +3,7 @@
 #include <string>
 #include "midifile/MidiFile.h"
 // #include "song.h"
-#include "../timingvalues.h"
+#include "timingvalues.h"
 #include <atomic>
 #include <algorithm>
 
