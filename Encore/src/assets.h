@@ -1,5 +1,5 @@
 #pragma once
-#include "../../out/build/x64-debug/_deps/raylib-src/src/raylib.h"
+#include "raylib.h"
 #include <filesystem>
 #include <vector>
 
