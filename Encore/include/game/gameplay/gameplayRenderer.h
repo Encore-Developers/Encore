@@ -23,6 +23,7 @@ class gameplayRenderer {
 	void RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
 
 	void nDrawPlasticNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
+	void nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
 	void nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix);
 public:
 	float highwayLevel = 0;

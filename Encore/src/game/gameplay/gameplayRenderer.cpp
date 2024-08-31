@@ -253,10 +253,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 			//if (curNote.hit) {
 			//	player->stats->totalOffset += curNote.HitOffset;
 			//}
-			gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 
-			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-			gprAssets.noteBottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
 			if (!curChart.Solos.empty()) {
 				if (curNote.time >= curChart.Solos[player->stats->curSolo].start &&
 					curNote.time <= curChart.Solos[player->stats->curSolo].end) {
@@ -337,23 +334,17 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 			}
 			if (relEnd > 1.5) relEnd = 1.5;
 
-			Vector3 NotePos = {notePosX, 0, smasherPos + (length * (float) relTime)};
-			if (curNote.lift && !curNote.hit && !curNote.miss) {
-				// lifts						//  distance between notes
-				//									(furthest left - lane distance)
-				if (curNote.renderAsOD)                    //  1.6f	0.8
-					DrawModel(gprAssets.liftModelOD, NotePos, 1.1f, WHITE);
-				// energy phrase
-				else
-					DrawModel(gprAssets.liftModel, NotePos, 1.1f, WHITE);
-				// regular
-			} else {
-				// sustains
-				if ((curNote.len) > 0) {
+			// Vector3 NotePos = {notePosX, 0, smasherPos + (length * (float) relTime)};
+			float noteScrollPos = smasherPos + (length * (float) relTime);
+
+			nDrawPadNote(curNote, NoteColor, notePosX, noteScrollPos);
+
+			if ((curNote.len) > 0) {
 					if (curNote.hit && curNote.held) {
 						if (curNote.heldTime <
 							(curNote.len * player->NoteSpeed)) {
 							curNote.heldTime = 0.0 - relTime;
+							// note: this was old sustain scoring code
 							//if (!bot) {
 							//player.sustainScoreBuffer[curNote.lane] =
 							//		(float) (curNote.heldTime / curNote.len) * (12 * curNote.beatsLen) *
@@ -386,61 +377,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 
 				}
 				// regular notes
-				if (((curNote.len) > 0 && (curNote.held || !curNote.hit)) ||
-					((curNote.len) == 0 && !curNote.hit)) {
-					if (curNote.renderAsOD) {
-						if ((!curNote.held && !curNote.miss) && !curNote.hit) {
-							DrawModel(gprAssets.noteTopModelOD, Vector3{notePosX, 0, smasherPos +
-																					 (length *
-																					  (float) relTime)}, 1.1f,
-									  WHITE);
-							DrawModel(gprAssets.noteBottomModelOD, Vector3{notePosX, 0, smasherPos +
-																						(length *
-																						 (float) relTime)}, 1.1f,
-									  WHITE);
-						}
 
-					} else {
-						if ((!curNote.held && !curNote.miss) && !curNote.hit) {
-							DrawModel(gprAssets.noteTopModel, Vector3{notePosX, 0, smasherPos +
-																				   (length *
-																					(float) relTime)}, 1.1f,
-									  WHITE);
-							DrawModel(gprAssets.noteBottomModel, Vector3{notePosX, 0, smasherPos +
-																					  (length *
-																					   (float) relTime)}, 1.1f,
-									  WHITE);
-						}
-
-					}
-
-					}
-				gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
-			}
-			if (curNote.miss) {
-
-
-				if (curNote.lift) {
-					DrawModel(gprAssets.liftModel,
-							  Vector3{notePosX, 0, smasherPos + (length * (float) relTime)},
-							  1.0f, RED);
-				} else {
-					DrawModel(gprAssets.noteBottomModel,
-							  Vector3{notePosX, 0, smasherPos + (length * (float) relTime)},
-							  1.0f, RED);
-					DrawModel(gprAssets.noteTopModel,
-							  Vector3{notePosX, 0, smasherPos + (length * (float) relTime)},
-							  1.0f, RED);
-				}
-
-
-				if (time <
-					curNote.time + 0.4 && gprSettings.missHighwayColor) {
-					gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-					} else {
-						gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
-					}
-			}
 			BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 			double PerfectHitAnimDuration = 1.0f;
 			if (curNote.hit && time < (curNote.hitTime) + HitAnimDuration) {
@@ -1796,6 +1733,36 @@ void gameplayRenderer::nDrawPlasticNote(Note note, Color noteColor, float notePo
 		DrawModel(NoteBottom, NotePos, 1.1f, WHITE);
 	}
 
+}
+
+void gameplayRenderer::nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos) {
+	Vector3 NotePos = {notePosX, 0, noteScrollPos};
+	gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
+
+	if (note.lift && !note.hit) {
+		if (note.renderAsOD) {
+			gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		} else if (note.miss) {
+			gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+		}
+		DrawModel(gprAssets.liftModel, NotePos, 1.1f, WHITE);
+	} else if (!note.hit) {
+		Model NoteTop = gprAssets.noteTopModel;
+		Model NoteBottom = gprAssets.noteBottomModelOD;
+		NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
+		NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		if (note.renderAsOD) {
+			NoteTop = gprAssets.noteTopModelOD;
+			NoteBottom = gprAssets.noteBottomModelOD;
+			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+		} else if (note.miss) {
+			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+		}
+		DrawModel(NoteTop, NotePos, 1.1f, WHITE);
+		DrawModel(NoteBottom, NotePos, 1.1f, WHITE);
+	}
 }
 
 void gameplayRenderer::nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix) {
