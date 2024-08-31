@@ -22,9 +22,13 @@ class gameplayRenderer {
 	void RenderClassicNotes(Player* player, Chart& curChart, double time, RenderTexture2D &notes_tex, float length);
 	void RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length);
 
+	void nDrawDrumsHitEffects(Note note, double time, float notePosX);
+	void nDrawFiveLaneHitEffects(Note note, double time, float notePosX);
 	void nDrawPlasticNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
 	void nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
 	void nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix);
+
+
 public:
 	float highwayLevel = 0;
 	float smasherPos = 2.4f;
