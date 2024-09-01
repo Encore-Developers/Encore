@@ -16,21 +16,25 @@ Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Rayl
 
 Current nightly build:    
 - [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x64.zip) ([32 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x86.zip))    
-- [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64.zip)    
+- [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64.zip)
+- [macOS](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_macOS.zip)
+  
 ### Running Encore
 
 Extract the .zip file that you downloaded, either Nightly or Stable, and extract it into a folder that you will be able to remember. If Windows Defender SmartScreen appears, click Read More, and Run. Encore is not a malicious program, and removing the SmartScreen popup would cost us (the developers) more than we're willing to pay.
 
 ## Songs
+### WE DO NOT ENDORSE PIRACY OF OFFICIAL CONTENT. IT IS UP TO YOU TO LEGALLY OBTAIN YOUR SONGS.
 
 Extract songs into the `/Songs` folder in your Encore folder.
 Please check [CHARTS.md](https://github.com/Encore-Developers/Encore/blob/main/CHARTS.md) for more song information.
+
 Supported types: song.ini (midi charts, no .chart (yet)), info.json
 
 ### Contributing
 
-If you have any bugs or suggestions for Encore, please consider making an issue.
-For code contributions, you'll need the latest version of Visual Studio or CLion. It's possible that you can use VSCode, but none of us develop with it. These IDEs should install the C++ development toolchains.
+For any code contributions, please use the Indev branch for developing/making pull requests.
+For any issues you come across, please report them to the Issues page on the Encore Github.
 
 ## Credits    
 Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](https://fontawesome.com/icons/crown?f=classic&s=solid))
