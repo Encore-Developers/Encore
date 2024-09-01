@@ -63,6 +63,14 @@ public:
     int directoryCount  = 0;
     int badSongCount = 0;
 
+    void Clear() {
+        listMenuEntries.clear();
+        songs.clear();
+        songCount = 0;
+        directoryCount = 0;
+        badSongCount = 0;
+    }
+
 private:
     static bool sortArtist(const Song& a, const Song& b) {
         std::string aLower = TextToLower(a.artist.c_str());
@@ -167,9 +175,9 @@ public:
         SongCache.close();
     }
 
-    static void ScanSongs(const std::vector<std::filesystem::path>& songsFolder)
+    void ScanSongs(const std::vector<std::filesystem::path>& songsFolder)
     {
-        SongList list;
+        Clear();
 
         for (const auto &folder : songsFolder) {
             if (!std::filesystem::is_directory(folder)) {
@@ -181,12 +189,12 @@ public:
                     continue;
                 }
 
-                list.directoryCount++;
+                directoryCount++;
                 if (std::filesystem::exists(entry.path() / "info.json")) {
                     Song song;
                     song.LoadSong(entry.path() / "info.json");
-                    list.songs.push_back(std::move(song));
-                    list.songCount++;
+                    songs.push_back(std::move(song));
+                    songCount++;
                 }
                 else if (std::filesystem::exists(entry.path() / "song.ini")) {
                     Song song;
@@ -195,14 +203,14 @@ public:
                     song.songDir = entry.path().string();
                     song.LoadSongIni(entry.path());
                     song.ini = true;
-                    list.songs.push_back(std::move(song));
-                    list.songCount++;
+                    songs.push_back(std::move(song));
+                    songCount++;
                 }
             }
         }
 
         TraceLog(LOG_INFO, "Rewriting song cache");
-        list.WriteCache();
+        WriteCache();
     }
 
     std::vector<ListMenuEntry> GenerateSongEntriesWithHeaders(const std::vector<Song>& songs, SortType sortType) {
@@ -244,14 +252,10 @@ public:
         std::ifstream SongCacheIn("songCache.encr", std::ios::binary);
         if (!SongCacheIn) {
             TraceLog(LOG_WARNING, "Failed to load song cache!");
+            SongCacheIn.close();
+            ScanSongs(songsFolder);
             return;
         }
-
-        listMenuEntries.clear();
-        songs.clear();
-        songCount = 0;
-        directoryCount = 0;
-        badSongCount = 0;
 
         // Read header
         uint32_t header;
@@ -260,7 +264,6 @@ public:
             TraceLog(LOG_WARNING, "Invalid song cache format, rescanning");
             SongCacheIn.close();
             ScanSongs(songsFolder);
-            LoadCache(songsFolder);
             return;
         }
 
@@ -270,13 +273,14 @@ public:
             TraceLog(LOG_WARNING, TextFormat("Cache version %01i, but current version is %01i",version, SONG_CACHE_VERSION));
             SongCacheIn.close();
             ScanSongs(songsFolder);
-            LoadCache(songsFolder);
             return;
         }
 
         size_t cachedSongCount;
         SongCacheIn >> cachedSongCount;
 
+        // Load cached songs
+        Clear();
         TraceLog(LOG_INFO, "Loading song cache");
         std::set<std::string> loadedSongs;  // To track loaded songs and avoid duplicates
         for (int i = 0; i < cachedSongCount; i++) {
