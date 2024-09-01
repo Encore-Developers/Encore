@@ -9,6 +9,7 @@
 #include "raylib.h"
 
 #include "song/song.h"
+#include "util/binary.h"
 
 // Version is formatted as YY_MM_DD_RR, where:
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
@@ -16,7 +17,7 @@
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
 #define SONG_CACHE_VERSION 24'08'31'01
-#define SONG_CACHE_HEADER 'ENCR'
+#define SONG_CACHE_HEADER 0x52'43'4E'45 // "ENCR"
 
 enum class SortType : int {
     EnumStart = 0,
@@ -127,27 +128,12 @@ public:
         listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
     }
 
-private:
-    static std::string ReadString(std::ifstream& stream) {
-        size_t length;
-        stream >> length;
-
-        std::string str(length, '\0');
-        stream.read(str.data(), str.length());
-
-        return str;
-    }
-
-    static void WriteString(std::ofstream& stream, const std::string& str) {
-        stream << (size_t)str.length();
-        stream.write(str.data(), str.length());
-    }
-
 public:
     void WriteCache() {
         std::filesystem::remove("songCache.encr");
 
-        std::ofstream SongCache("songCache.encr", std::ios::binary);
+        // Native-endian order used for best performance, since the cache is not a portable file
+        encore::bin_ofstream_native SongCache("songCache.encr", std::ios::binary);
 
         // Casts used to explicitly indicate type
         SongCache << (uint32_t)SONG_CACHE_HEADER;
@@ -155,13 +141,13 @@ public:
         SongCache << (size_t)songs.size();
 
         for (const auto& song : songs) {
-            WriteString(SongCache, song.songDir);
-            WriteString(SongCache, song.albumArtPath);
-            WriteString(SongCache, song.songInfoPath);
-            WriteString(SongCache, song.jsonHash);
+            SongCache << song.songDir;
+            SongCache << song.albumArtPath;
+            SongCache << song.songInfoPath;
+            SongCache << song.jsonHash;
 
-            WriteString(SongCache, song.title);
-            WriteString(SongCache, song.artist);
+            SongCache << song.title;
+            SongCache << song.artist;
 
             SongCache << song.length;
 
@@ -249,7 +235,7 @@ public:
     }
 
     void LoadCache(const std::vector<std::filesystem::path>& songsFolder) {
-        std::ifstream SongCacheIn("songCache.encr", std::ios::binary);
+        encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
         if (!SongCacheIn) {
             TraceLog(LOG_WARNING, "Failed to load song cache!");
             SongCacheIn.close();
@@ -287,13 +273,13 @@ public:
             Song song;
 
             // Read cache values
-            song.songDir = ReadString(SongCacheIn);
-            song.albumArtPath = ReadString(SongCacheIn);
-            song.songInfoPath = ReadString(SongCacheIn);
-            song.jsonHash = ReadString(SongCacheIn);
+            SongCacheIn >> song.songDir;
+            SongCacheIn >> song.albumArtPath;
+            SongCacheIn >> song.songInfoPath;
+            SongCacheIn >> song.jsonHash;
 
-            song.title = ReadString(SongCacheIn);
-            song.artist = ReadString(SongCacheIn);
+            SongCacheIn >> song.title;
+            SongCacheIn >> song.artist;
 
             SongCacheIn >> song.length;
 
