@@ -111,9 +111,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DENCORE_VERSION=\"v0.2.0\"")
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "-DCACHE_VERSION=3")
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
 
 target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS})

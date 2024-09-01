@@ -113,7 +113,7 @@ SongList &songList = SongList::getInstance();
 Assets &assets = Assets::getInstance();
 
 
-int currentSortValue = 0;
+SortType currentSortValue = SortType::Title;
 std::vector<std::string> sortTypes{"Title", "Artist", "Length"};
 
 static void DrawTextRubik(const char *text, float posX, float posY, float fontSize, Color color) {
@@ -1173,7 +1173,7 @@ int main(int argc, char *argv[]) {
 			case MENU: {
 				if (!menu.songsLoaded) {
 					if (std::filesystem::exists("songCache.encr")) {
-						songList = songList.LoadCache(settingsMain.songPaths);
+						songList.LoadCache(settingsMain.songPaths);
 						menu.songsLoaded = true;
 					}
 				}
@@ -2097,7 +2097,7 @@ int main(int argc, char *argv[]) {
 			}
 			case SONG_SELECT: {
 				if (!menu.songsLoaded) {
-					songList = songList.LoadCache(settingsMain.songPaths);
+					songList.LoadCache(settingsMain.songPaths);
 					menu.songsLoaded = true;
 				}
 				streamsLoaded = false;
@@ -2190,7 +2190,7 @@ int main(int argc, char *argv[]) {
 
 
 				DrawTextEx(assets.josefinSansItalic,
-							TextFormat("Sorted by: %s", sortTypes[currentSortValue].c_str()), {
+							TextFormat("Sorted by: %s", sortTypes[(int)currentSortValue].c_str()), {
 								u.LeftSide,
 								u.hinpct(0.165f)
 							}, u.hinpct(0.03f), 0, WHITE);
@@ -2320,7 +2320,7 @@ int main(int argc, char *argv[]) {
 				if (songSelectOffset > 0 ) {
 					std::string SongTitleForCharThingyThatsTemporary = songList.listMenuEntries[songSelectOffset].headerChar;
 					switch (currentSortValue) {
-						case 0: {
+						case SortType::Title: {
 							if (songList.listMenuEntries[songSelectOffset].isHeader) {
 								SongTitleForCharThingyThatsTemporary = songList.songs[songList.listMenuEntries[songSelectOffset-1].songListID].title[0];
 							} else {
@@ -2328,7 +2328,7 @@ int main(int argc, char *argv[]) {
 							}
 							break;
 						}
-						case 1: {
+						case SortType::Artist: {
 							if (songList.listMenuEntries[songSelectOffset].isHeader) {
 								SongTitleForCharThingyThatsTemporary = songList.songs[songList.listMenuEntries[songSelectOffset-1].songListID].artist[0];
 							} else {
@@ -2336,7 +2336,7 @@ int main(int argc, char *argv[]) {
 							}
 							break;
 						}
-						case 2: {
+						case SortType::Length: {
 							if (songList.listMenuEntries[songSelectOffset].isHeader) {
 								SongTitleForCharThingyThatsTemporary = std::to_string(songList.songs[songList.listMenuEntries[songSelectOffset-1].songListID].length);
 							} else {
@@ -2491,8 +2491,7 @@ int main(int argc, char *argv[]) {
 								GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f),
 								u.hinpct(0.05f)
 							}, "Sort")) {
-					currentSortValue++;
-					if (currentSortValue == 3) currentSortValue = 0;
+					currentSortValue = NextSortType(currentSortValue);
 					if (selSong)
 						songList.sortList(currentSortValue, curPlayingSong);
 					else
