@@ -4,7 +4,7 @@
 
 Up-and-coming 4/5 key rhythm game.
 
-Encore supports controllers and keyboard. Songs formatted for other games will NOT work with Encore.
+Encore supports controllers and keyboard.
 
 ## Installation
 
@@ -23,15 +23,9 @@ Extract the .zip file that you downloaded, either Nightly or Stable, and extract
 
 ## Songs
 
-Extract songs into the `/Songs` folder in your Encore folder. They should consist of several files:
+Extract songs into the `/Songs` folder in your Encore folder.
 Please check [CHARTS.md](https://github.com/Encore-Developers/Encore/blob/main/CHARTS.md) for more song information.
-- info.json - the information file required for Encore to read audio, difficulties, the name, and file names.
-- lead.ogg (or similar)
-- bass.ogg (or similar)
-- drums.ogg (or similar)
-- vocals.ogg (or similar)
-- backing.ogg (or similar)
-- notes.mid (typically named after the song's name)
+Supported types: song.ini (midi charts, no .chart (yet)), info.json
 
 ### Contributing
 
