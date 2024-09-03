@@ -2142,7 +2142,7 @@ int main(int argc, char *argv[]) {
 					//gpr.selectedSongInt = menu.ChosenSongInt;
 					selectedSong.LoadAlbumArt(selectedSong.albumArtPath);
 					if (!selSong)
-						songSelectOffset = menu.ChosenSongInt - 5;
+						songSelectOffset = selectedSong.songListPos - 5;
 					albumArtLoaded = true;
 				} else {
 					menu.ChosenSong = selectedSong;

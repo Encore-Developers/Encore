@@ -153,6 +153,7 @@ public:
 	Texture albumArt;
 	std::string album = "";
 	int length = 0;
+	int songListPos = 0;
 
 
 	std::vector<BPM> bpms{};
