@@ -35,6 +35,9 @@ enum SongParts {
 	PlasticDrums,
 	PlasticBass,
 	PlasticGuitar,
+	PlasticVocals,
+	PartKeys,
+	PlasticKeys,
 	Invalid
 };
 
@@ -99,9 +102,12 @@ public:
             {"PART BASS",SongParts::PartBass},
             {"PART GUITAR",SongParts::PartGuitar},
             {"PART VOCALS",SongParts::PartVocals},
+			{"PAD KEYS",SongParts::PartKeys},
             {"PLASTIC DRUMS",SongParts::PlasticDrums},
             {"PLASTIC BASS",SongParts::PlasticBass},
-            {"PLASTIC GUITAR",SongParts::PlasticGuitar}
+            {"PLASTIC GUITAR",SongParts::PlasticGuitar},
+			{"PLASTIC VOCALS",SongParts::PlasticVocals},
+			{"PLASTIC KEYS",SongParts::PlasticKeys}
     };
 
 	std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
@@ -109,9 +115,11 @@ public:
 		{"PAD BASS",SongParts::PartBass},
 		{"PAD GUITAR",SongParts::PartGuitar},
 		{"PAD VOCALS",SongParts::PartVocals},
+		{"PAD KEYS",SongParts::PartKeys},
 		{"PART DRUMS",SongParts::PlasticDrums},
 		{"PART BASS",SongParts::PlasticBass},
-		{"PART GUITAR",SongParts::PlasticGuitar}
+		{"PART GUITAR",SongParts::PlasticGuitar},
+		{"PART KEYS",SongParts::PlasticKeys}
 	};
 
     SongParts partFromString(const std::string& str)
@@ -163,7 +171,7 @@ public:
 	double end=0.0;
 	std::vector<PartIcon> partIcons{ PartIcon::IconNone,PartIcon::IconNone,PartIcon::IconNone,PartIcon::IconNone };
 	//Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic Bass, Plastic Guitar
-	std::vector<SongPart*> parts{ new SongPart,new SongPart,new SongPart,new SongPart ,new SongPart ,new SongPart ,new SongPart };
+	std::vector<SongPart*> parts{ new SongPart,new SongPart,new SongPart,new SongPart ,new SongPart ,new SongPart ,new SongPart , new SongPart, new SongPart, new SongPart};
 
 	std::vector<std::pair<double, bool>> beatLines; //double time, bool downbeat
 
@@ -522,8 +530,8 @@ public:
 		}
 	}
 
-    void LoadAlbumArt(std::string artpath) {
-        Image albumImage = LoadImage(artpath.c_str());
+    void LoadAlbumArt() {
+        Image albumImage = LoadImage(albumArtPath.c_str());
         if (albumImage.height > 512) {
             ImageResize(&albumImage, 512, 512);
         }

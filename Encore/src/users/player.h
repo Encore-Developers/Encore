@@ -56,7 +56,10 @@ enum Instruments {
     PAD_VOCALS,
     PLASTIC_DRUMS,
     PLASTIC_BASS,
-    PLASTIC_LEAD
+    PLASTIC_LEAD,
+    PLASTIC_VOCALS,
+    PAD_KEYS,
+    PLASTIC_KEYS
 };
 
 class PlayerGameplayStats {
@@ -275,7 +278,7 @@ public:
         if (Combo == 0) {
             return 0;
         }
-        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD) {
+        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD || Instrument == PLASTIC_KEYS ) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (Combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0

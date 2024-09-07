@@ -365,7 +365,7 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 				break;
 			}
 			if (relEnd > 1.5) relEnd = 1.5;
-
+			if (relEnd < -1) continue;
 			// Vector3 NotePos = {notePosX, 0, smasherPos + (length * (float) relTime)};
 			float noteScrollPos = smasherPos + (length * (float) relTime);
 
@@ -394,13 +394,18 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					} else if (curNote.hit && !curNote.held) {
 						relTime = relTime + curNote.heldTime;
 					}
+				float sustainLen = (length * (float) relEnd) - (length * (float) relTime);
+				Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
+													  MatrixTranslate(notePosX, 0.01f,
+																	  smasherPos +
+																	  (length *
+																	   (float) relTime) +
+																	  (sustainLen / 2.0f)));
 
-					float sustainLen = (length * (float) relEnd) - (length * (float) relTime);
-					Matrix sustainMatrix = MatrixMultiply(MatrixScale(1, 1, sustainLen),
-														  MatrixTranslate(notePosX, 0.01f,  noteScrollPos + (sustainLen / 2.0f)));
+				nDrawSustain(curNote, NoteColor, notePosX, sustainMatrix);
 
-					nDrawSustain(curNote, NoteColor, notePosX, sustainMatrix);
-				}
+
+			}
 
 			nDrawFiveLaneHitEffects(curNote, time, notePosX);
 			NoteMultiplierEffect(time, curNote.time, curNote.miss, player);
@@ -507,7 +512,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 						 (player->NoteSpeed * DiffMultiplier) * (11.5f / length);
 		double relEnd = (((curNote.time + curNote.len) - time)) *
 						(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
-
+		if (relEnd < -1) continue;
 		for (int lane: curNote.pLanes) {
 
 
@@ -517,6 +522,8 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 
 			gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 			gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+			gprAssets.noteTopModel.meshes->colors = (unsigned char*)ColorToInt(NoteColor);
+			gprAssets.noteTopModelHP.meshes->colors = (unsigned char*)ColorToInt(NoteColor);
 
 			float notePosX = diffDistance - (1.0f * noteLane);
 			if (relTime > 1.5) {
@@ -662,7 +669,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	SetTextureWrap(gprAssets.MultFCTex1,TEXTURE_WRAP_REPEAT);
 	SetTextureWrap(gprAssets.MultFCTex2,TEXTURE_WRAP_REPEAT);
 	SetTextureWrap(gprAssets.MultFCTex3,TEXTURE_WRAP_REPEAT);
-	Color basicColor = ColorBrightness(player->AccentColor, -0.4);
+	Color basicColor = player->Bot ? ColorBrightness(SKYBLUE, 0.2) : ColorBrightness(player->AccentColor, -0.4);
 	Vector4 basicColorVec = {basicColor.r/255.0f, basicColor.g/255.0f,basicColor.b/255.0f,basicColor.a/255.0f};
 	SetShaderValue(gprAssets.FullComboIndicator, gprAssets.FCIndLoc, &FCING, SHADER_UNIFORM_INT);
 	SetShaderValue(gprAssets.FullComboIndicator, gprAssets.TimeLoc, &ForFCTime, SHADER_UNIFORM_FLOAT);
@@ -690,8 +697,9 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 	//}
 	// DrawModel(gprAssets.multNumber, Vector3{ 0,1.0f,-0.3f }, 0.8f, WHITE);
 
-	float fontSize = 40;
+	// float fontSize = 40;
 
+/*
 	rlPushMatrix();
 		rlRotatef(180, 0, 1, 0);
 		rlRotatef(90, 1, 0, 0);
@@ -700,7 +708,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 		float nameWidth = MeasureText3D(gprAssets.rubikBold, player->Name.c_str(), fontSize, 0, 0).x/2;
 		DrawText3D(gprAssets.rubikBold, player->Name.c_str(), Vector3{ 0-nameWidth,0.0,-0.5 }, fontSize, 0, 0, 1, WHITE);
 	rlPopMatrix();
-
+*/
 
 	EndMode3D();
 	EndTextureMode();
@@ -714,7 +722,7 @@ void gameplayRenderer::RenderHud(Player* player, RenderTexture2D& hud_tex, float
 void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, RenderTexture2D& highway_tex, RenderTexture2D& hud_tex, RenderTexture2D& notes_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex) {
 
 	Chart& curChart = song.parts[player->Instrument]->charts[player->Difficulty];
-	float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
+	float highwayLength = (defaultHighwayLength*1.5); //* player->HighwayLength;
 	player->stats->Difficulty = player->Difficulty;
 	player->stats->Instrument = player->Instrument;
 	//float multFill = (!player->stats->Overdrive ? (float)(player->stats->multiplier() - 1) : (!player->stats->Multiplayer ? ((float)(player->stats->multiplier() / 2) - 1) / (float)player->stats->maxMultForMeter() : (float)(player->stats->multiplier() - 1)));
@@ -722,17 +730,20 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 
 	//float multFill = 0.0;
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-	float relTime = (time * ((player->NoteSpeed * DiffMultiplier)))/2;//1.75;
+	float relTime = (time * ((player->NoteSpeed * DiffMultiplier))) /2.75;//1.75;
 	float highwaySpeedTime = (relTime - smasherPos);
 
-	int PlayerComboMax = (player->Instrument == PAD_BASS|| player->Instrument == PAD_VOCALS || player->Instrument == PLASTIC_BASS) ? 50 : 30;
+	int PlayerComboMax = (player->Instrument == PAD_BASS || player->Instrument == PAD_VOCALS || player->Instrument == PLASTIC_BASS) ? 50 : 30;
 	Color highwayColor = ColorContrast(player->AccentColor, Clamp(Remap(player->stats->Combo, 0, PlayerComboMax, -0.6f, 0.0f), -0.6, 0.0f));
 
 	Vector4 ColorForHighway = Vector4{highwayColor.r/255.0f, highwayColor.g/255.0f, highwayColor.b/255.0f, highwayColor.a/255.0f};
 
 	SetShaderValue(gprAssets.Highway, gprAssets.HighwayTimeShaderLoc, &highwaySpeedTime, SHADER_UNIFORM_FLOAT);
+
 	SetShaderValue(gprAssets.Highway, gprAssets.HighwayColorShaderLoc, &ColorForHighway, SHADER_UNIFORM_VEC4);
 	SetShaderValue(gprAssets.odMultShader, gprAssets.multLoc, &multFill, SHADER_UNIFORM_FLOAT);
+
+
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetXLoc, &player->stats->uvOffsetX, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.multNumberShader, gprAssets.uvOffsetYLoc, &player->stats->uvOffsetY, SHADER_UNIFORM_FLOAT);
 	float comboFill = player->stats->comboFillCalc();
@@ -744,8 +755,33 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	SetShaderValue(gprAssets.odMultShader, gprAssets.comboCounterLoc, &comboFill, SHADER_UNIFORM_FLOAT);
 	SetShaderValue(gprAssets.odMultShader, gprAssets.odLoc, &player->stats->overdriveFill, SHADER_UNIFORM_FLOAT);
 
+	float HighwayFadeStart = highwayLength + (smasherPos * 2);
+	float HighwayEnd = highwayLength + (smasherPos * 4);
+	gprAssets.HighwayFade.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+	SetShaderValue(gprAssets.Highway, gprAssets.HighwayScrollFadeStartLoc, &HighwayFadeStart, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.Highway, gprAssets.HighwayScrollFadeEndLoc, &HighwayEnd, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeStartLoc, &HighwayFadeStart, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeEndLoc, &HighwayEnd, SHADER_UNIFORM_FLOAT);
 
+	gprAssets.noteTopModel.materials->shader = gprAssets.HighwayFade;
+	gprAssets.noteBottomModel.materials->shader = gprAssets.HighwayFade;
+	gprAssets.liftModel.materials->shader = gprAssets.HighwayFade;
+	gprAssets.liftModelOD.materials->shader = gprAssets.HighwayFade;
+	gprAssets.noteTopModelHP.materials->shader = gprAssets.HighwayFade;
+	gprAssets.noteBottomModelHP.materials->shader = gprAssets.HighwayFade;
+	gprAssets.noteTopModelOD.materials->shader = gprAssets.HighwayFade;
+	gprAssets.noteBottomModelOD.materials->shader = gprAssets.HighwayFade;
+	gprAssets.CymbalInner.materials->shader = gprAssets.HighwayFade;
+	gprAssets.CymbalOuter.materials->shader = gprAssets.HighwayFade;
+	gprAssets.CymbalBottom.materials->shader = gprAssets.HighwayFade;
+	gprAssets.smasherBoard.materials->shader = gprAssets.HighwayFade;
+	gprAssets.smasherPressed.materials->shader = gprAssets.HighwayFade;
+	gprAssets.smasherReg.materials->shader = gprAssets.HighwayFade;
+	// gprAssets.odBar.materials->shader = gprAssets.HighwayFade;
+	// gprAssets.odFrame.materials->shader = gprAssets.HighwayFade;
 
+	gprAssets.expertHighwaySides.materials->shader = gprAssets.HighwayFade;
+	gprAssets.odHighwayX.materials->shader = gprAssets.HighwayFade;
 
 	gprAssets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
 	gprAssets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = highwayColor;
@@ -758,13 +794,9 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	gprAssets.smasherBoard.meshes[0].colors = (unsigned char*)ColorToInt(highwayColor);
 	gprAssets.smasherBoardEMH.meshes[0].colors = (unsigned char*)ColorToInt(highwayColor);
 
-	if (player->stats->Overdrive) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = OverdriveColor;
-	else if (!player->Bot) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
-	if (player->Bot) gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+	gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
+	gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
 
-	if (player->stats->Overdrive) gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = OverdriveColor;
-	else if (!player->Bot) gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player->AccentColor;
-	if (player->Bot) gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
 
 	if (player->Bot) player->stats->FC = false;
 
@@ -844,7 +876,7 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	if (!curChart.fills.empty() && player->stats->curFill < curChart.fills.size() - 1 && time>curChart.fills[player->stats->curFill].end) {
 		player->stats->curFill++;
 	}
-
+	// BeginShaderMode(gprAssets.HighwayFade);
 	if (player->Instrument == PLASTIC_DRUMS) {
 		RenderPDrumsHighway(player, song, time, highway_tex, highwayStatus_tex, smasher_tex);
 	}
@@ -863,93 +895,59 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	} else {
 		RenderNotes(player, curChart, time, notes_tex, highwayLength);
 	}
+	// EndShaderMode();
 	// if (!player->Bot)
 		RenderHud(player, hud_tex, highwayLength);
 }
+
+void gameplayRenderer::DrawHighwayMesh(float LengthMultiplier, bool Overdrive, float ActiveTime, float SongTime) {
+	Vector3 HighwayPos{0,0,-0.2f};
+	Vector3 HighwayScale{1,1,1.5f * LengthMultiplier};
+	gprAssets.expertHighway.materials[0].maps->texture.height /= 2.0f;
+	DrawModelEx(gprAssets.expertHighwaySides, HighwayPos, {0}, 0, HighwayScale, WHITE);
+	DrawModelEx(gprAssets.expertHighway, HighwayPos, {0}, 0, HighwayScale, WHITE);
+	unsigned char OverdriveAlpha = 255;
+	double OverdriveAnimDuration = 0.25f;
+	if (SongTime <= ActiveTime + OverdriveAnimDuration) {
+		double TimeSinceOverdriveActivate = SongTime - ActiveTime;
+		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 0, 255);
+	} else OverdriveAlpha = 255;
+
+	if (SongTime <= ActiveTime + OverdriveAnimDuration && SongTime > 0.0) {
+		double TimeSinceOverdriveActivate = SongTime - ActiveTime;
+		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 255, 0);
+	} else if (!Overdrive) OverdriveAlpha = 0;
+
+	if (Overdrive || SongTime <= ActiveTime + OverdriveAnimDuration) {
+		DrawModelEx(gprAssets.odHighwayX, Vector3{0,0.005f,-0.2},{0},0,HighwayScale,Color{255,255,255,OverdriveAlpha});
+	}
+};
 
 void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex)  {
 	BeginTextureMode(highway_tex);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive-1][cameraSel]);
+	PlayerGameplayStats *stats = player->stats;
 	rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
 	BeginBlendMode(BLEND_CUSTOM_SEPARATE);
-
 	float diffDistance = 2.0f;
 	float lineDistance = 1.5f;
 
-	float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
+	float highwayLength = (defaultHighwayLength * 1.5); //* player->HighwayLength;
 	float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
 
-	textureOffset += 0.1f;
-
-	//DrawTriangle3D({-diffDistance-0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,-0.002,0},Color{0,0,0,255});
-	//DrawTriangle3D({diffDistance+0.5f,-0.002,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + smasherPos},Color{0,0,0,255});
-
-	DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
-	DrawModel(gprAssets.expertHighway, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
-	if (gprSettings.highwayLengthMult > 1.0f) {
-		DrawModel(gprAssets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20-0.2f }, 1.0f, WHITE);
-		DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20-0.2f }, 1.0f, WHITE);
-		if (highwayLength > 23.0f) {
-			DrawModel(gprAssets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40-0.2f }, 1.0f, WHITE);
-			DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40-0.2f }, 1.0f, WHITE);
-		}
-	}
-	unsigned char OverdriveAlpha = 255;
-
-	double OverdriveAnimDuration = 0.25f;
-
-	if (time <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
-		double TimeSinceOverdriveActivate = time - player->stats->overdriveActiveTime;
-		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 0, 255);
-	} else OverdriveAlpha = 255;
-
-	if (time <= player->stats->overdriveActivateTime + OverdriveAnimDuration && time > 0.0) {
-		double TimeSinceOverdriveActivate = time - player->stats->overdriveActivateTime;
-		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 255, 0);
-	} else if (!player->stats->Overdrive) OverdriveAlpha = 0;
-
-	if (player->stats->Overdrive || time <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {DrawModel(gprAssets.odHighwayX, Vector3{0,0.005f,-0.125},1,Color{255,255,255,OverdriveAlpha});}
-
-	//DrawTriangle3D({lineDistance - 1.0f,0.003,0},
-	//			   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
-	//			   {lineDistance,0.003,0},
-	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
-
-	//DrawTriangle3D({lineDistance,0.003,(highwayLength *1.5f) + smasherPos},
-	//			   {lineDistance,0.003,0},
-	//			   {lineDistance - 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
-	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
-
-	//for (int i = 0; i < 4; i++) {
-	//    float radius = player->ClassicMode ? 0.02 : ((i == (gprSettings.mirrorMode ? 2 : 1)) ? 0.05 : 0.02);
-//
-	//    DrawCylinderEx(Vector3{ lineDistance - (float)i, 0, smasherPos + 0.5f }, Vector3{ lineDistance - i, 0, (highwayLength *1.5f) + smasherPos }, radius, radius, 15, Color{ 128,128,128,128 });
-	//}
-
-	//DrawTriangle3D({0-lineDistance,0.003,0},
-	//			   {0-lineDistance,0.003,(highwayLength *1.5f) + smasherPos},
-	//			   {0-lineDistance + 1.0f,0.003,0},
-	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
-
-	//DrawTriangle3D({0-lineDistance + 1.0f,0.003,(highwayLength *1.5f) + smasherPos},
-	//			   {0-lineDistance + 1.0f,0.003,0},
-	//			   {0-lineDistance,0.003,(highwayLength *1.5f) + smasherPos},
-	//			   Color{laneColor,laneColor,laneColor,laneAlpha});
+	DrawHighwayMesh(1, player->stats->Overdrive, player->stats->overdriveActiveTime, time);
 
 	if (!player->ClassicMode)
 		DrawCylinderEx(Vector3{ lineDistance-1.0f, 0, smasherPos}, Vector3{ lineDistance-1.0f, 0, (highwayLength *1.5f) + smasherPos }, 0.025f, 0.025f, 15, Color{ 128,128,128,128 });
 
 	EndBlendMode();
-
 	EndMode3D();
 	EndTextureMode();
-
 	SetTextureWrap(highway_tex.texture,TEXTURE_WRAP_CLAMP);
 	highway_tex.texture.width = (float)GetScreenWidth();
 	highway_tex.texture.height = (float)GetScreenHeight();
 	DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
-
 
 	BeginTextureMode(highwayStatus_tex);
 	ClearBackground({0,0,0,0});
@@ -957,6 +955,9 @@ void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double tim
 	rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
 	BeginBlendMode(BLEND_CUSTOM_SEPARATE);
 
+	int UseIn = 1;
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &UseIn, SHADER_UNIFORM_INT);
+	BeginShaderMode(gprAssets.HighwayFade);
 	if (!song.beatLines.empty()) {
 		DrawBeatlines(player, song, highwayLength, time);
 	}
@@ -967,14 +968,21 @@ void gameplayRenderer::RenderExpertHighway(Player* player, Song song, double tim
 	if (!song.parts[player->Instrument]->charts[player->Difficulty].Solos.empty()) {
 		DrawSolo(player, song.parts[player->Instrument]->charts[player->Difficulty], highwayLength, time);
 	}
-
 	float darkYPos = 0.015f;
 
+	float HighwayFadeStart = highwayLength + (smasherPos * 2);
+	float HighwayEnd = highwayLength + (smasherPos * 4);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeStartLoc, &HighwayFadeStart, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeEndLoc, &HighwayEnd, SHADER_UNIFORM_FLOAT);
 	DrawTriangle3D({-diffDistance-0.5f,darkYPos,smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,darkYPos,smasherPos},Color{0,0,0,96});
 	DrawTriangle3D({diffDistance+0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,darkYPos,smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},Color{0,0,0,96});
-
-
-
+	EndShaderMode();
+	int DontIn = 0;
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT);
+	HighwayFadeStart = highwayLength + (smasherPos * 2);
+	HighwayEnd = highwayLength + (smasherPos * 4);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeStartLoc, &HighwayFadeStart, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeEndLoc, &HighwayEnd, SHADER_UNIFORM_FLOAT);
 	EndBlendMode();
 	EndMode3D();
 	EndTextureMode();
@@ -1095,20 +1103,20 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float diffDistance = player->Difficulty == 3 || player->ClassicMode ? 2.0f : 1.5f;
 	std::vector<std::pair<double, bool>> beatlines = song.beatLines;
-
-	if (beatlines.size() > 0) {
+	float yPos = -0.025;
+	if (beatlines.size() > 0 && 0 == 1) {
 		for (int i = player->stats->curBeatLine; i < beatlines.size(); i++) {
 			if (beatlines[i].first <= song.end) {
 				Color BeatLineColor = {255,255,255,128};
-				double relTime = ((song.beatLines[i].first - musicTime)) * (player->NoteSpeed * DiffMultiplier) * ( 11.5f / length);
-
+				double relTime = ((beatlines[i].first - musicTime)) * (player->NoteSpeed * DiffMultiplier) * ( 11.5f / length);
+				if (relTime < -1) continue;
 				if (i > 0) {
-					double secondLine = ((((song.beatLines[i-1].first + song.beatLines[i].first)/2) - musicTime)) * (player->NoteSpeed * DiffMultiplier)  * ( 11.5f / length);
+					double secondLine = ((((beatlines[i-1].first + beatlines[i].first)/2) - musicTime)) * (player->NoteSpeed * DiffMultiplier)  * ( 11.5f / length);
 					if (secondLine > 1.5) break;
 
 					BeatLineColor = { 255, 255, 255, 128 };
-					DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (length * (float)secondLine) },
-								   Vector3{ diffDistance + 0.5f,0,smasherPos + (length * (float)secondLine) },
+					DrawCylinderEx(Vector3{ -diffDistance - 0.5f,yPos,smasherPos + (length * (float)secondLine) + 0.02f },
+								   Vector3{ diffDistance + 0.5f,yPos,smasherPos + (length * (float)secondLine) + 0.02f },
 								   0.01f,
 								   0.01f,
 								   4,
@@ -1120,17 +1128,17 @@ void gameplayRenderer::DrawBeatlines(Player* player, Song song, float length, do
 
 				BeatLineColor = (beatlines[i].second) ? Color{ 255, 255, 255, 196 } : Color{ 255, 255, 255, 128 };
 
-				DrawCylinderEx(Vector3{ -diffDistance - 0.5f,0,smasherPos + (length * (float)relTime) },
-							   Vector3{ diffDistance + 0.5f,0,smasherPos + (length * (float)relTime) },
+				DrawCylinderEx(Vector3{ -diffDistance - 0.5f,yPos,smasherPos + (length * (float)relTime) + (radius * 2) },
+							   Vector3{ diffDistance + 0.5f,yPos,smasherPos + (length * (float)relTime) + (radius * 2) },
 							   radius,
 							   radius,
 							   4,
 							   BeatLineColor);
 
 				// if (relTime < -1) break;
-				//if (relTime < -1 && player->stats->curBeatLine < beatlines.size() - 1) {
-				//	player->stats->curBeatLine++;
-				//}
+				if (relTime < -1 && player->stats->curBeatLine < beatlines.size() - 1) {
+					player->stats->curBeatLine++;
+				}
 			}
 		}
 	}
@@ -1140,7 +1148,9 @@ void gameplayRenderer::DrawOverdrive(Player* player,  Chart& curChart, float len
 	float DiffMultiplier = Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 	float start = curChart.odPhrases[player->stats->curODPhrase].start;
 	float end = curChart.odPhrases[player->stats->curODPhrase].end;
-	eDrawSides((player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.1, WHITE);
+	/* for unisons
+		eDrawSides((player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.1, WHITE);
+	*/
 }
 
 void gameplayRenderer::DrawSolo(Player* player, Chart& curChart, float length, double musicTime) {
@@ -1248,8 +1258,11 @@ void gameplayRenderer::eDrawSides(float scrollPos, double time, double start, do
 	Vector3 LeftSideEnd = { LeftSideX,-0.0025, EndPos };
 
 	// draw
-	DrawCylinderEx(RightSideStart, RightSideEnd, radius, radius, 10, color);
-	DrawCylinderEx(LeftSideStart, LeftSideEnd, radius, radius, 10, color);
+	// if (soloEnd < -1) break;
+	if (soloEnd > -1) {
+		DrawCylinderEx(RightSideStart, RightSideEnd, radius, radius, 10, color);
+		DrawCylinderEx(LeftSideStart, LeftSideEnd, radius, radius, 10, color);
+	}
 }
 // classic drums
 void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double time, RenderTexture2D& notes_tex, float length) {
@@ -1346,6 +1359,7 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 
 		double relTime = ((curNote.time - time)) *
 			(player->NoteSpeed * DiffMultiplier) * (11.5f / length);
+		if (relTime < -1) continue;
 
 		std::vector<Color> DRUMS = {ORANGE, RED, YELLOW, BLUE, GREEN};
 		Color NoteColor = DRUMS[curNote.lane];
@@ -1355,55 +1369,72 @@ void gameplayRenderer::RenderPDrumsNotes(Player* player, Chart& curChart, double
 		if (relTime > 1.5) {
 			break;
 		}
+
 		Vector3 NoteScale = { 1.35f,1.35f,1.35f };
 		Vector3 NotePos = { notePosX, notePosY, smasherPos + (length * (float)relTime) };
 		if (!curNote.pDrumTom && !curNote.pSnare && !curNote.hit && curNote.lane != KICK) { // render cymbals
-			gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(NoteColor, -0.15);
-			gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
-			gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = DARKGRAY;
+			Color OuterColor = ColorBrightness(NoteColor, -0.15);
+			Color InnerColor  = RAYWHITE;
+			Color BottomColor = DARKGRAY;
 			NoteScale = {1.0f,1.0f,1.0f};
 			if (curNote.renderAsOD) {
-				gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-				gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RAYWHITE;
-				gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = ColorBrightness(GOLD, -0.5);
+				InnerColor = WHITE;
+				OuterColor = RAYWHITE;
+				BottomColor = ColorBrightness(GOLD, -0.5);
 			} else if (curNote.miss) {
-				gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-				gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-				gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				InnerColor = RED;
+				OuterColor = RED;
+				BottomColor = RED;
 			}
 			if (curNote.pDrumAct && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
 				NoteScale.y = 2.0f;
-				gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
-				gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
+				OuterColor = GREEN;
+				InnerColor = GREEN;
 			}
-			DrawModelEx(gprAssets.CymbalInner, NotePos, {0}, 0, NoteScale, WHITE);
-			DrawModelEx(gprAssets.CymbalOuter, NotePos, {0}, 0, NoteScale, WHITE);
-			DrawModelEx(gprAssets.CymbalBottom, NotePos, {0}, 0, NoteScale, WHITE);
+			gprAssets.CymbalInner.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = InnerColor;
+			gprAssets.CymbalOuter.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = OuterColor;
+			gprAssets.CymbalBottom.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = BottomColor;
+			gprAssets.CymbalInner.materials[0].shader = gprAssets.HighwayFade;
+			gprAssets.CymbalOuter.materials[0].shader = gprAssets.HighwayFade;
+			gprAssets.CymbalBottom.materials[0].shader = gprAssets.HighwayFade;
+			gprAssets.CymbalInner.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+			gprAssets.CymbalOuter.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+			gprAssets.CymbalBottom.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+			DrawModelEx(gprAssets.CymbalInner, NotePos, {0}, 0, NoteScale, InnerColor);
+			DrawModelEx(gprAssets.CymbalOuter, NotePos, {0}, 0, NoteScale, OuterColor);
+			DrawModelEx(gprAssets.CymbalBottom, NotePos, {0}, 0, NoteScale, BottomColor);
 		} else if (!curNote.hit) {
 			Model TopModel = gprAssets.noteTopModel;
 			Model BottomModel = gprAssets.noteBottomModel;
-			TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-			BottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
+			Color TopColor = NoteColor;
+			Color BottomColor = WHITE;
 			if (curNote.lane == KICK) {
 				TopModel = gprAssets.KickBottomModel;
-				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+				TopColor = NoteColor;
 				BottomModel = gprAssets.KickSideModel;
 				NoteScale = {1.0f,1.0f,1.0f};
 			}
 			if (curNote.miss) {
-				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-				BottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+				TopColor = RED;
+				BottomColor = RED;
 			}
 			if (curNote.renderAsOD) {
-				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-				BottomModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+				TopColor = WHITE;
+				BottomColor = GOLD;
 			}
 			if (curNote.pDrumAct && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
 				NoteScale.y = 2.0f;
-				TopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GREEN;
+				TopColor = GREEN;
 			}
-			DrawModelEx(TopModel, NotePos,{0},0, NoteScale, WHITE);
-			DrawModelEx(BottomModel, NotePos, { 0},0, NoteScale, WHITE);
+			TopModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
+			BottomModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = BottomColor;
+			TopModel.materials[0].shader = gprAssets.HighwayFade;
+			BottomModel.materials[0].shader = gprAssets.HighwayFade;
+			TopModel.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+			BottomModel.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+			DrawModelEx(TopModel, NotePos,{0},0, NoteScale, TopColor);
+			DrawModelEx(BottomModel, NotePos, { 0},0, NoteScale, BottomColor);
 		}
 
 		nDrawDrumsHitEffects(curNote, time, notePosX);
@@ -1428,45 +1459,10 @@ void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double tim
 	float diffDistance = 2.0f;
 	float lineDistance = 1.5f;
 
-	float highwayLength = defaultHighwayLength * gprSettings.highwayLengthMult;
+	float highwayLength = (defaultHighwayLength * 1.5) * gprSettings.highwayLengthMult;
 	float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
 
-	textureOffset += 0.1f;
-
-	//DrawTriangle3D({-diffDistance-0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,-0.002,0},Color{0,0,0,255});
-	//DrawTriangle3D({diffDistance+0.5f,-0.002,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,-0.002,0},{-diffDistance-0.5f,-0.002,(highwayLength *1.5f) + smasherPos},Color{0,0,0,255});
-
-	DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
-	DrawModel(gprAssets.expertHighway, Vector3{ 0,0,gprSettings.highwayLengthMult < 1.0f ? -(highwayPosShit* (0.875f)) : -0.2f }, 1.0f, WHITE);
-	if (gprSettings.highwayLengthMult > 1.0f) {
-		DrawModel(gprAssets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20-0.2f }, 1.0f, WHITE);
-		DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-20-0.2f }, 1.0f, WHITE);
-		if (highwayLength > 23.0f) {
-			DrawModel(gprAssets.expertHighway, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40-0.2f }, 1.0f, WHITE);
-			DrawModel(gprAssets.expertHighwaySides, Vector3{ 0,0,((highwayLength*1.5f)+smasherPos)-40-0.2f }, 1.0f, WHITE);
-		}
-	}
-	unsigned char OverdriveAlpha = 255;
-
-	double OverdriveAnimDuration = 0.25f;
-
-	if (time <= player->stats->overdriveActiveTime + OverdriveAnimDuration) {
-		double TimeSinceOverdriveActivate = time - player->stats->overdriveActiveTime;
-		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 0, 255);
-	} else OverdriveAlpha = 255;
-
-	if (time <= player->stats->overdriveActivateTime + OverdriveAnimDuration && time > 0.0) {
-		double TimeSinceOverdriveActivate = time - player->stats->overdriveActivateTime;
-		OverdriveAlpha = Remap(getEasingFunction(EaseOutQuint)(TimeSinceOverdriveActivate/OverdriveAnimDuration), 0, 1.0, 255, 0);
-	} else if (!player->stats->Overdrive) OverdriveAlpha = 0;
-
-	if (player->stats->Overdrive || time <= player->stats->overdriveActivateTime + OverdriveAnimDuration) {
-		DrawModel(gprAssets.odHighwayX, Vector3{0, 0.005f, -0.15}, 1, Color{255, 255, 255, OverdriveAlpha});
-	}
-
-	if (!player->ClassicMode)
-		DrawCylinderEx(Vector3{ lineDistance-1.0f, 0, smasherPos}, Vector3{ lineDistance-1.0f, 0, (highwayLength *1.5f) + smasherPos }, 0.025f, 0.025f, 15, Color{ 128,128,128,128 });
-
+	DrawHighwayMesh(1, player->stats->Overdrive, player->stats->overdriveActiveTime, time);
 	EndBlendMode();
 
 	EndMode3D();
@@ -1477,12 +1473,15 @@ void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double tim
 	highway_tex.texture.height = (float)GetScreenHeight();
 	DrawTexturePro(highway_tex.texture, {0,0,(float)GetScreenWidth(), (float)-GetScreenHeight() },{ 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() }, {renderPos,highwayLevel}, 0, WHITE );
 
-	rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
-	BeginBlendMode(BLEND_CUSTOM_SEPARATE);
+
 	BeginTextureMode(highwayStatus_tex);
 	ClearBackground({0,0,0,0});
 	BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive-1][cameraSel]);
-
+	rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
+	BeginBlendMode(BLEND_CUSTOM_SEPARATE);
+	int DoIn = 1;
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DoIn, SHADER_UNIFORM_INT);
+	BeginShaderMode(gprAssets.HighwayFade);
 	if (!song.beatLines.empty()) {
 		DrawBeatlines(player, song, highwayLength, time);
 	}
@@ -1497,9 +1496,19 @@ void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double tim
 		DrawFill(player, song.parts[player->Instrument]->charts[player->Difficulty], highwayLength, time);
 	}
 	float darkYPos = 0.015f;
-
+	float HighwayFadeStart = highwayLength + (smasherPos * 2);
+	float HighwayEnd = highwayLength + (smasherPos * 3);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeStartLoc, &HighwayFadeStart, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeEndLoc, &HighwayEnd, SHADER_UNIFORM_FLOAT);
 	DrawTriangle3D({-diffDistance-0.5f,darkYPos,smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,darkYPos,smasherPos},Color{0,0,0,96});
 	DrawTriangle3D({diffDistance+0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},{diffDistance+0.5f,darkYPos,smasherPos},{-diffDistance-0.5f,darkYPos,(highwayLength *1.5f) + smasherPos},Color{0,0,0,96});
+	EndShaderMode();
+	int DontIn = 0;
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT);
+	HighwayFadeStart = highwayLength + (smasherPos * 2);
+	HighwayEnd = highwayLength + (smasherPos * 4);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeStartLoc, &HighwayFadeStart, SHADER_UNIFORM_FLOAT);
+	SetShaderValue(gprAssets.HighwayFade, gprAssets.HighwayFadeEndLoc, &HighwayEnd, SHADER_UNIFORM_FLOAT);
 	EndBlendMode();
 	EndMode3D();
 	EndTextureMode();
@@ -1524,10 +1533,10 @@ void gameplayRenderer::RenderPDrumsHighway(Player* player, Song song, double tim
 		gprAssets.smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
 
 		if (stats->HeldFrets[i] || stats->HeldFretsAlt[i]) {
-			DrawModel(gprAssets.smasherPressed, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.01f, smasherPos }, 1.25f, WHITE);
+			DrawModel(gprAssets.smasherPressed, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.025f, smasherPos }, 1.25f, WHITE);
 		}
 		else {
-			DrawModel(gprAssets.smasherReg, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.01f, smasherPos }, 1.25f, WHITE);
+			DrawModel(gprAssets.smasherReg, Vector3{ (diffDistance - (float)(i*1.25))-0.125f, 0.025f, smasherPos }, 1.25f, WHITE);
 		}
 	}
 	EndBlendMode();
@@ -1572,7 +1581,11 @@ void gameplayRenderer::nDrawDrumsHitEffects(Note note, double time, float notePo
 	}
 	if (note.hit && note.lane == KICK && time < note.hitTime + KickBounceDuration) {
 		double TimeSinceHit = time - note.hitTime;
-		float CameraPos = Remap(getEasingFunction(EaseOutBounce)(TimeSinceHit / KickBounceDuration), 0, 1.0, 7.5f, 8.0f);
+		float height = 8.0f;
+		if (gprPlayerManager.PlayersActive > 3) {
+			height = 10;
+		}
+		float CameraPos = Remap(getEasingFunction(EaseOutBounce)(TimeSinceHit / KickBounceDuration), 0, 1.0, height-0.35f, height);
 		cameraVectors[gprPlayerManager.PlayersActive-1][cameraSel].position.y = CameraPos;
 	}
 }
@@ -1607,42 +1620,49 @@ void gameplayRenderer::nDrawPlasticNote(Note note, Color noteColor, float notePo
 	// why the fuck did i separate sustains and non-sustain note drawing?????
 	Model NoteTop = gprAssets.noteTopModel;
 	Model NoteBottom = gprAssets.noteBottomModel;
-	NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
-	NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+
 	Vector3 NotePos = {notePosX, 0, noteTime};
+	Color BottomColor = WHITE;
+	Color TopColor = noteColor;
 
 	if (note.pTap || note.phopo) {
 		NoteTop = gprAssets.noteTopModelHP;
 		NoteBottom = gprAssets.noteBottomModelHP;
 	}
 	if (note.phopo && !note.renderAsOD) {
-		NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
-		NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		TopColor = noteColor;
+		BottomColor = WHITE;
 	} else if (note.pTap && !note.renderAsOD) {
-		NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = BLACK;
-		NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
+		TopColor = BLACK;
+		BottomColor = noteColor;
 	}
 	if (note.renderAsOD) {
 		if (note.pTap) {
-			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = BLACK;
-			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+			TopColor = BLACK;
+			BottomColor = GOLD;
 		} else if (note.phopo) {
-			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
-			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+			TopColor = GOLD;
+			BottomColor = WHITE;
 		} else {
 			NoteTop = gprAssets.noteTopModelOD;
 			NoteBottom = gprAssets.noteBottomModelOD;
-			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+			TopColor = WHITE;
+			BottomColor = GOLD;
 		}
 	}
 	if (note.miss) {
-		NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-		NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+		TopColor = RED;
+		BottomColor = RED;
 	}
 	if (!note.hit) {
-		DrawModel(NoteTop, NotePos,1.1f, WHITE);
-		DrawModel(NoteBottom, NotePos, 1.1f, WHITE);
+		NoteTop.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
+		NoteBottom.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = BottomColor;
+		//NoteTop.materials[0].shader = gprAssets.HighwayFade;
+		//NoteBottom.materials[0].shader = gprAssets.HighwayFade;
+		//NoteTop.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+		//NoteBottom.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+		DrawModel(NoteTop, NotePos,1.1f, TopColor);
+		DrawModel(NoteBottom, NotePos, 1.1f, BottomColor);
 	}
 
 }
@@ -1650,39 +1670,49 @@ void gameplayRenderer::nDrawPlasticNote(Note note, Color noteColor, float notePo
 void gameplayRenderer::nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos) {
 	Vector3 NotePos = {notePosX, 0, noteScrollPos};
 	gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
-
+	Color TopColor = noteColor;
+	Color BottomColor = WHITE;
 	if (note.lift && !note.hit) {
 		if (note.renderAsOD) {
-			gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+			TopColor = WHITE;
 		} else if (note.miss) {
-			gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+			TopColor = RED;
 		}
-		DrawModel(gprAssets.liftModel, NotePos, 1.1f, WHITE);
+		gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
+		gprAssets.liftModel.materials[0].shader = gprAssets.HighwayFade;
+		gprAssets.liftModel.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+		DrawModel(gprAssets.liftModel, NotePos, 1.1f, TopColor);
 	} else if (!note.hit) {
 		Model NoteTop = gprAssets.noteTopModel;
 		Model NoteBottom = gprAssets.noteBottomModelOD;
-		NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
-		NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
+		TopColor = noteColor;
+		BottomColor = WHITE;
 		if (note.renderAsOD) {
 			NoteTop = gprAssets.noteTopModelOD;
 			NoteBottom = gprAssets.noteBottomModelOD;
-			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
-			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GOLD;
+			TopColor = WHITE;
+			BottomColor = GOLD;
 		} else if (note.miss) {
-			NoteTop.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
-			NoteBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = RED;
+			TopColor = RED;
+			BottomColor = RED;
 		}
-		DrawModel(NoteTop, NotePos, 1.1f, WHITE);
-		DrawModel(NoteBottom, NotePos, 1.1f, WHITE);
+		NoteTop.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
+		NoteBottom.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = BottomColor;
+		NoteTop.materials[0].shader = gprAssets.HighwayFade;
+		NoteBottom.materials[0].shader = gprAssets.HighwayFade;
+		NoteTop.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+		NoteBottom.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
+		DrawModel(NoteTop, NotePos, 1.1f, TopColor);
+		DrawModel(NoteBottom, NotePos, 1.1f, BottomColor);
 	}
 }
 
 void gameplayRenderer::nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix) {
 	BeginBlendMode(BLEND_ALPHA);
+	Material Sustain = gprAssets.sustainMat;
+
 	gprAssets.sustainMat.maps[MATERIAL_MAP_DIFFUSE].color = ColorTint(noteColor, {180, 180, 180, 255});
 	gprAssets.sustainMatHeld.maps[MATERIAL_MAP_DIFFUSE].color = ColorBrightness(noteColor, 0.5f);
-
-	Material Sustain = gprAssets.sustainMat;
 
 	// use default... by default
 	if (note.held && !note.renderAsOD) // normal held
@@ -1693,7 +1723,8 @@ void gameplayRenderer::nDrawSustain(Note note, Color noteColor, float notePosX, 
 		Sustain = gprAssets.sustainMatMiss;
 	else if (note.renderAsOD) // not hit but OD
 		Sustain = gprAssets.sustainMatOD;
-
+	Sustain.shader = gprAssets.HighwayFade;
+	Sustain.shader.locs[SHADER_LOC_COLOR_DIFFUSE] = gprAssets.HighwayColorLoc;
 	DrawMesh(sustainPlane, Sustain, sustainMatrix);
 
 	if (note.held)

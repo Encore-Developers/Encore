@@ -17,7 +17,8 @@ enum Screens {
     SETTINGS,
     CALIBRATION,
     CHART_LOADING_SCREEN,
-    SOUND_TEST
+    SOUND_TEST,
+    CACHE_LOADING_SCREEN
 };
 
 class GameMenu {
@@ -52,9 +53,7 @@ public:
 
     void DrawFPS(int posX, int posY);
     bool hehe = false;
-    Song ChosenSong;
-    int ChosenSongInt;
-    Screens currentScreen;
+    Screens currentScreen = CACHE_LOADING_SCREEN;
     bool songsLoaded{};
     bool streamsLoaded = false;
     bool streamsPaused = false;

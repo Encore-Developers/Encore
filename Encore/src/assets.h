@@ -85,7 +85,14 @@ public:
     int HighwayTexShaderLoc;
     int HighwayTimeShaderLoc;
     int HighwayColorShaderLoc;
+    int HighwayScrollFadeStartLoc;
+    int HighwayScrollFadeEndLoc;
     int CurveMaxLoc;
+    Shader HighwayFade;
+    int HighwayFadeStartLoc;
+    int HighwayFadeEndLoc;
+    int HighwayColorLoc;
+    int HighwayAccentFadeLoc;
 
     Shader odMultShader;
     Shader multNumberShader;

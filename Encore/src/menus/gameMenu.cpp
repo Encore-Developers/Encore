@@ -46,8 +46,9 @@ Units u = Units::getInstance();
 
 GameMenu TheGameMenu;
 
-std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead"};
+std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead", "Classic Vocals", "Keys", "Classic Keys"};
 std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
+
 void GameMenu::DrawTopOvershell(float TopOvershell) {
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell),WHITE);
     DrawRectangle(0,0,(int)GetScreenWidth(), u.hpct(TopOvershell)-u.hinpct(0.005f),ColorBrightness(GetColor(0x181827FF),-0.25f));
@@ -225,7 +226,7 @@ void GameMenu::loadMainMenu() {
     OvershellRenderer osr;
     AudioManager& menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-
+    SongList& songList = SongList::getInstance();
     std::ifstream splashes;
     splashes.open((directory / "Assets/ui/splashes.txt"));
 
@@ -239,41 +240,34 @@ void GameMenu::loadMainMenu() {
         }
         stringChosen = true;
     }
-    if (std::filesystem::exists("songCache.encr") && songListMenu.songs.size()>0) {
+    if (std::filesystem::exists("songCache.encr") && songList.songs.size()>0) {
         if (!albumArtLoaded) {
             AlbumArtBackground = menuAss.highwayTexture;
 
             if (!songChosen && songsLoaded) {
                 if (!randomSongChosen) {
-                    SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
-                    SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count() * GetTime());
-                    int my = GetRandomValue(0, (int) songListMenu.songs.size() - 1);
 
-                    ChosenSong = songListMenu.songs[my];
-                    ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
-                    ChosenSongInt = my;
+                    int my = GetRandomValue(0, (int) songList.songs.size() - 1);
+                    songList.curSong = &songList.songs[my];
+                    // ChosenSongInt = my;
                     randomSongChosen = true;
-
-                } else {
-
-                    ChosenSong.LoadAlbumArt(ChosenSong.albumArtPath);
                 }
 
-                AlbumArtBackground = ChosenSong.albumArtBlur;
-                TraceLog(LOG_INFO, ChosenSong.title.c_str());
+                songList.curSong->LoadAlbumArt();
+                AlbumArtBackground = songList.curSong->albumArtBlur;
+                TraceLog(LOG_INFO, songList.curSong->title.c_str());
                 songChosen = true;
             } else {
                 AlbumArtBackground = menuAss.highwayTexture;
             };
             albumArtLoaded = true;
-
         };
         if (!streamsLoaded) {
-            if (ChosenSong.ini)
-                ChosenSong.LoadAudioINI(ChosenSong.songDir);
+            if (songList.curSong->ini)
+                songList.curSong->LoadAudioINI(songList.curSong->songDir);
             else
-                ChosenSong.LoadAudio(ChosenSong.songInfoPath);
-            menuAudioManager.loadStreams(ChosenSong.stemsPath);
+                songList.curSong->LoadAudio(songList.curSong->songInfoPath);
+            menuAudioManager.loadStreams(songList.curSong->stemsPath);
             streamsLoaded = true;
             for (auto& stream : menuAudioManager.loadedStreams) {
                 menuAudioManager.SetAudioStreamVolume(stream.handle, settings.MainVolume * 0.15f);
@@ -288,11 +282,7 @@ void GameMenu::loadMainMenu() {
     float SplashWidth = MeasureTextEx(menuAss.josefinSansItalic, result.c_str(), SplashFontSize, 0).x;
 
     float SongFontSize = u.hinpct(0.03f);
-    Vector2 TitleSize = MeasureTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongFontSize, 0);
-    Vector2 ArtistSize = MeasureTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongFontSize, 0);
 
-    Vector2 SongTitleBox = {u.RightSide - TitleSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (TitleSize.y*1.1f)};
-    Vector2 SongArtistBox = {u.RightSide - ArtistSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f)};
 
     Vector2 StringBox = {u.wpct(0.01f),  u.hpct(0.8125f)};
     DrawRectangle(0,0,GetScreenWidth(),GetScreenHeight(), Color{0,0,0,128});
@@ -334,7 +324,7 @@ void GameMenu::loadMainMenu() {
             menuAudioManager.unloadStreams();
             streamsLoaded = false;
             streamsPaused = false;
-            for (Song &songi: songListMenu.songs) {
+            for (Song &songi: songList.songs) {
                 songi.titleScrollTime = GetTime();
                 songi.titleTextWidth = menuAss.MeasureTextRubik(songi.title.c_str(), 24);
                 songi.artistScrollTime = GetTime();
@@ -345,7 +335,7 @@ void GameMenu::loadMainMenu() {
     } else {
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, ColorToInt(Color{128,0,0,255}));
         GuiButton({u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f)}, "Invalid song cache!");
-        songListMenu.ScanSongs(settings.songPaths); 
+        songList.ScanSongs(settings.songPaths);
         songsLoaded = false;
         DrawRectanglePro({((float) GetScreenWidth() / 2) - 125, ((float) GetScreenHeight() / 2) - 120, 250, 60},{0,0},0, Color{0,0,0,64});
         GuiSetStyle(BUTTON,BASE_COLOR_NORMAL, 0x181827FF);
@@ -387,18 +377,23 @@ void GameMenu::loadMainMenu() {
     DrawTextureEx(menuAss.discord, {(float) GetScreenWidth() - 113, (float) GetScreenHeight() - 48 - u.hpct(0.15f) }, 0, 0.075,
                       WHITE);
     if (streamsLoaded) {
+        Vector2 TitleSize = MeasureTextEx(menuAss.rubikBoldItalic, songList.curSong->title.c_str(), SongFontSize, 0);
+        Vector2 ArtistSize = MeasureTextEx(menuAss.rubikItalic, songList.curSong->artist.c_str(), SongFontSize, 0);
+
+        Vector2 SongTitleBox = {u.RightSide - TitleSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (TitleSize.y*1.1f)};
+        Vector2 SongArtistBox = {u.RightSide - ArtistSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f)};
         SongTitleBox.x = SongTitleBox.x - u.hinpct(0.12f);
         SongArtistBox.x = SongArtistBox.x - u.hinpct(0.12f);
-        DrawTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
-        DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
+        DrawTextEx(menuAss.rubikBoldItalic, songList.curSong->title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
+        DrawTextEx(menuAss.rubikItalic, songList.curSong->artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
 
 
 
         for (auto& stream : menuAudioManager.loadedStreams) {
             menuAudioManager.SetAudioStreamVolume(stream.handle, settings.MainVolume * settings.MenuVolume);
         }
-        float played = menuAudioManager.GetMusicTimePlayed(menuAudioManager.loadedStreams[0].handle);
-        float length = menuAudioManager.GetMusicTimeLength(menuAudioManager.loadedStreams[0].handle);
+        float played = menuAudioManager.GetMusicTimePlayed();
+        float length = menuAudioManager.GetMusicTimeLength();
         DrawRectangle(0, u.hpct(0.2f) - u.hinpct(0.01f), Remap(played, 0, length, 0, GetScreenWidth()),
                       u.hinpct(0.005f), SKYBLUE);
 
@@ -431,8 +426,13 @@ void GameMenu::loadMainMenu() {
         }
         GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
     } else {
-        DrawTextEx(menuAss.rubikBoldItalic, ChosenSong.title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
-        DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
+        Vector2 TitleSize = MeasureTextEx(menuAss.rubikBoldItalic, "No song loaded", SongFontSize, 0);
+        Vector2 ArtistSize = MeasureTextEx(menuAss.rubikItalic, "", SongFontSize, 0);
+
+        Vector2 SongTitleBox = {u.RightSide - TitleSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f) - (TitleSize.y*1.1f)};
+        Vector2 SongArtistBox = {u.RightSide - ArtistSize.x - u.winpct(0.01f),  u.hpct(0.2f) - u.hinpct(0.1f)};
+        DrawTextEx(menuAss.rubikBoldItalic, songList.curSong->title.c_str(), SongTitleBox, SongFontSize, 0, WHITE);
+        DrawTextEx(menuAss.rubikItalic, songList.curSong->artist.c_str(), SongArtistBox, SongFontSize, 0, WHITE);
     }
     osr.DrawOvershell();
 }
@@ -442,24 +442,25 @@ bool AlbumArtLoadingStuff = false;
 void GameMenu::showResults() {
     PlayerManager &player_manager = PlayerManager::getInstance();
     for (int i = 0; i < player_manager.PlayersActive; i++) {
-        renderPlayerResults(*player_manager.GetActivePlayer(i), ChosenSong, i);
+        renderPlayerResults(*player_manager.GetActivePlayer(i), *songListMenu.curSong, i);
     }
 
     DrawTopOvershell(0.2f);
     DrawBottomOvershell();
     DrawBottomBottomOvershell();
-
+    OvershellRenderer osr;
+    osr.DrawOvershell();
     DrawVersion();
 
-    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(menuAss.redHatDisplayBlack,ChosenSong.title.c_str(), u.hinpct(0.09f), 0).x/2;
+    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(menuAss.redHatDisplayBlack,songListMenu.curSong->title.c_str(), u.hinpct(0.09f), 0).x/2;
     float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.08f), 0).x;
     float bigStarPos = (float)GetScreenWidth()/2 + u.winpct(0.005f);
     float scoreWidth = MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.06f), 0).x;
 
 
 
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, ChosenSong.title.c_str(), {u.LeftSide,u.hpct(0.02125f)},u.hinpct(0.05f),0,WHITE);
-    DrawTextEx(menuAss.rubikItalic, ChosenSong.artist.c_str(), {u.LeftSide,u.hpct(0.07f)},u.hinpct(0.035f),0,WHITE);
+    DrawTextEx(menuAss.redHatDisplayItalicLarge, songListMenu.curSong->title.c_str(), {u.LeftSide,u.hpct(0.02125f)},u.hinpct(0.05f),0,WHITE);
+    DrawTextEx(menuAss.rubikItalic, songListMenu.curSong->artist.c_str(), {u.LeftSide,u.hpct(0.07f)},u.hinpct(0.035f),0,WHITE);
     DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player_manager.BandStats.Score).c_str(), {u.LeftSide,u.hpct(0.1f)},u.hinpct(0.06f),0, GetColor(0x00adffFF));
     DrawTextEx(menuAss.redHatDisplayItalicLarge, "!", {u.LeftSide,u.hpct(0.15f)},u.hinpct(0.05f),0, RED);
     DrawTextEx(menuAss.josefinSansItalic, "  Scoring is disabled in indev builds", {u.LeftSide,u.hpct(0.1575f)},u.hinpct(0.025f),0.125,WHITE);
@@ -486,6 +487,7 @@ void GameMenu::SwitchScreen(Screens screen){
         case CALIBRATION:
         case CHART_LOADING_SCREEN:
         case SOUND_TEST:
+        case CACHE_LOADING_SCREEN:
         default:
             break;
     }

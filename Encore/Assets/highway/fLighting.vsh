@@ -26,7 +26,8 @@ void main()
     fragTexCoord = vertexTexCoord;
     fragColor = vertexColor;
     fragNormal = normalize(vec3(matNormal*vec4(vertexNormal, 1.0)));
-
+    vec3 finalPos = vertexPosition;
+    finalPos.y += (-(fragPosition.x * fragPosition.x))/(100+fragPosition.y);
     // Calculate final vertex position
-    gl_Position = mvp*vec4(vertexPosition, 1.0);
+    gl_Position = mvp*vec4(finalPos, 1.0);
 }

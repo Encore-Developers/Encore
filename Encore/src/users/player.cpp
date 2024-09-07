@@ -41,6 +41,9 @@ void Player::ResetGameplayStats() {
 	stats->Overdrive = false;
 	stats->FAS = false;
 	stats->Overstrum = false;
+	stats->UpStrum = false;
+	stats->DownStrum = false;
+	stats->StrumNoFretTime = -1.0;
 
 	stats->curFill = 0;
 	stats->curSolo = 0;
@@ -63,6 +66,9 @@ void Player::ResetGameplayStats() {
 	stats->NotesMissed = 0;
 	stats->PerfectHit = 0;
 	stats->Health = 100.0f;
+
+	stats->uvOffsetX = 0;
+	stats->uvOffsetY = 0;
 
 	stats->overdriveFill = 0.0f;
 	stats->overdriveActiveFill = 0.0f;
@@ -135,7 +141,7 @@ void BandGameplayStats::ResetBandGameplayStats() {
 	Health = 100;
 
 	BaseScore = 0;
-	EligibleForGoldStars = false;
+	EligibleForGoldStars = true;
 }
 
 void BandGameplayStats::AddNotePoint(bool perfect, int playerMult) {

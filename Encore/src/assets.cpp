@@ -117,8 +117,18 @@ void Assets::LoadAssets() {
     uvOffsetXLoc = GetShaderLocation(multNumberShader, "uvOffsetX");
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
+    HighwayFade = LoadShader((directory/"Assets/highway/fLighting.vsh").string().c_str(), (directory/"Assets/highway/highwayFade.frag").string().c_str());
+    HighwayFadeStartLoc = GetShaderLocation(HighwayFade, "fadeStart");
+    HighwayFadeEndLoc = GetShaderLocation(HighwayFade, "fadeEnd");
+    HighwayColorLoc = GetShaderLocation(HighwayFade, "colorForAccent");
+    HighwayAccentFadeLoc  = GetShaderLocation(HighwayFade, "useInAccent");
+
     Highway.locs[SHADER_UNIFORM_SAMPLER2D] = GetShaderLocation(Highway, "highwayTex");
     HighwayColorShaderLoc = GetShaderLocation(Highway, "highwayColor");
+    HighwayScrollFadeStartLoc = GetShaderLocation(Highway, "fadeStart");
+    HighwayScrollFadeEndLoc = GetShaderLocation(Highway, "fadeEnd");
+
+
     expertHighwaySides = Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
     expertHighway = Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
     expertHighway.materials[0].shader = Highway;

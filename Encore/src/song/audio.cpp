@@ -33,13 +33,13 @@
 
 bool AudioManager::Init() {
 #ifdef WIN32
-    if (!BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
+    if (!BASS_Init(-1, 48000, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
         CHECK_BASS_ERROR();
     }
     BASS_PluginLoad("bassopus", 0);
     CHECK_BASS_ERROR();
 #else
-    if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
+    if (!BASS_Init(-1, 48000, 0, 0, NULL)) {
         CHECK_BASS_ERROR();
     }
 #ifdef __APPLE__
@@ -58,7 +58,7 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int>>& paths) 
     for (auto& path : paths) {
         HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
         if (streamHandle) {
-            loadedStreams.push_back({ streamHandle, path.second });
+            loadedStreams.emplace_back(streamHandle, path.second);
             if (streams != 0) {
                 BASS_ChannelSetLink(loadedStreams[0].handle, loadedStreams[streams].handle);
                 if (BASS_ChannelFlags(streamHandle, 0, 0) & BASS_SAMPLE_LOOP) // looping is currently enabled
@@ -118,13 +118,13 @@ void AudioManager::unpauseStreams() {
     }
 }
 
-double AudioManager::GetMusicTimePlayed(unsigned int handle) {
-    return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetPosition(handle, BASS_POS_BYTE));
+double AudioManager::GetMusicTimePlayed() {
+    return BASS_ChannelBytes2Seconds(loadedStreams[0].handle, BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE));
     CHECK_BASS_ERROR2();
 }
 
-double AudioManager::GetMusicTimeLength(unsigned int handle) {
-    return BASS_ChannelBytes2Seconds(handle, BASS_ChannelGetLength(handle, BASS_POS_BYTE));
+double AudioManager::GetMusicTimeLength() {
+    return BASS_ChannelBytes2Seconds(loadedStreams[0].handle, BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE));
     CHECK_BASS_ERROR2();
 }
 
@@ -139,13 +139,12 @@ void AudioManager::UpdateMusicStream(unsigned int handle) {
 }
 
 void AudioManager::BeginPlayback(unsigned int handle) {
-    CHECK_BASS_ERROR2();
     BASS_ChannelStart(handle);
-
+    CHECK_BASS_ERROR2();
 }
 
 void AudioManager::StopPlayback(unsigned int handle) {
-    BASS_ChannelStop(handle);
+    BASS_ChannelStop(loadedStreams[0].handle);
     CHECK_BASS_ERROR2();
 }
 

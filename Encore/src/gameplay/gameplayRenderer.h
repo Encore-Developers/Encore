@@ -12,6 +12,8 @@ class gameplayRenderer {
     void RenderHud(Player* player, RenderTexture2D&, float);
     void RenderExpertHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
 	void RenderPDrumsHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex, RenderTexture2D& highwayStatus_tex, RenderTexture2D& smasher_tex);
+	void DrawHighwayMesh(float LengthMultiplier, bool Overdrive, float ActiveTime, float SongTime) ;
+
     void RenderEmhHighway(Player* player, Song song, double time, RenderTexture2D& highway_tex);
     void DrawBeatlines(Player* player, Song song, float length, double musicTime);
     void DrawOverdrive(Player* player, Chart& curChart, float length, double musicTime);

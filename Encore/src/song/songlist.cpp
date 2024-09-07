@@ -178,133 +178,136 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(const std::v
 }
 
 void SongList::LoadCache(const std::vector<std::filesystem::path>& songsFolder) {
-        encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
-        if (!SongCacheIn) {
-            TraceLog(LOG_WARNING, "Failed to load song cache!");
-            SongCacheIn.close();
-            ScanSongs(songsFolder);
-            return;
-        }
+	encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
+	if (!SongCacheIn) {
+		TraceLog(LOG_WARNING, "Failed to load song cache!");
+		SongCacheIn.close();
+		ScanSongs(songsFolder);
+		return;
+	}
 
-        // Read header
-        uint32_t header;
-        SongCacheIn >> header;
-        if (header != SONG_CACHE_HEADER) {
-            TraceLog(LOG_WARNING, "Invalid song cache format, rescanning");
-            SongCacheIn.close();
-            ScanSongs(songsFolder);
-            return;
-        }
+	// Read header
+	uint32_t header;
+	SongCacheIn >> header;
+	if (header != SONG_CACHE_HEADER) {
+		TraceLog(LOG_WARNING, "Invalid song cache format, rescanning");
+		SongCacheIn.close();
+		ScanSongs(songsFolder);
+		return;
+	}
 
-        uint32_t version;
-        SongCacheIn >> version;
-        if (version != SONG_CACHE_VERSION) {
-            TraceLog(LOG_WARNING, TextFormat("Cache version %01i, but current version is %01i",version, SONG_CACHE_VERSION));
-            SongCacheIn.close();
-            ScanSongs(songsFolder);
-            return;
-        }
+	uint32_t version;
+	SongCacheIn >> version;
+	if (version != SONG_CACHE_VERSION) {
+		TraceLog(LOG_WARNING,
+				TextFormat("Cache version %01i, but current version is %01i", version, SONG_CACHE_VERSION));
+		SongCacheIn.close();
+		ScanSongs(songsFolder);
+		return;
+	}
 
-        size_t cachedSongCount;
-        SongCacheIn >> cachedSongCount;
+	size_t cachedSongCount;
+	SongCacheIn >> cachedSongCount;
+	ListLoadingState = LOADING_CACHE;
+	// Load cached songs
+	Clear();
+	TraceLog(LOG_INFO, "Loading song cache");
+	std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
+	MaxChartsToLoad = cachedSongCount;
+	for (int i = 0; i < cachedSongCount; i++) {
+		CurrentChartNumber = i;
+		Song song;
 
-        // Load cached songs
-        Clear();
-        TraceLog(LOG_INFO, "Loading song cache");
-        std::set<std::string> loadedSongs;  // To track loaded songs and avoid duplicates
-        for (int i = 0; i < cachedSongCount; i++) {
-            Song song;
+		// Read cache values
+		SongCacheIn >> song.songDir;
+		SongCacheIn >> song.albumArtPath;
+		SongCacheIn >> song.songInfoPath;
+		SongCacheIn >> song.jsonHash;
 
-            // Read cache values
-            SongCacheIn >> song.songDir;
-            SongCacheIn >> song.albumArtPath;
-            SongCacheIn >> song.songInfoPath;
-            SongCacheIn >> song.jsonHash;
+		SongCacheIn >> song.title;
+		SongCacheIn >> song.artist;
 
-            SongCacheIn >> song.title;
-            SongCacheIn >> song.artist;
+		SongCacheIn >> song.length;
 
-            SongCacheIn >> song.length;
+		TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
 
-            TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
+		if (!std::filesystem::exists(song.songDir)) {
+			continue;
+		}
 
-            if (!std::filesystem::exists(song.songDir)) {
-                continue;
-            }
+		// Set other info properties
+		if (std::filesystem::path(song.songInfoPath).filename() == "song.ini") {
+			song.ini = true;
+		}
 
-            // Set other info properties
-            if (std::filesystem::path(song.songInfoPath).filename() == "song.ini") {
-                song.ini = true;
-            }
+		std::ifstream jsonFile(song.songInfoPath);
+		std::string jsonHashNew = "";
+		if (jsonFile) {
+			auto itBegin = std::istreambuf_iterator<char>(jsonFile);
+			auto itEnd = std::istreambuf_iterator<char>();
+			std::string jsonString(itBegin, itEnd);
+			jsonFile.close();
 
-            std::ifstream jsonFile(song.songInfoPath);
-            std::string jsonHashNew = "";
-            if (jsonFile) {
-                auto itBegin = std::istreambuf_iterator<char>(jsonFile);
-                auto itEnd = std::istreambuf_iterator<char>();
-                std::string jsonString(itBegin, itEnd);
-                jsonFile.close();
+			jsonHashNew = picosha2::hash256_hex_string(jsonString);
+		}
 
-                jsonHashNew = picosha2::hash256_hex_string(jsonString);
-            }
+		if (song.jsonHash != jsonHashNew) {
+			continue;
+		}
 
-            if (song.jsonHash != jsonHashNew) {
-                continue;
-            }
+		songs.push_back(std::move(song));
+		loadedSongs.insert(song.songDir);
+	}
 
-            songs.push_back(std::move(song));
-            loadedSongs.insert(song.songDir);
-        }
+	SongCacheIn.close();
+	size_t loadedSongCount = songs.size();
 
-        SongCacheIn.close();
-        size_t loadedSongCount = songs.size();
+	// Load additional songs from directories if needed
+	LoadingState = SCANNING_EXTRAS;
+	for (const auto &folder: songsFolder) {
+		if (!std::filesystem::is_directory(folder)) {
+			continue;
+		}
 
-        // Load additional songs from directories if needed
-        for (const auto& folder : songsFolder) {
-            if (!std::filesystem::is_directory(folder)) {
-                continue;
-            }
+		for (const auto &entry: std::filesystem::directory_iterator(folder)) {
+			if (!std::filesystem::is_directory(entry)) {
+				continue;
+			}
 
-            for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-                if (!std::filesystem::is_directory(entry)) {
-                    continue;
-                }
+			if (std::filesystem::exists(entry.path() / "info.json")) {
+				if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
+					Song song;
+					song.LoadSong(entry.path() / "info.json");
+					songs.push_back(std::move(song));
+					songCount++;
+				} else {
+					badSongCount++;
+				}
+			}
 
-                if (std::filesystem::exists(entry.path() / "info.json")) {
-                    if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
-                        Song song;
-                        song.LoadSong(entry.path() / "info.json");
-                        songs.push_back(std::move(song));
-                        songCount++;
-                    }
-                    else {
-                        badSongCount++;
-                    }
-                }
+			if (std::filesystem::exists(entry.path() / "song.ini")) {
+				if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
+					Song song;
+					song.songInfoPath = (entry.path() / "song.ini").string();
+					song.songDir = entry.path().string();
+					song.LoadSongIni(entry.path());
+					song.ini = true;
 
-                if (std::filesystem::exists(entry.path() / "song.ini")) {
-                    if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
-                        Song song;
-                        song.songInfoPath = (entry.path() / "song.ini").string();
-                        song.songDir = entry.path().string();
-                        song.LoadSongIni(entry.path());
-                        song.ini = true;
+					songs.push_back(std::move(song));
+					songCount++;
+				} else {
+					badSongCount++;
+				}
+			}
+		}
+	}
 
-                        songs.push_back(std::move(song));
-                        songCount++;
-                    } else {
-                        badSongCount++;
-                    }
-                }
-            }
-        }
+	if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
+		TraceLog(LOG_INFO, "Updating song cache");
+		WriteCache();
+	}
 
-        if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
-            TraceLog(LOG_INFO, "Updating song cache");
-            WriteCache();
-        }
-
-        // ScanSongs(songsFolder);
-        sortList(SortType::Title);
-    }
+	// ScanSongs(songsFolder);
+	sortList(SortType::Title);
+}
 

@@ -33,8 +33,8 @@ public:
 	void restartStreams();
 
 	// Audio stream information
-	double GetMusicTimePlayed(unsigned int handle);
-	double GetMusicTimeLength(unsigned int handle);
+	double GetMusicTimePlayed();
+	double GetMusicTimeLength();
 
 	// Audio stream control
 	void UpdateMusicStream(unsigned int handle);

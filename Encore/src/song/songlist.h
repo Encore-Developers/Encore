@@ -40,6 +40,16 @@ inline SortType NextSortType(SortType current) {
     return current;
 }
 
+inline std::atomic<int> CurrentChartNumber = -1;
+inline std::atomic<int> ListLoadingState = -1;
+inline std::atomic<int> MaxChartsToLoad = -1;
+
+enum SongListLoadingStates {
+    FINDING_CACHE,
+    LOADING_CACHE,
+    SCANNING_EXTRAS
+};
+
 class SongList
 {
     SongList() {}
@@ -53,12 +63,13 @@ public:
         return instance;
     }
 
+
     std::vector<ListMenuEntry> listMenuEntries;
     std::vector<Song> songs;
     int songCount = 0;
     int directoryCount  = 0;
     int badSongCount = 0;
-
+    Song* curSong;
 
     void Clear();
 
