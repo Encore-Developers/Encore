@@ -45,6 +45,7 @@ public:
 	bool pDrumTom = false;
 	bool pSnare = false;
 	bool pDrumAct = false;
+	bool Ghosted = false;
 
 	bool isGood(double eventTime, double inputOffset) const {
 		return (time - goodBackend + inputOffset < eventTime &&
@@ -143,11 +144,38 @@ private:
 public:
 	bool valid = false;
     std::vector<int> PlasticFrets = {
-        0b000001, // green
-        0b000010, // red
-        0b000100, // yellow
-        0b001000, // blue
-        0b010000  // orange
+    					// open			0		     0| technically not a "fretted note" so i put it on the empty space
+        0b000001, // green				1		    0 |
+        0b000010, // red				2		   0  |
+    					// gr chord		3		   00 |
+        0b000100, // yellow				4		  0   |
+    					// gy chord		5		  0 0 |
+    					// ry chord		6		  00  |
+    					// gry chord	7		  000 |
+        0b001000, // blue				8		 0    |
+    					// gb chord		9		 0  0 |
+						// rb chord		10		 0 0  |
+						// grb chord	11		 0 00 |
+    					// yb chord		12		 00   |
+						// gyb chord	13		 00 0 |
+						// ryb chord	14		 000  |
+    					// gryb chord	15		 0000 |
+        0b010000  // orange				16		0     |
+    					// go chord		17		0   0 |
+						// ro chord		18		0  0  |
+						// gro chord	19		0  00 |
+						// yo chord		20		0 0   |
+						// gyo chord	21		0 0 0 |
+						// ryo chord	22		0 00  |
+						// gryo chord	23		0 000 |
+    					// bo chord		24		00    |
+						// gbo chord	25		00  0 |
+						// rbo chord	26		00 0  |
+						// grbo chord	27		00 00 |
+						// ybo chord	28		000   |
+						// gybo chord	29		000 0 |
+						// rybo chord	30		0000  |
+    					// grybo chord	31		00000 |
     };
 
 

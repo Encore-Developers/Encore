@@ -175,10 +175,10 @@ static void handleInputs(Player *player, int lane, int action) {
 			stats->Overdrive = true;
 			stats->overdriveHitAvailable = true;
 			stats->overdriveHitTime = eventTime;
-			if (playerManager.BandStats.Multiplayer) {
-				playerManager.BandStats.PlayersInOverdrive += 1;
-				playerManager.BandStats.Overdrive = true;
-			}
+
+			playerManager.BandStats.PlayersInOverdrive += 1;
+			playerManager.BandStats.Overdrive = true;
+
 		}
 
 		if (!player->ClassicMode) {
@@ -221,9 +221,7 @@ static void handleInputs(Player *player, int lane, int action) {
 									chordNote.HitOffset =
 											chordNote.time - eventTime;
 									stats->HitNote(chordNote.perfect);
-									if (playerManager.BandStats.Multiplayer) {
-										playerManager.BandStats.AddNotePoint(chordNote.perfect, stats->multiplier());
-									}
+									playerManager.BandStats.AddNotePoint(chordNote.perfect, stats->multiplier());
 									chordNote.accounted = true;
 								}
 							}
@@ -304,9 +302,8 @@ static void handleInputs(Player *player, int lane, int action) {
 									curNote.perfect = true;
 								}
 								stats->HitNote(curNote.perfect);
-								if (playerManager.BandStats.Multiplayer) {
-									playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
-								}
+								playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
+
 								curNote.accounted = true;
 								break;
 							}
@@ -349,7 +346,6 @@ static void handleInputs(Player *player, int lane, int action) {
 		} else {
 			if (stats->curNoteInt >= curChart.notes.size())
 				stats->curNoteInt = curChart.notes.size() - 1;
-			stats->Notes = stats->curNoteInt;
 			Note &curNote = curChart.notes[stats->curNoteInt];
 			int pressedMask = 0b000000;
 
@@ -364,6 +360,26 @@ static void handleInputs(Player *player, int lane, int action) {
 			// if (!lastNote.accounted && gpr.curNoteInt != 0) return;
 
 			bool firstNote = stats->curNoteInt == 0;
+
+			bool chordMatch = (stats->extendedSustainActive ? pressedMask >= curNote.mask : pressedMask == curNote.mask);
+			bool singleMatch = (stats->extendedSustainActive ? pressedMask >= curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
+			bool lastNoteGreater = lastNote.mask > curNote.mask;
+			bool greaterThanLastNoteMatch = pressedMask > lastNote.mask << 2;
+			bool greaterThanNoteMatch = pressedMask > curNote.mask << 2;
+			bool frettingInput = action == GLFW_PRESS && lane != 8008135 && lane != -1;
+			bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
+
+			if (!curNote.accounted && greaterThanNoteMatch && (curNote.phopo || curNote.pTap) && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch ) && lastNote.hit) {
+				curNote.Ghosted = true;
+				TraceLog(LOG_INFO, TextFormat("Ghosted note at %f. Input type: %01i (press = 1). Lane type: %01i. Held frets: %01i. Required frets: %01i. note %01i. Minimum for unghost: %01i",
+					eventTime,
+					action,
+					lane,
+					pressedMask,
+					curNote.mask,
+					stats->curNoteInt,
+					curNote.mask << 1));
+			}
 
 			if (lane == 8008135 && action == GLFW_PRESS && !stats->FAS
 				// && (firstNote ? true : lastNote.time + 0.005 < eventTime)
@@ -409,13 +425,11 @@ static void handleInputs(Player *player, int lane, int action) {
 			}
 
 
-			bool chordMatch = (stats->extendedSustainActive ? pressedMask >= curNote.mask : pressedMask == curNote.mask);
-			bool singleMatch = (stats->extendedSustainActive ? pressedMask >= curNote.mask : pressedMask >= curNote.mask && pressedMask < (curNote.mask * 2));
-			bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
+
 
 			if (curNote.hitWithFAS) {
 				if (noteMatch && !curNote.hit) {
-					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a STRUM", eventTime));
+					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a STRUM, note %01i", eventTime, stats->curNoteInt));
 					stats->FAS = false;
 					curNote.hit = true;
 					curNote.HitOffset = curNote.time - eventTime;
@@ -425,9 +439,8 @@ static void handleInputs(Player *player, int lane, int action) {
 					}
 					stats->HitPlasticNote(curNote);
 					// TODO: fix for plastic
-					if (playerManager.BandStats.Multiplayer) {
-						playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
-					}
+					playerManager.BandStats.AddClassicNotePoint(curNote.perfect, stats->noODmultiplier(), curNote.chordSize);
+
 					curNote.accounted = true;
 					if ((curNote.len) > 0) {
 						curNote.held = true;
@@ -438,13 +451,13 @@ static void handleInputs(Player *player, int lane, int action) {
 					return;
 				}
 			}
+			bool hitAsHopo = (noteMatch && curNote.phopo && (stats->Combo > 0 || stats->curNoteInt == 0));
+			bool hitAsTap = (curNote.pTap && noteMatch);
 
-
-			if ((noteMatch && curNote.phopo && (stats->Combo > 0 || stats->curNoteInt == 0)) || (
-					curNote.pTap && noteMatch)) {
+			if ((hitAsHopo || hitAsTap) && !curNote.Ghosted) {
 				if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit && !curNote.
 					accounted) {
-					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a HOPO", eventTime));
+					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a HOPO, note %01i", eventTime, stats->curNoteInt));
 					curNote.hit = true;
 					curNote.HitOffset = curNote.time - eventTime;
 					curNote.hitTime = eventTime;
@@ -459,9 +472,8 @@ static void handleInputs(Player *player, int lane, int action) {
 					}
 					stats->HitPlasticNote(curNote);
 					// TODO: fix for plastic
-					if (playerManager.BandStats.Multiplayer) {
-						playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
-					}
+					playerManager.BandStats.AddClassicNotePoint(curNote.perfect, stats->noODmultiplier(), curNote.chordSize);
+
 					curNote.accounted = true;
 					stats->curNoteInt++;
 					return;
@@ -1006,7 +1018,7 @@ int main(int argc, char *argv[]) {
 	gpr.camera1p.position = Vector3{0.0f, Height, Back};
 	gpr.camera1p.target = Vector3{0.0f, 0.0f, TargetDistance};
 	gpr.camera1p.up = Vector3{0.0f, 1.0f, 0.0f};
-	gpr.camera1p.fovy = 35.0f;
+	gpr.camera1p.fovy = FOV;
 
 	gpr.camera1pVector.push_back(gpr.camera1p);
 
@@ -1082,38 +1094,6 @@ int main(int argc, char *argv[]) {
 	char trackSpeedStr[256];
 	snprintf(trackSpeedStr, 255, "%.3f", settingsMain.trackSpeedOptions[settingsMain.trackSpeed]);
 	trackSpeedButton = "Track Speed " + std::string(trackSpeedStr) + "x";
-/*
-	Player newPlayer;
-	newPlayer.Name = "3drosalia";
-	newPlayer.Bot = true;
-	newPlayer.NoteSpeed = 1.5;
-	playerManager.PlayerList.push_back(newPlayer);
-	playerManager.AddActivePlayer(0,0);
-
-
-	Player newPlayer2;
-	newPlayer2.Name = "lothycat";
-	newPlayer2.ProDrums = true;
-	newPlayer2.Bot = true;
-	newPlayer2.AccentColor = RED;
-	newPlayer2.joypadID = GLFW_JOYSTICK_1;
-	newPlayer2.NoteSpeed = 1.0;
-	playerManager.PlayerList.push_back(newPlayer2);
-	playerManager.AddActivePlayer(1,1);
-
-	Player newPlayer3;
-	newPlayer3.Name = "cameron44251";
-	newPlayer3.Bot = true;
-	newPlayer3.AccentColor = BLUE;
-	newPlayer3.joypadID = GLFW_JOYSTICK_2;
-	newPlayer3.NoteSpeed = 1.0;
-	playerManager.PlayerList.push_back(newPlayer3);
-	playerManager.AddActivePlayer(2,2);
-*/
-	// Player newPlayer4;
-	// newPlayer4.Name = "gonakil1ya";
-	// playerManager.PlayerList.push_back(newPlayer4);
-	// playerManager.AddActivePlayer(3,3);
 
 	ChangeDirectory(GetApplicationDirectory());
 
@@ -1182,16 +1162,11 @@ int main(int argc, char *argv[]) {
 				SetWindowSize(GetScreenWidth(), minHeight);
 		}
 
-
 		// float diffDistance = player.diff == 3 ? 2.0f : 1.5f;
 		// float lineDistance = player.diff == 3 ? 1.5f : 1.0f;
 		BeginDrawing();
-
 		ClearBackground(DARKGRAY);
-
-
 		SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
-
 
 		if (Menu::onNewMenu) {
 			Menu::onNewMenu = false;

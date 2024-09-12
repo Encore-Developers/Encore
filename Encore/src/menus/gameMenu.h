@@ -41,8 +41,8 @@ private:
         ss << std::fixed << value;
         return ss.str();
     }
-    void renderPlayerResults(Player player, Song song, int playerNum);
-    void renderStars(PlayerGameplayStats* player, float xPos, float yPos, float scale, bool left);
+    void renderPlayerResults(Player* player, Song song, int playerNum);
+    void renderStarsP(PlayerGameplayStats* player, float xPos, float yPos, float scale, bool left);
     void renderStars(BandGameplayStats* player, float xPos, float yPos, float scale, bool left);
 public:
     GameMenu() {}

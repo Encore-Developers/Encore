@@ -79,6 +79,7 @@ public:
     int Overhits;
     int Notes;
     int NotesHit;
+    int GoodHit;
     int PerfectHit;
     int NotesMissed;
 
@@ -144,6 +145,7 @@ public:
         float perfectMult = perfect ? 1.2f : 1.0f;
         Score += (int)((30.0f * (multiplier()) * perfectMult));
         PerfectHit += perfect ? 1 : 0;
+        GoodHit += perfect ? 0 : 1;
         // mute = false;
     }
     void HitDrumsNote(bool perfect, bool cymbal) {
@@ -156,6 +158,7 @@ public:
         float perfectMult = perfect ? 1.2f : 1.0f;
         Score += (int)((30.0f * (multiplier()) * perfectMult) * cymbMult);
         PerfectHit += perfect ? 1 : 0;
+        GoodHit += perfect ? 0 : 1;
         // mute = false;
     }
     void HitPlasticNote(Note note) {
@@ -167,6 +170,7 @@ public:
         float perfectMult = note.perfect ? 1.2f : 1.0f;
         Score += (note.chordSize * (int)(30.0f * (multiplier()) * perfectMult));
         PerfectHit += note.perfect ? 1 : 0;
+        GoodHit += note.perfect ? 0 : 1;
         // mute = false;
     }
     void MissNote() {
@@ -213,7 +217,7 @@ public:
         else if (starPercent < xStarThreshold[3]) {return 3;}
         else if (starPercent < xStarThreshold[4]) {return 4;}
         else if (starPercent < xStarThreshold[5]) {return 5;}
-        else if (starPercent >= xStarThreshold[5] && Difficulty == 3) { GoldStars = true; return 5; }
+        else if (starPercent >= xStarThreshold[5]) { GoldStars = true; return 5; }
         else return 5;
 
         return 0;

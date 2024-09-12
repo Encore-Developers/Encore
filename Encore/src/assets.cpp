@@ -189,6 +189,9 @@ void Assets::LoadAssets() {
     liftModel = Assets::LoadModel_((directory / "Assets/notes/lift.obj"), loadedAssets);
     liftModelOD = Assets::LoadModel_((directory / "Assets/notes/lift.obj"), loadedAssets);
 
+    beatline = LoadModel_((directory / "Assets/highway/beatline.obj"), loadedAssets);
+    beatlineTex = LoadTextureFilter((directory / "Assets/highway/beatline.png"), loadedAssets);
+    beatline.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = beatlineTex;
 
     songBackground = Assets::LoadTextureFilter((directory / "Assets/background.png"), loadedAssets);
 
@@ -202,7 +205,7 @@ void Assets::LoadAssets() {
 
     josefinSansItalic = Assets::LoadFontFilter((directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets);
     
-    fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.fs").string().c_str());
+    fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.frag").string().c_str());
     texLoc = GetShaderLocation(fxaa, "texture0");
     resLoc = GetShaderLocation(fxaa, "resolution");
     sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());

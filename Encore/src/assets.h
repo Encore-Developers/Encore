@@ -35,6 +35,9 @@ public:
     Texture2D smasherBoardTex;
     Model smasherBoardEMH;
 
+    Model beatline;
+    Texture2D beatlineTex;
+
     Model lanes;
     Texture2D lanesTex;
 

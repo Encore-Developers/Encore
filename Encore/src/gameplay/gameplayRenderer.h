@@ -31,6 +31,11 @@ class gameplayRenderer {
 	void nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix);
 
 	void eDrawSides(float scrollPos, double time, double start, double end, float length, double radius, Color color);
+
+	double GetNoteOnScreenTime(double noteTime, double songTime, float noteSpeed, int Difficulty, float length);
+	double HighwaySpeedDifficultyMultiplier(int Difficulty);
+	float MaxHighwaySpeed = 1.25f;
+	float MinHighwaySpeed = 0.5f;
 public:
 	float highwayLevel = 0;
 	float smasherPos = 2.4f;
