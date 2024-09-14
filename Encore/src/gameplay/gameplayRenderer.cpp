@@ -332,7 +332,11 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start &&
 					curNote.time < curChart.odPhrases[player->stats->curODPhrase].end) {
 					curChart.odPhrases[player->stats->curODPhrase].missed = true;
-					};
+				};
+				if (!curChart.Sections.empty()) {
+					curChart.Sections[player->stats->curSection].totalNotes++;
+					curNote.countedForSection = true;
+				}
 				player->stats->Combo = 0;
 				curNote.accounted = true;
 			} else if (player->Bot) {
@@ -349,6 +353,18 @@ void gameplayRenderer::RenderNotes(Player* player, Chart& curChart, double time,
 					// player->stats->Combo++;
 					curNote.accounted = true;
 					curNote.hitTime = time;
+					}
+			}
+			if (!curChart.Sections.empty()) {
+				if (curNote.time >= curChart.Sections[player->stats->curSection].Start &&
+					curNote.time < curChart.Sections[player->stats->curSection].End) {
+					if (!curNote.countedForSection) {
+						if (curNote.hit) {
+							curChart.Sections[player->stats->curSection].notesHit++;
+							curChart.Sections[player->stats->curSection].totalNotes++;
+							curNote.countedForSection = true;
+						}
+					}
 					}
 			}
 
@@ -432,7 +448,7 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 	ClearBackground({0,0,0,0});
 	BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive-1][cameraSel]);
 	// glDisable(GL_CULL_FACE);
-
+	SongList& songList = SongList::getInstance();
 
 	for (auto & curNote : curChart.notes) {
 
@@ -447,6 +463,8 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				}
 			}
 		}
+
+
 		if (!curChart.odPhrases.empty()) {
 
 			if (curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start &&
@@ -487,6 +505,10 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start &&
 				curNote.time < curChart.odPhrases[player->stats->curODPhrase].end)
 				curChart.odPhrases[player->stats->curODPhrase].missed = true;
+			if (!curChart.Sections.empty()) {
+				curChart.Sections[player->stats->curSection].totalNotes++;
+				curNote.countedForSection = true;
+			}
 			player->stats->Combo = 0;
 			curNote.accounted = true;
 			player->stats->curNoteInt++;
@@ -504,6 +526,19 @@ void gameplayRenderer::RenderClassicNotes(Player* player, Chart& curChart, doubl
 				curNote.accounted = true;
 				curNote.hitTime = time;
 				player->stats->curNoteInt++;
+			}
+		}
+
+		if (!curChart.Sections.empty()) {
+			if (curNote.time >= curChart.Sections[player->stats->curSection].Start &&
+				curNote.time < curChart.Sections[player->stats->curSection].End) {
+				if (!curNote.countedForSection) {
+					if (curNote.hit) {
+						curChart.Sections[player->stats->curSection].notesHit++;
+						curChart.Sections[player->stats->curSection].totalNotes++;
+						curNote.countedForSection = true;
+					}
+				}
 			}
 		}
 
@@ -883,6 +918,12 @@ void gameplayRenderer::RenderGameplay(Player* player, double time, Song song, Re
 	if (!curChart.fills.empty() && player->stats->curFill < curChart.fills.size() - 1 && time>curChart.fills[player->stats->curFill].end) {
 		player->stats->curFill++;
 	}
+
+	if (!curChart.Sections.empty() && player->stats->curSection < curChart.Sections.size() - 1 && time > curChart.Sections[player->stats->curSection].End) {
+		std::cout << "Section " << curChart.Sections[player->stats->curSection].Name << " complete. Notes hit: " << curChart.Sections[player->stats->curSection].notesHit << "/" << curChart.Sections[player->stats->curSection].totalNotes << std::endl;
+		player->stats->curSection++;
+	}
+
 	// BeginShaderMode(gprAssets.HighwayFade);
 	if (player->Instrument == PLASTIC_DRUMS) {
 		RenderPDrumsHighway(player, song, time, highway_tex, highwayStatus_tex, smasher_tex);

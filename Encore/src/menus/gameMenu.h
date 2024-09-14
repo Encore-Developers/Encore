@@ -22,9 +22,6 @@ enum Screens {
 };
 
 class GameMenu {
-private:
-
-
     template<typename CharT>
     struct Separators : public std::numpunct<CharT>
     {
@@ -35,23 +32,32 @@ private:
         }
     };
 
-    std::string scoreCommaFormatter(int value) {
+
+
+public:
+    GameMenu() {};
+    static Shader sdfShader() {
+        std::filesystem::path assetsdir = GetApplicationDirectory();
+        assetsdir /= "Assets";
+        return LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
+    }
+
+    static std::string scoreCommaFormatter(int value) {
         std::stringstream ss;
         ss.imbue(std::locale(std::cout.getloc(), new Separators <char>()));
         ss << std::fixed << value;
         return ss.str();
     }
-    void renderPlayerResults(Player* player, Song song, int playerNum);
-    void renderStarsP(PlayerGameplayStats* player, float xPos, float yPos, float scale, bool left);
-    void renderStars(BandGameplayStats* player, float xPos, float yPos, float scale, bool left);
-public:
-    GameMenu() {}
+    static void DrawTopOvershell(float TopOvershell);
+    static void DrawBottomOvershell();
+    static void DrawBottomBottomOvershell();
+    static Texture2D LoadTextureFilter(const std::filesystem::path &texturePath);
+    static Font LoadFontFilter(const std::filesystem::path &fontPath);
+    static void mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color);
+    static void DrawFPS(int posX, int posY);
+    static void DrawVersion();
+    // drawing helper functions for other menus
 
-    void DrawTopOvershell(float TopOvershell);
-    void DrawBottomOvershell();
-    void DrawBottomBottomOvershell();
-
-    void DrawFPS(int posX, int posY);
     bool hehe = false;
     Screens currentScreen = CACHE_LOADING_SCREEN;
     bool songsLoaded{};
@@ -60,15 +66,14 @@ public:
     bool stringChosen = false;
     Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
-    void showResults();
     void loadMainMenu();
     inline void loadTitleScreen() {};
 
     void SwitchScreen(Screens screen);
-    void DrawAlbumArtBackground(Texture2D song);
+    static void DrawAlbumArtBackground(Texture2D song);
     bool songChosen = false;
 
-    void DrawVersion();
+
 };
 
 extern GameMenu TheGameMenu;

@@ -46,8 +46,35 @@ Units u = Units::getInstance();
 
 GameMenu TheGameMenu;
 
-std::vector<std::string> songPartsList{ "Drums","Bass","Guitar","Vocals","Classic Drums", "Classic Bass", "Classic Lead", "Classic Vocals", "Keys", "Classic Keys"};
-std::vector<std::string> diffList{ "Easy","Medium","Hard","Expert" };
+
+
+Font GameMenu::LoadFontFilter(const std::filesystem::path &fontPath) {
+    int fontSize = 128;
+    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0, 250);
+    font.baseSize = 128;
+    font.glyphCount = 250;
+    int fileSize = 0;
+    unsigned char* fileData = LoadFileData(fontPath.string().c_str(), &fileSize);
+    font.glyphs = LoadFontData(fileData, fileSize, 128, 0, 250, FONT_SDF);
+    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 1);
+    font.texture = LoadTextureFromImage(atlas);
+    UnloadImage(atlas);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    return font;
+}
+
+Texture2D GameMenu::LoadTextureFilter(const std::filesystem::path &texturePath) {
+    Texture2D tex = LoadTexture(texturePath.string().c_str());
+    GenTextureMipmaps(&tex);
+    SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
+    return tex;
+}
+
+void GameMenu::mhDrawText(Font font, std::string text, Vector2 pos, float fontSize, Color color)  {
+    BeginShaderMode(sdfShader());
+    DrawTextEx(font, text.c_str(), pos, fontSize, 0, color);
+    EndShaderMode();
+}
 
 void GameMenu::DrawTopOvershell(float TopOvershell) {
     DrawRectangleGradientV(0,u.hpct(TopOvershell)-2,GetScreenWidth(),u.hinpct(0.025f), Color{0,0,0,128}, Color{0,0,0,0});
@@ -68,159 +95,10 @@ void GameMenu::DrawBottomBottomOvershell() {
 }
 
 // should be reduced to just PlayerSongStats (instead of Player) eventually
-void GameMenu::renderPlayerResults(Player *player, Song song, int playerslot) {
-
-    float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
-
-
-    DrawRectangle(cardPos-6, u.hpct(0.2f), u.winpct(0.22f)+12, u.hpct(0.85f), WHITE);
-    DrawRectangle(cardPos, u.hpct(0.2f), u.winpct(0.22f), u.hpct(0.85f), GetColor(0x181827FF));
-
-    DrawRectangleGradientV(cardPos,u.hpct(0.2f), u.winpct(0.22f), u.hinpct(0.2f), ColorBrightness(player->AccentColor, -0.5f), GetColor(0x181827FF));
-
-    bool rendAsFC = player->stats->FC && !player->stats->Quit && !player->Bot;
-    if (player->Bot) {
-        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
-                               ColorContrast(ColorBrightness(SKYBLUE, -0.5f), -0.25f));
-    }
-    if (player->stats->Quit && !player->Bot) {
-        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF), ColorBrightness(RED, -0.5f));
-    }
-    if (rendAsFC && !player->Bot) {
-        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
-                               ColorContrast(ColorBrightness(GOLD, -0.5f), -0.25f));
-    }
-    if (player->stats->PerfectHit==player->stats->Notes && rendAsFC && !player->Bot) {
-        DrawRectangleGradientV(cardPos,u.hpct(0.2f)+ u.hinpct(0.2f), u.winpct(0.22f), u.hinpct(0.63f), GetColor(0x181827FF),
-                               ColorBrightness(WHITE, -0.5f));
-    }
-
-    DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.2f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.2f),WHITE);
-    DrawLine(cardPos,u.hpct(0.2f) + u.hinpct(0.4f), cardPos + u.winpct(0.22f),u.hpct(0.2f) + u.hinpct(0.4f),WHITE);
-
-    float scorePos = (cardPos + u.winpct(0.11f)) - (MeasureTextEx(menuAss.redHatDisplayItalic, scoreCommaFormatter(player->stats->Score).c_str(), u.hinpct(0.065f), 0).x /2);
-    float Percent = floorf(((float)player->stats->NotesHit/ (float)player->stats->Notes) * 100.0f);
-
-    DrawTextEx(
-            menuAss.redHatDisplayItalic,
-            scoreCommaFormatter(player->stats->Score).c_str(),
-            {
-                    scorePos,
-                    (float)GetScreenHeight()/2},
-            u.hinpct(0.065f),
-            0,
-            GetColor(0x00adffFF));
-
-    renderStarsP(player->stats,  (cardPos + u.winpct(0.11f)), (float)GetScreenHeight()/2 - u.hinpct(0.06f), u.hinpct(0.055f),false);
-
-
-    if (rendAsFC) {
-        DrawTextEx(menuAss.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {(cardPos + u.winpct(0.113f)) - (MeasureTextEx(menuAss.redHatDisplayItalicLarge, TextFormat("%3.0f", Percent), u.hinpct(0.1f),0).x/1.5f),u.hpct(0.243f)},u.hinpct(0.1f),0,
-                   ColorBrightness(GOLD,-0.5));
-        float flawlessFontSize = 0.03f;
-        DrawTextEx(
-                menuAss.rubikBoldItalic,
-                "Flawless!",
-                {
-                        (cardPos + u.winpct(0.113f))-(MeasureTextEx(menuAss.rubikBoldItalic, "Flawless!", u.hinpct(flawlessFontSize), 0.0f).x/2),
-                        u.hpct(0.35f)},
-                u.hinpct(flawlessFontSize),
-                0.0f,
-                WHITE);
-    }
-    if (player->stats->Quit && !player->Bot) {
-        float flawlessFontSize = 0.05f;
-        DrawTextEx(
-                menuAss.rubikBoldItalic,
-                "Quit",
-                {
-                        (cardPos + u.winpct(0.11f))-(MeasureTextEx(menuAss.rubikBoldItalic, "Quit", u.hinpct(flawlessFontSize), 0.0f).x/2),
-                        u.hpct(0.35f)},
-                u.hinpct(flawlessFontSize),
-                0.0f,
-                RED);
-    }
-    if (player->Bot) {
-        float flawlessFontSize = 0.05f;
-        DrawTextEx(
-                menuAss.rubikBoldItalic,
-                "BOT",
-                {
-                        (cardPos + u.winpct(0.11f))-(MeasureTextEx(menuAss.rubikBoldItalic, "BOT", u.hinpct(flawlessFontSize), 0.0f).x/2),
-                        u.hpct(0.35f)},
-                u.hinpct(flawlessFontSize),
-                0.0f,
-                SKYBLUE);
-    }
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, TextFormat("%3.0f%%", Percent), {(cardPos + u.winpct(0.11f)) - (MeasureTextEx(menuAss.redHatDisplayItalicLarge, rendAsFC ? TextFormat("%3.0f", Percent) : TextFormat("%3.0f%%", Percent), u.hinpct(0.1f),0).x/(rendAsFC ? 1.5f : 2.0f)),u.hpct(0.22f)},u.hinpct(0.1f),0, rendAsFC ? YELLOW : WHITE);
-
-    std::string InstDiffName = TextFormat("%s %s", diffList[player->Difficulty].c_str(), songPartsList[player->Instrument].c_str());
-    float InstDiffPos = MeasureTextEx(menuAss.rubikBold, InstDiffName.c_str(), u.hinpct(0.03f),0).x;
-    float pctSize = MeasureTextEx(menuAss.rubikBold, TextFormat("%3.0f%%", Percent), u.hinpct(0.1f),0).y;
-
-    DrawTextEx(menuAss.rubikBold, InstDiffName.c_str(), {cardPos + u.winpct(0.11f) - (InstDiffPos/2), u.hpct(0.24f)+(pctSize/2)}, u.hinpct(0.03f),0,WHITE);
-
-    float statsHeight = u.hpct(0.2f) + u.hinpct(0.415f);
-    float statsLeft = cardPos + u.winpct(0.01f);
-    float statsRight = cardPos + u.winpct(0.21f);
-
-    DrawTextEx(menuAss.rubik, "Perfects:", {statsLeft, statsHeight}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, "Goods:", {statsLeft, statsHeight+u.hinpct(0.035f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, "Missed:", {statsLeft, statsHeight+u.hinpct(0.07f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, "Strikes:", {statsLeft, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, "Max Streak:", {statsLeft, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, "Notes:", {statsLeft, statsHeight+u.hinpct(0.175f)}, u.hinpct(0.03f),0,WHITE);
-
-    float hitpct = ((float)player->stats->PerfectHit / (float)player->stats->Notes);
-    float pHitPercent = floorf(hitpct * 100.0f);
-    std::string PerfectDisplay = TextFormat("%01i (%3.0f%%)", player->stats->PerfectHit, pHitPercent);
-
-    float gpct = ((float)(player->stats->NotesHit-player->stats->PerfectHit) / (float)player->stats->Notes);
-    float gHitPercent = floorf(gpct * 100.0f);
-    std::string GoodDisplay = TextFormat("%01i (%3.0f%%)", player->stats->NotesHit-player->stats->PerfectHit, gHitPercent);
-
-    float mpct = ((float)player->stats->NotesMissed / (float)player->stats->Notes);
-    float mHitPercent = floorf(mpct * 100.0f);
-    std::string MissDisplay = TextFormat("%01i (%3.0f%%)", player->stats->NotesMissed, mHitPercent);
-
-    std::string NotesDisplay = TextFormat("%01i", player->stats->Notes);
-
-    int MaxNotes = song.parts[player->Instrument]->charts[player->Difficulty].notes.size();
-    float FontSize = u.hinpct(0.03f);
-    DrawTextEx(menuAss.rubik, PerfectDisplay.c_str(), {statsRight - MeasureTextEx(menuAss.rubik, PerfectDisplay.c_str(), FontSize, 0).x, statsHeight}, FontSize, 0, WHITE);
-    DrawTextEx(menuAss.rubik, GoodDisplay.c_str(), {statsRight - MeasureTextEx(menuAss.rubik, GoodDisplay.c_str(), FontSize, 0).x, statsHeight+u.hinpct(0.035f)}, FontSize,0,WHITE);
-    DrawTextEx(menuAss.rubik, MissDisplay.c_str(), {statsRight - MeasureTextEx(menuAss.rubik, MissDisplay.c_str(), FontSize, 0).x, statsHeight+u.hinpct(0.07f)}, FontSize,0,WHITE);
-    DrawTextEx(menuAss.rubik, TextFormat("%01i",  player->stats->Overhits, player->stats->Notes), {statsRight - MeasureTextEx(menuAss.rubik, TextFormat("%01i", player->stats->Overhits), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.105f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, TextFormat("%01i/%01i",  player->stats->MaxCombo, player->stats->Notes), {statsRight - MeasureTextEx(menuAss.rubik, TextFormat("%01i/%01i", player->stats->MaxCombo, player->stats->Notes), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.14f)}, u.hinpct(0.03f),0,WHITE);
-    DrawTextEx(menuAss.rubik, NotesDisplay.c_str(), {statsRight - MeasureTextEx(menuAss.rubik, NotesDisplay.c_str(), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.17f)}, u.hinpct(0.03f),0,WHITE);
-    // DrawTextEx(menuAss.rubik, TextFormat("%2.2f", player->totalOffset / player->notesHit), {statsRight - MeasureTextEx(menuAss.rubik, TextFormat("%2.2f", player->totalOffset / player->notesHit), u.hinpct(0.03f), 0).x, statsHeight+u.hinpct(0.17f)}, u.hinpct(0.03f),0,WHITE);
-};
 
 // todo: replace player with band stats
 
-void GameMenu::renderStarsP(PlayerGameplayStats* stats, float xPos, float yPos, float scale, bool left) {
-    int starsval = stats->Stars();
 
-    float starX = left ? 0 : scale*2.5f;
-    for (int i = 0; i < 5; i++) {
-        DrawTexturePro(menuAss.emptyStar, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale},{0,0},0,WHITE);
-    }
-    for (int i = 0; i < starsval ; i++) {
-        DrawTexturePro(stats->GoldStars?menuAss.goldStar:menuAss.star, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
-    }
-};
-
-void GameMenu::renderStars(BandGameplayStats* stats, float xPos, float yPos, float scale, bool left) {
-    int starsval = stats->Stars();
-
-    float starX = left ? 0 : scale*2.5f;
-    for (int i = 0; i < 5; i++) {
-        DrawTexturePro(menuAss.emptyStar, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale},{0,0},0,WHITE);
-    }
-    for (int i = 0; i < starsval ; i++) {
-        DrawTexturePro(stats->GoldStars?menuAss.goldStar:menuAss.star, {0,0,(float)menuAss.emptyStar.width,(float)menuAss.emptyStar.height}, {(xPos+(i*scale)-starX),yPos, scale, scale}, {0,0},0, WHITE);
-    }
-};
 
 void GameMenu::DrawAlbumArtBackground(Texture2D song) {
     float diagonalLength = sqrtf((float)(GetScreenWidth() * GetScreenWidth()) + (float)(GetScreenHeight() * GetScreenHeight()));
@@ -461,32 +339,7 @@ void GameMenu::loadMainMenu() {
 
 bool AlbumArtLoadingStuff = false;
 // sentenced to
-void GameMenu::showResults() {
-    PlayerManager &player_manager = PlayerManager::getInstance();
-    for (int i = 0; i < player_manager.PlayersActive; i++) {
-        renderPlayerResults(player_manager.GetActivePlayer(i), *songListMenu.curSong, i);
-    }
 
-    DrawTopOvershell(0.2f);
-    DrawBottomOvershell();
-    DrawBottomBottomOvershell();
-    OvershellRenderer osr;
-    osr.DrawOvershell();
-    DrawVersion();
-
-    float songNamePos = (float)GetScreenWidth()/2 - MeasureTextEx(menuAss.redHatDisplayBlack,songListMenu.curSong->title.c_str(), u.hinpct(0.09f), 0).x/2;
-    float bigScorePos = (float)GetScreenWidth()/2 - u.winpct(0.04f) - MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.08f), 0).x;
-    float bigStarPos = (float)GetScreenWidth()/2 + u.winpct(0.005f);
-    float scoreWidth = MeasureTextEx(menuAss.redHatDisplayItalicLarge,scoreCommaFormatter(player_manager.BandStats.Score).c_str(), u.hinpct(0.06f), 0).x;
-
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, songListMenu.curSong->title.c_str(), {u.LeftSide,u.hpct(0.02125f)},u.hinpct(0.05f),0,WHITE);
-    DrawTextEx(menuAss.rubikItalic, songListMenu.curSong->artist.c_str(), {u.LeftSide,u.hpct(0.07f)},u.hinpct(0.035f),0,WHITE);
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, scoreCommaFormatter(player_manager.BandStats.Score).c_str(), {u.LeftSide,u.hpct(0.1f)},u.hinpct(0.06f),0, GetColor(0x00adffFF));
-    DrawTextEx(menuAss.redHatDisplayItalicLarge, "!", {u.LeftSide,u.hpct(0.1525f)},u.hinpct(0.05f),0, RED);
-    DrawTextEx(menuAss.josefinSansItalic, "  Scoring is disabled in indev builds", {u.LeftSide,u.hpct(0.158f)},u.hinpct(0.025f),0.125,WHITE);
-    renderStars(&player_manager.BandStats, scoreWidth + u.LeftSide + u.winpct(0.01f), u.hpct(0.105f), u.hinpct(0.05f),true);
-    // assets.DrawTextRHDI(player->songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
-}
 
 void GameMenu::SwitchScreen(Screens screen){
     currentScreen = screen;

@@ -69,6 +69,8 @@ struct BPM {
 	double bpm;
 };
 
+
+
 class Song 
 {
 public:
@@ -529,6 +531,7 @@ public:
 			}
 		}
 	}
+
 
     void LoadAlbumArt() {
         Image albumImage = LoadImage(albumArtPath.c_str());

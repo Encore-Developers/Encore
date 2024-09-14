@@ -24,6 +24,7 @@ public:
 	bool miss = false;
 	bool accounted = false;
     bool countedForSolo = false;
+	bool countedForSection = false;
 	bool countedForODPhrase = false;
     bool perfect = false;
 	bool renderAsOD = false;
@@ -45,6 +46,7 @@ public:
 	bool pDrumTom = false;
 	bool pSnare = false;
 	bool pDrumAct = false;
+	int GhostCount = 0;
 	bool Ghosted = false;
 
 	bool isGood(double eventTime, double inputOffset) const {
@@ -118,6 +120,16 @@ struct odPhrase
 	bool added = false;
 };
 
+struct section {
+	int tickStart;
+	int tickEnd;
+	double Start;
+	double End;
+	int totalNotes = 0;
+	int notesHit = 0;
+	std::string Name;
+};
+
 class Chart 
 {
 private:
@@ -142,6 +154,49 @@ private:
         return a.tick == b.tick;
     }
 public:
+	std::vector<section> Sections{};
+	void getSections(smf::MidiFile& midiFile, int trkidx) {
+		int Section = 0;
+		smf::MidiEventList events = midiFile[trkidx];
+		for (int i = 0; i < events.getSize(); i++) {
+			if (events[i].isMeta() && (int)events[i][1] == 1) {
+				double time = midiFile.getTimeInSeconds(trkidx, i);
+				int tick = midiFile.getAbsoluteTickTime(time);
+				section newSection;
+				std::string Name;
+				for (int k = 3; k < events[i].getSize(); k++) {
+					Name += events[i][k];
+				}
+				if (Name.substr(0,5) == "[prc_") {
+					newSection.tickStart = tick;
+					newSection.Start = time;
+					newSection.Name = Name.substr(5);
+					newSection.Name.pop_back();
+					std::cout << "New section: " << newSection.Name << " at " << newSection.Start << std::endl;
+					if (Section > 0) {
+						Sections[Section-1].End = time;
+						Sections[Section-1].tickEnd = tick;
+					}
+					Section++;
+					Sections.push_back(std::move(newSection));
+				}
+				else if (Name.substr(0,9) == "[section ") {
+					newSection.tickStart = tick;
+					newSection.Start = time;
+					newSection.Name = Name.substr(9);
+					newSection.Name.pop_back();
+					std::cout << "New section: " << newSection.Name << " at " << newSection.Start << std::endl;
+					if (Section > 0) {
+						Sections[Section-1].End = time;
+						Sections[Section-1].tickEnd = tick;
+					}
+					Section++;
+					Sections.push_back(std::move(newSection));
+
+				}
+			}
+		}
+	}
 	bool valid = false;
     std::vector<int> PlasticFrets = {
     					// open			0		     0| technically not a "fretted note" so i put it on the empty space
@@ -232,7 +287,9 @@ public:
 	std::vector<DrumFill> fills;
     int resolution = 480;
 	void parseNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument);
-    void parsePlasticNotes(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, int hopoThresh);
+    void parsePlasticNotes(smf::MidiFile& midiFile, int trkidx, int diff, int instrument, int hopoThresh);
+	void parseSection(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument);
+	void parsePlasticSection(smf::MidiFile& midiFile, int trkidx, int start, int end, int diff, int instrument, int hopoThresh);
 	void parsePlasticDrums(smf::MidiFile& midiFile, int trkidx, smf::MidiEventList events, int diff, int instrument, bool proDrums, bool doubleKick);
 
 	void resetNotes() {

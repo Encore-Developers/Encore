@@ -1,6 +1,7 @@
 ﻿#include "menus/menu.h"
 #include "menus/sndTestMenu.h"
 #include "menus/cacheLoadingScreen.h"
+#include "menus/resultsMenu.h"
 #define RAYGUI_IMPLEMENTATION
 
 #if defined(WIN32) && defined(NDEBUG)
@@ -31,13 +32,15 @@
 #include "old/lerp.h"
 #include "menus/gameMenu.h"
 #include "menus/overshellRenderer.h"
+
 #include "menus/settingsOptionRenderer.h"
-#include "menus/sndTestMenu.h"
+
 #include "menus/uiUnits.h"
 #include "users/player.h"
 #include "settings.h"
 #include "timingvalues.h"
 #include "inih/INIReader.h"
+
 
 #include "song/song.h"
 #include "song/songlist.h"
@@ -153,7 +156,7 @@ double StrumNoFretTime = 0.0;
 bool FAS = false;
 int strummedNote = 0;
 int FASNote = 0;
-
+double PauseTime = 0.0;
 OvershellRenderer overshellRenderer;
 
 static void handleInputs(Player *player, int lane, int action) {
@@ -333,6 +336,7 @@ static void handleInputs(Player *player, int lane, int action) {
 									continue;
 							}
 							stats->OverHit();
+							// todo: ghost twice before miss!!!!
 							if (!curChart.odPhrases.empty() && eventTime >= curChart.
 								odPhrases[stats->curODPhrase].start &&
 								eventTime < curChart.odPhrases[stats->curODPhrase].end &&
@@ -370,7 +374,7 @@ static void handleInputs(Player *player, int lane, int action) {
 			bool noteMatch = (curNote.chord ? chordMatch : singleMatch);
 
 			if (!curNote.accounted && greaterThanNoteMatch && (curNote.phopo || curNote.pTap) && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch ) && lastNote.hit) {
-				curNote.Ghosted = true;
+				curNote.GhostCount += 1;
 				TraceLog(LOG_INFO, TextFormat("Ghosted note at %f. Input type: %01i (press = 1). Lane type: %01i. Held frets: %01i. Required frets: %01i. note %01i. Minimum for unghost: %01i",
 					eventTime,
 					action,
@@ -454,7 +458,7 @@ static void handleInputs(Player *player, int lane, int action) {
 			bool hitAsHopo = (noteMatch && curNote.phopo && (stats->Combo > 0 || stats->curNoteInt == 0));
 			bool hitAsTap = (curNote.pTap && noteMatch);
 
-			if ((hitAsHopo || hitAsTap) && !curNote.Ghosted) {
+			if ((hitAsHopo || hitAsTap) && curNote.GhostCount < 2) {
 				if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit && !curNote.
 					accounted) {
 					TraceLog(LOG_INFO, TextFormat("Note hit at %f as a HOPO, note %01i", eventTime, stats->curNoteInt));
@@ -495,10 +499,13 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 		int lane = -2;
 		if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
 			stats->Paused = !stats->Paused;
-			if (stats->Paused)
+			if (stats->Paused && !playerManager.BandStats.Multiplayer) {
 				audioManager.pauseStreams();
+				PauseTime = songTime;
+			}
 			else {
 				audioManager.unpauseStreams();
+				songTime = PauseTime - 3;
 				for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
 					handleInputs(player, i, -1);
 				}
@@ -824,19 +831,22 @@ void LoadCharts() {
 							LoadingState = BEATLINES;
 							songList.curSong->parseBeatLines(midiFile, track, midiFile[track]);
 						}
+						else if (trackName == "EVENTS") {
+							for (int forDiff = 0; forDiff < songList.curSong->parts[inst]->charts.size(); forDiff++) {
+								songList.curSong->parts[inst]->charts[forDiff].getSections(midiFile, track);
+							}
+						}
 						else {
 							if (songPart != SongParts::Invalid && songPart == inst) {
 								for (int forDiff = 0; forDiff < songList.curSong->parts[inst]->charts.size(); forDiff++) {
-									Chart &
-										chart = songList.curSong->parts[inst]->charts[forDiff];
+									Chart &chart = songList.curSong->parts[inst]->charts[forDiff];
 									if (chart.valid){
 										std::cout << trackName << " " << forDiff << endl;
 										LoadingState = NOTE_PARSING;
 										if (songPart == SongParts::PlasticBass
 											|| songPart == SongParts::PlasticGuitar || songPart == SongParts::PlasticKeys) {
 											chart.plastic = true;
-											chart.parsePlasticNotes(midiFile, track, midiFile[track],
-																	forDiff, (int) songPart, songList.curSong->hopoThreshold);
+											chart.parsePlasticNotes(midiFile, track, forDiff, (int) songPart, songList.curSong->hopoThreshold);
 											} else if (songPart == PlasticDrums) {
 												chart.plastic = true;
 												chart.parsePlasticDrums(midiFile, track, midiFile[track],
@@ -1175,6 +1185,11 @@ int main(int argc, char *argv[]) {
 			switch (menu.currentScreen) {	// NOTE: when adding a new Menu derivative, you must put its enum value in Screens,
 											// and its assignment in this switch/case. You will also add its case to the
 											// `ActiveMenu->Draw();` cases.
+				case RESULTS: {
+					ActiveMenu = new resultsMenu;
+					ActiveMenu->Load();
+					break;
+				}
 				case SOUND_TEST: {
 					ActiveMenu = new SoundTestMenu;
 					ActiveMenu->Load();
@@ -2976,12 +2991,12 @@ int main(int argc, char *argv[]) {
 				if (playerManager.PlayersActive > 0) {
 					playerManager.BandStats.Multiplayer = true;
 					for (int player = 0; player < playerManager.PlayersActive; player++) {
-						playerManager.GetActivePlayer(player)->stats->Multiplayer = true;;
+						playerManager.GetActivePlayer(player)->stats->Multiplayer = true;
 					}
 				} else {
 					playerManager.BandStats.Multiplayer = false;
 					for (int player = 0; player < playerManager.PlayersActive; player++) {
-						playerManager.GetActivePlayer(player)->stats->Multiplayer = false;;
+						playerManager.GetActivePlayer(player)->stats->Multiplayer = false;
 					}
 				}
 				DrawTextRHDI(scoreCommaFormatter(playerManager.BandStats.Score).c_str(),
@@ -3073,6 +3088,8 @@ int main(int argc, char *argv[]) {
 						isPlaying = false;
 						gpr.highwayInAnimation = false;
 						gpr.songEnded = true;
+						gpr.highwayLevel = 0;
+						gpr.audioStartTime = 0.0;
 						// songList.curSong->parts[player.Instrument]->charts[player.
 						//	diff].resetNotes();
 
@@ -3091,8 +3108,13 @@ int main(int argc, char *argv[]) {
 						//		AccentColor;
 						// assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color = player.
 						//		AccentColor;
+						if (streamsLoaded) {
+							audioManager.unloadStreams();
+							streamsLoaded = false;
+						}
 						menu.SwitchScreen(RESULTS);
 						TraceLog(LOG_INFO, TextFormat("Song ended at at %f", songPlayed));
+						break;
 					}
 				}
 				double songEnd =
@@ -3169,6 +3191,7 @@ int main(int argc, char *argv[]) {
 				//gpr.renderPos = 0;
 				//gpr.RenderGameplay(playerManager.GetActivePlayer(2), songFloat, songList.songs[curPlayingSong], highway_tex,
 				//					hud_tex, notes_tex, highwayStatus_tex, smasher_tex);
+
 
 
 				float SongNameWidth = MeasureTextEx(assets.rubikBoldItalic,
@@ -3256,190 +3279,170 @@ int main(int argc, char *argv[]) {
 				const char *textTime = TextFormat("%i:%02i / %i:%02i ", playedMinutes, playedSeconds,
 												songMinutes, songSeconds);
 				float textLength = MeasureTextEx(assets.rubik, textTime, u.hinpct(0.04f), 0).x;
-				/*
-				if (player.paused) {
-					DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{0, 0, 0, 80});
-					menu.DrawTopOvershell(0.2f);
-					GuiSetStyle(DEFAULT, TEXT_SIZE, (int) u.hinpct(0.08f));
-					GuiSetFont(assets.redHatDisplayBlack);
-					GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-					GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xaaaaaaFF);
-					GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
-					GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
-					GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
-					GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x00000000);
-					GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x00000000);
-					GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0x00000000);
-					GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0x00000000);
-					GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0x00000000);
-					GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x00000000);
-					GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
+				if (!playerManager.BandStats.Multiplayer) {
+					Player *player = playerManager.GetActivePlayer(0);
+					PlayerGameplayStats *stats = player->stats;
+					if (player->stats->Paused) {
+						DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{0, 0, 0, 80});
+						menu.DrawTopOvershell(0.2f);
+						GuiSetStyle(DEFAULT, TEXT_SIZE, (int) u.hinpct(0.08f));
+						GuiSetFont(assets.redHatDisplayBlack);
+						GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+						GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xaaaaaaFF);
+						GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
+						GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
+						GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
+						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x00000000);
+						GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x00000000);
+						GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0x00000000);
+						GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0x00000000);
+						GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0x00000000);
+						GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x00000000);
+						GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
 
-					if (GuiButton({u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f)},
-								"Resume")) {
-						audioManager.unpauseStreams();
-						player.paused = false;
+						if (GuiButton({u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f)},
+									"Resume")) {
+							audioManager.unpauseStreams();
+							stats->Paused = false;
+									}
+
+						if (GuiButton({u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.2f), u.hinpct(0.08f)},
+									"Restart")) {
+							songList.curSong->parts[player->Instrument]->charts[player->Difficulty].resetNotes();
+							gpr.startTime = GetTime();
+							stats->Overdrive = false;
+							stats->overdriveFill = 0.0f;
+							stats->overdriveActiveFill = 0.0f;
+							stats->overdriveActiveTime = 0.0;
+							stats->overdriveActivateTime = 0.0f;
+							gpr.highwayInAnimation = false;
+							stats->curODPhrase = 0;
+							stats->curNoteInt = 0;
+							stats->curSolo = 0;
+							stats->curNoteIdx = {0, 0, 0, 0, 0};
+							stats->curBeatLine = 0;
+							player->ResetGameplayStats();
+							assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+									assets.highwayTexture;
+							assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+									assets.highwayTexture;
+							assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets
+									.odMultFill;
+							assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+									assets.odMultFill;
+							assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+									assets.odMultFill;
+							assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+									DARKGRAY;
+							assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+									DARKGRAY;
+							for (auto &stream: audioManager.loadedStreams) {
+								audioManager.restartStreams();
+								stats->Paused = false;
+							}
+
+							startedPlayingSong = GetTime();
+									}
+						if (GuiButton({u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f)},
+									"Drop Out")) {
+							glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
+							glfwSetGamepadStateCallback(origGamepadCallback);
+							// notes = songList.curSong->parts[instrument]->charts[diff].notes.size();
+							// notes = songList.curSong->parts[instrument]->charts[diff];
+							menu.SwitchScreen(RESULTS);
+							songList.curSong->LoadAlbumArt();
+							stats->Overdrive = false;
+							stats->overdriveFill = 0.0f;
+							stats->overdriveActiveFill = 0.0f;
+							stats->overdriveActiveTime = 0.0;
+							stats->overdriveActivateTime = 0.0f;
+							stats->curNoteInt = 0;
+							stats->curODPhrase = 0;
+							stats->curSolo = 0;
+							gpr.highwayInAnimation = false;
+							stats->Paused = false;
+							assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+									assets.highwayTexture;
+							assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+									assets.highwayTexture;
+							assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets
+									.odMultFill;
+							assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+									assets.odMultFill;
+							assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+									assets.odMultFill;
+							assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+									DARKGRAY;
+							assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+									DARKGRAY;
+							midiLoaded = false;
+							isPlaying = false;
+							gpr.songEnded = true;
+							songList.curSong->parts[player->Instrument]->charts[player->Difficulty].resetNotes();
+							player->stats->Quit = true;
+							songAlbumArtLoadedGameplay = false;
+						}
+
+						GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+						GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
+									ColorToInt(ColorBrightness(Color{255, 0, 255, 255}, -0.5)));
+						GuiSetStyle(BUTTON, BASE_COLOR_PRESSED,
+									ColorToInt(ColorBrightness(Color{255, 0, 255, 255}, -0.3)));
+						GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
+						GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
+						GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
+						GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
+						GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
+						GuiSetFont(assets.rubik);
+						GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+
+						DrawTextEx(assets.rubikBoldItalic, "PAUSED", {u.wpct(0.02f), u.hpct(0.05f)},
+									u.hinpct(0.1f), 0, WHITE);
+
+						float SongFontSize = u.hinpct(0.03f);
+
+						const char *instDiffText = TextFormat(
+							"%s %s", diffList[player->Difficulty].c_str(),
+							songPartsList[player->Instrument].c_str());
+
+						float TitleHeight = MeasureTextEx(
+							assets.rubikBoldItalic, songList.curSong->title.c_str(), SongFontSize,
+							0).y;
+						float TitleWidth = MeasureTextEx(
+							assets.rubikBoldItalic, songList.curSong->title.c_str(), SongFontSize,
+							0).x;
+						float ArtistHeight = MeasureTextEx(
+							assets.rubikItalic, songList.curSong->artist.c_str(), SongFontSize, 0).y;
+						float ArtistWidth = MeasureTextEx(
+							assets.rubikItalic, songList.curSong->artist.c_str(), SongFontSize, 0).x;
+						float InstDiffHeight = MeasureTextEx(
+							assets.rubikBold, instDiffText, SongFontSize, 0).y;
+						float InstDiffWidth = MeasureTextEx(
+							assets.rubikBold, instDiffText, SongFontSize, 0).x;
+
+						Vector2 SongTitleBox = {
+							u.RightSide - TitleWidth - u.winpct(0.01f),
+							u.hpct(0.1f) - (ArtistHeight / 2) - (TitleHeight * 1.1f)
+						};
+						Vector2 SongArtistBox = {
+							u.RightSide - ArtistWidth - u.winpct(0.01f),
+							u.hpct(0.1f) - (ArtistHeight / 2)
+						};
+						Vector2 SongInstDiffBox = {
+							u.RightSide - InstDiffWidth - u.winpct(0.01f),
+							u.hpct(0.1f) + (ArtistHeight / 2) + (InstDiffHeight * 0.1f)
+						};
+
+						DrawTextEx(assets.rubikBoldItalic, songList.curSong->title.c_str(), SongTitleBox,
+									SongFontSize, 0, WHITE);
+						DrawTextEx(assets.rubikItalic, songList.curSong->artist.c_str(), SongArtistBox,
+									SongFontSize, 0, WHITE);
+						DrawTextEx(assets.rubikBold, instDiffText, SongInstDiffBox, SongFontSize, 0,
+									WHITE);
 					}
-
-					if (GuiButton({u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.2f), u.hinpct(0.08f)},
-								"Restart")) {
-						for (Note &note: songList.curSong->parts[player.instrument]
-							->charts[player.diff].notes) {
-							note.accounted = false;
-							note.hit = false;
-							note.miss = false;
-							note.held = false;
-							note.heldTime = 0;
-							note.hitTime = 0;
-							note.perfect = false;
-							note.countedForODPhrase = false;
-							note.hitWithFAS = false;
-							note.strumCount = 0;
-						}
-						for (odPhrase &phrase: songList.curSong->parts[player.
-								instrument]->charts[player.diff].odPhrases) {
-							phrase.missed = false;
-							phrase.notesHit = 0;
-							phrase.added = false;
-						}
-						for (solo &solo: songList.curSong->parts[player.instrument]
-							->charts[player.diff].Solos) {
-							solo.notesHit = 0;
-						}
-						gpr.songStartTime = GetTime();
-						player.overdrive = false;
-						player.overdriveFill = 0.0f;
-						player.overdriveActiveFill = 0.0f;
-						player.overdriveActiveTime = 0.0;
-						player.overdriveActivateTime = 0.0f;
-						gpr.highwayInAnimation = false;
-						gpr.curODPhrase = 0;
-						gpr.curNoteInt = 0;
-						gpr.curSolo = 0;
-						gpr.curNoteIdx = {0, 0, 0, 0, 0};
-						gpr.curBeatLine = 0;
-						player.resetPlayerStats();
-						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-								assets.highwayTexture;
-						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-								assets.highwayTexture;
-						assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets
-								.odMultFill;
-						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-								assets.odMultFill;
-						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-								assets.odMultFill;
-						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-								DARKGRAY;
-						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-								DARKGRAY;
-						for (auto &stream: audioManager.loadedStreams) {
-							audioManager.restartStreams();
-							player.paused = false;
-						}
-
-						startedPlayingSong = GetTime();
-					}
-					if (GuiButton({u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f)},
-								"Drop Out")) {
-						glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-						glfwSetGamepadStateCallback(origGamepadCallback);
-						// notes = songList.curSong->parts[instrument]->charts[diff].notes.size();
-						// notes = songList.curSong->parts[instrument]->charts[diff];
-						menu.SwitchScreen(RESULTS);
-						menu.ChosenSong.LoadAlbumArt(menu.ChosenSong.albumArtPath);
-						player.overdrive = false;
-						player.overdriveFill = 0.0f;
-						player.overdriveActiveFill = 0.0f;
-						player.overdriveActiveTime = 0.0;
-						player.overdriveActivateTime = 0.0f;
-						gpr.curNoteInt = 0;
-						gpr.curODPhrase = 0;
-						gpr.curSolo = 0;
-						gpr.highwayInAnimation = false;
-						player.paused = false;
-						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-								assets.highwayTexture;
-						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-								assets.highwayTexture;
-						assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture = assets
-								.odMultFill;
-						assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-								assets.odMultFill;
-						assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-								assets.odMultFill;
-						assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-								DARKGRAY;
-						assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-								DARKGRAY;
-						midiLoaded = false;
-						isPlaying = false;
-						gpr.songEnded = true;
-						songList.curSong->parts[player.instrument]->charts[player.
-							diff].resetNotes();
-						player.quit = true;
-						songAlbumArtLoadedGameplay = false;
-					}
-
-					GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-					GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED,
-								ColorToInt(ColorBrightness(Color{255, 0, 255, 255}, -0.5)));
-					GuiSetStyle(BUTTON, BASE_COLOR_PRESSED,
-								ColorToInt(ColorBrightness(Color{255, 0, 255, 255}, -0.3)));
-					GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
-					GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
-					GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
-					GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
-					GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
-					GuiSetFont(assets.rubik);
-					GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-
-					DrawTextEx(assets.rubikBoldItalic, "PAUSED", {u.wpct(0.02f), u.hpct(0.05f)},
-								u.hinpct(0.1f), 0, WHITE);
-
-					float SongFontSize = u.hinpct(0.03f);
-
-					const char *instDiffText = TextFormat(
-						"%s %s", diffList[player.diff].c_str(),
-						songPartsList[player.instrument].c_str());
-
-					float TitleHeight = MeasureTextEx(
-						assets.rubikBoldItalic, menu.ChosenSong.title.c_str(), SongFontSize,
-						0).y;
-					float TitleWidth = MeasureTextEx(
-						assets.rubikBoldItalic, menu.ChosenSong.title.c_str(), SongFontSize,
-						0).x;
-					float ArtistHeight = MeasureTextEx(
-						assets.rubikItalic, menu.ChosenSong.artist.c_str(), SongFontSize, 0).y;
-					float ArtistWidth = MeasureTextEx(
-						assets.rubikItalic, menu.ChosenSong.artist.c_str(), SongFontSize, 0).x;
-					float InstDiffHeight = MeasureTextEx(
-						assets.rubikBold, instDiffText, SongFontSize, 0).y;
-					float InstDiffWidth = MeasureTextEx(
-						assets.rubikBold, instDiffText, SongFontSize, 0).x;
-
-					Vector2 SongTitleBox = {
-						u.RightSide - TitleWidth - u.winpct(0.01f),
-						u.hpct(0.1f) - (ArtistHeight / 2) - (TitleHeight * 1.1f)
-					};
-					Vector2 SongArtistBox = {
-						u.RightSide - ArtistWidth - u.winpct(0.01f),
-						u.hpct(0.1f) - (ArtistHeight / 2)
-					};
-					Vector2 SongInstDiffBox = {
-						u.RightSide - InstDiffWidth - u.winpct(0.01f),
-						u.hpct(0.1f) + (ArtistHeight / 2) + (InstDiffHeight * 0.1f)
-					};
-
-					DrawTextEx(assets.rubikBoldItalic, menu.ChosenSong.title.c_str(), SongTitleBox,
-								SongFontSize, 0, WHITE);
-					DrawTextEx(assets.rubikItalic, menu.ChosenSong.artist.c_str(), SongArtistBox,
-								SongFontSize, 0, WHITE);
-					DrawTextEx(assets.rubikBold, instDiffText, SongInstDiffBox, SongFontSize, 0,
-								WHITE);
 				}
 
-				*/
+
 				menu.DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
 				menu.DrawVersion();
 
@@ -3511,28 +3514,7 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 			case RESULTS: {
-				if (streamsLoaded) {
-					audioManager.unloadStreams();
-					streamsLoaded = false;
-
-				}
-
-
-				menu.DrawAlbumArtBackground(songList.curSong->albumArtBlur);
-				menu.showResults();
-				overshellRenderer.DrawOvershell();
-				if (GuiButton({0, 0, 60, 60}, "<")) {
-					// player.quit = false;
-					for (int PlayersToReset = 0; PlayersToReset < playerManager.PlayersActive; PlayersToReset++) {
-						Player *player = playerManager.GetActivePlayer(PlayersToReset);
-						player->ResetGameplayStats();
-						songList.curSong->parts[player->Instrument]->charts[player->Difficulty].resetNotes();
-						gpr.highwayLevel = 0;
-						gpr.audioStartTime = 0.0;
-					}
-					playerManager.BandStats.ResetBandGameplayStats();
-					menu.SwitchScreen(SONG_SELECT);
-				}
+				ActiveMenu->Draw();
 				break;
 			}
 			case CHART_LOADING_SCREEN: {

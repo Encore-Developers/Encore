@@ -13,11 +13,7 @@ class cacheLoadingScreen : public Menu {
 	Font RedHatDisplay;
 	Font RubikBold;
 	Font JosefinSansItalic;
-	Shader sdfShader;
 	int SplashSel;
-	void DrawTextRedHatDisplay(const char* text, float posX, float posY, float fontSize, Color color);
-	void DrawTextRubikBold(const char* text, float posX, float posY, float fontSize, Color color);
-	void DrawTextJosefinSansItalic(const char* text, float posX, float posY, float fontSize, Color color);
 	Texture2D LoadingScreenBackground;
 public:
 	cacheLoadingScreen();

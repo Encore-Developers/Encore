@@ -97,6 +97,7 @@ public:
     int curSolo = 0;
     int curFill = 0;
     int curNoteInt = 0;
+    int curSection = 0;
 
     double lastAxesTime = 0.0;
     std::vector<float> axesValues{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
