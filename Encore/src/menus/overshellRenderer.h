@@ -6,13 +6,10 @@
 #define OVERSHELLRENDERER_H
 #include "users/player.h"
 
-
 class OvershellRenderer {
-	public:
-	int AvailableControllers = 0; //keyb is always available
-	void DrawOvershell();
+public:
+    int AvailableControllers = 0; // keyb is always available
+    void DrawOvershell();
 };
 
-
-
-#endif //OVERSHELLRENDERER_H
+#endif // OVERSHELLRENDERER_H

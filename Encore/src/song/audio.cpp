@@ -4,10 +4,10 @@
 #include "GLFW/glfw3.h"
 
 #ifdef WIN32
-    #define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
 #elif __linux__
-    #include <X11/Xlib.h>
-    #define GLFW_EXPOSE_NATIVE_X11
+#include <X11/Xlib.h>
+#define GLFW_EXPOSE_NATIVE_X11
 #endif
 
 #include "GLFW/glfw3native.h"
@@ -16,20 +16,24 @@
 #include <iostream>
 
 // Error checking macro
-#define CHECK_BASS_ERROR() { \
-    int errorCode = BASS_ErrorGetCode(); \
-    if (errorCode != BASS_OK) { \
-        std::cerr << "BASS error " << errorCode << " at line " << __LINE__ << std::endl; \
-        return false; \
-    } \
-}
+#define CHECK_BASS_ERROR()                                                               \
+    {                                                                                    \
+        int errorCode = BASS_ErrorGetCode();                                             \
+        if (errorCode != BASS_OK) {                                                      \
+            std::cerr << "BASS error " << errorCode << " at line " << __LINE__           \
+                      << std::endl;                                                      \
+            return false;                                                                \
+        }                                                                                \
+    }
 
-#define CHECK_BASS_ERROR2() { \
-    int errorCode = BASS_ErrorGetCode(); \
-    if (errorCode != BASS_OK) { \
-        std::cerr << "BASS error " << errorCode << " at line " << __LINE__ << std::endl; \
-    } \
-}
+#define CHECK_BASS_ERROR2()                                                              \
+    {                                                                                    \
+        int errorCode = BASS_ErrorGetCode();                                             \
+        if (errorCode != BASS_OK) {                                                      \
+            std::cerr << "BASS error " << errorCode << " at line " << __LINE__           \
+                      << std::endl;                                                      \
+        }                                                                                \
+    }
 
 bool AudioManager::Init() {
 #ifdef WIN32
@@ -53,16 +57,22 @@ bool AudioManager::Init() {
     return true;
 }
 
-void AudioManager::loadStreams(std::vector<std::pair<std::string, int>>& paths) {
+void AudioManager::loadStreams(std::vector<std::pair<std::string, int> > &paths) {
     int streams = 0;
-    for (auto& path : paths) {
+    for (auto &path : paths) {
         HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
         if (streamHandle) {
             loadedStreams.emplace_back(streamHandle, path.second);
             if (streams != 0) {
-                BASS_ChannelSetLink(loadedStreams[0].handle, loadedStreams[streams].handle);
-                if (BASS_ChannelFlags(streamHandle, 0, 0) & BASS_SAMPLE_LOOP) // looping is currently enabled
-                    BASS_ChannelFlags(streamHandle, 0, BASS_SAMPLE_LOOP); // remove the LOOP flag
+                BASS_ChannelSetLink(
+                    loadedStreams[0].handle, loadedStreams[streams].handle
+                );
+                if (BASS_ChannelFlags(streamHandle, 0, 0) & BASS_SAMPLE_LOOP) // looping
+                                                                              // is
+                                                                              // currently
+                                                                              // enabled
+                    BASS_ChannelFlags(streamHandle, 0, BASS_SAMPLE_LOOP); // remove the
+                                                                          // LOOP flag
             }
             streams++;
         } else {
@@ -74,7 +84,7 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int>>& paths) 
 
 void AudioManager::unloadStreams() {
     if (!loadedStreams.empty()) {
-        for (auto& stream : loadedStreams) {
+        for (auto &stream : loadedStreams) {
             StopPlayback(stream.handle);
             BASS_StreamFree(stream.handle);
         }
@@ -97,7 +107,7 @@ void AudioManager::playStreams() {
 
 void AudioManager::restartStreams() {
     if (!loadedStreams.empty()) {
-        for (auto& stream : loadedStreams) {
+        for (auto &stream : loadedStreams) {
             BASS_ChannelSetPosition(stream.handle, 0, BASS_POS_BYTE);
         }
         BASS_ChannelPlay(loadedStreams[0].handle, true);
@@ -106,11 +116,14 @@ void AudioManager::restartStreams() {
 
 void AudioManager::unpauseStreams() {
     if (!loadedStreams.empty()) {
-        for (auto& stream : loadedStreams) {
+        for (auto &stream : loadedStreams) {
             int rewindTimeBytes = BASS_ChannelSeconds2Bytes(stream.handle, 3.0);
-            int channelPositionBytes = BASS_ChannelGetPosition(stream.handle, BASS_POS_BYTE);
+            int channelPositionBytes =
+                BASS_ChannelGetPosition(stream.handle, BASS_POS_BYTE);
 
-            int position = channelPositionBytes <= rewindTimeBytes ? 0 : channelPositionBytes - rewindTimeBytes;
+            int position = channelPositionBytes <= rewindTimeBytes
+                ? 0
+                : channelPositionBytes - rewindTimeBytes;
 
             BASS_ChannelSetPosition(stream.handle, position, BASS_POS_BYTE);
         }
@@ -119,12 +132,18 @@ void AudioManager::unpauseStreams() {
 }
 
 double AudioManager::GetMusicTimePlayed() {
-    return BASS_ChannelBytes2Seconds(loadedStreams[0].handle, BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE));
+    return BASS_ChannelBytes2Seconds(
+        loadedStreams[0].handle,
+        BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE)
+    );
     CHECK_BASS_ERROR2();
 }
 
 double AudioManager::GetMusicTimeLength() {
-    return BASS_ChannelBytes2Seconds(loadedStreams[0].handle, BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE));
+    return BASS_ChannelBytes2Seconds(
+        loadedStreams[0].handle,
+        BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE)
+    );
     CHECK_BASS_ERROR2();
 }
 
@@ -148,7 +167,7 @@ void AudioManager::StopPlayback(unsigned int handle) {
     CHECK_BASS_ERROR2();
 }
 
-void AudioManager::loadSample(const std::string& path, const std::string& name) {
+void AudioManager::loadSample(const std::string &path, const std::string &name) {
     HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 1, 0);
     if (sample) {
         samples[name] = sample;
@@ -157,7 +176,7 @@ void AudioManager::loadSample(const std::string& path, const std::string& name) 
     }
 }
 
-void AudioManager::playSample(const std::string& name, float volume) {
+void AudioManager::playSample(const std::string &name, float volume) {
     auto it = samples.find(name);
     if (it != samples.end()) {
         HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
@@ -168,7 +187,7 @@ void AudioManager::playSample(const std::string& name, float volume) {
     }
 }
 
-void AudioManager::unloadSample(const std::string& name) {
+void AudioManager::unloadSample(const std::string &name) {
     auto it = samples.find(name);
     if (it != samples.end()) {
         BASS_SampleFree(it->second);

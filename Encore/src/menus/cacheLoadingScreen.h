@@ -7,21 +7,19 @@
 #include "menu.h"
 #include "raylib.h"
 
-
 class cacheLoadingScreen : public Menu {
-	Texture2D encoreLogo;
-	Font RedHatDisplay;
-	Font RubikBold;
-	Font JosefinSansItalic;
-	int SplashSel;
-	Texture2D LoadingScreenBackground;
+    Texture2D encoreLogo;
+    Font RedHatDisplay;
+    Font RubikBold;
+    Font JosefinSansItalic;
+    int SplashSel;
+    Texture2D LoadingScreenBackground;
+
 public:
-	cacheLoadingScreen();
-	virtual ~cacheLoadingScreen();
-	virtual void Draw();
-	virtual void Load();
+    cacheLoadingScreen();
+    virtual ~cacheLoadingScreen();
+    virtual void Draw();
+    virtual void Load();
 };
 
-
-
-#endif //CACHELOADINGSCREEN_H
+#endif // CACHELOADINGSCREEN_H

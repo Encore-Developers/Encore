@@ -10,11 +10,11 @@
 class SoundTestMenu : public Menu {
     std::vector<std::string> mSoundIds;
     Font mFont;
-    public:
+
+public:
     SoundTestMenu();
     virtual ~SoundTestMenu();
 
     virtual void Draw();
     virtual void Load();
-
 };

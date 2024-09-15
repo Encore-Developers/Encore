@@ -20,30 +20,28 @@
  kinda just makin the points and then connecting them later to fit into Encore itself
  this shouldnt exactly impede on builds yet i think
  also yes i know i should probably put the band and player stuff in their own headers
- ill do that later once i got this theorized. already have band.h made so once i get to that point ill slap it there
- its just here for convenience.
+ ill do that later once i got this theorized. already have band.h made so once i get to
+ that point ill slap it there its just here for convenience.
 
 
 */
 
-// realizing how i could just make a "SelectableEntity" class and then extend Band and Player from it instead of having
-// the logic rewritten between the two
-
-
+// realizing how i could just make a "SelectableEntity" class and then extend Band and
+// Player from it instead of having the logic rewritten between the two
 
 // acts as an individual save-file
 
-
 // acts like a system-wide save-file
 // think AC:NH islands
-// note: will we really have PVP stuff? like. thinking like RB3 here, would there be PVP attributed to bands?
-// cuz i think it would severely complicate it if PvP stuff was more "oh this band won with these players" instead of
-// just noting in a save file "p1 and p3 worked together and won against p2 and p4" instead of "band 1 with p1 and p3 won
-// over band 2 with p2 and p4, especially when that stuff will probably add a win count to players who didnt even
-// participate but won (because they were part of the band)
-// literally every team game i can think of thats pvp doesnt really do this unless its strict about teams i think
-// correct me if im wrong
-// still would be useful for co-op band stuff
+// note: will we really have PVP stuff? like. thinking like RB3 here, would there be PVP
+// attributed to bands? cuz i think it would severely complicate it if PvP stuff was more
+// "oh this band won with these players" instead of just noting in a save file "p1 and p3
+// worked together and won against p2 and p4" instead of "band 1 with p1 and p3 won over
+// band 2 with p2 and p4, especially when that stuff will probably add a win count to
+// players who didnt even participate but won (because they were part of the band)
+// literally every team game i can think of thats pvp doesnt really do this unless its
+// strict about teams i think correct me if im wrong still would be useful for co-op band
+// stuff
 class Band {
     std::filesystem::path ScoreFile;
     bool SoloGameplay = true; // to be true until multiple players
@@ -66,7 +64,6 @@ class PlayerGameplayStats {
 public:
     PlayerGameplayStats();
 
-
     bool Quit;
     bool FC;
     bool Paused;
@@ -83,11 +80,11 @@ public:
     int PerfectHit;
     int NotesMissed;
 
-    std::vector<bool> HeldFrets{ false,false,false,false,false };
-    std::vector<bool> HeldFretsAlt{ false,false,false,false,false };
-    std::vector<bool> OverhitFrets{ false,false,false,false,false };
-    std::vector<bool> TapRegistered{ false,false,false,false,false };
-    std::vector<bool> LiftRegistered{ false,false,false,false,false };
+    std::vector<bool> HeldFrets { false, false, false, false, false };
+    std::vector<bool> HeldFretsAlt { false, false, false, false, false };
+    std::vector<bool> OverhitFrets { false, false, false, false, false };
+    std::vector<bool> TapRegistered { false, false, false, false, false };
+    std::vector<bool> LiftRegistered { false, false, false, false, false };
     double StartTime = 0.0;
     double SongStartTime = 0.0;
 
@@ -100,9 +97,9 @@ public:
     int curSection = 0;
 
     double lastAxesTime = 0.0;
-    std::vector<float> axesValues{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    std::vector<int> buttonValues{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    std::vector<float> axesValues2{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    std::vector<float> axesValues { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+    std::vector<int> buttonValues { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    std::vector<float> axesValues2 { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
     int pressedGamepadInput = -999;
     int axisDirection = -1;
     bool FAS = false;
@@ -117,12 +114,11 @@ public:
     bool overdriveAltHeld = false;
     bool overdriveHitAvailable = false;
     bool overdriveLiftAvailable = false;
-    std::vector<bool> overdriveLanesHit{false, false, false, false, false};
+    std::vector<bool> overdriveLanesHit { false, false, false, false, false };
     double overdriveHitTime = 0.0;
-    std::vector<int> lastHitLifts{-1, -1, -1, -1, -1};
+    std::vector<int> lastHitLifts { -1, -1, -1, -1, -1 };
 
-
-    std::vector<int> curNoteIdx = { 0,0,0,0,0 };
+    std::vector<int> curNoteIdx = { 0, 0, 0, 0, 0 };
 
     float Health;
     Chart CurPlayingChart;
@@ -135,7 +131,7 @@ public:
     int Instrument;
     int Difficulty;
     int BaseScore;
-    float xStarThreshold[6] = { 0.05f, 0.175f, 0.325f, 0.5f, 0.7f,  1.0f };
+    float xStarThreshold[6] = { 0.05f, 0.175f, 0.325f, 0.5f, 0.7f, 1.0f };
 
     void HitNote(bool perfect) {
         NotesHit += 1;
@@ -197,29 +193,40 @@ public:
     }
 
     int maxMultForMeter() {
-        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+            || Instrument == PLASTIC_BASS)
             return 5;
         else
             return 3;
     }
 
     int maxComboForMeter() {
-        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+            || Instrument == PLASTIC_BASS)
             return 50;
         else
             return 30;
     }
 
     int Stars() {
-        float starPercent = (float)Score/(float)BaseScore;
-        if (starPercent < xStarThreshold[0]) {return 0;}
-        else if (starPercent < xStarThreshold[1]) { return 1; }
-        else if (starPercent < xStarThreshold[2]) {return 2;}
-        else if (starPercent < xStarThreshold[3]) {return 3;}
-        else if (starPercent < xStarThreshold[4]) {return 4;}
-        else if (starPercent < xStarThreshold[5]) {return 5;}
-        else if (starPercent >= xStarThreshold[5]) { GoldStars = true; return 5; }
-        else return 5;
+        float starPercent = (float)Score / (float)BaseScore;
+        if (starPercent < xStarThreshold[0]) {
+            return 0;
+        } else if (starPercent < xStarThreshold[1]) {
+            return 1;
+        } else if (starPercent < xStarThreshold[2]) {
+            return 2;
+        } else if (starPercent < xStarThreshold[3]) {
+            return 3;
+        } else if (starPercent < xStarThreshold[4]) {
+            return 4;
+        } else if (starPercent < xStarThreshold[5]) {
+            return 5;
+        } else if (starPercent >= xStarThreshold[5]) {
+            GoldStars = true;
+            return 5;
+        } else
+            return 5;
 
         return 0;
     }
@@ -230,74 +237,141 @@ public:
     int multiplier() {
         int od = Overdrive ? 2 : 1;
 
-        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS){
-
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5f:0); return 1 * od; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 2 * od; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0);  return 3 * od; }
-            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive ? 0.5f : 0); return 4 * od; }
-            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0); return 5 * od; }
-            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0); return 6 * od; }
-            else { return 1 * od; };
-        }
-        else {
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 1 * od; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 2 * od; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 3 * od; }
-            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0 + (Overdrive ? 0.5 : 0); return 4 * od; }
-            else { return 1 * od; }
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+            || Instrument == PLASTIC_BASS) {
+            if (Combo < 10) {
+                uvOffsetX = 0;
+                uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+                return 1 * od;
+            } else if (Combo < 20) {
+                uvOffsetX = 0.25f;
+                uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+                return 2 * od;
+            } else if (Combo < 30) {
+                uvOffsetX = 0.5f;
+                uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+                return 3 * od;
+            } else if (Combo < 40) {
+                uvOffsetX = 0.75f;
+                uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+                return 4 * od;
+            } else if (Combo < 50) {
+                uvOffsetX = 0;
+                uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0);
+                return 5 * od;
+            } else if (Combo >= 50) {
+                uvOffsetX = 0.25f;
+                uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0);
+                return 6 * od;
+            } else {
+                return 1 * od;
+            };
+        } else {
+            if (Combo < 10) {
+                uvOffsetX = 0;
+                uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+                return 1 * od;
+            } else if (Combo < 20) {
+                uvOffsetX = 0.25f;
+                uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+                return 2 * od;
+            } else if (Combo < 30) {
+                uvOffsetX = 0.5f;
+                uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+                return 3 * od;
+            } else if (Combo >= 30) {
+                uvOffsetX = 0.75f;
+                uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+                return 4 * od;
+            } else {
+                return 1 * od;
+            }
         };
     }
 
     int noODmultiplier() {
-
-        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS){
-
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0;  return 2; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0;  return 3; }
-            else if (Combo < 40) { uvOffsetX = 0.75f; uvOffsetY = 0; return 4; }
-            else if (Combo < 50) { uvOffsetX = 0; uvOffsetY = 0.25f; return 5; }
-            else if (Combo >= 50) { uvOffsetX = 0.25f; uvOffsetY = 0.25f; return 6; }
-            else { return 1; };
-        }
-        else {
-            if (Combo < 10) { uvOffsetX = 0; uvOffsetY = 0; return 1; }
-            else if (Combo < 20) { uvOffsetX = 0.25f; uvOffsetY = 0; return 2; }
-            else if (Combo < 30) { uvOffsetX = 0.5f; uvOffsetY = 0; return 3; }
-            else if (Combo >= 30) { uvOffsetX = 0.75f; uvOffsetY = 0; return 4; }
-            else { return 1; }
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+            || Instrument == PLASTIC_BASS) {
+            if (Combo < 10) {
+                uvOffsetX = 0;
+                uvOffsetY = 0;
+                return 1;
+            } else if (Combo < 20) {
+                uvOffsetX = 0.25f;
+                uvOffsetY = 0;
+                return 2;
+            } else if (Combo < 30) {
+                uvOffsetX = 0.5f;
+                uvOffsetY = 0;
+                return 3;
+            } else if (Combo < 40) {
+                uvOffsetX = 0.75f;
+                uvOffsetY = 0;
+                return 4;
+            } else if (Combo < 50) {
+                uvOffsetX = 0;
+                uvOffsetY = 0.25f;
+                return 5;
+            } else if (Combo >= 50) {
+                uvOffsetX = 0.25f;
+                uvOffsetY = 0.25f;
+                return 6;
+            } else {
+                return 1;
+            };
+        } else {
+            if (Combo < 10) {
+                uvOffsetX = 0;
+                uvOffsetY = 0;
+                return 1;
+            } else if (Combo < 20) {
+                uvOffsetX = 0.25f;
+                uvOffsetY = 0;
+                return 2;
+            } else if (Combo < 30) {
+                uvOffsetX = 0.5f;
+                uvOffsetY = 0;
+                return 3;
+            } else if (Combo >= 30) {
+                uvOffsetX = 0.75f;
+                uvOffsetY = 0;
+                return 4;
+            } else {
+                return 1;
+            }
         };
     }
 
-    bool IsBassOrVox(){
-        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS) {
+    bool IsBassOrVox() {
+        if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+            || Instrument == PLASTIC_BASS) {
             return true;
         } else {
             return false;
         }
-
     }
 
     float comboFillCalc() {
         if (Combo == 0) {
             return 0;
         }
-        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD || Instrument == PLASTIC_KEYS ) {
+        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD
+            || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD
+            || Instrument == PLASTIC_KEYS) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
             if (Combo >= 30) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0
-            }
-            else {
+            } else {
                 int ComboMod = Combo % 10;
                 if (ComboMod == 0)
                     return 1.0f;
                 else {
-                    return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to 0.9 every 10 notes
+                    return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0
+                                                                   // to 0.9 every 10
+                                                                   // notes
                 }
             }
-        }
-        else {
+        } else {
             if (Combo >= 50) {
                 return 1.0f; // If combo is 30 or more, set float value to 1.0
             }
@@ -306,21 +380,21 @@ public:
             if (ComboMod == 0)
                 return 1.0f;
             else {
-                return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to 0.9 every 10 notes
+                return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to
+                                                               // 0.9 every 10 notes
             }
         }
     }
-
 };
 
 class Player {
 public:
     Player();
-    Color AccentColor = {255,0,255,255};
-    std::string Name;       // display name
-    std::string PlayerID;   // UUID
+    Color AccentColor = { 255, 0, 255, 255 };
+    std::string Name; // display name
+    std::string PlayerID; // UUID
     // std::filesystem::path SettingsFile;
-    PlayerGameplayStats* stats;
+    PlayerGameplayStats *stats;
     int Difficulty;
     int Instrument;
     float InputCalibration = 0.0f;
@@ -355,19 +429,28 @@ public:
     void ResetBandGameplayStats();
     bool EligibleForGoldStars = false;
     bool Multiplayer = false;
-    std::vector<int> OverdriveMultiplier{1,2,4,6,8};
+    std::vector<int> OverdriveMultiplier { 1, 2, 4, 6, 8 };
     int PlayersInOverdrive = 0;
     void AddNotePoint(bool perfect, int playerMult);
     int Stars() {
-        float starPercent = (float)Score/(float)BaseScore;
-        if (starPercent < xStarThreshold[0]) {return 0;}
-        else if (starPercent < xStarThreshold[1]) { return 1; }
-        else if (starPercent < xStarThreshold[2]) {return 2;}
-        else if (starPercent < xStarThreshold[3]) {return 3;}
-        else if (starPercent < xStarThreshold[4]) {return 4;}
-        else if (starPercent < xStarThreshold[5]) {return 5;}
-        else if (starPercent >= xStarThreshold[5] && EligibleForGoldStars) { GoldStars = true; return 5; }
-        else return 5;
+        float starPercent = (float)Score / (float)BaseScore;
+        if (starPercent < xStarThreshold[0]) {
+            return 0;
+        } else if (starPercent < xStarThreshold[1]) {
+            return 1;
+        } else if (starPercent < xStarThreshold[2]) {
+            return 2;
+        } else if (starPercent < xStarThreshold[3]) {
+            return 3;
+        } else if (starPercent < xStarThreshold[4]) {
+            return 4;
+        } else if (starPercent < xStarThreshold[5]) {
+            return 5;
+        } else if (starPercent >= xStarThreshold[5] && EligibleForGoldStars) {
+            GoldStars = true;
+            return 5;
+        } else
+            return 5;
 
         return 0;
     }
@@ -378,29 +461,29 @@ public:
 
 class PlayerManager {
     PlayerManager() {}
-public:
 
-    static PlayerManager& getInstance() {
+public:
+    static PlayerManager &getInstance() {
         static PlayerManager instance; // This is the single instance
         return instance;
     }
 
     // Delete copy constructor and assignment operator
-    PlayerManager(const PlayerManager&) = delete;
-    void operator=(const PlayerManager&) = delete;
+    PlayerManager(const PlayerManager &) = delete;
+    void operator=(const PlayerManager &) = delete;
 
     void MakePlayerDirectory(); // run on initialization?
-    void LoadPlayerList(std::filesystem::path PlayerListSaveFile); // make player, load player stuff to PlayerList
+    void LoadPlayerList(std::filesystem::path PlayerListSaveFile); // make player, load
+                                                                   // player stuff to
+                                                                   // PlayerList
     void SavePlayerList(std::filesystem::path PlayerListSaveFile);
     BandGameplayStats BandStats = BandGameplayStats();
     rapidjson::Document PlayerListFile;
     std::vector<Player> PlayerList;
-    std::vector<int> ActivePlayers{-1,-1,-1,-1};
+    std::vector<int> ActivePlayers { -1, -1, -1, -1 };
     int PlayersActive = 0;
 
-    Player* GetActivePlayer(int slot) {
-        return &PlayerList[ActivePlayers[slot]];
-    }
+    Player *GetActivePlayer(int slot) { return &PlayerList[ActivePlayers[slot]]; }
 
     void AddActivePlayer(int playerNum, int slot) {
         ActivePlayers[slot] = playerNum;
@@ -412,8 +495,8 @@ public:
         PlayersActive -= 1;
     }
 
-    Player* GetPlayerGamepad(int joystickID) {
-        for (int playesr = 0 ; playesr < PlayersActive; playesr++) {
+    Player *GetPlayerGamepad(int joystickID) {
+        for (int playesr = 0; playesr < PlayersActive; playesr++) {
             if (GetActivePlayer(playesr)->joypadID == joystickID) {
                 return GetActivePlayer(playesr);
             }
@@ -426,6 +509,4 @@ public:
     void RenamePlayer(Player PlayerToRename); // rename player
 };
 
-
-
-#endif //ENCORE_PLAYER_H
+#endif // ENCORE_PLAYER_H

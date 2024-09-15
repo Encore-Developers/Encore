@@ -12,7 +12,12 @@ struct LerpState {
 
 class Lerp {
 public:
-    LerpState createLerp(std::string key, easing_functions ease, float duration, bool startAutomatically = true);
+    LerpState createLerp(
+        std::string key,
+        easing_functions ease,
+        float duration,
+        bool startAutomatically = true
+    );
     void removeLerp(std::string key);
     void startLerp(std::string key);
     void updateStates();
