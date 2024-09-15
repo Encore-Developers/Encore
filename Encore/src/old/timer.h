@@ -16,5 +16,4 @@ class Timers {
     double TimerElapsed(Timer timer);
 };
 
-
-#endif //ENCORE_TIMER_H
+#endif // ENCORE_TIMER_H

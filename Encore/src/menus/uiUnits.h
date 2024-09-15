@@ -9,22 +9,22 @@
 
 class Units {
     Units() {}
-public:
 
-    static Units& getInstance() {
+public:
+    static Units &getInstance() {
         static Units instance; // This is the single instance
         return instance;
     }
 
-float RightBorder;
-float RightSide;
-float LeftBorder;
-float LeftSide;
+    float RightBorder;
+    float RightSide;
+    float LeftBorder;
+    float LeftSide;
 
-float BottomBorder;
-float BottomSide;
-float TopBorder;
-float TopSide;
+    float BottomBorder;
+    float BottomSide;
+    float TopBorder;
+    float TopSide;
 
     void calcUnits();
     // usable height
@@ -35,4 +35,4 @@ float TopSide;
     float winpct(float pct);
 };
 
-#endif //ENCORE_UIUNITS_H
+#endif // ENCORE_UIUNITS_H

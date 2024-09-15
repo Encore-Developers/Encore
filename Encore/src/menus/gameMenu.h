@@ -22,17 +22,10 @@ enum Screens {
 };
 
 class GameMenu {
-    template<typename CharT>
-    struct Separators : public std::numpunct<CharT>
-    {
-        virtual std::string do_grouping()
-        const
-        {
-            return "\003";
-        }
+    template <typename CharT>
+    struct Separators : public std::numpunct<CharT> {
+        virtual std::string do_grouping() const { return "\003"; }
     };
-
-
 
 public:
     GameMenu() {};
@@ -44,7 +37,7 @@ public:
 
     static std::string scoreCommaFormatter(int value) {
         std::stringstream ss;
-        ss.imbue(std::locale(std::cout.getloc(), new Separators <char>()));
+        ss.imbue(std::locale(std::cout.getloc(), new Separators<char>()));
         ss << std::fixed << value;
         return ss.str();
     }
@@ -53,14 +46,15 @@ public:
     static void DrawBottomBottomOvershell();
     static Texture2D LoadTextureFilter(const std::filesystem::path &texturePath);
     static Font LoadFontFilter(const std::filesystem::path &fontPath);
-    static void mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color);
+    static void
+    mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color);
     static void DrawFPS(int posX, int posY);
     static void DrawVersion();
     // drawing helper functions for other menus
 
     bool hehe = false;
     Screens currentScreen = CACHE_LOADING_SCREEN;
-    bool songsLoaded{};
+    bool songsLoaded {};
     bool streamsLoaded = false;
     bool streamsPaused = false;
     bool stringChosen = false;
@@ -72,8 +66,6 @@ public:
     void SwitchScreen(Screens screen);
     static void DrawAlbumArtBackground(Texture2D song);
     bool songChosen = false;
-
-
 };
 
 extern GameMenu TheGameMenu;

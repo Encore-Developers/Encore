@@ -3,33 +3,31 @@
 #include <filesystem>
 #include <vector>
 
-
-
 class Assets {
 private:
     Assets() {}
     std::vector<Image> images;
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-    Font LoadFontFilter(const std::filesystem::path& fontPath, int fontSize, int& loadedAssets);
+    Font
+    LoadFontFilter(const std::filesystem::path &fontPath, int fontSize, int &loadedAssets);
+
 public:
-    static Assets& getInstance() {
+    static Assets &getInstance() {
         static Assets instance; // This is the single instance
         return instance;
     }
 
-    void setDirectory(std::filesystem::path assetsDirectory)
-    {
+    void setDirectory(std::filesystem::path assetsDirectory) {
         directory = assetsDirectory;
     }
 
-    Assets(const Assets&) = delete;
-    void operator=(const Assets&) = delete;
+    Assets(const Assets &) = delete;
+    void operator=(const Assets &) = delete;
 
     int loadedAssets;
     int totalAssets = 32;
     Model smasherReg;
     Texture2D smasherRegTex;
-
 
     Model smasherBoard;
     Texture2D smasherBoardTex;
@@ -111,7 +109,6 @@ public:
     int uvOffsetXLoc;
     int uvOffsetYLoc;
 
-
     Model expertHighwaySides;
     Model expertHighway;
     Model emhHighwaySides;
@@ -163,7 +160,6 @@ public:
     Font redHatDisplayItalicLarge;
     Font josefinSansItalic;
 
-
     Font rubik;
     Font rubikItalic;
 
@@ -171,14 +167,14 @@ public:
 
     Font rubikBold;
 
-    //clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
-    //SetSoundVolume(clapOD, 0.375);
+    // clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
+    // SetSoundVolume(clapOD, 0.375);
 
     Texture2D discord;
     Texture2D github;
 
     Texture2D sustainTexture;
-	Texture2D sustainHeldTexture;
+    Texture2D sustainHeldTexture;
     Texture2D soloTexture;
     Material soloMat;
     Material sustainMat;
@@ -190,26 +186,29 @@ public:
     Shader sdfShader;
     Shader bgShader;
     int bgTimeLoc;
-	//Sound clapOD;
-    void DrawTextRubik(const char* text, float posX, float posY, float fontSize, Color color)const  {
+    // Sound clapOD;
+    void DrawTextRubik(
+        const char *text, float posX, float posY, float fontSize, Color color
+    ) const {
         BeginShaderMode(sdfShader);
-        DrawTextEx(rubik, text, { posX,posY }, fontSize, 1, color);
+        DrawTextEx(rubik, text, { posX, posY }, fontSize, 1, color);
         EndShaderMode();
     }
-    void DrawTextRHDI(const char* text, float posX, float posY, Color color)const  {
+    void DrawTextRHDI(const char *text, float posX, float posY, Color color) const {
         BeginShaderMode(sdfShader);
-        DrawTextEx(redHatDisplayItalic, text, { posX,posY }, 48, 1, color);
+        DrawTextEx(redHatDisplayItalic, text, { posX, posY }, 48, 1, color);
         EndShaderMode();
     }
-    float MeasureTextRubik(const char* text, float fontSize) const {
+    float MeasureTextRubik(const char *text, float fontSize) const {
         return MeasureTextEx(rubik, text, fontSize, 1).x;
     }
-    float MeasureTextRHDI(const char* text) const {
+    float MeasureTextRHDI(const char *text) const {
         return MeasureTextEx(redHatDisplayItalic, text, 48, 1).x;
     }
 
-    static Texture2D LoadTextureFilter(const std::filesystem::path& texturePath, int& loadedAssets);
-    static Model LoadModel_(const std::filesystem::path& modelPath, int& loadedAssets);
+    static Texture2D
+    LoadTextureFilter(const std::filesystem::path &texturePath, int &loadedAssets);
+    static Model LoadModel_(const std::filesystem::path &modelPath, int &loadedAssets);
     void FirstAssets();
     void LoadAssets();
 };

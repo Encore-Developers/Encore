@@ -5,14 +5,10 @@
 #ifndef GAMEPLAYHUDRENDERER_H
 #define GAMEPLAYHUDRENDERER_H
 
-
-
 class gameplayHudRenderer {
-	void DrawScore(bool IsBand, int Score);
-	void DrawCombo(bool IsBand, int Combo);
-	void DrawStars(bool PossibleGS, int Score);
+    void DrawScore(bool IsBand, int Score);
+    void DrawCombo(bool IsBand, int Combo);
+    void DrawStars(bool PossibleGS, int Score);
 };
 
-
-
-#endif //GAMEPLAYHUDRENDERER_H
+#endif // GAMEPLAYHUDRENDERER_H

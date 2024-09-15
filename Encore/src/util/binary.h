@@ -30,14 +30,17 @@ namespace encore {
 
         constexpr inline uint32_t byteswap_32(uint32_t value) noexcept {
             value = ((value & 0xFFFF0000) >> 16) | ((value & 0x0000FFFF) << 16);
-            value = ((value & 0xFF00FF00) >> 8)  | ((value & 0x00FF00FF) << 8);
+            value = ((value & 0xFF00FF00) >> 8) | ((value & 0x00FF00FF) << 8);
             return value;
         }
 
         constexpr inline uint64_t byteswap_64(uint64_t value) noexcept {
-            value = ((value & 0xFFFFFFFF00000000) >> 32) | ((value & 0x00000000FFFFFFFF) << 32);
-            value = ((value & 0xFFFF0000FFFF0000) >> 16) | ((value & 0x0000FFFF0000FFFF) << 16);
-            value = ((value & 0xFF00FF00FF00FF00) >> 8)  | ((value & 0x00FF00FF00FF00FF) << 8);
+            value = ((value & 0xFFFFFFFF00000000) >> 32)
+                | ((value & 0x00000000FFFFFFFF) << 32);
+            value = ((value & 0xFFFF0000FFFF0000) >> 16)
+                | ((value & 0x0000FFFF0000FFFF) << 16);
+            value =
+                ((value & 0xFF00FF00FF00FF00) >> 8) | ((value & 0x00FF00FF00FF00FF) << 8);
             return value;
         }
     }
@@ -45,10 +48,9 @@ namespace encore {
 
     /// Custom byteswap which allows floating-point values.
     template <typename T>
-    [[nodiscard]]
-    constexpr inline T byteswap(const T value) noexcept
-        requires std::integral<T> || std::floating_point<T>
-    {
+        [[nodiscard]]
+        constexpr inline T byteswap(const T value) noexcept requires std::integral<T>
+        || std::floating_point<T> {
 #if HAS_BYTESWAP // Take advantage of std::byteswap if available, for intrinsics
         if constexpr (std::integral<T>) {
             return std::byteswap(value);
@@ -77,17 +79,19 @@ namespace encore {
     /*
      * Endianness conversion
      *
-     * note(Nate): convert_endian, to_endian, and from_endian all techically function identically,
-     * but i was having a hard time wrapping my head around that, so i made them distinct for clarity
+     * note(Nate): convert_endian, to_endian, and from_endian all techically function
+     * identically, but i was having a hard time wrapping my head around that, so i made
+     * them distinct for clarity
      */
 
     // We don't support anything other than little- or big-endian
     static_assert(
-        std::endian::native == std::endian::little ||
-        std::endian::native == std::endian::big
+        std::endian::native == std::endian::little
+        || std::endian::native == std::endian::big
     );
 
-    /// Converts a value with the given source endianness to a value with the target endianness.
+    /// Converts a value with the given source endianness to a value with the target
+    /// endianness.
     template <std::endian SourceEndian, std::endian TargetEndian>
     [[nodiscard]]
     constexpr inline auto convert_endian(auto value) noexcept {
@@ -133,17 +137,16 @@ namespace encore {
         using iostate = typename Stream::iostate;
 
         template <class... Ts>
-        binstream_base(Ts&&... _Val)
-            : mStream(std::make_unique<Stream, Ts...>(std::forward<Ts>(_Val)...)) { }
+        binstream_base(Ts &&..._Val)
+            : mStream(std::make_unique<Stream, Ts...>(std::forward<Ts>(_Val)...)) {}
 
-        binstream_base(std::unique_ptr<Stream>&& stream)
-            : mStream(std::move(stream)) { }
+        binstream_base(std::unique_ptr<Stream> &&stream) : mStream(std::move(stream)) {}
 
-        binstream_base(const binstream_base&) = delete;
-        binstream_base(binstream_base&&) = default;
+        binstream_base(const binstream_base &) = delete;
+        binstream_base(binstream_base &&) = default;
 
-        binstream_base& operator=(const binstream_base&) = delete;
-        binstream_base& operator=(binstream_base&&) = default;
+        binstream_base &operator=(const binstream_base &) = delete;
+        binstream_base &operator=(binstream_base &&) = default;
 
         [[nodiscard]]
         bool good() const noexcept(noexcept(mStream->good())) {
@@ -179,17 +182,12 @@ namespace encore {
             return mStream->rdstate();
         }
 
-        void setstate(iostate state) {
-            mStream->setstate(state);
-        }
+        void setstate(iostate state) { mStream->setstate(state); }
 
-        void clear(iostate state = Stream::goodbit) {
-            mStream->clear(state);
-        }
+        void clear(iostate state = Stream::goodbit) { mStream->clear(state); }
 
-        void close() noexcept(noexcept(mStream->close()))
-            requires closable_stream<Stream>
-        {
+        void close()
+            noexcept(noexcept(mStream->close())) requires closable_stream<Stream> {
             mStream->close();
         }
     };
@@ -201,26 +199,26 @@ namespace encore {
         static constexpr std::endian endianness = SourceEndian;
 
         template <class... Ts>
-        bin_istream(Ts&&... _Val)
-            : binstream_base<Stream>(std::forward<Ts>(_Val)...) { }
+        bin_istream(Ts &&..._Val) : binstream_base<Stream>(std::forward<Ts>(_Val)...) {}
 
-        bin_istream(std::unique_ptr<Stream>&& stream)
-            : binstream_base<Stream>(std::move(stream)) { }
+        bin_istream(std::unique_ptr<Stream> &&stream)
+            : binstream_base<Stream>(std::move(stream)) {}
 
-        /// Allows reading raw data from the underlying stream, without endianness considerations.
+        /// Allows reading raw data from the underlying stream, without endianness
+        /// considerations.
         [[maybe_unused]]
-        bin_istream& read_raw(void* data, std::streamsize size) {
-            binstream_base<Stream>::mStream->read(reinterpret_cast<char*>(data), size);
+        bin_istream &read_raw(void *data, std::streamsize size) {
+            binstream_base<Stream>::mStream->read(reinterpret_cast<char *>(data), size);
             return *this;
         }
 
-#define BINSTREAM_READ_OP(valueType) \
-        [[maybe_unused]] \
-        bin_istream& operator>>(valueType& value) { \
-            read_raw(&value, sizeof(value)); \
-            value = from_endian<endianness>(value); \
-            return *this; \
-        }
+#define BINSTREAM_READ_OP(valueType)                                                     \
+    [[maybe_unused]]                                                                     \
+    bin_istream &operator>>(valueType &value) {                                          \
+        read_raw(&value, sizeof(value));                                                 \
+        value = from_endian<endianness>(value);                                          \
+        return *this;                                                                    \
+    }
 
         BINSTREAM_READ_OP(char)
         BINSTREAM_READ_OP(wchar_t)
@@ -245,7 +243,7 @@ namespace encore {
         BINSTREAM_READ_OP(long double)
 
         [[maybe_unused]]
-        bin_istream& operator>>(bool& value) {
+        bin_istream &operator>>(bool &value) {
             uint8_t read = 0;
             (*this) >> read;
             value = read != 0;
@@ -283,26 +281,28 @@ namespace encore {
         static constexpr std::endian endianness = TargetEndian;
 
         template <class... Ts>
-        bin_ostream(Ts&&... _Val)
-            : binstream_base<Stream>(std::forward<Ts>(_Val)...) { }
+        bin_ostream(Ts &&..._Val) : binstream_base<Stream>(std::forward<Ts>(_Val)...) {}
 
-        bin_ostream(std::unique_ptr<Stream>&& stream)
-            : binstream_base<Stream>(std::move(stream)) { }
+        bin_ostream(std::unique_ptr<Stream> &&stream)
+            : binstream_base<Stream>(std::move(stream)) {}
 
-        /// Allows writing raw data to the underlying stream, without endianness considerations.
+        /// Allows writing raw data to the underlying stream, without endianness
+        /// considerations.
         [[maybe_unused]]
-        bin_ostream& write_raw(const void* data, std::streamsize size) {
-            binstream_base<Stream>::mStream->write(reinterpret_cast<const char*>(data), size);
+        bin_ostream &write_raw(const void *data, std::streamsize size) {
+            binstream_base<Stream>::mStream->write(
+                reinterpret_cast<const char *>(data), size
+            );
             return *this;
         }
 
-#define BINSTREAM_WRITE_OP(valueType) \
-        [[maybe_unused]] \
-        bin_ostream& operator<<(const valueType value) { \
-            const valueType converted = to_endian<endianness>(value); \
-            write_raw(&converted, sizeof(converted)); \
-            return *this; \
-        }
+#define BINSTREAM_WRITE_OP(valueType)                                                    \
+    [[maybe_unused]]                                                                     \
+    bin_ostream &operator<<(const valueType value) {                                     \
+        const valueType converted = to_endian<endianness>(value);                        \
+        write_raw(&converted, sizeof(converted));                                        \
+        return *this;                                                                    \
+    }
 
         BINSTREAM_WRITE_OP(char)
         BINSTREAM_WRITE_OP(wchar_t)
@@ -327,7 +327,7 @@ namespace encore {
         BINSTREAM_WRITE_OP(long double)
 
         [[maybe_unused]]
-        bin_ostream& operator<<(const bool value) {
+        bin_ostream &operator<<(const bool value) {
             operator<<(static_cast<unsigned char>(value));
             return *this;
         }
@@ -375,18 +375,18 @@ namespace encore {
     };
 
     /// Reads a vector of elements from the stream.
-    template <std::derived_from<std::istream> Stream, std::endian Endian,
-		binary_readable<Stream, Endian> T>
+    template <
+        std::derived_from<std::istream> Stream,
+        std::endian Endian,
+        binary_readable<Stream, Endian> T>
     [[maybe_unused]]
-    bin_istream<Stream, Endian>& operator>>(
-		bin_istream<Stream, Endian>& stream,
-		std::vector<T>& value
-	) {
+    bin_istream<Stream, Endian> &
+    operator>>(bin_istream<Stream, Endian> &stream, std::vector<T> &value) {
         size_t length = 0;
         stream >> length;
 
         value.resize(length);
-        for (auto& item : value) {
+        for (auto &item : value) {
             stream >> item;
         }
 
@@ -394,16 +394,16 @@ namespace encore {
     }
 
     /// Writes a vector of elements to the stream.
-    template <std::derived_from<std::ostream> Stream, std::endian Endian,
-		binary_writable<Stream, Endian> T>
+    template <
+        std::derived_from<std::ostream> Stream,
+        std::endian Endian,
+        binary_writable<Stream, Endian> T>
     [[maybe_unused]]
-    bin_ostream<Stream, Endian>& operator<<(
-		bin_ostream<Stream, Endian>& stream,
-		const std::vector<T>& value
-	) {
+    bin_ostream<Stream, Endian> &
+    operator<<(bin_ostream<Stream, Endian> &stream, const std::vector<T> &value) {
         stream << (size_t)value.size();
 
-        for (auto& item : value) {
+        for (auto &item : value) {
             stream << item;
         }
 
@@ -411,15 +411,16 @@ namespace encore {
     }
 
     /// Reads a string from the stream.
-    template <std::derived_from<std::istream> Stream, std::endian Endian,
-		typename Char, typename Traits, typename Alloc>
+    template <
+        std::derived_from<std::istream> Stream,
+        std::endian Endian,
+        typename Char,
+        typename Traits,
+        typename Alloc>
     [[maybe_unused]]
-    bin_istream<Stream, Endian>& operator>>(
-        bin_istream<Stream, Endian>& stream,
-        std::basic_string<Char, Traits, Alloc>& value
-    )
-        requires binary_readable<Char, Stream, Endian>
-    {
+    bin_istream<Stream, Endian> &operator>>(
+        bin_istream<Stream, Endian> &stream, std::basic_string<Char, Traits, Alloc> &value
+    ) requires binary_readable<Char, Stream, Endian> {
         size_t length = 0;
         stream >> length;
 
@@ -429,7 +430,7 @@ namespace encore {
             stream.read_raw(value.data(), value.length() * sizeof(Char));
         } else {
             // Read one character at a time for correct endianness
-            for (auto& character : value) {
+            for (auto &character : value) {
                 stream >> character;
             }
         }
@@ -438,15 +439,17 @@ namespace encore {
     }
 
     /// Writes a string to the stream.
-    template <std::derived_from<std::ostream> Stream, std::endian Endian,
-		typename Char, typename Traits, typename Alloc>
+    template <
+        std::derived_from<std::ostream> Stream,
+        std::endian Endian,
+        typename Char,
+        typename Traits,
+        typename Alloc>
     [[maybe_unused]]
-    bin_ostream<Stream, Endian>& operator<<(
-        bin_ostream<Stream, Endian>& stream,
-        const std::basic_string<Char, Traits, Alloc>& value
-    )
-        requires binary_writable<Char, Stream, Endian>
-    {
+    bin_ostream<Stream, Endian> &operator<<(
+        bin_ostream<Stream, Endian> &stream,
+        const std::basic_string<Char, Traits, Alloc> &value
+    ) requires binary_writable<Char, Stream, Endian> {
         stream << (size_t)value.size();
 
         if constexpr (std::endian::native == Endian || sizeof(Char) == 1) {
@@ -454,7 +457,7 @@ namespace encore {
             stream.write_raw(value.data(), value.length() * sizeof(Char));
         } else {
             // Write one character at a time for correct endianness
-            for (auto& character : value) {
+            for (auto &character : value) {
                 stream << character;
             }
         }

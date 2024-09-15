@@ -1,7 +1,7 @@
 #pragma once
 
 class Menu {
-    public:
+public:
     Menu() {}
     virtual ~Menu() {}
 
@@ -10,4 +10,4 @@ class Menu {
     static bool onNewMenu;
 };
 
-extern Menu* ActiveMenu;
+extern Menu *ActiveMenu;

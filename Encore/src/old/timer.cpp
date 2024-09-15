@@ -5,18 +5,15 @@
 #include "timer.h"
 #include "raylib.h"
 
-void Timers::StartTimer(Timer *timer, double lifetime)
-{
+void Timers::StartTimer(Timer *timer, double lifetime) {
     timer->startTime = GetTime();
     timer->duration = lifetime;
 }
 
-bool Timers::FinishedTimer(Timer timer)
-{
+bool Timers::FinishedTimer(Timer timer) {
     return GetTime() - timer.startTime >= timer.duration;
 }
 
-double Timers::TimerElapsed(Timer timer)
-{
+double Timers::TimerElapsed(Timer timer) {
     return GetTime() - timer.startTime;
 }
