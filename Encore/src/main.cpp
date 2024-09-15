@@ -396,6 +396,7 @@ static void handleInputs(Player *player, int lane, int action) {
                 && (curNote.phopo || curNote.pTap)
                 && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch)
                 && lastNote.hit
+                && frettingInput
                 && lastNote.time + 0.075 < eventTime) {
                 curNote.GhostCount += 1;
                 TraceLog(
