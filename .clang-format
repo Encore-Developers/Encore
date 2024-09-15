@@ -159,11 +159,8 @@ SpacesInSquareBrackets: false
 SpaceBeforeSquareBrackets: false
 BitFieldColonSpacing: Both
 Standard: c++03
-StatementAttributeLikeMacros:
-  - Q_EMIT
-StatementMacros:
-  - Q_UNUSED
-  - QT_REQUIRE_VERSION
+StatementAttributeLikeMacros: []
+StatementMacros: []
 TabWidth: 4
 UseCRLF: false
 UseTab: Never
@@ -176,7 +173,3 @@ WhitespaceSensitiveMacros:
   - ASM_BLOCK
   - assert
   - Assert
-  - MILO_ASSERT
-  - _STLP_ASSERT
-  - _STLP_VERBOSE_ASSERT
-  - DECOMP_FORCEBLOCK
