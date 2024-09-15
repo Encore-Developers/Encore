@@ -395,7 +395,8 @@ static void handleInputs(Player *player, int lane, int action) {
             if (!curNote.accounted && greaterThanNoteMatch
                 && (curNote.phopo || curNote.pTap)
                 && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch)
-                && lastNote.hit) {
+                && lastNote.hit
+                && lastNote.time + 0.075 < eventTime) {
                 curNote.GhostCount += 1;
                 TraceLog(
                     LOG_INFO,
@@ -411,6 +412,17 @@ static void handleInputs(Player *player, int lane, int action) {
                     )
                 );
             }
+			if (!curNote.accounted && greaterThanNoteMatch && (curNote.phopo || curNote.pTap) && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch ) && lastNote.hit && lastNote.time + 0.075 < eventTime) {
+				curNote.GhostCount += 1;
+				TraceLog(LOG_INFO, TextFormat("Ghosted note at %f. Input type: %01i (press = 1). Lane type: %01i. Held frets: %01i. Required frets: %01i. note %01i. Minimum for unghost: %01i",
+					eventTime,
+					action,
+					lane,
+					pressedMask,
+					curNote.mask,
+					stats->curNoteInt,
+					curNote.mask << 1));
+			}
 
             if (lane == 8008135 && action == GLFW_PRESS && !stats->FAS
                 // && (firstNote ? true : lastNote.time + 0.005 < eventTime)

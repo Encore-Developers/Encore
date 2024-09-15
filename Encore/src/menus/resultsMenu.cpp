@@ -123,8 +123,7 @@ void resultsMenu::Draw() {
                 .resetNotes();
         }
         player_manager.BandStats.ResetBandGameplayStats();
-        GameMenu game_menu;
-        game_menu.SwitchScreen(SONG_SELECT);
+        TheGameMenu.SwitchScreen(SONG_SELECT);
     }
 }
 
