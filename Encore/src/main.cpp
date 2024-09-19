@@ -114,6 +114,27 @@ Assets &assets = Assets::getInstance();
 SortType currentSortValue = SortType::Title;
 std::vector<std::string> sortTypes { "Title", "Artist", "Length" };
 
+void Windowed() {
+    SetWindowSize(
+            GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
+            GetMonitorHeight(GetCurrentMonitor()) * 0.75f
+        );
+    SetWindowPosition(
+        (GetMonitorWidth(GetCurrentMonitor()) * 0.5f)
+            - (GetMonitorWidth(GetCurrentMonitor()) * 0.375f),
+        (GetMonitorHeight(GetCurrentMonitor()) * 0.5f)
+            - (GetMonitorHeight(GetCurrentMonitor()) * 0.375f)
+    );
+}
+
+void FullscreenBorderless() {
+    SetWindowSize(
+            GetMonitorWidth(GetCurrentMonitor()),
+            GetMonitorHeight(GetCurrentMonitor())
+        );
+    SetWindowPosition(0,0);
+}
+
 static void
 DrawTextRubik(const char *text, float posX, float posY, float fontSize, Color color) {
     DrawTextEx(assets.rubik, text, { posX, posY }, fontSize, 0, color);
@@ -1097,23 +1118,9 @@ int main(int argc, char *argv[]) {
 
     */
     if (!settingsMain.fullscreen) {
-        if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
-            ClearWindowState(FLAG_WINDOW_UNDECORATED);
-            SetWindowState(FLAG_MSAA_4X_HINT);
-        }
-        SetWindowSize(
-            GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
-            GetMonitorHeight(GetCurrentMonitor()) * 0.75f
-        );
-        SetWindowPosition(
-            (GetMonitorWidth(GetCurrentMonitor()) * 0.5f)
-                - (GetMonitorWidth(GetCurrentMonitor()) * 0.375f),
-            (GetMonitorHeight(GetCurrentMonitor()) * 0.5f)
-                - (GetMonitorHeight(GetCurrentMonitor()) * 0.375f)
-        );
-
+        Windowed();
     } else {
-        ToggleBorderlessWindowed();
+        FullscreenBorderless();
     }
     std::vector<std::string> songPartsList {
         "Drums",        "Bass",         "Guitar",         "Vocals", "Classic Drums",
@@ -1564,7 +1571,7 @@ int main(int argc, char *argv[]) {
                 && !(changingKey || changingOverdrive || changingPause)) {
                 glfwSetGamepadStateCallback(origGamepadCallback);
                 if (settingsMain.fullscreen) {
-                    ToggleBorderlessWindowed();
+                    FullscreenBorderless();
                     // SetWindowState(FLAG_WINDOW_UNDECORATED);
                     // SetWindowState(FLAG_MSAA_4X_HINT);
                     // int CurrentMonitor = GetCurrentMonitor();
@@ -1572,22 +1579,7 @@ int main(int argc, char *argv[]) {
                     // SetWindowSize(GetMonitorWidth(CurrentMonitor),
                     //			GetMonitorHeight(CurrentMonitor));
                 } else {
-                    if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
-                        ClearWindowState(FLAG_WINDOW_UNDECORATED);
-                        SetWindowState(FLAG_MSAA_4X_HINT);
-                    }
-                    if (settingsMain.fullscreen != settingsMain.fullscreenPrev) {
-                        SetWindowSize(
-                            GetMonitorWidth(GetCurrentMonitor()) * 0.75,
-                            GetMonitorHeight(GetCurrentMonitor()) * 0.75
-                        );
-                        SetWindowPosition(
-                            (GetMonitorWidth(GetCurrentMonitor()) * 0.5)
-                                - (GetMonitorWidth(GetCurrentMonitor()) * 0.375),
-                            (GetMonitorHeight(GetCurrentMonitor()) * 0.5)
-                                - (GetMonitorHeight(GetCurrentMonitor()) * 0.375)
-                        );
-                    }
+                    Windowed();
                 }
                 settingsMain.prev4K = settingsMain.keybinds4K;
                 settingsMain.prev5K = settingsMain.keybinds5K;
