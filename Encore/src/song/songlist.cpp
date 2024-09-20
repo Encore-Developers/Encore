@@ -261,9 +261,9 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         if (song.jsonHash != jsonHashNew) {
             continue;
         }
-
-        songs.push_back(std::move(song));
         loadedSongs.insert(song.songDir);
+        songs.push_back(std::move(song));
+
     }
 
     SongCacheIn.close();
