@@ -115,6 +115,7 @@ SortType currentSortValue = SortType::Title;
 std::vector<std::string> sortTypes { "Title", "Artist", "Length" };
 
 void Windowed() {
+    ClearWindowState(FLAG_WINDOW_UNDECORATED);
     SetWindowSize(
             GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
             GetMonitorHeight(GetCurrentMonitor()) * 0.75f
@@ -132,6 +133,7 @@ void FullscreenBorderless() {
             GetMonitorWidth(GetCurrentMonitor()),
             GetMonitorHeight(GetCurrentMonitor())
         );
+    SetWindowState(FLAG_WINDOW_UNDECORATED);
     SetWindowPosition(0,0);
 }
 
@@ -1241,6 +1243,15 @@ int main(int argc, char *argv[]) {
     );
     GuiSetStyle(
         BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(AccentColor, -0.3))
+    );
+    GuiSetStyle(
+        SLIDER, BORDER_COLOR_FOCUSED, ColorToInt(ColorBrightness(AccentColor, -0.3))
+    );
+    GuiSetStyle(
+        SLIDER, BORDER_COLOR_NORMAL, ColorToInt(ColorBrightness(AccentColor, -0.5))
+    );
+    GuiSetStyle(
+        SLIDER, BORDER_COLOR_PRESSED, ColorToInt(AccentColor)
     );
     GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
     GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
@@ -2849,7 +2860,12 @@ int main(int argc, char *argv[]) {
             float DiffTextSize = u.hinpct(0.03f);
             float DiffDotLeft =
                 u.RightSide - MeasureTextEx(assets.rubikBold, "OOOOO  ", DiffHeight, 0).x;
-
+            float ScrollbarLeft = u.RightSide - AlbumHeight - AlbumOuter - (AlbumInner * 2);
+            float ScrollbarTop = u.hpct(0.208333f);
+            float ScrollbarHeight = GetScreenHeight() - u.hpct(0.208333f) - u.hpct(0.15f);
+            GuiSetStyle(SCROLLBAR, BACKGROUND_COLOR, 0x181827FF);
+            GuiSetStyle(SCROLLBAR, SCROLL_SLIDER_SIZE, u.hinpct(0.03f));
+            songSelectOffset = GuiScrollBar({ScrollbarLeft, ScrollbarTop, (float)(AlbumInner * 2), ScrollbarHeight}, songSelectOffset, 1, songList.listMenuEntries.size()-10);
             for (int i = 0; i < 7; i++) {
                 float IconWidth = (float)AlbumHeight / 5.0f;
                 float BoxTopPos = DiffTop + (float)(IconWidth * (i < 4 ? 0 : 1));
