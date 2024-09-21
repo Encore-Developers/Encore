@@ -62,7 +62,10 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int> > &paths)
     for (auto &path : paths) {
         HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
         if (streamHandle) {
-            loadedStreams.emplace_back(streamHandle, path.second);
+            AudioStream audio_stream;
+            audio_stream.handle = streamHandle;
+            audio_stream.instrument = path.second;
+            loadedStreams.push_back(std::move(audio_stream));
             if (streams != 0) {
                 BASS_ChannelSetLink(
                     loadedStreams[0].handle, loadedStreams[streams].handle
