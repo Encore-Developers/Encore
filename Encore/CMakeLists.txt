@@ -112,5 +112,5 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
-
+set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS})
