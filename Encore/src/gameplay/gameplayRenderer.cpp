@@ -401,62 +401,10 @@ void gameplayRenderer::RenderNotes(
             //	player->stats->totalOffset += curNote.HitOffset;
             // }
 
-            if (!curChart.Solos.empty()) {
-                if (curNote.time >= curChart.Solos[player->stats->curSolo].start
-                    && curNote.time <= curChart.Solos[player->stats->curSolo].end) {
-                    if (curNote.hit) {
-                        if (curNote.hit && !curNote.countedForSolo) {
-                            curChart.Solos[player->stats->curSolo].notesHit++;
-                            curNote.countedForSolo = true;
-                        }
-                    }
-                }
-            }
-            if (!curChart.odPhrases.empty()) {
-                if (curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start
-                    && curNote.time < curChart.odPhrases[player->stats->curODPhrase].end
-                    && !curChart.odPhrases[player->stats->curODPhrase].missed) {
-                    if (curNote.hit) {
-                        if (curNote.hit && !curNote.countedForODPhrase) {
-                            curChart.odPhrases[player->stats->curODPhrase].notesHit++;
-                            curNote.countedForODPhrase = true;
-                        }
-                    }
-                    curNote.renderAsOD = true;
-                }
-                if (curChart.odPhrases[player->stats->curODPhrase].missed) {
-                    curNote.renderAsOD = false;
-                }
-                if (curChart.odPhrases[player->stats->curODPhrase].notesHit
-                        == curChart.odPhrases[player->stats->curODPhrase].noteCount
-                    && !curChart.odPhrases[player->stats->curODPhrase].added
-                    && player->stats->overdriveFill < 1.0f) {
-                    player->stats->overdriveFill += 0.25f;
-                    if (player->stats->overdriveFill > 1.0f)
-                        player->stats->overdriveFill = 1.0f;
-                    if (player->stats->Overdrive) {
-                        player->stats->overdriveActiveFill = player->stats->overdriveFill;
-                        player->stats->overdriveActiveTime = time;
-                    }
-                    curChart.odPhrases[player->stats->curODPhrase].added = true;
-                }
-            }
             if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend < time
                 && !gprTime.SongComplete()) {
                 curNote.miss = true;
                 player->stats->MissNote();
-                if (!curChart.odPhrases.empty()
-                    && !curChart.odPhrases[player->stats->curODPhrase].missed
-                    && curNote.time
-                        >= curChart.odPhrases[player->stats->curODPhrase].start
-                    && curNote.time
-                        < curChart.odPhrases[player->stats->curODPhrase].end) {
-                    curChart.odPhrases[player->stats->curODPhrase].missed = true;
-                };
-                if (!curChart.Sections.empty()) {
-                    curChart.Sections[player->stats->curSection].totalNotes++;
-                    curNote.countedForSection = true;
-                }
                 player->stats->Combo = 0;
                 curNote.accounted = true;
             } else if (player->Bot) {
@@ -478,18 +426,22 @@ void gameplayRenderer::RenderNotes(
                     curNote.hitTime = time;
                 }
             }
-            if (!curChart.Sections.empty()) {
-                if (curNote.time >= curChart.Sections[player->stats->curSection].Start
-                    && curNote.time < curChart.Sections[player->stats->curSection].End) {
-                    if (!curNote.countedForSection) {
-                        if (curNote.hit) {
-                            curChart.Sections[player->stats->curSection].notesHit++;
-                            curChart.Sections[player->stats->curSection].totalNotes++;
-                            curNote.countedForSection = true;
-                        }
-                    }
-                }
+
+            if (player->stats->Overdrive) {
+                player->stats->overdriveActiveFill += curChart.overdrive.AddOverdrive(player->stats->curODPhrase);
+                if (player->stats->overdriveActiveFill > 1.0f)
+                    player->stats->overdriveActiveFill = 1.0f;
+            } else {
+                player->stats->overdriveFill += curChart.overdrive.AddOverdrive(player->stats->curODPhrase);
+                if (player->stats->overdriveFill > 1.0f)
+                    player->stats->overdriveFill = 1.0f;
             }
+
+            curChart.solos.UpdateEventViaNote(curNote, player->stats->curSolo);
+            curChart.overdrive.UpdateEventViaNote(curNote, player->stats->curODPhrase);
+            curChart.sections.UpdateEventViaNote(curNote, player->stats->curSection);
+            curChart.fills.UpdateEventViaNote(curNote, player->stats->curFill);
+
 
             double relTime = GetNoteOnScreenTime(
                 curNote.time, time, player->NoteSpeed, player->Difficulty, length
@@ -599,47 +551,7 @@ void gameplayRenderer::RenderClassicNotes(
     SongList &songList = SongList::getInstance();
 
     for (auto &curNote : curChart.notes) {
-        if (!curChart.Solos.empty()) {
-            if (curNote.time >= curChart.Solos[player->stats->curSolo].start
-                && curNote.time < curChart.Solos[player->stats->curSolo].end) {
-                if (curNote.hit) {
-                    if (curNote.hit && !curNote.countedForSolo) {
-                        curChart.Solos[player->stats->curSolo].notesHit++;
-                        curNote.countedForSolo = true;
-                    }
-                }
-            }
-        }
 
-        if (!curChart.odPhrases.empty()) {
-            if (curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start
-                && curNote.time < curChart.odPhrases[player->stats->curODPhrase].end
-                && !curChart.odPhrases[player->stats->curODPhrase].missed) {
-                if (curNote.hit) {
-                    if (curNote.hit && !curNote.countedForODPhrase) {
-                        curChart.odPhrases[player->stats->curODPhrase].notesHit++;
-                        curNote.countedForODPhrase = true;
-                    }
-                }
-                curNote.renderAsOD = true;
-            }
-            if (curChart.odPhrases[player->stats->curODPhrase].missed) {
-                curNote.renderAsOD = false;
-            }
-            if (curChart.odPhrases[player->stats->curODPhrase].notesHit
-                    == curChart.odPhrases[player->stats->curODPhrase].noteCount
-                && !curChart.odPhrases[player->stats->curODPhrase].added
-                && player->stats->overdriveFill < 1.0f) {
-                player->stats->overdriveFill += 0.25f;
-                if (player->stats->overdriveFill > 1.0f)
-                    player->stats->overdriveFill = 1.0f;
-                if (player->stats->Overdrive) {
-                    player->stats->overdriveActiveFill = player->stats->overdriveFill;
-                    player->stats->overdriveActiveTime = time;
-                }
-                curChart.odPhrases[player->stats->curODPhrase].added = true;
-            }
-        }
 
         if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend < time
             && !gprTime.SongComplete() && player->stats->curNoteInt < curChart.notes.size()
@@ -651,50 +563,43 @@ void gameplayRenderer::RenderClassicNotes(
             curNote.miss = true;
             player->stats->FAS = false;
             player->stats->MissNote();
-            if (!curChart.odPhrases.empty()
-                && !curChart.odPhrases[player->stats->curODPhrase].missed
-                && curNote.time >= curChart.odPhrases[player->stats->curODPhrase].start
-                && curNote.time < curChart.odPhrases[player->stats->curODPhrase].end)
-                curChart.odPhrases[player->stats->curODPhrase].missed = true;
-            if (!curChart.Sections.empty()) {
-                curChart.Sections[player->stats->curSection].totalNotes++;
-                curNote.countedForSection = true;
-            }
             player->stats->Combo = 0;
             curNote.accounted = true;
             player->stats->curNoteInt++;
-        } else if (player->Bot) {
-            if (!curNote.hit && !curNote.accounted && curNote.time < time
-                && player->stats->curNoteInt < curChart.notes.size() && !gprTime.SongComplete()) {
-                curNote.hit = true;
-                player->stats->HitPlasticNote(curNote);
-                gprPlayerManager.BandStats.AddClassicNotePoint(
-                    curNote.perfect, player->stats->noODmultiplier(), curNote.chordSize
-                );
-                // player->stats->Notes++;
-                if (curNote.len > 0) {
-                    curNote.held = true;
-                }
-                curNote.accounted = true;
-                // player->stats->Combo++;
-                curNote.accounted = true;
-                curNote.hitTime = time;
-                player->stats->curNoteInt++;
+            } else if (player->Bot) {
+                if (!curNote.hit && !curNote.accounted && curNote.time < time
+                    && player->stats->curNoteInt < curChart.notes.size() && !gprTime.SongComplete()) {
+                    curNote.hit = true;
+                    player->stats->HitPlasticNote(curNote);
+                    gprPlayerManager.BandStats.AddClassicNotePoint(
+                        curNote.perfect, player->stats->noODmultiplier(), curNote.chordSize
+                    );
+                    // player->stats->Notes++;
+                    if (curNote.len > 0) {
+                        curNote.held = true;
+                    }
+                    // player->stats->Combo++;
+                    curNote.accounted = true;
+                    curNote.hitTime = time;
+                    player->stats->curNoteInt++;
+                    }
             }
+
+
+        if (player->stats->Overdrive) {
+            player->stats->overdriveActiveFill += curChart.overdrive.AddOverdrive(player->stats->curODPhrase);
+            if (player->stats->overdriveActiveFill > 1.0f)
+                player->stats->overdriveActiveFill = 1.0f;
+        } else {
+            player->stats->overdriveFill += curChart.overdrive.AddOverdrive(player->stats->curODPhrase);
+            if (player->stats->overdriveFill > 1.0f)
+                player->stats->overdriveFill = 1.0f;
         }
 
-        if (!curChart.Sections.empty()) {
-            if (curNote.time >= curChart.Sections[player->stats->curSection].Start
-                && curNote.time < curChart.Sections[player->stats->curSection].End) {
-                if (!curNote.countedForSection) {
-                    if (curNote.hit) {
-                        curChart.Sections[player->stats->curSection].notesHit++;
-                        curChart.Sections[player->stats->curSection].totalNotes++;
-                        curNote.countedForSection = true;
-                    }
-                }
-            }
-        }
+        curChart.solos.UpdateEventViaNote(curNote, player->stats->curSolo);
+        curChart.overdrive.UpdateEventViaNote(curNote, player->stats->curODPhrase);
+        curChart.sections.UpdateEventViaNote(curNote, player->stats->curSection);
+        curChart.fills.UpdateEventViaNote(curNote, player->stats->curFill);
 
         double relTime = GetNoteOnScreenTime(
             curNote.time, time, player->NoteSpeed, player->Difficulty, length
@@ -1232,36 +1137,10 @@ void gameplayRenderer::RenderGameplay(
             player->stats->curBPM++;
     }
 
-    if (!curChart.odPhrases.empty()
-        && player->stats->curODPhrase < curChart.odPhrases.size() - 1
-        && time > curChart.odPhrases[player->stats->curODPhrase].end
-        && (curChart.odPhrases[player->stats->curODPhrase].added
-            || curChart.odPhrases[player->stats->curODPhrase].missed)) {
-        player->stats->curODPhrase++;
-    }
-
-    if (!curChart.Solos.empty() && player->stats->curSolo < curChart.Solos.size() - 1
-        && time - 2.5f > curChart.Solos[player->stats->curSolo].end) {
-        player->stats->curSolo++;
-    }
-
-    if (!curChart.fills.empty() && player->stats->curFill < curChart.fills.size() - 1
-        && time > curChart.fills[player->stats->curFill].end) {
-        player->stats->curFill++;
-    }
-
-    if (!curChart.Sections.empty()
-        && player->stats->curSection < curChart.Sections.size() - 1
-        && time > curChart.Sections[player->stats->curSection].End) {
-        std::string outputString;
-        outputString = TextFormat(
-            "Section %s complete. Notes hit: %01i/%01i",
-            curChart.Sections[player->stats->curSection].Name.c_str(),
-            curChart.Sections[player->stats->curSection].notesHit,
-            curChart.Sections[player->stats->curSection].totalNotes);
-        Encore::EncoreLog(LOG_DEBUG, outputString.c_str());
-        player->stats->curSection++;
-    }
+    curChart.overdrive.CheckEvents(player->stats->curODPhrase, time);
+    curChart.solos.CheckEvents(player->stats->curSolo, time);
+    curChart.fills.CheckEvents(player->stats->curFill, time);
+    curChart.sections.CheckEvents(player->stats->curFill, time);
 
     // BeginShaderMode(gprAssets.HighwayFade);
     if (player->Instrument == PLASTIC_DRUMS) {
@@ -1408,7 +1287,7 @@ void gameplayRenderer::RenderExpertHighway(
         DrawBeatlines(player, &song, highwayLength, time);
     }
 
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].odPhrases.empty()) {
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].overdrive.events.empty()) {
         DrawOverdrive(
             player,
             song.parts[player->Instrument]->charts[player->Difficulty],
@@ -1416,7 +1295,7 @@ void gameplayRenderer::RenderExpertHighway(
             time
         );
     }
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].Solos.empty()) {
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].solos.events.empty()) {
         DrawSolo(
             player,
             song.parts[player->Instrument]->charts[player->Difficulty],
@@ -1644,7 +1523,7 @@ void gameplayRenderer::RenderEmhHighway(
     if (!song.beatLines.empty()) {
         DrawBeatlines(player, &song, highwayLength, time);
     }
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].Solos.empty()) {
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].solos.events.empty()) {
         DrawSolo(
             player,
             song.parts[player->Instrument]->charts[player->Difficulty],
@@ -1652,7 +1531,7 @@ void gameplayRenderer::RenderEmhHighway(
             time
         );
     }
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].odPhrases.empty()) {
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].overdrive.events.empty()) {
         DrawOverdrive(
             player,
             song.parts[player->Instrument]->charts[player->Difficulty],
@@ -1771,8 +1650,8 @@ void gameplayRenderer::DrawOverdrive(
 ) {
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-    float start = curChart.odPhrases[player->stats->curODPhrase].start;
-    float end = curChart.odPhrases[player->stats->curODPhrase].end;
+    float start = curChart.overdrive[player->stats->curODPhrase].StartSec;
+    float end = curChart.overdrive[player->stats->curODPhrase].EndSec;
     /* for unisons
         eDrawSides((player->NoteSpeed * DiffMultiplier), musicTime, start, end, length,
        0.1, WHITE);
@@ -1784,19 +1663,19 @@ void gameplayRenderer::DrawSolo(
 ) {
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-    float start = curChart.Solos[player->stats->curSolo].start;
-    float end = curChart.Solos[player->stats->curSolo].end;
+    float start = curChart.solos[player->stats->curSolo].StartSec;
+    float end = curChart.solos[player->stats->curSolo].EndSec;
     eDrawSides(
         (player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.09, SKYBLUE
     );
 
-    if (!curChart.Solos.empty()
-        && musicTime >= curChart.Solos[player->stats->curSolo].start - 1
-        && musicTime <= curChart.Solos[player->stats->curSolo].end + 2.5) {
+    if (!curChart.solos.events.empty()
+        && musicTime >= curChart.solos[player->stats->curSolo].StartSec - 1
+        && musicTime <= curChart.solos[player->stats->curSolo].EndSec + 2.5) {
         int solopctnum = Remap(
-            curChart.Solos[player->stats->curSolo].notesHit,
+            curChart.solos[player->stats->curSolo].NotesHit,
             0,
-            curChart.Solos[player->stats->curSolo].noteCount,
+            curChart.solos[player->stats->curSolo].NoteCount,
             0,
             100
         );
@@ -1813,8 +1692,8 @@ void gameplayRenderer::DrawSolo(
 
         const char *soloHit = TextFormat(
             "%i/%i",
-            curChart.Solos[player->stats->curSolo].notesHit,
-            curChart.Solos[player->stats->curSolo].noteCount
+            curChart.solos[player->stats->curSolo].NotesHit,
+            curChart.solos[player->stats->curSolo].NoteCount
         );
 
         // DrawTextEx(gprAssets.josefinSansItalic, soloHit, SoloHitPos,
@@ -1854,7 +1733,7 @@ void gameplayRenderer::DrawSolo(
             1,
             accColor
         );
-        if (musicTime <= curChart.Solos[player->stats->curSolo].end)
+        if (musicTime <= curChart.solos[player->stats->curSolo].EndSec)
             DrawText3D(
                 gprAssets.josefinSansItalic,
                 soloHit,
@@ -1866,8 +1745,8 @@ void gameplayRenderer::DrawSolo(
                 accColor
             );
         rlPopMatrix();
-        if (musicTime >= curChart.Solos[player->stats->curSolo].end
-            && musicTime <= curChart.Solos[player->stats->curSolo].end + 2.5) {
+        if (musicTime >= curChart.solos[player->stats->curSolo].EndSec
+            && musicTime <= curChart.solos[player->stats->curSolo].EndSec + 2.5) {
             const char *PraiseText = "";
             if (solopctnum == 100) {
                 PraiseText = "Perfect Solo!";
@@ -1915,8 +1794,8 @@ void gameplayRenderer::DrawFill(
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
 
-    float start = curChart.fills[player->stats->curFill].start;
-    float end = curChart.fills[player->stats->curFill].end;
+    float start = curChart.fills[player->stats->curFill].StartSec;
+    float end = curChart.fills[player->stats->curFill].EndSec;
     eDrawSides(
         (player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.075, GREEN
     );
@@ -1988,46 +1867,7 @@ void gameplayRenderer::RenderPDrumsNotes(
     PlayerGameplayStats *stats = player->stats;
 
     for (auto &curNote : curChart.notes) {
-        if (!curChart.Solos.empty()) {
-            if (curNote.time >= curChart.Solos[stats->curSolo].start
-                && curNote.time < curChart.Solos[stats->curSolo].end) {
-                if (curNote.hit) {
-                    if (curNote.hit && !curNote.countedForSolo) {
-                        curChart.Solos[stats->curSolo].notesHit++;
-                        curNote.countedForSolo = true;
-                    }
-                }
-            }
-        }
-        if (!curChart.odPhrases.empty()) {
-            if (curNote.time >= curChart.odPhrases[stats->curODPhrase].start
-                && curNote.time < curChart.odPhrases[stats->curODPhrase].end
-                && !curChart.odPhrases[stats->curODPhrase].missed) {
-                if (curNote.hit) {
-                    if (curNote.hit && !curNote.countedForODPhrase) {
-                        curChart.odPhrases[stats->curODPhrase].notesHit++;
-                        curNote.countedForODPhrase = true;
-                    }
-                }
-                curNote.renderAsOD = true;
-            }
-            if (curChart.odPhrases[stats->curODPhrase].missed) {
-                curNote.renderAsOD = false;
-            }
-            if (curChart.odPhrases[stats->curODPhrase].notesHit
-                    == curChart.odPhrases[stats->curODPhrase].noteCount
-                && !curChart.odPhrases[stats->curODPhrase].added
-                && stats->overdriveFill < 1.0f) {
-                stats->overdriveFill += 0.25f;
-                if (stats->overdriveFill > 1.0f)
-                    stats->overdriveFill = 1.0f;
-                if (stats->Overdrive) {
-                    stats->overdriveActiveFill = stats->overdriveFill;
-                    stats->overdriveActiveTime = time;
-                }
-                curChart.odPhrases[stats->curODPhrase].added = true;
-            }
-        }
+
         if (!curNote.hit && !curNote.accounted
             && curNote.time + goodBackend + player->InputCalibration < time && !gprTime.SongComplete()
             && stats->curNoteInt < curChart.notes.size() && !gprTime.SongComplete() && !player->Bot) {
@@ -2038,11 +1878,6 @@ void gameplayRenderer::RenderPDrumsNotes(
             curNote.miss = true;
             FAS = false;
             stats->MissNote();
-            if (!curChart.odPhrases.empty()
-                && !curChart.odPhrases[stats->curODPhrase].missed
-                && curNote.time >= curChart.odPhrases[stats->curODPhrase].start
-                && curNote.time < curChart.odPhrases[stats->curODPhrase].end)
-                curChart.odPhrases[stats->curODPhrase].missed = true;
             stats->Combo = 0;
             curNote.accounted = true;
             stats->curNoteInt++;
@@ -2077,6 +1912,22 @@ void gameplayRenderer::RenderPDrumsNotes(
                 }
             }
         }
+
+        if (player->stats->Overdrive) {
+            player->stats->overdriveActiveFill += curChart.overdrive.AddOverdrive(player->stats->curODPhrase);
+            if (player->stats->overdriveActiveFill > 1.0f)
+                player->stats->overdriveActiveFill = 1.0f;
+        } else {
+            player->stats->overdriveFill += curChart.overdrive.AddOverdrive(player->stats->curODPhrase);
+            if (player->stats->overdriveFill > 1.0f)
+                player->stats->overdriveFill = 1.0f;
+        }
+
+        curChart.solos.UpdateEventViaNote(curNote, player->stats->curSolo);
+        curChart.overdrive.UpdateEventViaNote(curNote, player->stats->curODPhrase);
+        curChart.sections.UpdateEventViaNote(curNote, player->stats->curSection);
+        curChart.fills.UpdateEventViaNote(curNote, player->stats->curFill);
+
 
         double relTime = GetNoteOnScreenTime(
             curNote.time, time, player->NoteSpeed, player->Difficulty, length
@@ -2240,7 +2091,7 @@ void gameplayRenderer::RenderPDrumsHighway(
         DrawBeatlines(player, &song, highwayLength, time);
     }
 
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].odPhrases.empty()) {
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].overdrive.events.empty()) {
         DrawOverdrive(
             player,
             song.parts[player->Instrument]->charts[player->Difficulty],
@@ -2248,7 +2099,7 @@ void gameplayRenderer::RenderPDrumsHighway(
             time
         );
     }
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].Solos.empty()) {
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].solos.events.empty()) {
         DrawSolo(
             player,
             song.parts[player->Instrument]->charts[player->Difficulty],
@@ -2256,7 +2107,7 @@ void gameplayRenderer::RenderPDrumsHighway(
             time
         );
     }
-    if (!song.parts[player->Instrument]->charts[player->Difficulty].fills.empty()
+    if (!song.parts[player->Instrument]->charts[player->Difficulty].fills.events.empty()
         && player->stats->overdriveFill >= 0.25 && !player->stats->Overdrive) {
         DrawFill(
             player,

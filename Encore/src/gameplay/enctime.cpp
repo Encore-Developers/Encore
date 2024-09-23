@@ -51,6 +51,7 @@ void SongTime::Resume() {
 
 void SongTime::Stop() {
     running = false;
+    paused = false;
 }
 
 double SongTime::GetSongTime() {

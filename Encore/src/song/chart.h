@@ -3,9 +3,9 @@
 #include <string>
 #include "midifile/MidiFile.h"
 // #include "song.h"
-#include "timingvalues.h"
 #include "util/enclog.h"
 #include "raylib.h"
+#include "events/EncEventVects/EventVectors.h"
 
 #include <atomic>
 #include <algorithm>
@@ -67,65 +67,6 @@ inline uint8_t LaneToPlasticFret(int lane) {
 }
 */
 
-class Note {
-public:
-    double time;
-    double len;
-    double beatsLen;
-    double heldTime = 0.0;
-    double sustainThreshold = 0.2;
-    double HitOffset = 0.0;
-    int lane;
-    bool lift = false;
-    bool hit = false;
-    bool held = false;
-    bool valid = false;
-    bool miss = false;
-    bool accounted = false;
-    bool countedForSolo = false;
-    bool countedForSection = false;
-    bool countedForODPhrase = false;
-    bool perfect = false;
-    bool renderAsOD = false;
-    double hitTime = 0;
-    int tick;
-
-    // CLASSIC
-    // 0-4 for grybo, helps with chords
-    int strumCount = 0;
-    int chordSize = 0;
-    bool hitWithFAS = false;
-    uint8_t mask;
-    bool chord = false;
-    std::vector<int> pLanes;
-    bool pForceOn = false;
-    bool pForceOff = false;
-    bool phopo = false;
-    bool extendedSustain = false;
-    bool pDrumTom = false;
-    bool pSnare = false;
-    bool pDrumAct = false;
-    int GhostCount = 0;
-    bool Ghosted = false;
-
-    bool isGood(double eventTime, double inputOffset) const {
-        return (
-            time - goodBackend + inputOffset < eventTime
-            && time + goodFrontend + inputOffset > eventTime
-        );
-    }
-    bool isPerfect(double eventTime, double inputOffset) {
-        return (
-            time - perfectBackend + inputOffset < eventTime
-            && time + perfectFrontend + inputOffset > eventTime
-        );
-    }
-
-    bool pTap = false;
-    bool pOpen = false;
-};
-
-
 enum ChartLoadingState {
     BEATLINES,
     NOTE_PARSING,
@@ -142,55 +83,6 @@ enum ChartLoadingState {
 inline std::atomic<int> CurrentChart = -1;
 inline std::atomic<int> LoadingState = -1;
 
-struct solo {
-    double start;
-    double end;
-    int noteCount = 0;
-    int notesHit = 0;
-    bool perfect = false;
-};
-
-struct tapPhrase {
-    double start;
-    double end;
-};
-
-struct forceOnPhrase {
-    double start;
-    double end;
-};
-
-struct forceOffPhrase {
-    double start;
-    double end;
-};
-
-struct DrumFill {
-    double start;
-    double end;
-    int noteCount = 0;
-    int notesHit = 0;
-    bool ready = false;
-};
-
-struct odPhrase {
-    double start;
-    double end;
-    int noteCount = 0;
-    int notesHit = 0;
-    bool missed = false;
-    bool added = false;
-};
-
-struct section {
-    int tickStart;
-    int tickEnd;
-    double Start;
-    double End;
-    int totalNotes = 0;
-    int notesHit = 0;
-    std::string Name;
-};
 
 class Chart {
 private:
@@ -217,7 +109,23 @@ private:
     static bool areNotesEqual(const Note &a, const Note &b) { return a.tick == b.tick; }
 
 public:
-    std::vector<section> Sections {};
+
+    std::vector<Note> notes;
+
+    std::vector<Note> notesPre;
+    std::vector<forceOnPhrase> forcedOnPhrases;
+    std::vector<tapPhrase> tapPhrases;
+    std::vector<forceOffPhrase> forcedOffPhrases;
+
+    // std::vector<section> Sections {};
+    // std::vector<odPhrase> odPhrases;
+    // std::vector<solo> Solos;
+    // std::vector<DrumFill> fills;
+    SoloEvents solos;
+    ODEvents overdrive;
+    FillEvents fills;
+    SectionEvents sections;
+
     void getSections(smf::MidiFile &midiFile, int trkidx) {
         int Section = 0;
         smf::MidiEventList events = midiFile[trkidx];
@@ -231,31 +139,31 @@ public:
                     Name += events[i][k];
                 }
                 if (Name.substr(0, 5) == "[prc_") {
-                    newSection.tickStart = tick;
-                    newSection.Start = time;
+                    newSection.StartTick = tick;
+                    newSection.StartSec = time;
                     newSection.Name = Name.substr(5);
                     newSection.Name.pop_back();
-                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.Start));
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.StartSec));
 
                     if (Section > 0) {
-                        Sections[Section - 1].End = time;
-                        Sections[Section - 1].tickEnd = tick;
+                        sections.events[Section - 1].EndSec = time;
+                        sections.events[Section - 1].EndTick = tick;
                     }
                     Section++;
-                    Sections.push_back(std::move(newSection));
+                    sections.events.push_back(std::move(newSection));
                 } else if (Name.substr(0, 9) == "[section ") {
-                    newSection.tickStart = tick;
-                    newSection.Start = time;
+                    newSection.StartTick = tick;
+                    newSection.StartSec = time;
                     newSection.Name = Name.substr(9);
                     newSection.Name.pop_back();
-                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.Start));
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.StartSec));
 
                     if (Section > 0) {
-                        Sections[Section - 1].End = time;
-                        Sections[Section - 1].tickEnd = tick;
+                        sections.events[Section - 1].EndSec = time;
+                        sections.events[Section - 1].EndTick = tick;
                     }
                     Section++;
-                    Sections.push_back(std::move(newSection));
+                    sections.events.push_back(std::move(newSection));
                 }
             }
         }
@@ -268,7 +176,7 @@ public:
     // note: clones dont do thresh. they do 12ths
     int hopoThreshold = 170;
 
-    std::vector<Note> notes;
+
     std::vector<std::vector<int> > notes_perlane { {}, {}, {}, {}, {} };
     int baseScore = 0;
     int findNoteIdx(double time, int lane) {
@@ -283,7 +191,7 @@ public:
     }
 
     int diff = -1;
-    std::vector<Note> notesPre;
+
 
     int findNotePreIdx(double time, int lane) {
         // if i is smaller than the amount of notes
@@ -311,12 +219,7 @@ public:
         return sameNotes;
     }
 
-    std::vector<forceOnPhrase> forcedOnPhrases;
-    std::vector<tapPhrase> tapPhrases;
-    std::vector<forceOffPhrase> forcedOffPhrases;
-    std::vector<odPhrase> odPhrases;
-    std::vector<solo> Solos;
-    std::vector<DrumFill> fills;
+
     int resolution = 480;
     void parseNotes(
         smf::MidiFile &midiFile,
@@ -357,9 +260,12 @@ public:
     void resetNotes() {
         notes.clear();
         notesPre.clear();
-        odPhrases.clear();
-        Solos.clear();
-        fills.clear();
+
+        sections.ResetEvents();
+        overdrive.ResetEvents();
+        solos.ResetEvents();
+        fills.ResetEvents();
+
         tapPhrases.clear();
         forcedOnPhrases.clear();
         forcedOffPhrases.clear();
@@ -384,18 +290,9 @@ public:
             note.Ghosted = false;
         }
         notesPre.clear();
-        for (auto &od : odPhrases) {
-            od.added = false;
-            od.missed = false;
-            od.notesHit = 0;
-        }
-        for (auto &solo : Solos) {
-            solo.perfect = false;
-            solo.notesHit = 0;
-        }
-        for (auto &fill : fills) {
-            fill.ready = false;
-            fill.notesHit = 0;
-        }
+        sections.ResetEvents();
+        overdrive.ResetEvents();
+        solos.ResetEvents();
+        fills.ResetEvents();
     }
 };

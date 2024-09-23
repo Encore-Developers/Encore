@@ -391,12 +391,12 @@ static void handleInputs(Player *player, int lane, int action) {
                             }
                             stats->OverHit();
                             // todo: ghost twice before miss!!!!
-                            if (!curChart.odPhrases.empty()
+                            if (!curChart.overdrive.events.empty()
                                 && eventTime
-                                    >= curChart.odPhrases[stats->curODPhrase].start
-                                && eventTime < curChart.odPhrases[stats->curODPhrase].end
-                                && !curChart.odPhrases[stats->curODPhrase].missed)
-                                curChart.odPhrases[stats->curODPhrase].missed = true;
+                                    >= curChart.overdrive[stats->curODPhrase].StartSec
+                                && eventTime < curChart.overdrive[stats->curODPhrase].EndSec
+                                && !curChart.overdrive[stats->curODPhrase].missed)
+                                curChart.overdrive[stats->curODPhrase].missed = true;
                             stats->OverhitFrets[lane] = true;
                         }
                     }
@@ -480,11 +480,11 @@ static void handleInputs(Player *player, int lane, int action) {
                     if (lastNote.held && !firstNote) {
                         lastNote.held = false;
                     }
-                    if (!curChart.odPhrases.empty()
-                        && !curChart.odPhrases[stats->curODPhrase].missed
-                        && curNote.time >= curChart.odPhrases[stats->curODPhrase].start
-                        && curNote.time < curChart.odPhrases[stats->curODPhrase].end)
-                        curChart.odPhrases[stats->curODPhrase].missed = true;
+                    if (!curChart.overdrive.events.empty()
+                        && !curChart.overdrive[stats->curODPhrase].missed
+                        && curNote.time >= curChart.overdrive[stats->curODPhrase].StartSec
+                        && curNote.time < curChart.overdrive[stats->curODPhrase].EndSec)
+                        curChart.overdrive[stats->curODPhrase].missed = true;
                 }
             } else if (lane == 8008135 && action == GLFW_RELEASE) {
                 stats->DownStrum = false;
@@ -4247,7 +4247,9 @@ int main(int argc, char *argv[]) {
                             ->charts[player->Difficulty]
                             .resetNotes();
                         audioManager.unloadStreams();
+                        enctime.Reset();
                         player->stats->Quit = true;
+                        gpr.highwayInAnimation = false;
                         songAlbumArtLoadedGameplay = false;
                         GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
                         GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
