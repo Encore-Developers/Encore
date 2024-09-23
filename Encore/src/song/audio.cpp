@@ -98,13 +98,17 @@ void AudioManager::unloadStreams() {
 
 void AudioManager::pauseStreams() {
     if (!loadedStreams.empty()) {
-        BASS_ChannelPause(loadedStreams[0].handle);
+        for (auto stream : loadedStreams) {
+            BASS_ChannelPause(stream.handle);
+        }
     }
 }
 
 void AudioManager::playStreams() {
     if (!loadedStreams.empty()) {
-        BASS_ChannelPlay(loadedStreams[0].handle, false);
+        for (auto stream : loadedStreams) {
+            BASS_ChannelPlay(loadedStreams[0].handle, false);
+        }
     }
 }
 

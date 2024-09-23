@@ -3996,8 +3996,8 @@ void GuiLoadStyle(const char *fileName)
                             // In case a font is already loaded and it is not default internal font, unload it
                             if (font.texture.id != GetFontDefault().texture.id) UnloadTexture(font.texture);
 
-                            if (codepointCount > 0) font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, codepoints, codepointCount);
-                            else font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, NULL, 0);   // Default to 95 standard codepoints
+                            if (codepointCount > 0) font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, codepoints, codepointCount, FONT_DEFAULT);
+                            else font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, NULL, 0, FONT_DEFAULT);   // Default to 95 standard codepoints
                         }
 
                         // If font texture not properly loaded, revert to default font and size/spacing

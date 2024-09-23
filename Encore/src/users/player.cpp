@@ -218,6 +218,11 @@ void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
         newPlayer.Instrument = jsonObject.at("inst").get<int>();
         newPlayer.NoteSpeed = jsonObject.at("NoteSpeed").get<float>();
         newPlayer.InputCalibration = jsonObject.at("inputOffset").get<float>();
+
+        if (!jsonObject["length"].is_null())
+            newPlayer.HighwayLength = jsonObject.at("length").get<float>();
+        else newPlayer.HighwayLength = 1.0f;
+
         newPlayer.Bot = jsonObject.at("bot").get<bool>();
         newPlayer.ClassicMode = jsonObject.at("classic").get<bool>();
         newPlayer.ProDrums = jsonObject.at("proDrums").get<bool>();

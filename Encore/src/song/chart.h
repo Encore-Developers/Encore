@@ -4,8 +4,68 @@
 #include "midifile/MidiFile.h"
 // #include "song.h"
 #include "timingvalues.h"
+#include "util/enclog.h"
+#include "raylib.h"
+
 #include <atomic>
 #include <algorithm>
+#include <iso646.h>
+
+constexpr uint8_t PlasticFrets[6] {
+    // open			0		     0| technically not a "fretted note" so i put it on
+    // the empty space
+    0b000001,
+    // green		1		    0 |
+    0b000010,
+    // red			2		   0  |
+    // gr chord		3		   00 |
+    0b000100,
+    // yellow		4		  0   |
+    // gy chord		5		  0 0 |
+    // ry chord		6		  00  |
+    // gry chord	7		  000 |
+    0b001000,
+    // blue			8		 0    |
+    // gb chord		9		 0  0 |
+    // rb chord		10		 0 0  |
+    // grb chord	11		 0 00 |
+    // yb chord		12		 00   |
+    // gyb chord	13		 00 0 |
+    // ryb chord	14		 000  |
+    // gryb chord	15		 0000 |
+    0b010000,
+    // orange		16		0     |
+    // go chord		17		0   0 |
+    // ro chord		18		0  0  |
+    // gro chord	19		0  00 |
+    // yo chord		20		0 0   |
+    // gyo chord	21		0 0 0 |
+    // ryo chord	22		0 00  |
+    // gryo chord	23		0 000 |
+    // bo chord		24		00    |
+    // gbo chord	25		00  0 |
+    // rbo chord	26		00 0  |
+    // grbo chord	27		00 00 |
+    // ybo chord	28		000   |
+    // gybo chord	29		000 0 |
+    // rybo chord	30		0000  |
+    // grybo chord	31		00000 |
+    0b000000
+};
+
+
+/*
+inline uint8_t LaneToPlasticFret(int lane) {
+    switch (lane) {
+    case 0: return PlasticFrets::Green;
+    case 1: return PlasticFrets::Red;
+    case 2: return PlasticFrets::Yellow;
+    case 3: return PlasticFrets::Blue;
+    case 4: return PlasticFrets::Orange;
+    default: return PlasticFrets::Green;
+    }
+}
+*/
 
 class Note {
 public:
@@ -35,7 +95,7 @@ public:
     int strumCount = 0;
     int chordSize = 0;
     bool hitWithFAS = false;
-    int mask;
+    uint8_t mask;
     bool chord = false;
     std::vector<int> pLanes;
     bool pForceOn = false;
@@ -64,6 +124,7 @@ public:
     bool pTap = false;
     bool pOpen = false;
 };
+
 
 enum ChartLoadingState {
     BEATLINES,
@@ -174,8 +235,8 @@ public:
                     newSection.Start = time;
                     newSection.Name = Name.substr(5);
                     newSection.Name.pop_back();
-                    std::cout << "New section: " << newSection.Name << " at "
-                              << newSection.Start << std::endl;
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.Start));
+
                     if (Section > 0) {
                         Sections[Section - 1].End = time;
                         Sections[Section - 1].tickEnd = tick;
@@ -187,8 +248,8 @@ public:
                     newSection.Start = time;
                     newSection.Name = Name.substr(9);
                     newSection.Name.pop_back();
-                    std::cout << "New section: " << newSection.Name << " at "
-                              << newSection.Start << std::endl;
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.Start));
+
                     if (Section > 0) {
                         Sections[Section - 1].End = time;
                         Sections[Section - 1].tickEnd = tick;
@@ -200,41 +261,7 @@ public:
         }
     }
     bool valid = false;
-    std::vector<int> PlasticFrets = {
-        // open			0		     0| technically not a "fretted note" so i put it on
-        // the empty space
-        0b000001, // green				1		    0 |
-        0b000010, // red				2		   0  |
-        // gr chord		3		   00 |
-        0b000100, // yellow				4		  0   |
-        // gy chord		5		  0 0 |
-        // ry chord		6		  00  |
-        // gry chord	7		  000 |
-        0b001000, // blue				8		 0    |
-        // gb chord		9		 0  0 |
-        // rb chord		10		 0 0  |
-        // grb chord	11		 0 00 |
-        // yb chord		12		 00   |
-        // gyb chord	13		 00 0 |
-        // ryb chord	14		 000  |
-        // gryb chord	15		 0000 |
-        0b010000 // orange				16		0     |
-        // go chord		17		0   0 |
-        // ro chord		18		0  0  |
-        // gro chord	19		0  00 |
-        // yo chord		20		0 0   |
-        // gyo chord	21		0 0 0 |
-        // ryo chord	22		0 00  |
-        // gryo chord	23		0 000 |
-        // bo chord		24		00    |
-        // gbo chord	25		00  0 |
-        // rbo chord	26		00 0  |
-        // grbo chord	27		00 00 |
-        // ybo chord	28		000   |
-        // gybo chord	29		000 0 |
-        // rybo chord	30		0000  |
-        // grybo chord	31		00000 |
-    };
+
 
     bool plastic = false;
     // plastic stuff :tm:
@@ -336,5 +363,39 @@ public:
         tapPhrases.clear();
         forcedOnPhrases.clear();
         forcedOffPhrases.clear();
+    }
+
+    void restartNotes() {
+        for (auto &note : notes) {
+            note.accounted = false;
+            note.miss = false;
+            note.hit = false;
+            note.perfect = false;
+            note.heldTime = 0.0;
+            note.HitOffset = 0.0;
+            note.held = false;
+            note.hitTime = 0.0;
+            note.strumCount = 0;
+            note.GhostCount = 0;
+            note.hitWithFAS = false;
+            note.countedForODPhrase = false;
+            note.countedForSection = false;
+            note.countedForSolo = false;
+            note.Ghosted = false;
+        }
+        notesPre.clear();
+        for (auto &od : odPhrases) {
+            od.added = false;
+            od.missed = false;
+            od.notesHit = 0;
+        }
+        for (auto &solo : Solos) {
+            solo.perfect = false;
+            solo.notesHit = 0;
+        }
+        for (auto &fill : fills) {
+            fill.ready = false;
+            fill.notesHit = 0;
+        }
     }
 };

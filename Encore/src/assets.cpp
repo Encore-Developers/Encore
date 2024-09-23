@@ -25,13 +25,13 @@ Model Assets::LoadModel_(const std::filesystem::path &modelPath, int &loadedAsse
 Font Assets::LoadFontFilter(
     const std::filesystem::path &fontPath, int fontSize, int &loadedAssets
 ) {
-    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0, 250);
+    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0, 250, FONT_DEFAULT);
     font.baseSize = 128;
     font.glyphCount = 250;
     int fileSize = 0;
     unsigned char *fileData = LoadFileData(fontPath.string().c_str(), &fileSize);
     font.glyphs = LoadFontData(fileData, fileSize, 128, 0, 250, FONT_SDF);
-    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 1);
+    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 0);
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
@@ -49,10 +49,24 @@ void Assets::FirstAssets() {
 void Assets::LoadAssets() {
     Color accentColor = { 255, 0, 255, 255 };
     Color overdriveColor = Color { 255, 200, 0, 255 };
-    smasherReg =
-        Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
-    smasherRegTex =
-        LoadTexture((directory / "Assets/highway/smasher_reg.png").string().c_str());
+    //smasherReg =
+    //    Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
+    smasherInner =
+        Assets::LoadModel_((directory / "Assets/highway/smasherInner.obj"), loadedAssets);
+    smasherInnerTex =
+        LoadTexture((directory / "Assets/highway/smasherbase.png").string().c_str());
+    smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherInnerTex;
+
+    smasherOuter =
+        Assets::LoadModel_((directory / "Assets/highway/smasherOuter.obj"), loadedAssets);
+    smasherOuterTex =
+        LoadTexture((directory / "Assets/highway/smasherframe.png").string().c_str());
+    smasherOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherOuterTex;
+
+    smasherTopPressedTex =
+        LoadTexture((directory / "Assets/highway/smashertop-p.png").string().c_str());
+    smasherTopUnpressedTex =
+        LoadTexture((directory / "Assets/highway/smashertop-u.png").string().c_str());
 
     smasherBoardTex =
         Assets::LoadTextureFilter(directory / "Assets/highway/board.png", loadedAssets);
@@ -104,7 +118,7 @@ void Assets::LoadAssets() {
         Assets::LoadTextureFilter(directory / "Assets/ui/mult_fill_od.png", loadedAssets);
     multNumberTex =
         Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png", loadedAssets);
-    odMultShader = LoadShader(0, "Assets/ui/odmult.fs");
+    odMultShader = LoadShader("Assets/highway/fLighting.vsh", "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 
     MultInnerDot = Assets::LoadModel_(
@@ -123,14 +137,15 @@ void Assets::LoadAssets() {
     MultFillBase = Assets::LoadTextureFilter(
         (directory / "Assets/highway/multiplier/Untitled.png"), loadedAssets
     );
+    // why is it called "od"
     MultFCTex1 = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/od shine.png"), loadedAssets
+        (directory / "Assets/highway/multiplier/od-shine.png"), loadedAssets
     );
     MultFCTex2 = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/od shine2.png"), loadedAssets
+        (directory / "Assets/highway/multiplier/od-shine2.png"), loadedAssets
     );
     MultFCTex3 = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/od shine3.png"), loadedAssets
+        (directory / "Assets/highway/multiplier/od-shine3.png"), loadedAssets
     );
 
     FullComboIndicator = LoadShader(0, "Assets/ui/fc_ind.fsh");
@@ -164,17 +179,22 @@ void Assets::LoadAssets() {
     HighwayFadeEndLoc = GetShaderLocation(HighwayFade, "fadeEnd");
     HighwayColorLoc = GetShaderLocation(HighwayFade, "colorForAccent");
     HighwayAccentFadeLoc = GetShaderLocation(HighwayFade, "useInAccent");
+    HighwayFade.locs[SHADER_LOC_COLOR_DIFFUSE] = HighwayColorLoc;
 
-    Highway.locs[SHADER_UNIFORM_SAMPLER2D] = GetShaderLocation(Highway, "highwayTex");
+    // Highway.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(Highway, "colDiffuse");
+    // Highway.locs[SHADER_LOC_MAP_DIFFUSE] = GetShaderLocation(Highway, "highwayTex");
     HighwayColorShaderLoc = GetShaderLocation(Highway, "highwayColor");
     HighwayScrollFadeStartLoc = GetShaderLocation(Highway, "fadeStart");
     HighwayScrollFadeEndLoc = GetShaderLocation(Highway, "fadeEnd");
 
     expertHighwaySides =
         Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
+    DarkerHighwayThing =
+        Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
     expertHighway =
         Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
     expertHighway.materials[0].shader = Highway;
+
     emhHighwaySides =
         Assets::LoadModel_((directory / "Assets/highway/sides_emh.obj"), loadedAssets);
     emhHighway =
@@ -184,6 +204,7 @@ void Assets::LoadAssets() {
     );
     odHighwayX =
         Assets::LoadModel_((directory / "Assets/highway/overdrive_x.obj"), loadedAssets);
+    odHighwayX.materials[0].shader = Highway;
     highwayTexture =
         Assets::LoadTextureFilter(directory / "Assets/highway/highway.png", loadedAssets);
     highwayTextureOD = Assets::LoadTextureFilter(
@@ -337,10 +358,10 @@ void Assets::LoadAssets() {
         directory / "Assets/notes/sustain-held.png", loadedAssets
     );
 
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
-    smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
+    // smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
+    // smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
+   // smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherRegTex;
+    // smasherReg.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;
 
     smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherPressTex;
     smasherPressed.materials[0].maps[MATERIAL_MAP_ALBEDO].color = accentColor;

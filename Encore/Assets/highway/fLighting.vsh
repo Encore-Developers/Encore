@@ -28,6 +28,13 @@ void main()
     fragNormal = normalize(vec3(matNormal*vec4(vertexNormal, 1.0)));
     vec3 finalPos = vertexPosition;
     finalPos.y += (-(fragPosition.x * fragPosition.x))/(100+fragPosition.y);
-    // Calculate final vertex position
+    if (vertexPosition.x > 0)
+        {
+            finalPos.x -= (vertexPosition.y * vertexPosition.y)/(75);
+        }
+        else
+        {
+            finalPos.x += (vertexPosition.y * vertexPosition.y)/(75);
+        }
     gl_Position = mvp*vec4(finalPos, 1.0);
 }

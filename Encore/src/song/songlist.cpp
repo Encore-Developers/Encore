@@ -1,4 +1,5 @@
 #include "songlist.h"
+#include "util/enclog.h"
 
 #include <set>
 
@@ -13,16 +14,37 @@ void SongList::Clear() {
     badSongCount = 0;
 }
 
+bool startsWith(const std::string &str, const std::string &prefix) {
+    return str.substr(0, prefix.size()) == prefix;
+}
+
+std::string removeArticle(const std::string &str) {
+    std::string result = str;
+
+    if (startsWith(result, "a ")) {
+        return str.substr(2);
+    } else if (startsWith(result, "an ")) {
+        return str.substr(3);
+    } else if (startsWith(result, "the ")) {
+        return str.substr(4);
+    }
+    return str;
+}
+
 bool SongList::sortArtist(const Song &a, const Song &b) {
     std::string aLower = TextToLower(a.artist.c_str());
     std::string bLower = TextToLower(b.artist.c_str());
-    return aLower < bLower;
+    std::string aaa = removeArticle(aLower);
+    std::string bbb = removeArticle(bLower);
+    return aaa < bbb;
 }
 
 bool SongList::sortTitle(const Song &a, const Song &b) {
     std::string aLower = TextToLower(a.title.c_str());
     std::string bLower = TextToLower(b.title.c_str());
-    return aLower < bLower;
+    std::string aaa = removeArticle(aLower);
+    std::string bbb = removeArticle(bLower);
+    return aaa < bbb;
 }
 
 bool SongList::sortLen(const Song &a, const Song &b) {
@@ -90,11 +112,11 @@ void SongList::WriteCache() {
 
         SongCache << song.length;
 
-        TraceLog(LOG_INFO, TextFormat("%s - %s", song.title.c_str(), song.artist.c_str()));
-        TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
-        TraceLog(LOG_INFO, TextFormat("Album Art Path - %s", song.albumArtPath.c_str()));
-        TraceLog(LOG_INFO, TextFormat("Song Info Path - %s", song.songInfoPath.c_str()));
-        TraceLog(LOG_INFO, std::to_string(song.length).c_str());
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
     }
 
     SongCache.close();
@@ -132,7 +154,7 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
         }
     }
 
-    TraceLog(LOG_INFO, "Rewriting song cache");
+    Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
 }
 
@@ -146,15 +168,17 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
         const Song &song = songs[i];
         switch (sortType) {
         case SortType::Title: {
-            if (toupper(song.title[0]) != currentHeader[0]) {
-                currentHeader = toupper(song.title[0]);
+            std::string title = removeArticle(TextToLower(song.title.c_str()));
+            if (toupper(title[0]) != currentHeader[0]) {
+                currentHeader = toupper(title[0]);
                 songEntries.emplace_back(true, 0, currentHeader, false);
                 pos++;
             }
             break;
         }
         case SortType::Artist: {
-            if (song.artist != currentHeader) {
+            std::string artist = removeArticle(song.artist);
+            if (artist != currentHeader) {
                 currentHeader = song.artist;
                 songEntries.emplace_back(true, 0, currentHeader, false);
                 pos++;
@@ -181,7 +205,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
     encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
     if (!SongCacheIn) {
-        TraceLog(LOG_WARNING, "Failed to load song cache!");
+        Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -191,7 +215,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     uint32_t header;
     SongCacheIn >> header;
     if (header != SONG_CACHE_HEADER) {
-        TraceLog(LOG_WARNING, "Invalid song cache format, rescanning");
+        Encore::EncoreLog(LOG_WARNING, "CACHE: Invalid song cache format, rescanning");
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -200,10 +224,10 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     uint32_t version;
     SongCacheIn >> version;
     if (version != SONG_CACHE_VERSION) {
-        TraceLog(
+        Encore::EncoreLog(
             LOG_WARNING,
             TextFormat(
-                "Cache version %01i, but current version is %01i",
+                "CACHE: Cache version %01i, but current version is %01i",
                 version,
                 SONG_CACHE_VERSION
             )
@@ -218,7 +242,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     ListLoadingState = LOADING_CACHE;
     // Load cached songs
     Clear();
-    TraceLog(LOG_INFO, "Loading song cache");
+    Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
     std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
     MaxChartsToLoad = cachedSongCount;
     for (int i = 0; i < cachedSongCount; i++) {
@@ -236,7 +260,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
 
         SongCacheIn >> song.length;
 
-        TraceLog(LOG_INFO, TextFormat("Directory - %s", song.songDir.c_str()));
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
 
         if (!std::filesystem::exists(song.songDir)) {
             continue;
@@ -310,7 +334,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     }
 
     if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
-        TraceLog(LOG_INFO, "Updating song cache");
+        Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");
         WriteCache();
     }
 

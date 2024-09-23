@@ -16,7 +16,7 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
   FetchContent_Declare(
     raylib
     DOWNLOAD_EXTRACT_TIMESTAMP OFF
-    URL https://github.com/NarrikSynthfox/raylib/archive/refs/heads/master.zip
+    URL https://github.com/Encore-Developers/raylib/archive/refs/heads/master.zip
   )
   FetchContent_GetProperties(raylib)
   if (NOT raylib_POPULATED) # Have we downloaded raylib yet?
@@ -112,5 +112,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
+
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
+
 target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS})

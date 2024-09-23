@@ -46,16 +46,18 @@ GameMenu TheGameMenu;
 
 Font GameMenu::LoadFontFilter(const std::filesystem::path &fontPath) {
     int fontSize = 128;
-    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0, 250);
+    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0, 250, FONT_DEFAULT);
     font.baseSize = 128;
     font.glyphCount = 250;
     int fileSize = 0;
     unsigned char *fileData = LoadFileData(fontPath.string().c_str(), &fileSize);
     font.glyphs = LoadFontData(fileData, fileSize, 128, 0, 250, FONT_SDF);
-    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 1);
+    std::filesystem::path atlasFilePath = ((fontPath.parent_path() / fontPath.filename()).string() + ".png");
+    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 0);
+    ExportImage(atlas, atlasFilePath.string().c_str());
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
-    SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
     return font;
 }
 
@@ -67,9 +69,9 @@ Texture2D GameMenu::LoadTextureFilter(const std::filesystem::path &texturePath) 
 }
 
 void GameMenu::mhDrawText(
-    Font font, std::string text, Vector2 pos, float fontSize, Color color
+    Font font, std::string text, Vector2 pos, float fontSize, Color color, Shader sdfShader
 ) {
-    BeginShaderMode(sdfShader());
+    BeginShaderMode(sdfShader);
     DrawTextEx(font, text.c_str(), pos, fontSize, 0, color);
     EndShaderMode();
 }

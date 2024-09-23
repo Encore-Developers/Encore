@@ -15,6 +15,7 @@
 
 #include "picosha2.h"
 #include "rapidjson/document.h"
+#include "util/enclog.h"
 
 enum PartIcon {
     IconDrum,
@@ -36,6 +37,7 @@ enum SongParts {
     PlasticVocals,
     PartKeys,
     PlasticKeys,
+    PitchedVocals,
     Invalid
 };
 
@@ -60,6 +62,12 @@ struct TimeSig {
 struct BPM {
     double time;
     double bpm;
+};
+
+struct Beat {
+    double Time;
+    bool Major = false;
+    bool Clapped = false;
 };
 
 class Song {
@@ -90,12 +98,13 @@ public:
         { "PART BASS", SongParts::PartBass },
         { "PART GUITAR", SongParts::PartGuitar },
         { "PART VOCALS", SongParts::PartVocals },
-        { "PAD KEYS", SongParts::PartKeys },
+        { "PART KEYS", SongParts::PartKeys },
         { "PLASTIC DRUMS", SongParts::PlasticDrums },
         { "PLASTIC BASS", SongParts::PlasticBass },
         { "PLASTIC GUITAR", SongParts::PlasticGuitar },
         { "PLASTIC VOCALS", SongParts::PlasticVocals },
-        { "PLASTIC KEYS", SongParts::PlasticKeys }
+        { "PLASTIC KEYS", SongParts::PlasticKeys },
+        { "PITCHED VOCALS", SongParts::PitchedVocals }
     };
 
     std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
@@ -107,7 +116,9 @@ public:
         { "PART DRUMS", SongParts::PlasticDrums },
         { "PART BASS", SongParts::PlasticBass },
         { "PART GUITAR", SongParts::PlasticGuitar },
-        { "PART KEYS", SongParts::PlasticKeys }
+        { "PART KEYS", SongParts::PlasticKeys },
+        { "PART VOCALS", SongParts::PitchedVocals },
+        { "PLASTIC VOCALS", SongParts::PlasticVocals }
     };
 
     SongParts partFromString(const std::string &str) {
@@ -156,9 +167,9 @@ public:
     std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
                                     new SongPart, new SongPart, new SongPart,
                                     new SongPart, new SongPart, new SongPart,
-                                    new SongPart };
+                                    new SongPart, new SongPart };
 
-    std::vector<std::pair<double, bool> > beatLines; // double time, bool downbeat
+    std::vector<Beat> beatLines; // double time, bool downbeat
 
     std::vector<std::pair<std::string, int> > stemsPath {};
 
@@ -334,19 +345,27 @@ public:
                     std::string part = std::string(diff.name.GetString());
                     if (diff.value.IsInt()) {
                         if (part == "ds" || part == "drums") {
-                            parts[0]->diff = diff.value.GetInt();
+                            parts[PartDrums]->diff = diff.value.GetInt();
                         } else if (part == "ba" || part == "bass") {
-                            parts[1]->diff = diff.value.GetInt();
+                            parts[PartBass]->diff = diff.value.GetInt();
                         } else if (part == "gr" || part == "guitar") {
-                            parts[2]->diff = diff.value.GetInt();
+                            parts[PartGuitar]->diff = diff.value.GetInt();
                         } else if (part == "vl" || part == "vocals") {
-                            parts[3]->diff = diff.value.GetInt();
+                            parts[PartVocals]->diff = diff.value.GetInt();
+                        } else if (part == "ky" || part == "keys") {
+                            parts[PartKeys]->diff = diff.value.GetInt();
                         } else if (part == "pd" || part == "plastic_drums") {
-                            parts[4]->diff = diff.value.GetInt();
+                            parts[PlasticDrums]->diff = diff.value.GetInt();
                         } else if (part == "pb" || part == "plastic_bass") {
-                            parts[5]->diff = diff.value.GetInt();
+                            parts[PlasticBass]->diff = diff.value.GetInt();
                         } else if (part == "pg" || part == "plastic_guitar") {
-                            parts[6]->diff = diff.value.GetInt();
+                            parts[PlasticGuitar]->diff = diff.value.GetInt();
+                        } else if (part == "pk" || part == "plastic_keys") {
+                            parts[PlasticKeys]->diff = diff.value.GetInt();
+                        } else if (part == "pv" || part == "plastic_vocals") {
+                            parts[PlasticVocals]->diff = diff.value.GetInt();
+                        } else if (part == "tv" || part == "pitched_vocals") {
+                            parts[PitchedVocals]->diff = diff.value.GetInt();
                         }
                     }
                 }
@@ -368,7 +387,7 @@ public:
         std::ifstream ifs(jsonPath);
 
         if (!ifs.is_open()) {
-            std::cerr << "Failed to open JSON file." << std::endl;
+            Encore::EncoreLog(LOG_ERROR, TextFormat("Failed to open song JSON file. %s", jsonPath.c_str()));
         }
         if (!stemsPath.empty())
             stemsPath.clear();
@@ -527,8 +546,9 @@ public:
     void parseBeatLines(smf::MidiFile &midiFile, int trkidx, smf::MidiEventList events) {
         for (int i = 0; i < events.getSize(); i++) {
             if (events[i].isNoteOn()) {
-                beatLines.push_back({ midiFile.getTimeInSeconds(trkidx, i),
-                                      (int)events[i][1] == 12 });
+                beatLines.push_back(
+                    { midiFile.getTimeInSeconds(trkidx, i),
+                    (int)events[i][1] == 12, false });
             }
         }
     }
@@ -537,15 +557,15 @@ public:
             if (events[i].isTempo()) {
                 bpms.push_back({ midiFile.getTimeInSeconds(trkidx, i),
                                  events[i].getTempoBPM() });
-                std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
-                          << events[i].getTempoBPM() << std::endl;
+                //std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
+                //          << events[i].getTempoBPM() << std::endl;
             } else if (events[i].isMeta() && events[i][1] == 0x58) {
                 int numer = (int)events[i][3];
                 int denom = pow(2, (int)events[i][4]);
                 timesigs.push_back({ midiFile.getTimeInSeconds(trkidx, i), numer, denom }
                 );
-                std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
-                          << numer << "/" << denom << std::endl;
+                //std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
+                //          << numer << "/" << denom << std::endl;
             }
         }
         if (timesigs.size() == 0) {
@@ -562,12 +582,15 @@ public:
                 for (int k = 3; k < events[i].getSize(); k++) {
                     evt_string += events[i][k];
                 }
-                std::cout << evt_string << events[i].tick << std::endl;
-                if (evt_string == "[music_start]")
-                    music_start = time;
 
-                if (evt_string == "[end]")
+                if (evt_string == "[music_start]") {
+                    music_start = time;
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("SONG: Song start: %5.4f", time));
+                }
+                if (evt_string == "[end]") {
                     end = time;
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("SONG: Song end: %5.4f", time));
+                }
             }
         }
     }

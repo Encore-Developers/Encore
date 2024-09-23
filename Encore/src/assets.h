@@ -26,8 +26,12 @@ public:
 
     int loadedAssets;
     int totalAssets = 32;
-    Model smasherReg;
-    Texture2D smasherRegTex;
+    Model smasherInner;
+    Model smasherOuter;
+    Texture2D smasherInnerTex;
+    Texture2D smasherOuterTex;
+    Texture2D smasherTopPressedTex;
+    Texture2D smasherTopUnpressedTex;
 
     Model smasherBoard;
     Texture2D smasherBoardTex;
@@ -115,6 +119,7 @@ public:
     Model emhHighway;
     Model odHighwayEMH;
     Model odHighwayX;
+    Model DarkerHighwayThing;
     Texture2D highwayTexture;
     Texture2D highwayTextureOD;
     Texture2D highwaySidesTexture;

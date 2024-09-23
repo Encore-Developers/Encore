@@ -29,11 +29,6 @@ class GameMenu {
 
 public:
     GameMenu() {};
-    static Shader sdfShader() {
-        std::filesystem::path assetsdir = GetApplicationDirectory();
-        assetsdir /= "Assets";
-        return LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
-    }
 
     static std::string scoreCommaFormatter(int value) {
         std::stringstream ss;
@@ -47,7 +42,7 @@ public:
     static Texture2D LoadTextureFilter(const std::filesystem::path &texturePath);
     static Font LoadFontFilter(const std::filesystem::path &fontPath);
     static void
-    mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color);
+    mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color, Shader sdfShader);
     static void DrawFPS(int posX, int posY);
     static void DrawVersion();
     // drawing helper functions for other menus

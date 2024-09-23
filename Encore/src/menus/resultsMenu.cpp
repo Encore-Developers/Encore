@@ -40,6 +40,7 @@ void resultsMenu::Load() {
                       "Classic Drums", "Classic Bass", "Classic Lead", "Classic Vocals",
                       "Keys",          "Classic Keys" };
     diffList = { "Easy", "Medium", "Hard", "Expert" };
+    sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
 }
 
 void resultsMenu::Draw() {

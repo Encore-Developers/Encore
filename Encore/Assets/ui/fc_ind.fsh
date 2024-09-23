@@ -20,7 +20,7 @@ void main() {
     vec2 topPush = vec2(fragTexCoord.x+(time/6), fragTexCoord.y);
 
     vec4 baseColor = color;
-    if (isFC == 1) {
+    if (isFC >= 0.9) {
         finalColor = clamp((((baseColor * texture2D(tex2, middlePush)) * 2) + ((baseColor * texture2D(tex1, topPush)) * 2) + ((baseColor * texture2D(baseTex, basePush)) / 4)) * 5.0f, baseColor * 1.5f, vec4(1.0f, 1.0f, 1.0f, 1.0f));
         finalColor.a = 1.0f;
     }

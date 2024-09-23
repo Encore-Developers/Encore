@@ -33,6 +33,7 @@ void cacheLoadingScreen::Load() {
         GameMenu::LoadFontFilter(assetsdir / "fonts/JosefinSans-Italic.ttf");
     encoreLogo = GameMenu::LoadTextureFilter(assetsdir / "encore_favicon-NEW.png");
     SplashSel = GetRandomValue(0, CacheSplash.size() - 1);
+    sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
 }
 
 // todo(3drosalia): make another class for drawing these things without having to uh.
@@ -68,7 +69,8 @@ void cacheLoadingScreen::Draw() {
         "LOADING CACHE",
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
-        WHITE
+        WHITE,
+        sdfShader
     );
     float RubikFontSize = u.hinpct(0.05f);
     int loaded = CurrentChartNumber;
@@ -80,7 +82,8 @@ void cacheLoadingScreen::Draw() {
         LoadingText,
         { u.RightSide - lwidth, u.hpct(0.085f) },
         RubikFontSize,
-        LIGHTGRAY
+        LIGHTGRAY,
+        sdfShader
     );
     GameMenu::DrawBottomOvershell();
 
@@ -102,7 +105,8 @@ void cacheLoadingScreen::Draw() {
         { u.LeftSide + u.hinpct(0.16),
           GetScreenHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
         RubikFontSize / 1.5f,
-        WHITE
+        WHITE,
+        sdfShader
     );
     if (!started) {
         started = true;

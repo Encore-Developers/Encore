@@ -14,6 +14,7 @@ class cacheLoadingScreen : public Menu {
     Font JosefinSansItalic;
     int SplashSel;
     Texture2D LoadingScreenBackground;
+    Shader sdfShader;
 
 public:
     cacheLoadingScreen();

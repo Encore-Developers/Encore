@@ -408,7 +408,7 @@ public:
     bool LeftyFlip;
     bool Online;
     int ActiveSlot;
-    int HighwayLength;
+    float HighwayLength;
 
     void ResetGameplayStats();
 

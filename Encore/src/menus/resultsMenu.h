@@ -20,6 +20,7 @@ class resultsMenu : public Menu {
     Texture2D GoldStar;
     Texture2D Star;
     Texture2D EmptyStar;
+    Shader sdfShader;
     std::vector<std::string> diffList;
     std::vector<std::string> songPartsList;
     void drawPlayerResults(Player *player, Song song, int playerslot);

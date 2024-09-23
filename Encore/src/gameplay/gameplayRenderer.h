@@ -38,7 +38,7 @@ class gameplayRenderer {
 
     void
     RenderEmhHighway(Player *player, Song song, double time, RenderTexture2D &highway_tex);
-    void DrawBeatlines(Player *player, Song song, float length, double musicTime);
+    void DrawBeatlines(Player *player, Song *song, float length, double musicTime);
     void DrawOverdrive(Player *player, Chart &curChart, float length, double musicTime);
     void DrawSolo(Player *player, Chart &curChart, float length, double musicTime);
 
@@ -92,16 +92,13 @@ public:
     bool highwayOutAnimation = false;
     bool highwayOutEndAnim = false;
     float animDuration = 1.0f;
-    bool songEnded = true;
     bool overstrum = false;
     int selectedSongInt = 0;
     bool songPlaying = false;
     bool showHitwindow = false;
 
-    bool songOver = false;
     bool extendedSustainActive = false;
     float textureOffset = 0;
-    double audioStartTime = 0.0;
     float renderPos = 0;
     int cameraSel = 0;
     Mesh sustainPlane;
@@ -131,7 +128,6 @@ public:
     // 0.0f, 0.0f, 6.5f
     gpr.camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
      */
-    double startTime = 0.0;
 
     void
     RenderGameplay(Player *player, double time, Song song, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &);
