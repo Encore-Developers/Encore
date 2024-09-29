@@ -17,6 +17,28 @@ struct EncChartEvent : EncNoteEvent {
     int NoteCount = 0;
 };
 
+struct Coda : EncChartEvent {
+    bool exists = false;
+
+    bool IsNoteInCoda(Note& note) {
+        if (exists) {
+        if (note.time >= StartSec && note.time < EndSec) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool IsCodaActive(float time) {
+        if (exists) {
+            if (time >= StartSec && time <= EndSec) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
 struct solo : EncChartEvent {};
 
 struct DrumFill : EncChartEvent {};
