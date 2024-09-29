@@ -378,6 +378,9 @@ public:
                 }
             }
         }
+        if (charters.empty()) {
+            charters.push_back("Unknown Charter");
+        }
         ifs.close();
     }
 
@@ -538,6 +541,9 @@ public:
                             charters.push_back(charter.value.GetString());
                         }
                     }
+                }
+                if (charters.empty()) {
+                    charters.push_back("Unknown Charter");
                 }
             }
         }

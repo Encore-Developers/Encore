@@ -239,6 +239,11 @@ void Assets::LoadAssets() {
     CymbalInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
     CymbalBottom.materials[0].maps[MATERIAL_MAP_ALBEDO].color = GRAY;
 
+    CodaLaneTex = LoadTextureFilter((directory / "Assets/notes/codaLanes.png"), loadedAssets);
+    CodaLane = LoadMaterialDefault();
+    CodaLane.maps[MATERIAL_MAP_ALBEDO].texture = CodaLaneTex;
+    CodaLane.shader = HighwayFade;
+
     YargRings.push_back(
         LoadTextureFilter((directory / "Assets/ui/hugh ring/rings-1.png"), loadedAssets)
     );
