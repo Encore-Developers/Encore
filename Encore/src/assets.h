@@ -21,6 +21,10 @@ public:
         directory = assetsDirectory;
     }
 
+    std::filesystem::path getDirectory() {
+        return directory;
+    }
+
     Assets(const Assets &) = delete;
     void operator=(const Assets &) = delete;
 
@@ -187,6 +191,9 @@ public:
     Material sustainMatHeld;
     Material sustainMatHeldOD;
     Material sustainMatMiss;
+
+    Material CodaLane;
+    Texture2D CodaLaneTex;
 
     Shader sdfShader;
     Shader bgShader;
