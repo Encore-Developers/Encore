@@ -170,7 +170,7 @@ void AudioManager::BeginPlayback(unsigned int handle) {
 }
 
 void AudioManager::StopPlayback(unsigned int handle) {
-    BASS_ChannelStop(loadedStreams[0].handle);
+    BASS_ChannelStop(handle);
     CHECK_BASS_ERROR2();
 }
 
