@@ -8,7 +8,20 @@
 #include "EncEventVect.h"
 #include "../EncEvents/EncChartEvents.h"
 
-struct SoloEvents : EncEventVect<solo> {};
+struct SoloEvents : EncEventVect<solo> {
+    void UpdateEventViaNote(Note& note, int curEvent) override {
+        if (!events.empty()) {
+            if (note.time >= events[curEvent].StartSec
+                && note.time < events[curEvent].EndSec) {
+                if (note.hit && !note.countedForSolo) {
+                    events[curEvent].NotesHit++;
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("Solo note hit: %01i/%01i", events[curEvent].NotesHit, events[curEvent].NoteCount));
+                    note.countedForSolo = true;
+                }
+            }
+        }
+    }
+};
 
 struct FillEvents : EncEventVect<DrumFill> {};
 
@@ -36,17 +49,31 @@ struct ODEvents : EncEventVect<odPhrase> {
                 if (note.miss && !events[curEvent].missed) {
                     events[curEvent].missed = true;
                 }
+            }
+        }
+    }
+    void RenderNotesAsOD(Note& note, int curEvent) {
+        if (!events.empty()) {
+            if (note.time >= events[curEvent].StartSec
+                && note.time < events[curEvent].EndSec) {
+                if (!note.miss && !events[curEvent].missed) {
+                    note.renderAsOD = true;
+                } else {
+                    note.renderAsOD = false;
                 }
+            }
         }
     }
     float AddOverdrive(int phrase) {
-        if (events[phrase].NoteCount == events[phrase].NotesHit
-            && !events[phrase].added
-            && !events[phrase].missed) {
-            events[phrase].added = true;
-            return 0.25f;
-            }
-        return 0;
+        if (!events.empty()){
+            if (events[phrase].NoteCount == events[phrase].NotesHit
+                && !events[phrase].added
+                && !events[phrase].missed) {
+                events[phrase].added = true;
+                return 0.25f;
+                }
+            return 0;
+        }
     }
 };
 
