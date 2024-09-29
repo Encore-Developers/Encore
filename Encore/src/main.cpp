@@ -678,13 +678,15 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 
 static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
     Player *player = playerManager.GetPlayerGamepad(joypadID);
+    // Encore::EncoreLog(LOG_DEBUG, TextFormat("Attempted input on joystick %01i", joypadID));
     if (!IsGamepadAvailable(player->joypadID))
         return;
     PlayerGameplayStats *stats = player->stats;
     if (!streamsLoaded) {
         return;
     }
-    double eventTime = audioManager.GetMusicTimePlayed();
+
+    double eventTime = enctime.GetSongTime();
     if (settingsMain.controllerPause >= 0) {
         if (state.buttons[settingsMain.controllerPause]
             != stats->buttonValues[settingsMain.controllerPause]) {
@@ -692,14 +694,16 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
                 state.buttons[settingsMain.controllerPause];
             if (state.buttons[settingsMain.controllerPause] == 1) {
                 stats->Paused = !stats->Paused;
-                if (stats->Paused)
+                if (stats->Paused && !playerManager.BandStats.Multiplayer) {
                     audioManager.pauseStreams();
-                else {
+                    enctime.Pause();
+                } else if (!playerManager.BandStats.Multiplayer){
                     audioManager.unpauseStreams();
+                    enctime.Resume();
                     for (int i = 0; i < (player->Difficulty == 3 ? 5 : 4); i++) {
                         handleInputs(player, i, -1);
                     }
-                }
+                } // && !player->Bot
             }
         }
     } else if (!player->Bot) {
@@ -738,10 +742,12 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
         for (int i = 0; i < 5; i++) {
             if (settingsMain.controller5K[i] >= 0) {
                 if (state.buttons[settingsMain.controller5K[i]]
-                    != stats->buttonValues[settingsMain.controller5K[i]]) {
-                    if (state.buttons[settingsMain.controller5K[i]] == 1)
+                    != stats->buttonValues[settingsMain.controller5K[i]]
+                    ) {
+                    if (state.buttons[settingsMain.controller5K[i]] == 1
+                        && !stats->HeldFrets[i])
                         stats->HeldFrets[i] = true;
-                    else {
+                    else if (stats->HeldFrets[i]) {
                         stats->HeldFrets[i] = false;
                         stats->OverhitFrets[i] = false;
                     }
@@ -752,12 +758,14 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
                 }
             } else {
                 if (state.axes[-(settingsMain.controller5K[i] + 1)]
-                    != stats->axesValues[-(settingsMain.controller5K[i] + 1)]) {
+                    != stats->axesValues[-(settingsMain.controller5K[i] + 1)]
+                    ) {
                     if (state.axes[-(settingsMain.controller5K[i] + 1)]
-                        == 1.0f * (float)settingsMain.controller5KAxisDirection[i]) {
+                        == 1.0f * (float)settingsMain.controller5KAxisDirection[i]
+                        && !stats->HeldFrets[i]) {
                         stats->HeldFrets[i] = true;
                         handleInputs(player, i, GLFW_PRESS);
-                    } else {
+                    } else if (stats->HeldFrets[i]) {
                         stats->HeldFrets[i] = false;
                         stats->OverhitFrets[i] = false;
                         handleInputs(player, i, GLFW_RELEASE);
@@ -768,23 +776,29 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
                 }
             }
         }
+
         if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS
-            && player->ClassicMode) {
+            && player->ClassicMode
+            && !stats->UpStrum) {
+
             stats->UpStrum = true;
             stats->Overstrum = false;
             handleInputs(player, 8008135, GLFW_PRESS);
         } else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_RELEASE
-                   && player->ClassicMode) {
+                   && player->ClassicMode
+                   && stats->UpStrum) {
             stats->UpStrum = false;
             handleInputs(player, 8008135, GLFW_RELEASE);
         }
         if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_PRESS
-            && player->ClassicMode) {
+            && player->ClassicMode
+            && !stats->DownStrum) {
             stats->DownStrum = true;
             stats->Overstrum = false;
             handleInputs(player, 8008135, GLFW_PRESS);
         } else if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN] == GLFW_RELEASE
-                   && player->ClassicMode) {
+                   && player->ClassicMode
+                   && stats->DownStrum) {
             stats->DownStrum = false;
             handleInputs(player, 8008135, GLFW_RELEASE);
         }
