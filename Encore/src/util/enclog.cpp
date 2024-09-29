@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 void Encore::EncoreLog(int msgType, const char *text, va_list args) {
     std::ostringstream outputString;
