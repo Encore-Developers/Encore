@@ -182,6 +182,7 @@ public:
     bool downStrum = false;
     bool FAS = false;
     bool processingStrum = false;
+    bool Restart = false;
 
     void RaiseHighway();
 

@@ -4191,15 +4191,20 @@ int main(int argc, char *argv[]) {
                               u.hinpct(0.08f) },
                             "Restart"
                         )) {
+                        enctime.Reset();
                         songList.curSong->parts[player->Instrument]
                             ->charts[player->Difficulty]
                             .restartNotes();
+
                         stats->Overdrive = false;
                         stats->overdriveFill = 0.0f;
                         stats->overdriveActiveFill = 0.0f;
                         stats->overdriveActiveTime = 0.0;
                         stats->overdriveActivateTime = 0.0f;
                         gpr.highwayInAnimation = false;
+                        gpr.highwayInEndAnim = false;
+                        gpr.songPlaying = false;
+                        gpr.Restart = true;
                         stats->curODPhrase = 0;
                         stats->curNoteInt = 0;
                         stats->curSolo = 0;
@@ -4221,9 +4226,7 @@ int main(int argc, char *argv[]) {
                             DARKGRAY;
                         assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
                             DARKGRAY;
-                        audioManager.restartStreams();
                         stats->Paused = false;
-                        enctime.Start(audioManager.GetMusicTimeLength());
                     }
                     if (GuiButton(
                             { u.wpct(0.02f),
@@ -4247,32 +4250,18 @@ int main(int argc, char *argv[]) {
                         stats->curNoteInt = 0;
                         stats->curODPhrase = 0;
                         stats->curSolo = 0;
-                        gpr.highwayInAnimation = false;
                         stats->Paused = false;
-                        assets.expertHighway.materials[0]
-                            .maps[MATERIAL_MAP_ALBEDO]
-                            .texture = assets.highwayTexture;
-                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-                            assets.highwayTexture;
-                        assets.multBar.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-                            assets.odMultFill;
-                        assets.multCtr3.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-                            assets.odMultFill;
-                        assets.multCtr5.materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-                            assets.odMultFill;
-                        assets.expertHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-                            DARKGRAY;
-                        assets.emhHighway.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-                            DARKGRAY;
                         midiLoaded = false;
                         isPlaying = false;
+                        enctime.Reset();
                         songList.curSong->parts[player->Instrument]
                             ->charts[player->Difficulty]
                             .resetNotes();
                         audioManager.unloadStreams();
-                        enctime.Reset();
                         player->stats->Quit = true;
                         gpr.highwayInAnimation = false;
+                        gpr.highwayInEndAnim = false;
+                        gpr.songPlaying = false;
                         songAlbumArtLoadedGameplay = false;
                         GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
                         GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);

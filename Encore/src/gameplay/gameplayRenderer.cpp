@@ -621,7 +621,7 @@ void gameplayRenderer::RenderClassicNotes(
     for (auto &curNote : curChart.notes) {
 
 
-        if (songList.curSong->BRE.IsNoteInCoda(curNote)) {
+        if (songList.curSong->BRE.IsNoteInCoda(curNote) && songList.curSong->BRE.IsCodaActive(time)) {
             player->stats->curNoteInt++;
             continue;
         }
@@ -1163,7 +1163,11 @@ void gameplayRenderer::RenderGameplay(
 
     RaiseHighway();
     if (highwayInEndAnim && !songPlaying) {
-        gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
+        if (Restart) {
+            gprAudioManager.restartStreams();
+            Restart = false;
+        }
+        else gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
         songPlaying = true;
 
         highwayInEndAnim = false;
