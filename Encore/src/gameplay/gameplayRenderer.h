@@ -7,6 +7,8 @@
 #include "users/player.h"
 #include "song/song.h"
 
+
+
 class gameplayRenderer {
     void RenderNotes(
         Player *player,
@@ -43,6 +45,7 @@ class gameplayRenderer {
     void DrawSolo(Player *player, Chart &curChart, float length, double musicTime);
 
     void DrawFill(Player *player, Chart &curChart, float length, double musicTime);
+    void DrawCoda(float length, double musicTime, Player *player);
 
     void RenderClassicNotes(
         Player *player,
@@ -139,7 +142,42 @@ public:
 
     void
     RenderGameplay(Player *player, double time, Song song, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &);
+    enum ModelVectorEnum {
+        mHOPO,
+        mLIFT,
+        mOPEN,
+        mSTRUM,
+        mTAP,
+        mTOM
+    };
+    enum ModelPartEnum {
+        mBASE,
+        mCOLOR,
+        mSIDES,
+        mINSIDE
+    };
+    std::vector<std::filesystem::path> NoteFilenames {
+        "base.obj",
+        "color.obj",
+        "sides.obj",
+        "tInside.obj"
+    };
 
+    std::vector<Model> HopoParts;
+    std::vector<Model> LiftParts;
+    std::vector<Model> OpenParts;
+    std::vector<Model> StrumParts;
+    std::vector<Model> TapParts;
+    std::vector<Model> DrumParts;
+
+    /*
+     *  for (auto model : TapParts) {
+     *      DrawModel(model, pos, 1.0, color);
+     *  }
+     *
+     *  probably good to use a vector for note colors
+     */
+    void LoadGameplayAssets();
     bool upStrum = false;
     bool downStrum = false;
     bool FAS = false;

@@ -262,6 +262,78 @@ static Vector3 MeasureText3D(
 
 double startTime = 0.0;
 bool highwayRaiseFinish = false;
+
+// this is kind of a. "replacement" for loading everything in Assets
+// technically i should be putting this in another class but you know
+// maybe i should make a struct for a "note model" so its easier to do this
+// because goddamn is this gonna get tiring
+// especially if each thing has *around* three models. THREE. god fucking damnnit
+void gameplayRenderer::LoadGameplayAssets() {
+    std::filesystem::path noteModelPath = gprAssets.getDirectory();
+    noteModelPath /= "Assets/noteredux";
+
+    Texture2D NoteSide = LoadTexture((noteModelPath / "NoteSide.png").string().c_str());
+    Texture2D NoteColor = LoadTexture((noteModelPath / "NoteColor.png").string().c_str());
+    Texture2D NoteBottom = LoadTexture((noteModelPath / "NoteBottom.png").string().c_str());
+    Texture2D HopoSide = LoadTexture((noteModelPath / "HopoSides.png").string().c_str());
+    Texture2D LiftSide = LoadTexture((noteModelPath / "LiftSides.png").string().c_str());
+    Texture2D LiftBase = LoadTexture((noteModelPath / "LiftBase.png").string().c_str());
+    // hopo
+    Model BaseHopo = LoadModel((noteModelPath / "hopo/base.obj").string().c_str());
+    BaseHopo.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteBottom;
+    Model ColorHopo = LoadModel((noteModelPath / "hopo/color.obj").string().c_str());
+    ColorHopo.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteColor;
+    Model SidesHopo = LoadModel((noteModelPath / "hopo/sides.obj").string().c_str());
+    SidesHopo.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = HopoSide;
+    HopoParts.push_back(std::move(BaseHopo));
+    HopoParts.push_back(std::move(ColorHopo));
+    HopoParts.push_back(std::move(SidesHopo));
+
+    // lift
+    Model LiftSides = LoadModel((noteModelPath / "lift/sides.obj").string().c_str());
+    LiftSides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = LiftSide;
+    Model LiftColor = LoadModel((noteModelPath / "lift/color.obj").string().c_str());
+    LiftColor.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = LiftBase;
+    LiftParts.push_back(std::move(LiftSides));
+    LiftParts.push_back(std::move(LiftColor));
+
+    // open
+    Model BaseOpen = LoadModel((noteModelPath / "open/base.obj").string().c_str());
+    BaseOpen.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteBottom;
+    Model ColorOpen = LoadModel((noteModelPath / "open/color.obj").string().c_str());
+    ColorOpen.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteColor;
+    Model SidesOpen = LoadModel((noteModelPath / "open/sides.obj").string().c_str());
+    SidesOpen.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteSide;
+    OpenParts.push_back(std::move(BaseOpen));
+    OpenParts.push_back(std::move(ColorOpen));
+    OpenParts.push_back(std::move(SidesOpen));
+
+    // strum
+    Model StrumBase = LoadModel((noteModelPath / "strum/base.obj").string().c_str());
+    StrumBase.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteBottom;
+    Model StrumColor = LoadModel((noteModelPath / "strum/color.obj").string().c_str());
+    StrumColor.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteColor;
+    Model StrumSides = LoadModel((noteModelPath / "strum/sides.obj").string().c_str());
+    StrumSides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteSide;
+    StrumParts.push_back(std::move(StrumBase));
+    StrumParts.push_back(std::move(StrumColor));
+    StrumParts.push_back(std::move(StrumSides));
+
+    // Tap
+    Model TapBase = LoadModel((noteModelPath / "tap/base.obj").string().c_str());
+    TapBase.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteBottom;
+    Model TapColor = LoadModel((noteModelPath / "tap/color.obj").string().c_str());
+    TapColor.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteColor;
+    Model TapSides = LoadModel((noteModelPath / "tap/sides.obj").string().c_str());
+    TapSides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = NoteSide;
+    Model TapInside = LoadModel((noteModelPath / "tap/tInside.obj").string().c_str());
+    TapParts.push_back(std::move(TapBase));
+    TapParts.push_back(std::move(TapColor));
+    TapParts.push_back(std::move(TapSides));
+    TapParts.push_back(std::move(TapInside));
+}
+
+
 void gameplayRenderer::RaiseHighway() {
     if (!highwayInAnimation) {
         startTime = GetTime();
@@ -571,7 +643,7 @@ void gameplayRenderer::RenderClassicNotes(
             player->stats->Combo = 0;
             curNote.accounted = true;
             player->stats->curNoteInt++;
-            } else if (player->Bot) {
+        } else if (player->Bot) {
                 if (!curNote.hit && !curNote.accounted && curNote.time < time
                     && player->stats->curNoteInt < curChart.notes.size() && !gprTime.SongComplete()) {
                     curNote.hit = true;
@@ -614,7 +686,11 @@ void gameplayRenderer::RenderClassicNotes(
         );
         if (relEnd < -1)
             continue;
+
+
+
         for (int lane : curNote.pLanes) {
+
             int noteLane = gprSettings.mirrorMode ? 4 - lane : lane;
 
             Color NoteColor = gprMenu.hehe ? TRANS[lane] : GRYBO[lane];
@@ -997,7 +1073,7 @@ void gameplayRenderer::RenderGameplay(
     if (player->Instrument == PAD_BASS || player->Instrument == PAD_VOCALS
         || player->Instrument == PLASTIC_BASS) {
         isBassOrVocal = 1;
-    }
+        }
     SetShaderValue(
         gprAssets.odMultShader,
         gprAssets.isBassOrVocalLoc,
@@ -1157,9 +1233,9 @@ void gameplayRenderer::RenderGameplay(
         RenderExpertHighway(
             player, song, time, highway_tex, highwayStatus_tex, smasher_tex
         );
-    } else {
-        RenderEmhHighway(player, song, time, highway_tex);
-    }
+               } else {
+                   RenderEmhHighway(player, song, time, highway_tex);
+               }
     if (player->ClassicMode) {
         if (player->Instrument == PLASTIC_DRUMS) {
             RenderPDrumsNotes(player, curChart, time, notes_tex, highwayLength);
@@ -1310,6 +1386,7 @@ void gameplayRenderer::RenderExpertHighway(
             time
         );
     }
+
     float darkYPos = 0.015f;
     BeginBlendMode(BLEND_ALPHA);
     EndShaderMode();
@@ -1909,11 +1986,9 @@ void gameplayRenderer::RenderPDrumsNotes(
                 && stats->curNoteInt < curChart.notes.size() && !gprTime.SongComplete()) {
                 curNote.hit = true;
                 player->stats->HitDrumsNote(false, !curNote.pDrumTom);
-                if (gprPlayerManager.BandStats.Multiplayer) {
-                    gprPlayerManager.BandStats.DrumNotePoint(
-                        false, player->stats->noODmultiplier(), !curNote.pDrumTom
-                    );
-                }
+                gprPlayerManager.BandStats.DrumNotePoint(
+                    false, player->stats->noODmultiplier(), !curNote.pDrumTom
+                );
                 if (curNote.len > 0)
                     curNote.held = true;
                 curNote.accounted = true;
@@ -1928,10 +2003,8 @@ void gameplayRenderer::RenderPDrumsNotes(
                     stats->Overdrive = true;
                     stats->overdriveHitAvailable = true;
                     stats->overdriveHitTime = time;
-                    if (gprPlayerManager.BandStats.Multiplayer) {
-                        gprPlayerManager.BandStats.PlayersInOverdrive += 1;
-                        gprPlayerManager.BandStats.Overdrive = true;
-                    }
+                    gprPlayerManager.BandStats.PlayersInOverdrive += 1;
+                    gprPlayerManager.BandStats.Overdrive = true;
                 }
             }
         }
@@ -1964,7 +2037,7 @@ void gameplayRenderer::RenderPDrumsNotes(
         float notePosX = curNote.lane == KICK
             ? 0
             : (diffDistance - (1.25f * (curNote.lane - 1))) - 0.125f;
-        float notePosY = curNote.lane == KICK ? 0.01f : 0;
+        float notePosY = 0;
         if (relTime > 1.5) {
             break;
         }
@@ -2385,49 +2458,56 @@ void gameplayRenderer::nDrawPlasticNote(
     Note note, Color noteColor, float notePosX, float noteTime
 ) {
     // why the fuck did i separate sustains and non-sustain note drawing?????
-    Model NoteTop = gprAssets.noteTopModel;
-    Model NoteBottom = gprAssets.noteBottomModel;
 
     Vector3 NotePos = { notePosX, 0, noteTime };
-    Color BottomColor = WHITE;
-    Color TopColor = noteColor;
+    Color InnerColor = noteColor;
+    Color BaseColor = WHITE;
+    Color SideColor = WHITE;
 
-    if (note.pTap || note.phopo) {
-        NoteTop = gprAssets.noteTopModelHP;
-        NoteBottom = gprAssets.noteBottomModelHP;
-    }
-    if (note.phopo && !note.renderAsOD) {
-        TopColor = noteColor;
-        BottomColor = WHITE;
-    } else if (note.pTap && !note.renderAsOD) {
-        TopColor = BLACK;
-        BottomColor = noteColor;
-    }
     if (note.renderAsOD) {
-        if (note.pTap) {
-            TopColor = BLACK;
-            BottomColor = GOLD;
-        } else if (note.phopo) {
-            TopColor = WHITE;
-            BottomColor = GOLD;
-        } else {
-            NoteTop = gprAssets.noteTopModelOD;
-            NoteBottom = gprAssets.noteBottomModelOD;
-            TopColor = WHITE;
-            BottomColor = GOLD;
-        }
+        InnerColor = WHITE;
+        BaseColor = WHITE;
+        SideColor = GOLD;
     }
     if (note.miss) {
-        TopColor = RED;
-        BottomColor = RED;
+        InnerColor = RED;
+        BaseColor = RED;
+        SideColor = RED;
     }
     if (!note.hit) {
-        NoteTop.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
-        NoteBottom.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = BottomColor;
-        NoteTop.materials[0].shader = gprAssets.HighwayFade;
-        NoteBottom.materials[0].shader = gprAssets.HighwayFade;
-        DrawModel(NoteTop, NotePos, 1.2f, TopColor);
-        DrawModel(NoteBottom, NotePos, 1.2f, BottomColor);
+        if (note.phopo) {
+            HopoParts[mBASE].materials[0].shader = gprAssets.HighwayFade;
+            HopoParts[mCOLOR].materials[0].shader = gprAssets.HighwayFade;
+            HopoParts[mSIDES].materials[0].shader = gprAssets.HighwayFade;
+
+            Vector3 scale = {1.0f,1.0f,0.5f};
+            DrawModelEx(HopoParts[mBASE], NotePos, {0}, 0, scale, BaseColor);
+            DrawModelEx(HopoParts[mCOLOR], NotePos, {0}, 0, scale, InnerColor);
+            DrawModelEx(HopoParts[mSIDES], NotePos, {0}, 0, scale, SideColor);
+        }
+        else if (note.pTap) {
+            TapParts[mBASE].materials[0].shader = gprAssets.HighwayFade;
+            TapParts[mCOLOR].materials[0].shader = gprAssets.HighwayFade;
+            TapParts[mSIDES].materials[0].shader = gprAssets.HighwayFade;
+            TapParts[mINSIDE].materials[0].shader = gprAssets.HighwayFade;
+
+            Vector3 scale = {1.0f,1.0f,0.5f};
+            DrawModelEx(TapParts[mBASE], NotePos, {0}, 0, scale, BaseColor);
+            DrawModelEx(TapParts[mCOLOR], NotePos, {0}, 0, scale, InnerColor);
+            DrawModelEx(TapParts[mSIDES], NotePos, {0}, 0, scale, SideColor);
+            DrawModelEx(TapParts[mINSIDE], NotePos, {0}, 0, scale, BLACK);
+        }
+        else {
+
+            StrumParts[mBASE].materials[0].shader = gprAssets.HighwayFade;
+            StrumParts[mCOLOR].materials[0].shader = gprAssets.HighwayFade;
+            StrumParts[mSIDES].materials[0].shader = gprAssets.HighwayFade;
+
+            Vector3 scale = {1.0f,1.0f,0.5f};
+            DrawModelEx(StrumParts[mBASE], NotePos, {0}, 0, scale, BaseColor);
+            DrawModelEx(StrumParts[mCOLOR], NotePos, {0}, 0, scale, InnerColor);
+            DrawModelEx(StrumParts[mSIDES], NotePos, {0}, 0, scale, SideColor);
+        }
     }
 }
 
@@ -2435,44 +2515,33 @@ void gameplayRenderer::nDrawPadNote(
     Note note, Color noteColor, float notePosX, float noteScrollPos
 ) {
     Vector3 NotePos = { notePosX, 0, noteScrollPos };
-    gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = noteColor;
-    Color TopColor = noteColor;
-    Color BottomColor = WHITE;
     if (note.lift && !note.hit) {
+        Color BaseColor = noteColor;
+        Color SidesColor = WHITE;
         if (note.renderAsOD) {
-            TopColor = WHITE;
-        } else if (note.miss) {
-            TopColor = RED;
+            BaseColor = WHITE;
+            SidesColor = GOLD;
         }
-        gprAssets.liftModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
-        gprAssets.liftModel.materials[0].shader = gprAssets.HighwayFade;
-        gprAssets.liftModel.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] =
-            gprAssets.HighwayColorLoc;
-        DrawModel(gprAssets.liftModel, NotePos, 1.1f, TopColor);
+        for (auto &part : LiftParts) {
+            part.materials[0].shader = gprAssets.HighwayFade;
+        }
+        DrawModel(LiftParts[0], NotePos, 1.0f, SidesColor);
+        DrawModel(LiftParts[1], NotePos, 1.0f, BaseColor);
     } else if (!note.hit) {
-        Model NoteTop = gprAssets.noteTopModel;
-        Model NoteBottom = gprAssets.noteBottomModelOD;
-        TopColor = noteColor;
-        BottomColor = WHITE;
+        Color InnerColor = noteColor;
+        Color SidesColor = WHITE;
+        Color BottomColor = WHITE;
         if (note.renderAsOD) {
-            NoteTop = gprAssets.noteTopModelOD;
-            NoteBottom = gprAssets.noteBottomModelOD;
-            TopColor = WHITE;
-            BottomColor = GOLD;
-        } else if (note.miss) {
-            TopColor = RED;
-            BottomColor = RED;
+            InnerColor = WHITE;
+            SidesColor = GOLD;
         }
-        NoteTop.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = TopColor;
-        NoteBottom.materials[0].maps[MATERIAL_MAP_DIFFUSE].color = BottomColor;
-        NoteTop.materials[0].shader = gprAssets.HighwayFade;
-        NoteBottom.materials[0].shader = gprAssets.HighwayFade;
-        NoteTop.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] =
-            gprAssets.HighwayColorLoc;
-        NoteBottom.materials[0].shader.locs[SHADER_LOC_COLOR_DIFFUSE] =
-            gprAssets.HighwayColorLoc;
-        DrawModel(NoteTop, NotePos, 1.1f, TopColor);
-        DrawModel(NoteBottom, NotePos, 1.1f, BottomColor);
+        for (auto &part : StrumParts) {
+            part.materials[0].shader = gprAssets.HighwayFade;
+        }
+        Vector3 scale = {1.0f,1.0f,0.5f};
+        DrawModelEx(StrumParts[mBASE], NotePos, {0}, 0, scale, BottomColor);
+        DrawModelEx(StrumParts[mCOLOR], NotePos, {0}, 0, scale, InnerColor);
+        DrawModelEx(StrumParts[mSIDES], NotePos, {0}, 0, scale, SidesColor);
     }
 }
 
@@ -2504,4 +2573,46 @@ void gameplayRenderer::nDrawSustain(
         DrawCube(Vector3 { notePosX, 0.1, smasherPos }, 0.4f, 0.2f, 0.4f, noteColor);
 
     EndBlendMode();
+}
+
+void gameplayRenderer::nDrawCodaLanes(
+    float length, double sTime, double cLen, double curTime, float NoteSpeed, int Difficulty
+) {
+    for (int i = 0; i < 5; i++) {
+        double relTime = GetNoteOnScreenTime(
+                sTime, curTime, NoteSpeed, Difficulty, length
+            );
+        double relEnd = GetNoteOnScreenTime(
+            cLen,
+            curTime,
+            NoteSpeed,
+            Difficulty,
+            length
+        );
+
+        float sustainLen = (length * (float)relEnd) - (length * (float)relTime);
+        float notePosX = 2.0f - (1.0f * i);
+        Matrix sustainMatrix = MatrixMultiply(
+            MatrixScale(1, 1, sustainLen),
+            MatrixTranslate(
+                notePosX,
+                0.015f,
+                smasherPos + (length * (float)relTime) + (sustainLen / 2.0f)
+            )
+        );
+
+        Color noteColor = GRYBO[i];
+        if (gprMenu.hehe) {
+            noteColor = TRANS[i];
+        }
+        BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+        Material lane = gprAssets.CodaLane;
+        lane.shader.locs[SHADER_LOC_MAP_ALBEDO] = gprAssets.HighwayColorLoc;
+        lane.maps[MATERIAL_MAP_ALBEDO].color =
+            ColorTint(noteColor, { 180, 180, 180, 255 });
+        // use default... by default
+
+        DrawMesh(sustainPlane, lane, sustainMatrix);
+        EndBlendMode();
+    }
 }

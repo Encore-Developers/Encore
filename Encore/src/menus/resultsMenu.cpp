@@ -6,6 +6,7 @@
 #include "gameMenu.h"
 #include "overshellRenderer.h"
 #include "raygui.h"
+#include "styles.h"
 #include "uiUnits.h"
 #include "song/audio.h"
 
@@ -44,6 +45,7 @@ void resultsMenu::Load() {
 }
 
 void resultsMenu::Draw() {
+    OvershellRenderer osr;
     PlayerManager &player_manager = PlayerManager::getInstance();
     SongList &songList = SongList::getInstance();
     Units &u = Units::getInstance();
@@ -54,11 +56,10 @@ void resultsMenu::Draw() {
         drawPlayerResults(player_manager.GetActivePlayer(i), *songList.curSong, i);
     }
 
-    GameMenu::DrawTopOvershell(0.2f);
-    GameMenu::DrawBottomOvershell();
-    GameMenu::DrawBottomBottomOvershell();
-    OvershellRenderer osr;
-    osr.DrawOvershell();
+
+
+    osr.DrawTopOvershell(0.2f);
+
     GameMenu::DrawVersion();
 
     float scoreWidth =
@@ -86,31 +87,50 @@ void resultsMenu::Draw() {
         0,
         WHITE
     );
-    DrawTextEx(
-        RedHatDisplayItalic,
-        GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str(),
-        { u.LeftSide, u.hpct(0.1f) },
-        u.hinpct(0.06f),
-        0,
-        GetColor(0x00adffFF)
+
+    Color accentColor =
+        ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
+    std::string indevWarnText = "Scoring is disabled in indev builds";
+    float warningTextSize = u.hinpct(0.038f);
+    float textWidth = MeasureTextEx(JosefinSansItalic, indevWarnText.c_str(), warningTextSize, 0).x;
+    Vector2 TopLeft = { u.LeftSide, u.hpct(0.158f) };
+    DrawRectangle(0, TopLeft.y, u.LeftSide, warningTextSize, accentColor);
+
+    DrawRectangleGradientH(
+        TopLeft.x,
+        TopLeft.y,
+        textWidth + u.winpct(0.1f),
+        warningTextSize,
+        accentColor,
+        Color { 0, 0, 0, 0 }
     );
-    DrawTextEx(
-        RedHatDisplayItalic, "!", { u.LeftSide, u.hpct(0.1525f) }, u.hinpct(0.05f), 0, RED
-    );
-    DrawTextEx(
+    GameMenu::mhDrawText(
         JosefinSansItalic,
-        "  Scoring is disabled in indev builds",
-        { u.LeftSide, u.hpct(0.158f) },
+        indevWarnText.c_str(),
+        {TopLeft.x, TopLeft.y + u.hinpct(0.008f)},
         u.hinpct(0.025f),
-        0.125,
-        WHITE
+        WHITE,
+        sdfShader,
+        0
     );
+
     renderStars(
         &player_manager.BandStats,
-        scoreWidth + u.LeftSide + u.winpct(0.01f),
-        u.hpct(0.105f),
+        u.wpct(0.5f),
+        u.hpct(0.1f),
         u.hinpct(0.05f),
-        true
+        false
+    );
+    float ScoreFontSize = u.hinpct(0.05f);
+    std::string ScoreText = GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str();
+    GameMenu::mhDrawText(
+        RedHatDisplayItalic,
+        GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str(),
+        { u.wpct(0.5), u.hpct(0.02125f) },
+        ScoreFontSize,
+        GetColor(0x00adffFF),
+        sdfShader,
+        CENTER
     );
     // assets.DrawTextRHDI(player->songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
@@ -126,184 +146,120 @@ void resultsMenu::Draw() {
         player_manager.BandStats.ResetBandGameplayStats();
         TheGameMenu.SwitchScreen(SONG_SELECT);
     }
+    GameMenu::DrawBottomOvershell();
+
+    osr.DrawBottomOvershell();
 }
 
 void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
     Units &u = Units::getInstance();
-    float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
-
-    DrawRectangle(cardPos - 6, u.hpct(0.2f), u.winpct(0.22f) + 12, u.hpct(0.85f), WHITE);
+    float cardPos =
+            (u.wpct(0.125) + (u.winpct(0.25) * playerslot)) - u.winpct(0.11);
+    // float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
+    float cardWidth = u.winpct(0.22f);
+    float cardHalfWidth = cardWidth/2;
+    float cardTop = u.hpct(0.2f);
+    DrawRectangle(cardPos - 6, cardTop, cardWidth + 12, u.hpct(0.85f), WHITE);
     DrawRectangle(
-        cardPos, u.hpct(0.2f), u.winpct(0.22f), u.hpct(0.85f), GetColor(0x181827FF)
+        cardPos, cardTop, cardWidth, u.hpct(0.85f), backgroundColor
     );
 
     DrawRectangleGradientV(
         cardPos,
-        u.hpct(0.2f),
-        u.winpct(0.22f),
+        cardTop,
+        cardWidth,
         u.hinpct(0.2f),
         ColorBrightness(player->AccentColor, -0.5f),
-        GetColor(0x181827FF)
+        backgroundColor
     );
 
+
+    Color bottomColorForStatus = backgroundColor;
     bool rendAsFC = player->stats->FC && !player->stats->Quit && !player->Bot;
     if (player->Bot) {
-        DrawRectangleGradientV(
-            cardPos,
-            u.hpct(0.2f) + u.hinpct(0.2f),
-            u.winpct(0.22f),
-            u.hinpct(0.63f),
-            GetColor(0x181827FF),
-            ColorContrast(ColorBrightness(SKYBLUE, -0.5f), -0.25f)
-        );
+        bottomColorForStatus = ColorContrast(ColorBrightness(SKYBLUE, -0.5f), -0.25f);
     }
     if (player->stats->Quit && !player->Bot) {
-        DrawRectangleGradientV(
-            cardPos,
-            u.hpct(0.2f) + u.hinpct(0.2f),
-            u.winpct(0.22f),
-            u.hinpct(0.63f),
-            GetColor(0x181827FF),
-            ColorBrightness(RED, -0.5f)
-        );
+        bottomColorForStatus = ColorBrightness(RED, -0.5f);
     }
     if (rendAsFC && !player->Bot) {
-        DrawRectangleGradientV(
-            cardPos,
-            u.hpct(0.2f) + u.hinpct(0.2f),
-            u.winpct(0.22f),
-            u.hinpct(0.63f),
-            GetColor(0x181827FF),
-            ColorContrast(ColorBrightness(GOLD, -0.5f), -0.25f)
-        );
+        bottomColorForStatus = ColorContrast(ColorBrightness(GOLD, -0.5f), -0.25f);
     }
     if (player->stats->PerfectHit == player->stats->Notes && rendAsFC && !player->Bot) {
-        DrawRectangleGradientV(
-            cardPos,
-            u.hpct(0.2f) + u.hinpct(0.2f),
-            u.winpct(0.22f),
-            u.hinpct(0.63f),
-            GetColor(0x181827FF),
-            ColorBrightness(WHITE, -0.5f)
-        );
+        bottomColorForStatus = ColorBrightness(WHITE, -0.5f);
     }
+    DrawRectangleGradientV(
+                cardPos,
+                cardTop + u.hinpct(0.2f),
+                cardWidth,
+                u.hinpct(0.63f),
+                backgroundColor,
+                bottomColorForStatus
+            );
 
     DrawLine(
         cardPos,
-        u.hpct(0.2f) + u.hinpct(0.2f),
-        cardPos + u.winpct(0.22f),
-        u.hpct(0.2f) + u.hinpct(0.2f),
+        cardTop + u.hinpct(0.2f),
+        cardPos + cardWidth,
+        cardTop + u.hinpct(0.2f),
         WHITE
     );
     DrawLine(
         cardPos,
-        u.hpct(0.2f) + u.hinpct(0.4f),
-        cardPos + u.winpct(0.22f),
-        u.hpct(0.2f) + u.hinpct(0.4f),
+        cardTop + u.hinpct(0.4f),
+        cardPos + cardWidth,
+        cardTop + u.hinpct(0.4f),
         WHITE
     );
-
-    float scorePos = (cardPos + u.winpct(0.11f))
-        - (MeasureTextEx(
-               RedHatDisplayItalic,
-               GameMenu::scoreCommaFormatter(player->stats->Score).c_str(),
-               u.hinpct(0.065f),
-               0
-           )
-               .x
-           / 2);
+    std::string scoreString = GameMenu::scoreCommaFormatter(player->stats->Score);
+    float scorePos = (cardPos + cardHalfWidth);
     float Percent =
         floorf(((float)player->stats->NotesHit / (float)player->stats->Notes) * 100.0f);
 
-    DrawTextEx(
+    GameMenu::mhDrawText(
         RedHatDisplayItalic,
-        GameMenu::scoreCommaFormatter(player->stats->Score).c_str(),
+        scoreString,
         { scorePos, (float)GetScreenHeight() / 2 },
         u.hinpct(0.065f),
-        0,
-        GetColor(0x00adffFF)
+        GetColor(0x00adffFF),
+        sdfShader,
+        CENTER
     );
 
     renderStars(
         player->stats,
-        (cardPos + u.winpct(0.11f)),
+        (cardPos + cardHalfWidth),
         (float)GetScreenHeight() / 2 - u.hinpct(0.06f),
         u.hinpct(0.055f),
         false
     );
 
+    std::string ImportantInfoText;
+    Color ImportantInfoTextColor = WHITE;
     if (rendAsFC) {
-        DrawTextEx(
-            RedHatDisplayItalic,
-            TextFormat("%3.0f%%", Percent),
-            { (cardPos + u.winpct(0.113f))
-                  - (MeasureTextEx(
-                         RedHatDisplayItalic,
-                         TextFormat("%3.0f", Percent),
-                         u.hinpct(0.1f),
-                         0
-                     )
-                         .x
-                     / 1.5f),
-              u.hpct(0.243f) },
-            u.hinpct(0.1f),
-            0,
-            ColorBrightness(GOLD, -0.5)
-        );
-        float flawlessFontSize = 0.03f;
-        DrawTextEx(
-            RubikBoldItalic,
-            "Flawless!",
-            { (cardPos + u.winpct(0.113f))
-                  - (MeasureTextEx(
-                         RubikBoldItalic, "Flawless!", u.hinpct(flawlessFontSize), 0.0f
-                     )
-                         .x
-                     / 2),
-              u.hpct(0.35f) },
-            u.hinpct(flawlessFontSize),
-            0.0f,
-            WHITE
-        );
+        ImportantInfoText = "Flawless!";
     }
     if (player->stats->Quit && !player->Bot) {
-        float flawlessFontSize = 0.05f;
-        DrawTextEx(
-            RubikBoldItalic,
-            "Quit",
-            { (cardPos + u.winpct(0.11f))
-                  - (MeasureTextEx(
-                         RubikBoldItalic, "Quit", u.hinpct(flawlessFontSize), 0.0f
-                     )
-                         .x
-                     / 2),
-              u.hpct(0.35f) },
-            u.hinpct(flawlessFontSize),
-            0.0f,
-            RED
-        );
+        ImportantInfoText = "Quit";
+        ImportantInfoTextColor = RED;
     }
     if (player->Bot) {
-        float flawlessFontSize = 0.05f;
-        DrawTextEx(
-            RubikBoldItalic,
-            "BOT",
-            { (cardPos + u.winpct(0.11f))
-                  - (MeasureTextEx(
-                         RubikBoldItalic, "BOT", u.hinpct(flawlessFontSize), 0.0f
-                     )
-                         .x
-                     / 2),
-              u.hpct(0.35f) },
-            u.hinpct(flawlessFontSize),
-            0.0f,
-            SKYBLUE
-        );
+        ImportantInfoText = "BOT";
+        ImportantInfoTextColor = SKYBLUE;
     }
+    GameMenu::mhDrawText(
+        RubikBold,
+        ImportantInfoText,
+        {cardPos + cardHalfWidth, u.hpct(0.32f)},
+        SmallHeader,
+        ImportantInfoTextColor,
+        sdfShader,
+        CENTER
+    );
     DrawTextEx(
         RedHatDisplayItalic,
         TextFormat("%3.0f%%", Percent),
-        { (cardPos + u.winpct(0.11f))
+        { (cardPos + cardHalfWidth)
               - (MeasureTextEx(
                      RedHatDisplayItalic,
                      rendAsFC ? TextFormat("%3.0f", Percent)
@@ -332,13 +288,13 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
     DrawTextEx(
         RubikBold,
         InstDiffName.c_str(),
-        { cardPos + u.winpct(0.11f) - (InstDiffPos / 2), u.hpct(0.24f) + (pctSize / 2) },
+        { cardPos + cardHalfWidth - (InstDiffPos / 2), u.hpct(0.24f) + (pctSize / 2) },
         u.hinpct(0.03f),
         0,
         WHITE
     );
 
-    float statsHeight = u.hpct(0.2f) + u.hinpct(0.415f);
+    float statsHeight = cardTop + u.hinpct(0.415f);
     float statsLeft = cardPos + u.winpct(0.01f);
     float statsRight = cardPos + u.winpct(0.21f);
 

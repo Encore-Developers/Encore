@@ -43,7 +43,7 @@
 #include "settings.h"
 #include "timingvalues.h"
 #include "inih/INIReader.h"
-#include "menus/fontsizevalues.h"
+#include "menus/styles.h"
 
 #include "song/song.h"
 #include "song/songlist.h"
@@ -1548,10 +1548,9 @@ int main(int argc, char *argv[]) {
                 WHITE
             );
 
-            menu.DrawTopOvershell(0.15f);
+            overshellRenderer.DrawTopOvershell(0.15f);
             menu.DrawVersion();
             menu.DrawBottomOvershell();
-            menu.DrawBottomBottomOvershell();
             DrawTextEx(
                 assets.redHatDisplayBlack,
                 "Options",
@@ -2530,7 +2529,7 @@ int main(int argc, char *argv[]) {
             );
             menu.DrawTopOvershell(0.208333f);
             EndScissorMode();
-            menu.DrawTopOvershell(0.15f);
+            overshellRenderer.DrawTopOvershell(0.15f);
 
             menu.DrawVersion();
             int AlbumX = u.RightSide - u.winpct(0.25f);
@@ -2844,7 +2843,8 @@ int main(int argc, char *argv[]) {
                 { TextPlacementLR, TextPlacementTB },
                 u.hinpct(0.125f),
                 WHITE,
-                assets.sdfShader
+                assets.sdfShader,
+                LEFT
             );
 
             std::string AlbumArtText = SongToDisplayInfo.album.empty()
@@ -3032,8 +3032,7 @@ int main(int argc, char *argv[]) {
                 selSong = false;
                 menu.SwitchScreen(MENU);
             }
-            menu.DrawBottomBottomOvershell();
-            overshellRenderer.DrawOvershell();
+            overshellRenderer.DrawBottomOvershell();
             break;
         }
         case READY_UP: {
@@ -3056,7 +3055,7 @@ int main(int argc, char *argv[]) {
                 0, 0, (int)GetScreenWidth(), (int)GetScreenHeight(), GetColor(0x00000080)
             );
 
-            menu.DrawTopOvershell(0.2f);
+            overshellRenderer.DrawTopOvershell(0.2f);
             menu.DrawVersion();
 
             DrawRectangle(
@@ -3108,7 +3107,6 @@ int main(int argc, char *argv[]) {
             // todo: allow this to be run per player
             // load midi
             menu.DrawBottomOvershell();
-            menu.DrawBottomBottomOvershell();
             for (int playerInt = 0; playerInt < 4; playerInt++) {
                 if (playerManager.ActivePlayers[playerInt] != -1) {
                     Player *player = playerManager.GetActivePlayer(playerInt);
@@ -3568,7 +3566,7 @@ int main(int argc, char *argv[]) {
                     menu.SwitchScreen(SONG_SELECT);
                 }
             }
-            overshellRenderer.DrawOvershell();
+            overshellRenderer.DrawBottomOvershell();
             break;
         }
         case GAMEPLAY: {
@@ -3602,7 +3600,7 @@ int main(int argc, char *argv[]) {
                 smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
                 GenTextureMipmaps(&smasher_tex.texture);
                 SetTextureFilter(smasher_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-            }
+                }
 
             float scorePos = u.RightSide;
             float scoreY = u.hpct(0.15f);
@@ -3699,7 +3697,7 @@ int main(int argc, char *argv[]) {
                     );
                 }
                 EndScissorMode();
-            }
+                }
             // int totalScore =
             // 		player.score + player.sustainScoreBuffer[0] +
             // player.sustainScoreBuffer[ 			1] + player.sustainScoreBuffer[2] +
@@ -3738,18 +3736,23 @@ int main(int argc, char *argv[]) {
                 u.hinpct(LargeHeader),
                 Color { 107, 161, 222, 255 }
             );
-
-            DrawTextRHDI(
+            float bandMult = u.RightSide - u.hinpct(0.26);
+            GameMenu::mhDrawText(
+                assets.redHatDisplayItalicLarge,
                 TextFormat(
                     "%01ix",
                     playerManager.BandStats
                         .OverdriveMultiplier[playerManager.BandStats.PlayersInOverdrive]
                 ),
-                u.RightSide,
-                scoreY,
+                {
+                    bandMult, scoreY
+                },
                 u.hinpct(LargeHeader),
-                RAYWHITE
+                RAYWHITE,
+                assets.sdfShader,
+                RIGHT
             );
+
             /*
             DrawTextRHDI(
                 scoreCommaFormatter(playerManager.BandStats.Combo).c_str(),
@@ -4162,7 +4165,7 @@ int main(int argc, char *argv[]) {
                     DrawRectangle(
                         0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 80 }
                     );
-                    menu.DrawTopOvershell(0.2f);
+                    overshellRenderer.DrawTopOvershell(0.2f);
                     GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.08f));
                     GuiSetFont(assets.redHatDisplayBlack);
                     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
@@ -4505,7 +4508,7 @@ int main(int argc, char *argv[]) {
                 StartLoading = false;
             }
             menu.DrawAlbumArtBackground(songList.curSong->albumArtBlur);
-            menu.DrawTopOvershell(0.15f);
+            overshellRenderer.DrawTopOvershell(0.15f);
             DrawTextEx(
                 assets.redHatDisplayBlack,
                 "LOADING...  ",
@@ -4580,6 +4583,7 @@ int main(int argc, char *argv[]) {
             menu.DrawBottomOvershell();
 
             if (FinishedLoading) {
+                gpr.LoadGameplayAssets();
                 FinishedLoading = false;
                 StartLoading = true;
                 menu.SwitchScreen(GAMEPLAY);

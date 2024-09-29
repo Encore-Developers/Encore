@@ -70,20 +70,21 @@ void cacheLoadingScreen::Draw() {
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
         WHITE,
-        sdfShader
+        sdfShader,
+        LEFT
     );
     float RubikFontSize = u.hinpct(0.05f);
     int loaded = CurrentChartNumber;
     int toLoad = MaxChartsToLoad;
     std::string LoadingText = TextFormat("%d/%d songs loaded", loaded, toLoad);
-    float lwidth = MeasureTextEx(RubikBold, LoadingText.c_str(), RubikFontSize, 0).x;
     GameMenu::mhDrawText(
         RubikBold,
         LoadingText,
-        { u.RightSide - lwidth, u.hpct(0.085f) },
+        { u.RightSide, u.hpct(0.085f) },
         RubikFontSize,
         LIGHTGRAY,
-        sdfShader
+        sdfShader,
+        RIGHT
     );
     GameMenu::DrawBottomOvershell();
 
@@ -106,7 +107,8 @@ void cacheLoadingScreen::Draw() {
           GetScreenHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
         RubikFontSize / 1.5f,
         WHITE,
-        sdfShader
+        sdfShader,
+        LEFT
     );
     if (!started) {
         started = true;

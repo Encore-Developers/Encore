@@ -11,5 +11,7 @@ constexpr float MediumHeader = 0.04f;
 constexpr float SmallHeader = 0.035f;
 constexpr float XLHeader = 0.06f;
 
+constexpr int backgroundColorInt = 0x181827FF;
+constexpr Color backgroundColor = {24,24,39,255};
 
 #endif //FONTSIZEVALUES_H

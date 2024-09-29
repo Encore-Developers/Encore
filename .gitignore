@@ -11,8 +11,10 @@ Encore/Songs/*
 !Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/*
 cmake-build-debug/
 cmake-build-debug-coverage/
+cmake-build-debug-coverage/*
 Encore/build/
 Encore/build/*
 *.app
 *.dmg
 *.exe
+/cmake-build-debug-coverage/
