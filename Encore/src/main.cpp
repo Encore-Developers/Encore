@@ -1045,12 +1045,15 @@ int main(int argc, char *argv[]) {
 
     std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
     std::string vSyncOn = ArgumentList::GetArgValue("vsync");
-    int targetFPSArg = 0;
+    int targetFPSArg = -1;
     int vsyncArg = 1;
 
     if (!FPSCapStringVal.empty()) {
         targetFPSArg = strtol(FPSCapStringVal.c_str(), NULL, 10);
-        Encore::EncoreLog(LOG_INFO, TextFormat("Argument overridden target FPS: %d", targetFPSArg));
+        if (targetFPSArg > 0)
+            Encore::EncoreLog(LOG_INFO, TextFormat("Argument overridden target FPS: %d", targetFPSArg));
+        else
+            Encore::EncoreLog(LOG_INFO, TextFormat("Unlocked framerate. You asked for it."));
     }
 
     if (!vSyncOn.empty()) {
@@ -1118,8 +1121,10 @@ int main(int argc, char *argv[]) {
     int targetFPS = 180;
 #else
     int targetFPS =
-        targetFPSArg == 0 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+        targetFPSArg == -1 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
+    bool removeFPSLimit = targetFPSArg == 0;
 #endif
+    int menuFPS = 60;
     /*
     if (!settingsMain.fullscreen) {
         if (IsWindowState(FLAG_WINDOW_UNDECORATED)) {
@@ -1322,7 +1327,14 @@ int main(int argc, char *argv[]) {
         GuiSetStyle(DEFAULT, TEXT_SPACING, 0);
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
-
+        if (IsKeyPressed(KEY_F11) || (IsKeyPressed(KEY_LEFT_ALT) && IsKeyPressed(KEY_ENTER))) {
+            settingsMain.fullscreen = !settingsMain.fullscreen;
+            if (!settingsMain.fullscreen) {
+                Windowed();
+            } else {
+                FullscreenBorderless();
+            }
+        }
         if (GetScreenWidth() < minWidth) {
             if (GetScreenHeight() < minHeight)
                 SetWindowSize(minWidth, minHeight);
@@ -4581,22 +4593,26 @@ int main(int argc, char *argv[]) {
         }
         EndDrawing();
 
-        // SwapScreenBuffer();
 
-        currentTime = GetTime();
-        updateDrawTime = currentTime - previousTime;
+        if (!removeFPSLimit || menu.currentScreen != GAMEPLAY) {
+            currentTime = GetTime();
+            updateDrawTime = currentTime - previousTime;
+            int Target = targetFPS;
+            if (menu.currentScreen != GAMEPLAY)
+                Target = menuFPS;
 
-        if (targetFPS > 0) {
-            waitTime = (1.0f / (float)targetFPS) - updateDrawTime;
-            if (waitTime > 0.0) {
-                WaitTime((float)waitTime);
-                currentTime = GetTime();
-                deltaTime = (float)(currentTime - previousTime);
-            }
-        } else
-            deltaTime = (float)updateDrawTime;
+            if (Target > 0) {
+                waitTime = (1.0f / (float)Target) - updateDrawTime;
+                if (waitTime > 0.0) {
+                    WaitTime((float)waitTime);
+                    currentTime = GetTime();
+                    deltaTime = (float)(currentTime - previousTime);
+                }
+            } else
+                deltaTime = (float)updateDrawTime;
 
-        previousTime = currentTime;
+            previousTime = currentTime;
+        }
     }
     CloseWindow();
     return 0;
