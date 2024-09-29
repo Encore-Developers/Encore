@@ -198,9 +198,39 @@ void Chart::parsePlasticNotes(
     int curODPhrase = -1;
     int curSolo = -1;
     int curBPM = 0;
+    smf::uchar psOpen = 0x01;
+    smf::uchar psTap = 0x04;
+    smf::uchar psStart = 0x01;
+    smf::uchar psEnd = 0x00;
+    std::vector<smf::uchar> psDiff{0x00, 0x01, 0x02, 0x03};
     resolution = midiFile.getTicksPerQuarterNote();
     if (instrument == 5 || instrument == 6 || instrument == 9) {
         for (int i = 0; i < events.getSize(); i++) {
+            if (events[i][0] == 0xF0) {
+                // 'P' 'S' '\0' -- phase shift event
+                if (events[i][1] == 'P' && events[i][2] == 'S' && events[i][3] == '\0') {
+                    double time = midiFile.getTimeInSeconds(trkidx, i);
+                    int tick = midiFile.getAbsoluteTickTime(time);
+                    if (events[i][5] == psDiff[diff] || events[i][5] == 0xFF) {
+                        if (events[i][6] == psTap) {
+                            if (events[i][7] == psStart && !tapOn) {
+                                tapPhrase newPhrase;
+                                newPhrase.StartTick = tick;
+                                newPhrase.StartSec = time;
+                                tapPhrases.push_back(newPhrase);
+                                curTap++;
+                                tapOn = true;
+                            }
+                            if (events[i][7] == psEnd && tapOn) {
+                                tapPhrases[curTap].EndSec = time;
+                                tapPhrases[curTap].EndTick= tick;
+                                tapOn = false;
+                            }
+                        }
+
+                    }
+                }
+            }
             if (events[i].isNoteOn()) {
                 if (events[i][1] >= notePitches[0] && events[i][1] <= notePitches[4]) {
                     double time = midiFile.getTimeInSeconds(trkidx, i);
@@ -285,11 +315,13 @@ void Chart::parsePlasticNotes(
                 } else if ((int)events[i][1] == pTapNote) {
                     if (tapOn) {
                         tapPhrases[curTap].EndSec = time;
+                        tapPhrases[curTap].EndTick = tick;
                         tapOn = false;
                     }
                 } else if ((int)events[i][1] == pForceOn) {
                     if (forceOn) {
                         forcedOnPhrases[curFOn].EndSec = time;
+                        forcedOnPhrases[curFOn].EndTick = tick;
                         forceOn = false;
                     }
                 } else if ((int)events[i][1] == pForceOff) {
@@ -364,8 +396,8 @@ void Chart::parsePlasticNotes(
             // "fOff: "
             //           << forcedOnPhrases[curFOn].EndSec 
 
-            if (note.time >= tapPhrases[curTap].StartSec
-                && note.time < tapPhrases[curTap].EndSec) {
+            if (note.tick >= tapPhrases[curTap].StartTick
+                && note.tick < tapPhrases[curTap].EndTick) {
                 note.pTap = true;
                 note.phopo = false;
             }
