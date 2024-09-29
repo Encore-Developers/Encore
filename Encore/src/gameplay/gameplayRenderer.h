@@ -65,6 +65,14 @@ class gameplayRenderer {
     nDrawPlasticNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
     void nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
     void nDrawSustain(Note note, Color noteColor, float notePosX, Matrix sustainMatrix);
+    void nDrawCodaLanes(
+        float length,
+        double sTime,
+        double eTime,
+        double curTime,
+        float NoteSpeed,
+        int Difficulty
+    );
 
     void eDrawSides(
         float scrollPos,

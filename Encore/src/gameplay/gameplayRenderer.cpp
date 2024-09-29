@@ -553,6 +553,11 @@ void gameplayRenderer::RenderClassicNotes(
     for (auto &curNote : curChart.notes) {
 
 
+        if (songList.curSong->BRE.IsNoteInCoda(curNote)) {
+            player->stats->curNoteInt++;
+            continue;
+        }
+
         if (!curNote.hit && !curNote.accounted && curNote.time + goodBackend < time
             && !gprTime.SongComplete() && player->stats->curNoteInt < curChart.notes.size()
             && !gprTime.SongComplete() && !player->Bot) {
@@ -1166,7 +1171,9 @@ void gameplayRenderer::RenderGameplay(
     }
     // EndShaderMode();
     // if (!player->Bot)
-    RenderHud(player, hud_tex, highwayLength);
+    if (!song.BRE.IsCodaActive(time)){
+        RenderHud(player, hud_tex, highwayLength);
+    }
 }
 
 void gameplayRenderer::DrawHighwayMesh(
@@ -1310,6 +1317,9 @@ void gameplayRenderer::RenderExpertHighway(
     SetShaderValue(
         gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT
     );
+    if (song.BRE.exists) {
+        DrawCoda(highwayLength, time, player);
+    }
     EndBlendMode();
     EndMode3D();
     EndTextureMode();
@@ -1798,6 +1808,19 @@ void gameplayRenderer::DrawFill(
     float end = curChart.fills[player->stats->curFill].EndSec;
     eDrawSides(
         (player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.075, GREEN
+    );
+}
+
+void gameplayRenderer::DrawCoda(float length, double musicTime, Player *player) {
+    SongList &songList = SongList::getInstance();
+    float DiffMultiplier =
+        Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
+
+    float start = songList.curSong->BRE.StartSec;
+    float end = songList.curSong->BRE.EndSec;
+    nDrawCodaLanes(length, start, end, musicTime, player->NoteSpeed, player->Difficulty);
+    eDrawSides(
+        (player->NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.075, PURPLE
     );
 }
 
