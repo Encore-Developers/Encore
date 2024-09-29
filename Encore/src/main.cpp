@@ -407,7 +407,7 @@ static void handleInputs(Player *player, int lane, int action) {
                 stats->curNoteInt = curChart.notes.size() - 1;
             Note &curNote = curChart.notes[stats->curNoteInt];
             int pressedMask = calculatePressedMask(stats);
-
+            bool inCoda = songList.curSong->BRE.IsCodaActive(eventTime);
             Note &lastNote =
                 curChart.notes[stats->curNoteInt == 0 ? 0 : stats->curNoteInt - 1];
 
@@ -420,152 +420,154 @@ static void handleInputs(Player *player, int lane, int action) {
             bool greaterThanNoteMatch = pressedMask > curNote.mask << 2;
             bool frettingInput = action == GLFW_PRESS && lane != 8008135 && lane != -1;
             bool noteMatch = isNoteMatch(curNote, pressedMask, stats);
-
-            if (!curNote.accounted && greaterThanNoteMatch
-                && (curNote.phopo || curNote.pTap)
-                && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch)
-                && lastNote.hit
-                && frettingInput
-                && lastNote.time + 0.0375 < eventTime) {
-                curNote.GhostCount += 1;
-                Encore::EncoreLog(
-                    LOG_INFO,
-                    TextFormat(
-                        "Ghosted note at %f. Input type: %01i (press = 1). Lane type: %01i. Held frets: %01i. Required frets: %01i. note %01i. Minimum for unghost: %01i",
-                        eventTime,
-                        action,
-                        lane,
-                        pressedMask,
-                        curNote.mask,
-                        stats->curNoteInt,
-                        curNote.mask << 1
-                    )
-                );
-            }
-            Encore::EncoreLog(
-                LOG_INFO,
-                TextFormat(
-                    "Note mask: %01i. Held mask: %01i.",
-                    curNote.mask,
-                    pressedMask
-                    )
-                );
-            // if strummed, and no fret-after-strum
-            if (lane == 8008135 && action == GLFW_PRESS && !stats->FAS
-                // && (firstNote ? true : lastNote.time + 0.005 < eventTime)
-            ) {
-                stats->StrumNoFretTime = eventTime;
-                curNote.strumCount++;
-                if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit
-                    && !curNote.hitWithFAS
-                    // && (firstNote ? true : lastNote.accounted)
+            if (!inCoda){
+                if (!curNote.accounted && greaterThanNoteMatch
+                    && (curNote.phopo || curNote.pTap)
+                    && (lastNoteGreater ? greaterThanNoteMatch : greaterThanLastNoteMatch)
+                    && lastNote.hit
+                    && !curNote.isGood(eventTime, 0.0)
+                    && frettingInput
+                    && lastNote.time + 0.0375 < eventTime) {
+                    curNote.GhostCount += 1;
+                    // Encore::EncoreLog(
+                    //     LOG_INFO,
+                    //     // TextFormat(
+                    //     //     "Ghosted note at %f. Input type: %01i (press = 1). Lane type: %01i. Held frets: %01i. Required frets: %01i. note %01i. Minimum for unghost: %01i",
+                    //     //     eventTime,
+                    //     //     action,
+                    //     //     lane,
+                    //     //     pressedMask,
+                    //     //     curNote.mask,
+                    //     //     stats->curNoteInt,
+                    //     //     curNote.mask << 1
+                    //     // )
+                    // );
+                    }
+                // Encore::EncoreLog(
+                //     LOG_INFO,
+                //     /*TextFormat(
+                //         "Note mask: %01i. Held mask: %01i.",
+                //         curNote.mask,
+                //         pressedMask
+                //         )
+                //     );*/
+                // if strummed, and no fret-after-strum
+                if (lane == 8008135 && action == GLFW_PRESS && !stats->FAS
+                    // && (firstNote ? true : lastNote.time + 0.005 < eventTime)
                 ) {
-                    // Encore::EncoreLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
-                    stats->FAS = true;
-                    curNote.hitWithFAS = true;
-                    // if (gpr.curNoteInt < curChart.notes.size() - 1) {
-                    //     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
-                    //    curChart.notes[gpr.curNoteInt + 1].strumCount = 0;
-                    // }
-                    stats->strummedNote = stats->curNoteInt;
-                }
-                if ((!curNote.isGood(eventTime, player->InputCalibration))
-                    && ((lastNote.phopo && lastNote.hit && !firstNote)
-                            ? (eventTime > lastNote.hitTime + 0.1f)
-                            : (true))) {
-                    Encore::EncoreLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
-                    stats->Overstrum = true;
-                    stats->FAS = false;
-                    stats->OverHit();
-                    if (lastNote.held && !firstNote) {
-                        lastNote.held = false;
+                    stats->StrumNoFretTime = eventTime;
+                    curNote.strumCount++;
+                    if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit
+                        && !curNote.hitWithFAS
+                        // && (firstNote ? true : lastNote.accounted)
+                    ) {
+                        // Encore::EncoreLog(LOG_INFO, TextFormat("FAS Active at %f", eventTime));
+                        stats->FAS = true;
+                        curNote.hitWithFAS = true;
+                        // if (gpr.curNoteInt < curChart.notes.size() - 1) {
+                        //     curChart.notes[gpr.curNoteInt + 1].hitWithFAS = false;
+                        //    curChart.notes[gpr.curNoteInt + 1].strumCount = 0;
+                        // }
+                        stats->strummedNote = stats->curNoteInt;
                     }
-                    if (!curChart.overdrive.events.empty()
-                        && !curChart.overdrive[stats->curODPhrase].missed
-                        && curNote.time >= curChart.overdrive[stats->curODPhrase].StartSec
-                        && curNote.time < curChart.overdrive[stats->curODPhrase].EndSec)
-                        curChart.overdrive[stats->curODPhrase].missed = true;
-                }
-            } else if (lane == 8008135 && action == GLFW_RELEASE) {
-                stats->DownStrum = false;
-                stats->UpStrum = false;
-                return;
-            }
-            if (stats->StrumNoFretTime > eventTime + fretAfterStrumTime && stats->FAS) {
-                Encore::EncoreLog(LOG_INFO, TextFormat("FAS Inactive at %f", eventTime));
-                stats->FAS = false;
-            }
-
-            if (curNote.hitWithFAS) {
-                if (noteMatch && !curNote.hit) {
-                    Encore::EncoreLog(
-                        LOG_INFO,
-                        TextFormat(
-                            "Note hit at %f as a STRUM, note %01i",
-                            eventTime,
-                            stats->curNoteInt
-                        )
-                    );
-                    stats->FAS = false;
-                    curNote.hit = true;
-                    curNote.HitOffset = curNote.time - eventTime;
-                    curNote.hitTime = eventTime;
-                    if (curNote.isPerfect(eventTime, player->InputCalibration)) {
-                        curNote.perfect = true;
-                    }
-                    stats->HitPlasticNote(curNote);
-                    // TODO: fix for plastic
-                    playerManager.BandStats.AddClassicNotePoint(
-                        curNote.perfect, stats->noODmultiplier(), curNote.chordSize
-                    );
-
-                    curNote.accounted = true;
-                    if ((curNote.len) > 0) {
-                        curNote.held = true;
-                        if (curNote.extendedSustain == true)
-                            stats->extendedSustainActive = true;
-                    }
-                    stats->curNoteInt++;
+                    if ((!curNote.isGood(eventTime, player->InputCalibration))
+                        && ((lastNote.phopo && lastNote.hit && !firstNote)
+                                ? (eventTime > lastNote.hitTime + 0.1f)
+                                : (true))) {
+                        // Encore::EncoreLog(LOG_INFO, TextFormat("Overstrum at %f", eventTime));
+                        stats->Overstrum = true;
+                        stats->FAS = false;
+                        stats->OverHit();
+                        if (lastNote.held && !firstNote) {
+                            lastNote.held = false;
+                        }
+                        if (!curChart.overdrive.events.empty()
+                            && !curChart.overdrive[stats->curODPhrase].missed
+                            && curNote.time >= curChart.overdrive[stats->curODPhrase].StartSec
+                            && curNote.time < curChart.overdrive[stats->curODPhrase].EndSec)
+                            curChart.overdrive[stats->curODPhrase].missed = true;
+                                }
+                } else if (lane == 8008135 && action == GLFW_RELEASE) {
+                    stats->DownStrum = false;
+                    stats->UpStrum = false;
                     return;
                 }
-            }
-            bool hitAsHopo =
-                (noteMatch && curNote.phopo
-                 && (stats->Combo > 0 || stats->curNoteInt == 0));
-            bool hitAsTap = (curNote.pTap && noteMatch);
+                if (stats->StrumNoFretTime > eventTime + fretAfterStrumTime && stats->FAS) {
+                    // Encore::EncoreLog(LOG_INFO, TextFormat("FAS Inactive at %f", eventTime));
+                    stats->FAS = false;
+                }
 
-            if ((hitAsHopo || hitAsTap) && curNote.GhostCount < 2) {
-                if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit
-                    && !curNote.accounted) {
-                    Encore::EncoreLog(
-                        LOG_INFO,
-                        TextFormat(
-                            "Note hit at %f as a HOPO, note %01i",
-                            eventTime,
-                            stats->curNoteInt
-                        )
-                    );
-                    curNote.hit = true;
-                    curNote.HitOffset = curNote.time - eventTime;
-                    curNote.hitTime = eventTime;
+                if (curNote.hitWithFAS) {
+                    if (noteMatch && !curNote.hit) {
+                        // Encore::EncoreLog(
+                        //     LOG_INFO,
+                        //     TextFormat(
+                        //         "Note hit at %f as a STRUM, note %01i",
+                        //         eventTime,
+                        //         stats->curNoteInt
+                        //     )
+                        // );
+                        stats->FAS = false;
+                        curNote.hit = true;
+                        curNote.HitOffset = curNote.time - eventTime;
+                        curNote.hitTime = eventTime;
+                        if (curNote.isPerfect(eventTime, player->InputCalibration)) {
+                            curNote.perfect = true;
+                        }
+                        stats->HitPlasticNote(curNote);
+                        // TODO: fix for plastic
+                        playerManager.BandStats.AddClassicNotePoint(
+                            curNote.perfect, stats->noODmultiplier(), curNote.chordSize
+                        );
 
-                    if ((curNote.len) > 0) {
-                        curNote.held = true;
-                        if (curNote.extendedSustain == true)
-                            stats->extendedSustainActive = true;
+                        curNote.accounted = true;
+                        if ((curNote.len) > 0) {
+                            curNote.held = true;
+                            if (curNote.extendedSustain == true)
+                                stats->extendedSustainActive = true;
+                        }
+                        stats->curNoteInt++;
+                        return;
                     }
-                    if (curNote.isPerfect(eventTime, player->InputCalibration)) {
-                        curNote.perfect = true;
-                    }
-                    stats->HitPlasticNote(curNote);
-                    // TODO: fix for plastic
-                    playerManager.BandStats.AddClassicNotePoint(
-                        curNote.perfect, stats->noODmultiplier(), curNote.chordSize
-                    );
+                }
+                bool hitAsHopo =
+                    (noteMatch && curNote.phopo
+                     && (stats->Combo > 0 || stats->curNoteInt == 0));
+                bool hitAsTap = (curNote.pTap && noteMatch);
 
-                    curNote.accounted = true;
-                    stats->curNoteInt++;
-                    return;
+                if ((hitAsHopo || hitAsTap) && curNote.GhostCount < 2) {
+                    if (curNote.isGood(eventTime, player->InputCalibration) && !curNote.hit
+                        && !curNote.accounted) {
+                        // Encore::EncoreLog(
+                        //     LOG_INFO,
+                        //     TextFormat(
+                        //         "Note hit at %f as a HOPO, note %01i",
+                        //         eventTime,
+                        //         stats->curNoteInt
+                        //     )
+                        // );
+                        curNote.hit = true;
+                        curNote.HitOffset = curNote.time - eventTime;
+                        curNote.hitTime = eventTime;
+
+                        if ((curNote.len) > 0) {
+                            curNote.held = true;
+                            if (curNote.extendedSustain == true)
+                                stats->extendedSustainActive = true;
+                        }
+                        if (curNote.isPerfect(eventTime, player->InputCalibration)) {
+                            curNote.perfect = true;
+                        }
+                        stats->HitPlasticNote(curNote);
+                        // TODO: fix for plastic
+                        playerManager.BandStats.AddClassicNotePoint(
+                            curNote.perfect, stats->noODmultiplier(), curNote.chordSize
+                        );
+
+                        curNote.accounted = true;
+                        stats->curNoteInt++;
+                        return;
+                        }
                 }
             }
         }
@@ -997,6 +999,7 @@ void LoadCharts() {
             }
         }
     }
+    songList.curSong->getCodas(midiFile);
     LoadingState = READY;
     this_thread::sleep_for(chrono::seconds(1));
     FinishedLoading = true;
