@@ -445,7 +445,7 @@ void gameplayRenderer::NoteMultiplierEffect(
     }
 }
 
-void gameplayRenderer::RenderNotes(
+void gameplayRenderer::RenderPadNotes(
     Player *player, Chart &curChart, double time, RenderTexture2D &notes_tex, float length
 ) {
     float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
@@ -460,13 +460,9 @@ void gameplayRenderer::RenderNotes(
         for (int i = player->stats->curNoteIdx[lane];
              i < curChart.notes_perlane[lane].size();
              i++) {
-            Color NoteColor;
-            if (player->ClassicMode) {
-                NoteColor = GRYBO[lane];
-            } else {
-                NoteColor = gprMenu.hehe && player->Difficulty == 3 ? TRANS[lane]
+            Color NoteColor = gprMenu.hehe && player->Difficulty == 3 ? TRANS[lane]
                                                                     : player->AccentColor;
-            }
+
 
             Note &curNote = curChart.notes[curChart.notes_perlane[lane][i]];
             // if (curNote.hit) {
@@ -1243,7 +1239,7 @@ void gameplayRenderer::RenderGameplay(
             RenderClassicNotes(player, curChart, time, notes_tex, highwayLength);
         }
     } else {
-        RenderNotes(player, curChart, time, notes_tex, highwayLength);
+        RenderPadNotes(player, curChart, time, notes_tex, highwayLength);
     }
     // EndShaderMode();
     // if (!player->Bot)
@@ -2522,6 +2518,10 @@ void gameplayRenderer::nDrawPadNote(
             BaseColor = WHITE;
             SidesColor = GOLD;
         }
+        if (note.miss) {
+            BaseColor = RED;
+            SidesColor = RED;
+        }
         for (auto &part : LiftParts) {
             part.materials[0].shader = gprAssets.HighwayFade;
         }
@@ -2534,6 +2534,12 @@ void gameplayRenderer::nDrawPadNote(
         if (note.renderAsOD) {
             InnerColor = WHITE;
             SidesColor = GOLD;
+        }
+        if (note.miss) {
+            InnerColor = RED;
+            SidesColor = RED;
+            BottomColor = RED;
+
         }
         for (auto &part : StrumParts) {
             part.materials[0].shader = gprAssets.HighwayFade;

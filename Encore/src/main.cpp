@@ -333,76 +333,67 @@ static void handleInputs(Player *player, int lane, int action) {
 
                     if (lane != curNote.lane)
                         continue;
-                    if (!player->ClassicMode) {
-                        if ((curNote.lift && action == GLFW_RELEASE)
-                            || action == GLFW_PRESS) {
-                            if (curNote.isGood(eventTime, player->InputCalibration)
-                                && !curNote.hit) {
-                                if (curNote.lift && action == GLFW_RELEASE) {
-                                    stats->lastHitLifts[lane] =
-                                        curChart.notes_perlane[lane][i];
-                                }
-                                curNote.hit = true;
-                                curNote.HitOffset = curNote.time - eventTime;
-                                curNote.hitTime = eventTime;
-                                if ((curNote.len) > 0 && !curNote.lift) {
-                                    curNote.held = true;
-                                }
-                                if (curNote.isPerfect(
-                                        eventTime, player->InputCalibration
-                                    )) {
-                                    curNote.perfect = true;
-                                }
-                                stats->HitNote(curNote.perfect);
-                                playerManager.BandStats.AddNotePoint(
-                                    curNote.perfect, stats->multiplier()
-                                );
-
-                                curNote.accounted = true;
-                                break;
-                            }
+                    if (((curNote.lift && action == GLFW_RELEASE) || action == GLFW_PRESS)
+                        && curNote.isGood(eventTime, player->InputCalibration)
+                        && !curNote.hit && !curNote.accounted) {
+                        if (curNote.lift && action == GLFW_RELEASE) {
+                            stats->lastHitLifts[lane] = curChart.notes_perlane[lane][i];
                         }
-                        if ((!stats->HeldFrets[curNote.lane]
-                             && !stats->HeldFretsAlt[curNote.lane])
-                            && curNote.held && (curNote.len) > 0) {
-                            curNote.held = false;
-                            // stats->Score += player.sustainScoreBuffer[curNote.lane];
-                            // player.sustainScoreBuffer[curNote.lane] = 0;
-                            // player.mute = true;
-                            // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream,
-                            // missVolume);
+                        curNote.hit = true;
+                        curNote.HitOffset = curNote.time - eventTime;
+                        curNote.hitTime = eventTime;
+                        if ((curNote.len) > 0 && !curNote.lift) {
+                            curNote.held = true;
                         }
+                        if (curNote.isPerfect(eventTime, player->InputCalibration)) {
+                            curNote.perfect = true;
+                        }
+                        stats->HitNote(curNote.perfect);
+                        playerManager.BandStats.AddNotePoint(
+                            curNote.perfect, stats->multiplier()
+                        );
 
-                        if (action == GLFW_PRESS
-                            && eventTime > songList.curSong->music_start && !curNote.hit
-                            && !curNote.accounted
-                            && ((curNote.time) - goodBackend) + player->InputCalibration
-                                > eventTime
-                            && eventTime > stats->overdriveHitTime + 0.05
-                            && !stats->OverhitFrets[lane]) {
-                            if (stats->lastHitLifts[lane] != -1) {
-                                if (eventTime
-                                        > curChart.notes[stats->lastHitLifts[lane]].time
-                                            - 0.1
-                                    && eventTime
-                                        < curChart.notes[stats->lastHitLifts[lane]].time
-                                            + 0.1)
-                                    continue;
-                            }
-                            stats->OverHit();
-                            // todo: ghost twice before miss!!!!
-                            if (!curChart.overdrive.events.empty()
+                        curNote.accounted = true;
+                        break;
+                    }
+                    if ((!stats->HeldFrets[curNote.lane]
+                         && !stats->HeldFretsAlt[curNote.lane])
+                        && curNote.held && (curNote.len) > 0) {
+                        curNote.held = false;
+                        // stats->Score += player.sustainScoreBuffer[curNote.lane];
+                        // player.sustainScoreBuffer[curNote.lane] = 0;
+                        // player.mute = true;
+                        // SetAudioStreamVolume(audioManager.loadedStreams[instrument].stream,
+                        // missVolume);
+                    }
+
+                    if (action == GLFW_PRESS
+                        && eventTime > songList.curSong->music_start
+                        && !curNote.isGood(eventTime, player->InputCalibration)
+                        && !curNote.accounted
+                        && eventTime > stats->overdriveHitTime + 0.05
+                        && !stats->OverhitFrets[lane]) {
+                        if (stats->lastHitLifts[lane] != -1) {
+                            if (eventTime
+                                    > curChart.notes[stats->lastHitLifts[lane]].time - 0.1
                                 && eventTime
-                                    >= curChart.overdrive[stats->curODPhrase].StartSec
-                                && eventTime < curChart.overdrive[stats->curODPhrase].EndSec
-                                && !curChart.overdrive[stats->curODPhrase].missed)
-                                curChart.overdrive[stats->curODPhrase].missed = true;
-                            stats->OverhitFrets[lane] = true;
+                                    < curChart.notes[stats->lastHitLifts[lane]].time
+                                        + 0.1)
+                                continue;
                         }
+                        stats->OverHit();
+                        if (!curChart.overdrive.events.empty()
+                            && eventTime
+                                >= curChart.overdrive[stats->curODPhrase].StartSec
+                            && eventTime < curChart.overdrive[stats->curODPhrase].EndSec
+                            && !curChart.overdrive[stats->curODPhrase].missed)
+                            curChart.overdrive[stats->curODPhrase].missed = true;
+                        stats->OverhitFrets[lane] = true;
                     }
                 }
             }
-        } else {
+        }
+        else {
             if (stats->curNoteInt >= curChart.notes.size())
                 stats->curNoteInt = curChart.notes.size() - 1;
             Note &curNote = curChart.notes[stats->curNoteInt];

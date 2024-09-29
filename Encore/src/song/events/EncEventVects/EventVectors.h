@@ -44,6 +44,7 @@ struct ODEvents : EncEventVect<odPhrase> {
                 }
                 if (note.hit && !note.countedForODPhrase) {
                     events[curEvent].NotesHit++;
+                    Encore::EncoreLog(LOG_DEBUG, TextFormat("Overdrive note hit: %01i/%01i", events[curEvent].NotesHit, events[curEvent].NoteCount));
                     note.countedForODPhrase = true;
                 }
                 if (note.miss && !events[curEvent].missed) {

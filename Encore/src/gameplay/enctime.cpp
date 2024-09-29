@@ -61,6 +61,7 @@ double SongTime::GetSongTime() {
     else if (paused) {
         return pauseTime - startTime;
     }
+    return 0.0;
 };
 double SongTime::GetStartTime() {
     return startTime;

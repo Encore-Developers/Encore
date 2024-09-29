@@ -10,7 +10,7 @@
 
 
 class gameplayRenderer {
-    void RenderNotes(
+    void RenderPadNotes(
         Player *player,
         Chart &curChart,
         double time,

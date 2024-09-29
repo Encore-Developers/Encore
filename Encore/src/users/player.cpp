@@ -239,6 +239,7 @@ void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
         } else
             newPlayer.AccentColor = { 255, 0, 255, 255 };
 
+        newPlayer.joypadID = 0;
         TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
         PlayerList.push_back(std::move(newPlayer));
     };
