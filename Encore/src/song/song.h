@@ -594,6 +594,55 @@ public:
             }
         }
     }
+    Coda BRE {};
+    void getCodas(smf::MidiFile &midiFile) {
+        int codaCount = 0;
+        for (int track = 0; track < midiFile.getTrackCount(); track++) {
+            std::string trackName;
+            for (int events = 0; events < midiFile[track].getSize(); events++) {
+                if (midiFile[track][events].isMeta()) {
+                    if ((int)midiFile[track][events][1] == 3) {
+                        for (int k = 3; k < midiFile[track][events].getSize(); k++) {
+                            trackName += midiFile[track][events][k];
+                        }
+                        SongParts songPart;
+                        if (ini) {
+                            songPart = partFromStringINI(trackName);
+                        } else
+                            songPart = partFromString(trackName);
+                        if (songPart > PlasticDrums && songPart <= PlasticGuitar) {
+                            int codaNote = 120; // i dont wanna bother with checking all five lanes
+                            for (int i = 0; i < midiFile[track].getSize(); i++) {
+                                if (midiFile[track][i].isNoteOn()
+                                    && !midiFile[track][i].isMeta()
+                                    && (int)midiFile[track][i][1] == codaNote) {
+                                    if (BRE.StartSec == 0.0) {
+                                        BRE.StartSec = midiFile.getTimeInSeconds(midiFile[track][i].tick);
+                                        BRE.StartTick = midiFile[track][i].tick;
+                                        Encore::EncoreLog(LOG_DEBUG, "BRE start found");
+                                    }
+                                }
+                                if (midiFile[track][i].isNoteOff()
+                                    && !midiFile[track][i].isMeta()
+                                    && (int)midiFile[track][i][1] == codaNote) {
+                                    if (BRE.EndSec == 0.0) {
+                                        BRE.EndSec = midiFile.getTimeInSeconds(midiFile[track][i].tick);
+                                        BRE.EndTick = midiFile[track][i].tick;
+                                        Encore::EncoreLog(LOG_DEBUG, "BRE end found");
+                                        codaCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (BRE.EndSec != 0.0 && BRE.StartSec != 0.0) {
+            Encore::EncoreLog(LOG_DEBUG, "BRE valid");
+            BRE.exists = true;
+        }
+    }
 
     void LoadAlbumArt() {
         Image albumImage = LoadImage(albumArtPath.c_str());
