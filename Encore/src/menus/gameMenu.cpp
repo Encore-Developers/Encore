@@ -20,6 +20,7 @@
 #include "uiUnits.h"
 #include "../settings.h"
 #include "../song/songlist.h"
+#include "gameplay/gameplayRenderer.h"
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH
@@ -68,11 +69,26 @@ Texture2D GameMenu::LoadTextureFilter(const std::filesystem::path &texturePath) 
     return tex;
 }
 
+
+
 void GameMenu::mhDrawText(
-    Font font, std::string text, Vector2 pos, float fontSize, Color color, Shader sdfShader
+    Font font, std::string text, Vector2 pos, float fontSize, Color color, Shader sdfShader, int align
 ) {
+    float textLeftPos = pos.x;
+    float TextWidth = MeasureTextEx(font, text.c_str(), fontSize, 0).x;
+
+    switch (align) {
+        case CENTER: {
+            textLeftPos = pos.x - (TextWidth/2);
+            break;
+        }
+        case RIGHT: {
+            textLeftPos = pos.x - (TextWidth);
+            break;
+        }
+    }
     BeginShaderMode(sdfShader);
-    DrawTextEx(font, text.c_str(), pos, fontSize, 0, color);
+    DrawTextEx(font, text.c_str(), {textLeftPos, pos.y}, fontSize, 0, color);
     EndShaderMode();
 }
 
@@ -103,24 +119,6 @@ void GameMenu::DrawBottomOvershell() {
     DrawRectangle(
         0,
         BottomOvershell + u.hinpct(0.005f),
-        (float)(GetScreenWidth()),
-        (float)GetScreenHeight(),
-        ColorBrightness(GetColor(0x181827FF), -0.5f)
-    );
-}
-
-void GameMenu::DrawBottomBottomOvershell() {
-    float BottomBottomOvershell = GetScreenHeight() - u.hpct(0.1f);
-    DrawRectangle(
-        0,
-        BottomBottomOvershell,
-        (float)(GetScreenWidth()),
-        (float)GetScreenHeight(),
-        WHITE
-    );
-    DrawRectangle(
-        0,
-        BottomBottomOvershell + u.hinpct(0.005f),
         (float)(GetScreenWidth()),
         (float)GetScreenHeight(),
         ColorBrightness(GetColor(0x181827FF), -0.5f)
@@ -230,9 +228,8 @@ void GameMenu::loadMainMenu() {
 
     Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.8125f) };
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
-    DrawTopOvershell(0.2f);
-    DrawBottomOvershell();
-    DrawBottomBottomOvershell();
+    osr.DrawTopOvershell(0.2f);
+
     menuCommitHash.erase(7);
     float logoHeight = u.hinpct(0.145f);
     DrawVersion();
@@ -509,7 +506,8 @@ void GameMenu::loadMainMenu() {
             WHITE
         );
     }
-    osr.DrawOvershell();
+    DrawBottomOvershell();
+    osr.DrawBottomOvershell();
 }
 
 bool AlbumArtLoadingStuff = false;
@@ -544,9 +542,9 @@ void GameMenu::DrawFPS(int posX, int posY) {
     Color color = LIME; // Good FPS
     int fps = GetFPS();
 
-    if ((fps < 30) && (fps >= 15))
+    if ((fps < 45) && (fps >= 15))
         color = ORANGE; // Warning FPS
-    else if (fps < 15)
+    else if (fps < 20)
         color = RED; // Low FPS
 
     DrawTextEx(

@@ -21,6 +21,12 @@ enum Screens {
     CACHE_LOADING_SCREEN
 };
 
+enum TextAlign {
+    LEFT,
+    CENTER,
+    RIGHT
+};
+
 class GameMenu {
     template <typename CharT>
     struct Separators : public std::numpunct<CharT> {
@@ -38,16 +44,16 @@ public:
     }
     static void DrawTopOvershell(float TopOvershell);
     static void DrawBottomOvershell();
-    static void DrawBottomBottomOvershell();
     static Texture2D LoadTextureFilter(const std::filesystem::path &texturePath);
     static Font LoadFontFilter(const std::filesystem::path &fontPath);
     static void
-    mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color, Shader sdfShader);
+    mhDrawText(Font font, std::string, Vector2 pos, float fontSize, Color color, Shader sdfShader, int align);
     static void DrawFPS(int posX, int posY);
     static void DrawVersion();
     // drawing helper functions for other menus
 
     bool hehe = false;
+    bool shouldBreak = false;
     Screens currentScreen = CACHE_LOADING_SCREEN;
     bool songsLoaded {};
     bool streamsLoaded = false;
