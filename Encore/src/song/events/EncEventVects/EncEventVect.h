@@ -9,6 +9,7 @@
 
 template <typename t>
 struct EncEventVect {
+    virtual ~EncEventVect() = default;
     std::vector<t> events {};
 
     t& operator=(int event) {
