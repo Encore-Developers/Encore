@@ -1108,12 +1108,13 @@ int main(int argc, char *argv[]) {
     playerManager.LoadPlayerList(directory / "players.json");
     // player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
     // player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
+    bool removeFPSLimit = 0;
 #ifdef NDEBUG
     int targetFPS = 180;
 #else
     int targetFPS =
         targetFPSArg == -1 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-    bool removeFPSLimit = targetFPSArg == 0;
+    removeFPSLimit = targetFPSArg == 0;
 #endif
     int menuFPS = 60;
     /*
