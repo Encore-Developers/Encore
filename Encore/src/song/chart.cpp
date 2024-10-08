@@ -877,10 +877,12 @@ void Chart::parsePlasticDrums(
                 int mixDiff = evt_string[5] - '0';
                 if (diff == mixDiff) {
                     int drumMixType = evt_string[12] - '0';
-                    if (evt_string[13] == ']')
+                    std::string flag = evt_string.substr(13);
+                    if (flag[0] == ']')
                         discoFlip = false;
                     else {
-                        if (evt_string[14] == ']')
+                        flag = flag.substr(0, flag.size() - 1);
+                        if (flag == "d")
                             discoFlip = true;
                         else
                             discoFlip = false;
