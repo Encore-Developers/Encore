@@ -54,6 +54,7 @@ class gameplayRenderer {
         RenderTexture2D &notes_tex,
         float length
     );
+    void DrawHitwindow(Player *player, float length);
     void RenderPDrumsNotes(
         Player *player,
         Chart &curChart,
@@ -72,6 +73,15 @@ class gameplayRenderer {
         float length,
         double sTime,
         double eTime,
+        double curTime,
+        float NoteSpeed,
+        int Difficulty
+    );
+
+    void nDrawSoloSides(
+        float length,
+        double sTime,
+        double cLen,
         double curTime,
         float NoteSpeed,
         int Difficulty
@@ -114,6 +124,7 @@ public:
     int cameraSel = 0;
     Mesh sustainPlane;
     Mesh soloPlane;
+    Texture2D invSoloTex;
     std::vector<std::vector<Camera3D> > cameraVectors;
     std::vector<Camera3D> camera1pVector;
     std::vector<Camera3D> camera2pVector;

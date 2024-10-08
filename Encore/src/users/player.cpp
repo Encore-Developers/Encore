@@ -238,8 +238,10 @@ void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
                                             255 };
         } else
             newPlayer.AccentColor = { 255, 0, 255, 255 };
-
-        newPlayer.joypadID = 0;
+        if (newPlayer.Name == "3drosalia")
+            newPlayer.joypadID = 0;
+        if (newPlayer.Name == "cameron44252")
+            newPlayer.joypadID = 1;
         TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
         PlayerList.push_back(std::move(newPlayer));
     };

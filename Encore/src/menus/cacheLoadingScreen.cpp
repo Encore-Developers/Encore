@@ -9,7 +9,7 @@
 
 #include "gameMenu.h"
 #include "raymath.h"
-#include "settings.h"
+#include "settings-old.h"
 #include "uiUnits.h"
 #include "song/songlist.h"
 #include "raygui.h"
@@ -43,7 +43,7 @@ bool started = false;
 
 void LoadCache() {
     SongList &list = SongList::getInstance();
-    Settings &settings = Settings::getInstance();
+    SettingsOld &settings = SettingsOld::getInstance();
     list.LoadCache(settings.songPaths);
     finished = true;
 }

@@ -63,6 +63,36 @@ public:
         );
     }
 
+    void cHitNote(double eventTime, double offset) {
+        hit = true;
+        HitOffset = time - eventTime;
+        hitTime = eventTime;
+
+        if ((len) > 0) {
+            held = true;
+        }
+        if (isPerfect(eventTime, offset)) {
+            perfect = true;
+        }
+
+        accounted = true;
+    }
+
+    void pHitNote(double eventTime, double offset) {
+        hit = true;
+        HitOffset = time - eventTime;
+        hitTime = eventTime;
+
+        if ((len) > 0) {
+            held = true;
+        }
+        if (isPerfect(eventTime, offset)) {
+            perfect = true;
+        }
+
+        accounted = true;
+    }
+
     bool pTap = false;
     bool pOpen = false;
 };

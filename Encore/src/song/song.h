@@ -104,7 +104,7 @@ public:
         { "PLASTIC GUITAR", SongParts::PlasticGuitar },
         { "PLASTIC VOCALS", SongParts::PlasticVocals },
         { "PLASTIC KEYS", SongParts::PlasticKeys },
-        { "PITCHED VOCALS", SongParts::PitchedVocals }
+        { "PITCHED VOCALS", SongParts::Invalid }
     };
 
     std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
@@ -117,8 +117,8 @@ public:
         { "PART BASS", SongParts::PlasticBass },
         { "PART GUITAR", SongParts::PlasticGuitar },
         { "PART KEYS", SongParts::PlasticKeys },
-        { "PART VOCALS", SongParts::PitchedVocals },
-        { "PLASTIC VOCALS", SongParts::PlasticVocals }
+        { "PART VOCALS", SongParts::Invalid },
+        { "PLASTIC VOCALS", SongParts::Invalid }
     };
 
     SongParts partFromString(const std::string &str) {

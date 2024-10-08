@@ -18,7 +18,7 @@
 #include "../menus/menu.h"
 #include "overshellRenderer.h"
 #include "uiUnits.h"
-#include "../settings.h"
+#include "../settings-old.h"
 #include "../song/songlist.h"
 #include "gameplay/gameplayRenderer.h"
 
@@ -39,7 +39,7 @@ std::string menuCommitHash = GIT_COMMIT_HASH;
 std::string menuVersion = ENCORE_VERSION;
 std::string gitBranch = GIT_BRANCH;
 Assets &menuAss = Assets::getInstance();
-Settings &settings = Settings::getInstance();
+SettingsOld &settings = SettingsOld::getInstance();
 SongList &songListMenu = SongList::getInstance();
 Units u = Units::getInstance();
 
@@ -226,7 +226,7 @@ void GameMenu::loadMainMenu() {
 
     float SongFontSize = u.hinpct(0.03f);
 
-    Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.8125f) };
+    Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
     osr.DrawTopOvershell(0.2f);
 
@@ -237,10 +237,10 @@ void GameMenu::loadMainMenu() {
     Color accentColor =
         ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f);
 
-    DrawRectangle(0, u.hpct(0.8f), u.LeftSide, u.hinpct(0.05f), accentColor);
+    DrawRectangle(0, u.hpct(0.2f), u.LeftSide, u.hinpct(0.05f), accentColor);
     DrawRectangleGradientH(
         u.LeftSide,
-        u.hpct(0.8f),
+        u.hpct(0.2f),
         SplashWidth + u.winpct(0.1f),
         u.hinpct(0.05f),
         accentColor,

@@ -159,6 +159,7 @@ public:
         // mute = false;
     }
     void HitPlasticNote(Note note) {
+        FAS = false;
         NotesHit += 1;
         Notes += 1;
         Combo += 1;
@@ -168,6 +169,7 @@ public:
         Score += (note.chordSize * (int)(30.0f * (multiplier()) * perfectMult));
         PerfectHit += note.perfect ? 1 : 0;
         GoodHit += note.perfect ? 0 : 1;
+        curNoteInt++;
         // mute = false;
     }
     void MissNote() {
@@ -178,12 +180,16 @@ public:
         if (Combo > MaxCombo)
             MaxCombo = Combo;
         Combo = 0;
+        FAS = false;
         FC = false;
+        curNoteInt++;
         // mute = true;
     }
     void OverHit() {
         // if (combo != 0)
         //     playerAudioManager.playSample("miss", sfxVolume);
+        Overstrum = true;
+        FAS = false;
         if (Combo > MaxCombo)
             MaxCombo = Combo;
         Combo = 0;
@@ -483,15 +489,15 @@ public:
     std::vector<int> ActivePlayers { -1, -1, -1, -1 };
     int PlayersActive = 0;
 
-    Player *GetActivePlayer(int slot) { return &PlayerList[ActivePlayers[slot]]; }
+    Player *GetActivePlayer(int slot) { return &PlayerList.at(ActivePlayers.at(slot)); }
 
     void AddActivePlayer(int playerNum, int slot) {
-        ActivePlayers[slot] = playerNum;
+        ActivePlayers.at(slot) = playerNum;
         PlayersActive += 1;
     }
 
     void RemoveActivePlayer(int slot) {
-        ActivePlayers[slot] = -1;
+        ActivePlayers.at(slot) = -1;
         PlayersActive -= 1;
     }
 

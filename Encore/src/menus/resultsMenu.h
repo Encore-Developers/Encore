@@ -11,12 +11,6 @@
 class resultsMenu : public Menu {
     // ok assets go here
     // i forgot which assets i need.
-    Font RedHatDisplayItalic; // large song text
-    Font RubikItalic; // artist name text
-    Font RubikBoldItalic; // praise text
-    Font Rubik; // performance text
-    Font RubikBold; // instrument/difficulty text
-    Font JosefinSansItalic; // extra information text
     Texture2D GoldStar;
     Texture2D Star;
     Texture2D EmptyStar;

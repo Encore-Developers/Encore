@@ -49,40 +49,41 @@ void Assets::FirstAssets() {
 void Assets::LoadAssets() {
     Color accentColor = { 255, 0, 255, 255 };
     Color overdriveColor = Color { 255, 200, 0, 255 };
+    std::filesystem::path highwayDir = directory / "Assets" / "highway";
     //smasherReg =
-    //    Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
+    //    Assets::LoadModel_((highwayDir / "/smasher.obj"), loadedAssets);
     smasherInner =
-        Assets::LoadModel_((directory / "Assets/highway/smasherInner.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "smasherInner.obj"), loadedAssets);
     smasherInnerTex =
-        LoadTexture((directory / "Assets/highway/smasherbase.png").string().c_str());
+        LoadTexture((highwayDir / "smasherbase.png").string().c_str());
     smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherInnerTex;
 
     smasherOuter =
-        Assets::LoadModel_((directory / "Assets/highway/smasherOuter.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "smasherOuter.obj"), loadedAssets);
     smasherOuterTex =
-        LoadTexture((directory / "Assets/highway/smasherframe.png").string().c_str());
+        LoadTexture((highwayDir / "smasherframe.png").string().c_str());
     smasherOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherOuterTex;
 
     smasherTopPressedTex =
-        LoadTexture((directory / "Assets/highway/smashertop-p.png").string().c_str());
+        LoadTexture((highwayDir / "smashertop-p.png").string().c_str());
     smasherTopUnpressedTex =
-        LoadTexture((directory / "Assets/highway/smashertop-u.png").string().c_str());
+        LoadTexture((highwayDir / "smashertop-u.png").string().c_str());
 
     smasherBoardTex =
-        Assets::LoadTextureFilter(directory / "Assets/highway/board.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "board.png", loadedAssets);
     smasherBoard =
-        Assets::LoadModel_((directory / "Assets/highway/board_x.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "board_x.obj"), loadedAssets);
     smasherBoardEMH =
-        Assets::LoadModel_((directory / "Assets/highway/board_emh.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "board_emh.obj"), loadedAssets);
 
-    lanes = Assets::LoadModel_((directory / "Assets/highway/lanes.obj"), loadedAssets);
+    lanes = Assets::LoadModel_((highwayDir / "lanes.obj"), loadedAssets);
     lanesTex =
-        Assets::LoadTextureFilter(directory / "Assets/highway/lanes.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "lanes.png", loadedAssets);
 
     smasherPressed =
-        Assets::LoadModel_((directory / "Assets/highway/smasher.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "smasher.obj"), loadedAssets);
     smasherPressTex =
-        LoadTexture((directory / "Assets/highway/smasher_press.png").string().c_str());
+        LoadTexture((highwayDir / "smasher_press.png").string().c_str());
 
     star = Assets::LoadTextureFilter(directory / "Assets/ui/star.png", loadedAssets);
     goldStar =
@@ -94,8 +95,8 @@ void Assets::LoadAssets() {
         Assets::LoadTextureFilter(directory / "Assets/ui/empty-star.png", loadedAssets);
 
     Highway = LoadShader(
-        (directory / "Assets/highway/fLighting.vsh").string().c_str(),
-        (directory / "Assets/highway/highwayShader.fsh").string().c_str()
+        (highwayDir / "fLighting.vsh").string().c_str(),
+        (highwayDir / "highwayShader.fsh").string().c_str()
     );
     HighwayTexShaderLoc = GetShaderLocation(Highway, "highwayTex");
     HighwayTimeShaderLoc = GetShaderLocation(Highway, "time");
@@ -118,34 +119,34 @@ void Assets::LoadAssets() {
         Assets::LoadTextureFilter(directory / "Assets/ui/mult_fill_od.png", loadedAssets);
     multNumberTex =
         Assets::LoadTextureFilter(directory / "Assets/ui/mult_number.png", loadedAssets);
-    odMultShader = LoadShader("Assets/highway/fLighting.vsh", "Assets/ui/odmult.fs");
+    odMultShader = LoadShader("Assets/gameplay/highway/fLighting.vsh", "Assets/ui/odmult.fs");
     multNumberShader = LoadShader(0, "Assets/ui/multnumber.fs");
 
     MultInnerDot = Assets::LoadModel_(
-        (directory / "Assets/highway/multiplier/MultCenterDot.obj"), loadedAssets
+        (highwayDir / "multiplier/MultCenterDot.obj"), loadedAssets
     );
     MultFill = Assets::LoadModel_(
-        (directory / "Assets/highway/multiplier/MultFill.obj"), loadedAssets
+        (highwayDir / "multiplier/MultFill.obj"), loadedAssets
     );
     MultOuterFrame = Assets::LoadModel_(
-        (directory / "Assets/highway/multiplier/MultOuterFrame.obj"), loadedAssets
+        (highwayDir / "multiplier/MultOuterFrame.obj"), loadedAssets
     );
     MultInnerFrame = Assets::LoadModel_(
-        (directory / "Assets/highway/multiplier/MultInnerFrame.obj"), loadedAssets
+        (highwayDir / "multiplier/MultInnerFrame.obj"), loadedAssets
     );
 
     MultFillBase = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/Untitled.png"), loadedAssets
+        (highwayDir / "multiplier/Untitled.png"), loadedAssets
     );
     // why is it called "od"
     MultFCTex1 = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/od-shine.png"), loadedAssets
+        (highwayDir / "multiplier/od-shine.png"), loadedAssets
     );
     MultFCTex2 = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/od-shine2.png"), loadedAssets
+        (highwayDir / "multiplier/od-shine2.png"), loadedAssets
     );
     MultFCTex3 = Assets::LoadTextureFilter(
-        (directory / "Assets/highway/multiplier/od-shine3.png"), loadedAssets
+        (highwayDir / "multiplier/od-shine3.png"), loadedAssets
     );
 
     FullComboIndicator = LoadShader(0, "Assets/ui/fc_ind.fsh");
@@ -172,8 +173,8 @@ void Assets::LoadAssets() {
     uvOffsetYLoc = GetShaderLocation(multNumberShader, "uvOffsetY");
 
     HighwayFade = LoadShader(
-        (directory / "Assets/highway/fLighting.vsh").string().c_str(),
-        (directory / "Assets/highway/highwayFade.frag").string().c_str()
+        (highwayDir / "fLighting.vsh").string().c_str(),
+        (highwayDir / "highwayFade.frag").string().c_str()
     );
     HighwayFadeStartLoc = GetShaderLocation(HighwayFade, "fadeStart");
     HighwayFadeEndLoc = GetShaderLocation(HighwayFade, "fadeEnd");
@@ -188,30 +189,30 @@ void Assets::LoadAssets() {
     HighwayScrollFadeEndLoc = GetShaderLocation(Highway, "fadeEnd");
 
     expertHighwaySides =
-        Assets::LoadModel_(directory / "Assets/highway/sides_x.obj", loadedAssets);
+        Assets::LoadModel_(highwayDir / "sides_x.obj", loadedAssets);
     DarkerHighwayThing =
-        Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "highway_x.obj"), loadedAssets);
     expertHighway =
-        Assets::LoadModel_((directory / "Assets/highway/highway_x.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "highway_x.obj"), loadedAssets);
     expertHighway.materials[0].shader = Highway;
 
     emhHighwaySides =
-        Assets::LoadModel_((directory / "Assets/highway/sides_emh.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "sides_emh.obj"), loadedAssets);
     emhHighway =
-        Assets::LoadModel_((directory / "Assets/highway/highway_emh.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "highway_emh.obj"), loadedAssets);
     odHighwayEMH = Assets::LoadModel_(
-        (directory / "Assets/highway/overdrive_emh.obj"), loadedAssets
+        (highwayDir / "overdrive_emh.obj"), loadedAssets
     );
     odHighwayX =
-        Assets::LoadModel_((directory / "Assets/highway/overdrive_x.obj"), loadedAssets);
+        Assets::LoadModel_((highwayDir / "overdrive_x.obj"), loadedAssets);
     odHighwayX.materials[0].shader = Highway;
     highwayTexture =
-        Assets::LoadTextureFilter(directory / "Assets/highway/highway.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "highway.png", loadedAssets);
     highwayTextureOD = Assets::LoadTextureFilter(
-        directory / "Assets/highway/overdrive.png", loadedAssets
+        highwayDir / "overdrive.png", loadedAssets
     );
     highwaySidesTexture =
-        Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "sides.png", loadedAssets);
 
     noteTopModel =
         Assets::LoadModel_((directory / "Assets/notes/note_top.obj"), loadedAssets);
@@ -225,7 +226,7 @@ void Assets::LoadAssets() {
     KickBottom =
         Assets::LoadTextureFilter(directory / "Assets/notes/kick.png", loadedAssets);
     KickSide =
-        Assets::LoadTextureFilter(directory / "Assets/highway/sides.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "sides.png", loadedAssets);
 
     CymbalInner = Assets::LoadModel_(
         (directory / "Assets/notes/cymbal/CymbalWhite.obj"), loadedAssets
@@ -243,6 +244,10 @@ void Assets::LoadAssets() {
     CodaLane = LoadMaterialDefault();
     CodaLane.maps[MATERIAL_MAP_ALBEDO].texture = CodaLaneTex;
     CodaLane.shader = HighwayFade;
+
+    SoloSides = LoadMaterialDefault();
+    SoloSides.maps[MATERIAL_MAP_ALBEDO].texture = soloTexture;
+    SoloSides.shader = HighwayFade;
 
     YargRings.push_back(
         LoadTextureFilter((directory / "Assets/ui/hugh ring/rings-1.png"), loadedAssets)
@@ -267,10 +272,10 @@ void Assets::LoadAssets() {
         LoadTextureFilter((directory / "Assets/ui/hugh ring/rings.png"), loadedAssets);
 
     InstIcons.push_back(
-        LoadTextureFilter((directory / "Assets/ui/hugh ring/bass-inv.png"), loadedAssets)
+        LoadTextureFilter((directory / "Assets/ui/hugh ring/drums-inv.png"), loadedAssets)
     );
     InstIcons.push_back(
-        LoadTextureFilter((directory / "Assets/ui/hugh ring/drums-inv.png"), loadedAssets)
+        LoadTextureFilter((directory / "Assets/ui/hugh ring/bass-inv.png"), loadedAssets)
     );
     InstIcons.push_back(
         LoadTextureFilter((directory / "Assets/ui/hugh ring/lead-inv.png"), loadedAssets)
@@ -279,14 +284,17 @@ void Assets::LoadAssets() {
         LoadTextureFilter((directory / "Assets/ui/hugh ring/vox-inv.png"), loadedAssets)
     );
 
-    SoloBox = Assets::LoadModel_((directory / "Assets/highway/Solo.obj"), loadedAssets);
+    SoloBox = Assets::LoadModel_((highwayDir / "Solo.obj"), loadedAssets);
     SoloBackground =
-        Assets::LoadTextureFilter(directory / "Assets/highway/SoloBox.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "SoloBox.png", loadedAssets);
     SoloBox.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = SoloBackground;
 
     // noteTexture = Assets::LoadTextureFilter(directory / "Assets/notes/note.png",
     // loadedAssets); emitTexture = Assets::LoadTextureFilter(directory /
     // "Assets/notes/note_e_new.png", loadedAssets);
+    Scorebox = LoadTextureFilter((directory / "Assets/gameplay/ui/Scorebox.png"), loadedAssets);
+    Timerbox = LoadTextureFilter((directory / "Assets/gameplay/ui/Timerbox.png"), loadedAssets);
+    TimerboxOutline = LoadTextureFilter((directory / "Assets/gameplay/ui/TimerboxOutline.png"), loadedAssets);
 
     noteTopModelOD =
         Assets::LoadModel_((directory / "Assets/notes/note_top_od.obj"), loadedAssets);
@@ -307,9 +315,9 @@ void Assets::LoadAssets() {
     liftModel = Assets::LoadModel_((directory / "Assets/notes/lift.obj"), loadedAssets);
     liftModelOD = Assets::LoadModel_((directory / "Assets/notes/lift.obj"), loadedAssets);
 
-    beatline = LoadModel_((directory / "Assets/highway/beatline.obj"), loadedAssets);
+    beatline = LoadModel_((highwayDir / "beatline.obj"), loadedAssets);
     beatlineTex =
-        LoadTextureFilter((directory / "Assets/highway/beatline.png"), loadedAssets);
+        LoadTextureFilter((highwayDir / "beatline.png"), loadedAssets);
     beatline.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = beatlineTex;
 
     songBackground =
@@ -345,7 +353,7 @@ void Assets::LoadAssets() {
     sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
     bgShader = LoadShader(0, (directory / "Assets/ui/wavy.fs").string().c_str());
     bgTimeLoc = GetShaderLocation(bgShader, "time");
-    // clapOD = LoadSound((directory / "Assets/highway/clap.ogg"));
+    // clapOD = LoadSound((highwayDir / "clap.ogg"));
     // SetSoundVolume(clapOD, 0.375);
 
     discord = Assets::LoadTextureFilter(
@@ -356,7 +364,7 @@ void Assets::LoadAssets() {
     );
 
     soloTexture =
-        Assets::LoadTextureFilter(directory / "Assets/highway/solo.png", loadedAssets);
+        Assets::LoadTextureFilter(highwayDir / "overdrive-old.png", loadedAssets);
     sustainTexture =
         Assets::LoadTextureFilter(directory / "Assets/notes/sustain.png", loadedAssets);
     sustainHeldTexture = Assets::LoadTextureFilter(
@@ -409,10 +417,11 @@ void Assets::LoadAssets() {
 
     MultFill.materials[0].shader = MultiplierFill;
 
-    SetTextureWrap(highwayTextureOD, TEXTURE_WRAP_CLAMP);
-    odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
+    // SetTextureWrap(highwayTextureOD, TEXTURE_WRAP_CLAMP);
+    
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
 
+odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].color = overdriveColor;
     expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =

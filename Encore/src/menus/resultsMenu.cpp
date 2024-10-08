@@ -16,22 +16,24 @@ resultsMenu::resultsMenu() {}
 void resultsMenu::Load() {
     std::filesystem::path assetsdir = GetApplicationDirectory();
     assetsdir /= "Assets";
-    RedHatDisplayItalic = GameMenu::LoadFontFilter(
+    /*
+    redHatDisplayItalic = GameMenu::LoadFontFilter(
         assetsdir / "fonts/RedHatDisplay-BlackItalic.ttf"
     ); // large song text
-    RubikItalic = GameMenu::LoadFontFilter(assetsdir / "fonts/Rubik-Italic.ttf"); // artist
+    RubikItalic = GameMenu::LoadFontFilter(assetsdir / "fonts/assets.rubik-Italic.ttf"); // artist
                                                                                   // name
                                                                                   // text
     RubikBoldItalic =
-        GameMenu::LoadFontFilter(assetsdir / "fonts/Rubik-BoldItalic.ttf"); // praise text
-    Rubik = GameMenu::LoadFontFilter(assetsdir / "fonts/Rubik-Regular.ttf"); // performance
+        GameMenu::LoadFontFilter(assetsdir / "fonts/assets.rubik-BoldItalic.ttf"); // praise text
+    assets.rubik = GameMenu::LoadFontFilter(assetsdir / "fonts/assets.rubik-Regular.ttf"); // performance
                                                                              // text
-    RubikBold = GameMenu::LoadFontFilter(assetsdir / "fonts/Rubik-Bold.ttf"); // instrument/difficulty
+    RubikBold = GameMenu::LoadFontFilter(assetsdir / "fonts/assets.rubik-Bold.ttf"); // instrument/difficulty
                                                                               // text
-    JosefinSansItalic =
+    assets.josefinSansItalic =
         GameMenu::LoadFontFilter(assetsdir / "fonts/JosefinSans-Italic.ttf"); // extra
                                                                               // information
                                                                               // text
+                                                                              */
     GoldStar = GameMenu::LoadTextureFilter(assetsdir / "ui/gold-star.png");
     Star = GameMenu::LoadTextureFilter(assetsdir / "ui/star.png");
     ;
@@ -49,22 +51,20 @@ void resultsMenu::Draw() {
     PlayerManager &player_manager = PlayerManager::getInstance();
     SongList &songList = SongList::getInstance();
     Units &u = Units::getInstance();
-
+    Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground(songList.curSong->albumArtBlur);
-
+    
     for (int i = 0; i < player_manager.PlayersActive; i++) {
         drawPlayerResults(player_manager.GetActivePlayer(i), *songList.curSong, i);
     }
-
-
-
+    
     osr.DrawTopOvershell(0.2f);
 
     GameMenu::DrawVersion();
 
     float scoreWidth =
         MeasureTextEx(
-            RedHatDisplayItalic,
+            assets.redHatDisplayItalic,
             GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str(),
             u.hinpct(0.06f),
             0
@@ -72,7 +72,7 @@ void resultsMenu::Draw() {
             .x;
 
     DrawTextEx(
-        RedHatDisplayItalic,
+        assets.redHatDisplayItalic,
         songList.curSong->title.c_str(),
         { u.LeftSide, u.hpct(0.02125f) },
         u.hinpct(0.05f),
@@ -80,7 +80,7 @@ void resultsMenu::Draw() {
         WHITE
     );
     DrawTextEx(
-        RubikItalic,
+        assets.rubikItalic,
         songList.curSong->artist.c_str(),
         { u.LeftSide, u.hpct(0.07f) },
         u.hinpct(0.035f),
@@ -92,7 +92,7 @@ void resultsMenu::Draw() {
         ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
     std::string indevWarnText = "Scoring is disabled in indev builds";
     float warningTextSize = u.hinpct(0.038f);
-    float textWidth = MeasureTextEx(JosefinSansItalic, indevWarnText.c_str(), warningTextSize, 0).x;
+    float textWidth = MeasureTextEx(assets.josefinSansItalic, indevWarnText.c_str(), warningTextSize, 0).x;
     Vector2 TopLeft = { u.LeftSide, u.hpct(0.158f) };
     DrawRectangle(0, TopLeft.y, u.LeftSide, warningTextSize, accentColor);
 
@@ -105,7 +105,7 @@ void resultsMenu::Draw() {
         Color { 0, 0, 0, 0 }
     );
     GameMenu::mhDrawText(
-        JosefinSansItalic,
+        assets.josefinSansItalic,
         indevWarnText.c_str(),
         {TopLeft.x, TopLeft.y + u.hinpct(0.008f)},
         u.hinpct(0.025f),
@@ -124,7 +124,7 @@ void resultsMenu::Draw() {
     float ScoreFontSize = u.hinpct(0.05f);
     std::string ScoreText = GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str();
     GameMenu::mhDrawText(
-        RedHatDisplayItalic,
+        assets.redHatDisplayItalic,
         GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str(),
         { u.wpct(0.5), u.hpct(0.02125f) },
         ScoreFontSize,
@@ -153,6 +153,7 @@ void resultsMenu::Draw() {
 
 void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
     Units &u = Units::getInstance();
+    Assets &assets = Assets::getInstance();
     float cardPos =
             (u.wpct(0.125) + (u.winpct(0.25) * playerslot)) - u.winpct(0.11);
     // float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
@@ -217,7 +218,7 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         floorf(((float)player->stats->NotesHit / (float)player->stats->Notes) * 100.0f);
 
     GameMenu::mhDrawText(
-        RedHatDisplayItalic,
+        assets.redHatDisplayItalic,
         scoreString,
         { scorePos, (float)GetScreenHeight() / 2 },
         u.hinpct(0.065f),
@@ -248,7 +249,7 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         ImportantInfoTextColor = SKYBLUE;
     }
     GameMenu::mhDrawText(
-        RubikBold,
+        assets.rubikBold,
         ImportantInfoText,
         {cardPos + cardHalfWidth, u.hpct(0.32f)},
         SmallHeader,
@@ -257,11 +258,11 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         CENTER
     );
     DrawTextEx(
-        RedHatDisplayItalic,
+        assets.redHatDisplayItalic,
         TextFormat("%3.0f%%", Percent),
         { (cardPos + cardHalfWidth)
               - (MeasureTextEx(
-                     RedHatDisplayItalic,
+                     assets.redHatDisplayItalic,
                      rendAsFC ? TextFormat("%3.0f", Percent)
                               : TextFormat("%3.0f%%", Percent),
                      u.hinpct(0.1f),
@@ -281,12 +282,12 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         songPartsList[player->Instrument].c_str()
     );
     float InstDiffPos =
-        MeasureTextEx(RubikBold, InstDiffName.c_str(), u.hinpct(0.03f), 0).x;
+        MeasureTextEx(assets.rubikBold, InstDiffName.c_str(), u.hinpct(0.03f), 0).x;
     float pctSize =
-        MeasureTextEx(RubikBold, TextFormat("%3.0f%%", Percent), u.hinpct(0.1f), 0).y;
+        MeasureTextEx(assets.rubikBold, TextFormat("%3.0f%%", Percent), u.hinpct(0.1f), 0).y;
 
     DrawTextEx(
-        RubikBold,
+        assets.rubikBold,
         InstDiffName.c_str(),
         { cardPos + cardHalfWidth - (InstDiffPos / 2), u.hpct(0.24f) + (pctSize / 2) },
         u.hinpct(0.03f),
@@ -298,9 +299,9 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
     float statsLeft = cardPos + u.winpct(0.01f);
     float statsRight = cardPos + u.winpct(0.21f);
 
-    DrawTextEx(Rubik, "Perfects:", { statsLeft, statsHeight }, u.hinpct(0.03f), 0, WHITE);
+    DrawTextEx(assets.rubik, "Perfects:", { statsLeft, statsHeight }, u.hinpct(0.03f), 0, WHITE);
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         "Goods:",
         { statsLeft, statsHeight + u.hinpct(0.035f) },
         u.hinpct(0.03f),
@@ -308,7 +309,7 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         "Missed:",
         { statsLeft, statsHeight + u.hinpct(0.07f) },
         u.hinpct(0.03f),
@@ -316,7 +317,7 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         "Strikes:",
         { statsLeft, statsHeight + u.hinpct(0.105f) },
         u.hinpct(0.03f),
@@ -324,7 +325,7 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         "Max Streak:",
         { statsLeft, statsHeight + u.hinpct(0.14f) },
         u.hinpct(0.03f),
@@ -332,7 +333,7 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         "Notes:",
         { statsLeft, statsHeight + u.hinpct(0.175f) },
         u.hinpct(0.03f),
@@ -364,38 +365,38 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         song.parts[player->Instrument]->charts[player->Difficulty].notes.size();
     float FontSize = u.hinpct(0.03f);
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         PerfectDisplay.c_str(),
-        { statsRight - MeasureTextEx(Rubik, PerfectDisplay.c_str(), FontSize, 0).x,
+        { statsRight - MeasureTextEx(assets.rubik, PerfectDisplay.c_str(), FontSize, 0).x,
           statsHeight },
         FontSize,
         0,
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         GoodDisplay.c_str(),
-        { statsRight - MeasureTextEx(Rubik, GoodDisplay.c_str(), FontSize, 0).x,
+        { statsRight - MeasureTextEx(assets.rubik, GoodDisplay.c_str(), FontSize, 0).x,
           statsHeight + u.hinpct(0.035f) },
         FontSize,
         0,
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         MissDisplay.c_str(),
-        { statsRight - MeasureTextEx(Rubik, MissDisplay.c_str(), FontSize, 0).x,
+        { statsRight - MeasureTextEx(assets.rubik, MissDisplay.c_str(), FontSize, 0).x,
           statsHeight + u.hinpct(0.07f) },
         FontSize,
         0,
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         TextFormat("%01i", player->stats->Overhits, player->stats->Notes),
         { statsRight
               - MeasureTextEx(
-                    Rubik, TextFormat("%01i", player->stats->Overhits), u.hinpct(0.03f), 0
+                    assets.rubik, TextFormat("%01i", player->stats->Overhits), u.hinpct(0.03f), 0
               )
                     .x,
           statsHeight + u.hinpct(0.105f) },
@@ -404,11 +405,11 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         TextFormat("%01i/%01i", player->stats->MaxCombo, player->stats->Notes),
         { statsRight
               - MeasureTextEx(
-                    Rubik,
+                    assets.rubik,
                     TextFormat("%01i/%01i", player->stats->MaxCombo, player->stats->Notes),
                     u.hinpct(0.03f),
                     0
@@ -420,9 +421,9 @@ void resultsMenu::drawPlayerResults(Player *player, Song song, int playerslot) {
         WHITE
     );
     DrawTextEx(
-        Rubik,
+        assets.rubik,
         NotesDisplay.c_str(),
-        { statsRight - MeasureTextEx(Rubik, NotesDisplay.c_str(), u.hinpct(0.03f), 0).x,
+        { statsRight - MeasureTextEx(assets.rubik, NotesDisplay.c_str(), u.hinpct(0.03f), 0).x,
           statsHeight + u.hinpct(0.17f) },
         u.hinpct(0.03f),
         0,

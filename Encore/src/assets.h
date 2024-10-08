@@ -55,6 +55,10 @@ public:
     Texture2D goldStar;
     Texture2D emptyStar;
 
+    Texture2D Scorebox;
+    Texture2D Timerbox;
+    Texture2D TimerboxOutline;
+
     Model odFrame;
     Model odBar;
     Model multFrame;
@@ -191,7 +195,8 @@ public:
     Material sustainMatHeld;
     Material sustainMatHeldOD;
     Material sustainMatMiss;
-
+    
+    Material SoloSides;
     Material CodaLane;
     Texture2D CodaLaneTex;
 

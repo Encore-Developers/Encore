@@ -8,6 +8,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
 # Dependencies
 set(RAYLIB_VERSION 5.0)
 find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
