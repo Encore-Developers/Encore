@@ -17,6 +17,12 @@ struct ListMenuEntry {
     int songListID;
     std::string headerChar;
     bool hiddenEntry;
+    ListMenuEntry(bool _isHeader, int _songListID, std::string _headerChar, bool _hiddenEntry) {
+        isHeader = _isHeader;
+        songListID = _songListID;
+        headerChar = _headerChar;
+        hiddenEntry = _hiddenEntry;
+    }
 };
 
 enum class SortType : int {
