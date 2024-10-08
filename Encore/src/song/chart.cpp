@@ -894,6 +894,9 @@ void Chart::parsePlasticDrums(
                 int tick = midiFile.getAbsoluteTickTime(time);
                 int pitch = events[i][1];
                 int lane = pitch - notePitches[0];
+                if (lane == 0 && doubleKick && findNoteIdx(time, lane) != -1) {
+                    continue;
+                }
                 Note newNote;
                 if (lane == 1)
                     newNote.pSnare = true;
@@ -919,6 +922,9 @@ void Chart::parsePlasticDrums(
                 double time = midiFile.getTimeInSeconds(trkidx, i);
                 int tick = midiFile.getAbsoluteTickTime(time);
                 int lane = 0;
+                if (findNoteIdx(time, lane)!=-1) {
+                    continue;
+                }
                 Note newNote;
                 newNote.lane = lane;
                 newNote.tick = tick;
