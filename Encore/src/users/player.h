@@ -501,6 +501,15 @@ public:
         PlayersActive -= 1;
     }
 
+    bool IsGamepadActive(int joystickID) {
+        for (int playesr = 0; playesr < PlayersActive; playesr++) {
+            if (GetActivePlayer(playesr)->joypadID == joystickID) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     Player *GetPlayerGamepad(int joystickID) {
         for (int playesr = 0; playesr < PlayersActive; playesr++) {
             if (GetActivePlayer(playesr)->joypadID == joystickID) {

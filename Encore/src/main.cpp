@@ -418,11 +418,7 @@ static void handleInputs(Player *player, int lane, int action) {
             bool IsInWindow = curNote.isGood(eventTime, player->InputCalibration)
                 && !curNote.hit && !curNote.accounted;
 
-            if (!IsInWindow && (curNote.phopo || curNote.pTap)
-                && greaterThanLastNoteMatch && lastNote.hit && frettingInput
-                && lastNote.time + 0.0375 < calibratedTime) {
-                curNote.GhostCount += 1;
-            }
+
 
             if (lane == 8008135 && action == GLFW_PRESS && !stats->FAS) {
                 stats->StrumNoFretTime = calibratedTime;
@@ -458,7 +454,17 @@ static void handleInputs(Player *player, int lane, int action) {
                     curNote.perfect, stats->noODmultiplier(), curNote.chordSize
                 );
                 stats->HitPlasticNote(curNote);
+                return;
             }
+            
+            if (!curNote.hit && frettingInput
+                /*!IsInWindow && (curNote.phopo || curNote.pTap)
+                && greaterThanLastNoteMatch && lastNote.hit && frettingInput
+                && lastNote.time + 0.0375 < calibratedTime
+                */
+                ) {
+                curNote.GhostCount += 1;
+                }
         }
     }
 }
@@ -564,9 +570,12 @@ static void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int
 }
 
 static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
-    Player *player = playerManager.GetPlayerGamepad(joypadID);
-    // Encore::EncoreLog(LOG_DEBUG, TextFormat("Attempted input on joystick %01i",
-    // joypadID));
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("Attempted input on joystick %01i", joypadID));
+    Player *player;
+    if (playerManager.IsGamepadActive(joypadID))
+        player = playerManager.GetPlayerGamepad(joypadID);
+    else return;
+
     if (!IsGamepadAvailable(player->joypadID))
         return;
     PlayerGameplayStats *stats = player->stats;
