@@ -53,6 +53,9 @@ void SongTime::Stop() {
     running = false;
     paused = false;
 }
+bool SongTime::Running() {
+    return running;
+}
 
 double SongTime::GetSongTime() {
     if (!paused && running) {

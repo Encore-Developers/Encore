@@ -32,6 +32,7 @@ public:
     double GetStartTime();
     double GetEndTime();
     double GetSongLength();
+    bool Running();
     bool SongComplete();
 };
 
