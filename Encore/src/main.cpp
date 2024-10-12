@@ -42,7 +42,7 @@
 #include "users/player.h"
 #include "settings-old.h"
 #include "timingvalues.h"
-#include "gameplay/inputHandler.h"
+#include "gameplay/InputHandler.h"
 #include "inih/INIReader.h"
 #include "menus/styles.h"
 
