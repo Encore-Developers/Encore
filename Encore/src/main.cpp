@@ -69,7 +69,6 @@ vector<std::string> ArgumentList::arguments;
 #define SOL_USE_LUA_HPP 1
 
 bool midiLoaded = false;
-bool isPlaying = false;
 bool streamsLoaded = false;
 bool albumArtSelectedAndLoaded = false;
 
@@ -77,8 +76,6 @@ bool ShowHighwaySettings = true;
 bool ShowCalibrationSettings = true;
 bool ShowGeneralSettings = true;
 
-int curNoteIndex = 0;
-int selLane = 0;
 bool selSong = false;
 int songSelectOffset = 0;
 bool changingKey = false;
@@ -86,11 +83,8 @@ bool changing4k = false;
 bool changingOverdrive = false;
 bool changingAlt = false;
 bool changingPause = false;
-Vector2 viewScroll = { 0, 0 };
-Rectangle view = { 0, 0, 0, 0 };
 
-int HeldMaskShow;
-
+// calibration
 bool isCalibrating = false;
 double calibrationStartTime = 0.0;
 double lastClickTime = 0.0;
@@ -101,6 +95,8 @@ bool showInputFeedback = false;
 double inputFeedbackStartTime = 0.0;
 const double inputFeedbackDuration = 0.6;
 float inputFeedbackAlpha = 1.0f;
+// end calibration
+
 Color AccentColor = { 255, 0, 255, 255 };
 std::string trackSpeedButton;
 
@@ -115,9 +111,6 @@ Assets &assets = Assets::getInstance();
 
 SortType currentSortValue = SortType::Title;
 std::vector<std::string> sortTypes { "Title", "Artist", "Length" };
-
-
-
 
 void Windowed() {
     ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -139,24 +132,6 @@ void FullscreenBorderless() {
     );
     SetWindowState(FLAG_WINDOW_UNDECORATED);
     SetWindowPosition(0, 0);
-}
-
-static void
-DrawTextRubik(const char *text, float posX, float posY, float fontSize, Color color) {
-    DrawTextEx(assets.rubik, text, { posX, posY }, fontSize, 0, color);
-}
-
-static void
-DrawTextRHDI(const char *text, float posX, float posY, float fontSize, Color color) {
-    DrawTextEx(assets.redHatDisplayItalic, text, { posX, posY }, fontSize, 0, color);
-}
-
-static float MeasureTextRubik(const char *text, float fontSize) {
-    return MeasureTextEx(assets.rubik, text, fontSize, 0).x;
-}
-
-static float MeasureTextRHDI(const char *text, float fontSize) {
-    return MeasureTextEx(assets.redHatDisplayItalic, text, fontSize, 0).x;
 }
 
 template <typename CharT>
@@ -1762,14 +1737,17 @@ int main(int argc, char *argv[]) {
                     std::string altString = (sor.changingAlt ? " alt" : "");
                     std::string changeString =
                         "Press a key for " + keyString + altString + " lane ";
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         changeString.c_str(),
-                        ((float)GetScreenWidth()
-                         - MeasureTextRubik(changeString.c_str(), 20))
+                        { ((float)GetScreenWidth())
                             / 2,
-                        (float)GetScreenHeight() / 2 - 30,
+                        (float)GetScreenHeight() / 2 - 30
+                        },
                         20,
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        CENTER
                     );
                     int pressedKey = GetKeyPressed();
                     if (GuiButton(
@@ -1804,14 +1782,18 @@ int main(int argc, char *argv[]) {
                     std::string altString = (sor.changingAlt ? " alt" : "");
                     std::string changeString =
                         "Press a key for " + altString + " overdrive";
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         changeString.c_str(),
-                        ((float)GetScreenWidth()
-                         - MeasureTextRubik(changeString.c_str(), 20))
+                        {
+                        ((float)GetScreenWidth())
                             / 2,
-                        (float)GetScreenHeight() / 2 - 30,
+                        (float)GetScreenHeight() / 2 - 30
+                        },
                         20,
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        CENTER
                     );
                     int pressedKey = GetKeyPressed();
                     if (GuiButton(
@@ -1845,14 +1827,18 @@ int main(int argc, char *argv[]) {
                     DrawRectangle(
                         0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 200 }
                     );
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         "Press a key for Pause",
-                        ((float)GetScreenWidth()
-                         - MeasureTextRubik("Press a key for Pause", 20))
+                        {
+                        ((float)GetScreenWidth())
                             / 2,
-                        (float)GetScreenHeight() / 2 - 30,
+                        (float)GetScreenHeight() / 2 - 30
+                        },
                         20,
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        CENTER
                     );
                     int pressedKey = GetKeyPressed();
                     if (GuiButton(
@@ -1883,14 +1869,18 @@ int main(int argc, char *argv[]) {
                     DrawRectangle(
                         0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 200 }
                     );
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         "Press a key for Strum Up",
-                        ((float)GetScreenWidth()
-                         - MeasureTextRubik("Press a key for Strum Up", 20))
+                        {
+                        ((float)GetScreenWidth())
                             / 2,
-                        (float)GetScreenHeight() / 2 - 30,
+                        (float)GetScreenHeight() / 2 - 30
+                        },
                         20,
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        CENTER
                     );
                     int pressedKey = GetKeyPressed();
                     if (GuiButton(
@@ -1921,14 +1911,17 @@ int main(int argc, char *argv[]) {
                     DrawRectangle(
                         0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 200 }
                     );
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         "Press a key for Strum Down",
-                        ((float)GetScreenWidth()
-                         - MeasureTextRubik("Press a key for Strum Down", 20))
-                            / 2,
-                        (float)GetScreenHeight() / 2 - 30,
+                        {
+                        ((float)GetScreenWidth()) / 2,
+                        (float)GetScreenHeight() / 2 - 30
+                        },
                         20,
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        CENTER
                     );
                     int pressedKey = GetKeyPressed();
                     if (GuiButton(
@@ -2118,7 +2111,6 @@ int main(int argc, char *argv[]) {
             }
             streamsLoaded = false;
             midiLoaded = false;
-            isPlaying = false;
             // gpr.songEnded = false;
             //  player.overdrive = false;
             // gpr.curNoteIdx = {0, 0, 0, 0, 0};
@@ -2869,16 +2861,21 @@ int main(int argc, char *argv[]) {
                             }
                             GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
                             GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-                            DrawTextRubik(
+                            GameMenu::mhDrawText(
+                                assets.rubik,
                                 (std::to_string(songList.curSong->parts[i]->diff + 1)
                                  + "/7")
                                     .c_str(),
+                                    {
                                 (u.LeftSide + ((playerInt)*u.winpct(0.25f)))
                                     + u.winpct(0.165f),
                                 BottomOvershell - u.hinpct(0.04f)
-                                    - (u.hinpct(0.05f) * (float)i),
+                                    - (u.hinpct(0.05f) * (float)i)
+                                    },
                                 u.hinpct(0.03f),
-                                WHITE
+                                WHITE,
+                                assets.sdfShader,
+                                LEFT
                             );
                         } else {
                             GuiButton(
@@ -3033,12 +3030,16 @@ int main(int argc, char *argv[]) {
                         player->ReadyUpMenu = false;
                         player->diffSelection = true;
                     }
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         "  Difficulty",
+                        {
                         (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                        BottomOvershell - u.hinpct(0.04f),
+                        BottomOvershell - u.hinpct(0.04f)},
                         u.hinpct(0.03f),
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        LEFT
                     );
                     DrawTextEx(
                         assets.rubikBold,
@@ -3066,12 +3067,17 @@ int main(int argc, char *argv[]) {
                         player->ReadyUpMenu = false;
                         player->instSelection = true;
                     }
-                    DrawTextRubik(
+                    GameMenu::mhDrawText(
+                        assets.rubik,
                         "  Instrument",
-                        (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                        BottomOvershell - u.hinpct(0.09f),
+                        {
+                            (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                            BottomOvershell - u.hinpct(0.09f)
+                        },
                         u.hinpct(0.03f),
-                        WHITE
+                        WHITE,
+                        assets.sdfShader,
+                        LEFT
                     );
                     DrawTextEx(
                         assets.rubikBold,
@@ -3306,7 +3312,7 @@ int main(int argc, char *argv[]) {
             int played = enctime.GetSongTime();
             int length = enctime.GetSongLength();
             float Width = Remap(played, 0, length, 0, WidthOfTimerbox);
-            BeginScissorMode(TimerboxX-WidthOfTimerbox, TimerboxY-HeightOfTimerbox, Width, HeightOfTimerbox+1);
+            BeginScissorMode(TimerboxX-WidthOfTimerbox, TimerboxY-HeightOfTimerbox, Width+1, HeightOfTimerbox+1);
             DrawTexturePro(assets.TimerboxOutline, TimerboxSrc, TimerboxDraw, {WidthOfTimerbox,HeightOfTimerbox}, 0, WHITE);
             EndScissorMode();
             GameMenu::mhDrawText(
@@ -3405,7 +3411,6 @@ int main(int argc, char *argv[]) {
                     glfwSetGamepadStateCallback(origGamepadCallback);
                     songList.curSong->LoadAlbumArt();
                     midiLoaded = false;
-                    isPlaying = false;
                     gpr.highwayInAnimation = false;
                     gpr.songPlaying = false;
                     gpr.highwayLevel = 0;
@@ -3805,7 +3810,6 @@ int main(int argc, char *argv[]) {
                         stats->curSolo = 0;
                         stats->Paused = false;
                         midiLoaded = false;
-                        isPlaying = false;
                         enctime.Reset();
                         songList.curSong->parts[player->Instrument]
                             ->charts[player->Difficulty]
