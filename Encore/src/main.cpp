@@ -673,8 +673,9 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart) {
 
                 }
             }
-            if (songPart < PitchedVocals)
-            songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
+            if (songPart > songList.curSong->parts[(int)songPart]->charts.size())
+                if (songPart < PitchedVocals)
+                    songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
         }
     }
 }
@@ -3123,6 +3124,7 @@ int main(int argc, char *argv[]) {
 
                 if (GuiButton({ 0, 0, 60, 60 }, "<")) {
                     midiLoaded = false;
+                    songList.curSong->midiParsed = false;
                     menu.SwitchScreen(SONG_SELECT);
                 }
             }

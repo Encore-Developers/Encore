@@ -143,6 +143,7 @@ void resultsMenu::Draw() {
                 ->charts[player->Difficulty]
                 .resetNotes();
         }
+        songList.curSong->midiParsed = false;
         player_manager.BandStats.ResetBandGameplayStats();
         TheGameMenu.SwitchScreen(SONG_SELECT);
     }
