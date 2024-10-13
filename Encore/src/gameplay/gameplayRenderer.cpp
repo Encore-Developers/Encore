@@ -706,15 +706,8 @@ void gameplayRenderer::RenderClassicNotes(
             int noteLane = gprSettings.mirrorMode ? 4 - lane : lane;
 
             Color NoteColor = gprMenu.hehe ? TRANS[lane] : GRYBO[lane];
-
-            gprAssets.noteTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-                NoteColor;
-            gprAssets.noteTopModelHP.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-                NoteColor;
-            gprAssets.noteTopModel.meshes->colors =
-                (unsigned char *)ColorToInt(NoteColor);
-            gprAssets.noteTopModelHP.meshes->colors =
-                (unsigned char *)ColorToInt(NoteColor);
+            if (curNote.pOpen)
+                NoteColor = PURPLE;
 
             float notePosX = diffDistance - (1.0f * noteLane);
             if (relTime > 1.5) {
@@ -2519,7 +2512,7 @@ void gameplayRenderer::nDrawPlasticNote(
         SideColor = RED;
     }
     if (!note.hit) {
-        if (note.phopo) {
+        if (note.phopo && !note.pOpen) {
             HopoParts[mBASE].materials[0].shader = gprAssets.HighwayFade;
             HopoParts[mCOLOR].materials[0].shader = gprAssets.HighwayFade;
             HopoParts[mSIDES].materials[0].shader = gprAssets.HighwayFade;
@@ -2540,6 +2533,21 @@ void gameplayRenderer::nDrawPlasticNote(
             DrawModelEx(TapParts[mCOLOR], NotePos, {0}, 0, scale, InnerColor);
             DrawModelEx(TapParts[mSIDES], NotePos, {0}, 0, scale, SideColor);
             DrawModelEx(TapParts[mINSIDE], NotePos, {0}, 0, scale, BLACK);
+        }
+        else if (note.pOpen) {
+            OpenParts[mBASE].materials[0].shader = gprAssets.HighwayFade;
+            OpenParts[mCOLOR].materials[0].shader = gprAssets.HighwayFade;
+            OpenParts[mSIDES].materials[0].shader = gprAssets.HighwayFade;
+            if (note.phopo) {
+                InnerColor = WHITE;
+                SideColor = PURPLE;
+                BaseColor = PURPLE;
+            }
+            Vector3 scale = {1.0f,1.0f,0.5f};
+            NotePos.x = 0;
+            DrawModelEx(OpenParts[mBASE], NotePos, {0}, 0, scale, BaseColor);
+            DrawModelEx(OpenParts[mCOLOR], NotePos, {0}, 0, scale, InnerColor);
+            DrawModelEx(OpenParts[mSIDES], NotePos, {0}, 0, scale, SideColor);
         }
         else {
 

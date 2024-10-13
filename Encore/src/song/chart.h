@@ -116,6 +116,7 @@ public:
     std::vector<forceOnPhrase> forcedOnPhrases;
     std::vector<tapPhrase> tapPhrases;
     std::vector<forceOffPhrase> forcedOffPhrases;
+    std::vector<openMarker> openMarkers;
 
     // std::vector<section> Sections {};
     // std::vector<odPhrase> odPhrases;

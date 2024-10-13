@@ -22,14 +22,21 @@ bool InputHandler::isNoteMatch(const Note &curNote, int pressedMask, PlayerGamep
     bool maskGreater = pressedMask >= curNote.mask;
     bool maskEqual = pressedMask == curNote.mask;
     bool maskLess = pressedMask < (curNote.mask * 2);
-
-    bool chordMatch = stats->extendedSustainActive ? maskGreater : maskEqual;
-    bool singleMatch =
-        stats->extendedSustainActive ? maskGreater : maskGreater && maskLess;
-    if (curNote.chord) {
-        return chordMatch;
+    if (!curNote.pOpen) {
+        bool chordMatch = stats->extendedSustainActive ? maskGreater : maskEqual;
+        bool singleMatch =
+            stats->extendedSustainActive ? maskGreater : maskGreater && maskLess;
+        if (curNote.chord) {
+            return chordMatch;
+        }
+        return singleMatch;
+    } else {
+        if (pressedMask > 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
-    return singleMatch;
 }
 
 void InputHandler::CheckPlasticInputs(

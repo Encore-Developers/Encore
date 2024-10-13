@@ -55,5 +55,7 @@ struct tapPhrase : EncNoteEvent {};
 
 struct forceOnPhrase : EncNoteEvent {};
 
+struct openMarker : EncNoteEvent {};
+
 struct forceOffPhrase : EncNoteEvent {};
 #endif //ENCCHARTEVENT_H

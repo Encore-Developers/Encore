@@ -211,7 +211,7 @@ void Chart::parsePlasticNotes(
                 if (events[i][1] == 'P' && events[i][2] == 'S' && events[i][3] == '\0') {
                     double time = midiFile.getTimeInSeconds(trkidx, i);
                     int tick = midiFile.getAbsoluteTickTime(time);
-                    if (events[i][5] == psDiff[diff] || events[i][5] == 0xFF) {
+                    if ((events[i][5] == psDiff[diff] || events[i][5] == 0xFF)) {
                         if (events[i][6] == psTap) {
                             if (events[i][7] == psStart && !tapOn) {
                                 tapPhrase newPhrase;
@@ -227,7 +227,12 @@ void Chart::parsePlasticNotes(
                                 tapOn = false;
                             }
                         }
-
+                        if (events[i][6] == psOpen && events[i][7] == psStart) {
+                            openMarker newMarker;
+                            newMarker.StartSec = time;
+                            newMarker.StartTick = tick;
+                            openMarkers.push_back(newMarker);
+                        }
                     }
                 }
             }
@@ -437,6 +442,17 @@ void Chart::parsePlasticNotes(
                 && note.time < forcedOnPhrases[curFOn].EndSec) {
                 if (!note.pTap)
                     note.phopo = true;
+            }
+        }
+    }
+    int curOpen = 0;
+    if (!openMarkers.empty()) {
+        for (Note &note : notes) {
+            if (note.tick == openMarkers[curOpen].StartTick
+                && curOpen < openMarkers.size() - 1) {
+                note.pOpen = true;
+                note.mask = 0;
+                curOpen++;
             }
         }
     }

@@ -258,7 +258,8 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
     Player *player;
     if (playerManager.IsGamepadActive(joypadID))
         player = playerManager.GetPlayerGamepad(joypadID);
-    else return;
+    else
+        return;
 
     if (!IsGamepadAvailable(player->joypadID))
         return;
@@ -302,7 +303,9 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
             != stats->buttonValues[settingsMain.controllerOverdrive]) {
             stats->buttonValues[settingsMain.controllerOverdrive] =
                 state.buttons[settingsMain.controllerOverdrive];
-            inputHandler.handleInputs(player, -1, state.buttons[settingsMain.controllerOverdrive]);
+            inputHandler.handleInputs(
+                player, -1, state.buttons[settingsMain.controllerOverdrive]
+            );
         } // // if (!player->Bot)
     } else {
         if (state.axes[-(settingsMain.controllerOverdrive + 1)]
@@ -331,7 +334,9 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
                         stats->HeldFrets[i] = false;
                         stats->OverhitFrets[i] = false;
                     }
-                    inputHandler.handleInputs(player, i, state.buttons[settingsMain.controller5K[i]]);
+                    inputHandler.handleInputs(
+                        player, i, state.buttons[settingsMain.controller5K[i]]
+                    );
                     stats->buttonValues[settingsMain.controller5K[i]] =
                         state.buttons[settingsMain.controller5K[i]];
                     lane = i;
@@ -389,7 +394,9 @@ static void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
                         stats->HeldFrets[i] = false;
                         stats->OverhitFrets[i] = false;
                     }
-                    inputHandler.handleInputs(player, i, state.buttons[settingsMain.controller4K[i]]);
+                    inputHandler.handleInputs(
+                        player, i, state.buttons[settingsMain.controller4K[i]]
+                    );
                     stats->buttonValues[settingsMain.controller4K[i]] =
                         state.buttons[settingsMain.controller4K[i]];
                 }
@@ -637,7 +644,6 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart) {
             bool StopSearching = false;
             Chart newChart;
             for (int i = 0; i < track.getSize(); i++) {
-
                 if (track[i].isNoteOn() && !track[i].isMeta()
                     && (int)track[i][1] >= pDiffNotes[diff][0]
                     && (int)track[i][1] <= pDiffNotes[diff][1] && !StopSearching) {
@@ -645,11 +651,11 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart) {
                     newChart.diff = diff;
                     songList.curSong->parts[(int)songPart]->hasPart = true;
                     StopSearching = true;
-
                 }
             }
-            if (songPart > songList.curSong->parts[(int)songPart]->charts.size())
-                if (songPart < PitchedVocals)
+
+            if (songPart < PitchedVocals)
+                if (songPart > songList.curSong->parts[(int)songPart]->charts.size())
                     songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
         }
     }
@@ -911,9 +917,7 @@ int main(int argc, char *argv[]) {
     GuiSetStyle(
         SLIDER, BORDER_COLOR_NORMAL, ColorToInt(ColorBrightness(AccentColor, -0.5))
     );
-    GuiSetStyle(
-        SLIDER, BORDER_COLOR_PRESSED, ColorToInt(AccentColor)
-    );
+    GuiSetStyle(SLIDER, BORDER_COLOR_PRESSED, ColorToInt(AccentColor));
     GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
     GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
@@ -1740,10 +1744,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         changeString.c_str(),
-                        { ((float)GetScreenWidth())
-                            / 2,
-                        (float)GetScreenHeight() / 2 - 30
-                        },
+                        { ((float)GetScreenWidth()) / 2,
+                          (float)GetScreenHeight() / 2 - 30 },
                         20,
                         WHITE,
                         assets.sdfShader,
@@ -1785,11 +1787,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         changeString.c_str(),
-                        {
-                        ((float)GetScreenWidth())
-                            / 2,
-                        (float)GetScreenHeight() / 2 - 30
-                        },
+                        { ((float)GetScreenWidth()) / 2,
+                          (float)GetScreenHeight() / 2 - 30 },
                         20,
                         WHITE,
                         assets.sdfShader,
@@ -1830,11 +1829,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         "Press a key for Pause",
-                        {
-                        ((float)GetScreenWidth())
-                            / 2,
-                        (float)GetScreenHeight() / 2 - 30
-                        },
+                        { ((float)GetScreenWidth()) / 2,
+                          (float)GetScreenHeight() / 2 - 30 },
                         20,
                         WHITE,
                         assets.sdfShader,
@@ -1872,11 +1868,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         "Press a key for Strum Up",
-                        {
-                        ((float)GetScreenWidth())
-                            / 2,
-                        (float)GetScreenHeight() / 2 - 30
-                        },
+                        { ((float)GetScreenWidth()) / 2,
+                          (float)GetScreenHeight() / 2 - 30 },
                         20,
                         WHITE,
                         assets.sdfShader,
@@ -1914,10 +1907,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         "Press a key for Strum Down",
-                        {
-                        ((float)GetScreenWidth()) / 2,
-                        (float)GetScreenHeight() / 2 - 30
-                        },
+                        { ((float)GetScreenWidth()) / 2,
+                          (float)GetScreenHeight() / 2 - 30 },
                         20,
                         WHITE,
                         assets.sdfShader,
@@ -2866,12 +2857,10 @@ int main(int argc, char *argv[]) {
                                 (std::to_string(songList.curSong->parts[i]->diff + 1)
                                  + "/7")
                                     .c_str(),
-                                    {
-                                (u.LeftSide + ((playerInt)*u.winpct(0.25f)))
-                                    + u.winpct(0.165f),
-                                BottomOvershell - u.hinpct(0.04f)
-                                    - (u.hinpct(0.05f) * (float)i)
-                                    },
+                                { (u.LeftSide + ((playerInt)*u.winpct(0.25f)))
+                                      + u.winpct(0.165f),
+                                  BottomOvershell - u.hinpct(0.04f)
+                                      - (u.hinpct(0.05f) * (float)i) },
                                 u.hinpct(0.03f),
                                 WHITE,
                                 assets.sdfShader,
@@ -2951,9 +2940,15 @@ int main(int argc, char *argv[]) {
                                           - (u.hinpct(0.05f) * (float)a),
                                       u.winpct(0.2f),
                                       u.hinpct(0.05f) },
-                                    diffList[songList.curSong->parts[player->Instrument]->charts[a].diff].c_str()
+                                    diffList[songList.curSong->parts[player->Instrument]
+                                                 ->charts[a]
+                                                 .diff]
+                                        .c_str()
                                 )) {
-                                player->Difficulty = songList.curSong->parts[player->Instrument]->charts[a].diff;
+                                player->Difficulty =
+                                    songList.curSong->parts[player->Instrument]
+                                        ->charts[a]
+                                        .diff;
                                 player->diffSelected = true;
                             }
                         } else {
@@ -3033,9 +3028,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         "  Difficulty",
-                        {
-                        (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                        BottomOvershell - u.hinpct(0.04f)},
+                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                          BottomOvershell - u.hinpct(0.04f) },
                         u.hinpct(0.03f),
                         WHITE,
                         assets.sdfShader,
@@ -3070,10 +3064,8 @@ int main(int argc, char *argv[]) {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         "  Instrument",
-                        {
-                            (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                            BottomOvershell - u.hinpct(0.09f)
-                        },
+                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                          BottomOvershell - u.hinpct(0.09f) },
                         u.hinpct(0.03f),
                         WHITE,
                         assets.sdfShader,
@@ -3293,35 +3285,61 @@ int main(int argc, char *argv[]) {
                     playerManager.GetActivePlayer(player)->stats->Multiplayer = false;
                 }
             }
-            Rectangle scoreboxSrc {0,0, float(assets.Scorebox.width), float(assets.Scorebox.height)};
+            Rectangle scoreboxSrc {
+                0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
+            };
             float WidthOfScorebox = u.hinpct(0.28);
             // float scoreY = u.hpct(0.15f);
             float ScoreboxX = u.RightSide;
-            float ScoreboxY =  u.hpct(0.1425f);
+            float ScoreboxY = u.hpct(0.1425f);
             float HeightOfScorebox = WidthOfScorebox / 4;
-            Rectangle scoreboxDraw {ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox};
-            DrawTexturePro(assets.Scorebox, scoreboxSrc, scoreboxDraw, {WidthOfScorebox,0}, 0, WHITE);
-            Rectangle TimerboxSrc {0,0, float(assets.Timerbox.width), float(assets.Timerbox.height)};
+            Rectangle scoreboxDraw {
+                ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox
+            };
+            DrawTexturePro(
+                assets.Scorebox, scoreboxSrc, scoreboxDraw, { WidthOfScorebox, 0 }, 0, WHITE
+            );
+            Rectangle TimerboxSrc {
+                0, 0, float(assets.Timerbox.width), float(assets.Timerbox.height)
+            };
             float WidthOfTimerbox = u.hinpct(0.14);
             // float scoreY = u.hpct(0.15f);
             float TimerboxX = u.RightSide;
-            float TimerboxY =  u.hpct(0.1425f);
+            float TimerboxY = u.hpct(0.1425f);
             float HeightOfTimerbox = WidthOfTimerbox / 4;
-            Rectangle TimerboxDraw {TimerboxX, TimerboxY, WidthOfTimerbox, HeightOfTimerbox};
-            DrawTexturePro(assets.Timerbox, TimerboxSrc, TimerboxDraw, {WidthOfTimerbox,HeightOfTimerbox}, 0, WHITE);
+            Rectangle TimerboxDraw {
+                TimerboxX, TimerboxY, WidthOfTimerbox, HeightOfTimerbox
+            };
+            DrawTexturePro(
+                assets.Timerbox,
+                TimerboxSrc,
+                TimerboxDraw,
+                { WidthOfTimerbox, HeightOfTimerbox },
+                0,
+                WHITE
+            );
             int played = enctime.GetSongTime();
             int length = enctime.GetSongLength();
             float Width = Remap(played, 0, length, 0, WidthOfTimerbox);
-            BeginScissorMode(TimerboxX-WidthOfTimerbox, TimerboxY-HeightOfTimerbox, Width+1, HeightOfTimerbox+1);
-            DrawTexturePro(assets.TimerboxOutline, TimerboxSrc, TimerboxDraw, {WidthOfTimerbox,HeightOfTimerbox}, 0, WHITE);
+            BeginScissorMode(
+                TimerboxX - WidthOfTimerbox,
+                TimerboxY - HeightOfTimerbox,
+                Width + 1,
+                HeightOfTimerbox + 1
+            );
+            DrawTexturePro(
+                assets.TimerboxOutline,
+                TimerboxSrc,
+                TimerboxDraw,
+                { WidthOfTimerbox, HeightOfTimerbox },
+                0,
+                WHITE
+            );
             EndScissorMode();
             GameMenu::mhDrawText(
                 assets.redHatDisplayItalicLarge,
                 scoreCommaFormatter(playerManager.BandStats.Score),
-                {
-                    u.RightSide - u.winpct(0.015f),
-                    scoreY
-                },
+                { u.RightSide - u.winpct(0.015f), scoreY },
                 u.hinpct(0.053),
                 Color { 107, 161, 222, 255 },
                 assets.sdfShader,
@@ -3347,22 +3365,17 @@ int main(int argc, char *argv[]) {
             int songMinutes = length / 60;
             int songSeconds = length % 60;
             const char *textTime = TextFormat(
-                "%i:%02i / %i:%02i",
-                playedMinutes,
-                playedSeconds,
-                songMinutes,
-                songSeconds
+                "%i:%02i / %i:%02i", playedMinutes, playedSeconds, songMinutes, songSeconds
             );
             GameMenu::mhDrawText(
-                            assets.rubik,
-                            textTime,
-                            { u.RightSide - u.winpct(0.013f),
-                              scoreY - u.hinpct(SmallHeader) },
-                            u.hinpct(SmallHeader*0.66),
-                            WHITE,
-                            assets.sdfShader,
-                            RIGHT
-                        );
+                assets.rubik,
+                textTime,
+                { u.RightSide - u.winpct(0.013f), scoreY - u.hinpct(SmallHeader) },
+                u.hinpct(SmallHeader * 0.66),
+                WHITE,
+                assets.sdfShader,
+                RIGHT
+            );
             if (!streamsLoaded) {
                 audioManager.loadStreams(songList.curSong->stemsPath);
 
@@ -3691,7 +3704,6 @@ int main(int argc, char *argv[]) {
             else
                 songLength = static_cast<int>(songList.curSong->end);
 
-
             GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
             // GuiSetStyle(PROGRESSBAR, BASE_COLOR_NORMAL,
             //			ColorToInt(player.FC ? GOLD : AccentColor));
@@ -3937,7 +3949,6 @@ int main(int argc, char *argv[]) {
 
             menu.DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
             menu.DrawVersion();
-
 
             // if (!gpr.bot)
             //	DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
