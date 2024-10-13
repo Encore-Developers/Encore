@@ -9,6 +9,7 @@ class SongTime {
 private:
     double aCalib = 0.0;
     double startTime = 0.0;
+    double fakeStartTime = 0.0;
     double endTime = 0.0;
     double pauseTime = 0.0;
     bool running = false;
@@ -32,6 +33,7 @@ public:
     double GetStartTime();
     double GetEndTime();
     double GetSongLength();
+    double GetFakeStartTime();
     bool Running();
     bool SongComplete();
 };

@@ -32,7 +32,7 @@ public:
     void pauseStreams();
     void playStreams();
     void restartStreams();
-
+    void seekStreams(double time);
     // Audio stream information
     double GetMusicTimePlayed();
     double GetMusicTimeLength();

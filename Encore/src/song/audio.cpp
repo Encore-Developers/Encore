@@ -120,6 +120,17 @@ void AudioManager::restartStreams() {
         BASS_ChannelPlay(loadedStreams[0].handle, true);
     }
 }
+void AudioManager::seekStreams(double time) {
+    if (!loadedStreams.empty()) {
+        BASS_ChannelPause(loadedStreams[0].handle);
+        for (auto &stream : loadedStreams) {
+
+            int rewindTimeBytes = BASS_ChannelSeconds2Bytes(stream.handle, time);
+            BASS_ChannelSetPosition(stream.handle, rewindTimeBytes, BASS_POS_BYTE);
+        }
+        BASS_ChannelPlay(loadedStreams[0].handle, false);
+    }
+}
 
 void AudioManager::unpauseStreams() {
     if (!loadedStreams.empty()) {

@@ -14,6 +14,7 @@ void SongTime::Reset() {
     running = false;
     paused = false;
 }
+// start at audio beginning
 void SongTime::Start(double end) {
     if (!running) {
         startTime = GetTime() + aCalib;
@@ -23,9 +24,15 @@ void SongTime::Start(double end) {
         std::cout << "Started gameplay";
     }
 };
+double SongTime::GetFakeStartTime() {
+    return fakeStartTime;
+}
+
+// start at a specific time
 void SongTime::Start(double start, double end) {
     if (!running) {
         startTime = GetTime() - start + aCalib;
+        fakeStartTime = GetTime() + aCalib;
         endTime = end + aCalib;
         running = true;
         paused = false;
@@ -69,9 +76,13 @@ double SongTime::GetSongTime() {
 double SongTime::GetStartTime() {
     return startTime;
 }
+
+// this is actually a lie. it returns "the system time when it ends" i think i forgort
+// use GetSongLength if you need song duration
 double SongTime::GetEndTime() {
     return endTime + startTime;
 }
+
 double SongTime::GetSongLength() {
     return endTime;
 }

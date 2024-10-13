@@ -644,6 +644,12 @@ void gameplayRenderer::RenderClassicNotes(
 
     for (auto &curNote : curChart.notes) {
 
+        //if (curNote.time < gprTime.GetFakeStartTime()) {
+        //    player->stats->curNoteInt++;
+        //    continue;
+        //}
+        if (curNote.time > gprTime.GetSongLength())
+            continue;
 
         if (songList.curSong->BRE.IsNoteInCoda(curNote) && songList.curSong->BRE.IsCodaActive(time)) {
             player->stats->curNoteInt++;
