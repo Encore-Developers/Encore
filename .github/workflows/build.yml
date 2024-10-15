@@ -71,6 +71,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Update repos
+      run: sudo apt-get update
+      
     - name: Install Dependencies
       run: sudo apt-get install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
       
