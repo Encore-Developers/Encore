@@ -10,7 +10,7 @@
 
 std::map<std::string, int> IniStems = {
     { "song", 4 },    { "guitar", 2 },  { "bass", 1 },     { "rhythm", 1 },
-    { "keys", 2 },    { "vocals", 3 },  { "vocals_1", 3 }, { "vocals_2", 3 },
+    { "keys", 8 },    { "vocals", 3 },  { "vocals_1", 3 }, { "vocals_2", 3 },
     { "drums", 0 },   { "drums_1", 0 }, { "drums_2", 0 },  { "drums_3", 0 },
     { "drums_4", 0 }, { "crowd", 4 }
 };

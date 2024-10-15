@@ -506,104 +506,47 @@ void LoadCharts() {
         Player *player = playerManager.GetActivePlayer(playerNum);
         int diff = player->Difficulty;
         int inst = player->Instrument;
-        for (int track = 0; track < midiFile.getTrackCount(); track++) {
-            std::string trackName;
-            for (int events = 0; events < midiFile[track].getSize(); events++) {
-                if (midiFile[track][events].isMeta()) {
-                    if ((int)midiFile[track][events][1] == 3) {
-                        for (int k = 3; k < midiFile[track][events].getSize(); k++) {
-                            trackName += midiFile[track][events][k];
-                        }
-                        SongParts songPart;
-                        if (songList.curSong->ini) {
-                            songPart = songList.curSong->partFromStringINI(trackName);
-                            INIReader ini(songList.curSong->songInfoPath);
-                            songList.curSong->hopoThreshold =
-                                ini.GetInteger("song", "hopo_frequency", 170);
-                        } else
-                            songPart = songList.curSong->partFromString(trackName);
-                        if (trackName == "BEAT") {
-                            LoadingState = BEATLINES;
-                            songList.curSong->parseBeatLines(
-                                midiFile, track, midiFile[track]
-                            );
-                        } else if (trackName == "EVENTS") {
-                            for (int forDiff = 0;
-                                 forDiff < songList.curSong->parts[inst]->charts.size();
-                                 forDiff++) {
-                                songList.curSong->parts[inst]->charts[forDiff].getSections(
-                                    midiFile, track
-                                );
-                            }
-                        } else {
-                            if (songPart != SongParts::Invalid && songPart == inst) {
-                                for (int forDiff = 0; forDiff
-                                     < songList.curSong->parts[inst]->charts.size();
-                                     forDiff++) {
-                                    Chart &chart =
-                                        songList.curSong->parts[inst]->charts[forDiff];
-                                    if (chart.valid) {
-                                        Encore::EncoreLog(
-                                            LOG_DEBUG,
-                                            TextFormat(
-                                                "Loading part %s, diff %01i",
-                                                trackName.c_str(),
-                                                forDiff
-                                            )
-                                        );
-                                        LoadingState = NOTE_PARSING;
-                                        if (songPart == SongParts::PlasticBass
-                                            || songPart == SongParts::PlasticGuitar
-                                            || songPart == SongParts::PlasticKeys) {
-                                            chart.plastic = true;
-                                            chart.parsePlasticNotes(
-                                                midiFile,
-                                                track,
-                                                forDiff,
-                                                (int)songPart,
-                                                songList.curSong->hopoThreshold
-                                            );
-                                        } else if (songPart == PlasticDrums) {
-                                            chart.plastic = true;
-                                            chart.parsePlasticDrums(
-                                                midiFile,
-                                                track,
-                                                midiFile[track],
-                                                forDiff,
-                                                (int)songPart,
-                                                player->ProDrums,
-                                                true
-                                            );
-                                        } else {
-                                            chart.plastic = false;
-                                            chart.parseNotes(
-                                                midiFile,
-                                                track,
-                                                midiFile[track],
-                                                forDiff,
-                                                (int)songPart
-                                            );
-                                        }
+        int track =
+            songList.curSong->parts[inst]->charts[diff].track;
+        std::string trackName;
 
-                                        if (!chart.plastic) {
-                                            LoadingState = EXTRA_PROCESSING;
-                                            int noteIdx = 0;
-                                            for (Note &note : chart.notes) {
-                                                chart.notes_perlane[note.lane].push_back(
-                                                    noteIdx
-                                                );
-                                                noteIdx++;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+        Chart &chart = songList.curSong->parts[inst]->charts[diff];
+        if (chart.valid) {
+            Encore::EncoreLog(
+                LOG_DEBUG,
+                TextFormat("Loading part %s, diff %01i", trackName.c_str(), diff)
+            );
+            LoadingState = NOTE_PARSING;
+            if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
+                chart.plastic = true;
+                chart.parsePlasticNotes(
+                    midiFile, track, diff, inst, songList.curSong->hopoThreshold
+                );
+            } else if (inst == PlasticDrums) {
+                chart.plastic = true;
+                chart.parsePlasticDrums(
+                    midiFile, track, midiFile[track], diff, inst, player->ProDrums, true
+                );
+            } else {
+                chart.plastic = false;
+                chart.parseNotes(midiFile, track, midiFile[track], diff, inst);
+            }
+
+            if (!chart.plastic) {
+                LoadingState = EXTRA_PROCESSING;
+                int noteIdx = 0;
+                for (Note &note : chart.notes) {
+                    chart.notes_perlane[note.lane].push_back(noteIdx);
+                    noteIdx++;
                 }
             }
         }
+
+        //}
+        //}
+        //}
     }
+
     songList.curSong->getCodas(midiFile);
     LoadingState = READY;
     this_thread::sleep_for(chrono::seconds(1));
@@ -634,29 +577,29 @@ SongParts GetSongPart(smf::MidiEventList track) {
     }
 }
 
-std::vector<std::vector<int> > pDiffNotes = {
+std::vector<std::vector<int> > pDiffRangeNotes = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
 };
 
-void IsPartValid(smf::MidiEventList track, SongParts songPart) {
+void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) {
     if (songPart != SongParts::Invalid && songPart != PitchedVocals) {
         for (int diff = 0; diff < 4; diff++) {
             bool StopSearching = false;
             Chart newChart;
             for (int i = 0; i < track.getSize(); i++) {
                 if (track[i].isNoteOn() && !track[i].isMeta()
-                    && (int)track[i][1] >= pDiffNotes[diff][0]
-                    && (int)track[i][1] <= pDiffNotes[diff][1] && !StopSearching) {
+                    && (int)track[i][1] >= pDiffRangeNotes[diff][0]
+                    && (int)track[i][1] <= pDiffRangeNotes[diff][1] && !StopSearching) {
                     newChart.valid = true;
                     newChart.diff = diff;
+                    newChart.track = trackNumber;
                     songList.curSong->parts[(int)songPart]->hasPart = true;
                     StopSearching = true;
                 }
             }
 
             if (songPart < PitchedVocals)
-                if (songPart > songList.curSong->parts[(int)songPart]->charts.size())
-                    songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
+                songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
         }
     }
 }
@@ -2765,7 +2708,7 @@ int main(int argc, char *argv[]) {
                     midiFile.read(songList.curSong->midiPath.string());
                     for (int track = 0; track < midiFile.getTrackCount(); track++) {
                         SongParts songPart = GetSongPart(midiFile[track]);
-                        IsPartValid(midiFile[track], songPart);
+                        IsPartValid(midiFile[track], songPart, track);
                     }
 
                     songList.curSong->midiParsed = true;
@@ -2923,12 +2866,12 @@ int main(int argc, char *argv[]) {
                 }
                 // load difficulty select
                 if (midiLoaded && player->diffSelection) {
-                    for (int a = 0; a < 4; a++) {
-                        if (songList.curSong->parts[player->Instrument]->charts[a].valid) {
+                    for (auto &chartDiff :songList.curSong->parts[player->Instrument]->charts) {
+                        if (chartDiff.valid) {
                             GuiSetStyle(
                                 BUTTON,
                                 BASE_COLOR_NORMAL,
-                                a == player->Difficulty && player->diffSelected
+                                chartDiff.diff == player->Difficulty && player->diffSelected
                                     ? ColorToInt(
                                           ColorBrightness(player->AccentColor, -0.25)
                                       )
@@ -2937,25 +2880,20 @@ int main(int argc, char *argv[]) {
                             if (GuiButton(
                                     { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
                                       BottomOvershell - u.hinpct(0.05f)
-                                          - (u.hinpct(0.05f) * (float)a),
+                                          - (u.hinpct(0.05f) * chartDiff.diff),
                                       u.winpct(0.2f),
                                       u.hinpct(0.05f) },
-                                    diffList[songList.curSong->parts[player->Instrument]
-                                                 ->charts[a]
-                                                 .diff]
+                                    diffList[chartDiff.diff]
                                         .c_str()
                                 )) {
-                                player->Difficulty =
-                                    songList.curSong->parts[player->Instrument]
-                                        ->charts[a]
-                                        .diff;
+                                player->Difficulty = chartDiff.diff;
                                 player->diffSelected = true;
                             }
                         } else {
                             GuiButton(
                                 { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
                                   BottomOvershell - u.hinpct(0.05f)
-                                      - (u.hinpct(0.05f) * (float)a),
+                                      - (u.hinpct(0.05f) * chartDiff.diff),
                                   u.winpct(0.2f),
                                   u.hinpct(0.05f) },
                                 ""
@@ -2963,7 +2901,7 @@ int main(int argc, char *argv[]) {
                             DrawRectangle(
                                 (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + 2,
                                 BottomOvershell + 2 - u.hinpct(0.05f)
-                                    - (u.hinpct(0.05f) * (float)a),
+                                    - (u.hinpct(0.05f) * chartDiff.diff),
                                 u.winpct(0.2f) - 4,
                                 u.hinpct(0.05f) - 4,
                                 Color { 0, 0, 0, 128 }
@@ -3378,39 +3316,49 @@ int main(int argc, char *argv[]) {
             );
             if (!streamsLoaded) {
                 audioManager.loadStreams(songList.curSong->stemsPath);
-
-                for (auto &stream : audioManager.loadedStreams) {
-                    // if ((player.plastic ? player.Instrument - 4 : player.Instrument) ==
-                    //	stream.Instrument)
-                    //	audioManager.SetAudioStreamVolume(
-                    //		stream.handle,
-                    //		player.mute
-                    //			? player.missVolume
-                    //			: settingsMain.MainVolume * settingsMain.
-                    //			PlayerVolume);
-                    // else
-                    audioManager.SetAudioStreamVolume(
-                        stream.handle, settingsMain.MainVolume * settingsMain.BandVolume
-                    );
+                for (int i = 0; i < playerManager.PlayersActive; i++) {
+                    for (auto &stream : audioManager.loadedStreams) {
+                        Player *player = playerManager.GetActivePlayer(i);
+                        if ((player->ClassicMode ? player->Instrument - 5 : player->Instrument) ==
+                        stream.instrument) {
+                            audioManager.SetAudioStreamVolume(
+                                stream.handle,
+                                player->stats->Mute
+                                ? settingsMain.MainVolume * settingsMain.MissVolume
+                                : settingsMain.MainVolume * settingsMain.PlayerVolume);
+                        }
+                        else {
+                            audioManager.SetAudioStreamVolume(
+                                stream.handle, settingsMain.MainVolume * settingsMain.BandVolume
+                            );
+                        }
+                    }
                 }
                 streamsLoaded = true;
 
                 // player.resetPlayerStats();
             } else {
-                for (auto &stream : audioManager.loadedStreams) {
-                    // if ((player.plastic ? player.Instrument - 4 : player.Instrument) ==
-                    //	stream.Instrument)
-                    //	audioManager.SetAudioStreamVolume(
-                    //		stream.handle,
-                    //		player.mute
-                    //			? player.missVolume
-                    //			: settingsMain.MainVolume * settingsMain.
-                    //			PlayerVolume);
-                    // else
-                    audioManager.SetAudioStreamVolume(
-                        stream.handle, settingsMain.MainVolume * settingsMain.BandVolume
-                    );
-                }
+
+
+                    for (int i = 0; i < playerManager.PlayersActive; i++) {
+                        for (auto &stream : audioManager.loadedStreams) {
+                            Player *player = playerManager.GetActivePlayer(i);
+                            if ((player->ClassicMode ? player->Instrument - 5 : player->Instrument) ==
+                            stream.instrument) {
+                                audioManager.SetAudioStreamVolume(
+                                    stream.handle,
+                                    player->stats->Mute
+                                    ? settingsMain.MainVolume * settingsMain.MissVolume
+                                    : settingsMain.MainVolume * settingsMain.PlayerVolume);
+                            }
+                            else {
+                                audioManager.SetAudioStreamVolume(
+                                    stream.handle, settingsMain.MainVolume * settingsMain.BandVolume
+                                );
+                            }
+                        }
+                    }
+
                 float songPlayed = audioManager.GetMusicTimePlayed();
                 double songEnd = floor(audioManager.GetMusicTimeLength())
                         <= (songList.curSong->end <= 0 ? 0 : songList.curSong->end)

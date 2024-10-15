@@ -52,7 +52,7 @@ void Player::ResetGameplayStats() {
     stats->curODPhrase = 0;
     stats->curNoteIdx = { 0, 0, 0, 0, 0 };
     stats->curBPM = 0;
-
+    stats->Mute = false;
     stats->StartTime = 0.0;
     stats->SongStartTime = 0.0;
 
@@ -185,6 +185,7 @@ PlayerGameplayStats::PlayerGameplayStats() {
     Paused = false;
     GoldStars = false;
     Overdrive = false;
+    Mute = false;
 
     Score = 0;
     Combo = 0;

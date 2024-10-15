@@ -5,7 +5,7 @@
 #include "chart.h"
 #include "util/enclog.h"
 #include "raylib.h"
-
+#include "song.h"
 
 void Chart::parseNotes(
     smf::MidiFile &midiFile,
@@ -204,7 +204,7 @@ void Chart::parsePlasticNotes(
     smf::uchar psEnd = 0x00;
     std::vector<smf::uchar> psDiff{0x00, 0x01, 0x02, 0x03};
     resolution = midiFile.getTicksPerQuarterNote();
-    if (instrument == 5 || instrument == 6 || instrument == 9) {
+    if (instrument == PlasticGuitar || instrument == PlasticBass || instrument == PlasticKeys) {
         for (int i = 0; i < events.getSize(); i++) {
             if (events[i][0] == 0xF0) {
                 // 'P' 'S' '\0' -- phase shift event
@@ -349,9 +349,9 @@ void Chart::parsePlasticNotes(
         }
     };
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i", instrument)); 
-
+    LoadingState = PLASTIC_CALC;
     for (int i = 0; i < notesPre.size(); i++) {
-        LoadingState = PLASTIC_CALC;
+
         Note note = notesPre[i];
         Note newNote;
         newNote.chordSize = 1;
@@ -500,10 +500,10 @@ void Chart::parsePlasticNotes(
     int noteIdx = 0;
     bool isBassOrVocal = (instrument == 5);
     LoadingState = BASE_SCORE;
-    for (auto it = notes.begin(); it != notes.end();) {
-        Note &note = *it;
+    for (auto noteIt = notes.begin(); noteIt != notes.end();) {
+        Note &note = *noteIt;
         if (!note.valid) {
-            it = notes.erase(it);
+            noteIt = notes.erase(noteIt);
         } else {
             baseScore += ((36 * note.chordSize) * mult);
             // baseScore += (note.beatsLen * 12) * mult;
@@ -518,7 +518,7 @@ void Chart::parsePlasticNotes(
             else if (noteIdx == 49 && isBassOrVocal)
                 mult = 6;
             noteIdx++;
-            ++it;
+            ++noteIt;
         }
     }
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument));

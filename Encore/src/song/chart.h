@@ -112,12 +112,14 @@ public:
 
     std::vector<Note> notes;
 
+    // this is plastic shit that should probably be put deeper as its really only used
+    // for chart
     std::vector<Note> notesPre;
     std::vector<forceOnPhrase> forcedOnPhrases;
     std::vector<tapPhrase> tapPhrases;
     std::vector<forceOffPhrase> forcedOffPhrases;
     std::vector<openMarker> openMarkers;
-
+    int track = 0;
     // std::vector<section> Sections {};
     // std::vector<odPhrase> odPhrases;
     // std::vector<solo> Solos;

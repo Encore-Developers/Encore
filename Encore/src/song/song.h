@@ -116,9 +116,24 @@ public:
         { "PART DRUMS", SongParts::PlasticDrums },
         { "PART BASS", SongParts::PlasticBass },
         { "PART GUITAR", SongParts::PlasticGuitar },
-        { "PART KEYS", SongParts::PlasticKeys },
         { "PART VOCALS", SongParts::Invalid },
+        { "PART KEYS", SongParts::PlasticKeys },
         { "PLASTIC VOCALS", SongParts::Invalid }
+    };
+
+    std::vector<int> PlasticToPadEnumConverter = {
+        PartDrums,
+        PartBass,
+        PartGuitar,
+        PartVocals,
+        PartDrums,
+        PartBass,
+        PartGuitar,
+        PartVocals,
+        PartKeys,
+        PartKeys,
+        PartVocals,
+        Invalid
     };
 
     SongParts partFromString(const std::string &str) {
@@ -220,25 +235,25 @@ public:
                                     stemsPath.push_back({ (jsonPath.parent_path()
                                                            / path.value.GetString())
                                                               .string(),
-                                                          0 });
+                                                          PartDrums });
 
                                 else if (stem == "bass")
                                     stemsPath.push_back({ (jsonPath.parent_path()
                                                            / path.value.GetString())
                                                               .string(),
-                                                          1 });
+                                                          PartBass });
 
                                 else if (stem == "lead")
                                     stemsPath.push_back({ (jsonPath.parent_path()
                                                            / path.value.GetString())
                                                               .string(),
-                                                          2 });
+                                                          PartGuitar });
 
                                 else if (stem == "vocals")
                                     stemsPath.push_back({ (jsonPath.parent_path()
                                                            / path.value.GetString())
                                                               .string(),
-                                                          3 });
+                                                          PartVocals });
 
                                 else if (stem == "backing")
                                     stemsPath.push_back({ (jsonPath.parent_path()
@@ -255,25 +270,25 @@ public:
                                         stemsPath.push_back({ (jsonPath.parent_path()
                                                                / path2.GetString())
                                                                   .string(),
-                                                              0 });
+                                                              PartDrums });
 
                                     else if (stem == "bass")
                                         stemsPath.push_back({ (jsonPath.parent_path()
                                                                / path2.GetString())
                                                                   .string(),
-                                                              1 });
+                                                              PartBass });
 
                                     else if (stem == "lead")
                                         stemsPath.push_back({ (jsonPath.parent_path()
                                                                / path2.GetString())
                                                                   .string(),
-                                                              2 });
+                                                              PartGuitar });
 
                                     else if (stem == "vocals")
                                         stemsPath.push_back({ (jsonPath.parent_path()
                                                                / path2.GetString())
                                                                   .string(),
-                                                              3 });
+                                                              PartVocals });
 
                                     else if (stem == "backing")
                                         stemsPath.push_back({ (jsonPath.parent_path()
@@ -442,19 +457,19 @@ public:
                         std::string part = std::string(diff.name.GetString());
                         if (diff.value.IsInt()) {
                             if (part == "ds" || part == "drums") {
-                                parts[0]->diff = diff.value.GetInt();
+                                parts[PartDrums]->diff = diff.value.GetInt();
                             } else if (part == "ba" || part == "bass") {
-                                parts[1]->diff = diff.value.GetInt();
+                                parts[PartBass]->diff = diff.value.GetInt();
                             } else if (part == "gr" || part == "guitar") {
-                                parts[2]->diff = diff.value.GetInt();
+                                parts[PartGuitar]->diff = diff.value.GetInt();
                             } else if (part == "vl" || part == "vocals") {
-                                parts[3]->diff = diff.value.GetInt();
+                                parts[PartVocals]->diff = diff.value.GetInt();
                             } else if (part == "pd" || part == "plastic_drums") {
-                                parts[4]->diff = diff.value.GetInt();
+                                parts[PlasticDrums]->diff = diff.value.GetInt();
                             } else if (part == "pb" || part == "plastic_bass") {
-                                parts[5]->diff = diff.value.GetInt();
+                                parts[PlasticBass]->diff = diff.value.GetInt();
                             } else if (part == "pg" || part == "plastic_guitar") {
-                                parts[6]->diff = diff.value.GetInt();
+                                parts[PlasticGuitar]->diff = diff.value.GetInt();
                             }
                         }
                     }

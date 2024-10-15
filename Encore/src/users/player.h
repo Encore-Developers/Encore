@@ -69,6 +69,7 @@ public:
     bool Paused;
     bool GoldStars;
     bool Overdrive;
+    bool Mute;
 
     int Score;
     int Combo;
@@ -143,7 +144,7 @@ public:
         Score += (int)((30.0f * (multiplier()) * perfectMult));
         PerfectHit += perfect ? 1 : 0;
         GoodHit += perfect ? 0 : 1;
-        // mute = false;
+        Mute = false;
     }
     void HitDrumsNote(bool perfect, bool cymbal) {
         NotesHit += 1;
@@ -156,7 +157,7 @@ public:
         Score += (int)((30.0f * (multiplier()) * perfectMult) * cymbMult);
         PerfectHit += perfect ? 1 : 0;
         GoodHit += perfect ? 0 : 1;
-        // mute = false;
+        Mute = false;
     }
     void HitPlasticNote(Note note) {
         FAS = false;
@@ -170,7 +171,7 @@ public:
         PerfectHit += note.perfect ? 1 : 0;
         GoodHit += note.perfect ? 0 : 1;
         curNoteInt++;
-        // mute = false;
+        Mute = false;
     }
     void MissNote() {
         NotesMissed += 1;
@@ -183,7 +184,7 @@ public:
         FAS = false;
         FC = false;
         curNoteInt++;
-        // mute = true;
+        Mute = true;
     }
     void OverHit() {
         // if (combo != 0)
@@ -195,7 +196,7 @@ public:
         Combo = 0;
         Overhits += 1;
         FC = false;
-        // mute = true;
+        Mute = true;
     }
 
     int maxMultForMeter() {
