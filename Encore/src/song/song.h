@@ -51,6 +51,7 @@ enum Difficulty {
 struct SongPart {
     int diff = -1;
     bool hasPart = false;
+    bool plastic = false;
     std::vector<Chart> charts;
 };
 

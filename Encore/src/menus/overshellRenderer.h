@@ -11,6 +11,7 @@ public:
     int AvailableControllers = 0; // keyb is always available
     void DrawTopOvershell(double height);
     void DrawBottomOvershell();
+    bool CanMouseClick = true;
 };
 
 #endif // OVERSHELLRENDERER_H

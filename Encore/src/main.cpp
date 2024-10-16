@@ -597,7 +597,8 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) 
                     StopSearching = true;
                 }
             }
-
+            if ((songPart > PartVocals && songPart < PartKeys) || songPart == PlasticKeys)
+                songList.curSong->parts[songPart]->plastic = true;
             if (songPart < PitchedVocals)
                 songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
         }
@@ -2230,7 +2231,7 @@ int main(int argc, char *argv[]) {
                                         (u.RightSide - u.winpct(0.25f)),
                                         songEntryHeight },
                             ""
-                        )) {
+                        ) && overshellRenderer.CanMouseClick) {
                         // curPlayingSong = songID;
                         selSong = true;
                         albumArtSelectedAndLoaded = false;
@@ -2584,7 +2585,7 @@ int main(int argc, char *argv[]) {
                                 u.winpct(0.2f),
                                 u.hinpct(0.05f) },
                     "Play Song"
-                )) {
+                ) && overshellRenderer.CanMouseClick) {
                 // curPlayingSong = menu.ChosenSongInt;
                 if (!songList.curSong->ini) {
                     songList.curSong->LoadSong(songList.curSong->songInfoPath);
@@ -2602,7 +2603,7 @@ int main(int argc, char *argv[]) {
                                 u.winpct(0.2f),
                                 u.hinpct(0.05f) },
                     "Sort"
-                )) {
+                ) && overshellRenderer.CanMouseClick) {
                 currentSortValue = NextSortType(currentSortValue);
                 songList.sortList(currentSortValue, songList.curSong->songListPos);
             }
@@ -2612,7 +2613,7 @@ int main(int argc, char *argv[]) {
                                 u.winpct(0.2f),
                                 u.hinpct(0.05f) },
                     "Back"
-                )) {
+                ) && overshellRenderer.CanMouseClick) {
                 for (Song &songi : songList.songs) {
                     songi.titleXOffset = 0;
                     songi.artistXOffset = 0;
@@ -2750,7 +2751,8 @@ int main(int argc, char *argv[]) {
                     // songList.curSong->artist.c_str()), 70,7, WHITE);
 
                     for (int i = 0; i < songList.curSong->parts.size(); i++) {
-                        if (songList.curSong->parts[i]->hasPart) {
+                        bool CanClassic = playerManager.GetActivePlayer(playerInt)->ClassicMode == songList.curSong->parts[i]->plastic;
+                        if (songList.curSong->parts[i]->hasPart && CanClassic) {
                             GuiSetStyle(
                                 BUTTON,
                                 BASE_COLOR_NORMAL,

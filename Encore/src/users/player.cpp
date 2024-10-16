@@ -239,10 +239,7 @@ void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
                                             255 };
         } else
             newPlayer.AccentColor = { 255, 0, 255, 255 };
-        if (newPlayer.Name == "3drosalia")
-            newPlayer.joypadID = 0;
-        if (newPlayer.Name == "cameron44252")
-            newPlayer.joypadID = 1;
+
         TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
         PlayerList.push_back(std::move(newPlayer));
     };
@@ -250,7 +247,9 @@ void PlayerManager::LoadPlayerList(std::filesystem::path PlayerListSaveFile) {
 
 void PlayerManager::SavePlayerList(std::filesystem::path PlayerListSaveFile) {
     json PlayerListJson;
-
+    for (auto &player : PlayerList) {
+        PlayerListJson;
+    }
 }; // ough this is gonna be complicated
 
 void PlayerManager::CreatePlayer(Player player) {

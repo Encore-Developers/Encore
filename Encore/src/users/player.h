@@ -394,6 +394,17 @@ public:
     }
 };
 
+#define PLAYER_CONFIG_LIST                     \
+    SETTING_ACTION(int,     Difficulty)         \
+    SETTING_ACTION(int,     Instrument)         \
+    SETTING_ACTION(float,   InputCalibration)   \
+    SETTING_ACTION(float,   NoteSpeed)          \
+    SETTING_ACTION(bool,    ProDrums)           \
+    SETTING_ACTION(bool,    Bot)                \
+    SETTING_ACTION(float,   HighwayLength)      \
+    SETTING_ACTION(bool,    ClassicMode)        \
+    SETTING_ACTION(bool,    LeftyFlip)
+
 class Player {
 public:
     Player();
@@ -402,20 +413,16 @@ public:
     std::string PlayerID; // UUID
     // std::filesystem::path SettingsFile;
     PlayerGameplayStats *stats;
-    int Difficulty;
-    int Instrument;
-    float InputCalibration = 0.0f;
-    float NoteSpeed = 1.0f;
-    bool ClassicMode;
-    bool ProDrums;
-    bool ReadiedUpBefore;
-    bool Bot;
+
+#define SETTING_ACTION(type, name) type name;
+    PLAYER_CONFIG_LIST;
+#undef SETTING_ACTION
+
     int SongsPlayed;
     int joypadID;
-    bool LeftyFlip;
+    bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot;
-    float HighwayLength;
 
     void ResetGameplayStats();
 
@@ -428,6 +435,7 @@ public:
     // NOTE! this is only for like. local information and
     // not actually shared information. i was thinking of a UUID system for online
 };
+
 
 class BandGameplayStats : public PlayerGameplayStats {
 public:
