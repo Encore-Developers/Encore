@@ -1,0 +1,10 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "index.json"
+            ],
+            "url": ".vscode/opensource.schema.json"
+        }
+    ]
+}

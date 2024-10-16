@@ -1,0 +1,421 @@
+{
+	"type": "base",
+	"sources": [
+		{
+			"ids": [ "$DEFAULT$" ],
+			"names": {
+				"en-US": "Custom/Unknown"
+			},
+			"icon": "custom",
+			"type": "custom"
+		},
+		{
+			"ids": [ "yarg" ],
+			"names": {
+				"en-US": "YARG"
+			},
+			"icon": "yarg",
+			"type": "game"
+		},
+		{
+			"ids": [ "gh", "gh1" ],
+			"names": {
+				"en-US": "Guitar Hero"
+			},
+			"icon": "gh",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghdx", "gh1dx" ],
+			"names": {
+				"en-US": "Guitar Hero Deluxe"
+			},
+			"icon": "ghdx",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh2" ],
+			"names": {
+				"en-US": "Guitar Hero II"
+			},
+			"icon": "gh2",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh2dlc" ],
+			"names": {
+				"en-US": "Guitar Hero II DLC"
+			},
+			"icon": "gh2dlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh2dx" ],
+			"names": {
+				"en-US": "Guitar Hero II Deluxe"
+			},
+			"icon": "gh2dx",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh2dxdlc" ],
+			"names": {
+				"en-US": "Guitar Hero II Deluxe DLC"
+			},
+			"icon": "gh2dxdlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh2dxcustoms" ],
+			"names": {
+				"en-US": "Guitar Hero II Deluxe Customs"
+			},
+			"icon": "gh2dxcustoms",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh80s" ],
+			"names": {
+				"en-US": "Guitar Hero Encore: Rocks the 80s"
+			},
+			"icon": "gh80s",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh80sdx" ],
+			"names": {
+				"en-US": "Guitar Hero Encore Deluxe"
+			},
+			"icon": "gh80sdx",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh3" ],
+			"names": {
+				"en-US": "Guitar Hero III: Legends of Rock"
+			},
+			"icon": "gh3",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh3dlc" ],
+			"names": {
+				"en-US": "Guitar Hero III DLC"
+			},
+			"icon": "gh3dlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghot" ],
+			"names": {
+				"en-US": "Guitar Hero: On Tour"
+			},
+			"icon": "ghot",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gha" ],
+			"names": {
+				"en-US": "Guitar Hero: Aerosmith"
+			},
+			"icon": "gha",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghwt" ],
+			"names": {
+				"en-US": "Guitar Hero: World Tour"
+			},
+			"icon": "ghwt",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghwtdlc" ],
+			"names": {
+				"en-US": "Guitar Hero: World Tour DLC"
+			},
+			"icon": "ghwtdlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghm" ],
+			"names": {
+				"en-US": "Guitar Hero: Metallica"
+			},
+			"icon": "ghm",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghmdlc" ],
+			"names": {
+				"en-US": "Death Magnetic DLC"
+			},
+			"icon": "ghmdlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghwor" ],
+			"names": {
+				"en-US": "Guitar Hero: Warriors of Rock"
+			},
+			"icon": "ghwor",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghwordlc" ],
+			"names": {
+				"en-US": "Guitar Hero: Warriors of Rock DLC"
+			},
+			"icon": "ghwordlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghvh" ],
+			"names": {
+				"en-US": "Guitar Hero: Van Halen"
+			},
+			"icon": "ghvh",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghsh" ],
+			"names": {
+				"en-US": "Guitar Hero: Smash Hits"
+			},
+			"icon": "ghsh",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh5" ],
+			"names": {
+				"en-US": "Guitar Hero 5"
+			},
+			"icon": "gh5",
+			"type": "gh"
+		},
+		{
+			"ids": [ "gh5dlc" ],
+			"names": {
+				"en-US": "Guitar Hero 5 DLC"
+			},
+			"icon": "gh5dlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghotd" ],
+			"names": {
+				"en-US": "Guitar Hero On Tour: Decades"
+			},
+			"icon": "ghotd",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghotmh" ],
+			"names": {
+				"en-US": "Guitar Hero On Tour: Modern Hits"
+			},
+			"icon": "ghotmh",
+			"type": "gh"
+		},
+		{
+			"ids": [ "bandhero", "bh" ],
+			"names": {
+				"en-US": "Band Hero"
+			},
+			"icon": "bh",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghl" ],
+			"names": {
+				"en-US": "Guitar Hero Live"
+			},
+			"icon": "ghl",
+			"type": "gh"
+		},
+		{
+			"ids": [ "ghtv" ],
+			"names": {
+				"en-US": "Guitar Hero TV"
+			},
+			"icon": "ghtv",
+			"type": "gh"
+		},
+		{
+			"ids": [ "rb1" ], 
+			"names": {
+				"en-US": "Rock Band 1"
+			},
+			"icon": "rb1",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb1dlc", "rb1_dlc" ], 
+			"names": {
+				"en-US": "Rock Band 1 DLC"
+			},
+			"icon": "rb1dlc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb2" ], 
+			"names": {
+				"en-US": "Rock Band 2"
+			},
+			"icon": "rb2",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb2dlc", "rb2_dlc" ], 
+			"names": {
+				"en-US": "Rock Band 2 DLC"
+			},
+			"icon": "rb2dlc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb3" ], 
+			"names": {
+				"en-US": "Rock Band 3"
+			},
+			"icon": "rb3",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb3dlc", "rb3_dlc" ], 
+			"names": {
+				"en-US": "Rock Band 3 DLC"
+			},
+			"icon": "rb3dlc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb4" ], 
+			"names": {
+				"en-US": "Rock Band 4"
+			},
+			"icon": "rb4",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb4dlc", "rb4_dlc" ], 
+			"names": {
+				"en-US": "Rock Band 4 DLC"
+			},
+			"icon": "rb4dlc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbr", "rb4_rivals" ], 
+			"names": {
+				"en-US": "Rock Band Rivals"
+			},
+			"icon": "rb4rivals",
+			"type": "rb"
+		},
+		{
+			"ids": [ "tbrb", "beatles" ], 
+			"names": {
+				"en-US": "The Beatles Rock Band"
+			},
+			"icon": "tbrb",
+			"type": "rb"
+		},
+		{
+			"ids": [ "tbrbdlc" ], 
+			"names": {
+				"en-US": "The Beatles: Rock Band DLC"
+			},
+			"icon": "tbrbdlc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbacdc", "rbtp_acdc" ], 
+			"names": {
+				"en-US": "AC/DC Live: Rock Band Track Pack"
+			},
+			"icon": "rbacdc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "lrb", "lego" ], 
+			"names": {
+				"en-US": "Lego Rock Band"
+			},
+			"icon": "lrb",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbn" ], 
+			"names": {
+				"en-US": "Rock Band Network"
+			},
+			"icon": "rbn1",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbn1", "ugc", "ugc1" ], 
+			"names": {
+				"en-US": "Rock Band Network 1.0"
+			},
+			"icon": "rbn1",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbn2", "ugc_plus", "ugc2" ], 
+			"names": {
+				"en-US": "Rock Band Network 2.0"
+			},
+			"icon": "rbn2",
+			"type": "rb"
+		},
+		{
+			"ids": [ "ugc_lost", "rbn_lost" ], 
+			"names": {
+				"en-US": "Lost Rock Band Network"
+			},
+			"icon": "rbn1lost",
+			"type": "rb"
+		},
+		{
+			"ids": [ "ugc1_lost", "rbn1_lost" ], 
+			"names": {
+				"en-US": "Lost Rock Band Network 1.0"
+			},
+			"icon": "rbn1lost",
+			"type": "rb"
+		},
+		{
+			"ids": [ "ugc2_lost", "rbn2_lost" ], 
+			"names": {
+				"en-US": "Lost Rock Band Network 2.0"
+			},
+			"icon": "rbn2lost",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rb_blitz", "rbb" ], 
+			"names": {
+				"en-US": "Rock Band Blitz"
+			},
+			"icon": "rb_blitz",
+			"type": "rb"
+		},
+		{
+			"ids": [ "gdrb", "greenday" ], 
+			"names": {
+				"en-US": "Green Day: Rock Band"
+			},
+			"icon": "gdrb",
+			"type": "rb"
+		},
+		{
+			"ids": [ "gdrbdlc", "gdrbp", "gdrb_plus" ],
+			"names": {
+				"en-US": "Green Day: Rock Band DLC"
+			},
+			"icon": "gdrbdlc",
+			"type": "rb"
+		}
+	]
+}
