@@ -30,14 +30,14 @@ enum SongParts {
     PartDrums,
     PartBass,
     PartGuitar,
+    PartKeys,
     PartVocals,
     PlasticDrums,
     PlasticBass,
     PlasticGuitar,
-    PlasticVocals,
-    PartKeys,
     PlasticKeys,
     PitchedVocals,
+    PlasticVocals,
     Invalid
 };
 
@@ -70,7 +70,10 @@ struct Beat {
     bool Major = false;
     bool Clapped = false;
 };
-
+inline std::vector<std::string> songPartsList {
+    "Drums",         "Bass",         "Lead",       "Keys",         "Vocals",
+    "Classic Drums", "Classic Bass", "Classic Lead", "Classic Keys", "Classic Vocals", "Classic Vocals",
+};
 class Song {
 public:
     std::unordered_map<std::string, PartIcon> stringToEnum = {
@@ -127,11 +130,11 @@ public:
         PartBass,
         PartGuitar,
         PartVocals,
+        PartKeys,
         PartDrums,
         PartBass,
         PartGuitar,
         PartVocals,
-        PartKeys,
         PartKeys,
         PartVocals,
         Invalid
@@ -166,6 +169,7 @@ public:
     double artistScrollTime = 0.0;
     Texture albumArtBlur;
     Texture albumArt;
+    std::string source = "custom";
     std::string album = "";
     int length = 0;
     int songListPos = 0;
@@ -260,7 +264,7 @@ public:
                                     stemsPath.push_back({ (jsonPath.parent_path()
                                                            / path.value.GetString())
                                                               .string(),
-                                                          4 });
+                                                          5 });
                             }
                         } else if (path.value.IsArray()) {
                             for (auto &path2 : path.value.GetArray()) {
@@ -295,7 +299,7 @@ public:
                                         stemsPath.push_back({ (jsonPath.parent_path()
                                                                / path2.GetString())
                                                                   .string(),
-                                                              4 });
+                                                              5 });
                                 }
                             }
                         }
@@ -334,6 +338,8 @@ public:
                 artist = item.value.GetString();
             if (item.name == "album" && item.value.IsString())
                 album = item.value.GetString();
+            if (item.name == "source" && item.value.IsString())
+                source = item.value.GetString();
             if (item.name == "length" && item.value.IsInt())
                 length = item.value.GetInt();
             if (item.name == "release_year" && item.value.IsInt())
@@ -429,6 +435,8 @@ public:
                     artist = item.value.GetString();
                 if (item.name == "album" && item.value.IsString())
                     album = item.value.GetString();
+                if (item.name == "source" && item.value.IsString())
+                    source = item.value.GetString();
                 if (item.name == "length" && item.value.IsInt())
                     length = item.value.GetInt();
                 if (item.name == "release_year" && item.value.IsInt())

@@ -47,6 +47,20 @@ bool SongList::sortTitle(const Song &a, const Song &b) {
     return aaa < bbb;
 }
 
+bool SongList::sortSource(const Song &a, const Song &b) {
+    std::string aLower = TextToLower(a.source.c_str());
+    std::string bLower = TextToLower(b.source.c_str());
+    return aLower < bLower;
+}
+
+bool SongList::sortAlbum(const Song &a, const Song &b) {
+    std::string aLower = TextToLower(a.album.c_str());
+    std::string bLower = TextToLower(b.album.c_str());
+    std::string aaa = removeArticle(aLower);
+    std::string bbb = removeArticle(bLower);
+    return aaa < bbb;
+}
+
 bool SongList::sortLen(const Song &a, const Song &b) {
     return a.length < b.length;
 }
@@ -57,9 +71,15 @@ void SongList::sortList(SortType sortType) {
         std::sort(songs.begin(), songs.end(), sortTitle);
         break;
     case SortType::Artist:
+        std::sort(songs.begin(), songs.end(), sortAlbum);
         std::sort(songs.begin(), songs.end(), sortArtist);
         break;
+    case SortType::Source:
+        std::sort(songs.begin(), songs.end(), sortTitle);
+        std::sort(songs.begin(), songs.end(), sortSource);
+        break;
     case SortType::Length:
+        std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortLen);
         break;
     }
@@ -74,9 +94,15 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
         std::sort(songs.begin(), songs.end(), sortTitle);
         break;
     case SortType::Artist:
+        std::sort(songs.begin(), songs.end(), sortAlbum);
         std::sort(songs.begin(), songs.end(), sortArtist);
         break;
+    case SortType::Source:
+        std::sort(songs.begin(), songs.end(), sortTitle);
+        std::sort(songs.begin(), songs.end(), sortSource);
+        break;
     case SortType::Length:
+        std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortLen);
         break;
     }
@@ -180,6 +206,15 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
             std::string artist = removeArticle(song.artist);
             if (artist != currentHeader) {
                 currentHeader = song.artist;
+                songEntries.emplace_back(true, 0, currentHeader, false);
+                pos++;
+            }
+            break;
+        }
+        case SortType::Source: {
+            std::string source = removeArticle(song.source);
+            if (source != currentHeader) {
+                currentHeader = song.source;
                 songEntries.emplace_back(true, 0, currentHeader, false);
                 pos++;
             }

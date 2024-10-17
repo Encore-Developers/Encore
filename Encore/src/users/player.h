@@ -51,13 +51,13 @@ enum Instruments {
     PAD_DRUMS,
     PAD_BASS,
     PAD_LEAD,
+    PAD_KEYS,
     PAD_VOCALS,
     PLASTIC_DRUMS,
     PLASTIC_BASS,
     PLASTIC_LEAD,
-    PLASTIC_VOCALS,
-    PAD_KEYS,
-    PLASTIC_KEYS
+    PLASTIC_KEYS,
+    PLASTIC_VOCALS
 };
 
 class PlayerGameplayStats {
@@ -353,16 +353,15 @@ public:
         if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
             || Instrument == PLASTIC_BASS) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     float comboFillCalc() {
         if (Combo == 0) {
             return 0;
         }
-        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD
+        if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PAD_KEYS
             || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD
             || Instrument == PLASTIC_KEYS) {
             // For instruments 0 and 2, limit the float value to 0.0 to 0.4
@@ -502,6 +501,7 @@ public:
 
     void AddActivePlayer(int playerNum, int slot) {
         ActivePlayers.at(slot) = playerNum;
+        GetActivePlayer(slot)->joypadID = slot;
         PlayersActive += 1;
     }
 

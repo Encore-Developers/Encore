@@ -840,7 +840,7 @@ void gameplayRenderer::DrawHitwindow(Player *player, float length) {
         Color PerfectColor = Color { 255, 255, 255, 64 };
     float GoodY = 0.001f;
     float PerfectY = 0.002f;
-    if (false) {
+    if (true) {
         GoodColor = {0};
         PerfectColor = {0};
     }

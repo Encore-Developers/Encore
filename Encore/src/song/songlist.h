@@ -29,6 +29,7 @@ enum class SortType : int {
     EnumStart = 0,
     Title = 0,
     Artist,
+    Source,
     Length,
     EnumEnd
 };
@@ -61,6 +62,8 @@ class SongList {
 
     static bool sortArtist(const Song &a, const Song &b);
     static bool sortTitle(const Song &a, const Song &b);
+    static bool sortSource(const Song &a, const Song &b);
+    static bool sortAlbum(const Song &a, const Song &b);
     static bool sortLen(const Song &a, const Song &b);
 
 public:

@@ -494,11 +494,11 @@ void Chart::parsePlasticNotes(
         }
     }
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed extEndSeced sustains for %01i", instrument));
-              
+
     int mult = 1;
     int multCtr = 0;
     int noteIdx = 0;
-    bool isBassOrVocal = (instrument == 5);
+    bool isBassOrVocal = (instrument == PlasticBass);
     LoadingState = BASE_SCORE;
     for (auto noteIt = notes.begin(); noteIt != notes.end();) {
         Note &note = *noteIt;

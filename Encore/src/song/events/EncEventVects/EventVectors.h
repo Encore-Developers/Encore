@@ -33,25 +33,37 @@ struct ODEvents final : EncEventVect<odPhrase> {
             event.missed = false;
         }
     }
-    void UpdateEventViaNote(Note& note, const int curEvent) override {
-        if (!events.empty()) {
-            if (note.time >= events[curEvent].StartSec
-                && note.time < events[curEvent].EndSec) {
-                if (!note.miss && !events[curEvent].missed) {
-                    note.renderAsOD = true;
-                } else {
-                    note.renderAsOD = false;
-                }
-                if (note.hit && !note.countedForODPhrase) {
-                    events[curEvent].NotesHit++;
-                    Encore::EncoreLog(LOG_DEBUG, TextFormat("Overdrive note hit: %01i/%01i", events[curEvent].NotesHit, events[curEvent].NoteCount));
-                    note.countedForODPhrase = true;
-                }
-                if (note.miss && !events[curEvent].missed) {
-                    events[curEvent].missed = true;
-                }
-            }
+
+    void UpdateEventViaNote(Note &note, const int curEvent) override {
+        if (events.empty()) {
+            return;
         }
+        if (!(note.time >= events[curEvent].StartSec
+            && note.time < events[curEvent].EndSec)) {
+            return;
+        }
+
+        if (!note.miss && !events[curEvent].missed) {
+            note.renderAsOD = true;
+        } else {
+            note.renderAsOD = false;
+        }
+        if (note.hit && !note.countedForODPhrase) {
+            events[curEvent].NotesHit++;
+            Encore::EncoreLog(LOG_DEBUG, TextFormat("Overdrive note hit: %01i/%01i", events[curEvent].NotesHit, events[curEvent].NoteCount));
+            note.countedForODPhrase = true;
+        }
+        if (note.miss && !events[curEvent].missed) {
+            events[curEvent].missed = true;
+        }
+    }
+
+    void MissCurrentEvent(double eventTime, int event) {
+        if (!events.empty())
+            return;
+        if (eventTime >= events[event].StartSec
+            && eventTime < events[event].EndSec)
+            events[event].missed = true;
     }
     void RenderNotesAsOD(Note& note, const int curEvent) const {
         if (!events.empty()) {

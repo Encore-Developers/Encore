@@ -39,9 +39,6 @@ void resultsMenu::Load() {
     ;
     EmptyStar = GameMenu::LoadTextureFilter(assetsdir / "ui/empty-star.png");
     ;
-    songPartsList = { "Drums",         "Bass",         "Guitar",       "Vocals",
-                      "Classic Drums", "Classic Bass", "Classic Lead", "Classic Vocals",
-                      "Keys",          "Classic Keys" };
     diffList = { "Easy", "Medium", "Hard", "Expert" };
     sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
 }

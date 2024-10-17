@@ -110,7 +110,7 @@ SongList &songList = SongList::getInstance();
 Assets &assets = Assets::getInstance();
 
 SortType currentSortValue = SortType::Title;
-std::vector<std::string> sortTypes { "Title", "Artist", "Length" };
+std::vector<std::string> sortTypes { "Title", "Artist", "Source", "Length" };
 
 void Windowed() {
     ClearWindowState(FLAG_WINDOW_UNDECORATED);
@@ -597,13 +597,14 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) 
                     StopSearching = true;
                 }
             }
-            if ((songPart > PartVocals && songPart < PartKeys) || songPart == PlasticKeys)
+            if (songPart > PartVocals && songPart < PlasticVocals)
                 songList.curSong->parts[songPart]->plastic = true;
-            if (songPart < PitchedVocals)
+            if (songPart < PlasticVocals)
                 songList.curSong->parts[(int)songPart]->charts.push_back(newChart);
         }
     }
 }
+
 
 int main(int argc, char *argv[]) {
     SetTraceLogCallback(Encore::EncoreLog);
@@ -735,10 +736,7 @@ int main(int argc, char *argv[]) {
     } else {
         FullscreenBorderless();
     }
-    std::vector<std::string> songPartsList {
-        "Drums",        "Bass",         "Guitar",         "Vocals", "Classic Drums",
-        "Classic Bass", "Classic Lead", "Classic Vocals", "Keys",   "Classic Keys"
-    };
+
     std::string diffList[4] = { "Easy", "Medium", "Hard", "Expert" };
     Encore::EncoreLog(LOG_INFO, TextFormat("Target FPS: %d", targetFPS));
 
@@ -802,7 +800,7 @@ int main(int argc, char *argv[]) {
 
     float SideDisplacement4p = 3.0f;
     float SideDisplacement4p2 = 1.0f;
-    float Back4p = -14.0f;
+    float Back4p = -10.0f;
     float Height4p = 10.0f;
     gpr.camera4p1.position = Vector3 { SideDisplacement4p2, Height4p, Back4p };
     gpr.camera4p1.target = Vector3 { SideDisplacement4p2, 0.0f, TargetDistance };
@@ -848,41 +846,7 @@ int main(int argc, char *argv[]) {
     glfwSetGamepadStateCallback(origGamepadCallback);
     // GuiLoadStyle((directory / "Assets/ui/encore.rgs").string().c_str());
 
-    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-    GuiSetStyle(
-        BUTTON, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(AccentColor, -0.5))
-    );
-    GuiSetStyle(
-        BUTTON, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(AccentColor, -0.3))
-    );
-    GuiSetStyle(
-        SLIDER, BORDER_COLOR_FOCUSED, ColorToInt(ColorBrightness(AccentColor, -0.3))
-    );
-    GuiSetStyle(
-        SLIDER, BORDER_COLOR_NORMAL, ColorToInt(ColorBrightness(AccentColor, -0.5))
-    );
-    GuiSetStyle(SLIDER, BORDER_COLOR_PRESSED, ColorToInt(AccentColor));
-    GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
-    GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
-    GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
-    GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
-    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-    GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
-    GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, 28);
-
-    GuiSetStyle(TOGGLE, BASE_COLOR_NORMAL, 0x181827FF);
-    GuiSetStyle(
-        TOGGLE, BASE_COLOR_FOCUSED, ColorToInt(ColorBrightness(AccentColor, -0.5))
-    );
-    GuiSetStyle(
-        TOGGLE, BASE_COLOR_PRESSED, ColorToInt(ColorBrightness(AccentColor, -0.3))
-    );
-    GuiSetStyle(TOGGLE, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
-    GuiSetStyle(TOGGLE, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
-    GuiSetStyle(TOGGLE, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
-    GuiSetStyle(TOGGLE, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
-    GuiSetStyle(TOGGLE, TEXT_COLOR_PRESSED, 0xFFFFFFFF);
+    SETDEFAULTSTYLE();
 
     gpr.sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
     // bool wideSoloPlane = player.diff == 3;
@@ -2375,6 +2339,22 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 }
+                case SortType::Source: {
+                    if (songList.listMenuEntries[songSelectOffset].isHeader) {
+                        SongTitleForCharThingyThatsTemporary =
+                            songList
+                                .songs[songList.listMenuEntries[songSelectOffset - 1]
+                                           .songListID]
+                                .source;
+                    } else {
+                        SongTitleForCharThingyThatsTemporary =
+                            songList
+                                .songs[songList.listMenuEntries[songSelectOffset]
+                                           .songListID]
+                                .source;
+                    }
+                    break;
+                }
                 case SortType::Length: {
                     if (songList.listMenuEntries[songSelectOffset].isHeader) {
                         SongTitleForCharThingyThatsTemporary = std::to_string(
@@ -3100,7 +3080,7 @@ int main(int argc, char *argv[]) {
                 smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
                 GenTextureMipmaps(&smasher_tex.texture);
                 SetTextureFilter(smasher_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-            }
+                }
 
             float scorePos = u.RightSide - u.hinpct(0.01f);
             float scoreY = u.hpct(0.15f);
@@ -3197,7 +3177,7 @@ int main(int argc, char *argv[]) {
                     );
                 }
                 EndScissorMode();
-            }
+                }
             // int totalScore =
             // 		player.score + player.sustainScoreBuffer[0] +
             // player.sustainScoreBuffer[ 			1] + player.sustainScoreBuffer[2] +
@@ -3342,24 +3322,24 @@ int main(int argc, char *argv[]) {
             } else {
 
 
-                    for (int i = 0; i < playerManager.PlayersActive; i++) {
-                        for (auto &stream : audioManager.loadedStreams) {
-                            Player *player = playerManager.GetActivePlayer(i);
-                            if ((player->ClassicMode ? player->Instrument - 5 : player->Instrument) ==
-                            stream.instrument) {
-                                audioManager.SetAudioStreamVolume(
-                                    stream.handle,
-                                    player->stats->Mute
-                                    ? settingsMain.MainVolume * settingsMain.MissVolume
-                                    : settingsMain.MainVolume * settingsMain.PlayerVolume);
-                            }
-                            else {
-                                audioManager.SetAudioStreamVolume(
-                                    stream.handle, settingsMain.MainVolume * settingsMain.BandVolume
-                                );
-                            }
+                for (int i = 0; i < playerManager.PlayersActive; i++) {
+                    for (auto &stream : audioManager.loadedStreams) {
+                        Player *player = playerManager.GetActivePlayer(i);
+                        if ((player->ClassicMode ? player->Instrument - 5 : player->Instrument) ==
+                        stream.instrument) {
+                            audioManager.SetAudioStreamVolume(
+                                stream.handle,
+                                player->stats->Mute
+                                ? settingsMain.MainVolume * settingsMain.MissVolume
+                                : settingsMain.MainVolume * settingsMain.PlayerVolume);
+                        }
+                        else {
+                            audioManager.SetAudioStreamVolume(
+                                stream.handle, settingsMain.MainVolume * settingsMain.BandVolume
+                            );
                         }
                     }
+                }
 
                 float songPlayed = audioManager.GetMusicTimePlayed();
                 double songEnd = floor(audioManager.GetMusicTimeLength())
@@ -3504,9 +3484,10 @@ int main(int argc, char *argv[]) {
                                       0
             )
                                       .x;
+            std::string SongArtistString = songList.curSong->artist + ", " + to_string(songList.curSong->releaseYear);
             float SongArtistWidth = MeasureTextEx(
                                         assets.rubikBoldItalic,
-                                        songList.curSong->artist.c_str(),
+                                        SongArtistString.c_str(),
                                         u.hinpct(SmallHeader),
                                         0
             )
@@ -3514,7 +3495,7 @@ int main(int argc, char *argv[]) {
 
             float SongExtrasWidth = MeasureTextEx(
                                         assets.rubikBoldItalic,
-                                        songList.curSong->artist.c_str(),
+                                        songList.curSong->charters[0].c_str(),
                                         u.hinpct(SmallHeader),
                                         0
             )
@@ -3628,7 +3609,7 @@ int main(int argc, char *argv[]) {
                 );
                 DrawTextEx(
                     assets.rubikItalic,
-                    songList.curSong->artist.c_str(),
+                    SongArtistString.c_str(),
                     { SongArtistPosition, u.hpct(0.2f + MediumHeader) },
                     u.hinpct(SmallHeader),
                     0,
@@ -3636,11 +3617,7 @@ int main(int argc, char *argv[]) {
                 );
                 DrawTextEx(
                     assets.rubikItalic,
-                    TextFormat(
-                        "%s, %01i",
-                        songList.curSong->charters[0].c_str(),
-                        songList.curSong->releaseYear
-                    ),
+                    songList.curSong->charters[0].c_str(),
                     { SongExtrasPosition, u.hpct(0.2f + MediumHeader + SmallHeader) },
                     u.hinpct(SmallHeader),
                     0,

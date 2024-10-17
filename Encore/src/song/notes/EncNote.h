@@ -78,19 +78,24 @@ public:
         accounted = true;
     }
 
-    void pHitNote(double eventTime, double offset) {
-        hit = true;
-        HitOffset = time - eventTime;
-        hitTime = eventTime;
+    bool padHitNote(double eventTime, double offset) {
+        if (isGood(eventTime, offset))
+        {
+            hit = true;
 
-        if ((len) > 0) {
-            held = true;
-        }
-        if (isPerfect(eventTime, offset)) {
-            perfect = true;
-        }
+            HitOffset = time - eventTime;
+            hitTime = eventTime;
 
-        accounted = true;
+            if ((len) > 0) {
+                held = true;
+            }
+            if (isPerfect(eventTime, offset)) {
+                perfect = true;
+            }
+
+            accounted = true;
+        }
+        return hit;
     }
 
     bool pTap = false;

@@ -8,6 +8,7 @@
 #include "uiUnits.h"
 #include "assets.h"
 #include "gameMenu.h"
+#include "styles.h"
 
 /// std::vector<bool> SlotSelectingState = { false, false, false, false };
 /// std::vector<bool> OpenState = { false, false, false, false };
@@ -43,32 +44,34 @@ void DrawBeacon(int slot, float x, float y, float width, float height, bool top)
     }
 }
 
-void DrawOvershellRectangleHeader(
+bool DrawOvershellRectangleHeader(
     float x, float y, float width, float height, std::string username, Color accentColor
 ) {
+
     Assets &assets = Assets::getInstance();
     Units &unit = Units::getInstance();
     Rectangle RectPos = { x, y, width, height * 2 };
-    BeginScissorMode(x, y, width, height);
-    DrawRectangleRounded(RectPos, 0.40f, 8, ColorBrightness(accentColor, -0.75f));
+    bool toReturn = GuiButton({ x, y, width, height }, "");
+    DrawRectangleRounded(RectPos, 0.40f, 8, ColorBrightness(accentColor, -0.5f));
     // float Inset = unit.winpct(0.001f);
     // float InsetDouble = Inset * 2;
     // DrawRectangleRounded(
     //     {RectPos.x + Inset, RectPos.y + Inset, RectPos.width - (InsetDouble*1.25f),
     //     RectPos.height - InsetDouble}, 0.40f, 5, ColorBrightness(accentColor, -0.75f)
     //);
-    EndScissorMode();
+
 
     float centerPos = x + (width / 2);
     GameMenu::mhDrawText(
         assets.redHatDisplayBlack,
         username.c_str(),
-        { centerPos, y + unit.winpct(0.01f) },
-        unit.winpct(0.03f),
+        { centerPos, (height/4) + y },
+        (height/2),
         WHITE,
         assets.sdfShader,
         CENTER
     );
+    return toReturn;
 }
 
 void OvershellRenderer::DrawTopOvershell(double height) {
@@ -137,6 +140,7 @@ bool MenuButton(int slot, int x, std::string string) {
           unit.winpct(0.03f) },
         string.c_str()
     );
+    SETDEFAULTSTYLE();
 }
 bool OvershellSlider(
     int slot, int x, std::string string, float *value, float step, float min, float max
@@ -184,7 +188,7 @@ void OvershellRenderer::DrawBottomOvershell() {
         (float)GetScreenHeight(),
         ColorBrightness(GetColor(0x181827FF), -0.5f)
     );
-
+    int ButtonHeight = unit.winpct(0.03f);
     PlayerManager &playerManager = PlayerManager::getInstance();
     float LeftMin = unit.wpct(0.1);
     float LeftMax = unit.wpct(0.9);
@@ -229,54 +233,31 @@ void OvershellRenderer::DrawBottomOvershell() {
                     }
                 }
             }
-            float playerNameSize =
-                MeasureTextEx(
-                    assets.redHatDisplayBlack, "Select a player", unit.winpct(0.03f), 0
-                )
-                    .x;
-            float InfoLoc = unit.winpct(0.03f) * (playerManager.PlayerList.size() + 1);
 
-            DrawRectangle(
-                OvershellLeftLoc,
-                unit.hpct(1.0f) - InfoLoc - unit.winpct(0.05f),
-                unit.winpct(0.2f),
-                unit.winpct(0.05f),
-                GRAY
-            );
-            DrawTextEx(
-                assets.redHatDisplayBlack,
-                "Select a player",
-                { OvershellCenterLoc - (playerNameSize / 2),
-                  unit.hpct(1.0f) - InfoLoc + unit.winpct(0.01f) - unit.winpct(0.05f) },
-                unit.winpct(0.03f),
-                0,
-                WHITE
-            );
+            float InfoLoc = unit.winpct(0.03f) * (playerManager.PlayerList.size() + 1);
+            DrawOvershellRectangleHeader(
+                                OvershellLeftLoc,
+                                OvershellTopLoc - (ButtonHeight * InfoLoc),
+                                unit.winpct(0.2f),
+                                unit.winpct(0.05f),
+                                "Select a player",
+                                Color{255,0,255,255}
+                            );
+
             break;
         }
         case OS_OPTIONS: {
-            int ButtonHeight = unit.winpct(0.03f);
-            if (GuiButton(
-                    { OvershellLeftLoc,
-                      OvershellTopLoc - (ButtonHeight * 5),
-                      unit.winpct(0.2f),
-                      unit.winpct(0.05f) },
-                    ""
-                )) {
-                OvershellState[i] = OS_ATTRACT;
-                CanMouseClick = true;
-                continue;
-                // playerManager.RemoveActivePlayer(i);
-                gameMenu.shouldBreak = true;
-            } else {
-                DrawOvershellRectangleHeader(
+            if (DrawOvershellRectangleHeader(
                     OvershellLeftLoc,
                     OvershellTopLoc - (ButtonHeight * 5),
                     unit.winpct(0.2f),
                     unit.winpct(0.05f),
                     playerManager.GetActivePlayer(i)->Name,
                     playerManager.GetActivePlayer(i)->AccentColor
-                );
+                )) {
+                OvershellState[i] = OS_ATTRACT;
+                CanMouseClick = true;
+                continue;
             }
             if (!BNSetting) {
                 if (MenuButton(i, 3, "Breakneck Speed")) {
@@ -315,7 +296,6 @@ void OvershellRenderer::DrawBottomOvershell() {
             if (MenuButton(i, 0, "Cancel")) {
                 OvershellState[i] = OS_ATTRACT;
                 CanMouseClick = true;
-                continue;
             }
             break;
         }
@@ -330,78 +310,67 @@ void OvershellRenderer::DrawBottomOvershell() {
                     GetScreenHeight(),
                     false
                 );
-                if (GuiButton(
-                        { OvershellLeftLoc,
-                          OvershellTopLoc + unit.winpct(0.01f),
-                          unit.winpct(0.2f),
-                          unit.winpct(0.04f) },
-                        ""
-                    )) {
-                    OvershellState[i] = OS_OPTIONS;
-                    CanMouseClick = false;
-                    continue;
-                    // playerManager.RemoveActivePlayer(i);
-                    gameMenu.shouldBreak = true;
-                } else {
-                    DrawOvershellRectangleHeader(
+
+                if (DrawOvershellRectangleHeader(
                         OvershellLeftLoc,
                         OvershellTopLoc,
                         unit.winpct(0.2f),
                         unit.winpct(0.05f),
                         playerManager.GetActivePlayer(i)->Name,
                         playerManager.GetActivePlayer(i)->AccentColor
-                    );
-                }
-            } else { // no active players
-                if (GuiButton(
-                        { OvershellLeftLoc,
-                          OvershellTopLoc + unit.winpct(0.01f),
-                          unit.winpct(0.2f),
-                          unit.winpct(0.04f) },
-                        ""
                     )) {
+                    OvershellState[i] = OS_OPTIONS;
                     CanMouseClick = false;
-                    OvershellState[i] = OS_PLAYER_SELECTION;
-                    gameMenu.shouldBreak = true;
                     continue;
-                    // playerManager.AddActivePlayer(i, i);
+                    // playerManager.RemoveActivePlayer(i);
+                    gameMenu.shouldBreak = true;
+                };
+            } else { // no active players
+                // if its the first slot, keyboard can join ALWAYS
+                if (IsGamepadAvailable(i) || i == 0) {
+                    if (DrawOvershellRectangleHeader(
+                            OvershellLeftLoc,
+                            OvershellTopLoc + unit.winpct(0.01f),
+                            unit.winpct(0.2f),
+                            unit.winpct(0.04f),
+                            "JOIN",
+                            LIGHTGRAY
+                        )) {
+                        CanMouseClick = false;
+                        OvershellState[i] = OS_PLAYER_SELECTION;
+                        gameMenu.shouldBreak = true;
+                        continue;
+                    };
                 } else {
-                    float playerNameSize =
-                        MeasureTextEx(
-                            assets.redHatDisplayBlack, "JOIN", unit.winpct(0.02f), 0
-                        )
-                            .x;
-                    DrawRectangle(
+                    if (DrawOvershellRectangleHeader(
                         OvershellLeftLoc,
                         OvershellTopLoc + unit.winpct(0.01f),
                         unit.winpct(0.2f),
                         unit.winpct(0.04f),
-                        DARKGRAY
-                    );
-                    DrawTextEx(
-                        assets.redHatDisplayBlack,
-                        "JOIN",
-                        { OvershellCenterLoc - (playerNameSize / 2),
-                          OvershellTopLoc + unit.winpct(0.02f) },
-                        unit.winpct(0.02f),
-                        0,
-                        WHITE
-                    );
-                    }
+                        "CONNECT CONTROLLER",
+                        {0}
+                        )) {
+                        CanMouseClick = false;
+                        OvershellState[i] = OS_PLAYER_SELECTION;
+                        gameMenu.shouldBreak = true;
+                        continue;
+                        };;
                 }
+            }
+
             break;
             }
         case OS_INSTRUMENT_SELECTIONS: {
             int ButtonHeight = unit.winpct(0.03f);
 
-                    DrawOvershellRectangleHeader(
-                        OvershellLeftLoc,
-                        OvershellTopLoc - (ButtonHeight * 5),
-                        unit.winpct(0.2f),
-                        unit.winpct(0.05f),
-                        playerManager.GetActivePlayer(i)->Name,
-                        playerManager.GetActivePlayer(i)->AccentColor
-                    );
+            DrawOvershellRectangleHeader(
+                OvershellLeftLoc,
+                OvershellTopLoc - (ButtonHeight * 5),
+                unit.winpct(0.2f),
+                unit.winpct(0.05f),
+                playerManager.GetActivePlayer(i)->Name,
+                playerManager.GetActivePlayer(i)->AccentColor
+            );
 
             if (MenuButton(i, 2, "Classic")) {
                 playerManager.GetActivePlayer(i)->ClassicMode = true;

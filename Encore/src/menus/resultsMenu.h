@@ -16,7 +16,6 @@ class resultsMenu : public Menu {
     Texture2D EmptyStar;
     Shader sdfShader;
     std::vector<std::string> diffList;
-    std::vector<std::string> songPartsList;
     void drawPlayerResults(Player *player, Song song, int playerslot);
     void renderStars(
         PlayerGameplayStats *player, float xPos, float yPos, float scale, bool left
