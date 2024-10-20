@@ -4,7 +4,7 @@
 
 #ifndef OVERSHELLRENDERER_H
 #define OVERSHELLRENDERER_H
-#include "users/player.h"
+
 
 class OvershellRenderer {
 public:

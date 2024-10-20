@@ -42,7 +42,7 @@ bool finished = false;
 bool started = false;
 
 void LoadCache() {
-    SongList &list = SongList::getInstance();
+    SongList &list = TheSongList;
     SettingsOld &settings = SettingsOld::getInstance();
     list.LoadCache(settings.songPaths);
     finished = true;

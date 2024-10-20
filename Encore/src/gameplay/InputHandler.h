@@ -5,7 +5,7 @@
 #ifndef INPUTHANDLER_H
 #define INPUTHANDLER_H
 
-#include "users/player.h"
+#include "users/playerManager.h"
 
 enum EventLanes {
     OVERDRIVE_ACT = -1,

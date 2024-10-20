@@ -1,17 +1,13 @@
+#pragma once
+
 //
 // Created by marie on 04/05/2024.
 //
 
-#ifndef ENCORE_PLAYER_H
-#define ENCORE_PLAYER_H
-
 #include <string>
 #include <filesystem>
-#include <map>
 
 #include "raylib.h"
-#include "rapidjson/document.h"
-#include "uuid.h"
 #include "song/chart.h"
 // #include "libstud-uuid/uuid/uuid.hxx"
 /*
@@ -81,6 +77,14 @@ public:
     int PerfectHit;
     int NotesMissed;
 
+    int ScoreToDisplay() {
+        int scoreToReturn = Score;
+        for (auto buf : SustainScoreBuffer) {
+            scoreToReturn += buf;
+        }
+        return scoreToReturn;
+    }
+
     std::vector<bool> HeldFrets { false, false, false, false, false };
     std::vector<bool> HeldFretsAlt { false, false, false, false, false };
     std::vector<bool> OverhitFrets { false, false, false, false, false };
@@ -88,7 +92,7 @@ public:
     std::vector<bool> LiftRegistered { false, false, false, false, false };
     double StartTime = 0.0;
     double SongStartTime = 0.0;
-
+    std::vector<float> SustainScoreBuffer { 0.0, 0.0, 0.0, 0.0, 0.0 };
     int curBPM = 0;
     int curBeatLine = 0;
     int curODPhrase = 0;
@@ -445,6 +449,7 @@ public:
     bool Multiplayer = false;
     std::vector<int> OverdriveMultiplier { 1, 2, 4, 6, 8 };
     int PlayersInOverdrive = 0;
+
     void AddNotePoint(bool perfect, int playerMult);
     int Stars() {
         float starPercent = (float)Score / (float)BaseScore;
@@ -473,64 +478,5 @@ public:
     void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
 };
 
-class PlayerManager {
-    PlayerManager() {}
 
-public:
-    static PlayerManager &getInstance() {
-        static PlayerManager instance; // This is the single instance
-        return instance;
-    }
 
-    // Delete copy constructor and assignment operator
-    PlayerManager(const PlayerManager &) = delete;
-    void operator=(const PlayerManager &) = delete;
-
-    void MakePlayerDirectory(); // run on initialization?
-    void LoadPlayerList(std::filesystem::path PlayerListSaveFile); // make player, load
-                                                                   // player stuff to
-                                                                   // PlayerList
-    void SavePlayerList(std::filesystem::path PlayerListSaveFile);
-    BandGameplayStats BandStats = BandGameplayStats();
-    rapidjson::Document PlayerListFile;
-    std::vector<Player> PlayerList;
-    std::vector<int> ActivePlayers { -1, -1, -1, -1 };
-    int PlayersActive = 0;
-
-    Player *GetActivePlayer(int slot) { return &PlayerList.at(ActivePlayers.at(slot)); }
-
-    void AddActivePlayer(int playerNum, int slot) {
-        ActivePlayers.at(slot) = playerNum;
-        GetActivePlayer(slot)->joypadID = slot;
-        PlayersActive += 1;
-    }
-
-    void RemoveActivePlayer(int slot) {
-        ActivePlayers.at(slot) = -1;
-        PlayersActive -= 1;
-    }
-
-    bool IsGamepadActive(int joystickID) {
-        for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            if (GetActivePlayer(playesr)->joypadID == joystickID) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    Player *GetPlayerGamepad(int joystickID) {
-        for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            if (GetActivePlayer(playesr)->joypadID == joystickID) {
-                return GetActivePlayer(playesr);
-            }
-        }
-        return nullptr;
-    }
-
-    void CreatePlayer(Player player);
-    void DeletePlayer(Player PlayerToDelete); // remove player, reload playerlist
-    void RenamePlayer(Player PlayerToRename); // rename player
-};
-
-#endif // ENCORE_PLAYER_H

@@ -9,6 +9,7 @@
 #include "assets.h"
 #include "gameMenu.h"
 #include "styles.h"
+#include "users/playerManager.h"
 
 /// std::vector<bool> SlotSelectingState = { false, false, false, false };
 /// std::vector<bool> OpenState = { false, false, false, false };
@@ -24,7 +25,7 @@ enum OSState {
 int OvershellState[4] { OS_ATTRACT, OS_ATTRACT, OS_ATTRACT, OS_ATTRACT };
 
 void DrawBeacon(int slot, float x, float y, float width, float height, bool top) {
-    PlayerManager &playerManager = PlayerManager::getInstance();
+    PlayerManager &playerManager = ThePlayerManager;
     Color overshellBeacon =
         ColorBrightness(playerManager.GetActivePlayer(slot)->AccentColor, -0.75f);
     Color thanksraylib = { overshellBeacon.r, overshellBeacon.g, overshellBeacon.b, 128 };
@@ -77,7 +78,7 @@ bool DrawOvershellRectangleHeader(
 void OvershellRenderer::DrawTopOvershell(double height) {
     BeginBlendMode(BLEND_ALPHA);
     Units &unit = Units::getInstance();
-    PlayerManager &playerManager = PlayerManager::getInstance();
+    PlayerManager &playerManager = ThePlayerManager;
     DrawRectangleGradientV(
         0,
         unit.hpct(height) - 2,
@@ -189,7 +190,7 @@ void OvershellRenderer::DrawBottomOvershell() {
         ColorBrightness(GetColor(0x181827FF), -0.5f)
     );
     int ButtonHeight = unit.winpct(0.03f);
-    PlayerManager &playerManager = PlayerManager::getInstance();
+    PlayerManager &playerManager = ThePlayerManager;
     float LeftMin = unit.wpct(0.1);
     float LeftMax = unit.wpct(0.9);
     for (int i = 0; i < 4; i++) {

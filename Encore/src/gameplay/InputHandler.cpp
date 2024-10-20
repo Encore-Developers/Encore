@@ -43,8 +43,8 @@ void InputHandler::CheckPlasticInputs(
     Player *player, int lane, int action, float eventTime, PlayerGameplayStats *stats
 ) {
     // basic shit so that its easier to Do Things lol
-    PlayerManager &playerManager = PlayerManager::getInstance();
-    SongList &songList = SongList::getInstance();
+    PlayerManager &playerManager = ThePlayerManager;
+    SongList &songList = TheSongList;
     Chart &curChart =
         songList.curSong->parts[player->Instrument]->charts[player->Difficulty];
 
@@ -116,8 +116,8 @@ void InputHandler::handleInputs(Player *player, int lane, int action) {
     PlayerGameplayStats *stats = player->stats;
     SettingsOld &settings = SettingsOld::getInstance();
     SongTime &enctime = TheSongTime;
-    SongList &songList = SongList::getInstance();
-    PlayerManager &playerManager = PlayerManager::getInstance();
+    SongList &songList = TheSongList;
+    PlayerManager &playerManager = ThePlayerManager;
 
     if (stats->Paused)
         return;
@@ -155,8 +155,8 @@ void InputHandler::handleInputs(Player *player, int lane, int action) {
 void InputHandler::CheckPadInputs(
     Player *player, int lane, int action, double eventTime, PlayerGameplayStats *stats
 ) {
-    PlayerManager &playerManager = PlayerManager::getInstance();
-    SongList &songList = SongList::getInstance();
+    PlayerManager &playerManager = ThePlayerManager;
+    SongList &songList = TheSongList;
     Chart &curChart =
         songList.curSong->parts[player->Instrument]->charts[player->Difficulty];
     SettingsOld &settings = SettingsOld::getInstance();

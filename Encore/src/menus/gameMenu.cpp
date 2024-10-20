@@ -40,7 +40,7 @@ std::string menuVersion = ENCORE_VERSION;
 std::string gitBranch = GIT_BRANCH;
 Assets &menuAss = Assets::getInstance();
 SettingsOld &settings = SettingsOld::getInstance();
-SongList &songListMenu = SongList::getInstance();
+SongList &songListMenu = TheSongList;
 Units u = Units::getInstance();
 
 GameMenu TheGameMenu;
@@ -167,7 +167,7 @@ void GameMenu::loadMainMenu() {
     OvershellRenderer osr;
     AudioManager &menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-    SongList &songList = SongList::getInstance();
+    SongList &songList = TheSongList;
     std::ifstream splashes;
     splashes.open((directory / "Assets/ui/splashes.txt"));
 

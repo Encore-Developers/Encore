@@ -65,6 +65,9 @@ bool SongList::sortLen(const Song &a, const Song &b) {
     return a.length < b.length;
 }
 
+SongList::SongList() {}
+SongList::~SongList() {}
+
 void SongList::sortList(SortType sortType) {
     switch (sortType) {
     case SortType::Title:

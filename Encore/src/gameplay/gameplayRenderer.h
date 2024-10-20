@@ -97,6 +97,9 @@ class gameplayRenderer {
     float MinHighwaySpeed = 0.5f;
     RenderTexture2D GameplayRenderTexture;
 public:
+    gameplayRenderer();
+    ~gameplayRenderer();
+
     float highwayLevel = 0;
     float smasherPos = 2.4f;
     float HitAnimDuration = 0.15f;
@@ -109,6 +112,9 @@ public:
     int selectedSongInt = 0;
     bool songPlaying = false;
     bool showHitwindow = false;
+
+    bool streamsLoaded = false;
+    bool midiLoaded = false;
 
     bool extendedSustainActive = false;
     float textureOffset = 0;
@@ -195,3 +201,5 @@ public:
     void DrawRenderTexture();
     double multiplierEffectTime = 1.0;
 };
+
+extern gameplayRenderer TheGameRenderer;

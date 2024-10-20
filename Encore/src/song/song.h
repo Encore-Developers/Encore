@@ -70,6 +70,8 @@ struct Beat {
     bool Major = false;
     bool Clapped = false;
 };
+
+inline std::string diffList[4] = { "Easy", "Medium", "Hard", "Expert" };
 inline std::vector<std::string> songPartsList {
     "Drums",         "Bass",         "Lead",       "Keys",         "Vocals",
     "Classic Drums", "Classic Bass", "Classic Lead", "Classic Keys", "Classic Vocals", "Classic Vocals",

@@ -58,7 +58,7 @@ enum SongListLoadingStates {
 };
 
 class SongList {
-    SongList() {}
+
 
     static bool sortArtist(const Song &a, const Song &b);
     static bool sortTitle(const Song &a, const Song &b);
@@ -67,17 +67,15 @@ class SongList {
     static bool sortLen(const Song &a, const Song &b);
 
 public:
-    static SongList &getInstance() {
-        static SongList instance; // This is the single instance
-        return instance;
-    }
+    SongList();
+    ~SongList();
 
     std::vector<ListMenuEntry> listMenuEntries;
     std::vector<Song> songs;
     int songCount = 0;
     int directoryCount = 0;
     int badSongCount = 0;
-    Song *curSong;
+    Song *curSong = nullptr;
 
     void Clear();
 
@@ -96,3 +94,5 @@ public:
 
     void LoadCache(const std::vector<std::filesystem::path> &songsFolder);
 };
+
+extern SongList TheSongList;

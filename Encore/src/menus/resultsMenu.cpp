@@ -9,6 +9,7 @@
 #include "styles.h"
 #include "uiUnits.h"
 #include "song/audio.h"
+#include "users/playerManager.h"
 
 resultsMenu::~resultsMenu() {}
 resultsMenu::resultsMenu() {}
@@ -45,14 +46,12 @@ void resultsMenu::Load() {
 
 void resultsMenu::Draw() {
     OvershellRenderer osr;
-    PlayerManager &player_manager = PlayerManager::getInstance();
-    SongList &songList = SongList::getInstance();
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
-    GameMenu::DrawAlbumArtBackground(songList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     
-    for (int i = 0; i < player_manager.PlayersActive; i++) {
-        drawPlayerResults(player_manager.GetActivePlayer(i), *songList.curSong, i);
+    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+        drawPlayerResults(ThePlayerManager.GetActivePlayer(i), *TheSongList.curSong, i);
     }
     
     osr.DrawTopOvershell(0.2f);
@@ -62,7 +61,7 @@ void resultsMenu::Draw() {
     float scoreWidth =
         MeasureTextEx(
             assets.redHatDisplayItalic,
-            GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str(),
+            GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats.Score).c_str(),
             u.hinpct(0.06f),
             0
         )
@@ -70,7 +69,7 @@ void resultsMenu::Draw() {
 
     DrawTextEx(
         assets.redHatDisplayItalic,
-        songList.curSong->title.c_str(),
+        TheSongList.curSong->title.c_str(),
         { u.LeftSide, u.hpct(0.02125f) },
         u.hinpct(0.05f),
         0,
@@ -78,7 +77,7 @@ void resultsMenu::Draw() {
     );
     DrawTextEx(
         assets.rubikItalic,
-        songList.curSong->artist.c_str(),
+        TheSongList.curSong->artist.c_str(),
         { u.LeftSide, u.hpct(0.07f) },
         u.hinpct(0.035f),
         0,
@@ -112,17 +111,17 @@ void resultsMenu::Draw() {
     );
 
     renderStars(
-        &player_manager.BandStats,
+        &ThePlayerManager.BandStats,
         u.wpct(0.5f),
         u.hpct(0.1f),
         u.hinpct(0.05f),
         false
     );
     float ScoreFontSize = u.hinpct(0.05f);
-    std::string ScoreText = GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str();
+    std::string ScoreText = GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats.Score).c_str();
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
-        GameMenu::scoreCommaFormatter(player_manager.BandStats.Score).c_str(),
+        GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats.Score).c_str(),
         { u.wpct(0.5), u.hpct(0.02125f) },
         ScoreFontSize,
         GetColor(0x00adffFF),
@@ -132,16 +131,16 @@ void resultsMenu::Draw() {
     // assets.DrawTextRHDI(player->songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
         // player.quit = false;
-        for (int PlayersToReset = 0; PlayersToReset < player_manager.PlayersActive;
+        for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive;
              PlayersToReset++) {
-            Player *player = player_manager.GetActivePlayer(PlayersToReset);
+            Player *player = ThePlayerManager.GetActivePlayer(PlayersToReset);
             player->ResetGameplayStats();
-            songList.curSong->parts[player->Instrument]
+            TheSongList.curSong->parts[player->Instrument]
                 ->charts[player->Difficulty]
                 .resetNotes();
         }
-        songList.curSong->midiParsed = false;
-        player_manager.BandStats.ResetBandGameplayStats();
+        TheSongList.curSong->midiParsed = false;
+        ThePlayerManager.BandStats.ResetBandGameplayStats();
         TheGameMenu.SwitchScreen(SONG_SELECT);
     }
     GameMenu::DrawBottomOvershell();
