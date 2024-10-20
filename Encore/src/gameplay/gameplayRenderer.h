@@ -14,33 +14,26 @@ class gameplayRenderer {
         Player *player,
         Chart &curChart,
         double time,
-        RenderTexture2D &notes_tex,
         float length
     );
-    void RenderHud(Player *player, RenderTexture2D &, float);
+    void RenderHud(Player *player, float length);
     void RenderExpertHighway(
         Player *player,
         Song song,
-        double time,
-        RenderTexture2D &highway_tex,
-        RenderTexture2D &highwayStatus_tex,
-        RenderTexture2D &smasher_tex
+        double time
     );
     void RenderPDrumsHighway(
         Player *player,
         Song song,
-        double time,
-        RenderTexture2D &highway_tex,
-        RenderTexture2D &highwayStatus_tex,
-        RenderTexture2D &smasher_tex
+        double time
     );
     void DrawHighwayMesh(
         float LengthMultiplier, bool Overdrive, float ActiveTime, float SongTime
     );
-    void StartRenderTexture(RenderTexture2D &highway_tex);
+    void StartRenderTexture();
 
     void
-    RenderEmhHighway(Player *player, Song song, double time, RenderTexture2D &highway_tex);
+    RenderEmhHighway(Player *player, Song song, double time);
     void DrawBeatlines(Player *player, Song *song, float length, double musicTime);
     void DrawOverdrive(Player *player, Chart &curChart, float length, double musicTime);
     void DrawSolo(Player *player, Chart &curChart, float length, double musicTime);
@@ -52,7 +45,6 @@ class gameplayRenderer {
         Player *player,
         Chart &curChart,
         double time,
-        RenderTexture2D &notes_tex,
         float length
     );
     void DrawHitwindow(Player *player, float length);
@@ -60,7 +52,6 @@ class gameplayRenderer {
         Player *player,
         Chart &curChart,
         double time,
-        RenderTexture2D &notes_tex,
         float length
     );
 
@@ -104,7 +95,7 @@ class gameplayRenderer {
     double HighwaySpeedDifficultyMultiplier(int Difficulty);
     float MaxHighwaySpeed = 1.25f;
     float MinHighwaySpeed = 0.5f;
-
+    RenderTexture2D GameplayRenderTexture;
 public:
     float highwayLevel = 0;
     float smasherPos = 2.4f;
@@ -153,7 +144,7 @@ public:
      */
 
     void
-    RenderGameplay(Player *player, double time, Song song, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &, RenderTexture2D &);
+    RenderGameplay(Player *player, double time, Song song);
     enum ModelVectorEnum {
         mHOPO,
         mLIFT,
@@ -201,6 +192,6 @@ public:
     void LowerHighway();
 
     void NoteMultiplierEffect(double time, double hitTime, bool miss, Player *player);
-    void DrawRenderTexture(RenderTexture2D &notes_tex);
+    void DrawRenderTexture();
     double multiplierEffectTime = 1.0;
 };

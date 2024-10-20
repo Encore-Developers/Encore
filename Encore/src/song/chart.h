@@ -80,45 +80,43 @@ enum ChartLoadingState {
     READY
 };
 
-inline std::atomic<int> CurrentChart = -1;
-inline std::atomic<int> LoadingState = -1;
+static std::atomic<int> CurrentChart = -1;
+static std::atomic<int> LoadingState = -1;
 
+static std::vector<std::vector<int> > diffNotes = {
+    { 60, 63, 66, 69 }, { 72, 75, 78, 81 }, { 84, 87, 90, 93 }, { 96, 100, 102, 106 }
+};
+static int soloNote = 101;
+
+static std::vector<std::vector<int> > pDiffNotes = { { 60, 61, 62, 63, 64 },
+                                              { 72, 73, 74, 75, 76 },
+                                              { 84, 85, 86, 87, 88 },
+                                              { 96, 97, 98, 99, 100 } };
+static int pSoloNote = 103;
+static int pForceOn = 101;
+static int pTapNote = 104;
+static int pForceOff = 102;
+static bool compareNotes(const Note &a, const Note &b) { return a.time < b.time; }
+static bool compareNotesTL(const Note &a, const Note &b) {
+    if (a.time == b.time) {
+        return a.lane < b.lane;
+    }
+    return a.time < b.time;
+}
+static bool areNotesEqual(const Note &a, const Note &b) { return a.tick == b.tick; }
 
 class Chart {
 private:
-    std::vector<std::vector<int> > diffNotes = {
-        { 60, 63, 66, 69 }, { 72, 75, 78, 81 }, { 84, 87, 90, 93 }, { 96, 100, 102, 106 }
-    };
-    int soloNote = 101;
 
-    std::vector<std::vector<int> > pDiffNotes = { { 60, 61, 62, 63, 64 },
-                                                  { 72, 73, 74, 75, 76 },
-                                                  { 84, 85, 86, 87, 88 },
-                                                  { 96, 97, 98, 99, 100 } };
-    int pSoloNote = 103;
-    int pForceOn = 101;
-    int pTapNote = 104;
-    int pForceOff = 102;
-    static bool compareNotes(const Note &a, const Note &b) { return a.time < b.time; }
-    static bool compareNotesTL(const Note &a, const Note &b) {
-        if (a.time == b.time) {
-            return a.lane < b.lane;
-        }
-        return a.time < b.time;
-    }
-    static bool areNotesEqual(const Note &a, const Note &b) { return a.tick == b.tick; }
 
 public:
+
 
     std::vector<Note> notes;
 
     // this is plastic shit that should probably be put deeper as its really only used
     // for chart
-    std::vector<Note> notesPre;
-    std::vector<forceOnPhrase> forcedOnPhrases;
-    std::vector<tapPhrase> tapPhrases;
-    std::vector<forceOffPhrase> forcedOffPhrases;
-    std::vector<openMarker> openMarkers;
+
     int track = 0;
     // std::vector<section> Sections {};
     // std::vector<odPhrase> odPhrases;
@@ -128,6 +126,8 @@ public:
     ODEvents overdrive;
     FillEvents fills;
     SectionEvents sections;
+
+    std::vector<Note> notesPre;
 
     void getSections(smf::MidiFile &midiFile, int trkidx) {
         int Section = 0;
@@ -173,12 +173,10 @@ public:
     }
     bool valid = false;
 
-
     bool plastic = false;
     // plastic stuff :tm:
     // note: clones dont do thresh. they do 12ths
     int hopoThreshold = 170;
-
 
     std::vector<std::vector<int> > notes_perlane { {}, {}, {}, {}, {} };
     int baseScore = 0;
@@ -262,16 +260,11 @@ public:
 
     void resetNotes() {
         notes.clear();
-        notesPre.clear();
 
         sections.ResetEvents();
         overdrive.ResetEvents();
         solos.ResetEvents();
         fills.ResetEvents();
-
-        tapPhrases.clear();
-        forcedOnPhrases.clear();
-        forcedOffPhrases.clear();
     }
 
     void restartNotes() {
@@ -292,7 +285,6 @@ public:
             note.countedForSolo = false;
             note.Ghosted = false;
         }
-        notesPre.clear();
         sections.ResetEvents();
         overdrive.ResetEvents();
         solos.ResetEvents();

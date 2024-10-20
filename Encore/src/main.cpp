@@ -857,12 +857,6 @@ int main(int argc, char *argv[]) {
     SetWindowIcon(assets.icon);
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
-    RenderTexture2D notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-    RenderTexture2D hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-    RenderTexture2D highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-    RenderTexture2D highwayStatus_tex =
-        LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-    RenderTexture2D smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
     menu.currentScreen = CACHE_LOADING_SCREEN;
     Menu::onNewMenu = true;
     enctime.SetOffset(settingsMain.avOffsetMS / 1000.0);
@@ -3052,35 +3046,8 @@ int main(int argc, char *argv[]) {
         case GAMEPLAY: {
             // IMAGE BACKGROUNDS??????
             ClearBackground(BLACK);
-
-            if (IsWindowResized() || notes_tex.texture.width != GetScreenWidth()
-                || notes_tex.texture.height != GetScreenHeight()) {
-                UnloadRenderTexture(notes_tex);
-                notes_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-                GenTextureMipmaps(&notes_tex.texture);
-                SetTextureFilter(notes_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-
-                UnloadRenderTexture(hud_tex);
-                hud_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-                GenTextureMipmaps(&hud_tex.texture);
-                SetTextureFilter(hud_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-
-                UnloadRenderTexture(highway_tex);
-                highway_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-                GenTextureMipmaps(&highway_tex.texture);
-                SetTextureFilter(highway_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-
-                UnloadRenderTexture(highwayStatus_tex);
-                highwayStatus_tex =
-                    LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-                GenTextureMipmaps(&highwayStatus_tex.texture);
-                SetTextureFilter(highwayStatus_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-
-                UnloadRenderTexture(smasher_tex);
-                smasher_tex = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-                GenTextureMipmaps(&smasher_tex.texture);
-                SetTextureFilter(smasher_tex.texture, TEXTURE_FILTER_ANISOTROPIC_4X);
-                }
+            int width = float(GetScreenWidth());
+            int height = float(GetScreenHeight());
 
             float scorePos = u.RightSide - u.hinpct(0.01f);
             float scoreY = u.hpct(0.15f);
@@ -3342,10 +3309,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 float songPlayed = audioManager.GetMusicTimePlayed();
-                double songEnd = floor(audioManager.GetMusicTimeLength())
-                        <= (songList.curSong->end <= 0 ? 0 : songList.curSong->end)
-                    ? floor(audioManager.GetMusicTimeLength())
-                    : songList.curSong->end - 0.01;
+
                 if (enctime.SongComplete()) {
                     gpr.LowerHighway();
                 }
@@ -3369,16 +3333,7 @@ int main(int argc, char *argv[]) {
                     break;
                 }
             }
-            double songEnd = floor(audioManager.GetMusicTimeLength())
-                    <= (songList.curSong->end <= 0 ? 0 : songList.curSong->end)
-                ? floor(audioManager.GetMusicTimeLength())
-                : songList.curSong->end - 0.01;
-            // menu.DrawFPS(u.LeftSide, 0);
 
-            int songPlayed = audioManager.GetMusicTimePlayed();
-            double songFloat = audioManager.GetMusicTimePlayed();
-            // player.notes = (int) songList.curSong->parts[player.instrument]->charts[
-            //	player.diff].notes.size();
             for (int pnum = 0; pnum < playerManager.PlayersActive; pnum++) {
                 switch (playerManager.PlayersActive) {
                 case (1): {
@@ -3429,12 +3384,7 @@ int main(int argc, char *argv[]) {
                 gpr.RenderGameplay(
                     playerManager.GetActivePlayer(pnum),
                     enctime.GetSongTime(),
-                    *songList.curSong,
-                    highway_tex,
-                    hud_tex,
-                    notes_tex,
-                    highwayStatus_tex,
-                    smasher_tex
+                    *songList.curSong
                 );
                 float CenterPosForText =
                     GetWorldToScreen(
@@ -3460,22 +3410,7 @@ int main(int argc, char *argv[]) {
                     WHITE
                 );
 
-                // DrawTextEx(assets.rubik,
-                // playerManager.GetActivePlayer(pnum)->Name.c_str(), {u.wpct((pnum *
-                // 0.33)+(0.33/2)),u.hpct(0.9)}, u.hinpct(0.05), 0, WHITE);
             }
-            // gpr.cameraSel = 2;
-            // gpr.renderPos = -GetScreenWidth()/4;
-            // gpr.RenderGameplay(playerManager.GetActivePlayer(1), songFloat,
-            // songList.songs[curPlayingSong], highway_tex, hud_tex, notes_tex,
-            // highwayStatus_tex, smasher_tex);
-
-            // gpr.cameraSel = 0;
-            // gpr.renderPos = 0;
-            // gpr.RenderGameplay(playerManager.GetActivePlayer(2), songFloat,
-            // songList.songs[curPlayingSong], highway_tex, 					hud_tex,
-            // notes_tex,
-            // highwayStatus_tex, smasher_tex);
 
             float SongNameWidth = MeasureTextEx(
                                       assets.rubikBoldItalic,

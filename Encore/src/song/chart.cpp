@@ -178,6 +178,11 @@ void Chart::parseNotes(
 void Chart::parsePlasticNotes(
     smf::MidiFile &midiFile, int trkidx, int diff, int instrument, int hopoThresh
 ) {
+
+    std::vector<forceOnPhrase> forcedOnPhrases;
+    std::vector<tapPhrase> tapPhrases;
+    std::vector<forceOffPhrase> forcedOffPhrases;
+    std::vector<openMarker> openMarkers;
     bool odOn = false;
     bool soloOn = false;
     bool forceOn = false;
@@ -505,7 +510,7 @@ void Chart::parsePlasticNotes(
         if (!note.valid) {
             noteIt = notes.erase(noteIt);
         } else {
-            baseScore += ((36 * note.chordSize) * mult);
+            baseScore += ((36 * note.pLanes.size()) * mult);
             // baseScore += (note.beatsLen * 12) * mult;
             if (noteIdx == 9)
                 mult = 2;
@@ -536,6 +541,10 @@ void Chart::parsePlasticSection(
     int instrument,
     int hopoThresh
 ) {
+    std::vector<forceOnPhrase> forcedOnPhrases;
+    std::vector<tapPhrase> tapPhrases;
+    std::vector<forceOffPhrase> forcedOffPhrases;
+    std::vector<openMarker> openMarkers;
     bool odOn = false;
     bool soloOn = false;
     bool forceOn = false;
@@ -856,6 +865,10 @@ void Chart::parsePlasticDrums(
      * Force On = Blue Tom
      * Force Off = Green Tom
      */
+    std::vector<forceOnPhrase> forcedOnPhrases;
+    std::vector<tapPhrase> tapPhrases;
+    std::vector<forceOffPhrase> forcedOffPhrases;
+    std::vector<openMarker> openMarkers;
     int doubleKickPitch = 95;
     notes = {};
     bool odOn = false;
