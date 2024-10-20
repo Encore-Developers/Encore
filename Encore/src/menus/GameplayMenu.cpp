@@ -8,7 +8,7 @@
 #include "overshellRenderer.h"
 #include "uiUnits.h"
 #include "song/audio.h"
-#include "song/songList.h"
+#include "song/songlist.h"
 #include "raymath.h"
 #include "raygui.h"
 #include "settings-old.h"
