@@ -1178,7 +1178,7 @@ void gameplayRenderer::RenderGameplay(
         else gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
         songPlaying = true;
         double songEnd = floor(gprAudioManager.GetMusicTimeLength())
-                                <= (song.end <= 0 ? 0 : song.end)
+                                >= (song.end <= 0 ? 0 : song.end)
                             ? floor(gprAudioManager.GetMusicTimeLength())
                             : song.end - 0.01;
         highwayInEndAnim = false;
