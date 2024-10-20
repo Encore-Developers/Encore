@@ -380,7 +380,7 @@ void gameplayRenderer::RaiseHighway() {
 };
 
 void gameplayRenderer::LowerHighway() {
-    /*
+
     if (!highwayOutAnimation) {
         startTime = GetTime();
         highwayOutAnimation = true;
@@ -396,7 +396,7 @@ void gameplayRenderer::LowerHighway() {
         );
         highwayOutEndAnim = true;
     }
-    */
+
 };
 
 void gameplayRenderer::NoteMultiplierEffect(
@@ -468,6 +468,32 @@ void gameplayRenderer::NoteMultiplierEffect(
     }
 }
 
+void gameplayRenderer::DrawRenderTexture(RenderTexture2D &render_texture) {
+    EndMode3D();
+    EndBlendMode();
+    EndTextureMode();
+    SetTextureWrap(render_texture.texture, TEXTURE_WRAP_CLAMP);
+    int height = (float)GetScreenHeight();
+    int width = (float)GetScreenWidth();
+    render_texture.texture.width = width;
+    render_texture.texture.height = height;
+    Rectangle source = { 0, 0, float(width), float(-height) };
+    Rectangle res = { 0,0,float(GetScreenWidth()), float(GetScreenHeight()) };
+    // SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, render_texture.texture);
+    // SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
+    // BeginShaderMode(gprAssets.fxaa);
+    //DrawTextureRec(render_texture.texture, res, {0}, WHITE);
+
+    DrawTexturePro(
+        render_texture.texture,
+        source,
+        res,
+        { renderPos, highwayLevel },
+        0,
+        WHITE
+    );
+    // EndShaderMode();
+}
 void gameplayRenderer::RenderPadNotes(
     Player *player, Chart &curChart, double time, RenderTexture2D &notes_tex, float length
 ) {
@@ -475,9 +501,7 @@ void gameplayRenderer::RenderPadNotes(
     float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-    BeginTextureMode(notes_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    StartRenderTexture(notes_tex);
     // glDisable(GL_CULL_FACE);
     for (int lane = 0; lane < (player->Difficulty == 3 ? 5 : 4); lane++) {
         for (int i = player->stats->curNoteIdx[lane];
@@ -610,23 +634,8 @@ void gameplayRenderer::RenderPadNotes(
         }
     }
     EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(notes_tex.texture, TEXTURE_WRAP_CLAMP);
-    notes_tex.texture.width = (float)GetScreenWidth();
-    notes_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, notes_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        notes_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+
+    DrawRenderTexture(notes_tex);
 }
 
 void gameplayRenderer::RenderClassicNotes(
@@ -636,9 +645,7 @@ void gameplayRenderer::RenderClassicNotes(
     float lineDistance = 1.5f;
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-    BeginTextureMode(notes_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    StartRenderTexture(notes_tex);
     // glDisable(GL_CULL_FACE);
     SongList &songList = SongList::getInstance();
 
@@ -803,23 +810,8 @@ void gameplayRenderer::RenderClassicNotes(
         }
     }
     EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(notes_tex.texture, TEXTURE_WRAP_CLAMP);
-    notes_tex.texture.width = (float)GetScreenWidth();
-    notes_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, notes_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        notes_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+
+    DrawRenderTexture(notes_tex);
 }
 
 void gameplayRenderer::DrawHitwindow(Player *player, float length) {
@@ -883,11 +875,9 @@ void gameplayRenderer::DrawHitwindow(Player *player, float length) {
 }
 
 void gameplayRenderer::RenderHud(Player *player, RenderTexture2D &hud_tex, float length) {
-    BeginTextureMode(hud_tex);
+    StartRenderTexture(hud_tex);
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
     BeginBlendModeSeparate();
     DrawHitwindow(player, length);
     DrawModelEx(gprAssets.odFrame, Vector3 { 0, 0.0f, 0.8f }, {0}, 0, {1.0,1.0,1.4}, WHITE);
@@ -997,25 +987,8 @@ void gameplayRenderer::RenderHud(Player *player, RenderTexture2D &hud_tex, float
        0-nameWidth,0.0,-0.5 }, fontSize, 0, 0, 1, WHITE); rlPopMatrix();
     */
 
-    EndMode3D();
-    EndTextureMode();
-    EndBlendMode();
-    SetTextureWrap(hud_tex.texture, TEXTURE_WRAP_CLAMP);
-    hud_tex.texture.width = (float)GetScreenWidth();
-    hud_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, hud_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        hud_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+
+    DrawRenderTexture(hud_tex);
 }
 
 void gameplayRenderer::RenderGameplay(
@@ -1308,6 +1281,11 @@ void gameplayRenderer::DrawHighwayMesh(
 
 };
 
+void gameplayRenderer::StartRenderTexture(RenderTexture2D &render_texture) {
+    BeginTextureMode(render_texture);
+    ClearBackground({ 0, 0, 0, 0 });
+    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+}
 void gameplayRenderer::RenderExpertHighway(
     Player *player,
     Song song,
@@ -1316,12 +1294,11 @@ void gameplayRenderer::RenderExpertHighway(
     RenderTexture2D &highwayStatus_tex,
     RenderTexture2D &smasher_tex
 ) {
-    BeginTextureMode(highway_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
-    PlayerGameplayStats *stats = player->stats;
+    StartRenderTexture(highway_tex);
     rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
     BeginBlendMode(BLEND_CUSTOM_SEPARATE);
+    PlayerGameplayStats *stats = player->stats;
+
     float diffDistance = 2.0f;
     float lineDistance = 1.5f;
     int UseIn = 1;
@@ -1350,29 +1327,9 @@ void gameplayRenderer::RenderExpertHighway(
         gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT
     );
 
-    EndBlendMode();
-    EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(highway_tex.texture, TEXTURE_WRAP_CLAMP);
-    highway_tex.texture.width = (float)GetScreenWidth();
-    highway_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, highway_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        highway_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+    DrawRenderTexture(highway_tex);
 
-    BeginTextureMode(highwayStatus_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    StartRenderTexture(highwayStatus_tex);
     BeginBlendModeSeparate();
 
 
@@ -1412,29 +1369,10 @@ void gameplayRenderer::RenderExpertHighway(
     if (song.BRE.exists) {
         DrawCoda(highwayLength, time, player);
     }
-    EndBlendMode();
-    EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(highwayStatus_tex.texture, TEXTURE_WRAP_CLAMP);
-    highwayStatus_tex.texture.width = (float)GetScreenWidth();
-    highwayStatus_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res2 = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, highwayStatus_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res2, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        highwayStatus_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
 
-    BeginTextureMode(smasher_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    DrawRenderTexture(highwayStatus_tex);
+
+    StartRenderTexture(smasher_tex);
     BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
 
 
@@ -1486,33 +1424,13 @@ void gameplayRenderer::RenderExpertHighway(
 
     }
 
-    EndBlendMode();
-    EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(smasher_tex.texture, TEXTURE_WRAP_CLAMP);
-    smasher_tex.texture.width = (float)GetScreenWidth();
-    smasher_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res3 = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, smasher_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res3, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        smasher_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+    DrawRenderTexture(smasher_tex);
 }
 
 void gameplayRenderer::RenderEmhHighway(
     Player *player, Song song, double time, RenderTexture2D &highway_tex
 ) {
-    BeginTextureMode(highway_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    StartRenderTexture(highway_tex);
 
     float diffDistance = player->Difficulty == 3 ? 2.0f : 1.5f;
     float lineDistance = player->Difficulty == 3 ? 1.5f : 1.0f;
@@ -1644,24 +1562,8 @@ void gameplayRenderer::RenderEmhHighway(
 
     EndBlendMode();
     EndMode3D();
-    EndTextureMode();
 
-    SetTextureWrap(highway_tex.texture, TEXTURE_WRAP_CLAMP);
-    highway_tex.texture.width = (float)GetScreenWidth();
-    highway_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, highway_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        highway_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { 0, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+    DrawRenderTexture(highway_tex);
 }
 
 void gameplayRenderer::DrawBeatlines(
@@ -1804,10 +1706,10 @@ void gameplayRenderer::DrawSolo(
 
         float posY = -20;
 
-        float height = -1;
+        float height = -2;
         float pctDist = 1.2;
         float praiseDist = 0;
-        float backgroundHeight = -2.2;
+        float backgroundHeight = height -1.2;
         float soloScale = 1.15;
 
         float fontSizee = 160;
@@ -1976,9 +1878,7 @@ void gameplayRenderer::RenderPDrumsNotes(
     float diffDistance = 2.0f;
     float DiffMultiplier =
         Remap(player->Difficulty, 0, 3, MinHighwaySpeed, MaxHighwaySpeed);
-    BeginTextureMode(notes_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    StartRenderTexture(notes_tex);
     // glDisable(GL_CULL_FACE);
     PlayerGameplayStats *stats = player->stats;
 
@@ -2157,24 +2057,8 @@ void gameplayRenderer::RenderPDrumsNotes(
         NoteMultiplierEffect(time, curNote.time, curNote.miss, player);
     }
     EndMode3D();
-    EndTextureMode();
 
-    SetTextureWrap(notes_tex.texture, TEXTURE_WRAP_CLAMP);
-    notes_tex.texture.width = (float)GetScreenWidth();
-    notes_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, notes_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        notes_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+    DrawRenderTexture(notes_tex);
 }
 
 void gameplayRenderer::RenderPDrumsHighway(
@@ -2185,12 +2069,11 @@ void gameplayRenderer::RenderPDrumsHighway(
     RenderTexture2D &highwayStatus_tex,
     RenderTexture2D &smasher_tex
 ) {
-    BeginTextureMode(highway_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
+    StartRenderTexture(highway_tex);
+    BeginBlendModeSeparate();
+
     PlayerGameplayStats *stats = player->stats;
-    rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
-    BeginBlendMode(BLEND_CUSTOM_SEPARATE);
+
     float diffDistance = 2.0f;
     float lineDistance = 1.5f;
 
@@ -2198,29 +2081,12 @@ void gameplayRenderer::RenderPDrumsHighway(
     float highwayPosShit = ((20) * (1 - gprSettings.highwayLengthMult));
 
     DrawHighwayMesh(player->HighwayLength, player->stats->Overdrive, player->stats->overdriveActiveTime, time);
-    EndBlendMode();
 
-    EndMode3D();
-    EndTextureMode();
+    DrawRenderTexture(highway_tex);
 
-    SetTextureWrap(highway_tex.texture, TEXTURE_WRAP_CLAMP);
-    highway_tex.texture.width = (float)GetScreenWidth();
-    highway_tex.texture.height = (float)GetScreenHeight();
-    DrawTexturePro(
-        highway_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+    StartRenderTexture(highwayStatus_tex);
+    BeginBlendModeSeparate();
 
-    BeginTextureMode(highwayStatus_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
-    rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
-    BeginBlendMode(BLEND_CUSTOM_SEPARATE);
     int DoIn = 1;
     SetShaderValue(
         gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DoIn, SHADER_UNIFORM_INT
@@ -2289,32 +2155,12 @@ void gameplayRenderer::RenderPDrumsHighway(
         &HighwayEnd,
         SHADER_UNIFORM_FLOAT
     );
-    EndBlendMode();
-    EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(highwayStatus_tex.texture, TEXTURE_WRAP_CLAMP);
-    highwayStatus_tex.texture.width = (float)GetScreenWidth();
-    highwayStatus_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, highwayStatus_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        highwayStatus_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
 
-    BeginTextureMode(smasher_tex);
-    ClearBackground({ 0, 0, 0, 0 });
-    BeginMode3D(cameraVectors[gprPlayerManager.PlayersActive - 1][cameraSel]);
-    BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
-    rlSetBlendFactorsSeparate(0x0302, 0x0303, 1, 0x0303, 0x8006, 0x8006);
-    BeginBlendMode(BLEND_CUSTOM_SEPARATE);
+    DrawRenderTexture(highwayStatus_tex);
+
+    StartRenderTexture(smasher_tex);
+    BeginBlendModeSeparate();
+
     for (int i = 0; i < 4; i++) {
         Color NoteColor = RED;
         if (i == 1)
@@ -2363,25 +2209,8 @@ void gameplayRenderer::RenderPDrumsHighway(
                 WHITE
         );
     }
-    EndBlendMode();
-    EndMode3D();
-    EndTextureMode();
-    SetTextureWrap(smasher_tex.texture, TEXTURE_WRAP_CLAMP);
-    smasher_tex.texture.width = (float)GetScreenWidth();
-    smasher_tex.texture.height = (float)GetScreenHeight();
-    Vector2 res2 = { (float)GetScreenWidth(), (float)GetScreenHeight() };
-    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, smasher_tex.texture);
-    SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res2, SHADER_UNIFORM_VEC2);
-    BeginShaderMode(gprAssets.fxaa);
-    DrawTexturePro(
-        smasher_tex.texture,
-        { 0, 0, (float)GetScreenWidth(), (float)-GetScreenHeight() },
-        { 0, 0, (float)GetScreenWidth(), (float)GetScreenHeight() },
-        { renderPos, highwayLevel },
-        0,
-        WHITE
-    );
-    EndShaderMode();
+
+    DrawRenderTexture(smasher_tex);
 }
 
 void gameplayRenderer::nDrawDrumsHitEffects(Note note, double time, float notePosX) {
@@ -2402,7 +2231,7 @@ void gameplayRenderer::nDrawDrumsHitEffects(Note note, double time, float notePo
         DrawCube(Vector3 { notePosX, yPos, smasherPos }, Width, Height, Length, BoxColor);
     }
     EndBlendMode();
-    float KickBounceDuration = 0.5f;
+    float KickBounceDuration = 0.75f;
     if (note.hit && time < note.hitTime + PerfectHitAnimDuration && note.perfect) {
         double TimeSinceHit = time - note.hitTime;
         unsigned char HitAlpha = Remap(

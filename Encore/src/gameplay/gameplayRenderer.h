@@ -37,6 +37,7 @@ class gameplayRenderer {
     void DrawHighwayMesh(
         float LengthMultiplier, bool Overdrive, float ActiveTime, float SongTime
     );
+    void StartRenderTexture(RenderTexture2D &highway_tex);
 
     void
     RenderEmhHighway(Player *player, Song song, double time, RenderTexture2D &highway_tex);
@@ -200,5 +201,6 @@ public:
     void LowerHighway();
 
     void NoteMultiplierEffect(double time, double hitTime, bool miss, Player *player);
+    void DrawRenderTexture(RenderTexture2D &notes_tex);
     double multiplierEffectTime = 1.0;
 };
