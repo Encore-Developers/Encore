@@ -10,6 +10,252 @@
 #include <random>
 #include <nlohmann/json.hpp>
 
+void PlayerGameplayStats::HitNote(bool perfect) {
+    NotesHit += 1;
+    Notes += 1;
+    Combo += 1;
+    if (Combo > MaxCombo)
+        MaxCombo = Combo;
+    float perfectMult = perfect ? 1.2f : 1.0f;
+    Score += (int)((30.0f * (multiplier()) * perfectMult));
+    PerfectHit += perfect ? 1 : 0;
+    GoodHit += perfect ? 0 : 1;
+    Mute = false;
+}
+void PlayerGameplayStats::HitDrumsNote(bool perfect, bool cymbal) {
+    NotesHit += 1;
+    Notes += 1;
+    Combo += 1;
+    if (Combo > MaxCombo)
+        MaxCombo = Combo;
+    float cymbMult = cymbal ? 1.3f : 1.0f;
+    float perfectMult = perfect ? 1.2f : 1.0f;
+    Score += (int)((30.0f * (multiplier()) * perfectMult) * cymbMult);
+    PerfectHit += perfect ? 1 : 0;
+    GoodHit += perfect ? 0 : 1;
+    Mute = false;
+}
+void PlayerGameplayStats::HitPlasticNote(Note note) {
+    FAS = false;
+    NotesHit += 1;
+    Notes += 1;
+    Combo += 1;
+    if (Combo > MaxCombo)
+        MaxCombo = Combo;
+    float perfectMult = note.perfect ? 1.2f : 1.0f;
+    Score += (note.chordSize * (int)(30.0f * (multiplier()) * perfectMult));
+    PerfectHit += note.perfect ? 1 : 0;
+    GoodHit += note.perfect ? 0 : 1;
+    curNoteInt++;
+    Mute = false;
+}
+void PlayerGameplayStats::MissNote() {
+    NotesMissed += 1;
+    Notes += 1;
+    // if (combo != 0)
+    //     playerAudioManager.playSample("miss", sfxVolume);
+    if (Combo > MaxCombo)
+        MaxCombo = Combo;
+    Combo = 0;
+    FAS = false;
+    FC = false;
+    curNoteInt++;
+    Mute = true;
+}
+void PlayerGameplayStats::OverHit() {
+    // if (combo != 0)
+    //     playerAudioManager.playSample("miss", sfxVolume);
+    Overstrum = true;
+    FAS = false;
+    if (Combo > MaxCombo)
+        MaxCombo = Combo;
+    Combo = 0;
+    Overhits += 1;
+    FC = false;
+    Mute = true;
+}
+int PlayerGameplayStats::maxMultForMeter() {
+    if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
+        return 5;
+    else
+        return 3;
+}
+int PlayerGameplayStats::maxComboForMeter() {
+    if (Instrument == PAD_BASS || Instrument == PAD_VOCALS || Instrument == PLASTIC_BASS)
+        return 50;
+    else
+        return 30;
+}
+int PlayerGameplayStats::Stars() {
+    float starPercent = (float)Score / (float)BaseScore;
+    if (starPercent < xStarThreshold[0]) {
+        return 0;
+    } else if (starPercent < xStarThreshold[1]) {
+        return 1;
+    } else if (starPercent < xStarThreshold[2]) {
+        return 2;
+    } else if (starPercent < xStarThreshold[3]) {
+        return 3;
+    } else if (starPercent < xStarThreshold[4]) {
+        return 4;
+    } else if (starPercent < xStarThreshold[5]) {
+        return 5;
+    } else if (starPercent >= xStarThreshold[5]) {
+        GoldStars = true;
+        return 5;
+    } else
+        return 5;
+
+    return 0;
+}
+int PlayerGameplayStats::multiplier() {
+    int od = Overdrive ? 2 : 1;
+
+    if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+        || Instrument == PLASTIC_BASS) {
+        if (Combo < 10) {
+            uvOffsetX = 0;
+            uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+            return 1 * od;
+        } else if (Combo < 20) {
+            uvOffsetX = 0.25f;
+            uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+            return 2 * od;
+        } else if (Combo < 30) {
+            uvOffsetX = 0.5f;
+            uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+            return 3 * od;
+        } else if (Combo < 40) {
+            uvOffsetX = 0.75f;
+            uvOffsetY = 0 + (Overdrive ? 0.5f : 0);
+            return 4 * od;
+        } else if (Combo < 50) {
+            uvOffsetX = 0;
+            uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0);
+            return 5 * od;
+        } else if (Combo >= 50) {
+            uvOffsetX = 0.25f;
+            uvOffsetY = 0.25f + (Overdrive ? 0.5f : 0);
+            return 6 * od;
+        } else {
+            return 1 * od;
+        };
+    } else {
+        if (Combo < 10) {
+            uvOffsetX = 0;
+            uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+            return 1 * od;
+        } else if (Combo < 20) {
+            uvOffsetX = 0.25f;
+            uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+            return 2 * od;
+        } else if (Combo < 30) {
+            uvOffsetX = 0.5f;
+            uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+            return 3 * od;
+        } else if (Combo >= 30) {
+            uvOffsetX = 0.75f;
+            uvOffsetY = 0 + (Overdrive ? 0.5 : 0);
+            return 4 * od;
+        } else {
+            return 1 * od;
+        }
+    };
+}
+int PlayerGameplayStats::noODmultiplier() {
+    if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+        || Instrument == PLASTIC_BASS) {
+        if (Combo < 10) {
+            uvOffsetX = 0;
+            uvOffsetY = 0;
+            return 1;
+        } else if (Combo < 20) {
+            uvOffsetX = 0.25f;
+            uvOffsetY = 0;
+            return 2;
+        } else if (Combo < 30) {
+            uvOffsetX = 0.5f;
+            uvOffsetY = 0;
+            return 3;
+        } else if (Combo < 40) {
+            uvOffsetX = 0.75f;
+            uvOffsetY = 0;
+            return 4;
+        } else if (Combo < 50) {
+            uvOffsetX = 0;
+            uvOffsetY = 0.25f;
+            return 5;
+        } else if (Combo >= 50) {
+            uvOffsetX = 0.25f;
+            uvOffsetY = 0.25f;
+            return 6;
+        } else {
+            return 1;
+        };
+    } else {
+        if (Combo < 10) {
+            uvOffsetX = 0;
+            uvOffsetY = 0;
+            return 1;
+        } else if (Combo < 20) {
+            uvOffsetX = 0.25f;
+            uvOffsetY = 0;
+            return 2;
+        } else if (Combo < 30) {
+            uvOffsetX = 0.5f;
+            uvOffsetY = 0;
+            return 3;
+        } else if (Combo >= 30) {
+            uvOffsetX = 0.75f;
+            uvOffsetY = 0;
+            return 4;
+        } else {
+            return 1;
+        }
+    };
+}
+bool PlayerGameplayStats::IsBassOrVox() {
+    if (Instrument == PAD_BASS || Instrument == PAD_VOCALS
+        || Instrument == PLASTIC_BASS) {
+        return true;
+    }
+    return false;
+}
+float PlayerGameplayStats::comboFillCalc() {
+    if (Combo == 0) {
+        return 0;
+    }
+    if (Instrument == PAD_DRUMS || Instrument == PAD_LEAD || Instrument == PAD_KEYS
+        || Instrument == PLASTIC_DRUMS || Instrument == PLASTIC_LEAD
+        || Instrument == PLASTIC_KEYS) {
+        // For instruments 0 and 2, limit the float value to 0.0 to 0.4
+        if (Combo >= 30) {
+            return 1.0f; // If combo is 30 or more, set float value to 1.0
+        } else {
+            int ComboMod = Combo % 10;
+            if (ComboMod == 0)
+                return 1.0f;
+            else {
+                return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0
+                                                               // to 0.9 every 10
+                                                               // notes
+            }
+        }
+    } else {
+        if (Combo >= 50) {
+            return 1.0f; // If combo is 30 or more, set float value to 1.0
+        }
+        // For instruments 1 and 3, limit the float value to 0.0 to 0.6
+        int ComboMod = Combo % 10;
+        if (ComboMod == 0)
+            return 1.0f;
+        else {
+            return (static_cast<float>(ComboMod) / 10.0f); // Float value from 0.0 to
+                                                           // 0.9 every 10 notes
+        }
+    }
+}
+
 Player::Player() {
     Name = "New Player";
     Difficulty = 0;
@@ -207,5 +453,12 @@ PlayerGameplayStats::PlayerGameplayStats() {
     overdriveActivateTime = 0.0;
 
     BaseScore = 0;
+}
+int PlayerGameplayStats::ScoreToDisplay() {
+    int scoreToReturn = Score;
+    for (auto buf : SustainScoreBuffer) {
+        scoreToReturn += buf;
+    }
+    return scoreToReturn;
 }
 
