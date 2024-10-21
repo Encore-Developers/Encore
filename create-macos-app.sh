@@ -29,7 +29,8 @@ codesign --force --deep -s - out/Encore.app
 cp -r build_macos/Encore/Songs out/Songs
 
 # -- !! TEMPORARY INDEV HACK !! --
-cp build_macos/Encore/players.json out/players.json
+# not anymore, but keeping just in case
+# cp build_macos/Encore/players.json out/players.json
 # -- !! TEMPORARY INDEV HACK !! --
 
 echo "Copy the Encore app and the Songs folder to a folder on your computer." > out/Copy_to_your_computer!.txt
