@@ -156,7 +156,7 @@ public:
     float comboFillCalc();
 };
 
-#define PLAYER_CONFIG_LIST                                     \
+#define PLAYER_JSON_SETTINGS                                     \
     SETTING_ACTION(int,     Difficulty,         "diff")         \
     SETTING_ACTION(int,     Instrument,         "inst")         \
     SETTING_ACTION(float,   InputCalibration,   "inputOffset")  \
@@ -166,6 +166,17 @@ public:
     SETTING_ACTION(float,   HighwayLength,      "length")       \
     SETTING_ACTION(bool,    ClassicMode,        "classic")      \
     SETTING_ACTION(bool,    LeftyFlip,          "lefty")
+
+#define PLAYER_CONFIG_LIST                                     \
+    SETTING_ACTION(int,     Difficulty)         \
+    SETTING_ACTION(int,     Instrument)         \
+    SETTING_ACTION(float,   InputCalibration)  \
+    SETTING_ACTION(float,   NoteSpeed)    \
+    SETTING_ACTION(bool,    ProDrums)     \
+    SETTING_ACTION(bool,    Bot)          \
+    SETTING_ACTION(float,   HighwayLength)       \
+    SETTING_ACTION(bool,    ClassicMode)      \
+    SETTING_ACTION(bool,    LeftyFlip)
 
 class Player {
 public:
