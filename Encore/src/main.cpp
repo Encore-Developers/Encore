@@ -923,6 +923,8 @@ int main(int argc, char *argv[]) {
                 ActiveMenu->Load();
                 break;
             } case GAMEPLAY: {
+                glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+                glfwSetGamepadStateCallback(gamepadStateCallback);
                 ActiveMenu = new GameplayMenu;
                 ActiveMenu->Load();
                 break;
