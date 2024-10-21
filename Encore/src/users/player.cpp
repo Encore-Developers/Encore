@@ -256,12 +256,17 @@ float PlayerGameplayStats::comboFillCalc() {
     }
 }
 
-Player::Player() {
+Player::Player()  {
     Name = "New Player";
     Difficulty = 0;
     Instrument = 0;
     ReadiedUpBefore = false;
     Bot = false;
+
+    InputCalibration = 0;
+    NoteSpeed = 1;
+    ProDrums = false;
+    HighwayLength = 1;
 
     // gen stuff, move to own function (thanks https://github.com/mariusbancila/stduuid)
     std::random_device rd;

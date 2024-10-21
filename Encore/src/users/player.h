@@ -196,7 +196,7 @@ public:
     int joypadID;
     bool ReadiedUpBefore;
     bool Online;
-    int ActiveSlot;
+    int ActiveSlot{};
 
     void ResetGameplayStats();
 

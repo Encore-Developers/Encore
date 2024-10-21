@@ -11,17 +11,24 @@ public:
     PlayerManager();
     ~PlayerManager();
     void MakePlayerDirectory(); // run on initialization?
-    void LoadPlayerList(std::filesystem::path PlayerListSaveFile); // make player, load
+    void LoadPlayerList(); // make player, load
     // player stuff to
     // PlayerList
-    void SavePlayerList(std::filesystem::path PlayerListSaveFile);
+    void SavePlayerList();
+    void SaveSpecificPlayer(int slot);
     BandGameplayStats BandStats = BandGameplayStats();
-    rapidjson::Document PlayerListFile;
+    std::filesystem::path PlayerListSaveFile;
     std::vector<Player> PlayerList;
     std::vector<int> ActivePlayers { -1, -1, -1, -1 };
     int PlayersActive = 0;
 
-    Player *GetActivePlayer(int slot) { return &PlayerList.at(ActivePlayers.at(slot)); }
+    Player *GetActivePlayer(int slot) {
+        return &PlayerList.at(ActivePlayers.at(slot));
+    }
+
+    void SetPlayerListSaveFileLocation(std::filesystem::path file) {
+        PlayerListSaveFile = file;
+    }
 
     void AddActivePlayer(int playerNum, int slot) {
         ActivePlayers.at(slot) = playerNum;
@@ -52,7 +59,7 @@ public:
         return nullptr;
     }
 
-    void CreatePlayer(Player player);
+    void CreatePlayer(std::string name);
     void DeletePlayer(Player PlayerToDelete); // remove player, reload playerlist
     void RenamePlayer(Player PlayerToRename); // rename player
 };

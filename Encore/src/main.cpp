@@ -697,14 +697,14 @@ int main(int argc, char *argv[]) {
     }
 #endif
     settingsMain.setDirectory(directory);
-
+    ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     if (std::filesystem::exists(directory / "keybinds.json")) {
         settingsMain.migrateSettings(
             directory / "keybinds.json", directory / "settings.json"
         );
     }
     settingsMain.loadSettings(directory / "settings.json");
-    ThePlayerManager.LoadPlayerList(directory / "players.json");
+    ThePlayerManager.LoadPlayerList();
     // player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
     // player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
     bool removeFPSLimit = 0;
@@ -744,93 +744,6 @@ int main(int argc, char *argv[]) {
     audioManager.Init();
     SetExitKey(0);
     audioManager.loadSample("Assets/combobreak.mp3", "miss");
-
-    // Y UP!!!! REMEMBER!!!!!!
-    //							  x,    y,     z
-    //                         0.0f, 5.0f, -3.5f
-    //								 6.5f
-
-    // singleplayer
-    // 0.0f, 0.0f, 6.5f
-    float Height = 7.25f;
-    float Back = -10.0f;
-    float FOV = 45.0f;
-    float TargetDistance = 20.0f;
-    TheGameRenderer.camera1p.position = Vector3 { 0.0f, Height, Back };
-    TheGameRenderer.camera1p.target = Vector3 { 0.0f, 0.0f, TargetDistance };
-    TheGameRenderer.camera1p.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera1p.fovy = FOV;
-
-    TheGameRenderer.camera1pVector.push_back(TheGameRenderer.camera1p);
-
-    // 2 player
-    float SideDisplacement2p = 0.75f;
-
-    TheGameRenderer.camera2p1.position = Vector3 { SideDisplacement2p, Height, Back };
-    TheGameRenderer.camera2p1.target = Vector3 { SideDisplacement2p, 0.0f, TargetDistance };
-    TheGameRenderer.camera2p1.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera2p1.fovy = FOV;
-
-    TheGameRenderer.camera2p2.position = Vector3 { -SideDisplacement2p, Height, Back };
-    TheGameRenderer.camera2p2.target = Vector3 { -SideDisplacement2p, 0.0f, TargetDistance };
-    TheGameRenderer.camera2p2.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera2p2.fovy = FOV;
-
-    TheGameRenderer.camera2pVector.push_back(TheGameRenderer.camera2p1);
-    TheGameRenderer.camera2pVector.push_back(TheGameRenderer.camera2p2);
-
-    // 3 player
-    float SideDisplacement3p = 1.25f;
-    TheGameRenderer.camera3p1.position = Vector3 { 0.0f, Height, Back };
-    TheGameRenderer.camera3p1.target = Vector3 { 0.0f, 0.0f, TargetDistance };
-    TheGameRenderer.camera3p1.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera3p1.fovy = FOV;
-    TheGameRenderer.camera3pVector.push_back(TheGameRenderer.camera3p1);
-
-    TheGameRenderer.camera3p2.position = Vector3 { SideDisplacement3p, Height, Back };
-    TheGameRenderer.camera3p2.target = Vector3 { SideDisplacement3p, 0.0f, TargetDistance };
-    TheGameRenderer.camera3p2.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera3p2.fovy = FOV;
-    TheGameRenderer.camera3pVector.push_back(TheGameRenderer.camera3p2);
-
-    TheGameRenderer.camera3p3.position = Vector3 { -SideDisplacement3p, Height, Back };
-    TheGameRenderer.camera3p3.target = Vector3 { -SideDisplacement3p, 0.0f, TargetDistance };
-    TheGameRenderer.camera3p3.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera3p3.fovy = FOV;
-    TheGameRenderer.camera3pVector.push_back(TheGameRenderer.camera3p3);
-
-    float SideDisplacement4p = 3.0f;
-    float SideDisplacement4p2 = 1.0f;
-    float Back4p = -10.0f;
-    float Height4p = 10.0f;
-    TheGameRenderer.camera4p1.position = Vector3 { SideDisplacement4p2, Height4p, Back4p };
-    TheGameRenderer.camera4p1.target = Vector3 { SideDisplacement4p2, 0.0f, TargetDistance };
-    TheGameRenderer.camera4p1.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera4p1.fovy = FOV;
-    TheGameRenderer.camera4pVector.push_back(TheGameRenderer.camera4p1);
-
-    TheGameRenderer.camera4p2.position = Vector3 { SideDisplacement4p, Height4p, Back4p };
-    TheGameRenderer.camera4p2.target = Vector3 { SideDisplacement4p, 0.0f, TargetDistance };
-    TheGameRenderer.camera4p2.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera4p2.fovy = FOV;
-    TheGameRenderer.camera4pVector.push_back(TheGameRenderer.camera4p2);
-
-    TheGameRenderer.camera4p3.position = Vector3 { -SideDisplacement4p, Height4p, Back4p };
-    TheGameRenderer.camera4p3.target = Vector3 { -SideDisplacement4p, 0.0f, TargetDistance };
-    TheGameRenderer.camera4p3.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera4p3.fovy = FOV;
-    TheGameRenderer.camera4pVector.push_back(TheGameRenderer.camera4p3);
-
-    TheGameRenderer.camera4p4.position = Vector3 { -SideDisplacement4p2, Height4p, Back4p };
-    TheGameRenderer.camera4p4.target = Vector3 { -SideDisplacement4p2, 0.0f, TargetDistance };
-    TheGameRenderer.camera4p4.up = Vector3 { 0.0f, 1.0f, 0.0f };
-    TheGameRenderer.camera4p4.fovy = FOV;
-    TheGameRenderer.camera4pVector.push_back(TheGameRenderer.camera4p4);
-
-    TheGameRenderer.cameraVectors.push_back(TheGameRenderer.camera1pVector);
-    TheGameRenderer.cameraVectors.push_back(TheGameRenderer.camera2pVector);
-    TheGameRenderer.cameraVectors.push_back(TheGameRenderer.camera3pVector);
-    TheGameRenderer.cameraVectors.push_back(TheGameRenderer.camera4pVector);
 
     char trackSpeedStr[256];
     snprintf(
@@ -935,13 +848,6 @@ int main(int argc, char *argv[]) {
 
         switch (menu.currentScreen) {
         case MENU: {
-            // if (!menu.songsLoaded) {
-            //	if (std::filesystem::exists("songCache.encr")) {
-            //		TheSongList.LoadCache(settingsMain.songPaths);
-            //		menu.songsLoaded = true;
-            //	}
-            // }
-
             menu.loadMainMenu();
             break;
         }
@@ -3032,8 +2938,7 @@ int main(int argc, char *argv[]) {
                         // TheGameRenderer.highwayInAnimation = false;
                         // TheGameRenderer.songStartTime = GetTime();
                         menu.SwitchScreen(CHART_LOADING_SCREEN);
-                        glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-                        glfwSetGamepadStateCallback(gamepadStateCallback);
+
                     }
                     GuiSetStyle(
                         BUTTON,

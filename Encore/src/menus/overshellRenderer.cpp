@@ -19,7 +19,8 @@ enum OSState {
     OS_ATTRACT,
     OS_PLAYER_SELECTION,
     OS_OPTIONS,
-    OS_INSTRUMENT_SELECTIONS
+    OS_INSTRUMENT_SELECTIONS,
+    CREATION
 };
 
 int OvershellState[4] { OS_ATTRACT, OS_ATTRACT, OS_ATTRACT, OS_ATTRACT };
@@ -48,26 +49,26 @@ void DrawBeacon(int slot, float x, float y, float width, float height, bool top)
 bool DrawOvershellRectangleHeader(
     float x, float y, float width, float height, std::string username, Color accentColor
 ) {
-
     Assets &assets = Assets::getInstance();
     Units &unit = Units::getInstance();
     Rectangle RectPos = { x, y, width, height * 2 };
     bool toReturn = GuiButton({ x, y, width, height }, "");
-    DrawRectangleRounded(RectPos, 0.40f, 8, ColorBrightness(accentColor, -0.5f));
     // float Inset = unit.winpct(0.001f);
     // float InsetDouble = Inset * 2;
     // DrawRectangleRounded(
     //     {RectPos.x + Inset, RectPos.y + Inset, RectPos.width - (InsetDouble*1.25f),
     //     RectPos.height - InsetDouble}, 0.40f, 5, ColorBrightness(accentColor, -0.75f)
     //);
-
+    BeginScissorMode(x, y, width + 2, height);
+    DrawRectangleRounded(RectPos, 0.40f, 8, ColorBrightness(accentColor, -0.5f));
+    EndScissorMode();
 
     float centerPos = x + (width / 2);
     GameMenu::mhDrawText(
         assets.redHatDisplayBlack,
         username.c_str(),
-        { centerPos, (height/4) + y },
-        (height/2),
+        { centerPos, (height / 4) + y },
+        (height / 2),
         WHITE,
         assets.sdfShader,
         CENTER
@@ -169,7 +170,42 @@ bool OvershellSlider(
           height },
         TextFormat("%1.1f", *value)
     );
-    return GuiButton(confirmBounds, "<");
+    *value = (round(*value / step) * step);
+
+    if (GuiButton(confirmBounds, "<")) {
+        return true;
+    };
+    return false;
+}
+
+bool OvershellCheckbox(int slot, int x, std::string string, bool initialVal) {
+    Units &unit = Units::getInstance();
+    float OvershellLeftLoc =
+        (unit.wpct(0.125) + (unit.winpct(0.25) * slot)) - unit.winpct(0.1);
+    float height = unit.winpct(0.03f);
+    float widthNoHeight = unit.winpct(0.2f);
+    Rectangle bounds = { OvershellLeftLoc + height,
+                         unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+                         unit.winpct(0.2f) - height - height,
+                         height };
+    Rectangle confirmBounds = { OvershellLeftLoc + widthNoHeight,
+                                unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+                                height,
+                                height };
+    Assets &assets = Assets::getInstance();
+
+    if (GuiButton(
+            { OvershellLeftLoc,
+              unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+              widthNoHeight,
+              height },
+            string.c_str()
+        )) {
+        initialVal = !initialVal;
+    }
+
+    DrawRectanglePro(confirmBounds, { 0 }, 0, initialVal ? GREEN : RED);
+    return initialVal;
 }
 
 bool BNSetting = false;
@@ -202,8 +238,37 @@ void OvershellRenderer::DrawBottomOvershell() {
         float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25) * i));
         float HalfWidth = OvershellCenterLoc - OvershellLeftLoc;
         switch (OvershellState[i]) {
+        case CREATION: {
+            static char name[32] = { 0 };
+            Rectangle textBoxPosition { OvershellLeftLoc,
+                                        unit.hpct(1.0f) - (unit.winpct(0.03f) * 3),
+                                        unit.winpct(0.2f),
+                                        unit.winpct(0.03f) };
+            GuiTextBox(textBoxPosition, name, 32, true);
+            if (MenuButton(i, 1, "Confirm")) {
+                playerManager.CreatePlayer(name);
+                playerManager.AddActivePlayer(playerManager.PlayerList.size() - 1, i);
+                CanMouseClick = true;
+                OvershellState[i] = OS_ATTRACT;
+                continue;
+            }
+            if (MenuButton(i, 0, "Cancel")) {
+                OvershellState[i] = CREATION;
+                continue;
+            }
+            break;
+        }
         case OS_PLAYER_SELECTION: {
             // for selecting players
+            float InfoLoc = (playerManager.PlayerList.size() + 2);
+            DrawOvershellRectangleHeader(
+                OvershellLeftLoc,
+                OvershellTopLoc - (ButtonHeight * InfoLoc),
+                unit.winpct(0.2f),
+                unit.winpct(0.05f),
+                "Select a player",
+                Color { 255, 0, 255, 255 }
+            );
             if (GuiButton(
                     { OvershellLeftLoc,
                       unit.hpct(1.0f) - (unit.winpct(0.03f)),
@@ -224,27 +289,22 @@ void OvershellRenderer::DrawBottomOvershell() {
                 Color { 255, 0, 0, 128 }
             );
             EndBlendMode();
-            for (int x = 0; x < playerManager.PlayerList.size(); x++) {
-                if (playerManager.ActivePlayers[i] == -1) {
-                    if (MenuButton(i, x + 1, playerManager.PlayerList[x].Name.c_str())) {
-                        playerManager.AddActivePlayer(x, i);
-                        CanMouseClick = true;
-                        OvershellState[i] = OS_ATTRACT;
-                        continue;
+            if (!playerManager.PlayerList.empty()) {
+                for (int x = 0; x < playerManager.PlayerList.size(); x++) {
+                    if (playerManager.ActivePlayers[i] == -1) {
+                        if (MenuButton(
+                                i, x + 1, playerManager.PlayerList[x].Name.c_str()
+                            )) {
+                            playerManager.AddActivePlayer(x, i);
+                            CanMouseClick = true;
+                            OvershellState[i] = OS_ATTRACT;
+                        }
                     }
                 }
             }
-
-            float InfoLoc = unit.winpct(0.03f) * (playerManager.PlayerList.size() + 1);
-            DrawOvershellRectangleHeader(
-                                OvershellLeftLoc,
-                                OvershellTopLoc - (ButtonHeight * InfoLoc),
-                                unit.winpct(0.2f),
-                                unit.winpct(0.05f),
-                                "Select a player",
-                                Color{255,0,255,255}
-                            );
-
+            if (MenuButton(i, playerManager.PlayerList.size() + 1, "New Profile")) {
+                OvershellState[i] = CREATION;
+            }
             break;
         }
         case OS_OPTIONS: {
@@ -272,7 +332,7 @@ void OvershellRenderer::DrawBottomOvershell() {
                         3,
                         "Breakneck Speed",
                         &playerManager.GetActivePlayer(i)->NoteSpeed,
-                        1,
+                        0.25,
                         0.25,
                         3
                     )) {
@@ -284,17 +344,18 @@ void OvershellRenderer::DrawBottomOvershell() {
                 OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
                 break;
             }
-            if (MenuButton(i, 2, "Toggle Bot")) {
-                playerManager.GetActivePlayer(i)->Bot =
-                    !playerManager.GetActivePlayer(i)->Bot;
-            }
+            playerManager.GetActivePlayer(i)->Bot =
+                OvershellCheckbox(i, 2, "Bot", playerManager.GetActivePlayer(i)->Bot);
+
             if (MenuButton(i, 1, "Drop Out")) {
+                playerManager.SaveSpecificPlayer(i);
                 playerManager.RemoveActivePlayer(i);
                 OvershellState[i] = OS_ATTRACT;
                 CanMouseClick = true;
                 continue;
             }
             if (MenuButton(i, 0, "Cancel")) {
+                playerManager.SaveSpecificPlayer(i);
                 OvershellState[i] = OS_ATTRACT;
                 CanMouseClick = true;
             }
@@ -344,23 +405,24 @@ void OvershellRenderer::DrawBottomOvershell() {
                     };
                 } else {
                     if (DrawOvershellRectangleHeader(
-                        OvershellLeftLoc,
-                        OvershellTopLoc + unit.winpct(0.01f),
-                        unit.winpct(0.2f),
-                        unit.winpct(0.04f),
-                        "CONNECT CONTROLLER",
-                        {0}
+                            OvershellLeftLoc,
+                            OvershellTopLoc + unit.winpct(0.01f),
+                            unit.winpct(0.2f),
+                            unit.winpct(0.04f),
+                            "CONNECT CONTROLLER",
+                            { 0 }
                         )) {
                         CanMouseClick = false;
                         OvershellState[i] = OS_PLAYER_SELECTION;
                         gameMenu.shouldBreak = true;
                         continue;
-                        };;
+                    };
+                    ;
                 }
             }
 
             break;
-            }
+        }
         case OS_INSTRUMENT_SELECTIONS: {
             int ButtonHeight = unit.winpct(0.03f);
 
