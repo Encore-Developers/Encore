@@ -49,7 +49,20 @@ void PlayerManager::LoadPlayerList() {
                 newPlayer.AccentColor = { 255, 0, 255, 255 };
 
             TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
-            PlayerList.push_back(std::move(newPlayer));
+            if (newPlayer.PlayerID == "3" || newPlayer.PlayerID == "6" || newPlayer.PlayerID == "1") {
+                // FOR GOOD MEASURE SO PEOPLE DONT HAVE TO ASK
+                Encore::EncoreLog(LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::EncoreLog(LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::EncoreLog(LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::EncoreLog(LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::EncoreLog(LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+
+                remove(PlayerListSaveFile);
+            } else {
+                PlayerList.push_back(std::move(newPlayer));
+            }
+
+
         };
     } catch (const std::exception &e) {
         Encore::EncoreLog(
