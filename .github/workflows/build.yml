@@ -32,7 +32,7 @@ jobs:
 
     - name: Move Assets/Songs folders and bass.dll x64
       working-directory: ${{github.workspace}}/build_x64/Encore
-      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll ; move players.json Release/players.json
+      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll
         
     - uses: actions/upload-artifact@v4
       with:
@@ -56,7 +56,7 @@ jobs:
 
     - name: Move Assets/Songs folders and bass.dll x86
       working-directory: ${{github.workspace}}/build_x86/Encore
-      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll ; move players.json Release/players.json
+      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll
 
     - uses: actions/upload-artifact@v4
       with:
