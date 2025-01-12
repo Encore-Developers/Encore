@@ -33,7 +33,10 @@ struct EncEventVect {
     }
 
     virtual bool Perfect(int curEvent) {
-        return events[curEvent].NotesHit == events[curEvent].NoteCount;
+        if (!events.empty()) {
+            return events[curEvent].NotesHit == events[curEvent].NoteCount;
+        }
+        return false;
     }
 
     virtual void UpdateEventViaNote(Note& note, int curEvent) {
