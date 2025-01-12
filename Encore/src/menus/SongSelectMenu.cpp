@@ -13,7 +13,7 @@
 #include "gameplay/gameplayRenderer.h"
 #include "song/songlist.h"
 
-int songSelectOffset = 0;
+
 SortType currentSortValue = SortType::Title;
 Color AccentColor = {255,0,255,255};
 
@@ -21,7 +21,7 @@ void SongSelectMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     SetTextureWrap(TheSongList.curSong->albumArtBlur, TEXTURE_WRAP_REPEAT);
     SetTextureFilter(TheSongList.curSong->albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
-    songSelectOffset = TheSongList.curSong->songListPos - 5;
+    TheSongList.SongSelectOffset = TheSongList.curSong->songListPos - 5;
     TheGameRenderer.streamsLoaded = false;
     TheGameRenderer.midiLoaded = false;
 }
@@ -48,18 +48,18 @@ void SongSelectMenu::Draw() {
     Vector2 mouseWheel = GetMouseWheelMoveV();
     int lastIntChosen = (int)mouseWheel.y;
     // set to specified height
-    if (songSelectOffset <= TheSongList.listMenuEntries.size() && songSelectOffset >= 1
+    if (TheSongList.SongSelectOffset <= TheSongList.listMenuEntries.size() && TheSongList.SongSelectOffset >= 1
         && TheSongList.listMenuEntries.size() >= 10) {
-        songSelectOffset -= (int)mouseWheel.y;
+        TheSongList.SongSelectOffset -= (int)mouseWheel.y;
     }
 
     // prevent going past top
-    if (songSelectOffset < 1)
-        songSelectOffset = 1;
+    if (TheSongList.SongSelectOffset < 1)
+        TheSongList.SongSelectOffset = 1;
 
     // prevent going past bottom
-    if (songSelectOffset >= TheSongList.listMenuEntries.size() - 10)
-        songSelectOffset = TheSongList.listMenuEntries.size() - 10;
+    if (TheSongList.SongSelectOffset >= TheSongList.listMenuEntries.size() - 10)
+        TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
 
     // todo(3drosalia): clean this shit up after changing it
 
@@ -138,15 +138,15 @@ void SongSelectMenu::Draw() {
         );
     }
 
-    for (int i = songSelectOffset;
-         i < TheSongList.listMenuEntries.size() && i < songSelectOffset + 10;
+    for (int i = TheSongList.SongSelectOffset;
+         i < TheSongList.listMenuEntries.size() && i < TheSongList.SongSelectOffset + 10;
          i++) {
         if (TheSongList.listMenuEntries.size() == i)
             break;
         if (TheSongList.listMenuEntries[i].isHeader) {
             float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
             float songYPos = std::floor(
-                (u.hpct(0.266666f)) + ((songEntryHeight) * ((i - songSelectOffset)))
+                (u.hpct(0.266666f)) + ((songEntryHeight) * ((i - TheSongList.SongSelectOffset)))
             );
             DrawRectangle(
                 0,
@@ -179,7 +179,7 @@ void SongSelectMenu::Draw() {
             // std::to_string(i), EaseOutCirc, 0.4f);
             float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
             float songYPos = std::floor(
-                (u.hpct(0.266666f)) + ((songEntryHeight) * ((i - songSelectOffset)))
+                (u.hpct(0.266666f)) + ((songEntryHeight) * ((i - TheSongList.SongSelectOffset)))
             );
             GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
@@ -312,63 +312,63 @@ void SongSelectMenu::Draw() {
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
     // TODO: replace this with actual sorting/category hiding
-    if (songSelectOffset > 0) {
+    if (TheSongList.SongSelectOffset > 0) {
         std::string SongTitleForCharThingyThatsTemporary =
-            TheSongList.listMenuEntries[songSelectOffset].headerChar;
+            TheSongList.listMenuEntries[TheSongList.SongSelectOffset].headerChar;
         switch (currentSortValue) {
         case SortType::Title: {
-            if (TheSongList.listMenuEntries[songSelectOffset].isHeader) {
+            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
                 SongTitleForCharThingyThatsTemporary =
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset - 1].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
                         .title[0];
             } else {
                 SongTitleForCharThingyThatsTemporary =
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
                         .title[0];
             }
             break;
         }
         case SortType::Artist: {
-            if (TheSongList.listMenuEntries[songSelectOffset].isHeader) {
+            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
                 SongTitleForCharThingyThatsTemporary =
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset - 1].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
                         .artist[0];
             } else {
                 SongTitleForCharThingyThatsTemporary =
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
                         .artist[0];
             }
             break;
         }
         case SortType::Source: {
-            if (TheSongList.listMenuEntries[songSelectOffset].isHeader) {
+            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
                 SongTitleForCharThingyThatsTemporary =
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset - 1].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
                         .source;
             } else {
                 SongTitleForCharThingyThatsTemporary =
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
                         .source;
             }
             break;
         }
         case SortType::Length: {
-            if (TheSongList.listMenuEntries[songSelectOffset].isHeader) {
+            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
                 SongTitleForCharThingyThatsTemporary = std::to_string(
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset - 1].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
                         .length
                 );
             } else {
                 SongTitleForCharThingyThatsTemporary = std::to_string(
                     TheSongList
-                        .songs[TheSongList.listMenuEntries[songSelectOffset].songListID]
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
                         .length
                 );
             }
@@ -463,9 +463,9 @@ void SongSelectMenu::Draw() {
     GuiSetStyle(SCROLLBAR, BACKGROUND_COLOR, 0x181827FF);
     GuiSetStyle(SCROLLBAR, SCROLL_SLIDER_SIZE, u.hinpct(0.03f));
     /*
-    songSelectOffset = GuiScrollBar(
+    TheSongList.SongSelectOffset = GuiScrollBar(
         { ScrollbarLeft, ScrollbarTop, (float)(AlbumInner * 2), ScrollbarHeight },
-        songSelectOffset,
+        TheSongList.SongSelectOffset,
         1,
         TheSongList.listMenuEntries.size() - 10
     );

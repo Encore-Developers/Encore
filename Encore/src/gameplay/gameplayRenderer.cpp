@@ -733,7 +733,7 @@ void gameplayRenderer::ProcessSustainScoring(
 void gameplayRenderer::AddSustainPoints(int lane, PlayerGameplayStats *&stats) {
     stats->Score += stats->SustainScoreBuffer[lane];
     stats->SustainScore += stats->SustainScoreBuffer[lane];
-    ThePlayerManager.BandStats.Score += stats->SustainScoreBuffer[lane];
+    ThePlayerManager.BandStats->Score += stats->SustainScoreBuffer[lane];
     stats->SustainScoreBuffer[lane] = 0;
 }
 
@@ -803,8 +803,8 @@ void gameplayRenderer::RenderPadNotes(
                     curNote.hit = true;
                     player.stats->LastPerfectTime = curNote.hitTime;
                     player.stats->HitNote(false);
-                    if (ThePlayerManager.BandStats.Multiplayer) {
-                        ThePlayerManager.BandStats.AddNotePoint(
+                    if (ThePlayerManager.BandStats->Multiplayer) {
+                        ThePlayerManager.BandStats->AddNotePoint(
                             curNote.perfect, player.stats->noODmultiplier()
                         );
                     }
@@ -926,7 +926,7 @@ void gameplayRenderer::CheckPlasticNotes(
             && curNote.time + player.InputCalibration < curSongTime
             && stats->curNoteInt < curChart.notes.size() && !TheSongTime.SongComplete()) {
             curNote.cHitNote(curSongTime, 0);
-            ThePlayerManager.BandStats.AddClassicNotePoint(
+            ThePlayerManager.BandStats->AddClassicNotePoint(
                 curNote.perfect, stats->noODmultiplier(), curNote.chordSize
             );
 
@@ -949,10 +949,10 @@ void gameplayRenderer::CheckPlasticNotes(
 void gameplayRenderer::CalculateSustainScore(PlayerGameplayStats *&stats) {
     double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
     stats->SustainScore += (CurrentTick - stats->LastTick) * PointsPerTick;
-    ThePlayerManager.BandStats.SustainScore +=
+    ThePlayerManager.BandStats->SustainScore +=
         (CurrentTick - stats->LastTick) * PointsPerTick;
     stats->Score += (CurrentTick - stats->LastTick) * PointsPerTick;
-    ThePlayerManager.BandStats.Score += (CurrentTick - stats->LastTick) * PointsPerTick;
+    ThePlayerManager.BandStats->Score += (CurrentTick - stats->LastTick) * PointsPerTick;
 }
 
 float HealthToBrutalPosition(float health, float highwayLength) {
@@ -1522,8 +1522,8 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
             player.stats->overdriveFill = 0;
             player.stats->overdriveActiveFill = 0;
             player.stats->overdriveActiveTime = 0.0;
-            ThePlayerManager.BandStats.PlayersInOverdrive -= 1;
-            ThePlayerManager.BandStats.Overdrive = false;
+            ThePlayerManager.BandStats->PlayersInOverdrive -= 1;
+            ThePlayerManager.BandStats->Overdrive = false;
         }
     }
 
@@ -2315,7 +2315,7 @@ void gameplayRenderer::RenderPDrumsNotes(
                 && !TheSongTime.SongComplete()) {
                 curNote.hit = true;
                 player.stats->HitDrumsNote(true, !curNote.pDrumTom);
-                ThePlayerManager.BandStats.DrumNotePoint(
+                ThePlayerManager.BandStats->DrumNotePoint(
                     true, player.stats->noODmultiplier(), !curNote.pDrumTom
                 );
 
@@ -2334,8 +2334,8 @@ void gameplayRenderer::RenderPDrumsNotes(
                     stats->Overdrive = true;
                     stats->overdriveHitAvailable = true;
                     stats->overdriveHitTime = curSongTime;
-                    ThePlayerManager.BandStats.PlayersInOverdrive += 1;
-                    ThePlayerManager.BandStats.Overdrive = true;
+                    ThePlayerManager.BandStats->PlayersInOverdrive += 1;
+                    ThePlayerManager.BandStats->Overdrive = true;
                 }
             }
         }

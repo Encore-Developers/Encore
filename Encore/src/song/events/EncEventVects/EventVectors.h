@@ -102,7 +102,7 @@ struct SectionEvents final : EncEventVect<section> {
                 if (note.miss) {
                     ++events[curEvent].NoteCount;
                 }
-                }
+            }
         }
     }
 };

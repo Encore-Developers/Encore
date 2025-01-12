@@ -21,7 +21,7 @@ class resultsMenu : public OvershellMenu {
         PlayerGameplayStats *&stats, float xPos, float yPos, float scale, bool left
     );
     void
-    renderStars(BandGameplayStats &stats, float xPos, float yPos, float scale, bool left);
+    renderStars(BandGameplayStats *&stats, float xPos, float yPos, float scale, bool left);
 
 public:
     resultsMenu();

@@ -101,7 +101,7 @@ void InputHandler::CheckPlasticInputs(
         curNote.cHitNote(eventTime, player.InputCalibration);
         // TODO: fix for plastic
         stats->HitPlasticNote(curNote);
-        playerManager.BandStats.AddClassicNotePoint(
+        ThePlayerManager.BandStats->AddClassicNotePoint(
             curNote.perfect, stats->noODmultiplier(), curNote.chordSize
         );
         if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
@@ -142,8 +142,8 @@ void InputHandler::handleInputs(Player &player, int lane, int action) {
             stats->overdriveHitAvailable = true;
             stats->overdriveHitTime = eventTime;
 
-            playerManager.BandStats.PlayersInOverdrive += 1;
-            playerManager.BandStats.Overdrive = true;
+            ThePlayerManager.BandStats->PlayersInOverdrive += 1;
+            ThePlayerManager.BandStats->Overdrive = true;
         }
 
         if (!player.ClassicMode) {
@@ -196,7 +196,7 @@ void InputHandler::CheckPadInputs(Player &player, int lane, int action, double e
             stats->lastHitLifts[lane] =
                 curChart.notes_perlane[lane][stats->curNoteIdx[lane]];
         }
-        playerManager.BandStats.AddNotePoint(curNote.perfect, stats->noODmultiplier());
+        ThePlayerManager.BandStats->AddNotePoint(curNote.perfect, stats->noODmultiplier());
         if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
             && stats->Combo % 10 == 0) {
             stats->MultiplierEffectTime = eventTime;
@@ -259,7 +259,7 @@ void InputHandler::CheckPadInputs(Player &player, int lane, int action, double e
                     break;
                 stats->overdriveLanesHit[newlane] = PressToHitNote;
                 stats->HitNote(chordNote.perfect);
-                playerManager.BandStats.AddNotePoint(
+                ThePlayerManager.BandStats->AddNotePoint(
                     chordNote.perfect, stats->multiplier()
                 );
                 stats->overdriveHitAvailable = !PressToHitNote;
@@ -300,7 +300,7 @@ curChart.notes_perlane[lane][stats->curNoteIdx[lane]];
         stats->HitNote(curNote.perfect);
         if (curNote.perfect)
             stats->LastPerfectTime = curNote.hitTime;
-        playerManager.BandStats.AddNotePoint(curNote.perfect, stats->multiplier());
+        ThePlayerManager.BandStats->AddNotePoint(curNote.perfect, stats->multiplier());
         if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
             && stats->Combo % 10 == 0) {
             stats->MultiplierEffectTime = eventTime;

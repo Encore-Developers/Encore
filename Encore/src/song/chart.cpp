@@ -24,7 +24,7 @@ void Chart::parseNotes(
     int curODPhrase = -1;
     int curSolo = -1;
     int curBPM = 0;
-    
+
     resolution = midiFile.getTicksPerQuarterNote();
     for (int i = 0; i < events.getSize(); i++) {
         if (events[i].isNoteOn()) {
@@ -115,8 +115,9 @@ void Chart::parseNotes(
             }
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base notes for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed base notes for %01i", instrument)
+    );
 
     curODPhrase = 0;
     if (overdrive.events.size() > 0) {
@@ -130,19 +131,22 @@ void Chart::parseNotes(
                 overdrive[curODPhrase].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument)
+    );
+
     curSolo = 0;
     if (solos.events.size() > 0) {
         LoadingState = SOLOS;
         for (Note &note : notes) {
             if (note.time > solos[curSolo].EndSec && curSolo < solos.events.size() - 1)
                 curSolo++;
-            if (note.time >= solos[curSolo].StartSec && note.time <= solos[curSolo].EndSec)
+            if (note.time >= solos[curSolo].StartSec
+                && note.time <= solos[curSolo].EndSec)
                 solos[curSolo].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument));
     int mult = 1;
     int multCtr = 0;
     int noteIdx = 0;
@@ -169,16 +173,17 @@ void Chart::parseNotes(
             ++it;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument)
+    );
+
     LoadingState = NOTE_SORTING;
     std::sort(notes.begin(), notes.end(), compareNotes);
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed notes for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed notes for %01i", instrument));
 }
 void Chart::parsePlasticNotes(
     smf::MidiFile &midiFile, int trkidx, int diff, int instrument, int hopoThresh
 ) {
-
     std::vector<forceOnPhrase> forcedOnPhrases;
     std::vector<tapPhrase> tapPhrases;
     std::vector<forceOffPhrase> forcedOffPhrases;
@@ -207,9 +212,10 @@ void Chart::parsePlasticNotes(
     smf::uchar psTap = 0x04;
     smf::uchar psStart = 0x01;
     smf::uchar psEnd = 0x00;
-    std::vector<smf::uchar> psDiff{0x00, 0x01, 0x02, 0x03};
+    std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
     resolution = midiFile.getTicksPerQuarterNote();
-    if (instrument == PlasticGuitar || instrument == PlasticBass || instrument == PlasticKeys) {
+    if (instrument == PlasticGuitar || instrument == PlasticBass
+        || instrument == PlasticKeys) {
         for (int i = 0; i < events.getSize(); i++) {
             if (events[i][0] == 0xF0) {
                 // 'P' 'S' '\0' -- phase shift event
@@ -228,7 +234,7 @@ void Chart::parsePlasticNotes(
                             }
                             if (events[i][7] == psEnd && tapOn) {
                                 tapPhrases[curTap].EndSec = time;
-                                tapPhrases[curTap].EndTick= tick;
+                                tapPhrases[curTap].EndTick = tick;
                                 tapOn = false;
                             }
                         }
@@ -353,17 +359,20 @@ void Chart::parsePlasticNotes(
             }
         }
     };
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i", instrument)); 
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i", instrument)
+    );
     LoadingState = PLASTIC_CALC;
     for (int i = 0; i < notesPre.size(); i++) {
-
         Note note = notesPre[i];
         Note newNote;
         newNote.chordSize = 1;
         newNote.mask = PlasticFrets[note.lane];
         for (Note noteMatching : notesPre) {
             if (noteMatching.tick == note.tick && noteMatching.lane != note.lane) {
-                newNote.pLanes.push_back({noteMatching.len, noteMatching.beatsLen, noteMatching.lane});
+                newNote.pLanes.push_back(
+                    { noteMatching.len, noteMatching.beatsLen, noteMatching.lane }
+                );
                 newNote.mask += PlasticFrets[noteMatching.lane];
                 newNote.chord = true;
                 newNote.chordSize++;
@@ -374,13 +383,19 @@ void Chart::parsePlasticNotes(
                 }
             }
         }
-        newNote.pLanes.push_back({note.len, note.beatsLen, note.lane});
+        newNote.pLanes.push_back({ note.len, note.beatsLen, note.lane });
         newNote.tick = note.tick;
         if (notes.size() > 0) {
             Note lastNote = notes[notes.size() - 1];
-            if (lastNote.tick >= newNote.tick - hopoThresh
-                && lastNote.pLanes[0].lane != newNote.pLanes[0].lane && !newNote.chord) {
-                newNote.phopo = true;
+            if (instrument != PlasticKeys) {
+                if (lastNote.tick >= newNote.tick - hopoThresh
+                    && lastNote.pLanes[0].lane != newNote.pLanes[0].lane && !newNote.chord) {
+                    newNote.phopo = true;
+                    }
+            } else {
+                if (lastNote.tick >= newNote.tick - hopoThresh) {
+                    newNote.phopo = true;
+                }
             }
         }
         newNote.len = note.len;
@@ -389,14 +404,16 @@ void Chart::parsePlasticNotes(
         notes.push_back(newNote);
     }
 
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed classic notes for %01i", instrument));
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed classic notes for %01i", instrument)
+    );
     LoadingState = NOTE_SORTING;
     auto it = std::unique(notes.begin(), notes.end(), areNotesEqual);
     notes.erase(it, notes.end());
     std::sort(notes.begin(), notes.end(), compareNotes);
     auto again = std::unique(notes.begin(), notes.end(), areNotesEqual);
     notes.erase(again, notes.end());
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Sorted notes for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Sorted notes for %01i", instrument));
     curTap = 0;
     LoadingState = NOTE_MODIFIERS;
     if (tapPhrases.size() > 0) {
@@ -410,7 +427,7 @@ void Chart::parsePlasticNotes(
             }
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed taps for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed taps for %01i", instrument));
     curFOff = 0;
     if (forcedOffPhrases.size() > 0) {
         for (Note &note : notes) {
@@ -449,7 +466,7 @@ void Chart::parsePlasticNotes(
         }
     }
 
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed hopos for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed hopos for %01i", instrument));
     LoadingState = OVERDRIVE;
     curODPhrase = 0;
     if (overdrive.events.size() > 0) {
@@ -462,8 +479,10 @@ void Chart::parsePlasticNotes(
                 overdrive[curODPhrase].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument)
+    );
+
     LoadingState = SOLOS;
     curSolo = 0;
     if (solos.events.size() > 0) {
@@ -474,7 +493,7 @@ void Chart::parsePlasticNotes(
                 solos[curSolo].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument));
     int esc = 0;
     LoadingState = PLASTIC_CALC;
     if (notes.size() > 0) {
@@ -485,7 +504,9 @@ void Chart::parsePlasticNotes(
             }
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed extEndSeced sustains for %01i", instrument));
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed extEndSeced sustains for %01i", instrument)
+    );
 
     int mult = 1;
     int multCtr = 0;
@@ -513,11 +534,14 @@ void Chart::parsePlasticNotes(
             ++noteIt;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument)
+    );
+
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Base score: %01i", baseScore));
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument)
+    );
 }
 /*
 void Chart::parsePlasticSection(
@@ -670,7 +694,8 @@ void Chart::parsePlasticSection(
             }
         }
     };
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i",
+instrument));
 
     for (int i = 0; i < notesPre.size(); i++) {
         LoadingState = PLASTIC_CALC;
@@ -711,7 +736,7 @@ void Chart::parsePlasticSection(
     std::sort(notes.begin(), notes.end(), compareNotes);
     auto again = std::unique(notes.begin(), notes.end(), areNotesEqual);
     notes.erase(again, notes.end());
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Sorted notes for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Sorted notes for %01i", instrument));
     curTap = 0;
     LoadingState = NOTE_MODIFIERS;
     if (tapPhrases.size() > 0) {
@@ -719,9 +744,10 @@ void Chart::parsePlasticSection(
             if (note.time > tapPhrases[curTap].EndSec && curTap < tapPhrases.size() - 1)
                 curTap++;
 
-            // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec << std::EndSecl <<
+            // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec
+<< std::EndSecl <<
             // "fOff: "
-            //           << forcedOnPhrases[curFOn].EndSec 
+            //           << forcedOnPhrases[curFOn].EndSec
 
             if (note.time >= tapPhrases[curTap].StartSec
                 && note.time < tapPhrases[curTap].EndSec) {
@@ -730,7 +756,7 @@ void Chart::parsePlasticSection(
             }
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed taps for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed taps for %01i", instrument));
     curFOff = 0;
     if (forcedOffPhrases.size() > 0) {
         for (Note &note : notes) {
@@ -738,9 +764,10 @@ void Chart::parsePlasticSection(
                 && curFOff < forcedOffPhrases.size() - 1)
                 curFOff++;
 
-            // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec << std::EndSecl <<
+            // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec
+<< std::EndSecl <<
             // "fOff: "
-            //           << forcedOnPhrases[curFOn].EndSec 
+            //           << forcedOnPhrases[curFOn].EndSec
 
             if (note.time >= forcedOffPhrases[curFOff].StartSec
                 && note.time < forcedOffPhrases[curFOff].EndSec) {
@@ -756,9 +783,10 @@ void Chart::parsePlasticSection(
                 && curFOn < forcedOnPhrases.size() - 1)
                 curFOn++;
 
-            // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec << std::EndSecl <<
+            // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec
+<< std::EndSecl <<
             // "fOff: "
-            //           << forcedOnPhrases[curFOn].EndSec 
+            //           << forcedOnPhrases[curFOn].EndSec
 
             if (note.time >= forcedOnPhrases[curFOn].StartSec
                 && note.time < forcedOnPhrases[curFOn].EndSec) {
@@ -768,7 +796,7 @@ void Chart::parsePlasticSection(
         }
     }
 
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed hopos for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed hopos for %01i", instrument));
     LoadingState = OVERDRIVE;
     curODPhrase = 0;
     if (overdrive.events.size() > 0) {
@@ -781,8 +809,9 @@ void Chart::parsePlasticSection(
                 overdrive[curODPhrase].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument));
-              
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i",
+instrument));
+
     LoadingState = SOLOS;
     curSolo = 0;
     if (solos.events.size() > 0) {
@@ -793,7 +822,7 @@ void Chart::parsePlasticSection(
                 solos[curSolo].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument));
     int esc = 0;
     LoadingState = PLASTIC_CALC;
     if (notes.size() > 0) {
@@ -804,8 +833,9 @@ void Chart::parsePlasticSection(
             }
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed extEndSeced sustains for %01i", instrument));
-              
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed extEndSeced sustains for
+%01i", instrument));
+
     int mult = 1;
     int multCtr = 0;
     int noteIdx = 0;
@@ -832,11 +862,13 @@ void Chart::parsePlasticSection(
             ++it;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument));
-              
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base score for %01i",
+instrument));
+
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Base score: %01i", baseScore));
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument));
-              
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i",
+instrument));
+
 }
 */
 void Chart::parsePlasticDrums(
@@ -925,8 +957,7 @@ void Chart::parsePlasticDrums(
                         lane = 2;
                         newNote.pSnare = false;
                         newNote.pDrumTom = false;
-                    }
-                    else if (lane == 2) {
+                    } else if (lane == 2) {
                         lane = 1;
                         newNote.pSnare = true;
                     }
@@ -942,7 +973,7 @@ void Chart::parsePlasticDrums(
                 double time = midiFile.getTimeInSeconds(trkidx, i);
                 int tick = midiFile.getAbsoluteTickTime(time);
                 int lane = 0;
-                if (findNoteIdx(time, lane)!=-1) {
+                if (findNoteIdx(time, lane) != -1) {
                     continue;
                 }
                 Note newNote;
@@ -1040,22 +1071,25 @@ void Chart::parsePlasticDrums(
             }
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i", instrument)); 
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Loaded base notes for %01i", instrument)
+    );
 
     // LoadingState = NOTE_SORTING;
     std::sort(notes.begin(), notes.end(), compareNotesTL);
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Sorted notes for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Sorted notes for %01i", instrument));
     curTap = 0;
     if (proDrums) {
         // LoadingState = NOTE_MODIFIERS;
         if (!tapPhrases.empty()) {
             for (Note &note : notes) {
-                if (note.time > tapPhrases[curTap].EndSec && curTap < tapPhrases.size() - 1)
+                if (note.time > tapPhrases[curTap].EndSec
+                    && curTap < tapPhrases.size() - 1)
                     curTap++;
 
-                // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec << std::EndSecl <<
-                // "fOff: "
-                //           << forcedOnPhrases[curFOn].EndSec 
+                // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i",
+                // forcedOnPhrases[curFOn].StartSec << std::EndSecl << "fOff: "
+                //           << forcedOnPhrases[curFOn].EndSec
 
                 if (note.lane == 2 && note.time >= tapPhrases[curTap].StartSec
                     && note.time < tapPhrases[curTap].EndSec) {
@@ -1063,8 +1097,10 @@ void Chart::parsePlasticDrums(
                 }
             }
         }
-        Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed yellow toms for %01i", instrument));
-                  
+        Encore::EncoreLog(
+            LOG_DEBUG, TextFormat("ENC: Processed yellow toms for %01i", instrument)
+        );
+
         curFOn = 0;
         if (!forcedOnPhrases.empty()) {
             for (Note &note : notes) {
@@ -1072,9 +1108,9 @@ void Chart::parsePlasticDrums(
                     && curFOn < forcedOnPhrases.size() - 1)
                     curFOn++;
 
-                // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec << std::EndSecl <<
-                // "fOff: "
-                //           << forcedOnPhrases[curFOn].EndSec 
+                // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i",
+                // forcedOnPhrases[curFOn].StartSec << std::EndSecl << "fOff: "
+                //           << forcedOnPhrases[curFOn].EndSec
 
                 if (note.lane == 3 && note.time >= forcedOnPhrases[curFOn].StartSec
                     && note.time < forcedOnPhrases[curFOn].EndSec) {
@@ -1082,8 +1118,10 @@ void Chart::parsePlasticDrums(
                 }
             }
         }
-        Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed blue toms for %01i", instrument));
-                  
+        Encore::EncoreLog(
+            LOG_DEBUG, TextFormat("ENC: Processed blue toms for %01i", instrument)
+        );
+
         curFOff = 0;
         if (!forcedOffPhrases.empty()) {
             for (Note &note : notes) {
@@ -1091,9 +1129,9 @@ void Chart::parsePlasticDrums(
                     && curFOff < forcedOffPhrases.size() - 1)
                     curFOff++;
 
-                // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i", forcedOnPhrases[curFOn].StartSec << std::EndSecl <<
-                // "fOff: "
-                //           << forcedOnPhrases[curFOn].EndSec 
+                // Encore::EncoreLog(LOG_DEBUG, "fOn: %01i",
+                // forcedOnPhrases[curFOn].StartSec << std::EndSecl << "fOff: "
+                //           << forcedOnPhrases[curFOn].EndSec
 
                 if (note.lane == 4 && note.time >= forcedOffPhrases[curFOff].StartSec
                     && note.time < forcedOffPhrases[curFOff].EndSec) {
@@ -1101,8 +1139,9 @@ void Chart::parsePlasticDrums(
                 }
             }
         }
-        Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed green toms for %01i", instrument));
-                  
+        Encore::EncoreLog(
+            LOG_DEBUG, TextFormat("ENC: Processed green toms for %01i", instrument)
+        );
     }
     // LoadingState = OVERDRIVE;
     curODPhrase = 0;
@@ -1123,14 +1162,17 @@ void Chart::parsePlasticDrums(
                 note.pDrumAct = true;
             if (note.time > fills[curFill].EndSec && curFill < fills.events.size() - 1)
                 curFill++;
-            if (note.time >= fills[curFill].StartSec && note.time <= fills[curFill].EndSec) {
+            if (note.time >= fills[curFill].StartSec
+                && note.time <= fills[curFill].EndSec) {
                 fills[curFill].NoteCount++;
             }
         }
     }
 
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed overdrive for %01i", instrument)
+    );
+
     // LoadingState = SOLOS;
     curSolo = 0;
     if (!solos.events.empty()) {
@@ -1141,7 +1183,7 @@ void Chart::parsePlasticDrums(
                 solos[curSolo].NoteCount++;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument)); 
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed solos for %01i", instrument));
     int esc = 0;
     int mult = 1;
     int multCtr = 0;
@@ -1166,9 +1208,12 @@ void Chart::parsePlasticDrums(
             ++it;
         }
     }
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed base score for %01i", instrument)
+    );
+
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Base score: %01i", baseScore));
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument));
-              
+    Encore::EncoreLog(
+        LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument)
+    );
 }

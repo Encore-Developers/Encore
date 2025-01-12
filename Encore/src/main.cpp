@@ -339,6 +339,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case SONG_SELECT: {
+                glfwSetGamepadStateCallback(gamepadStateCallback);
                 TheGameRPC.DiscordUpdatePresence("Viewing songs", "In the menus");
                 ActiveMenu = new SongSelectMenu;
                 ActiveMenu->Load();

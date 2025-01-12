@@ -79,6 +79,7 @@ void ChartLoadingMenu::Load() {
             ThePlayerManager.GetActivePlayer(playerNum).Instrument
         );
     }
+    ThePlayerManager.BandStats = new BandGameplayStats;
     TheSongList.curSong->LoadAlbumArt();
     std::thread ChartLoader(LoadCharts);
     ChartLoader.detach();

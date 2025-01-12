@@ -47,12 +47,12 @@ void resultsMenu::Load() {
     ;
     diffList = { "Easy", "Medium", "Hard", "Expert" };
     sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
-    std::cout << "Band Score: " << ThePlayerManager.BandStats.Score << std::endl;
-    std::cout << "Band Sustain Score: " << ThePlayerManager.BandStats.SustainScore << std::endl;
-    std::cout << "Band Multiplier Score: " << ThePlayerManager.BandStats.MultiplierScore << std::endl;
-    std::cout << "Band Overdrive Score: " << ThePlayerManager.BandStats.OverdriveScore << std::endl;
-    std::cout << "Band Perfect Score: " << ThePlayerManager.BandStats.PerfectScore << std::endl;
-    std::cout << "Band Note Score: " << ThePlayerManager.BandStats.NoteScore << std::endl;
+    std::cout << "Band Score: " << ThePlayerManager.BandStats->Score << std::endl;
+    std::cout << "Band Sustain Score: " << ThePlayerManager.BandStats->SustainScore << std::endl;
+    std::cout << "Band Multiplier Score: " << ThePlayerManager.BandStats->MultiplierScore << std::endl;
+    std::cout << "Band Overdrive Score: " << ThePlayerManager.BandStats->OverdriveScore << std::endl;
+    std::cout << "Band Perfect Score: " << ThePlayerManager.BandStats->PerfectScore << std::endl;
+    std::cout << "Band Note Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
@@ -83,7 +83,7 @@ void resultsMenu::Draw() {
     float scoreWidth =
         MeasureTextEx(
             assets.redHatDisplayItalic,
-            GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats.Score).c_str(),
+            GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str(),
             u.hinpct(0.06f),
             0
         )
@@ -142,10 +142,10 @@ void resultsMenu::Draw() {
 
     renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f), u.hinpct(0.05f), false);
     float ScoreFontSize = u.hinpct(0.075f);
-    std::string ScoreText = GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats.Score).c_str();
+    std::string ScoreText = GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str();
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
-        GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats.Score).c_str(),
+        GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str(),
         { u.wpct(0.5), u.hpct(0.02125f) },
         ScoreFontSize,
         GetColor(0x00adffFF),
@@ -155,7 +155,7 @@ void resultsMenu::Draw() {
     // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
         // player.quit = false;
-        ThePlayerManager.BandStats.ResetBandGameplayStats();
+        delete ThePlayerManager.BandStats;
         for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive;
              PlayersToReset++) {
             Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
@@ -484,9 +484,9 @@ void resultsMenu::renderPlayerStars(
 };
 
 void resultsMenu::renderStars(
-    BandGameplayStats &stats, float xPos, float yPos, float scale, bool left
+    BandGameplayStats *&stats, float xPos, float yPos, float scale, bool left
 ) {
-    int starsval = stats.Stars();
+    int starsval = stats->Stars();
 
     float starX = left ? 0 : scale * 2.5f;
     for (int i = 0; i < 5; i++) {
@@ -501,7 +501,7 @@ void resultsMenu::renderStars(
     }
     for (int i = 0; i < starsval; i++) {
         DrawTexturePro(
-            stats.GoldStars() ? GoldStar : Star,
+            stats->GoldStars() ? GoldStar : Star,
             { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
             { (xPos + (i * scale) - starX), yPos, scale, scale },
             { 0, 0 },
