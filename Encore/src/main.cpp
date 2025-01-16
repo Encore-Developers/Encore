@@ -138,16 +138,6 @@ int main(int argc, char *argv[]) {
     int targetFPSArg = -1;
     int vsyncArg = 1;
 
-    if (!FPSCapStringVal.empty()) {
-        targetFPSArg = strtol(FPSCapStringVal.c_str(), NULL, 10);
-        if (targetFPSArg > 0)
-            Encore::EncoreLog(
-                LOG_INFO, TextFormat("Argument overridden target FPS: %d", targetFPSArg)
-            );
-        else
-            Encore::EncoreLog(LOG_INFO, TextFormat("Unlocked framerate."));
-    }
-
     if (!vSyncOn.empty()) {
         vsyncArg = strtol(vSyncOn.c_str(), NULL, 10);
         Encore::EncoreLog(
@@ -221,10 +211,7 @@ int main(int argc, char *argv[]) {
     settingsMain.loadSettings(directory / "settings-old.json");
     ThePlayerManager.LoadPlayerList();
 
-    bool removeFPSLimit = 0;
-    int targetFPS =
-        targetFPSArg == -1 ? GetMonitorRefreshRate(GetCurrentMonitor()) : targetFPSArg;
-    removeFPSLimit = targetFPSArg == 0;
+    bool removeFPSLimit = false;
     int menuFPS = GetMonitorRefreshRate(GetCurrentMonitor()) / 2;
 
     // https://www.raylib.com/examples/core/loader.html?name=core_custom_frame_control
@@ -250,8 +237,6 @@ int main(int argc, char *argv[]) {
         );
         SET_WINDOW_FULLSCREEN_BORDERLESS();
     }
-    Encore::Discord TheGameRPC;
-    Encore::EncoreLog(LOG_INFO, TextFormat("Target FPS: %d", targetFPS));
 
     audioManager.Init();
     SetExitKey(0);
@@ -275,6 +260,15 @@ int main(int argc, char *argv[]) {
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
     Menu::onNewMenu = true;
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
+
+    if (TheGameSettings.Framerate > 0)
+        Encore::EncoreLog(
+            LOG_INFO, TextFormat("Target FPS: %d", TheGameSettings.Framerate)
+        );
+    else {
+        Encore::EncoreLog(LOG_INFO, TextFormat("Unlocked framerate."));
+        removeFPSLimit = true;
+    }
 
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
@@ -529,10 +523,10 @@ int main(int argc, char *argv[]) {
         }
         EndDrawing();
 
-        if (!removeFPSLimit || TheMenuManager.currentScreen != GAMEPLAY) {
+        if (!removeFPSLimit) {
             currentTime = GetTime();
             updateDrawTime = currentTime - previousTime;
-            int Target = targetFPS;
+            int Target = TheGameSettings.Framerate;
             if (TheMenuManager.currentScreen != GAMEPLAY)
                 Target = menuFPS;
 

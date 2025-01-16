@@ -13,15 +13,16 @@
 #include <nlohmann/json.hpp>
 
 #define SETTINGS_OPTIONS                                                                 \
-    OPTION(float, avMainVolume, 0.5f)                                                      \
-    OPTION(float, avActiveInstrumentVolume, 0.75f)                                         \
-    OPTION(float, avInactiveInstrumentVolume, 0.5f)                                        \
-    OPTION(float, avSoundEffectVolume, 0.5f)                                               \
-    OPTION(float, avMuteVolume, 0.15f)                                                     \
-    OPTION(float, avMenuMusicVolume, 0.15f)                                                \
+    OPTION(float, avMainVolume, 0.5f)                                                    \
+    OPTION(float, avActiveInstrumentVolume, 0.75f)                                       \
+    OPTION(float, avInactiveInstrumentVolume, 0.5f)                                      \
+    OPTION(float, avSoundEffectVolume, 0.5f)                                             \
+    OPTION(float, avMuteVolume, 0.15f)                                                   \
+    OPTION(float, avMenuMusicVolume, 0.15f)                                              \
     OPTION(bool, Fullscreen, false)                                                      \
     OPTION(int, AudioOffset, 0)                                                          \
-    OPTION(bool, DiscordRichPresence, true)
+    OPTION(bool, DiscordRichPresence, true)                                              \
+    OPTION(int, Framerate, 60)
 
 namespace Encore {
     class Settings {
@@ -32,7 +33,7 @@ namespace Encore {
         std::vector<std::filesystem::path> SongPaths;
     };
 
-    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
         Settings,
         avMainVolume,
         avActiveInstrumentVolume,
@@ -41,6 +42,7 @@ namespace Encore {
         avMuteVolume,
         avMenuMusicVolume,
         Fullscreen,
+        Framerate,
         AudioOffset,
         DiscordRichPresence,
         SongPaths
