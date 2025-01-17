@@ -35,7 +35,7 @@
         }                                                                                \
     }
 
-bool AudioManager::Init() {
+bool Encore::AudioManager::Init() {
 #ifdef WIN32
     if (!BASS_Init(-1, 48000, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
         CHECK_BASS_ERROR();
@@ -57,7 +57,7 @@ bool AudioManager::Init() {
     return true;
 }
 
-void AudioManager::loadStreams(std::vector<std::pair<std::string, int> > &paths) {
+void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int> > &paths) {
     int streams = 0;
     for (auto &path : paths) {
         HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
@@ -85,7 +85,7 @@ void AudioManager::loadStreams(std::vector<std::pair<std::string, int> > &paths)
     }
 }
 
-void AudioManager::unloadStreams() {
+void Encore::AudioManager::unloadStreams() {
     if (!loadedStreams.empty()) {
         for (auto &stream : loadedStreams) {
             StopPlayback(stream.handle);
@@ -96,7 +96,7 @@ void AudioManager::unloadStreams() {
     }
 }
 
-void AudioManager::pauseStreams() {
+void Encore::AudioManager::pauseStreams() {
     if (!loadedStreams.empty()) {
         for (auto stream : loadedStreams) {
             BASS_ChannelPause(stream.handle);
@@ -104,7 +104,7 @@ void AudioManager::pauseStreams() {
     }
 }
 
-void AudioManager::playStreams() {
+void Encore::AudioManager::playStreams() {
     if (!loadedStreams.empty()) {
         for (auto stream : loadedStreams) {
             BASS_ChannelPlay(loadedStreams[0].handle, false);
@@ -112,7 +112,7 @@ void AudioManager::playStreams() {
     }
 }
 
-void AudioManager::restartStreams() {
+void Encore::AudioManager::restartStreams() {
     if (!loadedStreams.empty()) {
         for (auto &stream : loadedStreams) {
             BASS_ChannelSetPosition(stream.handle, 0, BASS_POS_BYTE);
@@ -120,7 +120,7 @@ void AudioManager::restartStreams() {
         BASS_ChannelPlay(loadedStreams[0].handle, true);
     }
 }
-void AudioManager::seekStreams(double time) {
+void Encore::AudioManager::seekStreams(double time) {
     if (!loadedStreams.empty()) {
         BASS_ChannelPause(loadedStreams[0].handle);
         for (auto &stream : loadedStreams) {
@@ -132,7 +132,7 @@ void AudioManager::seekStreams(double time) {
     }
 }
 
-void AudioManager::unpauseStreams() {
+void Encore::AudioManager::unpauseStreams() {
     if (!loadedStreams.empty()) {
         for (auto &stream : loadedStreams) {
             int rewindTimeBytes = BASS_ChannelSeconds2Bytes(stream.handle, 3.0);
@@ -149,7 +149,7 @@ void AudioManager::unpauseStreams() {
     }
 }
 
-double AudioManager::GetMusicTimePlayed() {
+double Encore::AudioManager::GetMusicTimePlayed() {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE)
@@ -157,7 +157,7 @@ double AudioManager::GetMusicTimePlayed() {
     CHECK_BASS_ERROR2();
 }
 
-double AudioManager::GetMusicTimeLength() {
+double Encore::AudioManager::GetMusicTimeLength() {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE)
@@ -165,27 +165,27 @@ double AudioManager::GetMusicTimeLength() {
     CHECK_BASS_ERROR2();
 }
 
-void AudioManager::SetAudioStreamVolume(unsigned int handle, float volume) {
+void Encore::AudioManager::SetAudioStreamVolume(unsigned int handle, float volume) {
     BASS_ChannelSetAttribute(handle, BASS_ATTRIB_VOL, volume);
     CHECK_BASS_ERROR2();
 }
 
-void AudioManager::UpdateMusicStream(unsigned int handle) {
+void Encore::AudioManager::UpdateMusicStream(unsigned int handle) {
     BASS_ChannelUpdate(handle, 0);
     CHECK_BASS_ERROR2();
 }
 
-void AudioManager::BeginPlayback(unsigned int handle) {
+void Encore::AudioManager::BeginPlayback(unsigned int handle) {
     BASS_ChannelStart(handle);
     CHECK_BASS_ERROR2();
 }
 
-void AudioManager::StopPlayback(unsigned int handle) {
+void Encore::AudioManager::StopPlayback(unsigned int handle) {
     BASS_ChannelStop(handle);
     CHECK_BASS_ERROR2();
 }
 
-void AudioManager::loadSample(const std::string &path, const std::string &name) {
+void Encore::AudioManager::loadSample(const std::string &path, const std::string &name) {
     HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 1, 0);
     if (sample) {
         samples[name] = sample;
@@ -194,7 +194,7 @@ void AudioManager::loadSample(const std::string &path, const std::string &name) 
     }
 }
 
-void AudioManager::playSample(const std::string &name, float volume) {
+void Encore::AudioManager::playSample(const std::string &name, float volume) {
     auto it = samples.find(name);
     if (it != samples.end()) {
         HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
@@ -205,7 +205,7 @@ void AudioManager::playSample(const std::string &name, float volume) {
     }
 }
 
-void AudioManager::unloadSample(const std::string &name) {
+void Encore::AudioManager::unloadSample(const std::string &name) {
     auto it = samples.find(name);
     if (it != samples.end()) {
         BASS_SampleFree(it->second);

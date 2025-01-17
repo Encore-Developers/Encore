@@ -54,7 +54,7 @@
 #include "settings-old.h"
 #include "settings.h"
 #include "timingvalues.h"
-#include "gameplay/InputHandler.h"
+#include "gameplay/GameplayInputHandler.h"
 #include "gameplay/inputCallbacks.h"
 #include "inih/INIReader.h"
 #include "menus/ChartLoadingMenu.h"
@@ -72,12 +72,12 @@ gameplayRenderer TheGameRenderer;
 SongList TheSongList;
 PlayerManager ThePlayerManager;
 SettingsOld &settingsMain = SettingsOld::getInstance();
-AudioManager &audioManager = AudioManager::getInstance();
+Assets &assets = Assets::getInstance();
+Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
+Encore::Discord TheGameRPC;
 
 // OvershellRenderer overshellRenderer;
-
-Assets &assets = Assets::getInstance();
 
 vector<std::string> ArgumentList::arguments;
 
@@ -89,23 +89,8 @@ vector<std::string> ArgumentList::arguments;
 #define ENCORE_VERSION
 #endif
 
-// calibration
-bool isCalibrating = false;
-double calibrationStartTime = 0.0;
-double lastClickTime = 0.0;
-std::vector<double> tapTimes;
-const int clickInterval = 1;
-
-bool showInputFeedback = false;
-double inputFeedbackStartTime = 0.0;
-const double inputFeedbackDuration = 0.6;
-float inputFeedbackAlpha = 1.0f;
-// end calibration
-
 std::string encoreVersion = ENCORE_VERSION;
 std::string commitHash = GIT_COMMIT_HASH;
-
-bool Menu::onNewMenu = false;
 
 /*
 std::string scoreCommaFormatter(int value) {
@@ -138,15 +123,7 @@ int main(int argc, char *argv[]) {
     int targetFPSArg = -1;
     int vsyncArg = 1;
 
-    if (!vSyncOn.empty()) {
-        vsyncArg = strtol(vSyncOn.c_str(), NULL, 10);
-        Encore::EncoreLog(
-            LOG_INFO, TextFormat("Vertical sync argument toggled: %d", vsyncArg)
-        );
-    }
-    if (vsyncArg == 1) {
-        SetConfigFlags(FLAG_VSYNC_HINT);
-    }
+
 
     std::filesystem::path executablePath(GetApplicationDirectory());
 
@@ -181,9 +158,8 @@ int main(int argc, char *argv[]) {
 #endif
     // todo: move to Encore::SettingsHelper
     TheGameSettings.SongPaths = { directory / "Songs" };
-    if (exists(directory/"settings.json")
-        && !exists(directory/"settings-old.json")) {
-        rename(directory/"settings.json", directory/"settings-old.json");
+    if (exists(directory / "settings.json") && !exists(directory / "settings-old.json")) {
+        rename(directory / "settings.json", directory / "settings-old.json");
     }
     // check to see if settings exists
     // todo: move to own init helper
@@ -222,6 +198,14 @@ int main(int argc, char *argv[]) {
     double waitTime = 0.0;
     float deltaTime = 0.0;
 
+
+    if (TheGameSettings.VerticalSync) {
+
+        SetConfigFlags(FLAG_VSYNC_HINT);
+    }
+    Encore::EncoreLog(
+           LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg)
+       );
     if (!TheGameSettings.Fullscreen) {
         InitWindow(
             GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
@@ -238,17 +222,11 @@ int main(int argc, char *argv[]) {
         SET_WINDOW_FULLSCREEN_BORDERLESS();
     }
 
-    audioManager.Init();
+    TheAudioManager.Init();
     SetExitKey(0);
-    audioManager.loadSample("Assets/combobreak.mp3", "miss");
+    TheAudioManager.loadSample("Assets/combobreak.mp3", "miss");
 
     ChangeDirectory(GetApplicationDirectory());
-
-    GLFWkeyfun origKeyCallback = glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-    GLFWgamepadstatefun origGamepadCallback =
-        glfwSetGamepadStateCallback(gamepadStateCallback);
-    glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-    glfwSetGamepadStateCallback(origGamepadCallback);
 
     SETDEFAULTSTYLE();
 
@@ -258,7 +236,6 @@ int main(int argc, char *argv[]) {
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
-    Menu::onNewMenu = true;
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
 
     if (TheGameSettings.Framerate > 0)
@@ -272,6 +249,7 @@ int main(int argc, char *argv[]) {
 
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
+
         u.calcUnits();
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
@@ -302,225 +280,10 @@ int main(int argc, char *argv[]) {
         ClearBackground(DARKGRAY);
 
         if (TheMenuManager.onNewMenu) {
-            TheMenuManager.onNewMenu = false;
-            delete ActiveMenu;
-            ActiveMenu = NULL;
-            // this is for dropping out
-            glfwSetKeyCallback(glfwGetCurrentContext(), origKeyCallback);
-            glfwSetGamepadStateCallback(origGamepadCallback);
-            switch (TheMenuManager.currentScreen) { // NOTE: when adding a new Menu
-                                                    // derivative, you
-                // must put its enum value in Screens, and its
-                // assignment in this switch/case. You will also
-                // add its case to the `ActiveMenu->Draw();`
-                // cases.
-            case MAIN_MENU: {
-                TheGameRPC.DiscordUpdatePresence("Main menu", "In the menus");
-                ActiveMenu = new MainMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case SETTINGS: {
-                TheGameRPC.DiscordUpdatePresence("Configuring", "In the menus");
-                ActiveMenu = new SettingsMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case RESULTS: {
-                TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus");
-                ActiveMenu = new resultsMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case SONG_SELECT: {
-                glfwSetGamepadStateCallback(gamepadStateCallback);
-                TheGameRPC.DiscordUpdatePresence("Viewing songs", "In the menus");
-                ActiveMenu = new SongSelectMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case READY_UP: {
-                TheGameRPC.DiscordUpdatePresence("Readying up", "In the menus");
-                ActiveMenu = new ReadyUpMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case SOUND_TEST: {
-                ActiveMenu = new SoundTestMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case CACHE_LOADING_SCREEN: {
-                TheGameRPC.DiscordUpdatePresence("Loading game", "In the menus");
-                ActiveMenu = new cacheLoadingScreen;
-                ActiveMenu->Load();
-                break;
-            }
-            case CHART_LOADING_SCREEN: {
-                TheGameRPC.DiscordUpdatePresence("Loading a song", "In the menus");
-                ActiveMenu = new ChartLoadingMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            case GAMEPLAY: {
-                TheGameRPC.DiscordUpdatePresenceSong(
-                    "Playing a song",
-                    TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
-                    ThePlayerManager.GetActivePlayer(0).Instrument
-                );
-                glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-                glfwSetGamepadStateCallback(gamepadStateCallback);
-                ActiveMenu = new GameplayMenu;
-                ActiveMenu->Load();
-                break;
-            }
-            default:;
-            }
+            TheMenuManager.LoadMenu();
         }
 
-        switch (TheMenuManager.currentScreen) {
-        case CALIBRATION: {
-            static bool sampleLoaded = false;
-            if (!sampleLoaded) {
-                audioManager.loadSample("Assets/kick.wav", "click");
-                sampleLoaded = true;
-            }
-
-            if (GuiButton(
-                    { (float)GetScreenWidth() / 2 - 250,
-                      (float)GetScreenHeight() - 120,
-                      200,
-                      60 },
-                    "Start Calibration"
-                )) {
-                isCalibrating = true;
-                calibrationStartTime = GetTime();
-                lastClickTime = calibrationStartTime;
-                tapTimes.clear();
-            }
-            if (GuiButton(
-                    { (float)GetScreenWidth() / 2 + 50,
-                      (float)GetScreenHeight() - 120,
-                      200,
-                      60 },
-                    "Stop Calibration"
-                )) {
-                isCalibrating = false;
-
-                if (tapTimes.size() > 1) {
-                    double totalDifference = 0.0;
-                    for (double tapTime : tapTimes) {
-                        double expectedClickTime =
-                            round((tapTime - calibrationStartTime) / clickInterval)
-                                * clickInterval
-                            + calibrationStartTime;
-                        totalDifference += (tapTime - expectedClickTime);
-                    }
-                    settingsMain.avOffsetMS =
-                        static_cast<int>((totalDifference / tapTimes.size()) * 1000);
-                    // Convert to milliseconds
-                    settingsMain.inputOffsetMS = settingsMain.avOffsetMS;
-                    std::cout
-                        << static_cast<int>((totalDifference / tapTimes.size()) * 1000)
-                        << "ms of latency detected" << std::endl;
-                }
-                std::cout << "Stopped Calibration" << std::endl;
-                tapTimes.clear();
-            }
-
-            if (isCalibrating) {
-                double currentTime = GetTime();
-                double elapsedTime = currentTime - lastClickTime;
-
-                if (elapsedTime >= clickInterval) {
-                    audioManager.playSample("click", 1);
-                    lastClickTime += clickInterval;
-                    // Increment by the interval to avoid missing clicks
-                    std::cout << "Click" << std::endl;
-                }
-
-                if (IsKeyPressed(settingsMain.keybindOverdrive)) {
-                    tapTimes.push_back(currentTime);
-                    std::cout << "Input Registered" << std::endl;
-
-                    showInputFeedback = true;
-                    inputFeedbackStartTime = currentTime;
-                    inputFeedbackAlpha = 1.0f;
-                }
-            }
-
-            if (showInputFeedback) {
-                double currentTime = GetTime();
-                double timeSinceInput = currentTime - inputFeedbackStartTime;
-                if (timeSinceInput > inputFeedbackDuration) {
-                    showInputFeedback = false;
-                } else {
-                    inputFeedbackAlpha = 1.0f - (timeSinceInput / inputFeedbackDuration);
-                }
-            }
-
-            if (showInputFeedback) {
-                Color feedbackColor = {
-                    0, 255, 0, static_cast<unsigned char>(inputFeedbackAlpha * 255)
-                };
-                DrawTextEx(
-                    assets.rubikBold,
-                    "Input Registered",
-                    { static_cast<float>((GetScreenWidth() - u.hinpct(0.35f)) / 2),
-                      static_cast<float>(GetScreenHeight() / 2) },
-                    u.hinpct(0.05f),
-                    0,
-                    feedbackColor
-                );
-            }
-
-            if (GuiButton(
-                    { ((float)GetScreenWidth() / 2) - 350,
-                      ((float)GetScreenHeight() - 60),
-                      100,
-                      60 },
-                    "Cancel"
-                )) {
-                isCalibrating = false;
-                settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
-                settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
-                tapTimes.clear();
-
-                settingsMain.saveSettings(directory / "settings.json");
-                TheMenuManager.SwitchScreen(SETTINGS);
-            }
-
-            if (GuiButton(
-                    { ((float)GetScreenWidth() / 2) + 250,
-                      ((float)GetScreenHeight() - 60),
-                      100,
-                      60 },
-                    "Apply"
-                )) {
-                isCalibrating = false;
-                settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
-                settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
-                tapTimes.clear();
-
-                settingsMain.saveSettings(directory / "settings.json");
-                TheMenuManager.SwitchScreen(SETTINGS);
-            }
-
-            break;
-        }
-        case MAIN_MENU:
-        case SETTINGS:
-        case SONG_SELECT:
-        case READY_UP:
-        case GAMEPLAY:
-        case RESULTS:
-        case CHART_LOADING_SCREEN:
-        case SOUND_TEST:
-        case CACHE_LOADING_SCREEN: {
-            ActiveMenu->Draw();
-            break;
-        }
-        }
+        TheMenuManager.DrawMenu();
         EndDrawing();
 
         if (!removeFPSLimit) {

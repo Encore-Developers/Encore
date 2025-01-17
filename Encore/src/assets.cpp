@@ -65,9 +65,9 @@ void Assets::LoadAssets() {
     smasherOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = smasherOuterTex;
 
     smasherTopPressedTex =
-        LoadTexture((highwayDir / "smashertop-p.png").string().c_str());
+        LoadTexture((highwayDir / "smasher-on.png").string().c_str());
     smasherTopUnpressedTex =
-        LoadTexture((highwayDir / "smashertop-u.png").string().c_str());
+        LoadTexture((highwayDir / "smasher-off.png").string().c_str());
 
     smasherBoardTex =
         Assets::LoadTextureFilter(highwayDir / "board.png", loadedAssets);

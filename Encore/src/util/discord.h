@@ -22,6 +22,6 @@ namespace Encore {
     };
 };
 
-
+extern Encore::Discord TheGameRPC;
 
 #endif //DISCORD_H

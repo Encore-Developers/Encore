@@ -7,13 +7,11 @@
 #include <filesystem>
 #include "MenuManager.h"
 
-auto &TheAudioMgr = AudioManager::getInstance();
-
 SoundTestMenu::SoundTestMenu() {}
 
 SoundTestMenu::~SoundTestMenu() {
     for (auto snd : mSoundIds) {
-        TheAudioMgr.unloadSample(snd);
+        TheAudioManager.unloadSample(snd);
     }
 }
 
@@ -39,7 +37,7 @@ void SoundTestMenu::Draw() {
     if (GuiButton(
             { u.wpct(0.4), u.hpct(0.4), u.winpct(0.2), u.hinpct(0.2) }, "Play sound"
         )) {
-        TheAudioMgr.playSample(mSoundIds[selectedSound], 0.8f);
+        TheAudioManager.playSample(mSoundIds[selectedSound], 0.8f);
     }
     if (GuiButton({ u.wpct(0.61), u.hpct(0.4), u.winpct(0.04), u.hinpct(0.2) }, "+")) {
         selectedSound++;
@@ -60,7 +58,7 @@ void SoundTestMenu::Load() {
     mFont = LoadFont((assetsdir / "fonts/Rubik-Regular.ttf").string().c_str());
 
     mSoundIds.push_back(std::string("combobreak"));
-    TheAudioMgr.loadSample((assetsdir / "combobreak.mp3").string(), "combobreak");
+    TheAudioManager.loadSample((assetsdir / "combobreak.mp3").string(), "combobreak");
     mSoundIds.push_back(std::string("kick"));
-    TheAudioMgr.loadSample((assetsdir / "kick.wav").string(), "kick");
+    TheAudioManager.loadSample((assetsdir / "kick.wav").string(), "kick");
 }

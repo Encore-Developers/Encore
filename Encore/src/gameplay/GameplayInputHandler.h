@@ -17,7 +17,7 @@ enum EventLanes {
     STRUM = 8008135,
 };
 
-class InputHandler {
+class GameplayInputHandler {
     static int calculatePressedMask(PlayerGameplayStats *&stats);
     static bool
     isNoteMatch(const Note &curNote, int pressedMask, PlayerGameplayStats *&stats);

@@ -1,14 +1,14 @@
 //
 // Created by marie on 15/09/2024.
 
-#include "InputHandler.h"
+#include "GameplayInputHandler.h"
 
 #include "enctime.h"
 #include "settings-old.h"
 #include "GLFW/glfw3.h"
 #include "song/songlist.h"
 
-int InputHandler::calculatePressedMask(PlayerGameplayStats *&stats) {
+int GameplayInputHandler::calculatePressedMask(PlayerGameplayStats *&stats) {
     int mask = 0;
     for (int pressedButtons = 0; pressedButtons < stats->HeldFrets.size();
          pressedButtons++) {
@@ -18,7 +18,7 @@ int InputHandler::calculatePressedMask(PlayerGameplayStats *&stats) {
     return mask;
 }
 
-bool InputHandler::isNoteMatch(
+bool GameplayInputHandler::isNoteMatch(
     const Note &curNote, int pressedMask, PlayerGameplayStats *&stats
 ) {
     bool maskGreater = pressedMask >= curNote.mask;
@@ -39,7 +39,7 @@ bool InputHandler::isNoteMatch(
     return true;
 }
 
-void InputHandler::CheckPlasticInputs(
+void GameplayInputHandler::CheckPlasticInputs(
     Player &player, int lane, int action, float eventTime
 ) {
     PlayerGameplayStats *&stats = player.stats;
@@ -114,7 +114,7 @@ void InputHandler::CheckPlasticInputs(
         curNote.GhostCount += 1;
 }
 
-void InputHandler::handleInputs(Player &player, int lane, int action) {
+void GameplayInputHandler::handleInputs(Player &player, int lane, int action) {
     PlayerGameplayStats *&stats = player.stats;
     SongTime &enctime = TheSongTime;
     SongList &songList = TheSongList;
@@ -153,7 +153,7 @@ void InputHandler::handleInputs(Player &player, int lane, int action) {
         }
     }
 }
-void InputHandler::CheckPadInputs(Player &player, int lane, int action, double eventTime) {
+void GameplayInputHandler::CheckPadInputs(Player &player, int lane, int action, double eventTime) {
     PlayerGameplayStats *&stats = player.stats;
     PlayerManager &playerManager = ThePlayerManager;
     SongList &songList = TheSongList;

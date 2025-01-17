@@ -202,7 +202,7 @@ void SettingsMenu::Draw() {
         );
         DrawTextEx(
             assets.rubikBoldItalic,
-            "Calibration",
+            "Audio/Video",
             { HeaderTextLeft,
               OvershellBottom + u.hinpct(0.055f)
                   + (EntryHeight * calibrationMenuOffset) },
@@ -222,7 +222,9 @@ void SettingsMenu::Draw() {
             1
         );
 
-        // input offset
+
+
+        // framerate
         DrawRectangle(
             u.wpct(0.005f),
             underTabsHeight + (EntryHeight * (calibrationMenuOffset + 2)),
@@ -231,9 +233,11 @@ void SettingsMenu::Draw() {
             Color { 0, 0, 0, 64 }
         );
 
-        float calibrationTop = EntryTop + (EntryHeight * (calibrationMenuOffset + 2));
+
+
+        float calibrationTop = EntryTop + (EntryHeight * (calibrationMenuOffset + 1));
         float calibrationTextTop =
-            EntryTextTop + (EntryHeight * (calibrationMenuOffset + 2));
+            EntryTextTop + (EntryHeight * (calibrationMenuOffset + 1));
         DrawTextEx(
             assets.rubikBold,
             "Automatic Calibration",
@@ -249,7 +253,7 @@ void SettingsMenu::Draw() {
             TheMenuManager.SwitchScreen(CALIBRATION);
         }
 
-        int generalOffset = 4;
+        int generalOffset = 3;
         // general header
         DrawRectangle(
             u.wpct(0.005f),
@@ -281,8 +285,26 @@ void SettingsMenu::Draw() {
             Color { 0, 0, 0, 64 }
         );
 
-        float scanTop = EntryTop + (EntryHeight * (generalOffset + 1));
-        float scanTextTop = EntryTextTop + (EntryHeight * (generalOffset + 1));
+        Framerate = sor.sliderEntry(
+                            Framerate,
+                            0,
+                            1500,
+                            generalOffset + 2,
+                            "Max Framerate",
+                            5
+                        );
+
+        VerticalSync = sor.toggleEntry(VerticalSync, generalOffset + 3, "VSync");
+
+        DrawRectangle(
+                    u.wpct(0.005f),
+                    underTabsHeight + (EntryHeight * (generalOffset + 4)),
+                    OptionWidth * 2,
+                    EntryHeight,
+                    Color { 0, 0, 0, 64 }
+                );
+        float scanTop = EntryTop + (EntryHeight * (generalOffset + 3));
+        float scanTextTop = EntryTextTop + (EntryHeight * (generalOffset + 3));
         DrawTextEx(
             assets.rubikBold,
             "Scan Songs",

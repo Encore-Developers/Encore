@@ -1,7 +1,7 @@
 //
 // Created by maria on 17/12/2024.
 //
-#include "InputHandler.h"
+#include "GameplayInputHandler.h"
 #include "enctime.h"
 #include "gameplayRenderer.h"
 #include "settings-old.h"
@@ -12,16 +12,15 @@
 #include "song/songlist.h"
 #include "users/playerManager.h"
 
-void ManagePausedGame(InputHandler inputHandler, Player &player) {
-    AudioManager &audioManager = AudioManager::getInstance();
+void ManagePausedGame(GameplayInputHandler inputHandler, Player &player) {
     PlayerGameplayStats *&stats = player.stats;
     stats->Paused = !stats->Paused;
     ThePlayerManager.BandStats->Paused = !ThePlayerManager.BandStats->Paused;
     if (ThePlayerManager.BandStats->Paused) {
-        audioManager.pauseStreams();
+        TheAudioManager.pauseStreams();
         TheSongTime.Pause();
     } else {
-        audioManager.unpauseStreams();
+        TheAudioManager.unpauseStreams();
         TheSongTime.Resume();
         for (int i = 0; i < (player.Difficulty == 3 ? 5 : 4); i++) {
             inputHandler.handleInputs(player, i, -1);
@@ -32,9 +31,8 @@ void ManagePausedGame(InputHandler inputHandler, Player &player) {
 void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
     Player &player = ThePlayerManager.GetActivePlayer(0);
     PlayerGameplayStats *&stats = player.stats;
-    AudioManager &audioManager = AudioManager::getInstance();
     SettingsOld &settingsMain = SettingsOld::getInstance();
-    InputHandler inputHandler;
+    GameplayInputHandler inputHandler;
 
     if (!TheGameRenderer.streamsLoaded) {
         return;
@@ -125,9 +123,9 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
 
 
 void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
-    AudioManager &audioManager = AudioManager::getInstance();
     SettingsOld &settingsMain = SettingsOld::getInstance();
-    InputHandler inputHandler;
+    GameplayInputHandler inputHandler;
+
     if (TheMenuManager.currentScreen == SONG_SELECT) {
         if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS) {
             TheSongList.SongSelectOffset -= 1;

@@ -1,3 +1,5 @@
+#include "menus/MenuManager.h"
+
 #include <array>
 //
 // Created by marie on 09/06/2024.
@@ -19,7 +21,6 @@ float lineDistance = 1.5f;
 #include "util/enclog.h"
 
 Assets &gprAssets = Assets::getInstance();
-AudioManager &gprAudioManager = AudioManager::getInstance();
 Units &gprU = Units::getInstance();
 
 // Color accentColor = {255,0,255,255};
@@ -786,7 +787,7 @@ void gameplayRenderer::RenderPadNotes(
                 player.stats->Combo = 0;
                 curNote.accounted = true;
                 if (player.stats->curNoteIdx[lane]
-                    < curChart.notes_perlane[lane].size() -  1)
+                    < curChart.notes_perlane[lane].size() - 1)
                     player.stats->curNoteIdx[lane]++;
                 Encore::EncoreLog(
                     LOG_INFO,
@@ -889,7 +890,6 @@ void gameplayRenderer::RenderPadNotes(
             }
 
             nDrawFiveLaneHitEffects(player, curNote, curSongTime, notePosX, lane);
-
         }
     }
     EndMode3D();
@@ -1028,7 +1028,13 @@ void gameplayRenderer::RenderClassicNotes(
 
             // float NoteScroll = smasherPos + (length * (float)relTime);
             if (!SkipShit && !BrutalSkip) {
-                nDrawPlasticNote(curNote, NoteColor, notePosX, NoteStartPositionWorld);
+                nDrawPlasticNote(
+                    curNote,
+                    player.AccentColor,
+                    NoteColor,
+                    notePosX,
+                    NoteStartPositionWorld
+                );
             }
             // note: WE'RE GETTING CLOSE CHAT. HOLY SHIT CHAT WE'RE GETTING THERE
             // HOLY FUCK CHAT IT MIGHT HAPPEN
@@ -1318,6 +1324,9 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
     // 1) : (!player.stats->Multiplayer ? ((float)(player.stats->multiplier() / 2) - 1)
     // / (float)player.stats->maxMultForMeter() : (float)(player.stats->multiplier() -
     // 1)));
+
+
+
     SetShaderValue(
         gprAssets.multNumberShader,
         gprAssets.uvOffsetXLoc,
@@ -1494,14 +1503,14 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
     // RaiseHighway();
     if (!songPlaying) {
         if (Restart) {
-            gprAudioManager.restartStreams();
+            TheAudioManager.restartStreams();
             Restart = false;
         } else
-            gprAudioManager.BeginPlayback(gprAudioManager.loadedStreams[0].handle);
+            TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         songPlaying = true;
         double songEnd =
-            floor(gprAudioManager.GetMusicTimeLength()) >= (song.end <= 0 ? 0 : song.end)
-            ? floor(gprAudioManager.GetMusicTimeLength())
+            floor(TheAudioManager.GetMusicTimeLength()) >= (song.end <= 0 ? 0 : song.end)
+            ? floor(TheAudioManager.GetMusicTimeLength())
             : song.end - 0.01;
         highwayInEndAnim = false;
         TheSongTime.Start(songEnd);
@@ -1564,6 +1573,26 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
         RenderHud(player, highwayLength);
     }
     stats->LastTick = CurrentTick;
+    float PlayerCombinedHealth = 0;
+    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+        PlayerCombinedHealth += ThePlayerManager.GetActivePlayer(i).stats->Health;
+    }
+    ThePlayerManager.BandStats->Health =
+        PlayerCombinedHealth / (ThePlayerManager.PlayersActive);
+    float TempHealthBarHeight =
+        Remap(ThePlayerManager.BandStats->Health, 0, 100.0f, 0, GetScreenHeight());
+    DrawRectangle(
+        gprU.hpct(0.0f), 0, 10, gprU.hinpct(ThePlayerManager.BandStats->Health), GREEN
+    );
+    DrawTextEx(
+        gprAssets.rubik,
+        TextFormat("%4.2f", ThePlayerManager.BandStats->Health),
+        { 0, 0 },
+        32,
+        0,
+        WHITE
+    );
+
 }
 
 void gameplayRenderer::DrawHighwayMesh(
@@ -1724,58 +1753,38 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
             NoteColor = player.AccentColor;
             // TheGameMenu.hehe ? TRANS[i] : player.AccentColor;
         }
-        Model smasherTopModel = gprAssets.smasherInner;
-        Color smasherColor =
-            ColorBrightness(ColorContrast(player.AccentColor, -0.25), 0.5);
-        gprAssets.smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-            smasherColor;
-        gprAssets.smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-            gprAssets.smasherInnerTex;
-        gprAssets.smasherOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-            smasherColor;
+
+        gprAssets.smasherOuter.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE;
         float RandomRotationToSelect = GetRandomValue(-2, 2) / 10.0f;
         // constexpr float thing[4] {0.15, 0.1, -0.1, -0.15};
         Vector3 RotationAxis { 1, 0, RandomRotationToSelect };
         // if (player.stats->HeldFrets[noteColor]
         //     || player.stats->HeldFretsAlt[noteColor]) {
+        gprAssets.smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
+        if (player.stats->HeldFrets[noteColor] || player.stats->HeldFretsAlt[noteColor]) {
+            gprAssets.smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+                gprAssets.smasherTopPressedTex;
+        } else {
+            gprAssets.smasherInner.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
+                gprAssets.smasherTopUnpressedTex;
+        }
         DrawModelEx(
             gprAssets.smasherInner,
             Vector3 { (float)diffDistance - (i),
                       player.stats->fiveLaneSmasherHeights[i],
                       smasherPos },
-            RotationAxis,
-            player.stats->fiveLaneSmasherRotation[i],
+            { 0 },
+            0,
             { 1.0f, 1.0f, 1.0f },
             WHITE
         );
         DrawModelEx(
             gprAssets.smasherOuter,
-            Vector3 { (float)diffDistance - (i),
-                      player.stats->fiveLaneSmasherHeights[i],
-                      smasherPos },
-            RotationAxis,
-            player.stats->fiveLaneSmasherRotation[i],
+            Vector3 { (float)diffDistance - (i), 0, smasherPos },
+            { 0, 0, 0 },
+            0,
             { 1.0f, 1.0f, 1.0f },
-            WHITE
-        );
-        smasherTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].color = NoteColor;
-        if (player.stats->HeldFrets[noteColor] || player.stats->HeldFretsAlt[noteColor]) {
-            smasherTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-                gprAssets.smasherTopPressedTex;
-        } else {
-            smasherTopModel.materials[0].maps[MATERIAL_MAP_ALBEDO].texture =
-                gprAssets.smasherTopUnpressedTex;
-        }
-
-        DrawModelEx(
-            smasherTopModel,
-            Vector3 { (float)diffDistance - (i),
-                      player.stats->fiveLaneSmasherHeights[i],
-                      smasherPos },
-            RotationAxis,
-            player.stats->fiveLaneSmasherRotation[i],
-            { 1.0f, 1.0f, 1.0f },
-            WHITE
+            player.AccentColor
         );
     }
 
@@ -2749,31 +2758,21 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
             // HAVE IT GO THE OTHER WAY FOR PERFECTS.
             // SAME WITH DRUMS
 
-            player.stats->fiveLaneSmasherRotation.at(lane) = Remap(
-                TimeSinceHit / HitShakerIntroDuration, 0, 1.0, 0, RotationDirection
-            );
             player.stats->fiveLaneSmasherHeights.at(lane) = Remap(
-                getEasingFunction(EaseInOutElastic)(TimeSinceHit / HitShakerIntroDuration),
+                getEasingFunction(EaseOutBounce)(TimeSinceHit / HitShakerIntroDuration),
                 0,
                 1.0,
                 0,
-                0.05
+                0.1
             );
         } else {
             double TimeSinceHit = curSongTime - (note.hitTime + HitShakerIntroDuration);
-            player.stats->fiveLaneSmasherRotation.at(lane) = Remap(
+            player.stats->fiveLaneSmasherHeights.at(lane) = Remap(
                 getEasingFunction(EaseOutBounce)(TimeSinceHit / HitShakerOutroDuration),
                 1.0,
                 0,
                 0,
-                -RotationDirection
-            );
-            player.stats->fiveLaneSmasherHeights.at(lane) = Remap(
-                getEasingFunction(EaseOutBack)(TimeSinceHit / HitShakerOutroDuration),
-                1.0,
-                0,
-                0,
-                0.05
+                0.1
             );
         }
     }
@@ -2794,14 +2793,15 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
 }
 
 void gameplayRenderer::nDrawPlasticNote(
-    Note note, Color noteColor, float notePosX, float noteTime
+    Note note, Color accentColor, Color noteColor, float notePosX, float noteTime
 ) {
     // why the fuck did i separate sustains and non-sustain note drawing?????
 
     Vector3 NotePos = { notePosX, 0, noteTime };
     Color InnerColor = noteColor;
     Color BaseColor = WHITE;
-    Color SideColor = WHITE;
+    Color SideColor = ColorBrightness(ColorContrast(accentColor, -0.25), 0.5);
+    ;
 
     if (note.renderAsOD) {
         InnerColor = WHITE;

@@ -58,7 +58,9 @@ class gameplayRenderer {
         Player &player, Note note, double curSongTime, float notePosX, int lane
     );
     void
-    nDrawPlasticNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
+    nDrawPlasticNote(
+        Note note, Color accentColor, Color noteColor, float notePosX, float noteTime
+    );
     void nDrawPadNote(Note note, Color noteColor, float notePosX, float noteScrollPos);
     void nDrawSustain(
         Note note,

@@ -22,7 +22,8 @@
     OPTION(bool, Fullscreen, false)                                                      \
     OPTION(int, AudioOffset, 0)                                                          \
     OPTION(bool, DiscordRichPresence, true)                                              \
-    OPTION(int, Framerate, 60)
+    OPTION(int, Framerate, 60)                                                           \
+    OPTION(bool, VerticalSync, true)
 
 namespace Encore {
     class Settings {
@@ -43,6 +44,7 @@ namespace Encore {
         avMenuMusicVolume,
         Fullscreen,
         Framerate,
+        VerticalSync,
         AudioOffset,
         DiscordRichPresence,
         SongPaths

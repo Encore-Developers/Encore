@@ -1,4 +1,5 @@
 #pragma once
+#include "menu.h"
 
 enum Screens {
     MAIN_MENU,
@@ -16,7 +17,10 @@ enum Screens {
 class MenuManager {
 public:
     void SwitchScreen(Screens screen);
+    void LoadMenu();
+    void DrawMenu();
     Screens currentScreen = CACHE_LOADING_SCREEN;
+    Menu *ActiveMenu;
     bool onNewMenu = true;
 };
 

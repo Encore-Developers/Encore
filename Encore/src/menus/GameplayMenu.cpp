@@ -179,7 +179,6 @@ unsigned char BeatToCharViaTickThing(
 }
 
 void GameplayMenu::Draw() {
-    AudioManager &audioManager = AudioManager::getInstance();
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     // SettingsOld &settings = SettingsOld::getInstance();
@@ -216,15 +215,15 @@ void GameplayMenu::Draw() {
     */
 
     if (!TheGameRenderer.streamsLoaded) {
-        audioManager.loadStreams(TheSongList.curSong->stemsPath);
+        TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
         TheGameRenderer.streamsLoaded = true;
     } else {
         for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-            for (auto &stream : audioManager.loadedStreams) {
+            for (auto &stream : TheAudioManager.loadedStreams) {
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 if ((player.ClassicMode ? player.Instrument - 5 : player.Instrument)
                     == stream.instrument) {
-                    audioManager.SetAudioStreamVolume(
+                    TheAudioManager.SetAudioStreamVolume(
                         stream.handle,
                         player.stats->Mute
                             ? TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume
@@ -232,7 +231,7 @@ void GameplayMenu::Draw() {
                                 * TheGameSettings.avActiveInstrumentVolume
                     );
                 } else {
-                    audioManager.SetAudioStreamVolume(
+                    TheAudioManager.SetAudioStreamVolume(
                         stream.handle,
                         TheGameSettings.avMainVolume
                             * TheGameSettings.avInactiveInstrumentVolume
@@ -254,7 +253,7 @@ void GameplayMenu::Draw() {
             TheGameRenderer.highwayLevel = 0;
             TheSongTime.Stop();
             if (TheGameRenderer.streamsLoaded) {
-                audioManager.unloadStreams();
+                TheAudioManager.unloadStreams();
                 TheGameRenderer.streamsLoaded = false;
             }
             TheMenuManager.SwitchScreen(RESULTS);
@@ -475,7 +474,7 @@ void GameplayMenu::Draw() {
 
     int songLength;
     if (TheSongList.curSong->end == 0)
-        songLength = static_cast<int>(audioManager.GetMusicTimeLength());
+        songLength = static_cast<int>(TheAudioManager.GetMusicTimeLength());
     else
         songLength = static_cast<int>(TheSongList.curSong->end);
 
@@ -492,7 +491,7 @@ void GameplayMenu::Draw() {
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
     GuiSetFont(assets.rubik);
 
-    float floatSongLength = audioManager.GetMusicTimePlayed();
+    float floatSongLength = TheAudioManager.GetMusicTimePlayed();
 
     if (ThePlayerManager.BandStats->Paused) {
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 80 });
@@ -508,7 +507,7 @@ void GameplayMenu::Draw() {
         Rectangle QuitBox = { Left, Top + (Spacing * 2), Width, Height };
 
         if (GuiButton(ResumeBox, "Resume")) {
-            audioManager.unpauseStreams();
+            TheAudioManager.unpauseStreams();
             TheSongTime.Resume();
             ThePlayerManager.BandStats->Paused = false;
         }
@@ -549,7 +548,7 @@ void GameplayMenu::Draw() {
             TheGameRenderer.midiLoaded = false;
             TheSongTime.Reset();
 
-            audioManager.unloadStreams();
+            TheAudioManager.unloadStreams();
             TheGameRenderer.highwayInAnimation = false;
             TheGameRenderer.highwayInEndAnim = false;
             TheGameRenderer.songPlaying = false;
@@ -645,6 +644,24 @@ void GameplayMenu::Draw() {
     GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
     GameMenu::DrawVersion();
 
+    if (!ThePlayerManager.BandStats->Multiplayer && ThePlayerManager.GetActivePlayer(0).stats->Health <= 0) {
+        TheSongList.curSong->LoadAlbumArt();
+        ThePlayerManager.BandStats->ResetBandGameplayStats();
+        TheGameRenderer.midiLoaded = false;
+        TheSongTime.Reset();
+
+        TheAudioManager.unloadStreams();
+        TheGameRenderer.highwayInAnimation = false;
+        TheGameRenderer.highwayInEndAnim = false;
+        TheGameRenderer.songPlaying = false;
+
+        TheSongList.curSong->parts[ThePlayerManager.GetActivePlayer(0).Instrument]
+            ->charts[ThePlayerManager.GetActivePlayer(0).Difficulty]
+            .resetNotes();
+        ThePlayerManager.GetActivePlayer(0).stats->Quit = true;
+        TheMenuManager.SwitchScreen(RESULTS);
+
+    }
     // if (!TheGameRenderer.bot)
     //	DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
     //				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
@@ -724,7 +741,7 @@ void GameplayMenu::Draw() {
     );
     DrawTextEx(
         assets.rubik,
-        TextFormat("audio time: %f", audioManager.GetMusicTimePlayed()),
+        TextFormat("audio time: %f", TheAudioManager.GetMusicTimePlayed()),
         { 0, u.hpct(0.5f + SmallHeader) },
         u.hinpct(SmallHeader),
         0,

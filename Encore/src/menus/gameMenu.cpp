@@ -167,7 +167,6 @@ void GameMenu::DrawVersion() {
 };
 
 void MainMenu::Load() {
-    AudioManager &menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     SongList &songList = TheSongList;
     std::ifstream splashes;
@@ -202,20 +201,19 @@ void MainMenu::Load() {
             songList.curSong->LoadAudioINI(songList.curSong->songDir);
         else
             songList.curSong->LoadAudio(songList.curSong->songInfoPath);
-        menuAudioManager.loadStreams(songList.curSong->stemsPath);
+        TheAudioManager.loadStreams(songList.curSong->stemsPath);
         streamsLoaded = true;
-        for (auto &stream : menuAudioManager.loadedStreams) {
-            menuAudioManager.SetAudioStreamVolume(
+        for (auto &stream : TheAudioManager.loadedStreams) {
+            TheAudioManager.SetAudioStreamVolume(
                 stream.handle, TheGameSettings.avMainVolume * 0.15f
             );
         }
-        menuAudioManager.BeginPlayback(menuAudioManager.loadedStreams[0].handle);
+        TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
     }
 }
 
 // todo: text box rendering for splashes, cleanup of buttons
 void MainMenu::Draw() {
-    AudioManager &menuAudioManager = AudioManager::getInstance();
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     SongList &songList = TheSongList;
     std::ifstream splashes;
@@ -299,7 +297,7 @@ void MainMenu::Draw() {
         if (GuiButton(
                 { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) }, "Play"
             )) {
-            menuAudioManager.unloadStreams();
+            TheAudioManager.unloadStreams();
             streamsLoaded = false;
             streamsPaused = false;
             for (Song &songi : songList.songs) {
@@ -432,13 +430,13 @@ void MainMenu::Draw() {
             WHITE
         );
 
-        for (auto &stream : menuAudioManager.loadedStreams) {
-            menuAudioManager.SetAudioStreamVolume(
+        for (auto &stream : TheAudioManager.loadedStreams) {
+            TheAudioManager.SetAudioStreamVolume(
                 stream.handle, TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume
             );
         }
-        float played = menuAudioManager.GetMusicTimePlayed();
-        float length = menuAudioManager.GetMusicTimeLength();
+        float played = TheAudioManager.GetMusicTimePlayed();
+        float length = TheAudioManager.GetMusicTimeLength();
         DrawRectangle(
             0,
             u.hpct(0.2f) - u.hinpct(0.01f),
@@ -448,7 +446,7 @@ void MainMenu::Draw() {
         );
 
         if (played >= length - 0.5) {
-            menuAudioManager.unloadStreams();
+            TheAudioManager.unloadStreams();
             albumArtLoaded = false;
             streamsPaused = false;
             songChosen = false;
@@ -464,11 +462,11 @@ void MainMenu::Draw() {
                 streamsPaused ? ">" : "||"
             )) {
             if (!streamsPaused) {
-                menuAudioManager.pauseStreams();
+                TheAudioManager.pauseStreams();
                 streamsPaused = true;
             } else if (streamsPaused) {
                 streamsPaused = false;
-                menuAudioManager.playStreams();
+                TheAudioManager.playStreams();
             }
         }
         if (GuiButton(
@@ -478,7 +476,7 @@ void MainMenu::Draw() {
                   u.hinpct(0.06f) },
                 ">>"
             )) {
-            menuAudioManager.unloadStreams();
+            TheAudioManager.unloadStreams();
             albumArtLoaded = false;
             streamsPaused = false;
             songChosen = false;
