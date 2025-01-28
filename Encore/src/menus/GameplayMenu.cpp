@@ -510,6 +510,10 @@ void GameplayMenu::Draw() {
             TheAudioManager.unpauseStreams();
             TheSongTime.Resume();
             ThePlayerManager.BandStats->Paused = false;
+            for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive;
+                 playerNum++) {
+                ThePlayerManager.GetActivePlayer(playerNum).stats->Paused = false;
+            }
         }
         if (GuiButton(RestartBox, "Restart")) {
             TheSongTime.Reset();
