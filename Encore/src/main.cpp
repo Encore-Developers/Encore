@@ -213,6 +213,7 @@ int main(int argc, char *argv[]) {
             "Encore"
         );
         SET_WINDOW_WINDOWED();
+        MaximizeWindow();
     } else {
         InitWindow(
             GetMonitorWidth(GetCurrentMonitor()),

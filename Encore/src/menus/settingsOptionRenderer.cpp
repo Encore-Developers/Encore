@@ -7,6 +7,8 @@
 #include "assets.h"
 #include "raygui.h"
 
+// what was wrong with me
+
 std::string trFloatString(float &input) {
     std::string inputStr = std::to_string(input);
     size_t dotPos = inputStr.find('.');

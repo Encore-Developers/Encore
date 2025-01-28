@@ -34,7 +34,7 @@ void PlayerGameplayStats::LoseHealth() {
 }
 
 PlayerGameplayStats::PlayerGameplayStats(int difficulty, int instrument)
-    : Quit(false), FC(false), Paused(false), Overdrive(false), Mute(false), Score(0),
+    : Quit(false), FC(true), Paused(false), Overdrive(false), Mute(false), Score(0),
       Combo(0), MaxCombo(0), Overhits(0), Notes(0), NotesHit(0), GoodHit(0),
       PerfectHit(0), NotesMissed(0), strummedNote(0), overdriveFill(0),
       overdriveActiveFill(0), overdriveActiveTime(0), overdriveActivateTime(0),

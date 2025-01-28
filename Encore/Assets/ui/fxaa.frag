@@ -1,9 +1,9 @@
 #version 330
  
-#define FXAA_REDUCE_MIN (1.0/128.0)
-#define FXAA_REDUCE_MUL (1.0/8.0)
-#define FXAA_SPAN_MAX 8.0
- 
+#define FXAA_REDUCE_MIN (1.0/256.0)
+#define FXAA_REDUCE_MUL (1.0/16.0)
+#define FXAA_SPAN_MAX 12.0
+ // https://blog.simonrodriguez.fr/articles/2016/07/implementing_fxaa.html
 in vec2 fragTexCoord;
  
 out vec4 fragColor;
@@ -13,8 +13,8 @@ uniform vec2 resolution;
  
 void main()
 {
-    fragColor = texture2D(texture0, fragTexCoord.xy);
-/*
+    //fragColor = texture2D(texture0, fragTexCoord.xy);
+
     vec2 inverse_resolution = vec2(1.0/resolution.x,1.0/resolution.y);
 
     vec4 rgbNW = texture2D(texture0, fragTexCoord.xy + (vec2(-1.0,-1.0)) * inverse_resolution);
@@ -56,5 +56,5 @@ void main()
     {
         fragColor = rgbB;
     }
-*/
+
 }

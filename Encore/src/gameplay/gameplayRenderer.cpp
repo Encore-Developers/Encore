@@ -19,6 +19,7 @@ float lineDistance = 1.5f;
 #include "song/audio.h"
 #include "users/playerManager.h"
 #include "util/enclog.h"
+#include "util/raylib-3d-text.h"
 
 Assets &gprAssets = Assets::getInstance();
 Units &gprU = Units::getInstance();
@@ -26,10 +27,6 @@ Units &gprU = Units::getInstance();
 // Color accentColor = {255,0,255,255};
 float defaultHighwayLength = 11.5f;
 Color OverdriveColor = { 255, 200, 0, 255 };
-
-#define LETTER_BOUNDRY_SIZE 0.25f
-#define TEXT_MAX_LAYERS 32
-#define LETTER_BOUNDRY_COLOR VIOLET
 
 std::vector<Color> GRYBO = { GREEN, RED, YELLOW, BLUE, ORANGE };
 std::vector<Color> TRANS = { SKYBLUE, PINK, WHITE, PINK, SKYBLUE };
@@ -46,223 +43,6 @@ enum DrumNotes {
     BLUE_DRUM,
     GREEN_DRUM
 };
-
-bool SHOW_LETTER_BOUNDRY = false;
-bool SHOW_TEXT_BOUNDRY = false;
-
-// code from raylib examples lol
-static void DrawTextCodepoint3D(
-    Font font, int codepoint, Vector3 position, float fontSize, bool backface, Color tint
-) {
-    // Character index position in sprite font
-    // NOTE: In case a codepoint is not available in the font, index returned points to
-    // '?'
-    int index = GetGlyphIndex(font, codepoint);
-    float scale = fontSize / (float)font.baseSize;
-
-    // Character destination rectangle on screen
-    // NOTE: We consider charsPadding on drawing
-    position.x += (float)(font.glyphs[index].offsetX - font.glyphPadding)
-        / (float)font.baseSize * scale;
-    position.z += (float)(font.glyphs[index].offsetY - font.glyphPadding)
-        / (float)font.baseSize * scale;
-
-    // Character source rectangle from font texture atlas
-    // NOTE: We consider chars padding when drawing, it could be required for outline/glow
-    // shader effects
-    Rectangle srcRec = { font.recs[index].x - (float)font.glyphPadding,
-                         font.recs[index].y - (float)font.glyphPadding,
-                         font.recs[index].width + 2.0f * font.glyphPadding,
-                         font.recs[index].height + 2.0f * font.glyphPadding };
-
-    float width = (float)(font.recs[index].width + 2.0f * font.glyphPadding)
-        / (float)font.baseSize * scale;
-    float height = (float)(font.recs[index].height + 2.0f * font.glyphPadding)
-        / (float)font.baseSize * scale;
-
-    if (font.texture.id > 0) {
-        const float x = 0.0f;
-        const float y = 0.0f;
-        const float z = 0.0f;
-
-        // normalized texture coordinates of the glyph inside the font texture (0.0f
-        // -> 1.0f)
-        const float tx = srcRec.x / font.texture.width;
-        const float ty = srcRec.y / font.texture.height;
-        const float tw = (srcRec.x + srcRec.width) / font.texture.width;
-        const float th = (srcRec.y + srcRec.height) / font.texture.height;
-
-        if (SHOW_LETTER_BOUNDRY) {
-            DrawCubeWiresV(
-                Vector3 { position.x + width / 2, position.y, position.z + height / 2 },
-                Vector3 { width, LETTER_BOUNDRY_SIZE, height },
-                LETTER_BOUNDRY_COLOR
-            );
-        }
-
-        rlCheckRenderBatchLimit(4 + 4 * backface);
-        rlSetTexture(font.texture.id);
-
-        rlPushMatrix();
-        rlTranslatef(position.x, position.y, position.z);
-
-        rlBegin(RL_QUADS);
-        rlColor4ub(tint.r, tint.g, tint.b, tint.a);
-
-        // Front Face
-        rlNormal3f(0.0f, 1.0f, 0.0f); // Normal Pointing Up
-        rlTexCoord2f(tx, ty);
-        rlVertex3f(x, y, z); // Top Left Of The Texture and Quad
-        rlTexCoord2f(tx, th);
-        rlVertex3f(x, y, z + height); // Bottom Left Of The Texture and Quad
-        rlTexCoord2f(tw, th);
-        rlVertex3f(x + width, y, z + height); // Bottom Right Of The Texture and Quad
-        rlTexCoord2f(tw, ty);
-        rlVertex3f(x + width, y, z); // Top Right Of The Texture and Quad
-
-        if (backface) {
-            // Back Face
-            rlNormal3f(0.0f, -1.0f, 0.0f); // Normal Pointing Down
-            rlTexCoord2f(tx, ty);
-            rlVertex3f(x, y, z); // Top Right Of The Texture and Quad
-            rlTexCoord2f(tw, ty);
-            rlVertex3f(x + width, y, z); // Top Left Of The Texture and Quad
-            rlTexCoord2f(tw, th);
-            rlVertex3f(x + width, y, z + height); // Bottom Left Of The Texture and Quad
-            rlTexCoord2f(tx, th);
-            rlVertex3f(x, y, z + height); // Bottom Right Of The Texture and Quad
-        }
-        rlEnd();
-        rlPopMatrix();
-
-        rlSetTexture(0);
-    }
-}
-
-static void DrawText3D(
-    Font font,
-    const char *text,
-    Vector3 position,
-    float fontSize,
-    float fontSpacing,
-    float lineSpacing,
-    bool backface,
-    Color tint
-) {
-    int length = TextLength(text); // Total length in bytes of the text, scanned by
-                                   // codepoints in loop
-
-    float textOffsetY = 0.0f; // Offset between lines (on line break '\n')
-    float textOffsetX = 0.0f; // Offset X to next character to draw
-
-    float scale = fontSize / (float)font.baseSize;
-
-    for (int i = 0; i < length;) {
-        // Get next codepoint from byte string and glyph index in font
-        int codepointByteCount = 0;
-        int codepoint = GetCodepoint(&text[i], &codepointByteCount);
-        int index = GetGlyphIndex(font, codepoint);
-
-        // NOTE: Normally we exit the decoding sequence as soon as a bad byte is found
-        // (and return 0x3f) but we need to draw all of the bad bytes using the '?' symbol
-        // moving one byte
-        if (codepoint == 0x3f)
-            codepointByteCount = 1;
-
-        if (codepoint == '\n') {
-            // NOTE: Fixed line spacing of 1.5 line-height
-            // TODO: Support custom line spacing defined by user
-            textOffsetY += scale + lineSpacing / (float)font.baseSize * scale;
-            textOffsetX = 0.0f;
-        } else {
-            if ((codepoint != ' ') && (codepoint != '\t')) {
-                DrawTextCodepoint3D(
-                    font,
-                    codepoint,
-                    Vector3 {
-                        position.x + textOffsetX, position.y, position.z + textOffsetY },
-                    fontSize,
-                    backface,
-                    tint
-                );
-            }
-
-            if (font.glyphs[index].advanceX == 0)
-                textOffsetX += (float)(font.recs[index].width + fontSpacing)
-                    / (float)font.baseSize * scale;
-            else
-                textOffsetX += (float)(font.glyphs[index].advanceX + fontSpacing)
-                    / (float)font.baseSize * scale;
-        }
-
-        i += codepointByteCount; // Move text bytes counter to next codepoint
-    }
-}
-
-static Vector3 MeasureText3D(
-    Font font, const char *text, float fontSize, float fontSpacing, float lineSpacing
-) {
-    int len = TextLength(text);
-    int tempLen = 0; // Used to count longer text line num chars
-    int lenCounter = 0;
-
-    float tempTextWidth = 0.0f; // Used to count longer text line width
-
-    float scale = fontSize / (float)font.baseSize;
-    float textHeight = scale;
-    float textWidth = 0.0f;
-
-    int letter = 0; // Current character
-    int index = 0; // Index position in sprite font
-
-    for (int i = 0; i < len; i++) {
-        lenCounter++;
-
-        int next = 0;
-        letter = GetCodepoint(&text[i], &next);
-        index = GetGlyphIndex(font, letter);
-
-        // NOTE: normally we exit the decoding sequence as soon as a bad byte is found
-        // (and return 0x3f) but we need to draw all of the bad bytes using the '?' symbol
-        // so to not skip any we set next = 1
-        if (letter == 0x3f)
-            next = 1;
-        i += next - 1;
-
-        if (letter != '\n') {
-            if (font.glyphs[index].advanceX != 0)
-                textWidth += (font.glyphs[index].advanceX + fontSpacing)
-                    / (float)font.baseSize * scale;
-            else
-                textWidth += (font.recs[index].width + font.glyphs[index].offsetX)
-                    / (float)font.baseSize * scale;
-        } else {
-            if (tempTextWidth < textWidth)
-                tempTextWidth = textWidth;
-            lenCounter = 0;
-            textWidth = 0.0f;
-            textHeight += scale + lineSpacing / (float)font.baseSize * scale;
-        }
-
-        if (tempLen < lenCounter)
-            tempLen = lenCounter;
-    }
-
-    if (tempTextWidth < textWidth)
-        tempTextWidth = textWidth;
-
-    Vector3 vec = { 0 };
-    vec.x = tempTextWidth
-        + (float)((tempLen - 1) * fontSpacing / (float)font.baseSize * scale); // Adds
-                                                                               // chars
-                                                                               // spacing
-                                                                               // to
-                                                                               // measure
-    vec.y = 0.25f;
-    vec.z = textHeight;
-
-    return vec;
-}
 
 double startTime = 0.0;
 bool highwayRaiseFinish = false;
@@ -691,15 +471,20 @@ void gameplayRenderer::DrawRenderTexture() {
     GameplayRenderTexture.texture.height = height;
     Rectangle source = { 0, 0, float(width), float(-height) };
     Rectangle res = { 0, 0, float(GetScreenWidth()), float(GetScreenHeight()) };
-    // SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, render_texture.texture);
-    // SetShaderValue(gprAssets.fxaa, gprAssets.resLoc, &res, SHADER_UNIFORM_VEC2);
-    // BeginShaderMode(gprAssets.fxaa);
-    // DrawTextureRec(render_texture.texture, res, {0}, WHITE);
+    Vector2 shaderResolution = { float(GetScreenWidth()), float(GetScreenHeight()) };
 
+    BeginShaderMode(gprAssets.fxaa);
+    // DrawTextureRec(GameplayRenderTexture.texture, res, {0}, WHITE);
+
+    SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, GameplayRenderTexture.texture);
+    SetShaderValue(
+        gprAssets.fxaa, gprAssets.resLoc, &shaderResolution, SHADER_UNIFORM_VEC2
+    );
     DrawTexturePro(
         GameplayRenderTexture.texture, source, res, { renderPos, highwayLevel }, 0, WHITE
     );
-    // EndShaderMode();
+
+    EndShaderMode();
 }
 
 void EnableFadeShaderForSmallObjectsThatUseRaylibMeshFuncs() {
@@ -1244,7 +1029,7 @@ void gameplayRenderer::RenderHud(Player &player, float length) {
 
     Vector4 FColor = { 0.5f, 0.4f, 0.1, 1.0f };
     float ForFCTime = GetTime();
-    int FCING = player.stats->FC ? 2 : 0;
+    int FCING = player.stats->FC ? 1 : 0;
     SetTextureWrap(gprAssets.MultFCTex1, TEXTURE_WRAP_REPEAT);
     SetTextureWrap(gprAssets.MultFCTex2, TEXTURE_WRAP_REPEAT);
     SetTextureWrap(gprAssets.MultFCTex3, TEXTURE_WRAP_REPEAT);
@@ -1324,8 +1109,6 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
     // 1) : (!player.stats->Multiplayer ? ((float)(player.stats->multiplier() / 2) - 1)
     // / (float)player.stats->maxMultForMeter() : (float)(player.stats->multiplier() -
     // 1)));
-
-
 
     SetShaderValue(
         gprAssets.multNumberShader,
@@ -1564,26 +1347,36 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
     } else {
         RenderPadNotes(player, curChart, curSongTime, highwayLength);
     }
-    // EndShaderMode();
-    // if (!player.Bot)
-    if (player.stats->LastPerfectTime != -2.0)
+
+    if (player.stats->LastPerfectTime != -2.0) {
         DrawPerfectText(player.stats->LastPerfectTime, curSongTime, player);
+    };
+    //
+    // if (player.stats->Combo >= 25) {
+    //     DrawPerfectText(player.stats->Combo, curSongTime, player);
+    // };
 
     if (!song.BRE.IsCodaActive(curSongTime)) {
         RenderHud(player, highwayLength);
     }
     stats->LastTick = CurrentTick;
+
     float PlayerCombinedHealth = 0;
+
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         PlayerCombinedHealth += ThePlayerManager.GetActivePlayer(i).stats->Health;
     }
+
     ThePlayerManager.BandStats->Health =
         PlayerCombinedHealth / (ThePlayerManager.PlayersActive);
+
     float TempHealthBarHeight =
         Remap(ThePlayerManager.BandStats->Health, 0, 100.0f, 0, GetScreenHeight());
+
     DrawRectangle(
         gprU.hpct(0.0f), 0, 10, gprU.hinpct(ThePlayerManager.BandStats->Health), GREEN
     );
+
     DrawTextEx(
         gprAssets.rubik,
         TextFormat("%4.2f", ThePlayerManager.BandStats->Health),
@@ -1592,7 +1385,6 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
         0,
         WHITE
     );
-
 }
 
 void gameplayRenderer::DrawHighwayMesh(
@@ -2010,10 +1802,17 @@ void gameplayRenderer::DrawSolo(
     float start = curChart.solos[player.stats->curSolo].StartSec;
     float end = curChart.solos[player.stats->curSolo].EndSec;
     nDrawSoloSides(length, start, end, musicTime, player.NoteSpeed, player.Difficulty);
+    int DoIn = 1;
+    int DontIn = 0;
+    SetShaderValue(
+        gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DoIn, SHADER_UNIFORM_INT
+    );
     eDrawSides(
         (player.NoteSpeed * DiffMultiplier), musicTime, start, end, length, 0.09, SKYBLUE
     );
-
+    SetShaderValue(
+        gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT
+    );
     if (!curChart.solos.events.empty()
         && musicTime >= curChart.solos[player.stats->curSolo].StartSec - 1
         && musicTime <= curChart.solos[player.stats->curSolo].EndSec + 2.5) {
@@ -2044,7 +1843,7 @@ void gameplayRenderer::DrawSolo(
         // DrawTextEx(gprAssets.josefinSansItalic, soloHit, SoloHitPos,
         // gprU.hinpct(0.04f), 0, accColor);
 
-        float posY = -20;
+        float posY = -25;
 
         float height = -2;
         float pctDist = 1.2;
@@ -2205,6 +2004,88 @@ double gameplayRenderer::GetNoteOnScreenTime(
     return ((noteTime - songTime)) * (noteSpeed * MaxHighwaySpeed) * (11.5f / length);
 }
 void gameplayRenderer::DrawPerfectText(double noteTime, double songTime, Player &player) {
+    double PerfectHitAnimDuration = 0.75f;
+    if (songTime > PerfectHitAnimDuration + noteTime)
+        return;
+
+    Units u = Units::getInstance();
+    Vector3 WorldPerfectPos = { 0.4f, 0, 1.275f };
+    Camera3D WorldCamera = cameraVectors[ThePlayerManager.PlayersActive - 1][cameraSel];
+    Vector2 PerfectTextScreenPos = GetWorldToScreen(WorldPerfectPos, WorldCamera);
+    double TimeSinceHit = songTime - noteTime;
+    unsigned char HitAlpha = Remap(
+        getEasingFunction(EaseOutQuad)(TimeSinceHit / PerfectHitAnimDuration),
+        0,
+        1.0,
+        255,
+        0
+    );
+    float ScreenYPos = Remap(
+        getEasingFunction(EaseInOutBack)(TimeSinceHit / PerfectHitAnimDuration),
+        0,
+        1.0,
+        0,
+        u.winpct(0.02)
+    );
+    /*
+    float HitPosLeft = Remap(
+        getEasingFunction(EaseInOutBack)(TimeSinceHit / PerfectHitAnimDuration),
+        0,
+        1.0,
+        3.4,
+        3.0
+    );*/
+
+    Color InnerBoxColor = { 255, 255, 255, static_cast<unsigned char>(HitAlpha / 2) };
+    Color OuterBoxColor = { 255, 255, 255, HitAlpha };
+    Color BackgroundColor = { GOLD.r, GOLD.g, GOLD.b, HitAlpha };
+    float Width = 1.0f;
+    float Height = 0.01f;
+    float Offset = u.hinpct(0.0025f);
+    float FontSize = u.hinpct(0.025f);
+    Vector2 PerfectTextPos = { (PerfectTextScreenPos.x + ScreenYPos) - renderPos,
+                               PerfectTextScreenPos.y };
+    Vector3 CenterlineWorld = { 0.0f, 0, 1.275f };
+    Vector2 CenterlinePos = GetWorldToScreen(CenterlineWorld, WorldCamera);
+    CenterlinePos.x -= renderPos;
+    float TextWidth = MeasureTextEx(gprAssets.rubikBold, "PERFECT", FontSize, 0).x;
+    float TextHeight = MeasureTextEx(gprAssets.rubikBold, "PERFECT", FontSize, 0).y;
+
+    float BoxLeft = (PerfectTextPos.x - TextWidth);
+    float BoxWidth = (CenterlinePos.x - BoxLeft);
+    float BoxLeftTwo = CenterlinePos.x - BoxWidth;
+    DrawRectangleGradientH(
+        BoxLeft, PerfectTextPos.y, BoxWidth, TextHeight, { 0 }, BackgroundColor
+    );
+    // GameMenu::mhDrawText(
+    //     gprAssets.rubikBold,
+    //     "PERFECT",
+    //     { PerfectTextPos.x + Offset, PerfectTextPos.y + Offset },
+    //     FontSize,
+    //     InnerBoxColor,
+    //     gprAssets.sdfShader,
+    //     RIGHT
+    // );
+    GameMenu::mhDrawText(
+        gprAssets.rubikBold,
+        "PERFECT",
+        PerfectTextPos,
+        FontSize,
+        OuterBoxColor,
+        gprAssets.sdfShader,
+        RIGHT
+    );
+
+    /*
+    DrawCube(
+        Vector3 { HitPosLeft, -0.1f, smasherPos }, Width, Height, 0.5f, InnerBoxColor
+    );
+    DrawCube(
+        Vector3 { HitPosLeft, -0.11f, smasherPos }, Width, Height, 1.0f, OuterBoxColor
+    );*/
+}
+
+void gameplayRenderer::DrawCombo(double noteTime, double songTime, Player &player) {
     double PerfectHitAnimDuration = 0.75f;
     if (songTime > PerfectHitAnimDuration + noteTime)
         return;
@@ -2747,34 +2628,20 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
     Player &player, Note note, double curSongTime, float notePosX, int lane
 ) {
     double PerfectHitAnimDuration = 1.0f;
-    double HitShakerDuration = 0.25f;
-    double HitShakerIntroDuration = 0.05f;
-    double HitShakerOutroDuration = 0.2f;
+    double HitShakerDuration = 0.4f;
+
 
     if (note.hit && curSongTime < note.hitTime + (HitShakerDuration)) {
-        float RotationDirection = note.perfect ? -5 : 5;
-        if (curSongTime < note.hitTime + HitShakerIntroDuration) {
-            double TimeSinceHit = curSongTime - (note.hitTime);
-            // HAVE IT GO THE OTHER WAY FOR PERFECTS.
-            // SAME WITH DRUMS
-
-            player.stats->fiveLaneSmasherHeights.at(lane) = Remap(
-                getEasingFunction(EaseOutBounce)(TimeSinceHit / HitShakerIntroDuration),
-                0,
-                1.0,
-                0,
-                0.1
-            );
-        } else {
-            double TimeSinceHit = curSongTime - (note.hitTime + HitShakerIntroDuration);
-            player.stats->fiveLaneSmasherHeights.at(lane) = Remap(
-                getEasingFunction(EaseOutBounce)(TimeSinceHit / HitShakerOutroDuration),
-                1.0,
-                0,
-                0,
-                0.1
-            );
-        }
+        float MaxHeight = 0.3f;
+        float MinHeight = 0;
+        double TimeSinceHit = curSongTime - (note.hitTime);
+        // HAVE IT GO THE OTHER WAY FOR PERFECTS.
+        // SAME WITH DRUMS
+        double PercentBetweenKey =
+            getEasingFunction(EaseOutBounce)(TimeSinceHit / HitShakerDuration);
+        player.stats->fiveLaneSmasherHeights.at(lane) = Clamp(
+            Remap(PercentBetweenKey, 1.00, 0, MinHeight, MaxHeight), MinHeight, MaxHeight
+        );
     }
 
     EnableFadeShaderForSmallObjectsThatUseRaylibMeshFuncs();

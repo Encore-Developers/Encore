@@ -101,7 +101,8 @@ class gameplayRenderer {
     double GetNoteOnScreenTime(
         double noteTime, double songTime, float noteSpeed, int Difficulty, float length
     );
-    void DrawPerfectText(double noteTime, double songTime, Player& player);
+    void DrawPerfectText(double noteTime, double songTime, Player &player);
+    void DrawCombo(double noteTime, double songTime, Player &player);
     double HighwaySpeedDifficultyMultiplier(int Difficulty);
     float MaxHighwaySpeed = 1.25f;
     float MinHighwaySpeed = 0.5f;

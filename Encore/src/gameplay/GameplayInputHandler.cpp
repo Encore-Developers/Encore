@@ -180,8 +180,12 @@ void GameplayInputHandler::CheckPadInputs(Player &player, int lane, int action, 
     bool LiftPressed = (curNote.lift && action == GLFW_PRESS);
     bool LiftLeniencyUsedUp;
     if (lastLiftNote != -1) {
-        LiftLeniencyUsedUp =
-            curChart.notes[lastLiftNote].hitTime + liftLeniencyTime > eventTime;
+        if (curChart.notes[lastLiftNote].lane == curNote.lane) {
+            LiftLeniencyUsedUp =
+                curChart.notes[lastLiftNote].hitTime + liftLeniencyTime < eventTime;
+        } else {
+            LiftLeniencyUsedUp = true;
+        }
     } else {
         LiftLeniencyUsedUp = true;
     }
