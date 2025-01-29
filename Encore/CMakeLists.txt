@@ -48,7 +48,11 @@ option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp" "include/*.c")
 file(GLOB_RECURSE INC_FILES "include/*.h" "include/*.h*" "src/*.h")
 # Add source files to the executable
-add_executable(Encore ${SRC_FILES} ${INC_FILES})
+if (WIN32)
+  add_executable(Encore ${SRC_FILES} ${INC_FILES} "resources.rc")
+elseif()
+  add_executable(Encore ${SRC_FILES} ${INC_FILES})
+endif()
 # Temp player file
 
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
@@ -125,3 +129,4 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD-RPC})
+
