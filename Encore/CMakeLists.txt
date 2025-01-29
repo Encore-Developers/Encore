@@ -50,7 +50,7 @@ file(GLOB_RECURSE INC_FILES "include/*.h" "include/*.h*" "src/*.h")
 # Add source files to the executable
 if (WIN32)
   add_executable(Encore ${SRC_FILES} ${INC_FILES} "resources.rc")
-elseif()
+else()
   add_executable(Encore ${SRC_FILES} ${INC_FILES})
 endif()
 # Temp player file
