@@ -3,6 +3,9 @@
 // 0.1f is too big btw for hitwindow, 0.075f is better
 constexpr float goodFrontend = 0.075f;
 constexpr float goodBackend = 0.075f;
+// this is for a limited hopo frontend system
+constexpr float hopoFrontend = 0.1f;
+constexpr float hopoBackend = 0;
 // constexpr float goodClassicFrontend = 0.075f;
 // constexpr float goodClassicBackend = 0.075f;
 constexpr float perfectFrontend = 0.025f;

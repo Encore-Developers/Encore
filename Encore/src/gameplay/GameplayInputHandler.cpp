@@ -38,7 +38,12 @@ bool GameplayInputHandler::isNoteMatch(
     }
     return true;
 }
-
+bool isInHopoFrontend(double time, double eventTime, double inputOffset) {
+    return (
+        time - hopoBackend + inputOffset < eventTime
+        && time + hopoFrontend + inputOffset > eventTime
+    );
+}
 void GameplayInputHandler::CheckPlasticInputs(
     Player &player, int lane, int action, float eventTime
 ) {
@@ -59,6 +64,10 @@ void GameplayInputHandler::CheckPlasticInputs(
     // TODO: BRE logic
     if (inCoda)
         return;
+    bool InHopoFrontend =
+        isInHopoFrontend(curNote.time, eventTime, player.InputCalibration)
+        && curNote.phopo;
+
     bool firstNote = stats->curNoteInt == 0;
     bool greaterThanLastNoteMatch = stats->PressedMask > (lastNote.mask << 2) + 1;
     bool frettingInput = action == GLFW_PRESS && lane != STRUM && lane != -1;
@@ -96,6 +105,13 @@ void GameplayInputHandler::CheckPlasticInputs(
         }
     }
 
+    if (InHopoFrontend && !IsInWindow && noteMatch && frettingInput) {
+        curNote.hitInFrontend = true;
+    }
+    if (InHopoFrontend && action == GLFW_RELEASE && (lane < STRUM && lane > OVERDRIVE_ACT)
+        && curNote.hitInFrontend && noteMatch) {
+        curNote.hitInFrontend = false;
+    }
     // is hopo hittable as tap
     if ((curNote.hitWithFAS || CouldTap) && IsInWindow && noteMatch) {
         curNote.cHitNote(eventTime, player.InputCalibration);
@@ -153,14 +169,15 @@ void GameplayInputHandler::handleInputs(Player &player, int lane, int action) {
         }
     }
 }
-void GameplayInputHandler::CheckPadInputs(Player &player, int lane, int action, double eventTime) {
+void GameplayInputHandler::CheckPadInputs(
+    Player &player, int lane, int action, double eventTime
+) {
     PlayerGameplayStats *&stats = player.stats;
     PlayerManager &playerManager = ThePlayerManager;
     SongList &songList = TheSongList;
     Chart &curChart =
         songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
     SettingsOld &settings = SettingsOld::getInstance();
-
 
     // do overdrive hitting logic here lol
     if (lane == OVERDRIVE_ACT)

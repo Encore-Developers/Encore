@@ -1,22 +1,14 @@
 ﻿#define JSON_DIAGNOSTICS 1
-#include "menus/GameplayMenu.h"
 #include "song/songlist.h"
 #include "users/playerManager.h"
 #include "menus/menu.h"
-#include "menus/OvershellMenu.h"
-#include "menus/sndTestMenu.h"
-#include "menus/cacheLoadingScreen.h"
-#include "menus/resultsMenu.h"
 #include "util/discord.h"
 #include "util/enclog.h"
 #include "gameplay/enctime.h"
 
-#include "util/json-helper.h"
-#include "song/song.h"
-
 #define RAYGUI_IMPLEMENTATION
 
-/* not needed for debug purposes
+/* not needed for debug purposes, change in release
 #if defined(WIN32) && defined(NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
@@ -26,47 +18,27 @@
 #endif
 
 #include <filesystem>
-#include <iostream>
 #include <vector>
 #include <thread>
-#include <condition_variable>
-#include <thread>
-#include <atomic>
 
 #include "raylib.h"
 #include "raygui.h"
-#include "raymath.h"
 #include "GLFW/glfw3.h"
 
 #include "arguments.h"
 #include "assets.h"
 #include "song/audio.h"
 #include "gameplay/gameplayRenderer.h"
-#include "keybinds.h"
-#include "old/lerp.h"
-#include "menus/gameMenu.h"
-#include "menus/overshellRenderer.h"
-
-#include "menus/settingsOptionRenderer.h"
 
 #include "menus/uiUnits.h"
 
-#include "settings-old.h"
 #include "settings.h"
-#include "timingvalues.h"
-#include "gameplay/GameplayInputHandler.h"
-#include "gameplay/inputCallbacks.h"
-#include "inih/INIReader.h"
-#include "menus/ChartLoadingMenu.h"
-#include "menus/ReadyUpMenu.h"
-#include "menus/SettingsMenu.h"
-#include "menus/SongSelectMenu.h"
 
 #include "menus/styles.h"
+#include "util/frame-manager.h"
 #include "util/settings-helper.h"
 
 #include <menus/MenuManager.h>
-#include <nlohmann/json_fwd.hpp>
 
 MenuManager TheMenuManager;
 gameplayRenderer TheGameRenderer;
@@ -77,6 +49,7 @@ Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
 Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
+Encore::FrameManager TheFrameManager;
 
 // OvershellRenderer overshellRenderer;
 
@@ -97,8 +70,6 @@ int minWidth = 640;
 int minHeight = 480;
 
 Menu *ActiveMenu = nullptr;
-
-
 
 int main(int argc, char *argv[]) {
     SetTraceLogCallback(Encore::EncoreLog);
@@ -150,25 +121,10 @@ int main(int argc, char *argv[]) {
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();
 
-    bool removeFPSLimit = false;
-    int menuFPS = GetMonitorRefreshRate(GetCurrentMonitor()) / 2;
-
-    // https://www.raylib.com/examples/core/loader.html?name=core_custom_frame_control
-
-    double previousTime = GetTime();
-    double currentTime = 0.0;
-    double updateDrawTime = 0.0;
-    double waitTime = 0.0;
-    float deltaTime = 0.0;
-
-
     if (TheGameSettings.VerticalSync) {
-
         SetConfigFlags(FLAG_VSYNC_HINT);
     }
-    Encore::EncoreLog(
-           LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg)
-       );
+    Encore::EncoreLog(LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg));
     if (!TheGameSettings.Fullscreen) {
         InitWindow(
             GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
@@ -189,7 +145,7 @@ int main(int argc, char *argv[]) {
     TheAudioManager.Init();
     SetExitKey(0);
     TheAudioManager.loadSample("Assets/combobreak.mp3", "miss");
-
+    TheFrameManager.InitFrameManager();
     ChangeDirectory(GetApplicationDirectory());
 
     SETDEFAULTSTYLE();
@@ -208,12 +164,11 @@ int main(int argc, char *argv[]) {
         );
     else {
         Encore::EncoreLog(LOG_INFO, TextFormat("Unlocked framerate."));
-        removeFPSLimit = true;
+        TheFrameManager.removeFPSLimit = true;
     }
 
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
-
         u.calcUnits();
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
@@ -249,26 +204,7 @@ int main(int argc, char *argv[]) {
 
         TheMenuManager.DrawMenu();
         EndDrawing();
-
-        if (!removeFPSLimit) {
-            currentTime = GetTime();
-            updateDrawTime = currentTime - previousTime;
-            int Target = TheGameSettings.Framerate;
-            if (TheMenuManager.currentScreen != GAMEPLAY)
-                Target = menuFPS;
-
-            if (Target > 0) {
-                waitTime = (1.0f / (float)Target) - updateDrawTime;
-                if (waitTime > 0.0) {
-                    WaitTime((float)waitTime);
-                    currentTime = GetTime();
-                    deltaTime = (float)(currentTime - previousTime);
-                }
-            } else
-                deltaTime = (float)updateDrawTime;
-
-            previousTime = currentTime;
-        }
+        TheFrameManager.WaitForFrame();
     }
     CloseWindow();
     return 0;

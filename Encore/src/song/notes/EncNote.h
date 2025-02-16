@@ -42,6 +42,7 @@ public:
     bool countedForODPhrase = false;
     bool perfect = false;
     bool renderAsOD = false;
+    bool hitInFrontend = false;
     double hitTime = 0;
     int tick;
 

@@ -65,16 +65,11 @@ double TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {
     double beatDelta = timeDelta * bpm.bpm / 60.0;
     return beatDelta * 480.0;
 }
-unsigned char TickToChar(
-    int tick, int MinBrightness, int MaxBrightness, int QuarterNoteLength
-) {
+unsigned char
+TickToChar(int tick, int MinBrightness, int MaxBrightness, int QuarterNoteLength) {
     float TickModulo = tick % QuarterNoteLength;
     return Remap(
-        TickModulo / float(QuarterNoteLength),
-        0,
-        1.0f,
-        MaxBrightness,
-        MinBrightness
+        TickModulo / float(QuarterNoteLength), 0, 1.0f, MaxBrightness, MinBrightness
     );
 }
 
@@ -713,7 +708,7 @@ void gameplayRenderer::CheckPlasticNotes(
     if (!curNote.hit && !curNote.accounted
         && curNote.time + goodBackend + player.InputCalibration < curSongTime
         && !TheSongTime.SongComplete() && stats->curNoteInt < curChart.notes.size()
-        && !player.Bot) {
+        && !player.Bot && !curNote.hitInFrontend) {
         Encore::EncoreLog(
             LOG_INFO,
             TextFormat(
@@ -737,7 +732,19 @@ void gameplayRenderer::CheckPlasticNotes(
             stats->HitPlasticNote(curNote);
         }
     }
-
+    if (curNote.hitInFrontend && curNote.isGood(curSongTime, player.InputCalibration)
+        && curNote.miss && !curNote.hit && curNote.accounted) {
+        curNote.cHitNote(curSongTime, player.InputCalibration);
+        // TODO: fix for plastic
+        stats->HitPlasticNote(curNote);
+        ThePlayerManager.BandStats->AddClassicNotePoint(
+            curNote.perfect, stats->noODmultiplier(), curNote.chordSize
+        );
+        if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
+            && stats->Combo % 10 == 0) {
+            stats->MultiplierEffectTime = curSongTime;
+        }
+    }
     curChart.solos.UpdateEventViaNote(curNote, stats->curSolo);
     curChart.sections.UpdateEventViaNote(curNote, stats->curSection);
     curChart.fills.UpdateEventViaNote(curNote, stats->curFill);
@@ -2860,7 +2867,6 @@ void gameplayRenderer::nDrawCodaLanes(
     }
 }
 
-
 void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, int combo) {
     for (int i = 0; i < 5; i++) {
         /*
@@ -2906,12 +2912,12 @@ void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, int combo) 
         lane.shader.locs[SHADER_LOC_MAP_ALBEDO] = gprAssets.HighwayColorLoc;
         lane.maps[MATERIAL_MAP_ALBEDO].texture = dividerTex[divLane];
 
-
         // use default... by default
 
         if (combo >= 40 && (i == 0 || i == 4)) {
-            lane.maps[MATERIAL_MAP_ALBEDO].color =
-                ColorTint(RAYWHITE, { 255, 255, 255, TickToChar(CurrentTick, 128, 256, 480) });
+            lane.maps[MATERIAL_MAP_ALBEDO].color = ColorTint(
+                RAYWHITE, { 255, 255, 255, TickToChar(CurrentTick, 128, 256, 480) }
+            );
 
         } else {
             lane.maps[MATERIAL_MAP_ALBEDO].color =
