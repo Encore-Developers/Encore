@@ -21,7 +21,9 @@
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 */
-
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 
 #include <filesystem>
 #include <iostream>
@@ -117,7 +119,33 @@ int main(int argc, char *argv[]) {
 
     std::filesystem::path executablePath(GetApplicationDirectory());
     std::filesystem::path directory = executablePath.parent_path();
+#ifdef __APPLE__
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if (bundle != NULL) {
+        // get the Resources directory for our binary for the Assets handling
+        CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(bundle);
+        if (resourceURL != NULL) {
+            char resourcePath[PATH_MAX];
+            if (CFURLGetFileSystemRepresentation(
+                    resourceURL, true, (UInt8 *)resourcePath, PATH_MAX
+                ))
+                assets.setDirectory(resourcePath);
+            CFRelease(resourceURL);
+        }
+        // do the next step manually (settings/config handling)
+        // "directory" is our executable directory here, hop up to the external dir
+        if (directory.filename().compare("MacOS") == 0)
+            directory = directory.parent_path().parent_path().parent_path(); // hops
+        // "MacOS",
+        // "Contents",
+        // "Encore.app"
+        // into
+        // containing
+        // folder
 
+        CFRelease(bundle);
+    }
+#endif
     TheSettingsInitializer.InitSettings(directory);
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();

@@ -9,41 +9,13 @@
 #include "settings-old.h"
 #include "users/playerManager.h"
 
-#if defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
-#endif
+
 
 #include <nlohmann/json_fwd.hpp>
 
 namespace Encore {
     void SettingsInit::InitSettings(std::filesystem::path directory) {
-#ifdef __APPLE__
-        CFBundleRef bundle = CFBundleGetMainBundle();
-        if (bundle != NULL) {
-            // get the Resources directory for our binary for the Assets handling
-            CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(bundle);
-            if (resourceURL != NULL) {
-                char resourcePath[PATH_MAX];
-                if (CFURLGetFileSystemRepresentation(
-                        resourceURL, true, (UInt8 *)resourcePath, PATH_MAX
-                    ))
-                    assets.setDirectory(resourcePath);
-                CFRelease(resourceURL);
-            }
-            // do the next step manually (settings/config handling)
-            // "directory" is our executable directory here, hop up to the external dir
-            if (directory.filename().compare("MacOS") == 0)
-                directory = directory.parent_path().parent_path().parent_path(); // hops
-            // "MacOS",
-            // "Contents",
-            // "Encore.app"
-            // into
-            // containing
-            // folder
 
-            CFRelease(bundle);
-        }
-#endif
         // todo: move to Encore::SettingsHelper
         TheGameSettings.SongPaths = { directory / "Songs" };
         if (exists(directory / "settings.json")
