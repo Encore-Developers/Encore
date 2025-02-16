@@ -9,6 +9,10 @@
 #include "settings-old.h"
 #include "users/playerManager.h"
 
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
 #include <nlohmann/json_fwd.hpp>
 
 namespace Encore {

@@ -21,9 +21,7 @@
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 */
-#if defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
-#endif
+
 
 #include <filesystem>
 #include <iostream>
