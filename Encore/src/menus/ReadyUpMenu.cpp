@@ -34,7 +34,8 @@ std::vector<std::vector<int> > pDiffRangeNotes = {
 };
 
 void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) {
-    if (songPart != SongParts::Invalid && songPart != PitchedVocals && songPart != BeatLines) {
+    if (songPart != SongParts::Invalid && songPart != PitchedVocals
+        && songPart != BeatLines) {
         for (int diff = 0; diff < 4; diff++) {
             bool StopSearching = false;
             Chart newChart;
@@ -47,7 +48,7 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) 
                     newChart.track = trackNumber;
                     TheSongList.curSong->parts[(int)songPart]->hasPart = true;
                     StopSearching = true;
-                    }
+                }
             }
             if (songPart > PartVocals && songPart < PlasticVocals)
                 TheSongList.curSong->parts[songPart]->plastic = true;
@@ -149,113 +150,302 @@ void ReadyUpMenu::Draw() {
 
             if (!player.ReadiedUpBefore
                 || !TheSongList.curSong->parts[player.Instrument]->hasPart) {
-                player.instSelection = true;
-            } else if (TheSongList.curSong->parts[player.Instrument]
+                player.ReadyUpMenuState = Player::INSTRUMENT;
+                } else if (!TheSongList.curSong->parts[player.Instrument]
                            ->charts[player.Difficulty]
                            .valid) {
-                player.diffSelection = true;
+                player.ReadyUpMenuState = Player::DIFFICULTY;
             } else if (player.ReadiedUpBefore) {
-                player.ReadyUpMenu = true;
+                player.ReadyUpMenuState = Player::PREVIEW;
             }
-        }
-
-        // load instrument select
-
-        else if (TheGameRenderer.midiLoaded && player.instSelection) {
-            if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-                if (!player.ReadiedUpBefore
-                    || !TheSongList.curSong->parts[player.Instrument]->hasPart) {
-                    player.instSelection = true;
-                    player.diffSelection = false;
-                    player.instSelected = false;
-                    player.diffSelected = false;
-                    TheGameRenderer.midiLoaded = false;
-                    TheMenuManager.SwitchScreen(SONG_SELECT);
-                } else {
-                    player.instSelection = false;
-                    player.ReadyUpMenu = true;
+        } else if (TheGameRenderer.midiLoaded) {
+            switch (player.ReadyUpMenuState) {
+            case Player::INSTRUMENT: {
+                if (GuiButton({ 0, 0, 60, 60 }, "<")) {
+                    if (!player.ReadiedUpBefore
+                        || !TheSongList.curSong->parts[player.Instrument]->hasPart) {
+                        player.ReadyUpMenuState = Player::INSTRUMENT;
+                        TheGameRenderer.midiLoaded = false;
+                        TheMenuManager.SwitchScreen(SONG_SELECT);
+                    } else {
+                        player.ReadyUpMenuState = Player::PREVIEW;
+                    }
                 }
-            }
-            // DrawTextRHDI(TextFormat("%s - %s",
-            // TheSongList.curSong->title.c_str(),
-            // TheSongList.curSong->artist.c_str()), 70,7, WHITE);
+                // DrawTextRHDI(TextFormat("%s - %s",
+                // TheSongList.curSong->title.c_str(),
+                // TheSongList.curSong->artist.c_str()), 70,7, WHITE);
 
-            for (int i = 0; i < TheSongList.curSong->parts.size(); i++) {
-                if (TheSongList.curSong->parts[i]->hasPart) {
-                    GuiSetStyle(
-                        BUTTON,
-                        BASE_COLOR_NORMAL,
-                        i == player.Instrument && player.instSelected
-                            ? ColorToInt(ColorBrightness(player.AccentColor, -0.25))
-                            : 0x181827FF
-                    );
-                    GuiSetStyle(
-                        BUTTON,
-                        TEXT_COLOR_NORMAL,
-                        ColorToInt(Color { 255, 255, 255, 255 })
-                    );
-                    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-                    if (GuiButton(
-                            { u.LeftSide + ((playerInt)*u.winpct(0.25f)),
+                for (int i = 0; i < TheSongList.curSong->parts.size(); i++) {
+                    if (TheSongList.curSong->parts[i]->hasPart) {
+                        GuiSetStyle(
+                            BUTTON,
+                            BASE_COLOR_NORMAL,
+                            i == player.Instrument
+                                ? ColorToInt(ColorBrightness(player.AccentColor, -0.25))
+                                : 0x181827FF
+                        );
+                        GuiSetStyle(
+                            BUTTON,
+                            TEXT_COLOR_NORMAL,
+                            ColorToInt(Color { 255, 255, 255, 255 })
+                        );
+                        GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+                        if (GuiButton(
+                                { u.LeftSide + ((playerInt)*u.winpct(0.25f)),
+                                  BottomOvershell - u.hinpct(0.05f)
+                                      - (u.hinpct(0.05f) * (float)i),
+                                  u.winpct(0.2f),
+                                  u.hinpct(0.05f) },
+                                TextFormat("  %s", songPartsList[i].c_str())
+                            )) {
+                            player.instSelected = true;
+                            player.Instrument = i;
+                            int isBassOrVocal = 0;
+                            if (i > PartVocals)
+                                player.ClassicMode = true;
+                            else
+                                player.ClassicMode = false;
+                            if (player.Instrument == PartBass
+                                || player.Instrument == PartVocals
+                                || player.Instrument == PlasticBass) {
+                                isBassOrVocal = 1;
+                            }
+                            SetShaderValue(
+                                assets.odMultShader,
+                                assets.isBassOrVocalLoc,
+                                &isBassOrVocal,
+                                SHADER_UNIFORM_INT
+                            );
+                        }
+                        GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+                        GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+                        GameMenu::mhDrawText(
+                            assets.rubik,
+                            (std::to_string(TheSongList.curSong->parts[i]->diff + 1)
+                             + "/7")
+                                .c_str(),
+                            { (u.LeftSide + ((playerInt)*u.winpct(0.25f)))
+                                  + u.winpct(0.165f),
+                              BottomOvershell - u.hinpct(0.04f)
+                                  - (u.hinpct(0.05f) * (float)i) },
+                            u.hinpct(0.03f),
+                            WHITE,
+                            assets.sdfShader,
+                            LEFT
+                        );
+                    } else {
+                        GuiButton(
+                            { (u.LeftSide + (playerInt)*u.winpct(0.25f)),
                               BottomOvershell - u.hinpct(0.05f)
                                   - (u.hinpct(0.05f) * (float)i),
                               u.winpct(0.2f),
                               u.hinpct(0.05f) },
-                            TextFormat("  %s", songPartsList[i].c_str())
-                        )) {
-                        player.instSelected = true;
-                        player.Instrument = i;
-                        int isBassOrVocal = 0;
-                        if (i > PartVocals)
-                            player.ClassicMode = true;
-                        else
-                            player.ClassicMode = false;
-                        if (player.Instrument == PartBass
-                            || player.Instrument == PartVocals
-                            || player.Instrument == PlasticBass) {
-                            isBassOrVocal = 1;
-                        }
-                        SetShaderValue(
-                            assets.odMultShader,
-                            assets.isBassOrVocalLoc,
-                            &isBassOrVocal,
-                            SHADER_UNIFORM_INT
+                            ""
+                        );
+                        DrawRectangle(
+                            (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + 2,
+                            BottomOvershell - u.hinpct(0.05f)
+                                - (u.hinpct(0.05f) * (float)i) + 2,
+                            u.winpct(0.2f) - 4,
+                            u.hinpct(0.05f) - 4,
+                            Color { 0, 0, 0, 128 }
                         );
                     }
-                    GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-                    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                    if (player.instSelected) {
+                        GuiSetStyle(
+                            BUTTON,
+                            TEXT_COLOR_NORMAL,
+                            ColorToInt(Color { 255, 255, 255, 255 })
+                        );
+                        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
+                        GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
+                        if (GuiButton(
+                                { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                                  BottomOvershell,
+                                  u.winpct(0.2f),
+                                  u.hinpct(0.05f) },
+                                "Done"
+                            )) {
+                            if (TheSongList.curSong->parts[player.Instrument]
+                                       ->charts[player.Difficulty]
+                                       .notes.empty()) {
+                                player.ReadyUpMenuState = Player::DIFFICULTY;
+                            } else {
+                                player.ReadyUpMenuState = Player::PREVIEW;
+                            }
+                            break;
+                        }
+                        GuiSetStyle(
+                            BUTTON,
+                            BASE_COLOR_FOCUSED,
+                            ColorToInt(ColorBrightness(player.AccentColor, -0.5))
+                        );
+                        GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+                        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                    }
+                }
+                break;
+            }
+            case Player::DIFFICULTY: {
+                {
+                    for (auto &chartDiff :
+                         TheSongList.curSong->parts[player.Instrument]->charts) {
+                        if (chartDiff.valid) {
+                            GuiSetStyle(
+                                BUTTON,
+                                BASE_COLOR_NORMAL,
+                                chartDiff.diff == player.Difficulty && player.diffSelected
+                                    ? ColorToInt(
+                                          ColorBrightness(player.AccentColor, -0.25)
+                                      )
+                                    : 0x181827FF
+                            );
+                            if (GuiButton(
+                                    { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                                      BottomOvershell - u.hinpct(0.05f)
+                                          - (u.hinpct(0.05f) * chartDiff.diff),
+                                      u.winpct(0.2f),
+                                      u.hinpct(0.05f) },
+                                    diffList[chartDiff.diff].c_str()
+                                )) {
+                                player.Difficulty = chartDiff.diff;
+                                player.diffSelected = true;
+                            }
+                        } else {
+                            GuiButton(
+                                { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                                  BottomOvershell - u.hinpct(0.05f)
+                                      - (u.hinpct(0.05f) * chartDiff.diff),
+                                  u.winpct(0.2f),
+                                  u.hinpct(0.05f) },
+                                ""
+                            );
+                            DrawRectangle(
+                                (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + 2,
+                                BottomOvershell + 2 - u.hinpct(0.05f)
+                                    - (u.hinpct(0.05f) * chartDiff.diff),
+                                u.winpct(0.2f) - 4,
+                                u.hinpct(0.05f) - 4,
+                                Color { 0, 0, 0, 128 }
+                            );
+                        }
+                        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                        if (player.diffSelected) {
+                            GuiSetStyle(
+                                BUTTON,
+                                TEXT_COLOR_NORMAL,
+                                ColorToInt(Color { 255, 255, 255, 255 })
+                            );
+                            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
+                            GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
+                            if (GuiButton(
+                                    { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                                      BottomOvershell - u.hinpct(0.25f),
+                                      u.winpct(0.2f),
+                                      u.hinpct(0.05f) },
+                                    "Done"
+                                )) {
+                                player.ReadyUpMenuState = Player::PREVIEW;
+                                player.ReadiedUpBefore = true;
+                            }
+                            GuiSetStyle(
+                                BUTTON,
+                                BASE_COLOR_FOCUSED,
+                                ColorToInt(ColorBrightness(player.AccentColor, -0.5))
+                            );
+                            GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
+                            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+                        }
+                        if (GuiButton({ 0, 0, 60, 60 }, "<")) {
+                            if (player.ReadiedUpBefore
+                                || !TheSongList.curSong->parts[player.Instrument]
+                                        ->hasPart) {
+                                player.ReadyUpMenuState = Player::INSTRUMENT;
+                                player.instSelected = false;
+                                player.diffSelected = false;
+                            } else {
+                                player.ReadyUpMenuState = Player::PREVIEW;
+                                player.instSelected = false;
+                                player.diffSelected = false;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case Player::PREVIEW: {
+                {
+                    if (GuiButton(
+                            { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                              BottomOvershell - u.hinpct(0.05f),
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            ""
+                        )) {
+                        player.ReadyUpMenuState = Player::DIFFICULTY;
+                    }
                     GameMenu::mhDrawText(
                         assets.rubik,
-                        (std::to_string(TheSongList.curSong->parts[i]->diff + 1) + "/7")
-                            .c_str(),
-                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + u.winpct(0.165f),
-                          BottomOvershell - u.hinpct(0.04f)
-                              - (u.hinpct(0.05f) * (float)i) },
+                        "  Difficulty",
+                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                          BottomOvershell - u.hinpct(0.04f) },
                         u.hinpct(0.03f),
                         WHITE,
                         assets.sdfShader,
                         LEFT
                     );
-                } else {
-                    GuiButton(
-                        { (u.LeftSide + (playerInt)*u.winpct(0.25f)),
-                          BottomOvershell - u.hinpct(0.05f)
-                              - (u.hinpct(0.05f) * (float)i),
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        ""
+                    DrawTextEx(
+                        assets.rubikBold,
+                        diffList[player.Difficulty].c_str(),
+                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + u.winpct(0.19f)
+                              - MeasureTextEx(
+                                    assets.rubikBold,
+                                    diffList[player.Difficulty].c_str(),
+                                    u.hinpct(0.03f),
+                                    0
+                              )
+                                    .x,
+                          BottomOvershell - u.hinpct(0.04f) },
+                        u.hinpct(0.03f),
+                        0,
+                        WHITE
                     );
-                    DrawRectangle(
-                        (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + 2,
-                        BottomOvershell - u.hinpct(0.05f) - (u.hinpct(0.05f) * (float)i)
-                            + 2,
-                        u.winpct(0.2f) - 4,
-                        u.hinpct(0.05f) - 4,
-                        Color { 0, 0, 0, 128 }
+                    if (GuiButton(
+                            { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                              BottomOvershell - u.hinpct(0.10f),
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            ""
+                        )) {
+                        player.ReadyUpMenuState = Player::INSTRUMENT;
+                    }
+                    GameMenu::mhDrawText(
+                        assets.rubik,
+                        "  Instrument",
+                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
+                          BottomOvershell - u.hinpct(0.09f) },
+                        u.hinpct(0.03f),
+                        WHITE,
+                        assets.sdfShader,
+                        LEFT
                     );
-                }
-                GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-                if (player.instSelected) {
+                    DrawTextEx(
+                        assets.rubikBold,
+                        songPartsList[player.Instrument].c_str(),
+                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + u.winpct(0.19f)
+                              - MeasureTextEx(
+                                    assets.rubikBold,
+                                    songPartsList[player.Instrument].c_str(),
+                                    u.hinpct(0.03f),
+                                    0
+                              )
+                                    .x,
+                          BottomOvershell - u.hinpct(0.09f) },
+                        u.hinpct(0.03f),
+                        0,
+                        WHITE
+                    );
                     GuiSetStyle(
                         BUTTON,
                         TEXT_COLOR_NORMAL,
@@ -268,18 +458,12 @@ void ReadyUpMenu::Draw() {
                               BottomOvershell,
                               u.winpct(0.2f),
                               u.hinpct(0.05f) },
-                            "Done"
+                            "Ready Up!"
                         )) {
-                        if (!player.ReadiedUpBefore
-                            || TheSongList.curSong->parts[player.Instrument]
-                                   ->charts[player.Difficulty]
-                                   .notes.empty()) {
-                            player.instSelection = false;
-                            player.diffSelection = true;
-                        } else {
-                            player.instSelection = false;
-                            player.ReadyUpMenu = true;
-                        }
+                        player.ReadyUpMenuState = Player::PREVIEW;
+                        // TheGameRenderer.highwayInAnimation = false;
+                        // TheGameRenderer.songStartTime = GetTime();
+                        TheMenuManager.SwitchScreen(CHART_LOADING_SCREEN);
                     }
                     GuiSetStyle(
                         BUTTON,
@@ -290,191 +474,8 @@ void ReadyUpMenu::Draw() {
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                 }
             }
-        }
-        // load difficulty select
-        if (TheGameRenderer.midiLoaded && player.diffSelection) {
-            for (auto &chartDiff :
-                 TheSongList.curSong->parts[player.Instrument]->charts) {
-                if (chartDiff.valid) {
-                    GuiSetStyle(
-                        BUTTON,
-                        BASE_COLOR_NORMAL,
-                        chartDiff.diff == player.Difficulty && player.diffSelected
-                            ? ColorToInt(ColorBrightness(player.AccentColor, -0.25))
-                            : 0x181827FF
-                    );
-                    if (GuiButton(
-                            { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                              BottomOvershell - u.hinpct(0.05f)
-                                  - (u.hinpct(0.05f) * chartDiff.diff),
-                              u.winpct(0.2f),
-                              u.hinpct(0.05f) },
-                            diffList[chartDiff.diff].c_str()
-                        )) {
-                        player.Difficulty = chartDiff.diff;
-                        player.diffSelected = true;
-                    }
-                } else {
-                    GuiButton(
-                        { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                          BottomOvershell - u.hinpct(0.05f)
-                              - (u.hinpct(0.05f) * chartDiff.diff),
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        ""
-                    );
-                    DrawRectangle(
-                        (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + 2,
-                        BottomOvershell + 2 - u.hinpct(0.05f)
-                            - (u.hinpct(0.05f) * chartDiff.diff),
-                        u.winpct(0.2f) - 4,
-                        u.hinpct(0.05f) - 4,
-                        Color { 0, 0, 0, 128 }
-                    );
-                }
-                GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-                if (player.diffSelected) {
-                    GuiSetStyle(
-                        BUTTON,
-                        TEXT_COLOR_NORMAL,
-                        ColorToInt(Color { 255, 255, 255, 255 })
-                    );
-                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
-                    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
-                    if (GuiButton(
-                            { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                              BottomOvershell - u.hinpct(0.25f),
-                              u.winpct(0.2f),
-                              u.hinpct(0.05f) },
-                            "Done"
-                        )) {
-                        player.diffSelection = false;
-                        player.ReadyUpMenu = true;
-                        player.ReadiedUpBefore = true;
-                    }
-                    GuiSetStyle(
-                        BUTTON,
-                        BASE_COLOR_FOCUSED,
-                        ColorToInt(ColorBrightness(player.AccentColor, -0.5))
-                    );
-                    GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-                    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-                }
-                if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-                    if (player.ReadiedUpBefore
-                        || !TheSongList.curSong->parts[player.Instrument]->hasPart) {
-                        player.instSelection = true;
-                        player.diffSelection = false;
-                        player.instSelected = false;
-                        player.diffSelected = false;
-                    } else {
-                        player.instSelection = false;
-                        player.diffSelection = false;
-                        player.instSelected = false;
-                        player.diffSelected = false;
-                        player.ReadyUpMenu = true;
-                    }
-                }
+                break;
             }
-        }
-        if (TheGameRenderer.midiLoaded && player.ReadyUpMenu) {
-            if (GuiButton(
-                    { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                      BottomOvershell - u.hinpct(0.05f),
-                      u.winpct(0.2f),
-                      u.hinpct(0.05f) },
-                    ""
-                )) {
-                player.ReadyUpMenu = false;
-                player.diffSelection = true;
-            }
-            GameMenu::mhDrawText(
-                assets.rubik,
-                "  Difficulty",
-                { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                  BottomOvershell - u.hinpct(0.04f) },
-                u.hinpct(0.03f),
-                WHITE,
-                assets.sdfShader,
-                LEFT
-            );
-            DrawTextEx(
-                assets.rubikBold,
-                diffList[player.Difficulty].c_str(),
-                { (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + u.winpct(0.19f)
-                      - MeasureTextEx(
-                            assets.rubikBold,
-                            diffList[player.Difficulty].c_str(),
-                            u.hinpct(0.03f),
-                            0
-                      )
-                            .x,
-                  BottomOvershell - u.hinpct(0.04f) },
-                u.hinpct(0.03f),
-                0,
-                WHITE
-            );
-            if (GuiButton(
-                    { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                      BottomOvershell - u.hinpct(0.10f),
-                      u.winpct(0.2f),
-                      u.hinpct(0.05f) },
-                    ""
-                )) {
-                player.ReadyUpMenu = false;
-                player.instSelection = true;
-            }
-            GameMenu::mhDrawText(
-                assets.rubik,
-                "  Instrument",
-                { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                  BottomOvershell - u.hinpct(0.09f) },
-                u.hinpct(0.03f),
-                WHITE,
-                assets.sdfShader,
-                LEFT
-            );
-            DrawTextEx(
-                assets.rubikBold,
-                songPartsList[player.Instrument].c_str(),
-                { (u.LeftSide + ((playerInt)*u.winpct(0.25f))) + u.winpct(0.19f)
-                      - MeasureTextEx(
-                            assets.rubikBold,
-                            songPartsList[player.Instrument].c_str(),
-                            u.hinpct(0.03f),
-                            0
-                      )
-                            .x,
-                  BottomOvershell - u.hinpct(0.09f) },
-                u.hinpct(0.03f),
-                0,
-                WHITE
-            );
-            GuiSetStyle(
-                BUTTON, TEXT_COLOR_NORMAL, ColorToInt(Color { 255, 255, 255, 255 })
-            );
-            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
-            GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
-            if (GuiButton(
-                    { (u.LeftSide + ((playerInt)*u.winpct(0.25f))),
-                      BottomOvershell,
-                      u.winpct(0.2f),
-                      u.hinpct(0.05f) },
-                    "Ready Up!"
-                )) {
-                player.instSelection = true;
-                player.ReadyUpMenu = false;
-                // TheGameRenderer.highwayInAnimation = false;
-                // TheGameRenderer.songStartTime = GetTime();
-                TheMenuManager.SwitchScreen(CHART_LOADING_SCREEN);
-            }
-            GuiSetStyle(
-                BUTTON,
-                BASE_COLOR_FOCUSED,
-                ColorToInt(ColorBrightness(player.AccentColor, -0.5))
-            );
-            GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
         }
 
         if (GuiButton({ 0, 0, 60, 60 }, "<")) {

@@ -78,6 +78,7 @@ class gameplayRenderer {
         float NoteSpeed,
         int Difficulty
     );
+    void nDrawFiveLaneUnderlay(float length, bool pad, int combo);
 
     void nDrawSoloSides(
         float length,
@@ -140,8 +141,10 @@ public:
     float renderPos = 0;
     int cameraSel = 0;
     Mesh sustainPlane;
+    Mesh dividerPlane;
     Mesh soloPlane;
     Texture2D invSoloTex;
+    Texture2D dividerTex[3];
     std::vector<std::vector<Camera3D>> cameraVectors;
 
 

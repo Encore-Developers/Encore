@@ -49,7 +49,7 @@ namespace GameMenu {
 
 class MainMenu : public OvershellMenu {
     
-
+    void ChooseSplashText(std::filesystem::path directory);
 public:
     // MainMenu() {};
     // drawing helper functions for other menus

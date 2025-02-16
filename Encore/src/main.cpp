@@ -63,6 +63,7 @@
 #include "menus/SongSelectMenu.h"
 
 #include "menus/styles.h"
+#include "util/settings-helper.h"
 
 #include <menus/MenuManager.h>
 #include <nlohmann/json_fwd.hpp>
@@ -71,11 +72,11 @@ MenuManager TheMenuManager;
 gameplayRenderer TheGameRenderer;
 SongList TheSongList;
 PlayerManager ThePlayerManager;
-SettingsOld &settingsMain = SettingsOld::getInstance();
 Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
 Encore::Discord TheGameRPC;
+Encore::SettingsInit TheSettingsInitializer;
 
 // OvershellRenderer overshellRenderer;
 
@@ -92,19 +93,12 @@ vector<std::string> ArgumentList::arguments;
 std::string encoreVersion = ENCORE_VERSION;
 std::string commitHash = GIT_COMMIT_HASH;
 
-/*
-std::string scoreCommaFormatter(int value) {
-    std::stringstream ss;
-    ss.imbue(std::locale(std::cout.getloc(), new Separators<char>()));
-    ss << std::fixed << value;
-    return ss.str();
-}
-*/
-
 int minWidth = 640;
 int minHeight = 480;
 
 Menu *ActiveMenu = nullptr;
+
+
 
 int main(int argc, char *argv[]) {
     SetTraceLogCallback(Encore::EncoreLog);
@@ -123,68 +117,11 @@ int main(int argc, char *argv[]) {
     int targetFPSArg = -1;
     int vsyncArg = 1;
 
-
-
     std::filesystem::path executablePath(GetApplicationDirectory());
-
     std::filesystem::path directory = executablePath.parent_path();
 
-#ifdef __APPLE__
-    CFBundleRef bundle = CFBundleGetMainBundle();
-    if (bundle != NULL) {
-        // get the Resources directory for our binary for the Assets handling
-        CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(bundle);
-        if (resourceURL != NULL) {
-            char resourcePath[PATH_MAX];
-            if (CFURLGetFileSystemRepresentation(
-                    resourceURL, true, (UInt8 *)resourcePath, PATH_MAX
-                ))
-                assets.setDirectory(resourcePath);
-            CFRelease(resourceURL);
-        }
-        // do the next step manually (settings/config handling)
-        // "directory" is our executable directory here, hop up to the external dir
-        if (directory.filename().compare("MacOS") == 0)
-            directory = directory.parent_path().parent_path().parent_path(); // hops
-        // "MacOS",
-        // "Contents",
-        // "Encore.app"
-        // into
-        // containing
-        // folder
-
-        CFRelease(bundle);
-    }
-#endif
-    // todo: move to Encore::SettingsHelper
-    TheGameSettings.SongPaths = { directory / "Songs" };
-    if (exists(directory / "settings.json") && !exists(directory / "settings-old.json")) {
-        rename(directory / "settings.json", directory / "settings-old.json");
-    }
-    // check to see if settings exists
-    // todo: move to own init helper
-    if (exists((directory / "settings.json"))) {
-        nlohmann::json SettingsFile;
-        std::ifstream f(directory / "settings.json");
-        SettingsFile = nlohmann::json::parse(f);
-        f.close();
-        Encore::from_json(SettingsFile, TheGameSettings);
-
-    } else {
-        // void WriteSettingsFile(filesystem::path settingsDir, const Settings&
-        // TheGameSettings)
-        nlohmann::json SettingsFile = TheGameSettings;
-        Encore::WriteJsonFile(directory / "settings.json", SettingsFile);
-    }
-
-    settingsMain.setDirectory(directory);
+    TheSettingsInitializer.InitSettings(directory);
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
-    if (std::filesystem::exists(directory / "keybinds.json")) {
-        settingsMain.migrateSettings(
-            directory / "keybinds.json", directory / "settings-old.json"
-        );
-    }
-    settingsMain.loadSettings(directory / "settings-old.json");
     ThePlayerManager.LoadPlayerList();
 
     bool removeFPSLimit = false;

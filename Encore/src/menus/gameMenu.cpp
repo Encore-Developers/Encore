@@ -166,19 +166,27 @@ void GameMenu::DrawVersion() {
     );
 };
 
+void MainMenu::ChooseSplashText(std::filesystem::path directory) {
+    std::ifstream splashes;
+    splashes.open((directory / "Assets/ui/splashes.txt"));
+
+    std::random_device seed;
+    std::mt19937 prng(seed());
+    std::string line, result;
+    for(std::size_t n = 0; std::getline(splashes, line); n++) {
+        std::uniform_int_distribution<> dist(0, n);
+        if (dist(prng) < 1)
+            result = line;
+    }
+    SplashString = result;
+    std::cout << result << std::endl;
+}
+
 void MainMenu::Load() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     SongList &songList = TheSongList;
-    std::ifstream splashes;
-    splashes.open((directory / "Assets/ui/splashes.txt"));
-    std::string line;
 
-    for (std::size_t n = 0; std::getline(splashes, line); n++) {
-        int rng = GetRandomValue(0, n);
-        if (rng < 1)
-            SplashString = line;
-    }
-
+    ChooseSplashText(directory);
     if (std::filesystem::exists("songCache.encr") && songList.songs.size() > 0) {
         AlbumArtBackground = menuAss.highwayTexture;
 
@@ -203,9 +211,12 @@ void MainMenu::Load() {
             songList.curSong->LoadAudio(songList.curSong->songInfoPath);
         TheAudioManager.loadStreams(songList.curSong->stemsPath);
         streamsLoaded = true;
-        for (auto &stream : TheAudioManager.loadedStreams) {
+        for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
+            float Volume = TheGameSettings.avMainVolume * 0.15f;
+            if (i == PartVocals)
+                Volume = 0;
             TheAudioManager.SetAudioStreamVolume(
-                stream.handle, TheGameSettings.avMainVolume * 0.15f
+                TheAudioManager.loadedStreams[i].handle, Volume
             );
         }
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
@@ -216,18 +227,15 @@ void MainMenu::Load() {
 void MainMenu::Draw() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     SongList &songList = TheSongList;
-    std::ifstream splashes;
-
-    static std::string result;
 
     if (albumArtLoaded)
         GameMenu::DrawAlbumArtBackground(AlbumArtBackground);
 
     float SplashFontSize = u.hinpct(0.03f);
     float SplashHeight =
-        MeasureTextEx(menuAss.josefinSansItalic, result.c_str(), SplashFontSize, 0).y;
+        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0).y;
     float SplashWidth =
-        MeasureTextEx(menuAss.josefinSansItalic, result.c_str(), SplashFontSize, 0).x;
+        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0).x;
 
     float SongFontSize = u.hinpct(0.03f);
 
@@ -252,7 +260,7 @@ void MainMenu::Draw() {
     );
 
     DrawTextEx(
-        menuAss.josefinSansItalic, result.c_str(), StringBox, SplashFontSize, 0, WHITE
+        menuAss.josefinSansItalic, SplashString.c_str(), StringBox, SplashFontSize, 0, WHITE
     );
 
     Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f),
@@ -291,7 +299,7 @@ void MainMenu::Draw() {
     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x00000000);
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
     if (GuiButton({ 0, u.hpct(0.8f), u.LeftSide + SplashWidth, u.hpct(0.05f) }, "")) {
-        stringChosen = false;
+        ChooseSplashText(directory);
     }
     if (std::filesystem::exists("songCache.encr")) {
         if (GuiButton(
@@ -329,7 +337,8 @@ void MainMenu::Draw() {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
     }
     if (GuiButton(
-            { u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, "Options - out of order"
+            { u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) },
+            "Options"
         )) {
         // glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
         TheMenuManager.SwitchScreen(SETTINGS);
@@ -432,7 +441,8 @@ void MainMenu::Draw() {
 
         for (auto &stream : TheAudioManager.loadedStreams) {
             TheAudioManager.SetAudioStreamVolume(
-                stream.handle, TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume
+                stream.handle,
+                TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume
             );
         }
         float played = TheAudioManager.GetMusicTimePlayed();

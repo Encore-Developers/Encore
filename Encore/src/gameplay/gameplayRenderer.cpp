@@ -65,6 +65,18 @@ double TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {
     double beatDelta = timeDelta * bpm.bpm / 60.0;
     return beatDelta * 480.0;
 }
+unsigned char TickToChar(
+    int tick, int MinBrightness, int MaxBrightness, int QuarterNoteLength
+) {
+    float TickModulo = tick % QuarterNoteLength;
+    return Remap(
+        TickModulo / float(QuarterNoteLength),
+        0,
+        1.0f,
+        MaxBrightness,
+        MinBrightness
+    );
+}
 
 // this is kind of a. "replacement" for loading everything in Assets
 // technically i should be putting this in another class but you know
@@ -88,6 +100,7 @@ void gameplayRenderer::LoadGameplayAssets() {
     GameplayRenderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 
     sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
+    dividerPlane = GenMeshPlane(1.0f, 1.0f, 1, 1);
     soloPlane = GenMeshPlane(1.0f, 1.0f, 1, 1);
     Image invSolo = LoadImageFromTexture(gprAssets.soloTexture);
     ImageFlipHorizontal(&invSolo);
@@ -95,6 +108,12 @@ void gameplayRenderer::LoadGameplayAssets() {
     SetTextureWrap(invSoloTex, TEXTURE_WRAP_CLAMP);
     SetTextureWrap(gprAssets.soloTexture, TEXTURE_WRAP_CLAMP);
     UnloadImage(invSolo);
+
+    std::filesystem::path dividerPath = gprAssets.getDirectory();
+    dividerPath /= "Assets/gameplay/highway/dividers";
+    dividerTex[0] = LoadTexture((dividerPath / "left.png").string().c_str());
+    dividerTex[1] = LoadTexture((dividerPath / "center.png").string().c_str());
+    dividerTex[2] = LoadTexture((dividerPath / "right.png").string().c_str());
 
     Texture2D NoteSide = LoadTexture((noteModelPath / "NoteSide.png").string().c_str());
     Texture2D NoteColor = LoadTexture((noteModelPath / "NoteColor.png").string().c_str());
@@ -1464,22 +1483,6 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
     int UseIn = 1;
     int DontIn = 0;
     SetShaderValue(
-        gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &UseIn, SHADER_UNIFORM_INT
-    );
-    BeginShaderMode(gprAssets.HighwayFade);
-
-    if (!player.ClassicMode)
-        DrawCylinderEx(
-            Vector3 { lineDistance - 1.0f, 0, smasherPos },
-            Vector3 { lineDistance - 1.0f, 0, (highwayLength * 1.5f) + smasherPos },
-            0.025f,
-            0.025f,
-            15,
-            Color { 128, 128, 128, 128 }
-        );
-
-    EndShaderMode();
-    SetShaderValue(
         gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT
     );
 
@@ -1494,11 +1497,17 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
     BeginShaderMode(gprAssets.HighwayFade);
 
     // DrawHitwindow(player, highwayLength);
+    DrawRenderTexture();
 
+    StartRenderTexture();
+    BeginShaderMode(gprAssets.HighwayFade);
     if (!song.beatLines.empty()) {
         DrawBeatlines(player, song, highwayLength, curSongTime);
     }
+    DrawRenderTexture();
 
+    StartRenderTexture();
+    BeginShaderMode(gprAssets.HighwayFade);
     if (!song.parts[player.Instrument]->charts[player.Difficulty].overdrive.events.empty(
         )) {
         DrawOverdrive(
@@ -1510,7 +1519,10 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
     }
     float darkYPos = 0.015f;
     // BeginBlendMode(BLEND_ALPHA);
-    EndShaderMode();
+    DrawRenderTexture();
+
+    StartRenderTexture();
+    BeginShaderMode(gprAssets.HighwayFade);
     SetShaderValue(
         gprAssets.HighwayFade, gprAssets.HighwayAccentFadeLoc, &DontIn, SHADER_UNIFORM_INT
     );
@@ -1522,10 +1534,18 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
             curSongTime
         );
     }
+    DrawRenderTexture();
+
+    StartRenderTexture();
+    BeginShaderMode(gprAssets.HighwayFade);
     if (song.BRE.exists) {
         DrawCoda(highwayLength, curSongTime, player);
     }
+    DrawRenderTexture();
 
+    StartRenderTexture();
+    BeginShaderMode(gprAssets.HighwayFade);
+    nDrawFiveLaneUnderlay(highwayLength, !player.ClassicMode, stats->Combo);
     DrawRenderTexture();
 
     StartRenderTexture();
@@ -2630,7 +2650,6 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
     double PerfectHitAnimDuration = 1.0f;
     double HitShakerDuration = 0.4f;
 
-
     if (note.hit && curSongTime < note.hitTime + (HitShakerDuration)) {
         float MaxHeight = 0.3f;
         float MinHeight = 0;
@@ -2837,6 +2856,68 @@ void gameplayRenderer::nDrawCodaLanes(
         // use default... by default
 
         DrawMesh(sustainPlane, lane, sustainMatrix);
+        EndBlendMode();
+    }
+}
+
+
+void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, int combo) {
+    for (int i = 0; i < 5; i++) {
+        /*
+        double relTime =
+            GetNoteOnScreenTime(sTime, curTime, NoteSpeed, Difficulty, length);
+        double relEnd = GetNoteOnScreenTime(cLen, curTime, NoteSpeed, Difficulty, length);
+*/
+        float sustainLen = length * 2;
+        float notePosX = 2.0f - (1.0f * i);
+        Matrix sustainMatrix = MatrixMultiply(
+            MatrixScale(1, 1, sustainLen),
+            MatrixTranslate(notePosX, 0.005f, length - 0.1f)
+        );
+        int divLane = 0;
+        float Alpha = 1.0f;
+        unsigned char A = 180;
+        if (pad) {
+            if (i == 0 || i == 2)
+                divLane = 2;
+            if (i == 1 || i == 4)
+                divLane = 0;
+            if (i == 3)
+                continue;
+            // if (i == 1 || i == 2) A = 255;
+        } else {
+            if (i <= 1)
+                divLane = 2;
+            if (i == 2)
+                divLane = 1;
+            if (i >= 3)
+                divLane = 0;
+            if (i == 1 || i == 3)
+                Alpha = 0.25f;
+            if (i == 2)
+                Alpha = 0.15f;
+        }
+        if (i == 0 || i == 4) {
+            Alpha = 0.5f;
+        }
+
+        BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+        Material lane = gprAssets.CodaLane;
+        lane.shader.locs[SHADER_LOC_MAP_ALBEDO] = gprAssets.HighwayColorLoc;
+        lane.maps[MATERIAL_MAP_ALBEDO].texture = dividerTex[divLane];
+
+
+        // use default... by default
+
+        if (combo >= 40 && (i == 0 || i == 4)) {
+            lane.maps[MATERIAL_MAP_ALBEDO].color =
+                ColorTint(RAYWHITE, { 255, 255, 255, TickToChar(CurrentTick, 128, 256, 480) });
+
+        } else {
+            lane.maps[MATERIAL_MAP_ALBEDO].color =
+                ColorAlpha(ColorTint(RAYWHITE, { A, A, A, 255 }), Alpha);
+        }
+        DrawMesh(dividerPlane, lane, sustainMatrix);
         EndBlendMode();
     }
 }

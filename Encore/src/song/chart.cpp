@@ -66,7 +66,8 @@ void Chart::parseNotes(
                 if (!odOn) {
                     odOn = true;
                     odPhrase newPhrase;
-                    newPhrase.StartSec = midiFile.getTimeInSeconds(trkidx, i);
+                    newPhrase.StartSec = time;
+                    newPhrase.StartTick = tick;
                     overdrive.events.push_back(newPhrase);
                     curODPhrase++;
                 }
@@ -75,7 +76,8 @@ void Chart::parseNotes(
                 if (!soloOn) {
                     soloOn = true;
                     solo newSolo;
-                    newSolo.StartSec = midiFile.getTimeInSeconds(trkidx, i);
+                    newSolo.StartSec = time;
+                    newSolo.StartTick = tick;
                     solos.events.push_back(newSolo);
                     curSolo++;
                 }
@@ -105,11 +107,13 @@ void Chart::parseNotes(
             } else if ((int)events[i][1] == odNote) {
                 if (odOn == true) {
                     overdrive[curODPhrase].EndSec = time;
+                    overdrive[curODPhrase].EndTick = tick;
                     odOn = false;
                 }
             } else if ((int)events[i][1] == soloNote) {
                 if (soloOn == true) {
                     solos[curSolo].EndSec = time;
+                    solos[curSolo].EndTick = tick;
                     soloOn = false;
                 }
             }

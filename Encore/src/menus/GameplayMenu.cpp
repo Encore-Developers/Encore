@@ -170,7 +170,7 @@ unsigned char BeatToCharViaTickThing(
 ) {
     float TickModulo = tick % QuarterNoteLength;
     return Remap(
-        getEasingFunction(EaseInOutBack)(TickModulo / float(QuarterNoteLength)),
+        TickModulo / float(QuarterNoteLength),
         0,
         1.0f,
         MaxBrightness,
@@ -188,15 +188,17 @@ void GameplayMenu::Draw() {
 
     // IMAGE BACKGROUNDS??????
     ClearBackground(BLACK);
-    unsigned char BackgroundColor = 128;
+    unsigned char BackgroundColor = 0;
     if (ThePlayerManager.BandStats->PlayersInOverdrive > 0)
         BackgroundColor =
-            BeatToCharViaTickThing(TheGameRenderer.CurrentTick, 128, 108, 960);
+            BeatToCharViaTickThing(TheGameRenderer.CurrentTick, 0, 8, 960);
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(
-        0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, BackgroundColor }
+        0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 }
     );
-
+    DrawRectangle(
+            0, 0, GetScreenWidth(), GetScreenHeight(), Color { 255, 255, 255, BackgroundColor }
+        );
     /* Band Multiplier Drawing
     float bandMult = u.RightSide - WidthOfScorebox;
     GameMenu::mhDrawText(
