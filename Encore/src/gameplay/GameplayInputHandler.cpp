@@ -38,10 +38,10 @@ bool GameplayInputHandler::isNoteMatch(
     }
     return true;
 }
-bool isInHopoFrontend(double time, double eventTime, double inputOffset) {
+bool isInHopoFrontend(double noteTime, double eventTime, double inputOffset) {
     return (
-        time - hopoBackend + inputOffset < eventTime
-        && time + hopoFrontend + inputOffset > eventTime
+        noteTime + inputOffset < eventTime
+        && noteTime + hopoFrontend + goodFrontend + inputOffset > eventTime
     );
 }
 void GameplayInputHandler::CheckPlasticInputs(
