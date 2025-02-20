@@ -15,7 +15,7 @@ constexpr float fretAfterStrumTime = 0.05f; /**< Allows the player to strum earl
 
 constexpr float liftLeniencyTime = 0.1f; /**< Allows the player to strike right after hitting a lift without penalty. */
 
-constexpr float healthLossPerNote = 0.05f;
-constexpr float healthGainPerNote = 0.0125f;
+constexpr float healthLossPerNote = 0.03f;
+constexpr float healthGainPerNote = 0.015f;
 constexpr float healthLossSustainDrop = 0.01f;
 constexpr float healthOverdriveGainMult = 3.0f;
