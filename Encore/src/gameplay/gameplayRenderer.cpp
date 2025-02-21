@@ -1552,7 +1552,7 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
 
     StartRenderTexture();
     BeginShaderMode(gprAssets.HighwayFade);
-    nDrawFiveLaneUnderlay(highwayLength, !player.ClassicMode, stats->Combo);
+    nDrawFiveLaneUnderlay(highwayLength, !player.ClassicMode, player);
     DrawRenderTexture();
 
     StartRenderTexture();
@@ -2867,7 +2867,7 @@ void gameplayRenderer::nDrawCodaLanes(
     }
 }
 
-void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, int combo) {
+void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player& player) {
     for (int i = 0; i < 5; i++) {
         /*
         double relTime =
@@ -2911,17 +2911,27 @@ void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, int combo) 
         Material lane = gprAssets.CodaLane;
         lane.shader.locs[SHADER_LOC_MAP_ALBEDO] = gprAssets.HighwayColorLoc;
         lane.maps[MATERIAL_MAP_ALBEDO].texture = dividerTex[divLane];
-
+        Color SidesColor = RAYWHITE;
         // use default... by default
-
-        if (combo >= 40 && (i == 0 || i == 4)) {
+        if (player.stats->Overdrive) SidesColor = YELLOW;
+        bool GrooveFlash = false;
+        if (player.stats->IsBassOrVox()) {
+            if (player.stats->noODmultiplier() >= 6) {
+                GrooveFlash = true;
+            }
+        } else {
+            if (player.stats->noODmultiplier() >= 4) {
+                GrooveFlash = true;
+            }
+        }
+        if (GrooveFlash && (i == 0 || i == 4)) {
             lane.maps[MATERIAL_MAP_ALBEDO].color = ColorTint(
-                RAYWHITE, { 255, 255, 255, TickToChar(CurrentTick, 128, 256, 480) }
+                SidesColor, { 255, 255, 255, TickToChar(CurrentTick, 128, 256, 480) }
             );
 
         } else {
             lane.maps[MATERIAL_MAP_ALBEDO].color =
-                ColorAlpha(ColorTint(RAYWHITE, { A, A, A, 255 }), Alpha);
+                ColorAlpha(ColorTint(SidesColor, { A, A, A, 255 }), Alpha);
         }
         DrawMesh(dividerPlane, lane, sustainMatrix);
         EndBlendMode();

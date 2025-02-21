@@ -78,7 +78,7 @@ class gameplayRenderer {
         float NoteSpeed,
         int Difficulty
     );
-    void nDrawFiveLaneUnderlay(float length, bool pad, int combo);
+    void nDrawFiveLaneUnderlay(float length, bool pad, Player &player);
 
     void nDrawSoloSides(
         float length,
