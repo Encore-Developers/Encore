@@ -37,14 +37,14 @@
 
 bool Encore::AudioManager::Init() {
 #ifdef WIN32
-    if (!BASS_Init(-1, 48000, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
+    if (!BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
         CHECK_BASS_ERROR();
         return false;
     }
     BASS_PluginLoad("bassopus", 0);
     CHECK_BASS_ERROR();
 #else
-    if (!BASS_Init(-1, 48000, BASS_DEVICE_DMIX, 0, NULL)) {
+    if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
         CHECK_BASS_ERROR();
         return false;
     }
