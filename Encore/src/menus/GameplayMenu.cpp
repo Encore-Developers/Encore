@@ -170,11 +170,7 @@ unsigned char BeatToCharViaTickThing(
 ) {
     float TickModulo = tick % QuarterNoteLength;
     return Remap(
-        TickModulo / float(QuarterNoteLength),
-        0,
-        1.0f,
-        MaxBrightness,
-        MinBrightness
+        TickModulo / float(QuarterNoteLength), 0, 1.0f, MaxBrightness, MinBrightness
     );
 }
 
@@ -189,16 +185,17 @@ void GameplayMenu::Draw() {
     // IMAGE BACKGROUNDS??????
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
-    if (ThePlayerManager.BandStats->PlayersInOverdrive > 0)
-        BackgroundColor =
-            BeatToCharViaTickThing(TheGameRenderer.CurrentTick, 0, 8, 960);
+    if (ThePlayerManager.BandStats->PlayersInOverdrive > 0) {
+        BackgroundColor = BeatToCharViaTickThing(TheGameRenderer.CurrentTick, 0, 8, 960);
+    }
+
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
     DrawRectangle(
-        0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 }
+        0, 0, GetScreenWidth(), GetScreenHeight(), Color { 255, 255, 255, BackgroundColor }
     );
-    DrawRectangle(
-            0, 0, GetScreenWidth(), GetScreenHeight(), Color { 255, 255, 255, BackgroundColor }
-        );
+
+    // ClearBackground({ 0, 0, 0, 0 });
     /* Band Multiplier Drawing
     float bandMult = u.RightSide - WidthOfScorebox;
     GameMenu::mhDrawText(
@@ -650,7 +647,8 @@ void GameplayMenu::Draw() {
     GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
     GameMenu::DrawVersion();
 
-    if (!ThePlayerManager.BandStats->Multiplayer && ThePlayerManager.GetActivePlayer(0).stats->Health <= 0) {
+    if (!ThePlayerManager.BandStats->Multiplayer
+        && ThePlayerManager.GetActivePlayer(0).stats->Health <= 0) {
         TheSongList.curSong->LoadAlbumArt();
         ThePlayerManager.BandStats->ResetBandGameplayStats();
         TheGameRenderer.midiLoaded = false;
@@ -666,7 +664,6 @@ void GameplayMenu::Draw() {
             .resetNotes();
         ThePlayerManager.GetActivePlayer(0).stats->Quit = true;
         TheMenuManager.SwitchScreen(RESULTS);
-
     }
     // if (!TheGameRenderer.bot)
     //	DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
@@ -706,7 +703,9 @@ void GameplayMenu::Draw() {
             u.winpct(0.065f),
             DARKGRAY
         );
-        for (int fretBox = 0; fretBox < ThePlayerManager.GetActivePlayer(0).stats->HeldFrets.size(); fretBox++) {
+        for (int fretBox = 0;
+             fretBox < ThePlayerManager.GetActivePlayer(0).stats->HeldFrets.size();
+             fretBox++) {
             float leftInputBoxSize = (5 * u.winpct(0.02f)) / 2;
 
             Color fretColor;
@@ -731,16 +730,29 @@ void GameplayMenu::Draw() {
                 break;
             }
 
-            DrawRectangle(u.wpct(0.5f) - leftInputBoxSize + (fretBox *
-        u.winpct(0.02f)), u.hpct(0.02f), u.winpct(0.02f), u.winpct(0.02f),
-                        ThePlayerManager.GetActivePlayer(0).stats->HeldFrets[fretBox] ? fretColor : GRAY);
+            DrawRectangle(
+                u.wpct(0.5f) - leftInputBoxSize + (fretBox * u.winpct(0.02f)),
+                u.hpct(0.02f),
+                u.winpct(0.02f),
+                u.winpct(0.02f),
+                ThePlayerManager.GetActivePlayer(0).stats->HeldFrets[fretBox] ? fretColor
+                                                                              : GRAY
+            );
         }
-        DrawRectangle(u.wpct(0.5f) - ((5 * u.winpct(0.02f)) / 2),
-                    u.hpct(0.02f) + u.winpct(0.025f), u.winpct(0.1f), u.winpct(0.01f),
-                    ThePlayerManager.GetActivePlayer(0).stats->UpStrum ? WHITE : GRAY);
-        DrawRectangle(u.wpct(0.5f) - ((5 * u.winpct(0.02f)) / 2),
-                    u.hpct(0.02f) + u.winpct(0.035f), u.winpct(0.1f), u.winpct(0.01f),
-                    ThePlayerManager.GetActivePlayer(0).stats->DownStrum ? WHITE : GRAY);
+        DrawRectangle(
+            u.wpct(0.5f) - ((5 * u.winpct(0.02f)) / 2),
+            u.hpct(0.02f) + u.winpct(0.025f),
+            u.winpct(0.1f),
+            u.winpct(0.01f),
+            ThePlayerManager.GetActivePlayer(0).stats->UpStrum ? WHITE : GRAY
+        );
+        DrawRectangle(
+            u.wpct(0.5f) - ((5 * u.winpct(0.02f)) / 2),
+            u.hpct(0.02f) + u.winpct(0.035f),
+            u.winpct(0.1f),
+            u.winpct(0.01f),
+            ThePlayerManager.GetActivePlayer(0).stats->DownStrum ? WHITE : GRAY
+        );
     }
     /*
     DrawTextEx(

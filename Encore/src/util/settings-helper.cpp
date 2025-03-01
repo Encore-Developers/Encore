@@ -21,13 +21,16 @@ namespace Encore {
         if (exists(directory / "settings.json")
             && !exists(directory / "settings-old.json")) {
             this->MigrateSettings();
+            EncoreLog(LOG_INFO, "Moved old settings file");
         }
 
         // todo: move to own init helper
         if (exists((directory / "settings.json"))) {
             this->ReadSettings();
+            EncoreLog(LOG_INFO, "Successfully read settings");
         } else {
             this->CreateSettings();
+            EncoreLog(LOG_INFO, "Created new settings file");
         }
 
         this->LegacyMigrateSettings();
@@ -54,7 +57,9 @@ namespace Encore {
             settingsMain.migrateSettings(
                 directory / "keybinds.json", directory / "settings-old.json"
             );
+            EncoreLog(LOG_INFO, "Moved old keybinds file");
         }
         settingsMain.loadSettings(directory / "settings-old.json");
+        EncoreLog(LOG_INFO, "Loaded old settings file");
     }
 } // Encore
