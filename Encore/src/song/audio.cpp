@@ -44,7 +44,7 @@ bool Encore::AudioManager::Init() {
     BASS_PluginLoad("bassopus", 0);
     CHECK_BASS_ERROR();
 #else
-    if (!BASS_Init(-1, 48000, 0, 0, NULL)) {
+    if (!BASS_Init(-1, 48000, BASS_DEVICE_DMIX, 0, NULL)) {
         CHECK_BASS_ERROR();
         return false;
     }
