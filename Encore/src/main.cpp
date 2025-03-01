@@ -5,6 +5,8 @@
 #include "util/discord.h"
 #include "util/enclog.h"
 #include "gameplay/enctime.h"
+#include <cassert>
+#define assertm(exp, msg) assert((void(msg), exp))
 
 #define RAYGUI_IMPLEMENTATION
 
@@ -142,7 +144,7 @@ int main(int argc, char *argv[]) {
         SET_WINDOW_FULLSCREEN_BORDERLESS();
     }
 
-    TheAudioManager.Init();
+    assertm(TheAudioManager.Init() == true, "Audio initialization");
     SetExitKey(0);
     TheAudioManager.loadSample("Assets/combobreak.mp3", "miss");
     TheFrameManager.InitFrameManager();
