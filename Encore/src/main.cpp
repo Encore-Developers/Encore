@@ -143,8 +143,10 @@ int main(int argc, char *argv[]) {
         );
         SET_WINDOW_FULLSCREEN_BORDERLESS();
     }
+    bool AudioInitSuccessful = TheAudioManager.Init();
+    assert(AudioInitSuccessful == true);
+    Encore::EncoreLog(LOG_INFO, "Audio successfully initialized");
 
-    assertm(TheAudioManager.Init() == true, "Audio initialization");
     SetExitKey(0);
     TheAudioManager.loadSample("Assets/combobreak.mp3", "miss");
     TheFrameManager.InitFrameManager();
