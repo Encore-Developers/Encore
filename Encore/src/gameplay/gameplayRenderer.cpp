@@ -753,6 +753,7 @@ void gameplayRenderer::CheckPlasticNotes(
     if (curNote.hit && curChart.overdrive.Perfect(stats->curODPhrase)) {
         player.stats->overdriveFill +=
             curChart.overdrive.AddOverdrive(stats->curODPhrase);
+        player.stats->overdriveHitTime = curSongTime;
         if (player.stats->overdriveFill > 1.0f)
             player.stats->overdriveFill = 1.0f;
     }
@@ -1298,8 +1299,6 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
     gprAssets.smasherBoardEMH.meshes[0].colors =
         (unsigned char *)ColorToInt(highwayColor);
 
-    gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
-        player.AccentColor;
     gprAssets.emhHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
         player.AccentColor;
 
@@ -2661,13 +2660,61 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
         float MaxHeight = 0.3f;
         float MinHeight = 0;
         double TimeSinceHit = curSongTime - (note.hitTime);
-        // HAVE IT GO THE OTHER WAY FOR PERFECTS.
-        // SAME WITH DRUMS
         double PercentBetweenKey =
             getEasingFunction(EaseOutBounce)(TimeSinceHit / HitShakerDuration);
         player.stats->fiveLaneSmasherHeights.at(lane) = Clamp(
             Remap(PercentBetweenKey, 1.00, 0, MinHeight, MaxHeight), MinHeight, MaxHeight
         );
+    }
+    if (curSongTime < player.stats->overdriveHitTime + (OverdriveAnimationDuration)) {
+        double TimeSinceHit = curSongTime - player.stats->overdriveHitTime;
+        float height = Height;
+        float KickHeight = 0.35f;
+        if (ThePlayerManager.PlayersActive == 1) {
+            height = Height1p;
+            KickHeight = 0.15f;
+        };
+        if (ThePlayerManager.PlayersActive > 3) {
+            height = Height4p;
+        }
+        float CameraPos = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            height - KickHeight,
+            height
+        );
+        unsigned char SidesR = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            YELLOW.r,
+            player.AccentColor.r
+
+        );
+        unsigned char SidesG = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            YELLOW.g,
+            player.AccentColor.g
+
+        );
+        unsigned char SidesB = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            YELLOW.b,
+            player.AccentColor.b
+
+        );
+        cameraVectors[ThePlayerManager.PlayersActive - 1][cameraSel].position.y =
+            CameraPos;
+        gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+            Color { SidesR, SidesG, SidesB, 255 };
+    } else {
+        gprAssets.expertHighwaySides.materials[0].maps[MATERIAL_MAP_ALBEDO].color =
+            player.AccentColor;
     }
 
     EnableFadeShaderForSmallObjectsThatUseRaylibMeshFuncs();
@@ -2867,7 +2914,58 @@ void gameplayRenderer::nDrawCodaLanes(
     }
 }
 
-void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player& player) {
+void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player &player) {
+    Color SidesColor;
+    unsigned char BaseBrightness = 128;
+    if (TheSongTime.GetSongTime()
+        < player.stats->overdriveHitTime + (OverdriveAnimationDuration)) {
+        double TimeSinceHit = TheSongTime.GetSongTime() - player.stats->overdriveHitTime;
+        float height = 7.25f;
+        if (ThePlayerManager.PlayersActive > 3) {
+            height = 10;
+        }
+        float CameraPos = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            height - 0.35f,
+            height
+        );
+        unsigned char SidesR = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            YELLOW.r,
+            WHITE.r
+
+        );
+        unsigned char SidesG = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            YELLOW.g,
+            WHITE.g
+
+        );
+        unsigned char SidesB = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            YELLOW.b,
+            WHITE.b
+        );
+        BaseBrightness = Remap(
+            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
+            0,
+            1.0,
+            255,
+            128
+        );
+        SidesColor = Color { SidesR, SidesG, SidesB, 255 };
+    } else {
+        BaseBrightness = 128;
+        SidesColor = WHITE;
+    }
     for (int i = 0; i < 5; i++) {
         /*
         double relTime =
@@ -2911,9 +3009,9 @@ void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player& pla
         Material lane = gprAssets.CodaLane;
         lane.shader.locs[SHADER_LOC_MAP_ALBEDO] = gprAssets.HighwayColorLoc;
         lane.maps[MATERIAL_MAP_ALBEDO].texture = dividerTex[divLane];
-        Color SidesColor = RAYWHITE;
         // use default... by default
-        if (player.stats->Overdrive) SidesColor = YELLOW;
+        if (player.stats->Overdrive)
+            SidesColor = YELLOW;
         bool GrooveFlash = false;
         if (player.stats->IsBassOrVox()) {
             if (player.stats->noODmultiplier() >= 6) {
@@ -2926,12 +3024,13 @@ void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player& pla
         }
         if (GrooveFlash && (i == 0 || i == 4)) {
             lane.maps[MATERIAL_MAP_ALBEDO].color = ColorTint(
-                SidesColor, { 255, 255, 255, TickToChar(CurrentTick, 128, 256, 480) }
+                SidesColor,
+                { 255, 255, 255, TickToChar(CurrentTick, BaseBrightness, 256, 480) }
             );
 
         } else {
             lane.maps[MATERIAL_MAP_ALBEDO].color =
-                ColorAlpha(ColorTint(SidesColor, { A, A, A, 255 }), Alpha);
+                ColorAlpha(ColorTint(SidesColor, { A, A, A, BaseBrightness }), Alpha);
         }
         DrawMesh(dividerPlane, lane, sustainMatrix);
         EndBlendMode();

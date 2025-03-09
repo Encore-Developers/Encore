@@ -115,6 +115,7 @@ public:
     float highwayLevel = 0;
     float smasherPos = 2.4f;
     float HitAnimDuration = 0.15f;
+    double OverdriveAnimationDuration = 0.75f;
     bool highwayInAnimation = false;
     bool highwayInEndAnim = false;
     bool highwayOutAnimation = false;

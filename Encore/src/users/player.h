@@ -15,9 +15,11 @@
 class Band {
     /**
      * @brief Do Not Use. Outdated.
+     * Already achieved with Band Gameplay Stats and the Band shit
      */
     std::filesystem::path ScoreFile;
     bool SoloGameplay = true; // to be true until multiple players
+
 };
 
 class PlayerGameplayStats {
@@ -74,6 +76,7 @@ public:
     std::vector<bool> LiftRegistered { false, false, false, false, false };
     double StartTime = 0.0;
     double SongStartTime = 0.0;
+
     std::vector<float> SustainScoreBuffer { 0.0, 0.0, 0.0, 0.0, 0.0 };
     int curBPM = 0;
     int curBeatLine = 0;
