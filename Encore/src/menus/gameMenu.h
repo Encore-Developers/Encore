@@ -50,6 +50,9 @@ namespace GameMenu {
 class MainMenu : public OvershellMenu {
     
     void ChooseSplashText(std::filesystem::path directory);
+    void PickRandomMenuSong();
+    void AttractScreen();
+    void MainMenuScreen();
 public:
     // MainMenu() {};
     // drawing helper functions for other menus
@@ -61,6 +64,7 @@ public:
     ~MainMenu() {}
     void Draw();
     void Load();
+
     std::string SplashString;
     bool songsLoaded = false;
     bool streamsLoaded = false;

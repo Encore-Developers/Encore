@@ -26,6 +26,7 @@
 #endif
 #include "MenuManager.h"
 #include "settings.h"
+#include "users/playerManager.h"
 
 #ifndef ENCORE_VERSION
 #define ENCORE_VERSION
@@ -173,7 +174,7 @@ void MainMenu::ChooseSplashText(std::filesystem::path directory) {
     std::random_device seed;
     std::mt19937 prng(seed());
     std::string line, result;
-    for(std::size_t n = 0; std::getline(splashes, line); n++) {
+    for (std::size_t n = 0; std::getline(splashes, line); n++) {
         std::uniform_int_distribution<> dist(0, n);
         if (dist(prng) < 1)
             result = line;
@@ -182,22 +183,18 @@ void MainMenu::ChooseSplashText(std::filesystem::path directory) {
     std::cout << result << std::endl;
 }
 
-void MainMenu::Load() {
-    std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-    SongList &songList = TheSongList;
-
-    ChooseSplashText(directory);
-    if (std::filesystem::exists("songCache.encr") && songList.songs.size() > 0) {
+void MainMenu::PickRandomMenuSong() {
+    if (std::filesystem::exists("songCache.encr") && TheSongList.songs.size() > 0) {
         AlbumArtBackground = menuAss.highwayTexture;
 
         try {
-            int my = GetRandomValue(0, (int)songList.songs.size() - 1);
-            songList.curSong = &songList.songs[my];
+            int my = GetRandomValue(0, (int)TheSongList.songs.size() - 1);
+            TheSongList.curSong = &TheSongList.songs[my];
             // ChosenSongInt = my;
 
-            songList.curSong->LoadAlbumArt();
-            AlbumArtBackground = songList.curSong->albumArtBlur;
-            TraceLog(LOG_INFO, songList.curSong->title.c_str());
+            TheSongList.curSong->LoadAlbumArt();
+            AlbumArtBackground = TheSongList.curSong->albumArtBlur;
+            TraceLog(LOG_INFO, TheSongList.curSong->title.c_str());
             songChosen = true;
             albumArtLoaded = true;
         } catch (const std::exception &e) {
@@ -205,14 +202,15 @@ void MainMenu::Load() {
             AlbumArtBackground = menuAss.highwayTexture;
         };
 
-        if (songList.curSong->ini)
-            songList.curSong->LoadAudioINI(songList.curSong->songDir);
+        if (TheSongList.curSong->ini)
+            TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
         else
-            songList.curSong->LoadAudio(songList.curSong->songInfoPath);
-        TheAudioManager.loadStreams(songList.curSong->stemsPath);
+            TheSongList.curSong->LoadAudio(TheSongList.curSong->songInfoPath);
+        TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
         streamsLoaded = true;
         for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
-            float Volume = TheGameSettings.avMainVolume * 0.15f;
+            float Volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
             if (i == PartVocals)
                 Volume = 0;
             TheAudioManager.SetAudioStreamVolume(
@@ -222,33 +220,83 @@ void MainMenu::Load() {
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
     }
 }
-
-// todo: text box rendering for splashes, cleanup of buttons
-void MainMenu::Draw() {
+void MainMenu::Load() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-    SongList &songList = TheSongList;
+    ChooseSplashText(directory);
+    PickRandomMenuSong();
+}
 
-    if (albumArtLoaded)
-        GameMenu::DrawAlbumArtBackground(AlbumArtBackground);
-
+void MainMenu::AttractScreen() {
     float SplashFontSize = u.hinpct(0.03f);
     float SplashHeight =
-        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0).y;
+        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0)
+            .y;
     float SplashWidth =
-        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0).x;
+        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0)
+            .x;
+    Color accentColor =
+        ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f);
 
     float SongFontSize = u.hinpct(0.03f);
 
     Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
-    GameMenu::DrawTopOvershell(0.2f);
 
-    float logoHeight = u.hinpct(0.145f);
-    GameMenu::DrawVersion();
+    float LogoHeight = u.winpct(0.1f);
+    float LogoWidth = u.winpct(0.48f);
+    Vector2 GreetSplashPos = { u.wpct(0.5f) - (SplashWidth / 2),
+                               u.hpct(0.36f) + LogoHeight };
+    Rectangle LogoRect = {
+        u.wpct(0.5f) - (LogoWidth / 2), u.hpct(0.35f), LogoWidth, LogoHeight
+    };
 
+    DrawTextEx(
+        menuAss.josefinSansItalic,
+        SplashString.c_str(),
+        GreetSplashPos,
+        SplashFontSize,
+        0,
+        WHITE
+    );
+    std::string hint = "Press ENTER to select a profile";
+    float HintWidth = MeasureTextEx(menuAss.rubik, hint.c_str(), SplashFontSize, 0).x;
+    Vector2 HintPos = { u.wpct(0.5f) - (HintWidth / 2), u.hpct(0.5f) + LogoHeight };
+    DrawTextEx(menuAss.rubik, hint.c_str(), HintPos, SplashFontSize, 0, WHITE);
+
+    DrawTexturePro(
+        menuAss.encoreWhiteLogo,
+        { 0,
+          0,
+          (float)menuAss.encoreWhiteLogo.width,
+          (float)menuAss.encoreWhiteLogo.height },
+        LogoRect,
+        { 0, 0 },
+        0,
+        WHITE
+    );
+    DrawOvershell();
+}
+void MainMenu::MainMenuScreen() {
+    std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
+    float SplashFontSize = u.hinpct(0.03f);
+    float SplashHeight =
+        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0)
+            .y;
+    float SplashWidth =
+        MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0)
+            .x;
     Color accentColor =
         ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f);
 
+    float SongFontSize = u.hinpct(0.03f);
+
+    Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
+
+    GameMenu::DrawTopOvershell(0.2f);
+
+    GameMenu::DrawVersion();
+    float logoHeight = u.hinpct(0.15f);
     DrawRectangle(0, u.hpct(0.2f), u.LeftSide, u.hinpct(0.05f), accentColor);
     DrawRectangleGradientH(
         u.LeftSide,
@@ -301,21 +349,30 @@ void MainMenu::Draw() {
     if (GuiButton({ 0, u.hpct(0.8f), u.LeftSide + SplashWidth, u.hpct(0.05f) }, "")) {
         ChooseSplashText(directory);
     }
-    if (std::filesystem::exists("songCache.encr")) {
-        if (GuiButton(
-                { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) }, "Play"
-            )) {
-            TheAudioManager.unloadStreams();
-            streamsLoaded = false;
-            streamsPaused = false;
-            for (Song &songi : songList.songs) {
-                songi.titleScrollTime = GetTime();
-                songi.titleTextWidth = menuAss.MeasureTextRubik(songi.title.c_str(), 24);
-                songi.artistScrollTime = GetTime();
-                songi.artistTextWidth =
-                    menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
+    if (!TheSongList.songs.empty()) {
+        if (ThePlayerManager.PlayersActive != 0) {
+            if (GuiButton(
+                    { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
+                    "Play"
+                )) {
+                TheAudioManager.unloadStreams();
+                streamsLoaded = false;
+                streamsPaused = false;
+                for (Song &songi : TheSongList.songs) {
+                    songi.titleScrollTime = GetTime();
+                    songi.titleTextWidth =
+                        menuAss.MeasureTextRubik(songi.title.c_str(), 24);
+                    songi.artistScrollTime = GetTime();
+                    songi.artistTextWidth =
+                        menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
+                }
+                TheMenuManager.SwitchScreen(SONG_SELECT);
             }
-            TheMenuManager.SwitchScreen(SONG_SELECT);
+        } else {
+            GuiButton(
+                { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
+                "Add a player"
+            );
         }
     } else {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(Color { 128, 0, 0, 255 }));
@@ -323,7 +380,7 @@ void MainMenu::Draw() {
             { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
             "Invalid song cache!"
         );
-        songList.ScanSongs(TheGameSettings.SongPaths);
+        TheSongList.ScanSongs(TheGameSettings.SongPaths);
         songsLoaded = false;
         DrawRectanglePro(
             { ((float)GetScreenWidth() / 2) - 125,
@@ -337,8 +394,7 @@ void MainMenu::Draw() {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
     }
     if (GuiButton(
-            { u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) },
-            "Options"
+            { u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, "Options"
         )) {
         // glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
         TheMenuManager.SwitchScreen(SETTINGS);
@@ -346,14 +402,18 @@ void MainMenu::Draw() {
     if (GuiButton(
             { u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, "Quit"
         )) {
-        exit(0);
+        // goes back to attract
+        for (int p = 0; p < ThePlayerManager.PlayersActive; p++)
+            ThePlayerManager.RemoveActivePlayer(p);
     }
+    /*
     if (GuiButton(
-            { u.wpct(0.8f), u.hpct(0.90f), u.winpct(0.5f), u.hinpct(0.05f) }, "Sound Test"
+            { u.wpct(0.8f), u.hpct(0.90f), u.winpct(0.5f), u.hinpct(0.05f) }, "Sound
+    Test"
         )) {
         TheMenuManager.SwitchScreen(SOUND_TEST);
     }
-
+    */
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
     GuiSetStyle(
         BUTTON,
@@ -410,10 +470,10 @@ void MainMenu::Draw() {
     );
     if (streamsLoaded) {
         Vector2 TitleSize = MeasureTextEx(
-            menuAss.rubikBoldItalic, songList.curSong->title.c_str(), SongFontSize, 0
+            menuAss.rubikBoldItalic, TheSongList.curSong->title.c_str(), SongFontSize, 0
         );
         Vector2 ArtistSize = MeasureTextEx(
-            menuAss.rubikItalic, songList.curSong->artist.c_str(), SongFontSize, 0
+            menuAss.rubikItalic, TheSongList.curSong->artist.c_str(), SongFontSize, 0
         );
 
         Vector2 SongTitleBox = { u.RightSide - TitleSize.x - u.winpct(0.01f),
@@ -424,7 +484,7 @@ void MainMenu::Draw() {
         SongArtistBox.x = SongArtistBox.x - u.hinpct(0.12f);
         DrawTextEx(
             menuAss.rubikBoldItalic,
-            songList.curSong->title.c_str(),
+            TheSongList.curSong->title.c_str(),
             SongTitleBox,
             SongFontSize,
             0,
@@ -432,19 +492,13 @@ void MainMenu::Draw() {
         );
         DrawTextEx(
             menuAss.rubikItalic,
-            songList.curSong->artist.c_str(),
+            TheSongList.curSong->artist.c_str(),
             SongArtistBox,
             SongFontSize,
             0,
             WHITE
         );
 
-        for (auto &stream : TheAudioManager.loadedStreams) {
-            TheAudioManager.SetAudioStreamVolume(
-                stream.handle,
-                TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume
-            );
-        }
         float played = TheAudioManager.GetMusicTimePlayed();
         float length = TheAudioManager.GetMusicTimeLength();
         DrawRectangle(
@@ -455,14 +509,6 @@ void MainMenu::Draw() {
             SKYBLUE
         );
 
-        if (played >= length - 0.5) {
-            TheAudioManager.unloadStreams();
-            albumArtLoaded = false;
-            streamsPaused = false;
-            songChosen = false;
-            streamsLoaded = false;
-            randomSongChosen = false;
-        }
         GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
         if (GuiButton(
                 { u.RightSide - u.hinpct(0.12f),
@@ -492,6 +538,7 @@ void MainMenu::Draw() {
             songChosen = false;
             streamsLoaded = false;
             randomSongChosen = false;
+            PickRandomMenuSong();
         }
         GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
     } else {
@@ -504,26 +551,51 @@ void MainMenu::Draw() {
         Vector2 SongArtistBox = { u.RightSide - ArtistSize.x - u.winpct(0.01f),
                                   u.hpct(0.2f) - u.hinpct(0.1f) };
         DrawTextEx(
-            menuAss.rubikBoldItalic,
-            songList.curSong->title.c_str(),
-            SongTitleBox,
-            SongFontSize,
-            0,
-            WHITE
+            menuAss.rubikBoldItalic, "No song loaded", SongTitleBox, SongFontSize, 0, WHITE
         );
-        DrawTextEx(
-            menuAss.rubikItalic,
-            songList.curSong->artist.c_str(),
-            SongArtistBox,
-            SongFontSize,
-            0,
-            WHITE
-        );
+        DrawTextEx(menuAss.rubikItalic, "", SongArtistBox, SongFontSize, 0, WHITE);
     }
     GameMenu::DrawBottomOvershell();
     DrawOvershell();
 }
+// this is really nasty shit as far as im concerned please dont think about it too much
+void MainMenu::Draw() {
+    if (streamsLoaded) {
+        float played = TheAudioManager.GetMusicTimePlayed();
+        float length = TheAudioManager.GetMusicTimeLength();
+        for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
+            float Volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
+            if (i == PartVocals)
+                Volume = 0;
+            TheAudioManager.SetAudioStreamVolume(
+                TheAudioManager.loadedStreams[i].handle, Volume
+            );
+        }
+        if (played >= length - 0.5) {
+            TheAudioManager.unloadStreams();
+            albumArtLoaded = false;
+            streamsPaused = false;
+            songChosen = false;
+            streamsLoaded = false;
+            randomSongChosen = false;
+        }
+    } else {
+        PickRandomMenuSong();
+    }
 
+
+
+    if (albumArtLoaded)
+        GameMenu::DrawAlbumArtBackground(AlbumArtBackground);
+
+
+    if (ThePlayerManager.PlayersActive == 0) {
+        AttractScreen();
+    } else {
+        MainMenuScreen();
+    }
+}
 bool AlbumArtLoadingStuff = false;
 // sentenced to
 
