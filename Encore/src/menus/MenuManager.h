@@ -14,6 +14,24 @@ enum Screens {
     CACHE_LOADING_SCREEN
 };
 
+inline const char* ToString(Screens v)
+{
+    switch (v)
+    {
+        case MAIN_MENU: return "Main Menu";
+        case SONG_SELECT: return "Song Select";
+        case READY_UP: return "Ready Up";
+        case GAMEPLAY: return "Gameplay";
+        case RESULTS: return "Results";
+        case SETTINGS: return "Settings";
+        case CALIBRATION: return "Calibration";
+        case CHART_LOADING_SCREEN: return "Chart Loading Screen";
+        case SOUND_TEST: return "Debug Test Menu";
+        case CACHE_LOADING_SCREEN: return "Cache Loading Screen";
+        default: return "[Unknown Menu]";
+    }
+}
+
 class MenuManager {
 public:
     void SwitchScreen(Screens screen);

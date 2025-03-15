@@ -28,8 +28,7 @@ void MenuManager::LoadMenu() {
     delete ActiveMenu;
     ActiveMenu = NULL;
     // this is for dropping out
-    glfwSetKeyCallback(glfwGetCurrentContext(), glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback));
-    glfwSetGamepadStateCallback(glfwSetGamepadStateCallback(gamepadStateCallback));
+
     switch (TheMenuManager.currentScreen) { // NOTE: when adding a new Menu
                                             // derivative, you
         // must put its enum value in Screens, and its
@@ -90,14 +89,15 @@ void MenuManager::LoadMenu() {
             TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
             ThePlayerManager.GetActivePlayer(0).Instrument
         );
-        glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-        glfwSetGamepadStateCallback(gamepadStateCallback);
+
         ActiveMenu = new GameplayMenu;
         ActiveMenu->Load();
         break;
     }
     default:;
     }
+    glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+    glfwSetGamepadStateCallback(gamepadStateCallback);
 }
 
 // calibration

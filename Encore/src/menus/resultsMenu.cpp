@@ -12,6 +12,12 @@
 #include "OvershellHelper.h"
 #include "MenuManager.h"
 
+void resultsMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+}
+void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+
+}
+
 resultsMenu::~resultsMenu() {
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
         delete ThePlayerManager.GetActivePlayer(playerNum).stats;

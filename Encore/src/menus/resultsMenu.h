@@ -25,9 +25,11 @@ class resultsMenu : public OvershellMenu {
 
 public:
     resultsMenu();
-    virtual ~resultsMenu();
-    virtual void Draw();
-    virtual void Load();
+    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods);
+    virtual void ControllerInputCallback(int joypadID, GLFWgamepadstate state);
+    ~resultsMenu() override;
+    void Draw() override;
+    void Load() override;
 };
 
 #endif // RESULTSMENU_H

@@ -10,6 +10,11 @@
 #include "uiUnits.h"
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
+void ReadyUpMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+}
+void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+
+}
 
 SongParts GetSongPart(smf::MidiEventList track) {
     for (int events = 0; events < track.getSize(); events++) {

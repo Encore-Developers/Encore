@@ -13,7 +13,9 @@ class SettingsMenu : public Menu {
 #undef OPTION
 public:
     SettingsMenu() {};
-    ~SettingsMenu() {};
+    ~SettingsMenu() override {};
+    void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
+    void ControllerInputCallback(int joypadID, GLFWgamepadstate state) override;
     void Load() override;
     void Draw() override;
 };

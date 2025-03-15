@@ -42,6 +42,8 @@ public:
 
     int OvershellState[4] { OS_ATTRACT, OS_ATTRACT, OS_ATTRACT, OS_ATTRACT };
     int AvailableControllers = 0;
+    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) = 0;
+    virtual void ControllerInputCallback(int joypadID, GLFWgamepadstate state) = 0;
     virtual void Draw() = 0;
     virtual void Load() = 0;
     virtual void DrawOvershell();

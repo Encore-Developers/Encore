@@ -135,7 +135,7 @@ void GameplayInputHandler::handleInputs(Player &player, int lane, int action) {
     SongTime &enctime = TheSongTime;
     SongList &songList = TheSongList;
     PlayerManager &playerManager = ThePlayerManager;
-
+    Encore::EncoreLog(LOG_DEBUG, TextFormat("Player: %s, Lane: %01i, Action: %01i", player.Name, lane, action));
     if (stats->Paused)
         return;
     if (lane == -2)

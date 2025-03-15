@@ -30,6 +30,8 @@ public:
     void DrawScorebox(Units &u, Assets &assets, float scoreY);
     void DrawTimerbox(Units &u, Assets &assets, float scoreY);
     void DrawGameplayStars(Units &u, Assets &assets, float scorePos, float starY);
-    virtual void Draw();
-    virtual void Load();
+    void KeyboardInputCallback(int key, int scancode, int action, int mods);
+    void ControllerInputCallback(int joypadID, GLFWgamepadstate state);
+    void Draw() override;
+    void Load() override;
 };

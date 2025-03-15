@@ -14,7 +14,8 @@ class SoundTestMenu : public Menu {
 public:
     SoundTestMenu();
     virtual ~SoundTestMenu();
-
-    virtual void Draw();
+    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) {};
+    virtual void ControllerInputCallback(int joypadID, GLFWgamepadstate state) {};
     virtual void Load();
+    virtual void Draw();
 };

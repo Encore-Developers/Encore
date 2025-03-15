@@ -25,6 +25,7 @@
 #define GIT_COMMIT_HASH
 #endif
 #include "MenuManager.h"
+#include "keybinds.h"
 #include "settings.h"
 #include "users/playerManager.h"
 
@@ -225,6 +226,17 @@ void MainMenu::Load() {
     ChooseSplashText(directory);
     PickRandomMenuSong();
 }
+void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+    if (ThePlayerManager.PlayersActive == 0) {
+        if (GLFW_KEY_ENTER == key) {
+            OvershellState[0] = OS_PLAYER_SELECTION;
+        }
+        if (GLFW_KEY_ESCAPE == key) {
+            exit(0);
+        }
+    }
+}
+void MainMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
 
 void MainMenu::AttractScreen() {
     float SplashFontSize = u.hinpct(0.03f);

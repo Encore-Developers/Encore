@@ -56,7 +56,6 @@ void SettingsMenu::Draw() {
 
     // Create Default Values
 
-
     std::filesystem::path directory = settingsMain.getDirectory();
     // if (settingsMain.controllerType == -1 && controllerID != -1) {
     //	std::string gamepadName = std::string(glfwGetGamepadName(controllerID));
@@ -131,7 +130,7 @@ void SettingsMenu::Draw() {
         // player.InputOffset = settingsMain.inputOffsetMS / 1000.0f;
         // player.VideoOffset = settingsMain.avOffsetMS / 1000.0f;
         enctime.SetOffset(AudioOffset / 1000.0);
-        Encore::WriteJsonFile(directory/"settings.json", TheGameSettings);
+        Encore::WriteJsonFile(directory / "settings.json", TheGameSettings);
         settingsMain.saveSettings(directory / "settings-old.json");
 
         TheMenuManager.SwitchScreen(MAIN_MENU);
@@ -214,15 +213,8 @@ void SettingsMenu::Draw() {
         // av offset
 
         AudioOffset = sor.sliderEntry(
-            AudioOffset,
-            -500.0f,
-            500.0f,
-            calibrationMenuOffset + 1,
-            "Audio Offset",
-            1
+            AudioOffset, -500.0f, 500.0f, calibrationMenuOffset + 1, "Audio Offset", 1
         );
-
-
 
         // framerate
         DrawRectangle(
@@ -232,8 +224,6 @@ void SettingsMenu::Draw() {
             EntryHeight,
             Color { 0, 0, 0, 64 }
         );
-
-
 
         float calibrationTop = EntryTop + (EntryHeight * (calibrationMenuOffset + 1));
         float calibrationTextTop =
@@ -274,8 +264,7 @@ void SettingsMenu::Draw() {
 
         // fullscreen
 
-        Fullscreen =
-            sor.toggleEntry(Fullscreen, generalOffset + 1, "Fullscreen");
+        Fullscreen = sor.toggleEntry(Fullscreen, generalOffset + 1, "Fullscreen");
 
         DrawRectangle(
             u.wpct(0.005f),
@@ -285,24 +274,18 @@ void SettingsMenu::Draw() {
             Color { 0, 0, 0, 64 }
         );
 
-        Framerate = sor.sliderEntry(
-                            Framerate,
-                            0,
-                            1500,
-                            generalOffset + 2,
-                            "Max Framerate",
-                            5
-                        );
+        Framerate =
+            sor.sliderEntry(Framerate, 0, 1500, generalOffset + 2, "Max Framerate", 5);
 
         VerticalSync = sor.toggleEntry(VerticalSync, generalOffset + 3, "VSync");
 
         DrawRectangle(
-                    u.wpct(0.005f),
-                    underTabsHeight + (EntryHeight * (generalOffset + 4)),
-                    OptionWidth * 2,
-                    EntryHeight,
-                    Color { 0, 0, 0, 64 }
-                );
+            u.wpct(0.005f),
+            underTabsHeight + (EntryHeight * (generalOffset + 4)),
+            OptionWidth * 2,
+            EntryHeight,
+            Color { 0, 0, 0, 64 }
+        );
         float scanTop = EntryTop + (EntryHeight * (generalOffset + 3));
         float scanTextTop = EntryTextTop + (EntryHeight * (generalOffset + 3));
         DrawTextEx(
@@ -337,20 +320,20 @@ void SettingsMenu::Draw() {
             WHITE
         );
 
-        avMainVolume =
-            sor.sliderEntry(avMainVolume, 0, 1, 1, "Main Volume", 0.05f);
+        avMainVolume = sor.sliderEntry(avMainVolume, 0, 1, 1, "Main Volume", 0.05f);
 
-        avActiveInstrumentVolume =
-            sor.sliderEntry(avActiveInstrumentVolume, 0, 1, 2, "Active Instrument Volume", 0.05f);
+        avActiveInstrumentVolume = sor.sliderEntry(
+            avActiveInstrumentVolume, 0, 1, 2, "Active Instrument Volume", 0.05f
+        );
 
-        avInactiveInstrumentVolume =
-            sor.sliderEntry(avInactiveInstrumentVolume, 0, 1, 3, "Inactive Instrument Volume", 0.05f);
+        avInactiveInstrumentVolume = sor.sliderEntry(
+            avInactiveInstrumentVolume, 0, 1, 3, "Inactive Instrument Volume", 0.05f
+        );
 
         avSoundEffectVolume =
             sor.sliderEntry(avSoundEffectVolume, 0, 1, 4, "SFX Volume", 0.05f);
 
-        avMuteVolume =
-            sor.sliderEntry(avMuteVolume, 0, 1, 5, "Miss Volume", 0.05f);
+        avMuteVolume = sor.sliderEntry(avMuteVolume, 0, 1, 5, "Miss Volume", 0.05f);
 
         avMenuMusicVolume =
             sor.sliderEntry(avMenuMusicVolume, 0, 1, 6, "Menu Music Volume", 0.05f);
@@ -837,6 +820,10 @@ void SettingsMenu::Draw() {
          break;*/
     }
     }
+}
+void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+}
+void SettingsMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
 }
 void SettingsMenu::Load() {
 #define OPTION(type, value, default) value = TheGameSettings.value;

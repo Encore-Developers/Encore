@@ -19,8 +19,10 @@ class cacheLoadingScreen : public Menu {
 public:
     cacheLoadingScreen();
     virtual ~cacheLoadingScreen();
-    virtual void Draw();
-    virtual void Load();
+    void KeyboardInputCallback(int key, int scancode, int action, int mods) override {};
+    void ControllerInputCallback(int joypadID, GLFWgamepadstate state) override {};
+    void Draw() override;
+    void Load() override;
 };
 
 #endif // CACHELOADINGSCREEN_H

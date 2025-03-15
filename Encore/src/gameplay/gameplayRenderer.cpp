@@ -2666,13 +2666,13 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
             Remap(PercentBetweenKey, 1.00, 0, MinHeight, MaxHeight), MinHeight, MaxHeight
         );
     }
-    if (curSongTime < player.stats->overdriveHitTime + (OverdriveAnimationDuration)) {
+    if (curSongTime < player.stats->overdriveHitTime + (OverdriveAnimationDuration) && curSongTime > player.stats->overdriveHitTime) {
         double TimeSinceHit = curSongTime - player.stats->overdriveHitTime;
         float height = Height;
         float KickHeight = 0.35f;
         if (ThePlayerManager.PlayersActive == 1) {
             height = Height1p;
-            KickHeight = 0.15f;
+            KickHeight = 0.25f;
         };
         if (ThePlayerManager.PlayersActive > 3) {
             height = Height4p;
@@ -2920,17 +2920,6 @@ void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player &pla
     if (TheSongTime.GetSongTime()
         < player.stats->overdriveHitTime + (OverdriveAnimationDuration)) {
         double TimeSinceHit = TheSongTime.GetSongTime() - player.stats->overdriveHitTime;
-        float height = 7.25f;
-        if (ThePlayerManager.PlayersActive > 3) {
-            height = 10;
-        }
-        float CameraPos = Remap(
-            getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
-            0,
-            1.0,
-            height - 0.35f,
-            height
-        );
         unsigned char SidesR = Remap(
             getEasingFunction(EaseOutQuart)(TimeSinceHit / OverdriveAnimationDuration),
             0,

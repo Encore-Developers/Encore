@@ -64,7 +64,8 @@ public:
     ~MainMenu() {}
     void Draw();
     void Load();
-
+    void KeyboardInputCallback(int key, int scancode, int action, int mods);
+    void ControllerInputCallback(int joypadID, GLFWgamepadstate state);
     std::string SplashString;
     bool songsLoaded = false;
     bool streamsLoaded = false;

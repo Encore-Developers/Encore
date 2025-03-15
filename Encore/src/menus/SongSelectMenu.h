@@ -10,6 +10,8 @@ class SongSelectMenu : public OvershellMenu {
 public:
     SongSelectMenu() = default;
     ~SongSelectMenu() override = default;
+    void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
+    void ControllerInputCallback(int joypadID, GLFWgamepadstate state) override;
     void Draw() override;
     void Load() override;
 };

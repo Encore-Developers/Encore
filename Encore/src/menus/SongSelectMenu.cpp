@@ -26,6 +26,8 @@ void SongSelectMenu::Load() {
     TheGameRenderer.midiLoaded = false;
 }
 
+void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
+void SongSelectMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units u = Units::getInstance();
