@@ -555,6 +555,8 @@ void GameplayMenu::Draw() {
             TheSongTime.GetSongTime(),
             *TheSongList.curSong
         );
+        std::string NameText = ThePlayerManager.GetActivePlayer(pnum).Name;
+        if (ThePlayerManager.GetActivePlayer(pnum).Bot) NameText.append(" - AUTOPLAY");
         float CenterPosForText =
             GetWorldToScreen(
                 { 0, 0, 0 },
@@ -565,7 +567,7 @@ void GameplayMenu::Draw() {
         float fontSize = u.hinpct(0.035);
         float textWidth = MeasureTextEx(
                               assets.rubikBold,
-                              ThePlayerManager.GetActivePlayer(pnum).Name.c_str(),
+                              NameText.c_str(),
                               fontSize,
                               0
         )
@@ -581,7 +583,7 @@ void GameplayMenu::Draw() {
         }
         DrawTextEx(
             assets.rubikBold,
-            ThePlayerManager.GetActivePlayer(pnum).Name.c_str(),
+            NameText.c_str(),
             { (CenterPosForText - (textWidth / 2)) - (TheGameRenderer.renderPos),
               GetScreenHeight() - u.hinpct(0.04) },
             fontSize,
