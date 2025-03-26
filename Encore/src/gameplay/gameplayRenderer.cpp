@@ -751,9 +751,11 @@ void gameplayRenderer::CheckPlasticNotes(
     curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
 
     if (curNote.hit && curChart.overdrive.Perfect(stats->curODPhrase)) {
+        if (!curChart.overdrive.events[stats->curODPhrase].added)
+            player.stats->overdriveHitTime = curSongTime;
         player.stats->overdriveFill +=
             curChart.overdrive.AddOverdrive(stats->curODPhrase);
-        player.stats->overdriveHitTime = curSongTime;
+
         if (player.stats->overdriveFill > 1.0f)
             player.stats->overdriveFill = 1.0f;
     }
@@ -785,11 +787,12 @@ void gameplayRenderer::RenderClassicNotes(
         DrawModelEx(gprAssets.beatline, BeatlinePos, { 0 }, 0, { 1, 1, 4 }, WHITE);
     }
 
-    for (auto &curNote : curChart.notes) {
+    for (int n = 0; n < curChart.notes.size(); ++n) {
         // if (curNote.time < TheSongTime.GetFakeStartTime()) {
         //     player.stats->curNoteInt++;
         //     continue;
         // }
+        Note &curNote = curChart.notes.at(n);
         if (curNote.time > TheSongTime.GetSongLength())
             continue;
 
@@ -804,6 +807,10 @@ void gameplayRenderer::RenderClassicNotes(
             break;
 
         CheckPlasticNotes(player, curChart, curSongTime, curNote);
+        // this is SPECIFICALLY just in case the fucking frontend fails.
+        // or something stupid prevents the count from incrementing
+        if (stats->curNoteInt <= n && curNote.miss)
+            stats->curNoteInt = n + 1;
 
         double NoteStartPositionWorld =
             GetNotePos(curNote.time, curSongTime, player.NoteSpeed, HighwayEnd);
@@ -2666,7 +2673,8 @@ void gameplayRenderer::nDrawFiveLaneHitEffects(
             Remap(PercentBetweenKey, 1.00, 0, MinHeight, MaxHeight), MinHeight, MaxHeight
         );
     }
-    if (curSongTime < player.stats->overdriveHitTime + (OverdriveAnimationDuration) && curSongTime > player.stats->overdriveHitTime) {
+    if (curSongTime < player.stats->overdriveHitTime + (OverdriveAnimationDuration)
+        && curSongTime > player.stats->overdriveHitTime) {
         double TimeSinceHit = curSongTime - player.stats->overdriveHitTime;
         float height = Height;
         float KickHeight = 0.35f;
