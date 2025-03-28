@@ -105,7 +105,7 @@ void GameplayInputHandler::CheckPlasticInputs(
         }
     }
 
-    if (InHopoFrontend && !IsInWindow && noteMatch && frettingInput) {
+    if (InHopoFrontend && !IsInWindow && noteMatch && frettingInput && !curNote.hit) {
         curNote.hitInFrontend = true;
     }
     if (InHopoFrontend && action == GLFW_RELEASE && (lane < STRUM && lane > OVERDRIVE_ACT)

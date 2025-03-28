@@ -203,6 +203,9 @@ void Assets::LoadAssets() {
     odHighwayEMH = Assets::LoadModel_(
         (highwayDir / "overdrive_emh.obj"), loadedAssets
     );
+    emhHighway.materials[0].shader = Highway;
+    emhHighwaySides.materials[0].shader = HighwayFade;
+    odHighwayEMH.materials[0].shader = Highway;
     odHighwayX =
         Assets::LoadModel_((highwayDir / "overdrive_x.obj"), loadedAssets);
     odHighwayX.materials[0].shader = Highway;

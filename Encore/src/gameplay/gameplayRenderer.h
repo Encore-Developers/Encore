@@ -29,9 +29,10 @@ class gameplayRenderer {
     );
     void RenderPDrumsHighway(Player &player, Song song, double curSongTime);
     void DrawHighwayMesh(
-        float LengthMultiplier, bool Overdrive, float ActiveTime, float SongTime
+        float LengthMultiplier, bool Overdrive, float ActiveTime, float SongTime, bool EMH
     );
     void StartRenderTexture();
+    void DrawSmashers(Player &player);
 
     void
     RenderEmhHighway(Player &player, Song song, double time);
@@ -73,7 +74,7 @@ class gameplayRenderer {
     void nDrawCodaLanes(
         float length,
         double sTime,
-        double eTime,
+        double cLen,
         double curTime,
         float NoteSpeed,
         int Difficulty
@@ -86,7 +87,8 @@ class gameplayRenderer {
         double cLen,
         double curTime,
         float NoteSpeed,
-        int Difficulty
+        int Difficulty,
+        bool Classic
     );
 
     void eDrawSides(
@@ -96,7 +98,8 @@ class gameplayRenderer {
         double end,
         float length,
         double radius,
-        Color color
+        Color color,
+        bool emh
     );
 
     double GetNoteOnScreenTime(
