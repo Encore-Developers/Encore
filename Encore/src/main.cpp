@@ -71,8 +71,6 @@ std::string commitHash = GIT_COMMIT_HASH;
 int minWidth = 640;
 int minHeight = 480;
 
-Menu *ActiveMenu = nullptr;
-
 int main(int argc, char *argv[]) {
     SetTraceLogCallback(Encore::EncoreLog);
     Units u = Units::getInstance();

@@ -117,6 +117,9 @@ void GameplayInputHandler::CheckPlasticInputs(
         curNote.cHitNote(eventTime, player.InputCalibration);
         // TODO: fix for plastic
         stats->HitPlasticNote(curNote);
+        curChart.solos.UpdateEventViaNote(curNote, stats->curSolo);
+        curChart.sections.UpdateEventViaNote(curNote, stats->curSection);
+        curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
         ThePlayerManager.BandStats->AddClassicNotePoint(
             curNote.perfect, stats->noODmultiplier(), curNote.chordSize
         );
@@ -124,6 +127,7 @@ void GameplayInputHandler::CheckPlasticInputs(
             && stats->Combo % 10 == 0) {
             stats->MultiplierEffectTime = eventTime;
         }
+
         return;
     }
     if (!curNote.hit && frettingInput)

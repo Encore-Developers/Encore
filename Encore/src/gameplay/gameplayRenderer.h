@@ -10,6 +10,7 @@
 
 
 class gameplayRenderer {
+public:
     void ProcessSustainScoring(
         int lane,
         double beatsLen,
@@ -47,7 +48,7 @@ class gameplayRenderer {
         Player &player,
         Chart &curChart,
         double curSongTime,
-        std::vector<Note>::value_type &curNote
+        int curNote
     );
     void CalculateSustainScore(PlayerGameplayStats *&stats);
     void RenderClassicNotes(Player &player, Chart &curChart, double curSongTime, float length);
