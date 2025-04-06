@@ -703,15 +703,49 @@ void gameplayRenderer::RenderPadNotes(
 
 double relNow = 0.0;
 
+bool isNoteMatch(
+    const Note &curNote, PlayerGameplayStats *&stats
+) {
+    bool maskGreater = stats->PressedMask >= curNote.mask;
+    bool maskEqual = stats->PressedMask == curNote.mask;
+    bool maskLess = stats->PressedMask < (curNote.mask * 2);
+    if (!curNote.pOpen) {
+        bool chordMatch = stats->extendedSustainActive ? maskGreater : maskEqual;
+        bool singleMatch =
+            stats->extendedSustainActive ? maskGreater : maskGreater && maskLess;
+        if (curNote.chord) {
+            return chordMatch;
+        }
+        return singleMatch;
+    }
+    if (stats->PressedMask > 0) {
+        return false;
+    }
+    return true;
+}
+
 void gameplayRenderer::CheckPlasticNotes(
     Player &player, Chart &curChart, double curSongTime, int curNoteInt
 ) {
     PlayerGameplayStats *&stats = player.stats;
     Note &curNote = curChart.notes.at(curNoteInt);
+    if (curNote.hitInFrontend && curNote.isGood(curSongTime, player.InputCalibration)
+        && !curNote.miss && !curNote.hit && !curNote.accounted && isNoteMatch(curNote,  stats) ) {
+        curNote.cHitNote(curSongTime, player.InputCalibration);
+        // TODO: fix for plastic
+        stats->HitPlasticNote(curNote);
+        ThePlayerManager.BandStats->AddClassicNotePoint(
+            curNote.perfect, stats->noODmultiplier(), curNote.chordSize
+        );
+        if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
+            && stats->Combo % 10 == 0) {
+            stats->MultiplierEffectTime = curSongTime;
+            }
+        }
     if (!curNote.hit && !curNote.accounted
         && curNote.time + goodBackend + player.InputCalibration < curSongTime
         && !TheSongTime.SongComplete() && stats->curNoteInt < curChart.notes.size()
-        && !player.Bot && !curNote.hitInFrontend) {
+        && !player.Bot) {
         Encore::EncoreLog(
             LOG_INFO,
             TextFormat(
@@ -735,19 +769,7 @@ void gameplayRenderer::CheckPlasticNotes(
             stats->HitPlasticNote(curNote);
         }
     }
-    if (curNote.hitInFrontend && curNote.isGood(curSongTime, player.InputCalibration)
-        && curNote.miss && !curNote.hit && curNote.accounted) {
-        curNote.cHitNote(curSongTime, player.InputCalibration);
-        // TODO: fix for plastic
-        stats->HitPlasticNote(curNote);
-        ThePlayerManager.BandStats->AddClassicNotePoint(
-            curNote.perfect, stats->noODmultiplier(), curNote.chordSize
-        );
-        if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
-            && stats->Combo % 10 == 0) {
-            stats->MultiplierEffectTime = curSongTime;
-        }
-    }
+
     curChart.solos.UpdateEventViaNote(curNote, stats->curSolo);
     curChart.sections.UpdateEventViaNote(curNote, stats->curSection);
     curChart.fills.UpdateEventViaNote(curNote, stats->curFill);

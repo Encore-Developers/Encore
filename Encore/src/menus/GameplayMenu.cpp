@@ -885,18 +885,6 @@ void GameplayMenu::Draw() {
                     ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
                     ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty]
                     .restartNotes();
-                TheSongList.curSong
-                   ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
-                   ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty].solos.ResetEvents();
-           TheSongList.curSong
-                   ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
-                   ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty].overdrive.ResetEvents();
-           TheSongList.curSong
-                   ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
-                   ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty].fills.ResetEvents();
-           TheSongList.curSong
-                   ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
-                   ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty].sections.ResetEvents();
             }
             TheGameRenderer.highwayInAnimation = false;
             TheGameRenderer.highwayInEndAnim = false;
