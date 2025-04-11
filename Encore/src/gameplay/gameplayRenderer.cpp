@@ -703,9 +703,7 @@ void gameplayRenderer::RenderPadNotes(
 
 double relNow = 0.0;
 
-bool isNoteMatch(
-    const Note &curNote, PlayerGameplayStats *&stats
-) {
+bool isNoteMatch(const Note &curNote, PlayerGameplayStats *&stats) {
     bool maskGreater = stats->PressedMask >= curNote.mask;
     bool maskEqual = stats->PressedMask == curNote.mask;
     bool maskLess = stats->PressedMask < (curNote.mask * 2);
@@ -730,7 +728,8 @@ void gameplayRenderer::CheckPlasticNotes(
     PlayerGameplayStats *&stats = player.stats;
     Note &curNote = curChart.notes.at(curNoteInt);
     if (curNote.hitInFrontend && curNote.isGood(curSongTime, player.InputCalibration)
-        && !curNote.miss && !curNote.hit && !curNote.accounted && isNoteMatch(curNote,  stats) ) {
+        && !curNote.miss && !curNote.hit && !curNote.accounted
+        && isNoteMatch(curNote, stats)) {
         curNote.cHitNote(curSongTime, player.InputCalibration);
         // TODO: fix for plastic
         stats->HitPlasticNote(curNote);
@@ -740,8 +739,8 @@ void gameplayRenderer::CheckPlasticNotes(
         if (stats->Combo <= stats->maxMultForMeter() * 10 && stats->Combo != 0
             && stats->Combo % 10 == 0) {
             stats->MultiplierEffectTime = curSongTime;
-            }
         }
+    }
     if (!curNote.hit && !curNote.accounted
         && curNote.time + goodBackend + player.InputCalibration < curSongTime
         && !TheSongTime.SongComplete() && stats->curNoteInt < curChart.notes.size()
@@ -961,25 +960,28 @@ void gameplayRenderer::DrawHitwindow(Player &player, float length) {
 
     float Front = (float)(smasherPos + (length * hitwindowFront));
     float Back = (float)(smasherPos + (length * hitwindowBack));
-    Color GoodColor = Color { 128, 128, 128, 96 };
-    Color PerfectColor = Color { 255, 255, 255, 64 };
-    float GoodY = 0.001f;
-    float PerfectY = 0.002f;
-    if (true) {
+    Color GoodColor = Color { 32, 32, 32, 255 };
+    Color PerfectColor = Color { 64, 64, 64, 128 };
+    float GoodY = 0;
+    float PerfectY = 0.001f;
+    if (false) {
         GoodColor = { 0 };
         PerfectColor = { 0 };
     }
+    float WidthOfHitThing = 0.25f;
+    float SideOfHitTHing = 0 - lineDistance - (1.1f + WidthOfHitThing);
+    float OtherSideOfHitThing = 0 - lineDistance - 1.1f;
     DrawTriangle3D(
-        { 0 - lineDistance - 1.0f, GoodY, Back },
-        { 0 - lineDistance - 1.0f, GoodY, Front },
-        { lineDistance + 1.0f, GoodY, Back },
+        { SideOfHitTHing, GoodY, Back },
+        { SideOfHitTHing, GoodY, Front },
+        { OtherSideOfHitThing, GoodY, Back },
         GoodColor
     );
 
     DrawTriangle3D(
-        { lineDistance + 1.0f, GoodY, Front },
-        { lineDistance + 1.0f, GoodY, Back },
-        { 0 - lineDistance - 1.0f, GoodY, Front },
+        { OtherSideOfHitThing, GoodY, Front },
+        { OtherSideOfHitThing, GoodY, Back },
+        { SideOfHitTHing, GoodY, Front },
         GoodColor
     );
 
@@ -992,18 +994,70 @@ void gameplayRenderer::DrawHitwindow(Player &player, float length) {
     float pBack = (float)(smasherPos + (length * perfectBack));
 
     DrawTriangle3D(
-        { 0 - lineDistance - 1.0f, PerfectY, pBack },
-        { 0 - lineDistance - 1.0f, PerfectY, pFront },
-        { lineDistance + 1.0f, PerfectY, pBack },
+        { SideOfHitTHing, PerfectY, pBack },
+        { SideOfHitTHing, PerfectY, pFront },
+        { OtherSideOfHitThing, PerfectY, pBack },
         PerfectColor
     );
 
     DrawTriangle3D(
-        { lineDistance + 1.0f, PerfectY, pFront },
-        { lineDistance + 1.0f, PerfectY, pBack },
-        { 0 - lineDistance - 1.0f, PerfectY, pFront },
+        { OtherSideOfHitThing, PerfectY, pFront },
+        { OtherSideOfHitThing, PerfectY, pBack },
+        { SideOfHitTHing, PerfectY, pFront },
         PerfectColor
     );
+
+    float HitwindowCenter = smasherPos
+        + (((-player.InputCalibration) * (player.NoteSpeed * Diff) * (11.5f / length))
+           * length);
+    DrawCylinderEx(
+        { OtherSideOfHitThing, 0.002f, HitwindowCenter },
+        { SideOfHitTHing, 0.002f, HitwindowCenter },
+        0.01f,
+        0.01f,
+        3,
+        WHITE
+    );
+    float TotalOffset = 0;
+    int TotalNotes = 0;
+    for (auto it = player.stats->HitwindowNoteHitOffset.begin();
+         it != player.stats->HitwindowNoteHitOffset.end();
+         ++it) {
+        float HitCenter = smasherPos
+            + (((it->first - player.InputCalibration) * (player.NoteSpeed * Diff)
+                * (11.5f / length))
+               * length);
+
+        Color BarColor = (it->second == ALTERNATIVE) ? Color { 255, 0, 255, 32 }
+                                                     : Color { 0, 255, 0, 32 };
+        DrawCylinderEx(
+            { OtherSideOfHitThing, 0.002f, HitCenter },
+            { SideOfHitTHing, 0.002f, HitCenter },
+            0.015f,
+            0.015f,
+            3,
+            BarColor
+        );
+        TotalOffset += it->first;
+        TotalNotes++;
+    }
+    float AvgOffset = TotalOffset / TotalNotes;
+    float HitCenter = smasherPos
+        + (((AvgOffset - player.InputCalibration) * (player.NoteSpeed * Diff)
+            * (11.5f / length))
+           * length);
+    DrawCube(
+        { SideOfHitTHing, 0.006f, HitCenter }, 0.2f, 0.002f, 0.2f, { 0, 255, 255, 196 }
+    );
+    /*
+    DrawCylinderEx(
+        { SideOfHitTHing, 0.002f, HitCenter },
+        { SideOfHitTHing, 0.002f, HitCenter },
+        0.1f,
+        0.1f,
+        4,
+        BLUE
+    );*/
 }
 
 void gameplayRenderer::RenderHud(Player &player, float length) {

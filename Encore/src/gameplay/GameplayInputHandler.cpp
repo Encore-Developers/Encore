@@ -127,7 +127,10 @@ void GameplayInputHandler::CheckPlasticInputs(
             && stats->Combo % 10 == 0) {
             stats->MultiplierEffectTime = eventTime;
         }
-
+        player.stats->HitwindowNoteHitOffset.emplace_back(
+            curNote.time - eventTime - player.InputCalibration,
+            curNote.phopo || curNote.pTap
+        );
         return;
     }
     if (!curNote.hit && frettingInput)
@@ -231,6 +234,9 @@ void GameplayInputHandler::CheckPadInputs(
         }
         if (stats->curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1)
             stats->curNoteIdx[lane]++;
+        player.stats->HitwindowNoteHitOffset.emplace_back(
+            curNote.time - eventTime - player.InputCalibration, NoteLifted
+        );
         return;
     }
 
