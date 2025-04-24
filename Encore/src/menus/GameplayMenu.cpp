@@ -576,8 +576,7 @@ void GameplayMenu::Draw() {
                 );
 
         if (curPlayer.ClassicMode) {
-            Chart &curChart = TheSongList.curSong->parts[curPlayer.Instrument]
-                                            ->charts[curPlayer.Difficulty];
+            Chart &curChart = curPlayer.stats->CurPlayingChart;
             if (curPlayer.stats->curNoteInt < curChart.notes.size()) {
                 Note &curNote = curChart.notes.at(curPlayer.stats->curNoteInt);
 
@@ -609,8 +608,7 @@ void GameplayMenu::Draw() {
 
                 TheGameRenderer.CheckPlasticNotes(
                     curPlayer,
-                    TheSongList.curSong->parts[curPlayer.Instrument]
-                        ->charts[curPlayer.Difficulty],
+                    curChart,
                     TheSongTime.GetSongTime(),
                     curPlayer.stats->curNoteInt
                 );
@@ -880,12 +878,6 @@ void GameplayMenu::Draw() {
         }
         if (GuiButton(RestartBox, "Restart")) {
             TheSongTime.Reset();
-            for (int player = 0; player < ThePlayerManager.PlayersActive; player++) {
-                TheSongList.curSong
-                    ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
-                    ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty]
-                    .restartNotes();
-            }
             TheGameRenderer.highwayInAnimation = false;
             TheGameRenderer.highwayInEndAnim = false;
             TheGameRenderer.songPlaying = false;
@@ -900,7 +892,9 @@ void GameplayMenu::Draw() {
                         ThePlayerManager.GetActivePlayer(playerNum).Difficulty,
                         ThePlayerManager.GetActivePlayer(playerNum).Instrument
                     );
+                ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart = TheSongList.curSong->parts[ThePlayerManager.GetActivePlayer(playerNum).Instrument]->charts[ThePlayerManager.GetActivePlayer(playerNum).Difficulty];
             }
+
             ThePlayerManager.BandStats->ResetBandGameplayStats();
             ThePlayerManager.BandStats->Paused = false;
         }
@@ -920,10 +914,7 @@ void GameplayMenu::Draw() {
             TheGameRenderer.songPlaying = false;
             for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive;
                  playerNum++) {
-                TheSongList.curSong
-                    ->parts[ThePlayerManager.GetActivePlayer(playerNum).Instrument]
-                    ->charts[ThePlayerManager.GetActivePlayer(playerNum).Difficulty]
-                    .resetNotes();
+                ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart.resetNotes();
                 ThePlayerManager.GetActivePlayer(playerNum).stats->Quit = true;
             }
             TheMenuManager.SwitchScreen(RESULTS);

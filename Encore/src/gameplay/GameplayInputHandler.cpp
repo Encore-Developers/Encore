@@ -51,8 +51,8 @@ void GameplayInputHandler::CheckPlasticInputs(
     // basic shit so that its easier to Do Things lol
     PlayerManager &playerManager = ThePlayerManager;
     SongList &songList = TheSongList;
-    Chart &curChart =
-        songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart = stats->CurPlayingChart;
+    //     songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
 
     if (stats->curNoteInt >= curChart.notes.size())
         stats->curNoteInt = curChart.notes.size() - 1;
@@ -153,8 +153,8 @@ void GameplayInputHandler::handleInputs(Player &player, int lane, int action) {
     if (!enctime.Running()) {
         return;
     }
-    Chart &curChart =
-        songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart = stats->CurPlayingChart;
+    //     songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
     float eventTime = enctime.GetSongTime();
     if (true) {
         if (action == GLFW_PRESS && (lane == -1) && stats->overdriveFill > 0
@@ -182,8 +182,8 @@ void GameplayInputHandler::CheckPadInputs(
     PlayerGameplayStats *&stats = player.stats;
     PlayerManager &playerManager = ThePlayerManager;
     SongList &songList = TheSongList;
-    Chart &curChart =
-        songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart = stats->CurPlayingChart;
+    //    songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
     SettingsOld &settings = SettingsOld::getInstance();
 
     // do overdrive hitting logic here lol

@@ -1183,7 +1183,9 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
     }
     PlayerGameplayStats *&stats = player.stats;
 
-    Chart &curChart = song.parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart =
+        player.stats
+            ->CurPlayingChart; // song.parts[player.Instrument]->charts[player.Difficulty];
     float highwayLength = 17.25 * player.HighwayLength;
     player.stats->Difficulty = player.Difficulty;
     player.stats->Instrument = player.Instrument;
