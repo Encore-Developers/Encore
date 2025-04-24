@@ -612,7 +612,7 @@ void GameplayMenu::Draw() {
     )
                               .x;
     std::string SongArtistString = TheSongList.curSong->artist + ", "
-        + std::to_string(TheSongList.curSong->releaseYear);
+        + TheSongList.curSong->releaseYear;
     float SongArtistWidth =
         MeasureTextEx(
             assets.rubikBoldItalic, SongArtistString.c_str(), u.hinpct(SmallHeader), 0

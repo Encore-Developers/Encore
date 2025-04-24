@@ -15,7 +15,7 @@
 
 
 SortType currentSortValue = SortType::Title;
-Color AccentColor = {255,0,255,255};
+Color AccentColor = {255, 0, 255, 255};
 
 void SongSelectMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
@@ -31,25 +31,14 @@ void SongSelectMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate stat
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units u = Units::getInstance();
-    // TheGameRenderer.songEnded = false;
-    //  player.overdrive = false;
-    // TheGameRenderer.curNoteIdx = {0, 0, 0, 0, 0};
-    // TheGameRenderer.curODPhrase = 0;
-    // TheGameRenderer.curNoteInt = 0;
-    // TheGameRenderer.curSolo = 0;
-    // TheGameRenderer.curBeatLine = 0;
-    // TheGameRenderer.curBPM = 0;
-
-    // if (selSong)
-    // TheGameRenderer.selectedSongInt = curPlayingSong;
-    // else
-    // TheGameRenderer.selectedSongInt = menu.ChosenSongInt;
 
     double curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
     Vector2 mouseWheel = GetMouseWheelMoveV();
     int lastIntChosen = (int)mouseWheel.y;
     // set to specified height
+
+    // Update song select offset based on mouse wheel
     if (TheSongList.SongSelectOffset <= TheSongList.listMenuEntries.size() && TheSongList.SongSelectOffset >= 1
         && TheSongList.listMenuEntries.size() >= 10) {
         TheSongList.SongSelectOffset -= (int)mouseWheel.y;
@@ -80,9 +69,6 @@ void SongSelectMenu::Draw() {
     DrawRectangle(
         0, 0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), GetColor(0x00000080)
     );
-    // DrawLineEx({u.LeftSide + u.winpct(0.0025f), 0}, {
-    // 				u.LeftSide + u.winpct(0.0025f), (float) GetScreenHeight()
-    // 			}, u.winpct(0.005f), WHITE);
     BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f), u.hinpct(0.7f));
     GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
@@ -113,8 +99,7 @@ void SongSelectMenu::Draw() {
                     TextFormat("Songs loaded: %01i", TheSongList.songs.size()),
                     u.hinpct(0.03f),
                     0
-              )
-                    .x,
+              ).x,
           u.hinpct(0.165f) },
         u.hinpct(0.03f),
         0,
@@ -167,18 +152,11 @@ void SongSelectMenu::Draw() {
                 WHITE
             );
         } else if (!TheSongList.listMenuEntries[i].hiddenEntry) {
-
             bool isCurSong = i == TheSongList.curSong->songListPos - 1;
-            Font &artistFont =
-                isCurSong ? assets.josefinSansItalic : assets.josefinSansItalic;
+            Font &artistFont = isCurSong ? assets.josefinSansItalic : assets.josefinSansItalic;
             Song &songi = TheSongList.songs[TheSongList.listMenuEntries[i].songListID];
             int songID = TheSongList.listMenuEntries[i].songListID;
 
-
-            // float buttonX =
-            // ((float)GetScreenWidth()/2)-(((float)GetScreenWidth()*0.86f)/2);
-            // LerpState state = lerpCtrl.createLerp("SONGSELECT_LERP_" +
-            // std::to_string(i), EaseOutCirc, 0.4f);
             float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
             float songYPos = std::floor(
                 (u.hpct(0.266666f)) + ((songEntryHeight) * ((i - TheSongList.SongSelectOffset)))
@@ -200,9 +178,6 @@ void SongSelectMenu::Draw() {
                         0, songYPos, (u.RightSide - u.winpct(0.25f)), songEntryHeight },
                     ""
                 )) {
-                // curPlayingSong = songID;
-                // selSong = true;
-                // albumArtLoaded = false;
                 TheSongList.curSong = &TheSongList.songs[songID];
                 if (!TheSongList.songs[songID].AlbumArtLoaded) {
                     try {
@@ -215,12 +190,8 @@ void SongSelectMenu::Draw() {
             }
             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
             EndScissorMode();
-            // DrawTexturePro(song.albumArt, Rectangle{
-            // songXPos,0,(float)song.albumArt.width,(float)song.albumArt.height
-            // }, { songXPos+5,songYPos + 5,50,50 }, Vector2{ 0,0 }, 0.0f,
-            // RAYWHITE);
-            int songTitleWidth = (u.winpct(0.3f)) - 6;
 
+            int songTitleWidth = (u.winpct(0.3f)) - 6;
             int songArtistWidth = (u.winpct(0.5f)) - 6;
 
             if (songi.titleTextWidth >= (float)songTitleWidth) {
@@ -230,11 +201,9 @@ void SongSelectMenu::Draw() {
 
                 if (curTime > songi.titleScrollTime + 3.0) {
                     songi.titleXOffset -= 1;
-
                     if (songi.titleXOffset
                         < -(songi.titleTextWidth - (float)songTitleWidth)) {
-                        songi.titleXOffset =
-                            -(songi.titleTextWidth - (float)songTitleWidth);
+                        songi.titleXOffset = -(songi.titleTextWidth - (float)songTitleWidth);
                         songi.titleScrollTime = curTime + 3.0;
                     }
                 }
@@ -313,7 +282,40 @@ void SongSelectMenu::Draw() {
         WHITE
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
+
+    // Display song title above the album cover
+    std::string titleText = SongToDisplayInfo.title.empty() ? "Unknown Song" : SongToDisplayInfo.title;
+    float titleFontSize = u.hinpct(0.035f);
+    float titleTextWidth = MeasureTextEx(assets.rubikBold, titleText.c_str(), titleFontSize, 0).x;
+    float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth / 2.0f);
+    float titleTextY = AlbumY - u.hinpct(0.045f); // Same position as current year
+    DrawTextEx(
+        assets.rubikBold,
+        titleText.c_str(),
+        { titleTextX, titleTextY },
+        titleFontSize,
+        0,
+        WHITE
+    );
+
+    // Draw album cover
+    DrawTexturePro(
+        TheSongList.curSong->albumArt,
+        Rectangle { 0,
+                    0,
+                    (float)TheSongList.curSong->albumArt.width,
+                    (float)TheSongList.curSong->albumArt.width },
+        Rectangle { (float)AlbumX - AlbumInner,
+                    (float)AlbumY,
+                    (float)AlbumHeight,
+                    (float)AlbumHeight },
+        { 0, 0 },
+        0,
+        WHITE
+    );
     // TODO: replace this with actual sorting/category hiding
+
+    // Sorting/category header
     if (TheSongList.SongSelectOffset > 0) {
         std::string SongTitleForCharThingyThatsTemporary =
             TheSongList.listMenuEntries[TheSongList.SongSelectOffset].headerChar;
@@ -376,6 +378,10 @@ void SongSelectMenu::Draw() {
             }
             break;
         }
+        default:
+            // Handle EnumEnd or unexpected values
+            SongTitleForCharThingyThatsTemporary = "";
+            break;
         }
 
         DrawTextEx(
@@ -387,23 +393,6 @@ void SongSelectMenu::Draw() {
             WHITE
         );
     }
-
-    // bottom
-    DrawTexturePro(
-        TheSongList.curSong->albumArt,
-        Rectangle { 0,
-                    0,
-                    (float)TheSongList.curSong->albumArt.width,
-                    (float)TheSongList.curSong->albumArt.width },
-        Rectangle { (float)AlbumX - AlbumInner,
-                    (float)AlbumY,
-                    (float)AlbumHeight,
-                    (float)AlbumHeight },
-        { 0, 0 },
-        0,
-        WHITE
-    );
-    // hehe
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
@@ -417,30 +406,26 @@ void SongSelectMenu::Draw() {
         LEFT
     );
 
-    std::string AlbumArtText =
-        SongToDisplayInfo.album.empty() ? "No Album Listed" : SongToDisplayInfo.album;
-
-    float AlbumTextHeight =
-        MeasureTextEx(assets.rubikBold, AlbumArtText.c_str(), u.hinpct(0.035f), 0).y;
-    float AlbumTextWidth =
-        MeasureTextEx(assets.rubikBold, AlbumArtText.c_str(), u.hinpct(0.035f), 0).x;
-    float AlbumNameTextCenter = u.RightSide - u.winpct(0.125f) - AlbumInner;
-    float AlbumTTop = AlbumY + AlbumHeight + u.hinpct(0.011f);
-    float AlbumNameFontSize = AlbumTextWidth <= u.winpct(0.25f)
+    std::string albumText = SongToDisplayInfo.album.empty() ? "No Album Listed" : SongToDisplayInfo.album;
+    std::string yearText = SongToDisplayInfo.releaseYear.empty() ? "Unknown Year" : SongToDisplayInfo.releaseYear;
+    std::string albumDisplayText = albumText + " | " + yearText;
+    float albumTextHeight = MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), u.hinpct(0.035f), 0).y;
+    float albumTextWidth = MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), u.hinpct(0.035f), 0).x;
+    float albumNameTextCenter = u.RightSide - u.winpct(0.125f) - AlbumInner;
+    float albumTTop = AlbumY + AlbumHeight + u.hinpct(0.011f);
+    float albumNameFontSize = albumTextWidth <= u.winpct(0.25f)
         ? u.hinpct(0.035f)
-        : u.winpct(0.23f) / (AlbumTextWidth / AlbumTextHeight);
-    float AlbumNameLeft = AlbumNameTextCenter
-        - (MeasureTextEx(assets.rubikBold, AlbumArtText.c_str(), AlbumNameFontSize, 0).x
-           / 2);
-    float AlbumNameTextTop = AlbumTextWidth <= u.winpct(0.25f)
-        ? AlbumTTop
-        : AlbumTTop + ((u.hinpct(0.035f) / 2) - (AlbumNameFontSize / 2));
-
+        : u.winpct(0.23f) / (albumTextWidth / albumTextHeight);
+    float albumNameLeft = albumNameTextCenter
+        - (MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), albumNameFontSize, 0).x / 2);
+    float albumNameTextTop = albumTextWidth <= u.winpct(0.25f)
+        ? albumTTop
+        : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
     DrawTextEx(
         assets.rubikBold,
-        AlbumArtText.c_str(),
-        { AlbumNameLeft, AlbumNameTextTop },
-        AlbumNameFontSize,
+        albumDisplayText.c_str(),
+        { albumNameLeft, albumNameTextTop },
+        albumNameFontSize,
         0,
         WHITE
     );
@@ -454,7 +439,6 @@ void SongSelectMenu::Draw() {
     );
 
     float DiffTop = AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.045f));
-
     float DiffHeight = u.hinpct(0.035f);
     float DiffTextSize = u.hinpct(0.03f);
     float DiffDotLeft =
@@ -464,14 +448,6 @@ void SongSelectMenu::Draw() {
     float ScrollbarHeight = GetScreenHeight() - u.hpct(0.208333f) - u.hpct(0.15f);
     GuiSetStyle(SCROLLBAR, BACKGROUND_COLOR, 0x181827FF);
     GuiSetStyle(SCROLLBAR, SCROLL_SLIDER_SIZE, u.hinpct(0.03f));
-    /*
-    TheSongList.SongSelectOffset = GuiScrollBar(
-        { ScrollbarLeft, ScrollbarTop, (float)(AlbumInner * 2), ScrollbarHeight },
-        TheSongList.SongSelectOffset,
-        1,
-        TheSongList.listMenuEntries.size() - 10
-    );
-    */
     float IconWidth = float(AlbumHeight - AlbumOuter) / 5.0f;
     GameMenu::mhDrawText(
         assets.rubikItalic,
@@ -554,7 +530,6 @@ void SongSelectMenu::Draw() {
                         u.hinpct(0.05f) },
             "Play Song"
         )) {
-        // curPlayingSong = menu.ChosenSongInt;
         if (!TheSongList.curSong->ini) {
             TheSongList.curSong->LoadSong(TheSongList.curSong->songInfoPath);
         } else {
