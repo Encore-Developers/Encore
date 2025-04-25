@@ -93,6 +93,7 @@ void SongList::sortList(SortType sortType) {
         std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortYear);
         break;
+    default:;
     }
     listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
 }
@@ -120,7 +121,8 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
         std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortYear);
     break;
-}
+    default:;
+    }
     for (int i = 0; i < songs.size(); i++) {
         if (songs[i].artist == curSong.artist && songs[i].title == curSong.title) {
             selectedSong = i;
@@ -159,7 +161,6 @@ void SongList::WriteCache() {
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song year:    %01i", song.releaseYear));
     }
 
     SongCache.close();
@@ -254,6 +255,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
             }
             break;
         }
+        default:;
         }
         songEntries.emplace_back(false, i, "", false);
         pos++;
