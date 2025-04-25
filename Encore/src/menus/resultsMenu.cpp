@@ -71,11 +71,9 @@ void resultsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i), *TheSongList.curSong, i);
     }
-    
     encOS::DrawTopOvershell(0.2f);
     GameMenu::DrawVersion();
     // Draw album cover to the left of track info
@@ -95,7 +93,7 @@ void resultsMenu::Draw() {
     DrawTextEx(
         assets.redHatDisplayItalic,
         TheSongList.curSong->title.c_str(),
-        { u.LeftSide, u.hpct(0.0225f) },
+        { textX, u.hpct(0.0225f) },
         u.hinpct(0.05f),
         0,
         WHITE
@@ -103,7 +101,7 @@ void resultsMenu::Draw() {
     DrawTextEx(
         assets.rubikItalic,
         TheSongList.curSong->artist.c_str(),
-        { u.LeftSide, u.hpct(0.075f) },
+        { textX, u.hpct(0.075f) },
         u.hinpct(0.035f),
         0,
         WHITE
@@ -111,7 +109,7 @@ void resultsMenu::Draw() {
     DrawTextEx(
         assets.rubikItalic,
         TheSongList.curSong->charters[0].c_str(),
-        { u.LeftSide, u.hpct(0.115f) },
+        { textX, u.hpct(0.115f) },
         u.hinpct(0.035f),
         0,
         WHITE
@@ -154,11 +152,10 @@ void resultsMenu::Draw() {
         sdfShader,
         CENTER
     );
-    // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
+
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
         delete ThePlayerManager.BandStats;
-        for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive;
-             PlayersToReset++) {
+        for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive; PlayersToReset++) {
             Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
             player.ResetGameplayStats();
             TheSongList.curSong->parts[player.Instrument]
