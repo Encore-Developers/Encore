@@ -65,6 +65,10 @@ bool SongList::sortLen(const Song &a, const Song &b) {
     return a.length < b.length;
 }
 
+bool SongList::sortYear(const Song &a, const Song &b) {
+    return a.releaseYear < b.releaseYear;
+}
+
 SongList::SongList() {}
 SongList::~SongList() {}
 
@@ -84,6 +88,10 @@ void SongList::sortList(SortType sortType) {
     case SortType::Length:
         std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortLen);
+        break;
+    case SortType::Year:
+        std::sort(songs.begin(), songs.end(), sortTitle);
+        std::sort(songs.begin(), songs.end(), sortYear);
         break;
     }
     listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
@@ -108,7 +116,11 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
         std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortLen);
         break;
-    }
+    case SortType::Year:
+        std::sort(songs.begin(), songs.end(), sortTitle);
+        std::sort(songs.begin(), songs.end(), sortYear);
+    break;
+}
     for (int i = 0; i < songs.size(); i++) {
         if (songs[i].artist == curSong.artist && songs[i].title == curSong.title) {
             selectedSong = i;
@@ -140,12 +152,14 @@ void SongList::WriteCache() {
         SongCache << song.artist;
 
         SongCache << song.length;
+        SongCache << song.releaseYear;
 
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
+        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song year:    %01i", song.releaseYear));
     }
 
     SongCache.close();
@@ -231,6 +245,15 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
             }
             break;
         }
+        case SortType::Year: {
+            std::string year = removeArticle(song.releaseYear);
+            if (year != currentHeader) {
+                currentHeader = song.releaseYear;
+                songEntries.emplace_back(true, 0, currentHeader, false);
+                pos++;
+            }
+            break;
+        }
         }
         songEntries.emplace_back(false, i, "", false);
         pos++;
@@ -297,6 +320,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> song.artist;
 
         SongCacheIn >> song.length;
+        SongCacheIn >> song.releaseYear;
 
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
 

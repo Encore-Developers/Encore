@@ -378,6 +378,20 @@ void SongSelectMenu::Draw() {
             }
             break;
         }
+        case SortType::Year: {
+            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
+                SongTitleForCharThingyThatsTemporary =
+                    TheSongList
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
+                        .releaseYear[0];
+            } else {
+                SongTitleForCharThingyThatsTemporary =
+                    TheSongList
+                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
+                        .releaseYear[0];
+            }
+            break;
+        }
         default:
             // Handle EnumEnd or unexpected values
             SongTitleForCharThingyThatsTemporary = "";
