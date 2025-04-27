@@ -103,54 +103,8 @@ void ChartLoadingMenu::Draw() {
     float AfterLoadingTextPos =
         MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
 
-    std::string LoadingPhrase;
-
-    switch (LoadingState) {
-    case BEATLINES: {
-        LoadingPhrase = "Setting metronome";
-        break;
-    }
-    case NOTE_PARSING: {
-        LoadingPhrase = "Loading notes";
-        break;
-    }
-    case NOTE_SORTING: {
-        LoadingPhrase = "Cleaning up notes";
-        break;
-    }
-    case PLASTIC_CALC: {
-        LoadingPhrase = "Fixing up Classic";
-        break;
-    }
-    case NOTE_MODIFIERS: {
-        LoadingPhrase = "HOPO on, HOPO off";
-        break;
-    }
-    case OVERDRIVE: {
-        LoadingPhrase = "Gettin' your double points on";
-        break;
-    }
-    case SOLOS: {
-        LoadingPhrase = "Shuffling through solos";
-        break;
-    }
-    case BASE_SCORE: {
-        LoadingPhrase = "Calculating stars";
-        break;
-    }
-    case EXTRA_PROCESSING: {
-        LoadingPhrase = "Finishing touch-ups";
-        break;
-    }
-    case READY: {
-        LoadingPhrase = "Ready!";
-        break;
-    }
-    default: {
-        LoadingPhrase = "";
-        break;
-    }
-    }
+    std::string LoadingPhrase = TheSongList.curSong->loadingPhrase.empty() ?
+        "Loading Song..." : TheSongList.curSong->loadingPhrase;
 
     DrawTextEx(
         assets.rubikBold,

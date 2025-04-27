@@ -9,7 +9,7 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
-#define SONG_CACHE_VERSION 24083101
+#define SONG_CACHE_VERSION 25042503
 #define SONG_CACHE_HEADER 0x52434E45 // "ENCR"
 
 struct ListMenuEntry {
@@ -31,6 +31,7 @@ enum class SortType : int {
     Artist,
     Source,
     Length,
+    Year,
     EnumEnd
 };
 
@@ -50,7 +51,7 @@ inline SortType NextSortType(SortType current) {
 inline std::atomic<int> CurrentChartNumber = -1;
 inline std::atomic<int> ListLoadingState = -1;
 inline std::atomic<int> MaxChartsToLoad = -1;
-inline std::vector<std::string> sortTypes { "Title", "Artist", "Source", "Length" };
+inline std::vector<std::string> sortTypes { "Title", "Artist", "Source", "Length", "Year" };
 
 enum SongListLoadingStates {
     FINDING_CACHE,
@@ -66,6 +67,7 @@ class SongList {
     static bool sortSource(const Song &a, const Song &b);
     static bool sortAlbum(const Song &a, const Song &b);
     static bool sortLen(const Song &a, const Song &b);
+    static bool sortYear(const Song &a, const Song &b);
 
 public:
     SongList();

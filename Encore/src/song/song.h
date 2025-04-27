@@ -196,7 +196,7 @@ public:
     std::string songDir = "";
     std::string albumArtPath = "";
     std::string songInfoPath = "";
-    int releaseYear = 0;
+    std::string releaseYear = "";
     std::string loadingPhrase = "";
     std::vector<std::string> charters {};
     std::string jsonHash = "";
@@ -355,8 +355,8 @@ public:
                 source = item.value.GetString();
             if (item.name == "length" && item.value.IsInt())
                 length = item.value.GetInt();
-            if (item.name == "release_year" && item.value.IsInt())
-                releaseYear = item.value.GetInt();
+            if (item.name == "release_year" && item.value.IsString())
+                releaseYear = item.value.GetString();
             if (item.name == "loading_phrase" && item.value.IsString())
                 loadingPhrase = item.value.GetString();
             if ((item.name == "sid" || item.name == "icon_drums")

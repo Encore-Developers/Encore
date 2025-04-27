@@ -12,11 +12,8 @@
 #include "OvershellHelper.h"
 #include "MenuManager.h"
 
-void resultsMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
-}
-void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-
-}
+void resultsMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
+void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
 resultsMenu::~resultsMenu() {
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
@@ -48,9 +45,7 @@ void resultsMenu::Load() {
                                                                               */
     GoldStar = GameMenu::LoadTextureFilter(assetsdir / "ui/gold-star.png");
     Star = GameMenu::LoadTextureFilter(assetsdir / "ui/star.png");
-    ;
     EmptyStar = GameMenu::LoadTextureFilter(assetsdir / "ui/empty-star.png");
-    ;
     diffList = { "Easy", "Medium", "Hard", "Expert" };
     sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
     std::cout << "Band Score: " << ThePlayerManager.BandStats->Score << std::endl;
@@ -69,7 +64,6 @@ void resultsMenu::Load() {
         std::cout << player.Name << " Overdrive Score: " << stats->OverdriveScore << std::endl;
         std::cout << player.Name << " Perfect Score: " << stats->PerfectScore << std::endl;
         std::cout << player.Name << " Note Score: " << stats->NoteScore << std::endl;
-
     }
 }
 
@@ -77,28 +71,29 @@ void resultsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i), *TheSongList.curSong, i);
     }
-    
     encOS::DrawTopOvershell(0.2f);
-
     GameMenu::DrawVersion();
-
-    float scoreWidth =
-        MeasureTextEx(
-            assets.redHatDisplayItalic,
-            GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str(),
-            u.hinpct(0.06f),
-            0
-        )
-            .x;
-
+    // Draw album cover to the left of track info
+    float albumSize = u.hinpct(0.15f);
+    float albumX = u.LeftSide;
+    float albumY = u.hpct(0.0225f);
+    DrawTexturePro(
+        TheSongList.curSong->albumArt,
+        { 0, 0, (float)TheSongList.curSong->albumArt.width, (float)TheSongList.curSong->albumArt.height },
+        { albumX, albumY, albumSize, albumSize },
+        { 0, 0 },
+        0,
+        WHITE
+    );
+    // Shift track info text to the right of the album cover
+    float textX = u.LeftSide + albumSize + u.winpct(0.01f);
     DrawTextEx(
         assets.redHatDisplayItalic,
         TheSongList.curSong->title.c_str(),
-        { u.LeftSide, u.hpct(0.0225f) },
+        { textX, u.hpct(0.0225f) },
         u.hinpct(0.05f),
         0,
         WHITE
@@ -106,7 +101,7 @@ void resultsMenu::Draw() {
     DrawTextEx(
         assets.rubikItalic,
         TheSongList.curSong->artist.c_str(),
-        { u.LeftSide, u.hpct(0.075f) },
+        { textX, u.hpct(0.075f) },
         u.hinpct(0.035f),
         0,
         WHITE
@@ -114,12 +109,11 @@ void resultsMenu::Draw() {
     DrawTextEx(
         assets.rubikItalic,
         TheSongList.curSong->charters[0].c_str(),
-        { u.LeftSide, u.hpct(0.115f) },
+        { textX, u.hpct(0.115f) },
         u.hinpct(0.035f),
         0,
         WHITE
     );
-
     Color accentColor =
         ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
     std::string indevWarnText = "Scoring is disabled in indev builds";
@@ -139,7 +133,7 @@ void resultsMenu::Draw() {
     GameMenu::mhDrawText(
         assets.josefinSansItalic,
         indevWarnText.c_str(),
-        {TopLeft.x, TopLeft.y + u.hinpct(0.008f)},
+        { TopLeft.x, TopLeft.y + u.hinpct(0.008f) },
         u.hinpct(0.025f),
         WHITE,
         sdfShader,
@@ -158,12 +152,10 @@ void resultsMenu::Draw() {
         sdfShader,
         CENTER
     );
-    // assets.DrawTextRHDI(player.songToBeJudged.title.c_str(),songNamePos, 50, WHITE);
+
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-        // player.quit = false;
         delete ThePlayerManager.BandStats;
-        for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive;
-             PlayersToReset++) {
+        for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive; PlayersToReset++) {
             Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
             player.ResetGameplayStats();
             TheSongList.curSong->parts[player.Instrument]
