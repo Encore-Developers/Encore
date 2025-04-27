@@ -47,7 +47,7 @@ void Song::LoadInfoINI(std::filesystem::path iniPath) {
 
     source = ini.GetString("song", "icon", "custom");
 
-    releaseYear = ini.GetString("song", "year", 0);
+    releaseYear = ini.GetString("song", "year", "Unknown Year");
 
     hopoThreshold = ini.GetInteger("song", "hopo_threshold", 170);
     length = ini.GetInteger("song", "song_length", 0);
