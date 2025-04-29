@@ -43,7 +43,33 @@ void Assets::FirstAssets() {
     encoreWhiteLogo =
         Assets::LoadTextureFilter((directory / "Assets/encore-white.png"), loadedAssets);
     rubik = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-Regular.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/Rubik-Regular.ttf"), 256, loadedAssets);
+    redHatDisplayItalic = Assets::LoadFontFilter(
+    (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets
+);
+    redHatDisplayItalicLarge = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets
+    );
+    redHatDisplayBlack = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/RedHatDisplay-Black.ttf"), 256, loadedAssets
+    );
+    rubikBoldItalic = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 256, loadedAssets
+    );
+    rubikBold = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/Rubik-Bold.ttf"), 256, loadedAssets
+    );
+    rubikItalic = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets
+    );
+    josefinSansItalic = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets
+    );
+    josefinSansBold = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/JosefinSans-Bold.ttf"), 256, loadedAssets
+    );
+    josefinSansNormal = Assets::LoadFontFilter(
+        (directory / "Assets/fonts/JosefinSans-Normal.ttf"), 256, loadedAssets
     );
 }
 void Assets::LoadAssets() {
@@ -330,29 +356,6 @@ void Assets::LoadAssets() {
     songBackground =
         Assets::LoadTextureFilter((directory / "Assets/background.png"), loadedAssets);
 
-    redHatDisplayItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets
-    );
-    redHatDisplayItalicLarge = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets
-    );
-    redHatDisplayBlack = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-Black.ttf"), 256, loadedAssets
-    );
-
-    rubikBoldItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 256, loadedAssets
-    );
-    rubikBold = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-Bold.ttf"), 256, loadedAssets
-    );
-    rubikItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets
-    );
-
-    josefinSansItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets
-    );
     redHatMono = Assets::LoadFontFilter(directory /"Assets/fonts/RedHatMono-Bold.ttf", 256, loadedAssets);
     fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.frag").string().c_str());
     texLoc = GetShaderLocation(fxaa, "texture0");
@@ -425,7 +428,7 @@ void Assets::LoadAssets() {
     MultFill.materials[0].shader = MultiplierFill;
 
     // SetTextureWrap(highwayTextureOD, TEXTURE_WRAP_CLAMP);
-    
+
     odHighwayEMH.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
 
 odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
