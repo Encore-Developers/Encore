@@ -44,7 +44,15 @@ void ManagePausedGame(GameplayInputHandler inputHandler, Player &player) {
 }
 
 void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s, action ", key, ToString(TheMenuManager.currentScreen), action) );
+    Encore::EncoreLog(
+        LOG_DEBUG,
+        TextFormat(
+            "Keyboard key %01i inputted on menu %s, action ",
+            key,
+            ToString(TheMenuManager.currentScreen),
+            action
+        )
+    );
     Player &player = ThePlayerManager.GetActivePlayer(0);
     PlayerGameplayStats *&stats = player.stats;
     SettingsOld &settingsMain = SettingsOld::getInstance();
@@ -128,7 +136,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
                         }
                     }
                 }
-                Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i", lane) );
+                Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i", lane));
                 if (lane != -1 && lane != -2) {
                     inputHandler.handleInputs(player, lane, action);
                     Encore::EncoreLog(LOG_DEBUG, "Sent key input");
@@ -451,7 +459,11 @@ unsigned char BeatToCharViaTickThing(
         TickModulo / float(QuarterNoteLength), 0, 1.0f, MaxBrightness, MinBrightness
     );
 }
-
+double TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {
+    double timeDelta = timeEnd - timeStart;
+    double beatDelta = timeDelta * bpm.bpm / 60.0;
+    return beatDelta * 480.0;
+}
 void GameplayMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
@@ -540,6 +552,7 @@ void GameplayMenu::Draw() {
     }
 
     for (int pnum = 0; pnum < ThePlayerManager.PlayersActive; pnum++) {
+        Player &curPlayer = ThePlayerManager.GetActivePlayer(pnum);
         TheGameRenderer.cameraSel =
             CameraSelectionPerPlayer[ThePlayerManager.PlayersActive - 1][pnum];
         int pos = CameraPosPerPlayer[ThePlayerManager.PlayersActive - 1][pnum];
@@ -549,14 +562,88 @@ void GameplayMenu::Draw() {
         else
             TheGameRenderer.renderPos = GetScreenWidth()
                 / CameraPosPerPlayer[ThePlayerManager.PlayersActive - 1][pnum];
+        //for (int n = 0; n < TheSongList.curSong->parts[curPlayer.Instrument]
+        //                        ->charts[curPlayer.Difficulty]
+        //                        .notes.size();
+        //     ++n) {
+        //
+        //}
+        TheGameRenderer.CurrentTick = TheSongList.curSong->bpms[curPlayer.stats->curBPM].tick
+                + TimeRangeToTickDelta(
+                              TheSongList.curSong->bpms[curPlayer.stats->curBPM].time,
+                              TheSongTime.GetSongTime(),
+                              TheSongList.curSong->bpms[curPlayer.stats->curBPM]
+                );
 
+        if (curPlayer.ClassicMode) {
+            Chart &curChart = curPlayer.stats->CurPlayingChart;
+            if (curPlayer.stats->curNoteInt < curChart.notes.size()) {
+                Note &curNote = curChart.notes.at(curPlayer.stats->curNoteInt);
+
+                double OverdriveDrainPerTick = double(OVERDRIVE_DRAIN_PER_BEAT) / 480.0;
+                if (curPlayer.stats->Overdrive) {
+                    // THIS IS LOGIC!
+                    curPlayer.stats->overdriveFill -=
+                        (TheGameRenderer.CurrentTick - curPlayer.stats->LastTick) * OverdriveDrainPerTick;
+                    /*
+                    player.stats->overdriveFill = player.stats->overdriveActiveFill
+                        - (float)((curSongTime - player.stats->overdriveActiveTime)
+                                  / (1920 / song.bpms[player.stats->curBPM].bpm));
+                                  */
+                    if (curPlayer.stats->overdriveFill <= 0) {
+                        curPlayer.stats->overdriveActivateTime = TheSongTime.GetSongTime();
+                        curPlayer.stats->Overdrive = false;
+                        curPlayer.stats->overdriveFill = 0;
+                        curPlayer.stats->overdriveActiveFill = 0;
+                        curPlayer.stats->overdriveActiveTime = 0.0;
+                        ThePlayerManager.BandStats->PlayersInOverdrive -= 1;
+                        ThePlayerManager.BandStats->Overdrive = false;
+                    }
+                }
+
+                for (int i = curPlayer.stats->curBPM; i < TheSongList.curSong->bpms.size(); i++) {
+                    if (TheSongTime.GetSongTime() > TheSongList.curSong->bpms[i].time && i < TheSongList.curSong->bpms.size() - 1)
+                        curPlayer.stats->curBPM++;
+                }
+
+                TheGameRenderer.CheckPlasticNotes(
+                    curPlayer,
+                    curChart,
+                    TheSongTime.GetSongTime(),
+                    curPlayer.stats->curNoteInt
+                );
+                curChart.overdrive.CheckEvents(curPlayer.stats->curODPhrase, TheSongTime.GetSongTime());
+                curChart.solos.CheckEvents(curPlayer.stats->curSolo, TheSongTime.GetSongTime());
+                curChart.fills.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
+                curChart.sections.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
+
+                if (curNote.len > 0) {
+                    for (auto cLane : curNote.pLanes) {
+                        int lane = cLane.lane;
+                        if (curNote.held) {
+                            cLane.heldTime = TheSongTime.GetSongTime() - curNote.time;
+                            if (cLane.heldTime >= cLane.length) {
+                                cLane.heldTime = cLane.length;
+                            }
+                            TheGameRenderer.CalculateSustainScore(curPlayer.stats);
+                            if (!((curPlayer.stats->PressedMask >> lane) & 1) && !curPlayer.Bot) {
+                                curNote.held = false;
+                            }
+                        }
+                        if (cLane.length <= cLane.heldTime) {
+                            curNote.held = false;
+                        }
+                    }
+                }
+            }
+            curPlayer.stats->LastTick = TheGameRenderer.CurrentTick;
+        }
         TheGameRenderer.RenderGameplay(
-            ThePlayerManager.GetActivePlayer(pnum),
-            TheSongTime.GetSongTime(),
-            *TheSongList.curSong
+            curPlayer, TheSongTime.GetSongTime(), *TheSongList.curSong
         );
-        std::string NameText = ThePlayerManager.GetActivePlayer(pnum).Name;
-        if (ThePlayerManager.GetActivePlayer(pnum).Bot) NameText.append(" - AUTOPLAY");
+        std::string NameText = curPlayer.Name;
+        if (curPlayer.Bot)
+            NameText.append(" - AUTOPLAY");
         float CenterPosForText =
             GetWorldToScreen(
                 { 0, 0, 0 },
@@ -565,18 +652,13 @@ void GameplayMenu::Draw() {
             )
                 .x;
         float fontSize = u.hinpct(0.035);
-        float textWidth = MeasureTextEx(
-                              assets.rubikBold,
-                              NameText.c_str(),
-                              fontSize,
-                              0
-        )
-                              .x;
+        float textWidth =
+            MeasureTextEx(assets.rubikBold, NameText.c_str(), fontSize, 0).x;
         Color headerUsernameColor;
-        if (ThePlayerManager.GetActivePlayer(pnum).Bot)
+        if (curPlayer.Bot)
             headerUsernameColor = SKYBLUE;
         else {
-            if (ThePlayerManager.GetActivePlayer(pnum).BrutalMode)
+            if (curPlayer.BrutalMode)
                 headerUsernameColor = RED;
             else
                 headerUsernameColor = WHITE;
@@ -796,13 +878,6 @@ void GameplayMenu::Draw() {
         }
         if (GuiButton(RestartBox, "Restart")) {
             TheSongTime.Reset();
-            for (int player = 0; player < ThePlayerManager.PlayersActive; player++) {
-                TheSongList.curSong
-                    ->parts[ThePlayerManager.GetActivePlayer(player).Instrument]
-                    ->charts[ThePlayerManager.GetActivePlayer(player).Difficulty]
-                    .restartNotes();
-            }
-
             TheGameRenderer.highwayInAnimation = false;
             TheGameRenderer.highwayInEndAnim = false;
             TheGameRenderer.songPlaying = false;
@@ -817,7 +892,9 @@ void GameplayMenu::Draw() {
                         ThePlayerManager.GetActivePlayer(playerNum).Difficulty,
                         ThePlayerManager.GetActivePlayer(playerNum).Instrument
                     );
+                ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart = TheSongList.curSong->parts[ThePlayerManager.GetActivePlayer(playerNum).Instrument]->charts[ThePlayerManager.GetActivePlayer(playerNum).Difficulty];
             }
+
             ThePlayerManager.BandStats->ResetBandGameplayStats();
             ThePlayerManager.BandStats->Paused = false;
         }
@@ -837,10 +914,7 @@ void GameplayMenu::Draw() {
             TheGameRenderer.songPlaying = false;
             for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive;
                  playerNum++) {
-                TheSongList.curSong
-                    ->parts[ThePlayerManager.GetActivePlayer(playerNum).Instrument]
-                    ->charts[ThePlayerManager.GetActivePlayer(playerNum).Difficulty]
-                    .resetNotes();
+                ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart.resetNotes();
                 ThePlayerManager.GetActivePlayer(playerNum).stats->Quit = true;
             }
             TheMenuManager.SwitchScreen(RESULTS);
@@ -1015,8 +1089,10 @@ void GameplayMenu::Draw() {
                 u.hpct(0.02f),
                 u.winpct(0.02f),
                 u.winpct(0.02f),
-                ThePlayerManager.GetActivePlayer(0).stats->HeldFrets[fretBox] ? fretColor
-                                                                              : GRAY
+                ThePlayerManager.GetActivePlayer(0).stats->HeldFrets[fretBox]
+                        || ThePlayerManager.GetActivePlayer(0).stats->HeldFretsAlt[fretBox]
+                    ? fretColor
+                    : GRAY
             );
         }
         DrawRectangle(

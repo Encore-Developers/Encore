@@ -26,7 +26,22 @@ void SongSelectMenu::Load() {
     TheGameRenderer.midiLoaded = false;
 }
 
-void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
+void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS && key == GLFW_KEY_UP) {
+        if (TheSongList.SongSelectOffset <= TheSongList.listMenuEntries.size() && TheSongList.SongSelectOffset >= 1
+            && TheSongList.listMenuEntries.size() >= 10) {
+            TheSongList.SongSelectOffset--;
+            }
+
+        // prevent going past top
+        if (TheSongList.SongSelectOffset < 1)
+            TheSongList.SongSelectOffset = 1;
+
+        // prevent going past bottom
+        if (TheSongList.SongSelectOffset >= TheSongList.listMenuEntries.size() - 10)
+            TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
+    }
+}
 void SongSelectMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();

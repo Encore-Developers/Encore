@@ -51,8 +51,8 @@ void GameplayInputHandler::CheckPlasticInputs(
     // basic shit so that its easier to Do Things lol
     PlayerManager &playerManager = ThePlayerManager;
     SongList &songList = TheSongList;
-    Chart &curChart =
-        songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart = stats->CurPlayingChart;
+    //     songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
 
     if (stats->curNoteInt >= curChart.notes.size())
         stats->curNoteInt = curChart.notes.size() - 1;
@@ -117,6 +117,9 @@ void GameplayInputHandler::CheckPlasticInputs(
         curNote.cHitNote(eventTime, player.InputCalibration);
         // TODO: fix for plastic
         stats->HitPlasticNote(curNote);
+        curChart.solos.UpdateEventViaNote(curNote, stats->curSolo);
+        curChart.sections.UpdateEventViaNote(curNote, stats->curSection);
+        curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
         ThePlayerManager.BandStats->AddClassicNotePoint(
             curNote.perfect, stats->noODmultiplier(), curNote.chordSize
         );
@@ -124,6 +127,10 @@ void GameplayInputHandler::CheckPlasticInputs(
             && stats->Combo % 10 == 0) {
             stats->MultiplierEffectTime = eventTime;
         }
+        player.stats->HitwindowNoteHitOffset.emplace_back(
+            curNote.time - eventTime - player.InputCalibration,
+            curNote.phopo || curNote.pTap
+        );
         return;
     }
     if (!curNote.hit && frettingInput)
@@ -146,8 +153,8 @@ void GameplayInputHandler::handleInputs(Player &player, int lane, int action) {
     if (!enctime.Running()) {
         return;
     }
-    Chart &curChart =
-        songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart = stats->CurPlayingChart;
+    //     songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
     float eventTime = enctime.GetSongTime();
     if (true) {
         if (action == GLFW_PRESS && (lane == -1) && stats->overdriveFill > 0
@@ -175,8 +182,8 @@ void GameplayInputHandler::CheckPadInputs(
     PlayerGameplayStats *&stats = player.stats;
     PlayerManager &playerManager = ThePlayerManager;
     SongList &songList = TheSongList;
-    Chart &curChart =
-        songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
+    Chart &curChart = stats->CurPlayingChart;
+    //    songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
     SettingsOld &settings = SettingsOld::getInstance();
 
     // do overdrive hitting logic here lol
@@ -227,6 +234,9 @@ void GameplayInputHandler::CheckPadInputs(
         }
         if (stats->curNoteIdx[lane] < curChart.notes_perlane[lane].size() - 1)
             stats->curNoteIdx[lane]++;
+        player.stats->HitwindowNoteHitOffset.emplace_back(
+            curNote.time - eventTime - player.InputCalibration, NoteLifted
+        );
         return;
     }
 

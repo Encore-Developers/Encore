@@ -110,7 +110,7 @@ private:
 
 
 public:
-
+    bool Loaded = false;
 
     std::vector<Note> notes;
 

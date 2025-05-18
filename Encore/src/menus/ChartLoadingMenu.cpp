@@ -28,7 +28,7 @@ void LoadCharts() {
         std::string trackName;
 
         Chart &chart = TheSongList.curSong->parts[inst]->charts[diff];
-        if (chart.valid) {
+        if (!chart.Loaded && chart.valid) {
             Encore::EncoreLog(
                 LOG_DEBUG,
                 TextFormat("Loading part %s, diff %01i", trackName.c_str(), diff)
@@ -57,14 +57,16 @@ void LoadCharts() {
                     noteIdx++;
                 }
             }
+            chart.Loaded = true;
         }
-
+        player.stats->CurPlayingChart = chart;
         //}
         //}
         //}
     }
 
     TheSongList.curSong->getCodas(midiFile);
+
     LoadingState = READY;
     std::this_thread::sleep_for(std::chrono::seconds(1));
     FinishedLoading = true;

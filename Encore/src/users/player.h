@@ -22,6 +22,11 @@ class Band {
 
 };
 
+enum NoteHitType {
+    STANDARD, // strums/ptaps
+    ALTERNATIVE // hopos/ctaps/lifts
+};
+
 class PlayerGameplayStats {
     /**
      * @brief Statistics/statistics manager for individual players during gameplay
@@ -65,6 +70,8 @@ public:
 
     std::vector<float> drumSmasherRotations = { 0, 0, 0, 0 };
     std::vector<float> drumSmasherHeights = { 0, 0, 0, 0 };
+
+    std::vector<std::pair<float, int> > HitwindowNoteHitOffset = {};
 
     std::vector<float> fiveLaneSmasherRotation = { 0, 0, 0, 0, 0 };
     std::vector<float> fiveLaneSmasherHeights = { 0, 0, 0, 0, 0 };

@@ -22,30 +22,25 @@ out vec3 fragNormal;
 
 void main()
 {
-    // Send vertex attributes to fragment shader
-    vec4 worldPosition = matModel * vec4(vertexPosition, 1.0);
-    float yPos = worldPosition.y;
-    float xPos = worldPosition.x;
+    mat4 ModelViewMatrix = matView * matModel;
+    mat4 ViewMatrixInverse = inverse(matView);
 
-
+    vec4 PositionInViewSpace = ModelViewMatrix * vec4(vertexPosition, 1.0);
+    vec4 PositionInWorldSpace = ViewMatrixInverse * PositionInViewSpace;
+    float yPos = PositionInWorldSpace.y;
+    float xPos = PositionInWorldSpace.x;
 
     float xPow = pow(xPos, 2);
     float yPow = pow(yPos, 2);
     int curveConst = 50;
     // Send vertex attributes to fragment shader
-    fragPosition = vec3(matModel*vec4(vertexPosition, 1.0));
+    fragPosition = vec3((matModel) * vec4(vertexPosition, 1.0));;
     fragTexCoord = vertexTexCoord;
     fragColor = vertexColor;
     fragNormal = normalize(vec3(matNormal*vec4(vertexNormal, 1.0)));
-    vec3 finalPos = vertexPosition;
-    finalPos.y += (-xPow)/(curveConst);
-    // if (xPos < 0)
-    // {
-    finalPos.x += (-(yPow))/(curveConst * 2);
-    // }
-    // else
-    // {
-    //     finalPos.x += (-(yPow))/(curveConst);
-    // }
-    gl_Position = mvp*vec4(finalPos, 1.0);
+    PositionInWorldSpace.y = PositionInWorldSpace.y + (-xPow) / (curveConst);
+    PositionInWorldSpace.x = PositionInWorldSpace.x + (-(yPow)) / (curveConst * 2);
+    PositionInViewSpace = matView * PositionInWorldSpace;
+    vec4 PositionInObjectSpace = inverse(ModelViewMatrix) * PositionInViewSpace;
+    gl_Position = mvp * PositionInObjectSpace;
 }

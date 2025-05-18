@@ -27,7 +27,7 @@ struct EncEventVect {
     }
 
     virtual void ResetEvents() {
-        for (auto event : events) {
+        for (auto &event : events) {
             event.NotesHit = 0;
         }
     }

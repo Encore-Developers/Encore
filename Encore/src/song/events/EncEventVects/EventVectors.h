@@ -27,7 +27,7 @@ struct FillEvents final : EncEventVect<DrumFill> {};
 
 struct ODEvents final : EncEventVect<odPhrase> {
     void ResetEvents() override {
-        for (auto event : events) {
+        for (auto &event : events) {
             event.NotesHit = 0;
             event.added = false;
             event.missed = false;
