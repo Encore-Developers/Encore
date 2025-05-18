@@ -5,7 +5,10 @@
 #ifndef SETTINGSLOADER_H
 #define SETTINGSLOADER_H
 #include <filesystem>
-#include <nlohmann/json_fwd.hpp>
+
+#pragma once
+#include <string>
+#include <vector>
 
 namespace Encore {
     class SettingsInit {

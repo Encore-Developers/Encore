@@ -25,6 +25,26 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
         TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
         break;
     }
+    case SETTINGSAUDIOVIDEO: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSCONTROLLER: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSGAMEPLAY: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSKEYBOARD: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSCREDITS: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
     case RESULTS: {
         TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
         break;

@@ -14,16 +14,7 @@
 #include "util/json-helper.h"
 #include "assets.h"
 #include "OvershellMenu.h"
-
-bool changingKey = false;
-bool changing4k = false;
-bool changingOverdrive = false;
-bool changingAlt = false;
-bool changingPause = false;
-
-bool ShowHighwaySettings = true;
-bool ShowCalibrationSettings = true;
-bool ShowGeneralSettings = true;
+#include "util/settings-text.h"
 
 enum OptionsCategories {
     AUDIO_VISUAL,
@@ -32,17 +23,6 @@ enum OptionsCategories {
     KEYBOARD_BINDINGS,
     CREDITS
 };
-
-std::vector<std::string> split(const std::string& str, const std::string& delimiter) {
-    std::vector<std::string> tokens;
-    size_t start = 0, end = 0;
-    while ((end = str.find(delimiter, start)) != std::string::npos) {
-        tokens.push_back(str.substr(start, end - start));
-        start = end + delimiter.length();
-    }
-    tokens.push_back(str.substr(start));
-    return tokens;
-}
 
 void SettingsMenu::Draw() {
     Units &u = Units::getInstance();
@@ -70,17 +50,50 @@ void SettingsMenu::Draw() {
     float borderWidth = u.winpct(0.05f);
     float innerTop = SidebarTop + borderWidth;
 
+    DrawRectangle(SidebarLeft - u.winpct(0.004f), SidebarTop - u.hinpct(0.08f) - u.winpct(0.004f),
+                  SidebarWidth + u.winpct(0.008f), SidebarHeight + u.winpct(0.02f), WHITE);
+    DrawRectangle(SidebarLeft, SidebarTop - u.hinpct(0.02f), SidebarWidth, SidebarHeight, Color{31, 31, 50, 255});
 
-    DrawRectangle(SidebarLeft - u.winpct(0.004f), SidebarTop- u.hinpct(0.08f) - u.winpct(0.004f),
-    SidebarWidth + u.winpct(0.008f), SidebarHeight + u.winpct(0.02f), WHITE);
-    DrawRectangle(SidebarLeft, SidebarTop - u.hinpct(0.02f), SidebarWidth, SidebarHeight, Color{31,31,50,255});
+    struct SidebarContent {
+        const char* header;
+        const char* body;
+    };
+    SidebarContent sidebarContents[] = {
+        // sidebar text
+        // Audio / Visual
+        {
+            "Configure audio and video\nsettings",
+            "Configurable settings:\n- Audio calibration\n- Game volume\n- Background beat flash\n- Framerate\n- V-Sync\n"
+        },
+        // Gameplay
+        {
+            "Configure gameplay\nsettings",
+            "Configurable settings:\n- Fullscreen \n- Scan Songs"
+        },
+        // Controller Bindings
+        {
+            "Coming Soon",
+            "TBA"
+        },
+        // Keyboard Bindings
+        {
+            "Coming Soon",
+            "TBA"
+        },
+        // Credits
+        {
+            "Coming Soon",
+            "TBA"
+        }
+    };
 
-    const char *headerText = "Configure audio and video \n settings";
+    static int selectedIndex = -1;
+    const char* headerText = (selectedIndex >= 0 && selectedIndex < 5) ? sidebarContents[selectedIndex].header : sidebarContents[AUDIO_VISUAL].header;
+    const char* sidebarBodyText = (selectedIndex >= 0 && selectedIndex < 5) ? sidebarContents[selectedIndex].body : sidebarContents[AUDIO_VISUAL].body;
+
     float headerFontSize = u.hinpct(0.030f);
     float headerLineSpacing = headerFontSize * 1.2f;
-
     std::vector<std::string> headerLines = split(headerText, "\n");
-
     float maxHeaderWidth = 0;
     for (const std::string& line : headerLines) {
         Vector2 lineSize = MeasureTextEx(assets.rubikBold, line.c_str(), headerFontSize, 0);
@@ -95,12 +108,9 @@ void SettingsMenu::Draw() {
         currentHeaderY += headerLineSpacing;
     }
 
-    const char *sidebarBodyText = "Configurable settings: \n- Audio calibration\n- Game volume\n- Background beat flash\n- Framerate\n- V-Sync\n";
     float bodyFontSize = u.hinpct(0.030f);
     float lineSpacing = bodyFontSize * 1.2f;
-
     std::vector<std::string> lines = split(sidebarBodyText, "\n");
-
     float currentY = SidebarTop + SidebarHeaderHeight + u.hinpct(0.05f);
     for (const std::string& line : lines) {
         Vector2 lineSize = MeasureTextEx(assets.rubik, line.c_str(), bodyFontSize, 0);
@@ -108,34 +118,33 @@ void SettingsMenu::Draw() {
         DrawTextEx(assets.rubik, line.c_str(), {lineX, currentY}, bodyFontSize, 0, WHITE);
         currentY += lineSpacing;
     }
+
     encOS::DrawTopOvershell(0.15f);
 
     DrawTextEx(assets.rubik, "Main Menu",
-    {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
+               {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
     GameMenu::mhDrawText(
-    assets.redHatDisplayBlack,
-    "SETTINGS",
-    { TextPlacementLR, TextPlacementTB },
-    u.hinpct(0.125f),
-    WHITE,
-    assets.sdfShader,
-    LEFT
-);
+        assets.redHatDisplayBlack,
+        "SETTINGS",
+        {TextPlacementLR, TextPlacementTB},
+        u.hinpct(0.125f),
+        WHITE,
+        assets.sdfShader,
+        LEFT
+    );
     float fontSize = u.hinpct(0.029f);
     DrawTextEx(assets.josefinSansItalic, "Select an option", {EntryTextLeft, TextTop}, fontSize, 0, Color{136, 136, 136, 255});
 
     DrawLineEx({EntryTextLeft, TextLineTop}, {EntryTextLeft + u.wpct(0.42f), TextLineTop}, u.winpct(0.001f), WHITE);
 
-    // menu options
-    const char *menuItems[] = {
+    const char* menuItems[] = {
         "Audio / Visual",
         "Gameplay",
-        "Controller Bindings",
-        "Keyboard Bindings",
-        "Credits"
+        "Controller Bindings (OUT OF ORDER)",
+        "Keyboard Bindings (OUT OF ORDER)",
+        "Credits (OUT OF ORDER)"
     };
     int menuItemCount = 5;
-    static int selectedIndex = -1; // -1 means no item is selected
     static float clickFeedbackTimer = 0.0f;
     static int clickedIndex = -1;
     if (clickFeedbackTimer > 0) {
@@ -144,8 +153,9 @@ void SettingsMenu::Draw() {
             clickedIndex = -1;
         }
     }
-    // mouse controls
+
     Vector2 mousePos = GetMousePosition();
+    bool isHovering = false;
     for (int i = 0; i < menuItemCount; i++) {
         float yPos = EntryTop + (EntryHeight * (i + 1));
         Rectangle itemRect = {
@@ -156,14 +166,16 @@ void SettingsMenu::Draw() {
         };
         if (CheckCollisionPointRec(mousePos, itemRect)) {
             selectedIndex = i;
+            isHovering = true;
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 clickFeedbackTimer = 0.2f;
                 clickedIndex = i;
                 switch (i) {
                 case AUDIO_VISUAL:
-                    TheMenuManager.SwitchScreen(CALIBRATION);
+                    TheMenuManager.SwitchScreen(SETTINGSAUDIOVIDEO);
                     break;
                 case GAMEPLAY_SETTINGS:
+                    TheMenuManager.SwitchScreen(SETTINGSGAMEPLAY);
                     break;
                 case CONTROLLER_BINDINGS:
                     break;
@@ -175,7 +187,6 @@ void SettingsMenu::Draw() {
                 printf("Clicked: %s\n", menuItems[i]);
             }
         }
-        // menu select icon
         if (i == selectedIndex) {
             Color textColor = (i == clickedIndex) ? GRAY : WHITE;
             std::string modifiedText = "> " + std::string(menuItems[i]);
@@ -184,30 +195,16 @@ void SettingsMenu::Draw() {
             assets.DrawTextRHDI(menuItems[i], EntryTextLeft, yPos, EntryFontSize, Color{136, 136, 136, 255});
         }
     }
+
+    if (!isHovering) {
+        selectedIndex = -1;
+    }
+
     Units::getInstance();
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();
     DrawOvershell();
-    bool isHovering = false;
-    for (int i = 0; i < menuItemCount; i++) {
-        float yPos = EntryTop + (EntryHeight * (i + 0.3));
-        Rectangle itemRect = {
-            EntryTextLeft - u.wpct(0.001f),
-            yPos,
-            u.wpct(0.32f),
-            EntryHeight
-        };
-        if (CheckCollisionPointRec(mousePos, itemRect)) {
-            isHovering = true;
-            break;
-        }
-    }
-    if (!isHovering) {
-        selectedIndex = -1;
-
-    }
 }
-
 
 void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {

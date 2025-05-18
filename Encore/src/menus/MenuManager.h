@@ -8,6 +8,11 @@ enum Screens {
     GAMEPLAY,
     RESULTS,
     SETTINGS,
+    SETTINGSAUDIOVIDEO,
+    SETTINGSGAMEPLAY,
+    SETTINGSCONTROLLER,
+    SETTINGSKEYBOARD,
+    SETTINGSCREDITS,
     CALIBRATION,
     CHART_LOADING_SCREEN,
     SOUND_TEST,
@@ -24,6 +29,11 @@ inline const char* ToString(Screens v)
         case GAMEPLAY: return "Gameplay";
         case RESULTS: return "Results";
         case SETTINGS: return "Settings";
+        case SETTINGSAUDIOVIDEO: return "Audio / Video Settings";
+        case SETTINGSGAMEPLAY: return "Gameplay Settings";
+        case SETTINGSCONTROLLER: return "Controller Bindings";
+        case SETTINGSKEYBOARD: return "Keyboard Bindings";
+        case SETTINGSCREDITS: return "Credits";
         case CALIBRATION: return "Calibration";
         case CHART_LOADING_SCREEN: return "Chart Loading Screen";
         case SOUND_TEST: return "Debug Test Menu";

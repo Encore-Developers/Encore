@@ -9,8 +9,6 @@
 #include "settings-old.h"
 #include "users/playerManager.h"
 
-
-
 #include <nlohmann/json_fwd.hpp>
 
 namespace Encore {

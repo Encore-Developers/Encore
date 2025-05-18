@@ -3,6 +3,11 @@
 #include "ChartLoadingMenu.h"
 #include "GameplayMenu.h"
 #include "ReadyUpMenu.h"
+#include "SettingsAudioVideo.h"
+#include "SettingsController.h"
+#include "SettingsCredits.h"
+#include "SettingsGameplay.h"
+#include "SettingsKeyboard.h"
 #include "SettingsMenu.h"
 #include "SongSelectMenu.h"
 #include "cacheLoadingScreen.h"
@@ -44,6 +49,18 @@ void MenuManager::LoadMenu() {
     case SETTINGS: {
         TheGameRPC.DiscordUpdatePresence("Configuring", "In the menus");
         ActiveMenu = new SettingsMenu;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSAUDIOVIDEO: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Audio and Video Settings", "In the menus");
+        ActiveMenu = new SettingsAudioVideo;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSGAMEPLAY: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Audio and Video Settings", "In the menus");
+        ActiveMenu = new SettingsGameplay;
         ActiveMenu->Load();
         break;
     }
@@ -249,6 +266,11 @@ void MenuManager::DrawMenu() {
         }
         case MAIN_MENU:
         case SETTINGS:
+        case SETTINGSAUDIOVIDEO:
+        case SETTINGSGAMEPLAY:
+        case SETTINGSCONTROLLER:
+        case SETTINGSKEYBOARD:
+        case SETTINGSCREDITS:
         case SONG_SELECT:
         case READY_UP:
         case GAMEPLAY:

@@ -23,8 +23,8 @@
     OPTION(int, AudioOffset, 0)                                                          \
     OPTION(bool, DiscordRichPresence, true)                                              \
     OPTION(int, Framerate, 60)                                                           \
-    OPTION(bool, VerticalSync, true)
-
+    OPTION(bool, VerticalSync, true)                                                     \
+    OPTION(int, BackgroundBeatFlash, true) // switch to bool eventually
 namespace Encore {
     class Settings {
     public:
@@ -47,7 +47,8 @@ namespace Encore {
         VerticalSync,
         AudioOffset,
         DiscordRichPresence,
-        SongPaths
+        SongPaths,
+        BackgroundBeatFlash
     );
 
 };
