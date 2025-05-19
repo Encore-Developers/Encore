@@ -49,33 +49,9 @@ file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp" "include/*.c")
 file(GLOB_RECURSE INC_FILES "include/*.h" "include/*.h*" "src/*.h")
 # Add source files to the executable
 if (WIN32)
-  add_executable(Encore ${SRC_FILES} ${INC_FILES} "resources.rc"
-          src/menus/SettingsAudioVideo.cpp
-          src/menus/SettingsAudioVideo.h
-          src/menus/SettingsGameplay.cpp
-          src/menus/SettingsGameplay.h
-          src/menus/SettingsController.cpp
-          src/menus/SettingsController.h
-          src/menus/SettingsKeyboard.cpp
-          src/menus/SettingsKeyboard.h
-          src/menus/SettingsCredits.cpp
-          src/menus/SettingsCredits.h
-          src/util/settings-text.cpp
-          src/util/settings-text.h)
+  add_executable(Encore ${SRC_FILES} ${INC_FILES} "resources.rc")
 else()
-  add_executable(Encore ${SRC_FILES} ${INC_FILES}
-          src/menus/SettingsAudioVideo.cpp
-          src/menus/SettingsAudioVideo.h
-          src/menus/SettingsGameplay.cpp
-          src/menus/SettingsGameplay.h
-          src/menus/SettingsController.cpp
-          src/menus/SettingsController.h
-          src/menus/SettingsKeyboard.cpp
-          src/menus/SettingsKeyboard.h
-          src/menus/SettingsCredits.cpp
-          src/menus/SettingsCredits.h
-          src/util/settings-text.cpp
-          src/util/settings-text.h)
+  add_executable(Encore ${SRC_FILES} ${INC_FILES})
 endif()
 # Temp player file
 

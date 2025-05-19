@@ -16,29 +16,28 @@
 #include "util/settings-text.h"
 
 bool ShowGameplaySettings = true;
-bool Fullscreen = false;
 
 void SettingsGameplay::Draw() {
     if (!IsWindowReady()) {
         return;
     }
 
-    Units &u = Units::getInstance();
+    Units& u = Units::getInstance();
     if (&u == nullptr) {
         return;
     }
 
-    Assets &assets = Assets::getInstance();
+    Assets& assets = Assets::getInstance();
     if (&assets == nullptr) {
         return;
     }
 
-    SettingsOld &settingsMain = SettingsOld::getInstance();
+    SettingsOld& settingsMain = SettingsOld::getInstance();
     if (&settingsMain == nullptr) {
         return;
     }
 
-    SongTime &enctime = TheSongTime;
+    SongTime& enctime = TheSongTime;
     if (&enctime == nullptr) {
     }
 
@@ -71,15 +70,15 @@ void SettingsGameplay::Draw() {
     };
     SidebarContent sidebarContents[] = {
         // sidebar text
-        // Fullscreen
+        // fullscreen
         {
             "Fullscreen",
-            "TBA"
+            "TBD"
         },
-        // Scan Songs
+        // scan Songs
         {
             "Scan Songs",
-            "TBA"
+            "TBD"
         }
     };
 
@@ -176,21 +175,28 @@ void SettingsGameplay::Draw() {
         isHovering = true;
         DrawRectangleLinesEx(fullscreenBoxRect, highlightBorderWidth, glowColor);
     }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, Fullscreen ? defaultColor : ColorToInt(activeColor));
+    // might redo later - Jaydenz
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, settingsMain.fullscreen ? defaultColor : ColorToInt(activeColor));
     if (GuiButton(offButtonRect, "Off")) {
-        Fullscreen = false;
-        if (IsWindowFullscreen()) {
-            ToggleFullscreen();
+        if (settingsMain.fullscreen) {
+            settingsMain.fullscreen = false;
+            if (IsWindowFullscreen()) {
+                ToggleFullscreen();
+            }
+            settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
         }
     }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, Fullscreen ? ColorToInt(activeColor) : defaultColor);
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, settingsMain.fullscreen ? ColorToInt(activeColor) : defaultColor);
     if (GuiButton(onButtonRect, "On")) {
-        Fullscreen = true;
-        if (!IsWindowFullscreen()) {
-            ToggleFullscreen();
+        if (!settingsMain.fullscreen) {
+            settingsMain.fullscreen = true;
+            if (!IsWindowFullscreen()) {
+                ToggleFullscreen();
+            }
+            settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
         }
     }
-    if (!Fullscreen) {
+    if (!settingsMain.fullscreen) {
         DrawRectangleLinesEx(offButtonRect, highlightBorderWidth, glowColor);
     } else {
         DrawRectangleLinesEx(onButtonRect, highlightBorderWidth, glowColor);
@@ -253,29 +259,16 @@ void SettingsGameplay::ControllerInputCallback(int joypadID, GLFWgamepadstate st
 }
 
 void SettingsGameplay::Load() {
-    if (sizeof(TheGameSettings) == 0) {
-    }
-
-    Fullscreen = TheGameSettings.Fullscreen;
-
-    if (TheGameSettings.Fullscreen == -1) {
-        Fullscreen = false;
-    }
-
-    if (Fullscreen) {
-        if (!IsWindowFullscreen()) {
-            ToggleFullscreen();
-        }
-    } else {
-        if (IsWindowFullscreen()) {
-            ToggleFullscreen();
-        }
+    SettingsOld& settingsMain = SettingsOld::getInstance();
+    // Ensure window state matches settings
+    if (settingsMain.fullscreen && !IsWindowFullscreen()) {
+        ToggleFullscreen();
+    } else if (!settingsMain.fullscreen && IsWindowFullscreen()) {
+        ToggleFullscreen();
     }
 }
 
 void SettingsGameplay::Save() {
-    if (sizeof(TheGameSettings) == 0) {
-    }
-
-    TheGameSettings.Fullscreen = Fullscreen;
+    SettingsOld& settingsMain = SettingsOld::getInstance();
+    settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
 }

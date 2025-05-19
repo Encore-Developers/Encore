@@ -1,15 +1,17 @@
 //
-// Created by Jaydenz on 29/04/2025.
+// Created by Jaydenz on 04/29/2025.
 //
 
 #ifndef SETTINGS_GAMEPLAY_H
 #define SETTINGS_GAMEPLAY_H
 
 #include <GLFW/glfw3.h>
-#include "menu.h"
-#include "settings.h"
-#include "assets.h"
 #include "OvershellMenu.h"
+
+namespace Encore {
+    class SettingsGameplay {
+    };
+}
 
 class SettingsGameplay : public OvershellMenu {
 public:
@@ -23,5 +25,6 @@ private:
 bool Fullscreen = false;
 };
 
+extern Encore::SettingsGameplay TheGameplaySettings;
 
 #endif // SETTINGS_GAMEPLAY_H

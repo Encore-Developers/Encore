@@ -72,12 +72,12 @@ void SettingsMenu::Draw() {
         },
         // Controller Bindings
         {
-            "Coming Soon",
+            "Configure controller\nbindings",
             "TBA"
         },
         // Keyboard Bindings
         {
-            "Coming Soon",
+            "Configure keyboard\nbindings",
             "TBA"
         },
         // Credits
@@ -140,8 +140,8 @@ void SettingsMenu::Draw() {
     const char* menuItems[] = {
         "Audio / Visual",
         "Gameplay",
-        "Controller Bindings (OUT OF ORDER)",
-        "Keyboard Bindings (OUT OF ORDER)",
+        "Controller Bindings",
+        "Keyboard Bindings",
         "Credits (OUT OF ORDER)"
     };
     int menuItemCount = 5;
@@ -178,8 +178,10 @@ void SettingsMenu::Draw() {
                     TheMenuManager.SwitchScreen(SETTINGSGAMEPLAY);
                     break;
                 case CONTROLLER_BINDINGS:
+                    TheMenuManager.SwitchScreen(SETTINGSCONTROLLER);
                     break;
                 case KEYBOARD_BINDINGS:
+                    TheMenuManager.SwitchScreen(SETTINGSKEYBOARD);
                     break;
                 case CREDITS:
                     break;

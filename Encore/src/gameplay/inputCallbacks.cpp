@@ -120,6 +120,27 @@ void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
     case GAMEPLAY: {
         TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
         break;
+
+        case SETTINGSAUDIOVIDEO: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSCONTROLLER: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSGAMEPLAY: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSKEYBOARD: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSCREDITS: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
     }
     default:;
     }

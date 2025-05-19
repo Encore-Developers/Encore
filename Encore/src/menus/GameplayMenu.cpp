@@ -21,6 +21,7 @@
 #include "OvershellHelper.h"
 #include "settings-old.h"
 #include "settings.h"
+#include "GLFW/glfw3.h"
 
 #include <raylib.h>
 

@@ -9,6 +9,10 @@
 #include "assets.h"
 #include "OvershellMenu.h"
 
+namespace Encore {
+    class SettingsMenu {
+    };
+}
 
 class SettingsMenu : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
@@ -23,6 +27,6 @@ public:
     void Draw() override;
 };
 
-
+extern Encore::SettingsMenu TheSettingsMenu;
 
 #endif //SETTINGSMENU_H

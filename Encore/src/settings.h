@@ -1,9 +1,9 @@
-//
 // Created by marie on 02/10/2024.
 //
 
 #ifndef SETTINGS_H
 #define SETTINGS_H
+#include "GLFW/glfw3.h"
 #include <array>
 #include <filesystem>
 #include <string>
@@ -24,14 +24,16 @@
     OPTION(bool, DiscordRichPresence, true)                                              \
     OPTION(int, Framerate, 60)                                                           \
     OPTION(bool, VerticalSync, true)                                                     \
-    OPTION(int, BackgroundBeatFlash, true) // switch to bool eventually
+    OPTION(bool, BackgroundBeatFlash, true)
 namespace Encore {
     class Settings {
     public:
 #define OPTION(type, value, default) type value = default;
-        SETTINGS_OPTIONS;
+        SETTINGS_OPTIONS
 #undef OPTION
         std::vector<std::filesystem::path> SongPaths;
+        void SaveToFile(const std::string& filename) const;
+        void LoadFromFile(const std::string& filename);
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
@@ -50,9 +52,8 @@ namespace Encore {
         SongPaths,
         BackgroundBeatFlash
     );
-
 };
 
 extern Encore::Settings TheGameSettings;
 
-#endif // SETTINGS_H
+#endif SETTINGS_H

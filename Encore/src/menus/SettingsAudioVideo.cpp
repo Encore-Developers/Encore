@@ -68,7 +68,7 @@ void SettingsAudioVideo::Draw() {
         // Audio Calibration
         {
             "Audio Calibration",
-            "Increases the time between \naudio playback \nand note display to \nalign notes with audio.\nHigher values delay audio, aligning notes\ncloser to the screen."
+            "Increases the time between the audio \nplayback and note display to make notes\n line up with the audio.\nThe higher the number, the later the\naudio, and the closer to the screen will\nthe notes line up."
         },
         // Volume
         {
@@ -533,7 +533,6 @@ void SettingsAudioVideo::Draw() {
     DrawOvershell();
 }
 
-#include <raylib.h>
 
 void SettingsAudioVideo::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -550,6 +549,8 @@ void SettingsAudioVideo::ControllerInputCallback(int joypadID, GLFWgamepadstate 
 }
 
 void SettingsAudioVideo::Load() {
+    TheGameSettings.LoadFromFile("settings.json");
+
     AudioOffset = TheGameSettings.AudioOffset;
     Framerate = TheGameSettings.Framerate;
     avMainVolume = TheGameSettings.avMainVolume;
@@ -561,18 +562,8 @@ void SettingsAudioVideo::Load() {
     BackgroundBeatFlash = TheGameSettings.BackgroundBeatFlash;
     VerticalSync = TheGameSettings.VerticalSync;
 
-    if (TheGameSettings.AudioOffset == -999) {
-        AudioOffset = 150;
-    }
-    if (TheGameSettings.Framerate == -999) {
-        Framerate = 150;
-    }
-    if (TheGameSettings.avMainVolume < 0.0f) avMainVolume = 0.75f;
-    if (TheGameSettings.avActiveInstrumentVolume < 0.0f) avActiveInstrumentVolume = 0.25f;
-    if (TheGameSettings.avInactiveInstrumentVolume < 0.0f) avInactiveInstrumentVolume = 1.0f;
-    if (TheGameSettings.avMuteVolume < 0.0f) avMuteVolume = 0.5f;
-    if (TheGameSettings.avMenuMusicVolume < 0.0f) avMenuMusicVolume = 0.25f;
-    if (TheGameSettings.avSoundEffectVolume < 0.0f) avSoundEffectVolume = 0.75f;
+    TraceLog(LOG_INFO, "Loaded audio/video settings: AudioOffset=%d, Framerate=%d, avMainVolume=%.2f",
+             AudioOffset, Framerate, avMainVolume);
 }
 
 void SettingsAudioVideo::Save() {
@@ -586,4 +577,9 @@ void SettingsAudioVideo::Save() {
     TheGameSettings.avSoundEffectVolume = avSoundEffectVolume;
     TheGameSettings.BackgroundBeatFlash = BackgroundBeatFlash;
     TheGameSettings.VerticalSync = VerticalSync;
+
+    TheGameSettings.SaveToFile("settings.json");
+
+    TraceLog(LOG_INFO, "Saved audio/video settings: AudioOffset=%d, Framerate=%d, avMainVolume=%.2f",
+             AudioOffset, Framerate, avMainVolume);
 }

@@ -16,6 +16,7 @@
 #include "raygui.h"
 #include "resultsMenu.h"
 #include "settings-old.h"
+#include "settings.h"
 #include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"
 #include "song/audio.h"
@@ -59,8 +60,20 @@ void MenuManager::LoadMenu() {
         break;
     }
     case SETTINGSGAMEPLAY: {
-        TheGameRPC.DiscordUpdatePresence("Configuring Audio and Video Settings", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("Configuring Gameplay Settings", "In the menus");
         ActiveMenu = new SettingsGameplay;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSKEYBOARD: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Keyboard Keybinds", "In the menus");
+        ActiveMenu = new SettingsKeyboard;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSCONTROLLER: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Controller Keybinds", "In the menus");
+        ActiveMenu = new SettingsController;
         ActiveMenu->Load();
         break;
     }
@@ -173,7 +186,7 @@ void MenuManager::DrawMenu() {
                             + calibrationStartTime;
                         totalDifference += (tapTime - expectedClickTime);
                     }
-                    TheGameSettings.AudioOffset =
+                    settingsMain.avOffsetMS = 0;
                         static_cast<int>((totalDifference / tapTimes.size()) * 1000);
                     // Convert to milliseconds
                     std::cout

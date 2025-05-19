@@ -12,6 +12,11 @@
 #ifndef SETTINGSCREDITS_H
 #define SETTINGSCREDITS_H
 
+namespace Encore {
+    class SettingsCredits {
+    };
+}
+
 class SettingsCredits : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
     SETTINGS_OPTIONS;
@@ -24,5 +29,7 @@ public:
     void Load() override;
     void Draw() override;
 };
+
+extern Encore::SettingsCredits TheCredits;
 
 #endif //SETTINGSCREDITS_H

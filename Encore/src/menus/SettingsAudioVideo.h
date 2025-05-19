@@ -11,6 +11,11 @@
 #ifndef SETTINGSAUDIOVIDEO_H
 #define SETTINGSAUDIOVIDEO_H
 
+namespace Encore {
+    class SettingsAudioVideo {
+    };
+}
+
 class SettingsAudioVideo : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
     SETTINGS_OPTIONS;
@@ -34,5 +39,6 @@ public:
     void Save();
 };
 
+extern Encore::SettingsAudioVideo TheAudioVideoSettings;
 
 #endif //SETTINGSAUDIOVIDEO_H
