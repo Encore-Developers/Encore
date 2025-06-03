@@ -1,6 +1,7 @@
 //
 // Created by Jaydenz on 04/29/2025.
 //
+// to do clean up some of the code
 
 #include "SettingsController.h"
 #include "MenuManager.h"
@@ -108,13 +109,18 @@ void SettingsController::Draw() {
 
         float buttonWidth = u.winpct(0.15f);
         Rectangle buttonRect = {OptionLeft + OptionWidth - buttonWidth, optionTop, buttonWidth, EntryHeight};
-        std::string buttonText = keybinds.getControllerStr(GLFW_JOYSTICK_1, *options[i].second, settings.controllerType, 0);
+        std::string buttonText = (*options[i].second == -2) ? "Unbound" : keybinds.getControllerStr(GLFW_JOYSTICK_1, *options[i].second, settings.controllerType, 0);
         TraceLog(LOG_INFO, "Rendering controller bind %s: %s (code=%d)", label.c_str(), buttonText.c_str(), *options[i].second);
         if (static_cast<int>(i) == bindingOption) buttonText = "Press button...";
         if (CheckCollisionPointRec(mousePos, buttonRect)) {
             selectedIndex = i + 1;
             isHovering = true;
             DrawRectangleLinesEx(optionBoxRect, highlightBorderWidth, glowColor);
+            if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+                auto [bindType, bindIndex] = getBindTypeAndIndex(i);
+                settings.rebindKey(bindType, bindIndex);
+                TraceLog(LOG_INFO, "Unbound %s via right-click", label.c_str());
+            }
         }
         if (GuiButton(buttonRect, buttonText.c_str())) {
             bindingOption = i;
@@ -132,11 +138,29 @@ void SettingsController::Draw() {
     DrawOvershell();
 }
 
+std::pair<std::string, int> SettingsController::getBindTypeAndIndex(size_t optionIndex) {
+    if (optionIndex < 4) {
+        return {"controller4K", static_cast<int>(optionIndex)};
+    } else if (optionIndex == 4) {
+        return {"controllerOverdrive", -2};
+    } else if (optionIndex == 5) {
+        return {"controllerPause", -2};
+    }
+    return {"", -1};
+}
+
 void SettingsController::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS) return;
 
     if (bindingOption >= 0) {
+        auto [bindType, bindIndex] = getBindTypeAndIndex(bindingOption);
+        if (!bindType.empty()) {
+            settings.rebindKey(bindType, bindIndex);
+            TraceLog(LOG_INFO, "Bound %s to keyboard key %d via rebindKey",
+                     options[bindingOption].first.c_str(), key);
+        }
         bindingOption = -1;
+        Save();
         return;
     }
 
@@ -157,34 +181,39 @@ void SettingsController::KeyboardInputCallback(int key, int scancode, int action
 void SettingsController::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
     static GLFWgamepadstate prevState;
     if (bindingOption >= 0) {
-        for (int i = 0; i < GLFW_GAMEPAD_BUTTON_LAST; ++i) {
-            if (state.buttons[i] && !prevState.buttons[i]) {
-                *options[bindingOption].second = i;
-                Save();
-                TraceLog(LOG_INFO, "Bound %s to button %d (%s)",
-                         options[bindingOption].first.c_str(), i,
-                         keybinds.getControllerStr(joypadID, i, settings.controllerType, 0).c_str());
-                bindingOption = -1;
-                prevState = state;
-                return;
+        auto [bindType, bindIndex] = getBindTypeAndIndex(bindingOption);
+        if (!bindType.empty()) {
+            for (int i = 0; i < GLFW_GAMEPAD_BUTTON_LAST; ++i) {
+                if (state.buttons[i] && !prevState.buttons[i]) {
+                    *options[bindingOption].second = i;
+                    settings.rebindKey(bindType, bindIndex);
+                    Save();
+                    TraceLog(LOG_INFO, "Bound %s to button %d (%s)",
+                             options[bindingOption].first.c_str(), i,
+                             keybinds.getControllerStr(joypadID, i, settings.controllerType, 0).c_str());
+                    bindingOption = -1;
+                    prevState = state;
+                    return;
+                }
             }
-        }
-        for (int i = 0; i < GLFW_GAMEPAD_AXIS_LAST; ++i) {
-            float value = state.axes[i];
-            float prevValue = prevState.axes[i];
-            if (fabs(value) > 0.5f && fabs(prevValue) <= 0.5f) {
-                *options[bindingOption].second = -1 - i;
-                Save();
-                TraceLog(LOG_INFO, "Bound %s to axis %d direction %s",
-                         options[bindingOption].first.c_str(), i,
-                         (value > 0 ? "+" : "-"));
-                bindingOption = -1;
-                prevState = state;
-                return;
+            for (int i = 0; i < GLFW_GAMEPAD_AXIS_LAST; ++i) {
+                float value = state.axes[i];
+                float prevValue = prevState.axes[i];
+                if (fabs(value) > 0.5f && fabs(prevValue) <= 0.5f) {
+                    *options[bindingOption].second = -1 - i;
+                    settings.rebindKey(bindType, bindIndex);
+                    Save();
+                    TraceLog(LOG_INFO, "Bound %s to axis %d direction %s",
+                             options[bindingOption].first.c_str(), i,
+                             (value > 0 ? "+" : "-"));
+                    bindingOption = -1;
+                    prevState = state;
+                    return;
+                }
             }
         }
     }
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
+    if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS && !prevState.buttons[GLFW_GAMEPAD_BUTTON_B]) {
         Save();
         TheMenuManager.SwitchScreen(SETTINGS);
     }

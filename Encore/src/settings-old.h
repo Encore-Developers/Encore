@@ -14,6 +14,7 @@
 
 class SettingsOld {
 private:
+    static const int KEY_COUNT = 512;
     SettingsOld() {
         std::filesystem::path oldSettingsFile = directory / "settings-old.json";
         std::filesystem::path newSettingsFile = directory / "settings.json";
@@ -58,7 +59,6 @@ public:
     static SettingsOld& getInstance() {
         static SettingsOld instance;
         return instance;
-        int controllerType = 1;
     }
 
     SettingsOld(const SettingsOld&) = delete;
@@ -163,6 +163,103 @@ public:
     std::vector<std::filesystem::path> defaultSongPaths = {directory / "Songs"};
     std::vector<std::filesystem::path> songPaths = defaultSongPaths;
     std::vector<std::filesystem::path> prevSongPaths = songPaths;
+
+    // new rebinding and unbinding. still gotta fix a little bit
+    void rebindKey(const std::string& bindType, int index = -1) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            if (bindType == "keybinds4K" && index >= 0 && index < keybinds4K.size()) {
+                keybinds4K[index] = -2;
+                prev4K[index] = keybinds4K[index];
+            } else if (bindType == "keybinds5K" && index >= 0 && index < keybinds5K.size()) {
+                keybinds5K[index] = -2;
+                prev5K[index] = keybinds5K[index];
+            } else if (bindType == "keybinds4KAlt" && index >= 0 && index < keybinds4KAlt.size()) {
+                keybinds4KAlt[index] = -2;
+                prev4KAlt[index] = keybinds4KAlt[index];
+            } else if (bindType == "keybinds5KAlt" && index >= 0 && index < keybinds5KAlt.size()) {
+                keybinds5KAlt[index] = -2;
+                prev5KAlt[index] = keybinds5KAlt[index];
+            } else if (bindType == "keybindStrumUp") {
+                keybindStrumUp = -2;
+                prevKeybindStrumUp = keybindStrumUp;
+            } else if (bindType == "keybindStrumDown") {
+                keybindStrumDown = -2;
+                prevKeybindStrumDown = keybindStrumDown;
+            } else if (bindType == "keybindOverdrive") {
+                keybindOverdrive = -2;
+                prevOverdrive = keybindOverdrive;
+            } else if (bindType == "keybindOverdriveAlt") {
+                keybindOverdriveAlt = -2;
+                prevOverdriveAlt = keybindOverdriveAlt;
+            } else if (bindType == "keybindPause") {
+                keybindPause = -2;
+                prevKeybindPause = keybindPause;
+            } else if (bindType == "controller4K" && index >= 0 && index < controller4K.size()) {
+                controller4K[index] = -2;
+                prevController4K[index] = controller4K[index];
+            } else if (bindType == "controller5K" && index >= 0 && index < controller5K.size()) {
+                controller5K[index] = -2;
+                prevController5K[index] = controller5K[index];
+            } else if (bindType == "controllerOverdrive") {
+                controllerOverdrive = -2;
+                prevControllerOverdrive = controllerOverdrive;
+            } else if (bindType == "controllerPause") {
+                controllerPause = -2;
+                prevControllerPause = controllerPause;
+            } else {
+                std::cerr << "Error: Invalid bindType or index for " << bindType << "[" << index << "]" << std::endl;
+                return;
+            }
+
+            syncKeybindsToGame();
+            saveOldSettings(directory / "settings-old.json");
+            std::cout << "Info: Keybind " << bindType << (index >= 0 ? "[" + std::to_string(index) + "]" : "")
+                      << " unbound via right-click." << std::endl;
+            return;
+        }
+
+        for (int key = 0; key < KEY_COUNT; ++key) {
+            if (IsKeyPressed(key)) {
+                if (bindType == "keybinds4K" && index >= 0 && index < keybinds4K.size()) {
+                    keybinds4K[index] = key;
+                    prev4K[index] = keybinds4K[index];
+                } else if (bindType == "keybinds5K" && index >= 0 && index < keybinds5K.size()) {
+                    keybinds5K[index] = key;
+                    prev5K[index] = keybinds5K[index];
+                } else if (bindType == "keybinds4KAlt" && index >= 0 && index < keybinds4KAlt.size()) {
+                    keybinds4KAlt[index] = key;
+                    prev4KAlt[index] = keybinds4KAlt[index];
+                } else if (bindType == "keybinds5KAlt" && index >= 0 && index < keybinds5KAlt.size()) {
+                    keybinds5KAlt[index] = key;
+                    prev5KAlt[index] = keybinds5KAlt[index];
+                } else if (bindType == "keybindStrumUp") {
+                    keybindStrumUp = key;
+                    prevKeybindStrumUp = keybindStrumUp;
+                } else if (bindType == "keybindStrumDown") {
+                    keybindStrumDown = key;
+                    prevKeybindStrumDown = keybindStrumDown;
+                } else if (bindType == "keybindOverdrive") {
+                    keybindOverdrive = key;
+                    prevOverdrive = keybindOverdrive;
+                } else if (bindType == "keybindOverdriveAlt") {
+                    keybindOverdriveAlt = key;
+                    prevOverdriveAlt = keybindOverdriveAlt;
+                } else if (bindType == "keybindPause") {
+                    keybindPause = key;
+                    prevKeybindPause = keybindPause;
+                } else {
+                    std::cerr << "Error: Invalid bindType or index for " << bindType << "[" << index << "]" << std::endl;
+                    return;
+                }
+
+                syncKeybindsToGame();
+                saveOldSettings(directory / "settings-old.json");
+                std::cout << "Info: Keybind " << bindType << (index >= 0 ? "[" + std::to_string(index) + "]" : "")
+                          << " set to " << key << std::endl;
+                return;
+            }
+        }
+    }
 
     void migrateKeybindsToOldSettings(const std::filesystem::path& keybindsFile, const std::filesystem::path& settingsFile) {
         std::ifstream ifs(keybindsFile, std::ios::binary);

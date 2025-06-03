@@ -1,4 +1,3 @@
-//
 // Created by Jaydenz on 04/29/2025.
 //
 
@@ -94,12 +93,17 @@ void SettingsKeyboard::Draw() {
 
         float buttonWidth = u.winpct(0.15f);
         Rectangle buttonRect = {OptionLeft + OptionWidth - buttonWidth, optionTop, buttonWidth, EntryHeight};
-        std::string buttonText = keybinds.getKeyStr(*options[i].second);
+        std::string buttonText = (*options[i].second == -2) ? "Unbound" : keybinds.getKeyStr(*options[i].second);
         if (static_cast<int>(i) == bindingOption) buttonText = "Press key...";
         if (CheckCollisionPointRec(mousePos, buttonRect)) {
             selectedIndex = i + 1; // Offset for sidebarContents
             isHovering = true;
             DrawRectangleLinesEx(optionBoxRect, highlightBorderWidth, glowColor);
+            if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+                auto [bindType, bindIndex] = getBindTypeAndIndex(i);
+                settings.rebindKey(bindType, bindIndex);
+                TraceLog(LOG_INFO, "Unbound %s via right-click", label.c_str());
+            }
         }
         if (GuiButton(buttonRect, buttonText.c_str())) {
             bindingOption = i;
@@ -117,12 +121,32 @@ void SettingsKeyboard::Draw() {
     DrawOvershell();
 }
 
+std::pair<std::string, int> SettingsKeyboard::getBindTypeAndIndex(size_t optionIndex) {
+    switch (optionIndex) {
+        case 0: return {"keybinds4K", 0};
+        case 1: return {"keybinds4K", 1};
+        case 2: return {"keybinds4K", 2};
+        case 3: return {"keybinds4K", 3};
+        case 4: return {"keybinds5K", 0};
+        case 5: return {"keybinds5K", 1};
+        case 6: return {"keybinds5K", 2};
+        case 7: return {"keybinds5K", 3};
+        case 8: return {"keybinds5K", 4};
+        case 9: return {"keybindOverdrive", -1};
+        case 10: return {"keybindOverdriveAlt", -1};
+        case 11: return {"keybindPause", -1};
+        default: return {"", -1};
+    }
+}
+
 void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS) return;
 
     if (bindingOption >= 0) {
         if (key != GLFW_KEY_ESCAPE) { // Allow any key except ESC
             *options[bindingOption].second = key;
+            auto [bindType, bindIndex] = getBindTypeAndIndex(bindingOption);
+            settings.rebindKey(bindType, bindIndex);
             Save();
             TraceLog(LOG_INFO, "Bound %s to key %d (%s)", options[bindingOption].first.c_str(), key, keybinds.getKeyStr(key).c_str());
         }
@@ -132,7 +156,7 @@ void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, 
 
     if (key == GLFW_KEY_DOWN) {
         selectedIndex = (selectedIndex + 1) % sidebarContents.size();
-        if (selectedIndex == 0) selectedIndex = 1; // Skip "Keyboard Bindings" header
+        if (selectedIndex == 0) selectedIndex = 1; // fixed header
     } else if (key == GLFW_KEY_UP) {
         selectedIndex = (selectedIndex - 1 + sidebarContents.size()) % sidebarContents.size();
         if (selectedIndex == 0) selectedIndex = sidebarContents.size() - 1;
