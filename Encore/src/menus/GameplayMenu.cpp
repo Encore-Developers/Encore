@@ -551,6 +551,14 @@ void GameplayMenu::Draw() {
         }
     }
 
+    // Encore::RhythmEngine::TheRhythmManager.UpdateTime();
+    // Encore::RhythmEngine::TheRhythmManager.StartFrameTick();
+    // for (int pnum = 0; pnum < ThePlayerManager.PlayersActive; pnum++) {
+    //     Player &curPlayer = ThePlayerManager.GetActivePlayer(pnum);
+    //     curPlayer.rhythmEngine->UpdateEngineOnFrame();
+    // }
+    // Encore::RhythmEngine::TheRhythmManager.EndFrameTick();
+
     for (int pnum = 0; pnum < ThePlayerManager.PlayersActive; pnum++) {
         Player &curPlayer = ThePlayerManager.GetActivePlayer(pnum);
         TheGameRenderer.cameraSel =
@@ -612,10 +620,10 @@ void GameplayMenu::Draw() {
                     TheSongTime.GetSongTime(),
                     curPlayer.stats->curNoteInt
                 );
-                curChart.overdrive.CheckEvents(curPlayer.stats->curODPhrase, TheSongTime.GetSongTime());
-                curChart.solos.CheckEvents(curPlayer.stats->curSolo, TheSongTime.GetSongTime());
-                curChart.fills.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
-                curChart.sections.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
+                // curChart.overdrive.CheckEvents(curPlayer.stats->curODPhrase, TheSongTime.GetSongTime());
+                // curChart.solos.CheckEvents(curPlayer.stats->curSolo, TheSongTime.GetSongTime());
+                //  curChart.fills.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
+                // curChart.sections.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
 
                 if (curNote.len > 0) {
                     for (auto cLane : curNote.pLanes) {
@@ -1146,9 +1154,9 @@ void GameplayMenu::Load() {
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
-        player.stats->BaseScore = TheSongList.curSong->parts[player.Instrument]
-                                      ->charts[player.Difficulty]
-                                      .baseScore;
+        // player.stats->BaseScore = TheSongList.curSong->parts[player.Instrument]
+        //                               ->charts[player.Difficulty]
+        //                               .baseScore;
         if (i == 0) {
             ThePlayerManager.BandStats->BaseScore = player.stats->BaseScore;
         } else {

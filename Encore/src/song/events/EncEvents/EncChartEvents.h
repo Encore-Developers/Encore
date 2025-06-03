@@ -4,6 +4,7 @@
 
 #ifndef ENCCHARTEVENT_H
 #define ENCCHARTEVENT_H
+#include <string>
 
 struct EncNoteEvent {
     double StartSec = 0.0;
@@ -15,20 +16,22 @@ struct EncNoteEvent {
 struct EncChartEvent : EncNoteEvent {
     int NotesHit = 0;
     int NoteCount = 0;
+    EncChartEvent() = default;
+    EncChartEvent(int tickStart, double secondStart, int tickEnd, double secondEnd);
 };
 
 struct Coda : EncChartEvent {
     bool exists = false;
-
-    bool IsNoteInCoda(Note& note) {
+    /*
+    bool IsNoteInCoda(Note &note) {
         if (exists) {
-        if (note.time >= StartSec && note.time < EndSec) {
+            if (note.time >= StartSec && note.time < EndSec) {
                 return true;
             }
         }
         return false;
     }
-
+*/
     bool IsCodaActive(float time) {
         if (exists) {
             if (time >= StartSec && time <= EndSec) {
@@ -39,16 +42,38 @@ struct Coda : EncChartEvent {
     }
 };
 
-struct solo : EncChartEvent {};
+struct solo : EncChartEvent {
+    solo(int tickStart, double secondStart, int tickEnd, double secondEnd)
+        : EncChartEvent(
+              StartTick = tickStart,
+              StartSec = secondStart,
+              EndTick = tickEnd,
+              EndSec = secondEnd
+          ) {}
+};
 
 struct DrumFill : EncChartEvent {};
 
 struct odPhrase : EncChartEvent {
+    odPhrase(int tickStart, double secondStart, int tickEnd, double secondEnd)
+        : EncChartEvent(
+              StartTick = tickStart,
+              StartSec = secondStart,
+              EndTick = tickEnd,
+              EndSec = secondEnd
+          ) {}
     bool added = false;
     bool missed = false;
 };
 
 struct section : EncChartEvent {
+    section(int tickStart, double secondStart, int tickEnd, double secondEnd)
+        : EncChartEvent(
+              StartTick = tickStart,
+              StartSec = secondStart,
+              EndTick = tickEnd,
+              EndSec = secondEnd
+          ) {}
     std::string Name;
 };
 struct tapPhrase : EncNoteEvent {};
@@ -58,4 +83,5 @@ struct forceOnPhrase : EncNoteEvent {};
 struct openMarker : EncNoteEvent {};
 
 struct forceOffPhrase : EncNoteEvent {};
-#endif //ENCCHARTEVENT_H
+
+#endif // ENCCHARTEVENT_H

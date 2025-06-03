@@ -13,7 +13,7 @@ int GameplayInputHandler::calculatePressedMask(PlayerGameplayStats *&stats) {
     for (int pressedButtons = 0; pressedButtons < stats->HeldFrets.size();
          pressedButtons++) {
         if (stats->HeldFrets[pressedButtons] || stats->HeldFretsAlt[pressedButtons])
-            mask += PlasticFrets[pressedButtons];
+            mask += Encore::RhythmEngine::PlasticFrets[pressedButtons];
     }
     return mask;
 }
@@ -58,12 +58,12 @@ void GameplayInputHandler::CheckPlasticInputs(
         stats->curNoteInt = curChart.notes.size() - 1;
     Note &curNote = curChart.notes[stats->curNoteInt];
     stats->PressedMask = calculatePressedMask(stats);
-    bool inCoda = songList.curSong->BRE.IsCodaActive(eventTime);
+    // bool inCoda = songList.curSong->BRE.IsCodaActive(eventTime);
     Note &lastNote = curChart.notes[stats->curNoteInt == 0 ? 0 : stats->curNoteInt - 1];
 
     // TODO: BRE logic
-    if (inCoda)
-        return;
+    // if (inCoda)
+    //     return;
     bool InHopoFrontend =
         isInHopoFrontend(curNote.time, eventTime, player.InputCalibration)
         && curNote.phopo;
@@ -101,7 +101,7 @@ void GameplayInputHandler::CheckPlasticInputs(
             if (lastNote.held && !firstNote) {
                 lastNote.held = false;
             }
-            curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
+            // curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
         }
     }
 
@@ -117,9 +117,9 @@ void GameplayInputHandler::CheckPlasticInputs(
         curNote.cHitNote(eventTime, player.InputCalibration);
         // TODO: fix for plastic
         stats->HitPlasticNote(curNote);
-        curChart.solos.UpdateEventViaNote(curNote, stats->curSolo);
-        curChart.sections.UpdateEventViaNote(curNote, stats->curSection);
-        curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
+        // curChart.solos.UpdateEventViaNote(curNote, stats->curSolo);
+        // curChart.sections.UpdateEventViaNote(curNote, stats->curSection);
+        // curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
         ThePlayerManager.BandStats->AddClassicNotePoint(
             curNote.perfect, stats->noODmultiplier(), curNote.chordSize
         );
@@ -153,6 +153,7 @@ void GameplayInputHandler::handleInputs(Player &player, int lane, int action) {
     if (!enctime.Running()) {
         return;
     }
+
     Chart &curChart = stats->CurPlayingChart;
     //     songList.curSong->parts[player.Instrument]->charts[player.Difficulty];
     float eventTime = enctime.GetSongTime();
@@ -243,7 +244,7 @@ void GameplayInputHandler::CheckPadInputs(
     if (!curNote.isGood(eventTime, player.InputCalibration) && !curNote.hit && NotePressed
         && LiftLeniencyUsedUp) {
         stats->OverHit();
-        curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
+        // curChart.overdrive.UpdateEventViaNote(curNote, stats->curODPhrase);
     }
 }
 

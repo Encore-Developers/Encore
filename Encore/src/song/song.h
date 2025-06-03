@@ -49,12 +49,13 @@ enum Difficulty {
     Expert
 };
 
+/*
 struct SongPart {
     int diff = -1;
     bool hasPart = false;
     bool plastic = false;
     std::vector<Chart> charts;
-};
+};*/
 
 struct TimeSig {
     double time;
@@ -182,10 +183,10 @@ public:
     };
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
-    std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
-                                    new SongPart, new SongPart, new SongPart,
-                                    new SongPart, new SongPart, new SongPart,
-                                    new SongPart, new SongPart };
+    // std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
+    //                                 new SongPart, new SongPart, new SongPart,
+    //                                 new SongPart, new SongPart, new SongPart,
+    //                                 new SongPart, new SongPart };
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 
@@ -380,27 +381,27 @@ public:
                     std::string part = std::string(diff.name.GetString());
                     if (diff.value.IsInt()) {
                         if (part == "ds" || part == "drums") {
-                            parts[PartDrums]->diff = diff.value.GetInt();
+                            // parts[PartDrums]->diff = diff.value.GetInt();
                         } else if (part == "ba" || part == "bass") {
-                            parts[PartBass]->diff = diff.value.GetInt();
+                            // parts[PartBass]->diff = diff.value.GetInt();
                         } else if (part == "gr" || part == "guitar") {
-                            parts[PartGuitar]->diff = diff.value.GetInt();
+                            // parts[PartGuitar]->diff = diff.value.GetInt();
                         } else if (part == "vl" || part == "vocals") {
-                            parts[PartVocals]->diff = diff.value.GetInt();
+                            // parts[PartVocals]->diff = diff.value.GetInt();
                         } else if (part == "ky" || part == "keys") {
-                            parts[PartKeys]->diff = diff.value.GetInt();
+                            // parts[PartKeys]->diff = diff.value.GetInt();
                         } else if (part == "pd" || part == "plastic_drums") {
-                            parts[PlasticDrums]->diff = diff.value.GetInt();
+                            // parts[PlasticDrums]->diff = diff.value.GetInt();
                         } else if (part == "pb" || part == "plastic_bass") {
-                            parts[PlasticBass]->diff = diff.value.GetInt();
+                            // parts[PlasticBass]->diff = diff.value.GetInt();
                         } else if (part == "pg" || part == "plastic_guitar") {
-                            parts[PlasticGuitar]->diff = diff.value.GetInt();
+                            // parts[PlasticGuitar]->diff = diff.value.GetInt();
                         } else if (part == "pk" || part == "plastic_keys") {
-                            parts[PlasticKeys]->diff = diff.value.GetInt();
+                            // parts[PlasticKeys]->diff = diff.value.GetInt();
                         } else if (part == "pv" || part == "plastic_vocals") {
-                            parts[PlasticVocals]->diff = diff.value.GetInt();
+                            // parts[PlasticVocals]->diff = diff.value.GetInt();
                         } else if (part == "tv" || part == "pitched_vocals") {
-                            parts[PitchedVocals]->diff = diff.value.GetInt();
+                            // parts[PitchedVocals]->diff = diff.value.GetInt();
                         }
                     }
                 }
@@ -487,19 +488,19 @@ public:
                         std::string part = std::string(diff.name.GetString());
                         if (diff.value.IsInt()) {
                             if (part == "ds" || part == "drums") {
-                                parts[PartDrums]->diff = diff.value.GetInt();
+                                // parts[PartDrums]->diff = diff.value.GetInt();
                             } else if (part == "ba" || part == "bass") {
-                                parts[PartBass]->diff = diff.value.GetInt();
+                                // parts[PartBass]->diff = diff.value.GetInt();
                             } else if (part == "gr" || part == "guitar") {
-                                parts[PartGuitar]->diff = diff.value.GetInt();
+                                // parts[PartGuitar]->diff = diff.value.GetInt();
                             } else if (part == "vl" || part == "vocals") {
-                                parts[PartVocals]->diff = diff.value.GetInt();
+                                // parts[PartVocals]->diff = diff.value.GetInt();
                             } else if (part == "pd" || part == "plastic_drums") {
-                                parts[PlasticDrums]->diff = diff.value.GetInt();
+                                // parts[PlasticDrums]->diff = diff.value.GetInt();
                             } else if (part == "pb" || part == "plastic_bass") {
-                                parts[PlasticBass]->diff = diff.value.GetInt();
+                                // parts[PlasticBass]->diff = diff.value.GetInt();
                             } else if (part == "pg" || part == "plastic_guitar") {
-                                parts[PlasticGuitar]->diff = diff.value.GetInt();
+                                // parts[PlasticGuitar]->diff = diff.value.GetInt();
                             }
                         }
                     }
@@ -684,7 +685,7 @@ public:
             }
         }
     }
-    Coda BRE {};
+    // Coda BRE {};
     void getCodas(smf::MidiFile &midiFile) {
         int codaCount = 0;
         for (int track = 0; track < midiFile.getTrackCount(); track++) {
@@ -707,25 +708,25 @@ public:
                                 if (midiFile[track][i].isNoteOn()
                                     && !midiFile[track][i].isMeta()
                                     && (int)midiFile[track][i][1] == codaNote) {
-                                    if (BRE.StartSec == 0.0) {
-                                        BRE.StartSec = midiFile.getTimeInSeconds(
-                                            midiFile[track][i].tick
-                                        );
-                                        BRE.StartTick = midiFile[track][i].tick;
-                                        Encore::EncoreLog(LOG_DEBUG, "BRE start found");
-                                    }
+                                    // if (BRE.StartSec == 0.0) {
+                                    //     BRE.StartSec = midiFile.getTimeInSeconds(
+                                    //         midiFile[track][i].tick
+                                    //     );
+                                    //     BRE.StartTick = midiFile[track][i].tick;
+                                    //    Encore::EncoreLog(LOG_DEBUG, "BRE start found");
+                                    //}
                                 }
                                 if (midiFile[track][i].isNoteOff()
                                     && !midiFile[track][i].isMeta()
                                     && (int)midiFile[track][i][1] == codaNote) {
-                                    if (BRE.EndSec == 0.0) {
-                                        BRE.EndSec = midiFile.getTimeInSeconds(
-                                            midiFile[track][i].tick
-                                        );
-                                        BRE.EndTick = midiFile[track][i].tick;
-                                        Encore::EncoreLog(LOG_DEBUG, "BRE end found");
-                                        codaCount++;
-                                    }
+                                    // if (BRE.EndSec == 0.0) {
+                                    //     BRE.EndSec = midiFile.getTimeInSeconds(
+                                    //         midiFile[track][i].tick
+                                    //     );
+                                    //    BRE.EndTick = midiFile[track][i].tick;
+                                    //    Encore::EncoreLog(LOG_DEBUG, "BRE end found");
+                                    //    codaCount++;
+                                    //}
                                 }
                             }
                         }
@@ -733,10 +734,10 @@ public:
                 }
             }
         }
-        if (BRE.EndSec != 0.0 && BRE.StartSec != 0.0) {
-            Encore::EncoreLog(LOG_DEBUG, "BRE valid");
-            BRE.exists = true;
-        }
+        // if (BRE.EndSec != 0.0 && BRE.StartSec != 0.0) {
+        //     Encore::EncoreLog(LOG_DEBUG, "BRE valid");
+        //     BRE.exists = true;
+        // }
     }
 
     void LoadAlbumArt() {

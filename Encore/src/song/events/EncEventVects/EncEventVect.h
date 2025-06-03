@@ -5,46 +5,52 @@
 #ifndef ENCEVENTVEC_H
 #define ENCEVENTVEC_H
 #include <vector>
-#include "../../notes/EncNote.h"
 
 template <typename t>
-struct EncEventVect {
+struct EncEventVect : std::vector<t> {
     virtual ~EncEventVect() = default;
-    std::vector<t> events {};
+    int CurrentEvent = 0;
 
-    t& operator=(int event) {
-        return events[event];
-    }
+    t &operator=(int event) { return this->at(event); }
 
-    t& operator[](int event) {
-        return events[event];
-    }
+    t &operator[](int event) { return this->at(event); }
 
-    virtual void CheckEvents(int &curEvent, double time) {
-        if (!events.empty() && curEvent < events.size() - 1 && time > events[curEvent].EndSec) {
-            curEvent++;
-        }
-    }
-
-    virtual void ResetEvents() {
-        for (auto &event : events) {
-            event.NotesHit = 0;
-        }
-    }
-
-    virtual bool Perfect(int curEvent) {
-        if (!events.empty()) {
-            return events[curEvent].NotesHit == events[curEvent].NoteCount;
+    virtual bool TickDuringCurrentEvent(int tick) {
+        if (tick >= this->at(CurrentEvent).StartTick
+            && tick < this->at(CurrentEvent).EndTick) {
+            return true;
         }
         return false;
     }
 
-    virtual void UpdateEventViaNote(Note& note, int curEvent) {
-        if (!events.empty()) {
-            if (note.time >= events[curEvent].StartSec
-                && note.time < events[curEvent].EndSec
-                && note.hit) {
-                ++events[curEvent].NotesHit;
+    virtual void CheckEvents(int tick) {
+        if (this->empty())
+            return;
+
+        if (CurrentEvent < this->size() - 1 && tick >= this->at(CurrentEvent).EndTick) {
+            CurrentEvent++;
+        }
+    }
+
+    virtual void ResetEvents() {
+        for (auto &event : *this) {
+            event.NotesHit = 0;
+        }
+        CurrentEvent = 0;
+    }
+
+    virtual bool Perfect() {
+        if (!this->empty()) {
+            return this->at(CurrentEvent).NotesHit == this->at(CurrentEvent).NoteCount;
+        }
+        return false;
+    }
+
+    virtual void UpdateEventViaNote(bool hit, int tick) {
+        if (!this->empty()) {
+            if (tick >= this->at(CurrentEvent).StartTick
+                && tick < this->at(CurrentEvent).EndTick && hit) {
+                ++this->at(CurrentEvent).NotesHit;
             }
         }
     }

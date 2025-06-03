@@ -8,6 +8,7 @@
 #include <filesystem>
 
 #include "raylib.h"
+#include "RhythmEngine/Engine/GuitarEngine.h"
 #include "song/chart.h"
 #include "song/scoring.h"
 // #include "libstud-uuid/uuid/uuid.hxx"
@@ -19,7 +20,6 @@ class Band {
      */
     std::filesystem::path ScoreFile;
     bool SoloGameplay = true; // to be true until multiple players
-
 };
 
 enum NoteHitType {
@@ -119,7 +119,7 @@ public:
     std::vector<int> curNoteIdx = { 0, 0, 0, 0, 0 };
 
     float Health = 0.75f;
-    Chart CurPlayingChart;
+    // Chart CurPlayingChart;
     bool Multiplayer = false;
     float overdriveFill;
     float overdriveActiveFill;
@@ -135,7 +135,7 @@ public:
     PlayerGameplayStats(int difficulty, int instrument);
     void HitNote(bool perfect);
     void HitDrumsNote(bool perfect, bool cymbal);
-    void HitPlasticNote(Note note);
+    // void HitPlasticNote(Note note);
     void MissNote();
     void OverHit();
 
@@ -203,6 +203,9 @@ public:
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};
+
+    std::shared_ptr <Encore::RhythmEngine::BaseEngine>
+            engine = nullptr;
 
     void ResetGameplayStats();
 

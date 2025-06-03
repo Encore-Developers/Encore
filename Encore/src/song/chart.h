@@ -1,4 +1,6 @@
 #pragma once
+// Please dont exist.
+/*
 #include <vector>
 #include <string>
 #include "midifile/MidiFile.h"
@@ -10,48 +12,6 @@
 #include <atomic>
 #include <algorithm>
 #include <iso646.h>
-
-constexpr uint8_t PlasticFrets[6] {
-    // open			0		     0| technically not a "fretted note" so i put it on
-    // the empty space
-    0b000001,
-    // green		1		    0 |
-    0b000010,
-    // red			2		   0  |
-    // gr chord		3		   00 |
-    0b000100,
-    // yellow		4		  0   |
-    // gy chord		5		  0 0 |
-    // ry chord		6		  00  |
-    // gry chord	7		  000 |
-    0b001000,
-    // blue			8		 0    |
-    // gb chord		9		 0  0 |
-    // rb chord		10		 0 0  |
-    // grb chord	11		 0 00 |
-    // yb chord		12		 00   |
-    // gyb chord	13		 00 0 |
-    // ryb chord	14		 000  |
-    // gryb chord	15		 0000 |
-    0b010000,
-    // orange		16		0     |
-    // go chord		17		0   0 |
-    // ro chord		18		0  0  |
-    // gro chord	19		0  00 |
-    // yo chord		20		0 0   |
-    // gyo chord	21		0 0 0 |
-    // ryo chord	22		0 00  |
-    // gryo chord	23		0 000 |
-    // bo chord		24		00    |
-    // gbo chord	25		00  0 |
-    // rbo chord	26		00 0  |
-    // grbo chord	27		00 00 |
-    // ybo chord	28		000   |
-    // gybo chord	29		000 0 |
-    // rybo chord	30		0000  |
-    // grybo chord	31		00000 |
-    0b000000
-};
 
 
 /*
@@ -65,7 +25,7 @@ inline uint8_t LaneToPlasticFret(int lane) {
     default: return PlasticFrets::Green;
     }
 }
-*/
+
 
 enum ChartLoadingState {
     BEATLINES,
@@ -136,37 +96,39 @@ public:
             if (events[i].isMeta() && (int)events[i][1] == 1) {
                 double time = midiFile.getTimeInSeconds(trkidx, i);
                 int tick = midiFile.getAbsoluteTickTime(time);
-                section newSection;
+                // section newSection;
                 std::string Name;
                 for (int k = 3; k < events[i].getSize(); k++) {
                     Name += events[i][k];
                 }
                 if (Name.substr(0, 5) == "[prc_") {
-                    newSection.StartTick = tick;
-                    newSection.StartSec = time;
-                    newSection.Name = Name.substr(5);
-                    newSection.Name.pop_back();
-                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.StartSec));
+                    // newSection.StartTick = tick;
+                    //newSection.StartSec = time;
+                     //newSection.Name = Name.substr(5);
+                    // newSection.Name.pop_back();
+                    //Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f",
+newSection.Name.c_str(), newSection.StartSec));
 
                     if (Section > 0) {
-                        sections.events[Section - 1].EndSec = time;
-                        sections.events[Section - 1].EndTick = tick;
+                        sections[Section - 1].EndSec = time;
+                        sections[Section - 1].EndTick = tick;
                     }
                     Section++;
-                    sections.events.push_back(std::move(newSection));
+                    //sections.events.push_back(std::move(newSection));
                 } else if (Name.substr(0, 9) == "[section ") {
-                    newSection.StartTick = tick;
-                    newSection.StartSec = time;
-                    newSection.Name = Name.substr(9);
-                    newSection.Name.pop_back();
-                    Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f", newSection.Name.c_str(), newSection.StartSec));
+                    //newSection.StartTick = tick;
+                    //newSection.StartSec = time;
+                    //newSection.Name = Name.substr(9);
+                    //newSection.Name.pop_back();
+                    //Encore::EncoreLog(LOG_DEBUG, TextFormat("New section: %s at %5.4f",
+newSection.Name.c_str(), newSection.StartSec));
 
                     if (Section > 0) {
-                        sections.events[Section - 1].EndSec = time;
-                        sections.events[Section - 1].EndTick = tick;
+                        sections[Section - 1].EndSec = time;
+                        sections[Section - 1].EndTick = tick;
                     }
                     Section++;
-                    sections.events.push_back(std::move(newSection));
+                    //sections.events.push_back(std::move(newSection));
                 }
             }
         }
@@ -294,3 +256,4 @@ public:
         fills.ResetEvents();
     }
 };
+*/

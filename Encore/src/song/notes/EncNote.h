@@ -2,10 +2,15 @@
 // Created by marie on 23/09/2024.
 //
 
-#ifndef ENCNOTE_H
-#define ENCNOTE_H
-#include "timingvalues.h"
+#ifndef NOTE_H
+#define NOTE_H
 
+#include "timingvalues.h"
+#include "gameplay/enctime.h"
+#include "song/scoring.h"
+#include "song/songlist.h"
+
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -14,7 +19,7 @@ struct ClassicLane {
     double beatsLen = 0.0;
     double heldTime = 0.0;
     bool accounted = false;
-    int lane;
+    uint8_t lane;
     ClassicLane(double _length, double _beatsLen, int _lane) {
         length = _length;
         beatsLen = _beatsLen;
@@ -112,4 +117,4 @@ public:
     bool pOpen = false;
 };
 
-#endif // ENCNOTE_H
+#endif // NOTE_H
