@@ -4,6 +4,9 @@
 
 #include "GlobalRhythmManager.h"
 
+#include "gameplay/enctime.h"
+#include "song/songlist.h"
+
 namespace Encore::RhythmEngine {
     double
     GlobalRhythmManager::TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {

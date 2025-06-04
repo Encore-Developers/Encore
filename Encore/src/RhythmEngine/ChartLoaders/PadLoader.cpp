@@ -7,12 +7,6 @@
 Encore::RhythmEngine::PadLoader::PadLoader(int diff_, smf::MidiEventList track_)
     : BaseLoader(Difficulty = diff_, track = track_) {}
 
-[[nodiscard]] bool IsInPitchRange(int diff, const smf::MidiEvent &event) {
-    return event[1] >= MinMaxDiff[diff].first && event[1] <= MinMaxDiff[diff].second;
-}
-[[nodiscard]] int GetEventLane(int diff, const smf::MidiEvent &event) {
-    return event[1] - MinMaxDiff[diff].first;
-}
 [[nodiscard]] bool IsInLiftMarkerRange(int diff, const smf::MidiEvent &event) {
     return event[1] >= LiftMinMaxDiff[diff].first
         && event[1] <= LiftMinMaxDiff[diff].second;

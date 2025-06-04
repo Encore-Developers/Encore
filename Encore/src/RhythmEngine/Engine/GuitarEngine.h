@@ -38,11 +38,12 @@ namespace Encore::RhythmEngine {
         int RunHitStateCheck(Action action) override;
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
-        void HitNote() override;
 
-        void Overhit() override;
 
     public:
+
+        void HitNote() override;
+        void Overhit() override;
         std::shared_ptr<GuitarChart> chart;
         std::shared_ptr<GuitarStats> stats;
         GuitarEngine() {};

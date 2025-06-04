@@ -4,6 +4,7 @@
 //
 // Created by marie on 09/06/2024.
 //
+/*
 float diffDistance(int diff, bool classic) {
     return diff == 3 || classic ? 2.0f : 1.5f;
 };
@@ -67,7 +68,7 @@ double GetNotePos(double noteTime, double songTime, float noteSpeed, float lengt
     double beatDelta = timeDelta * bpm.bpm / 60.0;
     return beatDelta * 480.0;
 }
-*/
+*
 unsigned char
 TickToChar(int tick, int MinBrightness, int MaxBrightness, int QuarterNoteLength) {
     float TickModulo = tick % QuarterNoteLength;
@@ -230,7 +231,7 @@ void gameplayRenderer::LoadGameplayAssets() {
     /*
      * basically this is just. a vector for the vectors. its really nasty as is, but you
      * know. its much more compact than whatever was here before though
-     */
+     *
     float CameraPos = 0.75f;
     std::vector<std::vector<Vector3> > CameraDisplacement = {
         { { 0, Height1p, Back1p } },
@@ -312,7 +313,7 @@ void gameplayRenderer::LoadGameplayAssets() {
     cameraVectors.push_back(camera2pVector);
     cameraVectors.push_back(camera3pVector);
     cameraVectors.push_back(camera4pVector);
-    */
+    *
 }
 
 void gameplayRenderer::RaiseHighway() {
@@ -371,7 +372,7 @@ void gameplayRenderer::LowerHighway() {
         );
         highwayOutEndAnim = true;
     }
-    */
+    *
 };
 
 Color MultiplierEffect(double curSongTime, Player &player) {
@@ -674,7 +675,7 @@ void gameplayRenderer::RenderPadNotes(
                         curNote.len,
                         curNote.perfect,
                         stats
-                    );*/
+                    );*
                     if (!stats->HeldFrets[lane] && !stats->HeldFretsAlt[lane]) {
                         curNote.held = false;
                     }
@@ -790,7 +791,7 @@ void gameplayRenderer::CheckPlasticNotes(
 
         if (player.stats->overdriveFill > 1.0f)
             player.stats->overdriveFill = 1.0f;
-    }*/
+    }*
 }
 void gameplayRenderer::CalculateSustainScore(PlayerGameplayStats *&stats) {
     double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
@@ -1057,7 +1058,7 @@ void gameplayRenderer::DrawHitwindow(Player &player, float length) {
         0.1f,
         4,
         BLUE
-    );*/
+    );*
 }
 
 void gameplayRenderer::RenderHud(Player &player, float length) {
@@ -1631,7 +1632,7 @@ void gameplayRenderer::RenderExpertHighway(Player &player, Song song, double cur
         float darkYPos = 0.015f;
         // BeginBlendMode(BLEND_ALPHA);
         DrawRenderTexture();
-    */
+    *
     StartRenderTexture();
     BeginShaderMode(gprAssets.HighwayFade);
     SetShaderValue(
@@ -1818,7 +1819,7 @@ void gameplayRenderer::DrawBeatlines(
                            radius,
                            radius,
                            4,
-                           BeatLineColor);*/
+                           BeatLineColor);*
 
             // if (relTime < -1) break;
         }
@@ -1835,7 +1836,7 @@ void gameplayRenderer::DrawOverdrive(
     /* for unisons
         eDrawSides((player.NoteSpeed * DiffMultiplier), musicTime, start, end, length,
        0.1, WHITE);
-    */
+    *
 }
 
 void gameplayRenderer::DrawSolo(
@@ -2108,7 +2109,7 @@ void gameplayRenderer::DrawPerfectText(double noteTime, double songTime, Player 
         1.0,
         3.4,
         3.0
-    );*/
+    );*
 
     Color InnerBoxColor = { 255, 255, 255, static_cast<unsigned char>(HitAlpha / 2) };
     Color OuterBoxColor = { 255, 255, 255, HitAlpha };
@@ -2156,7 +2157,7 @@ void gameplayRenderer::DrawPerfectText(double noteTime, double songTime, Player 
     );
     DrawCube(
         Vector3 { HitPosLeft, -0.11f, smasherPos }, Width, Height, 1.0f, OuterBoxColor
-    );*/
+    );*
 }
 
 void gameplayRenderer::DrawCombo(double noteTime, double songTime, Player &player) {
@@ -2190,7 +2191,7 @@ void gameplayRenderer::DrawCombo(double noteTime, double songTime, Player &playe
         1.0,
         3.4,
         3.0
-    );*/
+    );*
 
     Color InnerBoxColor = { 255, 255, 255, static_cast<unsigned char>(HitAlpha / 2) };
     Color OuterBoxColor = { 255, 255, 255, HitAlpha };
@@ -2238,7 +2239,7 @@ void gameplayRenderer::DrawCombo(double noteTime, double songTime, Player &playe
     );
     DrawCube(
         Vector3 { HitPosLeft, -0.11f, smasherPos }, Width, Height, 1.0f, OuterBoxColor
-    );*/
+    );*
 }
 
 double gameplayRenderer::HighwaySpeedDifficultyMultiplier(int Difficulty) {
@@ -3015,7 +3016,7 @@ void gameplayRenderer::nDrawFiveLaneUnderlay(float length, bool pad, Player &pla
         double relTime =
             GetNoteOnScreenTime(sTime, curTime, NoteSpeed, Difficulty, length);
         double relEnd = GetNoteOnScreenTime(cLen, curTime, NoteSpeed, Difficulty, length);
-*/
+*
         float sustainLen = length * 2;
         float notePosX = (emh ? 1.5f : 2.0f) - (1.0f * i);
         Matrix sustainMatrix = MatrixMultiply(
@@ -3127,3 +3128,4 @@ void gameplayRenderer::nDrawSoloSides(
         EndBlendMode();
     }
 }
+*/

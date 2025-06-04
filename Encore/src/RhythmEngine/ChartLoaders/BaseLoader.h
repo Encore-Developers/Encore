@@ -20,6 +20,13 @@ namespace Encore::RhythmEngine {
     public:
         virtual ~BaseLoader() = default;
 
+        [[nodiscard]] static bool IsInPitchRange(int diff, const smf::MidiEvent &event) {
+            return event[1] >= MinMaxDiff[diff].first
+                && event[1] <= MinMaxDiff[diff].second;
+        }
+        [[nodiscard]] static int GetEventLane(int diff, const smf::MidiEvent &event) {
+            return event[1] - MinMaxDiff[diff].first;
+        }
         // when handing the loader a midi
         // run these few things:
         // midiFile.absoluteTicks();

@@ -41,7 +41,6 @@ enum ChartLoadingState {
 };
 
 static std::atomic<int> CurrentChart = -1;
-static std::atomic<int> LoadingState = -1;
 
 static std::vector<std::vector<int> > diffNotes = {
     { 60, 63, 66, 69 }, { 72, 75, 78, 81 }, { 84, 87, 90, 93 }, { 96, 100, 102, 106 }

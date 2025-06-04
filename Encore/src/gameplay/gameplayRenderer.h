@@ -8,7 +8,7 @@
 #include "song/song.h"
 
 
-
+/*
 class gameplayRenderer {
 public:
     void ProcessSustainScoring(
@@ -21,7 +21,7 @@ public:
     );
     void AddSustainPoints(int lane, PlayerGameplayStats *&stats);
     float GetNoteXPosition(Player &player, float diffDistance, int lane);
-    void RenderPadNotes(Player &player, Chart &curChart, double curSongTime, float length);
+    // void RenderPadNotes(Player &player, Chart &curChart, double curSongTime, float length);
     void RenderHud(Player &player, float length);
     void RenderExpertHighway(
         Player &player,
@@ -154,11 +154,11 @@ public:
 
 
 
-    /*
+     *
     gpr.camera.position = Vector3{ 0.0f, 7.0f, -10.0f };
     // 0.0f, 0.0f, 6.5f
     gpr.camera.target = Vector3{ 0.0f, 0.0f, 13.0f };
-     */
+     *
 
     void
     RenderGameplay(Player &player, double curSongTime, Song song);
@@ -197,13 +197,13 @@ public:
     Model OuterTomSmasher;
     Texture2D InnerKickSmasherTex;
     Texture2D OuterKickSmasherTex;
-    /*
+     *
      *  for (auto model : TapParts) {
      *      DrawModel(model, pos, 1.0, color);
      *  }
      *
      *  probably good to use a vector for note colors
-     */
+     *
     void LoadGameplayAssets();
     bool upStrum = false;
     bool downStrum = false;
@@ -221,3 +221,4 @@ public:
 };
 
 extern gameplayRenderer TheGameRenderer;
+*/

@@ -39,6 +39,7 @@ std::vector<std::vector<int> > pDiffRangeNotes = {
 };
 
 void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) {
+    /*
     if (songPart != SongParts::Invalid && songPart != PitchedVocals
         && songPart != BeatLines) {
         for (int diff = 0; diff < 4; diff++) {
@@ -61,6 +62,7 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) 
                 TheSongList.curSong->parts[(int)songPart]->charts.push_back(newChart);
         }
     }
+    */
 }
 
 void ReadyUpMenu::Draw() {
@@ -135,10 +137,12 @@ void ReadyUpMenu::Draw() {
     // todo: allow this to be run per player
     // load midi
     GameMenu::DrawBottomOvershell();
+    /*
     for (int playerInt = 0; playerInt < 4; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
+
         if (!TheGameRenderer.midiLoaded && !TheSongList.curSong->midiParsed) {
             smf::MidiFile midiFile;
             midiFile.read(TheSongList.curSong->midiPath.string());
@@ -479,6 +483,7 @@ void ReadyUpMenu::Draw() {
             TheMenuManager.SwitchScreen(SONG_SELECT);
         }
     }
+    */
     DrawOvershell();
 }
 

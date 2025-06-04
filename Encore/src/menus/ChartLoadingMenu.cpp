@@ -16,6 +16,7 @@ bool StartLoading = true;
 bool FinishedLoading = false;
 
 void LoadCharts() {
+    /*
     smf::MidiFile midiFile;
     midiFile.read(TheSongList.curSong->midiPath.string());
     TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
@@ -24,6 +25,7 @@ void LoadCharts() {
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
         int diff = player.Difficulty;
         int inst = player.Instrument;
+
         int track = TheSongList.curSong->parts[inst]->charts[diff].track;
         std::string trackName;
 
@@ -63,25 +65,28 @@ void LoadCharts() {
         //}
         //}
         //}
+
     }
 
     TheSongList.curSong->getCodas(midiFile);
 
     LoadingState = READY;
+
     std::this_thread::sleep_for(std::chrono::seconds(1));
+        */
     FinishedLoading = true;
 }
 /**
  * @brief Load chart, create new player
  */
 void ChartLoadingMenu::Load() {
-    for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
-        ThePlayerManager.GetActivePlayer(playerNum).stats = new PlayerGameplayStats(
-            ThePlayerManager.GetActivePlayer(playerNum).Difficulty,
-            ThePlayerManager.GetActivePlayer(playerNum).Instrument
-        );
-    }
-    ThePlayerManager.BandStats = new BandGameplayStats;
+    // for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
+    //    ThePlayerManager.GetActivePlayer(playerNum).stats = new PlayerGameplayStats(
+    //        ThePlayerManager.GetActivePlayer(playerNum).Difficulty,
+    //        ThePlayerManager.GetActivePlayer(playerNum).Instrument
+    //    );
+    // }
+    // ThePlayerManager.BandStats = new BandGameplayStats;
     TheSongList.curSong->LoadAlbumArt();
     std::thread ChartLoader(LoadCharts);
     ChartLoader.detach();
@@ -121,7 +126,7 @@ void ChartLoadingMenu::Draw() {
     DrawOvershell();
 
     if (FinishedLoading) {
-        TheGameRenderer.LoadGameplayAssets();
+        // TheGameRenderer.LoadGameplayAssets();
         FinishedLoading = false;
         StartLoading = true;
         TheMenuManager.SwitchScreen(GAMEPLAY);

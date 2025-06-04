@@ -17,7 +17,12 @@ struct EncChartEvent : EncNoteEvent {
     int NotesHit = 0;
     int NoteCount = 0;
     EncChartEvent() = default;
-    EncChartEvent(int tickStart, double secondStart, int tickEnd, double secondEnd);
+    EncChartEvent(int tickStart, double secondStart, int tickEnd, double secondEnd) {
+        StartTick = tickStart;
+        StartSec = secondStart;
+        EndTick = tickEnd;
+        EndSec = secondEnd;
+    };
 };
 
 struct Coda : EncChartEvent {

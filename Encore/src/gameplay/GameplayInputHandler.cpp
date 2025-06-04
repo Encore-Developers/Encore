@@ -7,7 +7,7 @@
 #include "settings-old.h"
 #include "GLFW/glfw3.h"
 #include "song/songlist.h"
-
+/*
 int GameplayInputHandler::calculatePressedMask(PlayerGameplayStats *&stats) {
     int mask = 0;
     for (int pressedButtons = 0; pressedButtons < stats->HeldFrets.size();

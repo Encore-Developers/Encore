@@ -49,13 +49,12 @@ enum Difficulty {
     Expert
 };
 
-/*
+
 struct SongPart {
     int diff = -1;
     bool hasPart = false;
     bool plastic = false;
-    std::vector<Chart> charts;
-};*/
+};
 
 struct TimeSig {
     double time;
@@ -74,6 +73,7 @@ struct Beat {
     bool Clapped = false;
     int Tick;
 };
+static std::atomic<int> LoadingState = -1;
 
 inline std::string diffList[4] = { "Easy", "Medium", "Hard", "Expert" };
 inline std::vector<std::string> songPartsList {
@@ -183,10 +183,10 @@ public:
     };
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
-    // std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
-    //                                 new SongPart, new SongPart, new SongPart,
-    //                                 new SongPart, new SongPart, new SongPart,
-    //                                 new SongPart, new SongPart };
+    std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
+                                     new SongPart, new SongPart, new SongPart,
+                                     new SongPart, new SongPart, new SongPart,
+                                     new SongPart, new SongPart };
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 

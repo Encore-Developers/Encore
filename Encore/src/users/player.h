@@ -26,11 +26,11 @@ enum NoteHitType {
     STANDARD, // strums/ptaps
     ALTERNATIVE // hopos/ctaps/lifts
 };
-
+/*
 class PlayerGameplayStats {
     /**
      * @brief Statistics/statistics manager for individual players during gameplay
-     */
+     *
 public:
     PlayerGameplayStats();
 
@@ -157,7 +157,7 @@ public:
 
     float comboFillCalc();
 };
-
+*/
 #define PLAYER_JSON_SETTINGS                                                             \
     SETTING_ACTION(int, Difficulty, "diff")                                              \
     SETTING_ACTION(int, Instrument, "inst")                                              \
@@ -191,7 +191,7 @@ public:
     std::string Name; // display name
     std::string PlayerID; // UUID
     // std::filesystem::path SettingsFile;
-    PlayerGameplayStats *stats;
+    // PlayerGameplayStats *stats;
 
     Color AccentColor = { 255, 0, 255, 255 };
 #define SETTING_ACTION(type, name) type name;
@@ -223,6 +223,7 @@ public:
     // not actually shared information. i was thinking of a UUID system for online
 };
 
+/*
 class BandGameplayStats : public PlayerGameplayStats {
 public:
     BandGameplayStats();
@@ -261,3 +262,4 @@ public:
 
     void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
 };
+*/

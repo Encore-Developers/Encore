@@ -8,13 +8,6 @@ std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
 Encore::RhythmEngine::GuitarLoader::GuitarLoader(int diff_, smf::MidiEventList track_)
     : BaseLoader(Difficulty = diff_, track = track_) {}
 
-[[nodiscard]] bool IsInPitchRange(int diff, const smf::MidiEvent &event) {
-    return event[1] >= MinMaxDiff[diff].first && event[1] <= MinMaxDiff[diff].second;
-}
-[[nodiscard]] int GetEventLane(int diff, const smf::MidiEvent &event) {
-    return event[1] - MinMaxDiff[diff].first;
-}
-
 static bool HasPSSig(const smf::MidiEvent &event) {
     return event[1] == 'P' && event[2] == 'S' && event[3] == '\0';
 }

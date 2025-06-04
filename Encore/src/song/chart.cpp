@@ -7,7 +7,7 @@
 #include "raylib.h"
 #include "song.h"
 #include "RhythmEngine/REenums.h"
-
+/*
 void Chart::parseNotes(
     smf::MidiFile &midiFile,
     int trkidx,
@@ -875,7 +875,7 @@ instrument));
 instrument));
 
 }
-*/
+*
 void Chart::parsePlasticDrums(
     smf::MidiFile &midiFile,
     int trkidx,
@@ -885,12 +885,12 @@ void Chart::parsePlasticDrums(
     bool proDrums,
     bool doubleKick
 ) {
-    /*
+     *
      * Note:
      * Tap = Yellow Tom
      * Force On = Blue Tom
      * Force Off = Green Tom
-     */
+     *
     std::vector<forceOnPhrase> forcedOnPhrases;
     std::vector<tapPhrase> tapPhrases;
     std::vector<forceOffPhrase> forcedOffPhrases;
@@ -1222,3 +1222,4 @@ void Chart::parsePlasticDrums(
         LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument)
     );
 }
+*/
