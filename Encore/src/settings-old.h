@@ -62,7 +62,7 @@ public:
     }
 
     SettingsOld(const SettingsOld&) = delete;
-    void operator=(const SettingsOld&) = delete;
+    void operator=(const SettingsOld &) = delete;void rebindKey(const std::string & bind_type, int index, int i);
 
     std::vector<int> defaultKeybinds4K = {KEY_D, KEY_F, KEY_J, KEY_K};
     std::vector<int> defaultKeybinds5K = {KEY_D, KEY_F, KEY_J, KEY_K, KEY_L};

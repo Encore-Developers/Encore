@@ -22,6 +22,8 @@ class SettingsController : public OvershellMenu {
 public:
     SettingsController() = default;
     ~SettingsController() override = default;
+    void resetToDefaultKeys();
+    void applyPreset(int presetIndex);
     void Draw() override;
     static std::pair<std::string, int> getBindTypeAndIndex(size_t optionIndex);
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
@@ -34,6 +36,8 @@ private:
     Keybinds keybinds;
     int selectedIndex = 0;
     int bindingOption = -1;
+    bool dropdownActive = false;
+    int selectedPreset = 0;
     bool isHovering = false;
     const float boxWidthPct = 0.55f;
     std::vector<std::pair<std::string, int*>> options = {
