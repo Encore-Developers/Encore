@@ -1,16 +1,20 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
-# and include sub-projects here.
-#
-cmake_minimum_required (VERSION 3.11)
+﻿cmake_minimum_required(VERSION 3.11)
 
-# Enable Hot Reload for MSVC compilers if supported.
-if (POLICY CMP0141)
-  cmake_policy(SET CMP0141 NEW)
-  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+if(PLATFORM_NX)
+  set(DEVKITPRO /opt/devkitpro)
+  set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchain.cmake")
 endif()
 
-project ("Encore" LANGUAGES C CXX)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-# Include sub-projects.
-add_subdirectory ("Encore")
+project(Encore LANGUAGES C CXX)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
+
+if(NOT PLATFORM_NX)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O2" CACHE STRING "C flags")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O2" CACHE STRING "C++ flags")
+endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+add_subdirectory(Encore)

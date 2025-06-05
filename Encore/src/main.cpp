@@ -1,20 +1,13 @@
 ﻿#define JSON_DIAGNOSTICS 1
-#include "song/songlist.h"
+#include "songlist.h"
 #include "users/playerManager.h"
 #include "menus/menu.h"
-#include "util/discord.h"
-#include "util/enclog.h"
 #include "gameplay/enctime.h"
 #include <cassert>
 #define assertm(exp, msg) assert((void(msg), exp))
 
 #define RAYGUI_IMPLEMENTATION
 
-/* not needed for debug purposes, change in release
-#if defined(WIN32) && defined(NDEBUG)
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-#endif
-*/
 #if defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -25,10 +18,9 @@
 
 #include "raylib.h"
 #include "raygui.h"
-#include "GLFW/glfw3.h"
 
 #include "arguments.h"
-#include "assets.h"
+#include "../include/assets.h"
 #include "song/audio.h"
 #include "gameplay/gameplayRenderer.h"
 
@@ -59,7 +51,6 @@ Encore::SettingsAudioVideo TheAudioVideoSettings;
 Encore::SettingsController TheControllerSettings;
 Encore::SettingsKeyboard TheKeyboardSettings;
 Encore::SettingsCredits TheCredits;
-Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
 
@@ -87,7 +78,6 @@ int main(int argc, char *argv[]) {
     commitHash.erase(7);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
 
     SetWindowState(FLAG_MSAA_4X_HINT);
     bool windowToggle = true;

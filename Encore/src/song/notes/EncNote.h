@@ -4,7 +4,8 @@
 
 #ifndef ENCNOTE_H
 #define ENCNOTE_H
-#include "timingvalues.h"
+
+#include "../../timingvalues.h"
 
 #include <cstdint>
 #include <vector>

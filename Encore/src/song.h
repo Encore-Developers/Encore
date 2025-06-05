@@ -4,7 +4,7 @@
 #define ENCORE_SONG_H
 
 #include "raylib.h"
-#include "chart.h"
+#include "song/chart.h"
 #include "midifile/MidiFile.h"
 #include <vector>
 #include <iostream>
@@ -15,7 +15,7 @@
 #include <string>
 #include "picosha2.h"
 #include "rapidjson/document.h"
-#include "util/enclog.h"
+#include "EncoreLog.h"
 
 enum PartIcon {
     IconDrum,
@@ -23,7 +23,8 @@ enum PartIcon {
     IconGuitar,
     IconVocals,
     IconKeyboard,
-    IconNone
+    IconNone,
+    None
 };
 
 enum SongParts {
@@ -99,7 +100,8 @@ public:
         if (it != stringToEnum.end()) {
             return it->second;
         } else {
-            throw std::runtime_error("Invalid enum string");
+            TraceLog(LOG_ERROR, "Invalid enum string in iconFromString");
+            return PartIcon::None; // Or a default value
         }
     }
 
@@ -430,10 +432,7 @@ public:
         std::ifstream ifs(jsonPath);
 
         if (!ifs.is_open()) {
-            Encore::EncoreLog(
-                LOG_ERROR,
-                TextFormat("Failed to open song JSON file. %s", jsonPath.c_str())
-            );
+            Encore::EncoreLog(LOG_ERROR, "Failed to open song JSON file: %s", jsonPath.c_str());
         }
         if (!stemsPath.empty())
             stemsPath.clear();
@@ -671,15 +670,11 @@ public:
 
                 if (evt_string == "[music_start]") {
                     music_start = time;
-                    Encore::EncoreLog(
-                        LOG_DEBUG, TextFormat("SONG: Song start: %5.4f", time)
-                    );
+                    Encore::EncoreLog(LOG_DEBUG, "SONG: Song start: %5.4f", time);
                 }
                 if (evt_string == "[end]") {
                     end = time;
-                    Encore::EncoreLog(
-                        LOG_DEBUG, TextFormat("SONG: Song end: %5.4f", time)
-                    );
+                    Encore::EncoreLog(LOG_DEBUG, "SONG: Song end: %5.4f", time);
                 }
             }
         }

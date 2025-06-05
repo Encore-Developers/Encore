@@ -4,8 +4,8 @@
 
 #ifndef ENCEVENTVEC_H
 #define ENCEVENTVEC_H
-#include <vector>
 #include "../../notes/EncNote.h"
+#include <vector>
 
 template <typename t>
 struct EncEventVect {
