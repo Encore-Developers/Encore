@@ -5,7 +5,7 @@
 
 #include "menu.h"
 #include "settings.h"
-#include "../../include/assets.h"
+#include "assets.h"
 #include "OvershellMenu.h"
 
 #ifndef SETTINGSAUDIOVIDEO_H

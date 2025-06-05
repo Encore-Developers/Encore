@@ -7,10 +7,11 @@
 #include "OvershellMenu.h"
 #include "settings-old.h"
 #include "keybinds.h"
-#include "../../include/assets.h"
+#include "assets.h"
 #include "settings.h"
 
 #ifndef SETTINGSKEYBOARD_H
+#define SETTINGSKEYBOARD_H
 
 namespace Encore {
     class SettingsKeyboard {
@@ -19,6 +20,7 @@ namespace Encore {
 
 class SettingsKeyboard : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
+        SETTINGSKEYBOARD_H;
 #undef OPTION
 public:
     SettingsKeyboard() = default;
@@ -74,4 +76,4 @@ private:
 
 extern Encore::SettingsKeyboard TheKeyboardSettings;
 
-#endif
+#endif SETTINGSKEYBOARD_H

@@ -11,6 +11,7 @@
 #include <vector>
 
 #ifndef SETTINGSCONTROLLER_H
+#define SETTINGSCONTROLLER_H
 
 namespace Encore {
     class SettingsController {
@@ -74,4 +75,4 @@ private:
 
 extern Encore::SettingsController TheControllerSettings;
 
-#endif
+#endif SETTINGSCONTROLLER_H

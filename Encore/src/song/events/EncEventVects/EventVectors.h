@@ -7,7 +7,6 @@
 
 #include "EncEventVect.h"
 #include "../EncEvents/EncChartEvents.h"
-#include "EncoreLog.h"
 
 struct SoloEvents final : EncEventVect<solo> {
     void UpdateEventViaNote(Note& note, const int curEvent) override {

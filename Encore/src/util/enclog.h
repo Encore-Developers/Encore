@@ -8,7 +8,7 @@
 
 namespace Encore {
     void EncoreLog(int msgType, const char *text, va_list args);
-    // void EncoreLog(int msgType, const char *text);
+    void EncoreLog(int msgType, const char *text);
 }
 
 #endif //ENCLOG_H

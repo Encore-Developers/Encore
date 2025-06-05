@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <vector>
 
-#include "song.h"
+#include "song/song.h"
 
 // Version is formatted as YY_MM_DD_RR, where:
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
