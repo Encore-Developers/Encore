@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include "raylib.h"
 
 class SettingsOld {
 private:
@@ -28,8 +29,10 @@ private:
 
         try {
             TheGameSettings.LoadFromFile(newSettingsFile.string());
-        } catch (const std::exception& e) {
-            std::cerr << "Error: Failed to load " << newSettingsFile << ": " << e.what() << std::endl;
+        };
+
+        if (!file.is_open()) {
+            TraceLog(LOG_ERROR, "Failed to load %s", newSettingsFile.c_str());
         }
         MainVolume = settings.avMainVolume;
         PlayerVolume = settings.avActiveInstrumentVolume;
@@ -39,6 +42,14 @@ private:
         MenuVolume = settings.avMenuMusicVolume;
         fullscreen = settings.Fullscreen;
         songPaths = settings.SongPaths;
+
+#ifndef PLATFORM_NX
+#include <filesystem>
+        using PathType = std::filesystem::path;
+#else
+        using PathType = std::string;
+#endif
+        std::vector<PathType> songPaths;
 
         if (std::filesystem::exists(oldSettingsFile)) {
             loadOldSettings(oldSettingsFile);
@@ -160,6 +171,12 @@ public:
     float prevMenuVolume = MenuVolume;
     bool fullscreen = fullscreenDefault;
     bool fullscreenPrev = fullscreen;
+#ifndef PLATFORM_NX
+#include <filesystem>
+    using PathType = std::filesystem::path;
+#else
+    using PathType = std::string;
+#endif
     std::vector<std::filesystem::path> defaultSongPaths = {directory / "Songs"};
     std::vector<std::filesystem::path> songPaths = defaultSongPaths;
     std::vector<std::filesystem::path> prevSongPaths = songPaths;
@@ -765,7 +782,7 @@ public:
             prevMissHighwayColor = missHighwayColor;
 
             saveOldSettings(oldFile);
-        }
+            }
 
         syncKeybindsToGame();
     }
@@ -791,8 +808,8 @@ public:
         std::cout << "  Overdrive: " << keybindOverdrive << ", Pause: " << keybindPause << std::endl;
         std::cout << "  Controller 4K: [" << controller4K[0] << "," << controller4K[1] << ","
                   << controller4K[2] << "," << controller4K[3] << "]" << std::endl;
-    }
-
+    };
+{
     void setDirectory(std::filesystem::path appConfigDirectory) {
         directory = appConfigDirectory;
         defaultSongPaths = {directory / "Songs"};
@@ -804,102 +821,115 @@ public:
 
     std::filesystem::path getDirectory() {
         return directory;
-    }
-
+    };
+{
     void loadSettings(std::filesystem::path settingsFile) {
         try {
             settings.LoadFromFile(settingsFile.string());
-        } catch (const std::exception& e) {
-            std::cerr << "Error: Failed to load " << settingsFile << ": " << e.what() << std::endl;
+            if (!file.is_open()) {
+                TraceLog(LOG_ERROR, "Failed to load %s", settingsFile.c_str());
+            }
+            MainVolume = settings.avMainVolume;
+            PlayerVolume = settings.avActiveInstrumentVolume;
+            BandVolume = settings.avInactiveInstrumentVolume;
+            SFXVolume = settings.avSoundEffectVolume;
+            MissVolume = settings.avMuteVolume;
+            MenuVolume = settings.avMenuMusicVolume;
+            fullscreen = settings.Fullscreen;
+            songPaths = settings.SongPaths;
+            prevMainVolume = MainVolume;
+            prevPlayerVolume = PlayerVolume;
+            prevBandVolume = BandVolume;
+            prevSFXVolume = SFXVolume;
+            prevMissVolume = MissVolume;
+            prevMenuVolume = MenuVolume;
+            prevSongPaths = songPaths;
+            prevAvOffsetMS = avOffsetMS;
+            prevInputOffsetMS = inputOffsetMS;
+            syncKeybindsToGame();
+        };
+
+        void saveSettings(std::filesystem::path settingsFile) {
+            syncToSettings();
+            settings.SaveToFile(settingsFile.string());
         }
-        MainVolume = settings.avMainVolume;
-        PlayerVolume = settings.avActiveInstrumentVolume;
-        BandVolume = settings.avInactiveInstrumentVolume;
-        SFXVolume = settings.avSoundEffectVolume;
-        MissVolume = settings.avMuteVolume;
-        MenuVolume = settings.avMenuMusicVolume;
-        fullscreen = settings.Fullscreen;
-        songPaths = settings.SongPaths;
-        prevMainVolume = MainVolume;
-        prevPlayerVolume = PlayerVolume;
-        prevBandVolume = BandVolume;
-        prevSFXVolume = SFXVolume;
-        prevMissVolume = MissVolume;
-        prevMenuVolume = MenuVolume;
-        prevSongPaths = songPaths;
-        prevAvOffsetMS = avOffsetMS;
-        prevInputOffsetMS = inputOffsetMS;
-        syncKeybindsToGame();
-    }
 
-    void saveSettings(std::filesystem::path settingsFile) {
-        syncToSettings();
-        settings.SaveToFile(settingsFile.string());
-    }
+        void saveOldSettings(std::filesystem::path oldSettingsFile) {
+            tempSettings.SetObject();
+            rapidjson::Document::AllocatorType& allocator = tempSettings.GetAllocator();
+#ifndef PLATFORM_NX
+            songPaths = settings.SongPaths;
+            settings.SongPaths = songPaths;
+#else
+            songPaths.clear();
+            for (const auto& path : settings.SongPaths) {
+                songPaths.push_back(path);
+            }
+            settings.SongPaths.clear();
+            for (const auto& path : songPaths) {
+                settings.SongPaths.push_back(path);
+            }
+#endif
+            rapidjson::Value array4K(rapidjson::kArrayType);
+            for (int key : keybinds4K) array4K.PushBack(key, allocator);
+            rapidjson::Value array5K(rapidjson::kArrayType);
+            for (int key : keybinds5K) array5K.PushBack(key, allocator);
+            rapidjson::Value array4KAlt(rapidjson::kArrayType);
+            for (int key : keybinds4KAlt) array4KAlt.PushBack(key, allocator);
+            rapidjson::Value array5KAlt(rapidjson::kArrayType);
+            for (int key : keybinds5KAlt) array5KAlt.PushBack(key, allocator);
+            tempSettings.AddMember("keybinds", rapidjson::kObjectType, allocator);
+            tempSettings["keybinds"].AddMember("4k", array4K, allocator);
+            tempSettings["keybinds"].AddMember("5k", array5K, allocator);
+            tempSettings["keybinds"].AddMember("4kAlt", array4KAlt, allocator);
+            tempSettings["keybinds"].AddMember("5kAlt", array5KAlt, allocator);
+            tempSettings["keybinds"].AddMember("overdrive", keybindOverdrive, allocator);
+            tempSettings["keybinds"].AddMember("overdriveAlt", keybindOverdriveAlt, allocator);
+            tempSettings["keybinds"].AddMember("pause", keybindPause, allocator);
+            tempSettings["keybinds"].AddMember("strumUp", keybindStrumUp, allocator);
+            tempSettings["keybinds"].AddMember("strumDown", keybindStrumDown, allocator);
 
-    void saveOldSettings(std::filesystem::path oldSettingsFile) {
-        tempSettings.SetObject();
-        rapidjson::Document::AllocatorType& allocator = tempSettings.GetAllocator();
+            rapidjson::Value arrayController4K(rapidjson::kArrayType);
+            for (int key : controller4K) arrayController4K.PushBack(key, allocator);
+            rapidjson::Value arrayController5K(rapidjson::kArrayType);
+            for (int key : controller5K) arrayController5K.PushBack(key, allocator);
+            rapidjson::Value arrayController4KAxis(rapidjson::kArrayType);
+            for (int dir : controller4KAxisDirection) arrayController4KAxis.PushBack(dir, allocator);
+            rapidjson::Value arrayController5KAxis(rapidjson::kArrayType);
+            for (int dir : controller5KAxisDirection) arrayController5KAxis.PushBack(dir, allocator);
+            tempSettings.AddMember("controllerbinds", rapidjson::kObjectType, allocator);
+            tempSettings["controllerbinds"].AddMember("type", controllerType, allocator);
+            tempSettings["controllerbinds"].AddMember("4k", arrayController4K, allocator);
+            tempSettings["controllerbinds"].AddMember("5k", arrayController5K, allocator);
+            tempSettings["controllerbinds"].AddMember("4k_direction", arrayController4KAxis, allocator);
+            tempSettings["controllerbinds"].AddMember("5k_direction", arrayController5KAxis, allocator);
+            tempSettings["controllerbinds"].AddMember("pause", controllerPause, allocator);
+            tempSettings["controllerbinds"].AddMember("pause_direction", controllerPauseAxisDirection, allocator);
+            tempSettings["controllerbinds"].AddMember("overdrive", controllerOverdrive, allocator);
+            tempSettings["controllerbinds"].AddMember("overdrive_direction", controllerOverdriveAxisDirection, allocator);
 
-        rapidjson::Value array4K(rapidjson::kArrayType);
-        for (int key : keybinds4K) array4K.PushBack(key, allocator);
-        rapidjson::Value array5K(rapidjson::kArrayType);
-        for (int key : keybinds5K) array5K.PushBack(key, allocator);
-        rapidjson::Value array4KAlt(rapidjson::kArrayType);
-        for (int key : keybinds4KAlt) array4KAlt.PushBack(key, allocator);
-        rapidjson::Value array5KAlt(rapidjson::kArrayType);
-        for (int key : keybinds5KAlt) array5KAlt.PushBack(key, allocator);
-        tempSettings.AddMember("keybinds", rapidjson::kObjectType, allocator);
-        tempSettings["keybinds"].AddMember("4k", array4K, allocator);
-        tempSettings["keybinds"].AddMember("5k", array5K, allocator);
-        tempSettings["keybinds"].AddMember("4kAlt", array4KAlt, allocator);
-        tempSettings["keybinds"].AddMember("5kAlt", array5KAlt, allocator);
-        tempSettings["keybinds"].AddMember("overdrive", keybindOverdrive, allocator);
-        tempSettings["keybinds"].AddMember("overdriveAlt", keybindOverdriveAlt, allocator);
-        tempSettings["keybinds"].AddMember("pause", keybindPause, allocator);
-        tempSettings["keybinds"].AddMember("strumUp", keybindStrumUp, allocator);
-        tempSettings["keybinds"].AddMember("strumDown", keybindStrumDown, allocator);
+            tempSettings.AddMember("avOffset", avOffsetMS, allocator);
+            tempSettings.AddMember("inputOffset", inputOffsetMS, allocator);
+            tempSettings.AddMember("mirror", mirrorMode, allocator);
+            tempSettings.AddMember("trackSpeed", trackSpeed, allocator);
+            tempSettings.AddMember("length", highwayLengthMult, allocator);
+            rapidjson::Value arrayTrackSpeedOptions(rapidjson::kArrayType);
+            for (float opt : trackSpeedOptions) arrayTrackSpeedOptions.PushBack(opt, allocator);
+            tempSettings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
+            tempSettings.AddMember("missHighwayColor", missHighwayColor, allocator);
 
-        rapidjson::Value arrayController4K(rapidjson::kArrayType);
-        for (int key : controller4K) arrayController4K.PushBack(key, allocator);
-        rapidjson::Value arrayController5K(rapidjson::kArrayType);
-        for (int key : controller5K) arrayController5K.PushBack(key, allocator);
-        rapidjson::Value arrayController4KAxis(rapidjson::kArrayType);
-        for (int dir : controller4KAxisDirection) arrayController4KAxis.PushBack(dir, allocator);
-        rapidjson::Value arrayController5KAxis(rapidjson::kArrayType);
-        for (int dir : controller5KAxisDirection) arrayController5KAxis.PushBack(dir, allocator);
-        tempSettings.AddMember("controllerbinds", rapidjson::kObjectType, allocator);
-        tempSettings["controllerbinds"].AddMember("type", controllerType, allocator);
-        tempSettings["controllerbinds"].AddMember("4k", arrayController4K, allocator);
-        tempSettings["controllerbinds"].AddMember("5k", arrayController5K, allocator);
-        tempSettings["controllerbinds"].AddMember("4k_direction", arrayController4KAxis, allocator);
-        tempSettings["controllerbinds"].AddMember("5k_direction", arrayController5KAxis, allocator);
-        tempSettings["controllerbinds"].AddMember("pause", controllerPause, allocator);
-        tempSettings["controllerbinds"].AddMember("pause_direction", controllerPauseAxisDirection, allocator);
-        tempSettings["controllerbinds"].AddMember("overdrive", controllerOverdrive, allocator);
-        tempSettings["controllerbinds"].AddMember("overdrive_direction", controllerOverdriveAxisDirection, allocator);
-
-        tempSettings.AddMember("avOffset", avOffsetMS, allocator);
-        tempSettings.AddMember("inputOffset", inputOffsetMS, allocator);
-        tempSettings.AddMember("mirror", mirrorMode, allocator);
-        tempSettings.AddMember("trackSpeed", trackSpeed, allocator);
-        tempSettings.AddMember("length", highwayLengthMult, allocator);
-        rapidjson::Value arrayTrackSpeedOptions(rapidjson::kArrayType);
-        for (float opt : trackSpeedOptions) arrayTrackSpeedOptions.PushBack(opt, allocator);
-        tempSettings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
-        tempSettings.AddMember("missHighwayColor", missHighwayColor, allocator);
-
-        std::filesystem::create_directories(oldSettingsFile.parent_path());
-        char writeBuffer[8192];
-        FILE* fp = fopen(oldSettingsFile.string().c_str(), "wb");
-        if (!fp) {
-            std::cerr << "Error: Failed to open " << oldSettingsFile << " for writing. Check permissions." << std::endl;
-            return;
+            std::filesystem::create_directories(oldSettingsFile.parent_path());
+            char writeBuffer[8192];
+            FILE* fp = fopen(oldSettingsFile.string().c_str(), "wb");
+            if (!fp) {
+                std::cerr << "Error: Failed to open " << oldSettingsFile << " for writing. Check permissions." << std::endl;
+                return;
+            }
+            rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+            rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
+            tempSettings.Accept(writer);
+            fclose(fp);
+            std::cout << "Info: Successfully saved " << oldSettingsFile << std::endl;
         }
-        rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-        rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
-        tempSettings.Accept(writer);
-        fclose(fp);
-        std::cout << "Info: Successfully saved " << oldSettingsFile << std::endl;
     }
 };

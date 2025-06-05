@@ -1686,7 +1686,10 @@ int GuiPanel(Rectangle bounds, const char *text)
         bounds.y += (float)RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT - 1;
         bounds.height -= (float)RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT - 1;
     }
-
+#ifdef PLATFORM_NX
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wenum-compare"
+#endif
     // Draw control
     //--------------------------------------------------------------------
     if (text != NULL) GuiStatusBar(statusBar, text);  // Draw panel header as status bar
@@ -1697,7 +1700,9 @@ int GuiPanel(Rectangle bounds, const char *text)
 
     return result;
 }
-
+#ifdef PLATFORM_NX
+#pragma GCC diagnostic pop
+#endif
 // Tab Bar control
 // NOTE: Using GuiToggle() for the TABS
 int GuiTabBar(Rectangle bounds, const char **text, int count, int *active)
@@ -3990,7 +3995,19 @@ void GuiLoadStyle(const char *fileName)
                             codepoints = LoadCodepoints(textData, &codepointCount);
                             UnloadFileText(textData);
                         }
-
+#ifdef PLATFORM_NX
+                        if (codepointCount > 0) {
+                            font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, codepoints, codepointCount);
+                        } else {
+                            font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, NULL, 0);
+                        }
+#else
+                        if (codepointCount > 0) {
+                            font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, codepoints, codepointCount);
+                        } else {
+                            font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, NULL, 0);
+                        }
+#endif
                         if (fontFileName[0] != '\0')
                         {
                             // In case a font is already loaded and it is not default internal font, unload it
@@ -4049,6 +4066,13 @@ void GuiLoadStyle(const char *fileName)
     }
 }
 
+#ifdef PLATFORM_NX
+if (codepointCount > 0) font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, codepoints, codepointCount);
+else font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, NULL, 0);
+#else
+if (codepointCount > 0) font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, codepoints, codepointCount);
+else font = LoadFontEx(TextFormat("%s/%s", GetDirectoryPath(fileName), fontFileName), fontSize, NULL, 0);
+#endif
 // Load style default over global style
 void GuiLoadStyleDefault(void)
 {

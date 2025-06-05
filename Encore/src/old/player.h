@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <vector>
-#include "../../include/song/song.h"
+#include "song.h"
 #include "song/audio.h"
 
 // clone hero defaults

@@ -3,10 +3,9 @@
 #include <string>
 #include "midifile/MidiFile.h"
 // #include "song.h"
-#include "util/enclog.h"
 #include "raylib.h"
 #include "events/EncEventVects/EventVectors.h"
-
+#include "EncoreLog.h"
 #include <atomic>
 #include <algorithm>
 #include <iso646.h>
