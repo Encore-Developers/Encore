@@ -48,7 +48,7 @@
 #include <menus/MenuManager.h>
 
 MenuManager TheMenuManager;
-gameplayRenderer TheGameRenderer;
+// gameplayRenderer TheGameRenderer;
 SongList TheSongList;
 PlayerManager ThePlayerManager;
 Assets &assets = Assets::getInstance();

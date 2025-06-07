@@ -17,11 +17,11 @@ class resultsMenu : public OvershellMenu {
     Shader sdfShader;
     std::vector<std::string> diffList;
     void drawPlayerResults(Player &player, Song song, int playerslot);
-    void renderPlayerStars(
-        PlayerGameplayStats *&stats, float xPos, float yPos, float scale, bool left
-    );
-    void
-    renderStars(BandGameplayStats *&stats, float xPos, float yPos, float scale, bool left);
+    //void renderPlayerStars(
+    //    PlayerGameplayStats *&stats, float xPos, float yPos, float scale, bool left
+    //);
+    // void
+    // renderStars(BandGameplayStats *&stats, float xPos, float yPos, float scale, bool left);
 
 public:
     resultsMenu();

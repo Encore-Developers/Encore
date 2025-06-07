@@ -8,6 +8,7 @@
 #include <filesystem>
 
 #include "raylib.h"
+#include "RhythmEngine/Engine/GuitarEngine.h"
 #include "song/chart.h"
 #include "song/scoring.h"
 // #include "libstud-uuid/uuid/uuid.hxx"
@@ -19,18 +20,17 @@ class Band {
      */
     std::filesystem::path ScoreFile;
     bool SoloGameplay = true; // to be true until multiple players
-
 };
 
 enum NoteHitType {
     STANDARD, // strums/ptaps
     ALTERNATIVE // hopos/ctaps/lifts
 };
-
+/*
 class PlayerGameplayStats {
     /**
      * @brief Statistics/statistics manager for individual players during gameplay
-     */
+     *
 public:
     PlayerGameplayStats();
 
@@ -119,7 +119,7 @@ public:
     std::vector<int> curNoteIdx = { 0, 0, 0, 0, 0 };
 
     float Health = 0.75f;
-    Chart CurPlayingChart;
+    // Chart CurPlayingChart;
     bool Multiplayer = false;
     float overdriveFill;
     float overdriveActiveFill;
@@ -135,7 +135,7 @@ public:
     PlayerGameplayStats(int difficulty, int instrument);
     void HitNote(bool perfect);
     void HitDrumsNote(bool perfect, bool cymbal);
-    void HitPlasticNote(Note note);
+    // void HitPlasticNote(Note note);
     void MissNote();
     void OverHit();
 
@@ -157,7 +157,7 @@ public:
 
     float comboFillCalc();
 };
-
+*/
 #define PLAYER_JSON_SETTINGS                                                             \
     SETTING_ACTION(int, Difficulty, "diff")                                              \
     SETTING_ACTION(int, Instrument, "inst")                                              \
@@ -191,7 +191,7 @@ public:
     std::string Name; // display name
     std::string PlayerID; // UUID
     // std::filesystem::path SettingsFile;
-    PlayerGameplayStats *stats;
+    // PlayerGameplayStats *stats;
 
     Color AccentColor = { 255, 0, 255, 255 };
 #define SETTING_ACTION(type, name) type name;
@@ -203,6 +203,9 @@ public:
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};
+
+    std::shared_ptr <Encore::RhythmEngine::BaseEngine>
+            engine = nullptr;
 
     void ResetGameplayStats();
 
@@ -220,6 +223,7 @@ public:
     // not actually shared information. i was thinking of a UUID system for online
 };
 
+/*
 class BandGameplayStats : public PlayerGameplayStats {
 public:
     BandGameplayStats();
@@ -258,3 +262,4 @@ public:
 
     void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
 };
+*/

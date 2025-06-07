@@ -22,8 +22,8 @@ void SongSelectMenu::Load() {
     SetTextureWrap(TheSongList.curSong->albumArtBlur, TEXTURE_WRAP_REPEAT);
     SetTextureFilter(TheSongList.curSong->albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
     TheSongList.SongSelectOffset = TheSongList.curSong->songListPos - 5;
-    TheGameRenderer.streamsLoaded = false;
-    TheGameRenderer.midiLoaded = false;
+    // TheGameRenderer.streamsLoaded = false;
+    // TheGameRenderer.midiLoaded = false;
 }
 
 void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {

@@ -11,13 +11,13 @@
 
 #include <random>
 #include <nlohmann/json.hpp>
-
+/*
 void PlayerGameplayStats::AddHealth() {
-    if (Overdrive) {
-        Health += (healthGainPerNote * healthOverdriveGainMult);
-    } else {
-        Health += healthGainPerNote;
-    }
+    //if (Overdrive) {
+    //    Health += (healthGainPerNote * healthOverdriveGainMult);
+    //} else {
+    //    Health += healthGainPerNote;
+    //}
     if (Health > 1.0f)
         Health = 1.0f;
     Encore::EncoreLog(LOG_INFO, "Health gained");
@@ -25,9 +25,9 @@ void PlayerGameplayStats::AddHealth() {
 }
 
 void PlayerGameplayStats::LoseHealth() {
-    Health -= healthLossPerNote;
+    //Health -= healthLossPerNote;
 
-    if (Health < 0.0f)
+    //if (Health < 0.0f)
         Health = 0.0f;
     Encore::EncoreLog(LOG_INFO, "Health lost");
     Encore::EncoreLog(LOG_INFO, TextFormat("Health: %4.2f", Health));
@@ -249,7 +249,7 @@ float PlayerGameplayStats::comboFillCalc() {
     }
     return (static_cast<float>(ComboMod) / 10.0f);
 }
-
+*/
 Player::Player() {
     Name = "New Player";
     Difficulty = 0;
@@ -280,6 +280,7 @@ Player::Player() {
 };
 
 void Player::ResetGameplayStats() {
+    /*
     stats->Quit = false;
     stats->FC = true;
     stats->Paused = false;
@@ -326,8 +327,9 @@ void Player::ResetGameplayStats() {
     stats->overdriveActivateTime = 0.0;
 
     stats->BaseScore = 0;
+    */
 }
-
+/*
 BandGameplayStats::BandGameplayStats() {
     Quit = false;
     FC = true;
@@ -472,3 +474,4 @@ int PlayerGameplayStats::ScoreToDisplay() {
     }
     return scoreToReturn;
 }
+*/

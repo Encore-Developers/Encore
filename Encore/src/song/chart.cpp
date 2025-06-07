@@ -6,7 +6,8 @@
 #include "util/enclog.h"
 #include "raylib.h"
 #include "song.h"
-
+#include "RhythmEngine/REenums.h"
+/*
 void Chart::parseNotes(
     smf::MidiFile &midiFile,
     int trkidx,
@@ -64,22 +65,22 @@ void Chart::parseNotes(
                 }
             } else if ((int)events[i][1] == odNote) {
                 if (!odOn) {
-                    odOn = true;
-                    odPhrase newPhrase;
-                    newPhrase.StartSec = time;
-                    newPhrase.StartTick = tick;
-                    overdrive.events.push_back(newPhrase);
-                    curODPhrase++;
+                    // odOn = true;
+                    // odPhrase newPhrase;
+                    // newPhrase.StartSec = time;
+                    // newPhrase.StartTick = tick;
+                    // overdrive.push_back(newPhrase);
+                    // curODPhrase++;
                 }
 
             } else if ((int)events[i][1] == soloNote) {
                 if (!soloOn) {
-                    soloOn = true;
-                    solo newSolo;
-                    newSolo.StartSec = time;
-                    newSolo.StartTick = tick;
-                    solos.events.push_back(newSolo);
-                    curSolo++;
+                    // soloOn = true;
+                    // solo newSolo;
+                    // newSolo.StartSec = time;
+                    // newSolo.StartTick = tick;
+                    // solos.push_back(newSolo);
+                    // curSolo++;
                 }
             }
         } else if (events[i].isNoteOff()) {
@@ -124,11 +125,11 @@ void Chart::parseNotes(
     );
 
     curODPhrase = 0;
-    if (overdrive.events.size() > 0) {
+    if (overdrive.size() > 0) {
         LoadingState = OVERDRIVE;
         for (Note &note : notes) {
             if (note.time > overdrive[curODPhrase].EndSec
-                && curODPhrase < overdrive.events.size() - 1)
+                && curODPhrase < overdrive.size() - 1)
                 curODPhrase++;
             if (note.time >= overdrive[curODPhrase].StartSec
                 && note.time < overdrive[curODPhrase].EndSec)
@@ -140,10 +141,10 @@ void Chart::parseNotes(
     );
 
     curSolo = 0;
-    if (solos.events.size() > 0) {
+    if (solos.size() > 0) {
         LoadingState = SOLOS;
         for (Note &note : notes) {
-            if (note.time > solos[curSolo].EndSec && curSolo < solos.events.size() - 1)
+            if (note.time > solos[curSolo].EndSec && curSolo < solos.size() - 1)
                 curSolo++;
             if (note.time >= solos[curSolo].StartSec
                 && note.time <= solos[curSolo].EndSec)
@@ -294,20 +295,20 @@ void Chart::parsePlasticNotes(
                     }
                 } else if ((int)events[i][1] == odNote) {
                     if (!odOn) {
-                        odOn = true;
-                        odPhrase newPhrase;
-                        newPhrase.StartSec = midiFile.getTimeInSeconds(trkidx, i);
-                        overdrive.events.push_back(newPhrase);
-                        curODPhrase++;
+                        // odOn = true;
+                        // odPhrase newPhrase;
+                        // newPhrase.StartSec = midiFile.getTimeInSeconds(trkidx, i);
+                        // overdrive.events.push_back(newPhrase);
+                        // curODPhrase++;
                     }
 
                 } else if ((int)events[i][1] == pSoloNote) {
                     if (!soloOn) {
-                        soloOn = true;
-                        solo newSolo;
-                        newSolo.StartSec = midiFile.getTimeInSeconds(trkidx, i);
-                        solos.events.push_back(newSolo);
-                        curSolo++;
+                        // soloOn = true;
+                        // solo newSolo;
+                        // newSolo.StartSec = midiFile.getTimeInSeconds(trkidx, i);
+                        // solos.push_back(newSolo);
+                        // curSolo++;
                     }
                 }
             } else if (events[i].isNoteOff()) {
@@ -371,13 +372,13 @@ void Chart::parsePlasticNotes(
         Note note = notesPre[i];
         Note newNote;
         newNote.chordSize = 1;
-        newNote.mask = PlasticFrets[note.lane];
+        newNote.mask = Encore::RhythmEngine::PlasticFrets[note.lane];
         for (Note noteMatching : notesPre) {
             if (noteMatching.tick == note.tick && noteMatching.lane != note.lane) {
                 newNote.pLanes.push_back(
                     { noteMatching.len, noteMatching.beatsLen, noteMatching.lane }
                 );
-                newNote.mask += PlasticFrets[noteMatching.lane];
+                newNote.mask += Encore::RhythmEngine::PlasticFrets[noteMatching.lane];
                 newNote.chord = true;
                 newNote.chordSize++;
                 if (noteMatching.beatsLen > note.beatsLen) {
@@ -473,10 +474,10 @@ void Chart::parsePlasticNotes(
     Encore::EncoreLog(LOG_DEBUG, TextFormat("ENC: Processed hopos for %01i", instrument));
     LoadingState = OVERDRIVE;
     curODPhrase = 0;
-    if (overdrive.events.size() > 0) {
+    if (overdrive.size() > 0) {
         for (Note &note : notes) {
             if (note.time > overdrive[curODPhrase].EndSec
-                && curODPhrase < overdrive.events.size() - 1)
+                && curODPhrase < overdrive.size() - 1)
                 curODPhrase++;
             if (note.time >= overdrive[curODPhrase].StartSec
                 && note.time < overdrive[curODPhrase].EndSec)
@@ -489,9 +490,9 @@ void Chart::parsePlasticNotes(
 
     LoadingState = SOLOS;
     curSolo = 0;
-    if (solos.events.size() > 0) {
+    if (solos.size() > 0) {
         for (Note &note : notes) {
-            if (note.time > solos[curSolo].EndSec && curSolo < solos.events.size() - 1)
+            if (note.time > solos[curSolo].EndSec && curSolo < solos.size() - 1)
                 curSolo++;
             if (note.time >= solos[curSolo].StartSec && note.time < solos[curSolo].EndSec)
                 solos[curSolo].NoteCount++;
@@ -874,7 +875,7 @@ instrument));
 instrument));
 
 }
-*/
+*
 void Chart::parsePlasticDrums(
     smf::MidiFile &midiFile,
     int trkidx,
@@ -884,12 +885,12 @@ void Chart::parsePlasticDrums(
     bool proDrums,
     bool doubleKick
 ) {
-    /*
+     *
      * Note:
      * Tap = Yellow Tom
      * Force On = Blue Tom
      * Force Off = Green Tom
-     */
+     *
     std::vector<forceOnPhrase> forcedOnPhrases;
     std::vector<tapPhrase> tapPhrases;
     std::vector<forceOffPhrase> forcedOffPhrases;
@@ -1014,28 +1015,28 @@ void Chart::parsePlasticDrums(
                 }
             } else if ((int)events[i][1] == odNote) {
                 if (!odOn) {
-                    odOn = true;
-                    odPhrase newPhrase;
-                    newPhrase.StartSec = midiFile.getTimeInSeconds(trkidx, i);
-                    overdrive.events.push_back(newPhrase);
-                    curODPhrase++;
+                    // odOn = true;
+                    // odPhrase newPhrase;
+                    // newPhrase.StartSec = midiFile.getTimeInSeconds(trkidx, i);
+                    // overdrive.push_back(newPhrase);
+                    // curODPhrase++;
                 }
             }
 
             else if ((int)events[i][1] == pSoloNote) {
                 if (!soloOn) {
-                    soloOn = true;
-                    solo newSolo;
-                    newSolo.StartSec = midiFile.getTimeInSeconds(trkidx, i);
-                    solos.events.push_back(newSolo);
-                    curSolo++;
+                    // soloOn = true;
+                    // solo newSolo;
+                    // newSolo.StartSec = midiFile.getTimeInSeconds(trkidx, i);
+                    // solos.push_back(newSolo);
+                    // curSolo++;
                 }
             } else if ((int)events[i][1] == fillNotes[1]) {
                 if (!drumFill) {
                     drumFill = true;
                     DrumFill newFill;
                     newFill.StartSec = midiFile.getTimeInSeconds(trkidx, i);
-                    fills.events.push_back(newFill);
+                    fills.push_back(newFill);
                     curFill++;
                 }
             }
@@ -1149,10 +1150,10 @@ void Chart::parsePlasticDrums(
     }
     // LoadingState = OVERDRIVE;
     curODPhrase = 0;
-    if (!overdrive.events.empty()) {
+    if (!overdrive.empty()) {
         for (Note &note : notes) {
             if (note.time > overdrive[curODPhrase].EndSec
-                && curODPhrase < overdrive.events.size() - 1)
+                && curODPhrase < overdrive.size() - 1)
                 curODPhrase++;
             if (note.time >= overdrive[curODPhrase].StartSec
                 && note.time < overdrive[curODPhrase].EndSec)
@@ -1160,11 +1161,11 @@ void Chart::parsePlasticDrums(
         }
     }
     curFill = 0;
-    if (!fills.events.empty()) {
+    if (!fills.empty()) {
         for (Note &note : notes) {
             if (note.time == fills[curFill].EndSec)
                 note.pDrumAct = true;
-            if (note.time > fills[curFill].EndSec && curFill < fills.events.size() - 1)
+            if (note.time > fills[curFill].EndSec && curFill < fills.size() - 1)
                 curFill++;
             if (note.time >= fills[curFill].StartSec
                 && note.time <= fills[curFill].EndSec) {
@@ -1179,9 +1180,9 @@ void Chart::parsePlasticDrums(
 
     // LoadingState = SOLOS;
     curSolo = 0;
-    if (!solos.events.empty()) {
+    if (!solos.empty()) {
         for (Note &note : notes) {
-            if (note.time > solos[curSolo].EndSec && curSolo < solos.events.size() - 1)
+            if (note.time > solos[curSolo].EndSec && curSolo < solos.size() - 1)
                 curSolo++;
             if (note.time >= solos[curSolo].StartSec && note.time < solos[curSolo].EndSec)
                 solos[curSolo].NoteCount++;
@@ -1221,3 +1222,4 @@ void Chart::parsePlasticDrums(
         LOG_DEBUG, TextFormat("ENC: Processed plastic chart for %01i", instrument)
     );
 }
+*/
