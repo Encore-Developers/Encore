@@ -1,3 +1,4 @@
+// clang-format off
 /*******************************************************************************************
 *
 *   raygui v4.5-dev - A simple and easy-to-use immediate-mode gui library
@@ -6272,3 +6273,4 @@ static int GetCodepointNext(const char *text, int *codepointSize)
 #endif      // RAYGUI_STANDALONE
 
 #endif      // RAYGUI_IMPLEMENTATION
+// clang-format on
