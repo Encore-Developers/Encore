@@ -16,9 +16,9 @@ void resultsMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) 
 void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
 resultsMenu::~resultsMenu() {
-    //for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
-    //    delete ThePlayerManager.GetActivePlayer(playerNum).stats;
-    //}
+    // for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
+    //     delete ThePlayerManager.GetActivePlayer(playerNum).stats;
+    // }
 }
 resultsMenu::resultsMenu() {}
 
@@ -48,22 +48,27 @@ void resultsMenu::Load() {
     EmptyStar = GameMenu::LoadTextureFilter(assetsdir / "ui/empty-star.png");
     diffList = { "Easy", "Medium", "Hard", "Expert" };
     sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
-    //std::cout << "Band Score: " << ThePlayerManager.BandStats->Score << std::endl;
-   // std::cout << "Band Sustain Score: " << ThePlayerManager.BandStats->SustainScore << std::endl;
-    //std::cout << "Band Multiplier Score: " << ThePlayerManager.BandStats->MultiplierScore << std::endl;
-   // std::cout << "Band Overdrive Score: " << ThePlayerManager.BandStats->OverdriveScore << std::endl;
-   // std::cout << "Band Perfect Score: " << ThePlayerManager.BandStats->PerfectScore << std::endl;
-   // std::cout << "Band Note Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
+    // std::cout << "Band Score: " << ThePlayerManager.BandStats->Score << std::endl;
+    // std::cout << "Band Sustain Score: " << ThePlayerManager.BandStats->SustainScore <<
+    // std::endl;
+    // std::cout << "Band Multiplier Score: " <<
+    // ThePlayerManager.BandStats->MultiplierScore << std::endl;
+    // std::cout << "Band Overdrive Score: " << ThePlayerManager.BandStats->OverdriveScore
+    // << std::endl; std::cout << "Band Perfect Score: " <<
+    // ThePlayerManager.BandStats->PerfectScore << std::endl; std::cout << "Band Note
+    // Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
-     //   PlayerGameplayStats *&stats = ThePlayerManager.GetActivePlayer(playerNum).stats;
-     //   std::cout << player.Name << " Score: " << stats->Score << std::endl;
-     //   std::cout << player.Name << " Sustain Score: " << stats->SustainScore << std::endl;
-     //   std::cout << player.Name << " Multiplier Score: " << stats->MultiplierScore << std::endl;
-     //   std::cout << player.Name << " Overdrive Score: " << stats->OverdriveScore << std::endl;
-     //   std::cout << player.Name << " Perfect Score: " << stats->PerfectScore << std::endl;
-     //   std::cout << player.Name << " Note Score: " << stats->NoteScore << std::endl;
+        //   PlayerGameplayStats *&stats =
+        //   ThePlayerManager.GetActivePlayer(playerNum).stats; std::cout << player.Name
+        //   << " Score: " << stats->Score << std::endl; std::cout << player.Name << "
+        //   Sustain Score: " << stats->SustainScore << std::endl; std::cout <<
+        //   player.Name << " Multiplier Score: " << stats->MultiplierScore << std::endl;
+        //   std::cout << player.Name << " Overdrive Score: " << stats->OverdriveScore <<
+        //   std::endl; std::cout << player.Name << " Perfect Score: " <<
+        //   stats->PerfectScore << std::endl; std::cout << player.Name << " Note Score: "
+        //   << stats->NoteScore << std::endl;
     }
 }
 
@@ -140,14 +145,16 @@ void resultsMenu::Draw() {
         0
     );
 
-    //renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f), u.hinpct(0.05f), false);
+    // renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f),
+    // u.hinpct(0.05f), false);
     float ScoreFontSize = u.hinpct(0.075f);
-    //std::string ScoreText = GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str();
-    //GameMenu::mhDrawText(
-    //    assets.redHatDisplayItalic,
-    //    GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str(),
-    //    { u.wpct(0.5), u.hpct(0.02125f) },
-    //    ScoreFontSize,
+    // std::string ScoreText =
+    // GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str();
+    // GameMenu::mhDrawText(
+    //     assets.redHatDisplayItalic,
+    //     GameMenu::scoreCommaFormatter(ThePlayerManager.BandStats->Score).c_str(),
+    //     { u.wpct(0.5), u.hpct(0.02125f) },
+    //     ScoreFontSize,
     //    GetColor(0x00adffFF),
     //    sdfShader,
     //    CENTER
@@ -302,7 +309,8 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
     float InstDiffPos =
         MeasureTextEx(assets.rubikBold, InstDiffName.c_str(), u.hinpct(0.03f), 0).x;
     float pctSize =
-        MeasureTextEx(assets.rubikBold, TextFormat("%3.0f%%", Percent), u.hinpct(0.1f), 0).y;
+        MeasureTextEx(assets.rubikBold, TextFormat("%3.0f%%", Percent), u.hinpct(0.1f),
+    0).y;
 
     DrawTextEx(
         assets.rubikBold,
@@ -317,14 +325,9 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
     float statsLeft = cardPos + u.winpct(0.01f);
     float statsRight = cardPos + u.winpct(0.21f);
 
-    DrawTextEx(assets.rubik, "Perfects:", { statsLeft, statsHeight }, u.hinpct(0.03f), 0, WHITE);
-    DrawTextEx(
-        assets.rubik,
-        "Goods:",
-        { statsLeft, statsHeight + u.hinpct(0.035f) },
-        u.hinpct(0.03f),
-        0,
-        WHITE
+    DrawTextEx(assets.rubik, "Perfects:", { statsLeft, statsHeight }, u.hinpct(0.03f), 0,
+    WHITE); DrawTextEx( assets.rubik, "Goods:", { statsLeft, statsHeight +
+    u.hinpct(0.035f) }, u.hinpct(0.03f), 0, WHITE
     );
     DrawTextEx(
         assets.rubik,
@@ -414,7 +417,8 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
         TextFormat("%01i", player.stats->Overhits, player.stats->Notes),
         { statsRight
               - MeasureTextEx(
-                    assets.rubik, TextFormat("%01i", player.stats->Overhits), u.hinpct(0.03f), 0
+                    assets.rubik, TextFormat("%01i", player.stats->Overhits),
+    u.hinpct(0.03f), 0
               )
                     .x,
           statsHeight + u.hinpct(0.105f) },
@@ -441,11 +445,8 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
     DrawTextEx(
         assets.rubik,
         NotesDisplay.c_str(),
-        { statsRight - MeasureTextEx(assets.rubik, NotesDisplay.c_str(), u.hinpct(0.03f), 0).x,
-          statsHeight + u.hinpct(0.17f) },
-        u.hinpct(0.03f),
-        0,
-        WHITE
+        { statsRight - MeasureTextEx(assets.rubik, NotesDisplay.c_str(), u.hinpct(0.03f),
+    0).x, statsHeight + u.hinpct(0.17f) }, u.hinpct(0.03f), 0, WHITE
     );
     // DrawTextEx(rubik, TextFormat("%2.2f", player.totalOffset / player.notesHit),
     // {statsRight - MeasureTextEx(rubik, TextFormat("%2.2f", player.totalOffset /

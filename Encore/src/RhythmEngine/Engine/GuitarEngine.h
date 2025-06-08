@@ -41,7 +41,6 @@ namespace Encore::RhythmEngine {
 
 
     public:
-
         void HitNote() override;
         void Overhit() override;
         std::shared_ptr<GuitarChart> chart;

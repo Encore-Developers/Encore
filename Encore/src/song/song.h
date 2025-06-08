@@ -49,7 +49,6 @@ enum Difficulty {
     Expert
 };
 
-
 struct SongPart {
     int diff = -1;
     bool hasPart = false;
@@ -184,9 +183,9 @@ public:
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
     std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
-                                     new SongPart, new SongPart, new SongPart,
-                                     new SongPart, new SongPart, new SongPart,
-                                     new SongPart, new SongPart };
+                                    new SongPart, new SongPart, new SongPart,
+                                    new SongPart, new SongPart, new SongPart,
+                                    new SongPart, new SongPart };
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 
