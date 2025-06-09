@@ -21,7 +21,6 @@
 #include "OvershellHelper.h"
 #include "settings-old.h"
 #include "settings.h"
-#include "GLFW/glfw3.h"
 
 #include <raylib.h>
 
@@ -318,7 +317,6 @@ void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state)
     */
 };
 void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
-
     Rectangle scoreboxSrc {
         0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
     };
@@ -396,7 +394,6 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
         assets.sdfShader,
         CENTER
     );
-
 }
 
 void GameplayMenu::DrawGameplayStars(
@@ -487,7 +484,8 @@ void GameplayMenu::Draw() {
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     // if (ThePlayerManager.BandStats->PlayersInOverdrive > 0) {
-    //    BackgroundColor = BeatToCharViaTickThing(TheGameRenderer.CurrentTick, 0, 8, 960);
+    //    BackgroundColor = BeatToCharViaTickThing(TheGameRenderer.CurrentTick, 0, 8,
+    //    960);
     //}
 
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
@@ -588,7 +586,8 @@ void GameplayMenu::Draw() {
         //     ++n) {
         //
         //}
-        TheGameRenderer.CurrentTick = TheSongList.curSong->bpms[curPlayer.stats->curBPM].tick
+        TheGameRenderer.CurrentTick =
+    TheSongList.curSong->bpms[curPlayer.stats->curBPM].tick
                 + TimeRangeToTickDelta(
                               TheSongList.curSong->bpms[curPlayer.stats->curBPM].time,
                               TheSongTime.GetSongTime(),
@@ -604,15 +603,16 @@ void GameplayMenu::Draw() {
                 if (curPlayer.stats->Overdrive) {
                     // THIS IS LOGIC!
                     curPlayer.stats->overdriveFill -=
-                        (TheGameRenderer.CurrentTick - curPlayer.stats->LastTick) * OverdriveDrainPerTick;
+                        (TheGameRenderer.CurrentTick - curPlayer.stats->LastTick) *
+    OverdriveDrainPerTick;
                     /*
                     player.stats->overdriveFill = player.stats->overdriveActiveFill
                         - (float)((curSongTime - player.stats->overdriveActiveTime)
                                   / (1920 / song.bpms[player.stats->curBPM].bpm));
 
                     if (curPlayer.stats->overdriveFill <= 0) {
-                        curPlayer.stats->overdriveActivateTime = TheSongTime.GetSongTime();
-                        curPlayer.stats->Overdrive = false;
+                        curPlayer.stats->overdriveActivateTime =
+    TheSongTime.GetSongTime(); curPlayer.stats->Overdrive = false;
                         curPlayer.stats->overdriveFill = 0;
                         curPlayer.stats->overdriveActiveFill = 0;
                         curPlayer.stats->overdriveActiveTime = 0.0;
@@ -621,8 +621,9 @@ void GameplayMenu::Draw() {
                     }
                 }
 
-                for (int i = curPlayer.stats->curBPM; i < TheSongList.curSong->bpms.size(); i++) {
-                    if (TheSongTime.GetSongTime() > TheSongList.curSong->bpms[i].time && i < TheSongList.curSong->bpms.size() - 1)
+                for (int i = curPlayer.stats->curBPM; i <
+    TheSongList.curSong->bpms.size(); i++) { if (TheSongTime.GetSongTime() >
+    TheSongList.curSong->bpms[i].time && i < TheSongList.curSong->bpms.size() - 1)
                         curPlayer.stats->curBPM++;
                 }
 
@@ -632,10 +633,14 @@ void GameplayMenu::Draw() {
                     TheSongTime.GetSongTime(),
                     curPlayer.stats->curNoteInt
                 );
-                // curChart.overdrive.CheckEvents(curPlayer.stats->curODPhrase, TheSongTime.GetSongTime());
-                // curChart.solos.CheckEvents(curPlayer.stats->curSolo, TheSongTime.GetSongTime());
-                //  curChart.fills.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
-                // curChart.sections.CheckEvents(curPlayer.stats->curFill, TheSongTime.GetSongTime());
+                // curChart.overdrive.CheckEvents(curPlayer.stats->curODPhrase,
+    TheSongTime.GetSongTime());
+                // curChart.solos.CheckEvents(curPlayer.stats->curSolo,
+    TheSongTime.GetSongTime());
+                //  curChart.fills.CheckEvents(curPlayer.stats->curFill,
+    TheSongTime.GetSongTime());
+                // curChart.sections.CheckEvents(curPlayer.stats->curFill,
+    TheSongTime.GetSongTime());
 
                 if (curNote.len > 0) {
                     for (auto cLane : curNote.pLanes) {
@@ -646,8 +651,8 @@ void GameplayMenu::Draw() {
                                 cLane.heldTime = cLane.length;
                             }
                             TheGameRenderer.CalculateSustainScore(curPlayer.stats);
-                            if (!((curPlayer.stats->PressedMask >> lane) & 1) && !curPlayer.Bot) {
-                                curNote.held = false;
+                            if (!((curPlayer.stats->PressedMask >> lane) & 1) &&
+    !curPlayer.Bot) { curNote.held = false;
                             }
                         }
                         if (cLane.length <= cLane.heldTime) {
@@ -914,7 +919,8 @@ void GameplayMenu::Draw() {
                         ThePlayerManager.GetActivePlayer(playerNum).Difficulty,
                         ThePlayerManager.GetActivePlayer(playerNum).Instrument
                     );
-                ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart = TheSongList.curSong->parts[ThePlayerManager.GetActivePlayer(playerNum).Instrument]->charts[ThePlayerManager.GetActivePlayer(playerNum).Difficulty];
+                ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart =
+    TheSongList.curSong->parts[ThePlayerManager.GetActivePlayer(playerNum).Instrument]->charts[ThePlayerManager.GetActivePlayer(playerNum).Difficulty];
             }
 
             ThePlayerManager.BandStats->ResetBandGameplayStats();
@@ -959,12 +965,14 @@ void GameplayMenu::Draw() {
 
         float TitleHeight =
             MeasureTextEx(
-                assets.rubikBoldItalic, TheSongList.curSong->title.c_str(), SongFontSize, 0
+                assets.rubikBoldItalic, TheSongList.curSong->title.c_str(), SongFontSize,
+    0
             )
                 .y;
         float TitleWidth =
             MeasureTextEx(
-                assets.rubikBoldItalic, TheSongList.curSong->title.c_str(), SongFontSize, 0
+                assets.rubikBoldItalic, TheSongList.curSong->title.c_str(), SongFontSize,
+    0
             )
                 .x;
         float ArtistHeight =
@@ -1114,9 +1122,8 @@ void GameplayMenu::Draw() {
                 u.winpct(0.02f),
                 u.winpct(0.02f),
                 ThePlayerManager.GetActivePlayer(0).stats->HeldFrets[fretBox]
-                        || ThePlayerManager.GetActivePlayer(0).stats->HeldFretsAlt[fretBox]
-                    ? fretColor
-                    : GRAY
+                        ||
+    ThePlayerManager.GetActivePlayer(0).stats->HeldFretsAlt[fretBox] ? fretColor : GRAY
             );
         }
         DrawRectangle(

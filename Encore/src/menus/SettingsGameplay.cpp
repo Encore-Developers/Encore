@@ -44,7 +44,7 @@ void SettingsGameplay::Draw() {
     settingsOptionRenderer sor;
     const float boxWidthPct = 0.55f;
 
-    if (TheSongList.curSong != nullptr && IsTextureReady(TheSongList.curSong->albumArtBlur)) {
+    if (TheSongList.curSong != nullptr && IsTextureValid(TheSongList.curSong->albumArtBlur)) {
         GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     } else {
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
@@ -93,7 +93,7 @@ void SettingsGameplay::Draw() {
     std::vector<std::string> headerLines = split(headerText, "\n");
     float maxHeaderWidth = 0;
     for (const std::string& line : headerLines) {
-        if (IsFontReady(assets.rubikBold)) {
+        if (IsFontValid(assets.rubikBold)) {
             Vector2 lineSize = MeasureTextEx(assets.rubikBold, line.c_str(), headerFontSize, 0);
             if (lineSize.x > maxHeaderWidth) {
                 maxHeaderWidth = lineSize.x;
@@ -103,7 +103,7 @@ void SettingsGameplay::Draw() {
     float currentHeaderY = innerTop + u.hinpct(0.02f);
     for (const std::string& line : headerLines) {
         float lineX = SidebarLeft + (SidebarWidth - maxHeaderWidth) / 2;
-        if (IsFontReady(assets.rubikBold)) {
+        if (IsFontValid(assets.rubikBold)) {
             DrawTextEx(assets.rubikBold, line.c_str(), {lineX, currentHeaderY}, headerFontSize, 0, WHITE);
         }
         currentHeaderY += headerLineSpacing;
@@ -113,7 +113,7 @@ void SettingsGameplay::Draw() {
     std::vector<std::string> lines = split(sidebarBodyText, "\n");
     float currentY = SidebarTop + SidebarHeaderHeight + u.hinpct(0.02f);
     for (const std::string& line : lines) {
-        if (IsFontReady(assets.rubik)) {
+        if (IsFontValid(assets.rubik)) {
             Vector2 lineSize = MeasureTextEx(assets.rubik, line.c_str(), bodyFontSize, 0);
             float lineX = SidebarLeft + (SidebarWidth - lineSize.x) / 2;
             DrawTextEx(assets.rubik, line.c_str(), {lineX, currentY}, bodyFontSize, 0, WHITE);
@@ -128,10 +128,10 @@ void SettingsGameplay::Draw() {
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.wpct(0.05f);
-    if (IsFontReady(assets.rubik)) {
+    if (IsFontValid(assets.rubik)) {
         DrawTextEx(assets.rubik, "Settings", {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
     }
-    if (IsFontReady(assets.redHatDisplayBlack) && IsShaderReady(assets.sdfShader)) {
+    if (IsFontValid(assets.redHatDisplayBlack) && IsShaderValid(assets.sdfShader)) {
         GameMenu::mhDrawText(assets.redHatDisplayBlack, "GAMEPLAY", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
     }
 
@@ -163,8 +163,8 @@ void SettingsGameplay::Draw() {
     Rectangle fullscreenBoxRect = {boxLeft - borderWidth, fullscreenTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
     DrawRectangle(boxLeft - borderWidth, fullscreenTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
     DrawRectangle(boxLeft, fullscreenTop, boxWidth, EntryHeight, boxBackground);
-    Vector2 fullscreenTextSize = IsFontReady(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Fullscreen", EntryFontSize, 0) : Vector2{100, 20};
-    if (IsFontReady(assets.rubikBold)) {
+    Vector2 fullscreenTextSize = IsFontValid(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Fullscreen", EntryFontSize, 0) : Vector2{100, 20};
+    if (IsFontValid(assets.rubikBold)) {
         DrawTextEx(assets.rubikBold, "Fullscreen", {boxLeft + u.winpct(0.01f), fullscreenTop + (EntryHeight - fullscreenTextSize.y) / 2}, EntryFontSize, 0, WHITE);
     }
     Rectangle offButtonRect = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, fullscreenTop, toggleButtonWidth, EntryHeight};
@@ -207,8 +207,8 @@ void SettingsGameplay::Draw() {
     Rectangle scanSongsBoxRect = {boxLeft - borderWidth, scanSongsTop - borderWidth, boxWidth + 2 * borderWidth, scanButtonHeight + 2 * borderWidth};
     DrawRectangle(boxLeft - borderWidth, scanSongsTop - borderWidth, boxWidth + 2 * borderWidth, scanButtonHeight + 2 * borderWidth, boxBorder);
     DrawRectangle(boxLeft, scanSongsTop, boxWidth, scanButtonHeight, boxBackground);
-    Vector2 scanSongsTextSize = IsFontReady(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Scan Songs", EntryFontSize, 0) : Vector2{100, 20};
-    if (IsFontReady(assets.rubikBold)) {
+    Vector2 scanSongsTextSize = IsFontValid(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Scan Songs", EntryFontSize, 0) : Vector2{100, 20};
+    if (IsFontValid(assets.rubikBold)) {
         DrawTextEx(assets.rubikBold, "Scan Songs", {boxLeft + u.winpct(0.01f), scanSongsTop + (scanButtonHeight - scanSongsTextSize.y) / 2}, EntryFontSize, 0, WHITE);
     }
     Rectangle scanButtonRect = {OptionLeft + OptionWidth - scanButtonWidth, scanSongsTop, scanButtonWidth, scanButtonHeight};

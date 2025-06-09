@@ -13,10 +13,10 @@
 #include <filesystem>
 #include <cmath>
 #include <string>
+#include <atomic>
 #include "picosha2.h"
 #include "rapidjson/document.h"
 #include "util/enclog.h"
-#include <atomic>
 
 enum PartIcon {
     IconDrum,
@@ -49,7 +49,6 @@ enum Difficulty {
     Hard,
     Expert
 };
-
 
 struct SongPart {
     int diff = -1;
@@ -185,9 +184,9 @@ public:
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
     std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
-                                     new SongPart, new SongPart, new SongPart,
-                                     new SongPart, new SongPart, new SongPart,
-                                     new SongPart, new SongPart };
+                                    new SongPart, new SongPart, new SongPart,
+                                    new SongPart, new SongPart, new SongPart,
+                                    new SongPart, new SongPart };
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 

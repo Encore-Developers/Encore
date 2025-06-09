@@ -75,11 +75,11 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
             break;
         }
         case InputChannel::STRUM_UP: {
-            stats->StrumState = StrumState::UpStrum;
+            stats->strumState = StrumState::UpStrum;
             break;
         }
         case InputChannel::STRUM_DOWN: {
-            stats->StrumState = StrumState::DownStrum;
+            stats->strumState = StrumState::DownStrum;
             break;
         }
         default:
@@ -98,7 +98,7 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
         }
         case InputChannel::STRUM_UP:
         case InputChannel::STRUM_DOWN: {
-            stats->StrumState = StrumState::Default;
+            stats->strumState = StrumState::Default;
             break;
         }
         default:
@@ -110,7 +110,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(Action action) {
     EncNote &CurrentNote = chart->at(0).front();
 
     // STRUM PATH
-    if ((stats->StrumState != StrumState::Default) && action == Action::PRESS) {
+    if ((stats->strumState != StrumState::Default) && action == Action::PRESS) {
         // miss should be managed by current frame
         // overhit is managed here
         if (EarlyStrike(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
@@ -128,7 +128,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(Action action) {
     // if FAS is active, or if there was a strum
     // really couldve just put it up there LMFAO
     bool strum = HittableAsStrum(CurrentNote.NoteType, stats->FretAfterStrum, stats->InputTime, stats->FretAfterStrumTime)
-        || (stats->StrumState != StrumState::Default && action == Action::PRESS);
+        || (stats->strumState != StrumState::Default && action == Action::PRESS);
 
     if (MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())
         && InHitwindow(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)

@@ -48,7 +48,7 @@ MainMenu TheGameMenu;
 
 Font GameMenu::LoadFontFilter(const std::filesystem::path &fontPath) {
     int fontSize = 128;
-    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, 0, 250, FONT_DEFAULT);
+    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, nullptr, 250);
     font.baseSize = 128;
     font.glyphCount = 250;
     int fileSize = 0;

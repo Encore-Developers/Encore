@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <vector>
+#include <atomic>
 
 #include "song.h"
 
@@ -48,9 +49,9 @@ inline SortType NextSortType(SortType current) {
     return current;
 }
 
-inline std::atomic<int> CurrentChartNumber = -1;
-inline std::atomic<int> ListLoadingState = -1;
-inline std::atomic<int> MaxChartsToLoad = -1;
+inline std::atomic_int CurrentChartNumber = -1;
+inline std::atomic_int ListLoadingState = -1;
+inline std::atomic_int MaxChartsToLoad = -1;
 inline std::vector<std::string> sortTypes { "Title", "Artist", "Source", "Length", "Year" };
 
 enum SongListLoadingStates {
