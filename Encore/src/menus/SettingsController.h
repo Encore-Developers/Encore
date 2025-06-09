@@ -75,4 +75,4 @@ private:
 
 extern Encore::SettingsController TheControllerSettings;
 
-#endif SETTINGSCONTROLLER_H
+#endif // SETTINGSCONTROLLER_H

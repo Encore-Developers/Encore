@@ -1,6 +1,5 @@
 #pragma once // recoded for keyboard and gamepad keybind settings
 #include "settings.h"
-#include "keybinds.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
@@ -46,8 +45,6 @@ private:
             std::cerr << "Warning: " << oldSettingsFile << " does not exist. Creating with defaults." << std::endl;
             saveOldSettings(oldSettingsFile);
         }
-
-        syncKeybindsToGame();
     }
 
     Encore::Settings& settings = TheGameSettings;
@@ -210,8 +207,6 @@ public:
                 std::cerr << "Error: Invalid bindType or index for " << bindType << "[" << index << "]" << std::endl;
                 return;
             }
-
-            syncKeybindsToGame();
             saveOldSettings(directory / "settings-old.json");
             std::cout << "Info: Keybind " << bindType << (index >= 0 ? "[" + std::to_string(index) + "]" : "")
                       << " unbound via right-click." << std::endl;
@@ -251,8 +246,6 @@ public:
                     std::cerr << "Error: Invalid bindType or index for " << bindType << "[" << index << "]" << std::endl;
                     return;
                 }
-
-                syncKeybindsToGame();
                 saveOldSettings(directory / "settings-old.json");
                 std::cout << "Info: Keybind " << bindType << (index >= 0 ? "[" + std::to_string(index) + "]" : "")
                           << " set to " << key << std::endl;
@@ -508,6 +501,7 @@ public:
         bool highwayLengthError = false;
         bool trackSpeedError = false;
         bool missHighwayError = false;
+        bool songPathsError = false;
 
         if (oldSettings.HasMember("avOffset") && oldSettings["avOffset"].IsInt()) {
             avOffsetMS = oldSettings["avOffset"].GetInt();
@@ -704,7 +698,29 @@ public:
         } else {
             missHighwayError = true;
         }
-
+        if (oldSettings.HasMember("songDirectories") && oldSettings["songDirectories"].IsArray()) {
+            songPaths.clear();
+            for (const auto& path : oldSettings["songDirectories"].GetArray()) {
+                if (path.IsString()) {
+                    std::filesystem::path fsPath(path.GetString());
+                    if (fsPath.is_relative()) {
+                        fsPath = directory / fsPath;
+                    }
+                    songPaths.push_back(fsPath);
+                } else {
+                    std::cerr << "Warning: Invalid path in songDirectories in " << oldFile << std::endl;
+                    songPathsError = true;
+                }
+            }
+            prevSongPaths = songPaths;
+            std::cout << "Loaded songPaths from " << oldFile << ":" << std::endl;
+            for (const auto& path : songPaths) {
+                std::cout << "  - " << path.string() << std::endl;
+            }
+        } else {
+            std::cerr << "Warning: songDirectories not found in " << oldFile << std::endl;
+            songPathsError = true;
+        }
         if (keybindsError || keybinds4KError || keybinds5KError || keybinds4KAltError ||
             keybinds5KAltError || keybindsStrumUpError || keybindsStrumDownError ||
             keybindsOverdriveError || keybindsOverdriveAltError || keybindsPauseError ||
@@ -738,6 +754,10 @@ public:
             if (trackSpeedOptionsError) trackSpeedOptions = defaultTrackSpeedOptions;
             if (highwayLengthError) highwayLengthMult = 1.0f;
             if (missHighwayError) missHighwayColor = missHighwayDefault;
+            if (songPathsError) {
+                songPaths = defaultSongPaths;
+                prevSongPaths = songPaths;
+            }
 
             prev4K = keybinds4K;
             prev5K = keybinds5K;
@@ -766,8 +786,6 @@ public:
 
             saveOldSettings(oldFile);
         }
-
-        syncKeybindsToGame();
     }
 
     void syncToSettings() {
@@ -793,13 +811,9 @@ public:
                   << controller4K[2] << "," << controller4K[3] << "]" << std::endl;
     }
 
-    void setDirectory(std::filesystem::path appConfigDirectory) {
+    void setDirectory(const std::filesystem::path& appConfigDirectory) {
         directory = appConfigDirectory;
         defaultSongPaths = {directory / "Songs"};
-        songPaths = defaultSongPaths;
-        prevSongPaths = songPaths;
-        settings.SongPaths = songPaths;
-        saveOldSettings(directory / "settings-old.json");
     }
 
     std::filesystem::path getDirectory() {
@@ -829,7 +843,6 @@ public:
         prevSongPaths = songPaths;
         prevAvOffsetMS = avOffsetMS;
         prevInputOffsetMS = inputOffsetMS;
-        syncKeybindsToGame();
     }
 
     void saveSettings(std::filesystem::path settingsFile) {
@@ -888,6 +901,12 @@ public:
         for (float opt : trackSpeedOptions) arrayTrackSpeedOptions.PushBack(opt, allocator);
         tempSettings.AddMember("trackSpeedOptions", arrayTrackSpeedOptions, allocator);
         tempSettings.AddMember("missHighwayColor", missHighwayColor, allocator);
+
+        rapidjson::Value arraySongPaths(rapidjson::kArrayType);
+        for (const auto& path : songPaths) {
+            arraySongPaths.PushBack(rapidjson::Value(path.string().c_str(), allocator), allocator);
+        }
+        tempSettings.AddMember("songDirectories", arraySongPaths, allocator);
 
         std::filesystem::create_directories(oldSettingsFile.parent_path());
         char writeBuffer[8192];

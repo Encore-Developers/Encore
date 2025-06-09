@@ -35,6 +35,7 @@
 #include "menus/uiUnits.h"
 
 #include "settings.h"
+#include "settings-old.h"
 #include "menus/SettingsAudioVideo.h"
 #include "menus/SettingsController.h"
 #include "menus/SettingsCredits.h"
@@ -43,7 +44,6 @@
 
 #include "menus/styles.h"
 #include "util/frame-manager.h"
-#include "util/settings-helper.h"
 
 #include <menus/MenuManager.h>
 

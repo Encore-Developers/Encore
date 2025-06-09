@@ -6,9 +6,9 @@
 #include "GLFW/glfw3.h"
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <unordered_map>
-#include <variant>
 #include <vector>
 #include <nlohmann/json.hpp>
 
@@ -26,6 +26,11 @@
     OPTION(bool, VerticalSync, true)                                                     \
     OPTION(bool, BackgroundBeatFlash, true)
 namespace Encore {
+    inline void WriteJsonFile(const std::filesystem::path &FileToWrite, const nlohmann::json &JSONobject) {
+        std::ofstream o(FileToWrite, std::ios::out | std::ios::trunc);
+        o << JSONobject.dump(2, ' ', false, nlohmann::detail::error_handler_t::strict);
+        o.close();
+    }
     class Settings {
     public:
 #define OPTION(type, value, default) type value = default;
@@ -52,8 +57,19 @@ namespace Encore {
         SongPaths,
         BackgroundBeatFlash
     );
-};
+
+    class SettingsInit {
+        std::filesystem::path directory;
+        void ReadSettings();
+        void CreateSettings();
+        void MigrateSettings();
+        void LegacyMigrateSettings();
+    public:
+        void InitSettings(std::filesystem::path directory);
+    };
+}
 
 extern Encore::Settings TheGameSettings;
+extern Encore::SettingsInit TheSettingsInitializer;
 
-#endif SETTINGS_H
+#endif // SETTINGS_H

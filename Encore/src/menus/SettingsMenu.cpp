@@ -11,7 +11,6 @@
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
-#include "util/json-helper.h"
 #include "assets.h"
 #include "OvershellMenu.h"
 #include "util/settings-text.h"

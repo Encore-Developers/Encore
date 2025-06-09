@@ -16,6 +16,7 @@
 #include "picosha2.h"
 #include "rapidjson/document.h"
 #include "util/enclog.h"
+#include <atomic>
 
 enum PartIcon {
     IconDrum,

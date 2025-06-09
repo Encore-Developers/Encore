@@ -76,4 +76,4 @@ private:
 
 extern Encore::SettingsKeyboard TheKeyboardSettings;
 
-#endif SETTINGSKEYBOARD_H
+#endif // SETTINGSKEYBOARD_H
