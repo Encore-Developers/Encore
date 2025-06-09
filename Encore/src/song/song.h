@@ -74,7 +74,7 @@ struct Beat {
     bool Clapped = false;
     int Tick;
 };
-static std::atomic<int> LoadingState = -1;
+static std::atomic_int LoadingState = -1;
 
 inline std::string diffList[4] = { "Easy", "Medium", "Hard", "Expert" };
 inline std::vector<std::string> songPartsList {

@@ -145,7 +145,6 @@ void SettingsGameplay::Draw() {
     float boxWidth = u.wpct(boxWidthPct) + 50.0f + 17.0f + 7.0f - 2.0f - 2.0f;
     float OptionLeft = boxLeft;
     float OptionWidth = boxWidth;
-    float boxPadding = 0.0f;
     Color boxBackground = Color{31, 31, 50, 255};
     Color boxBorder = WHITE;
     Color glowColor = Color{142, 13, 148, 220};
