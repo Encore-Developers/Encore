@@ -3,6 +3,11 @@
 #include "ChartLoadingMenu.h"
 #include "GameplayMenu.h"
 #include "ReadyUpMenu.h"
+#include "SettingsAudioVideo.h"
+#include "SettingsController.h"
+#include "SettingsCredits.h"
+#include "SettingsGameplay.h"
+#include "SettingsKeyboard.h"
 #include "SettingsMenu.h"
 #include "SongSelectMenu.h"
 #include "cacheLoadingScreen.h"
@@ -11,6 +16,7 @@
 #include "raygui.h"
 #include "resultsMenu.h"
 #include "settings-old.h"
+#include "settings.h"
 #include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"
 #include "song/audio.h"
@@ -44,6 +50,30 @@ void MenuManager::LoadMenu() {
     case SETTINGS: {
         TheGameRPC.DiscordUpdatePresence("Configuring", "In the menus");
         ActiveMenu = new SettingsMenu;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSAUDIOVIDEO: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Audio and Video Settings", "In the menus");
+        ActiveMenu = new SettingsAudioVideo;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSGAMEPLAY: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Gameplay Settings", "In the menus");
+        ActiveMenu = new SettingsGameplay;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSKEYBOARD: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Keyboard Keybinds", "In the menus");
+        ActiveMenu = new SettingsKeyboard;
+        ActiveMenu->Load();
+        break;
+    }
+    case SETTINGSCONTROLLER: {
+        TheGameRPC.DiscordUpdatePresence("Configuring Controller Keybinds", "In the menus");
+        ActiveMenu = new SettingsController;
         ActiveMenu->Load();
         break;
     }
@@ -156,7 +186,7 @@ void MenuManager::DrawMenu() {
                             + calibrationStartTime;
                         totalDifference += (tapTime - expectedClickTime);
                     }
-                    TheGameSettings.AudioOffset =
+                    settingsMain.avOffsetMS = 0;
                         static_cast<int>((totalDifference / tapTimes.size()) * 1000);
                     // Convert to milliseconds
                     std::cout
@@ -249,6 +279,11 @@ void MenuManager::DrawMenu() {
         }
         case MAIN_MENU:
         case SETTINGS:
+        case SETTINGSAUDIOVIDEO:
+        case SETTINGSGAMEPLAY:
+        case SETTINGSCONTROLLER:
+        case SETTINGSKEYBOARD:
+        case SETTINGSCREDITS:
         case SONG_SELECT:
         case READY_UP:
         case GAMEPLAY:

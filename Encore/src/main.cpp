@@ -35,10 +35,15 @@
 #include "menus/uiUnits.h"
 
 #include "settings.h"
+#include "settings-old.h"
+#include "menus/SettingsAudioVideo.h"
+#include "menus/SettingsController.h"
+#include "menus/SettingsCredits.h"
+#include "menus/SettingsGameplay.h"
+#include "menus/SettingsKeyboard.h"
 
 #include "menus/styles.h"
 #include "util/frame-manager.h"
-#include "util/settings-helper.h"
 
 #include <menus/MenuManager.h>
 
@@ -49,6 +54,11 @@ PlayerManager ThePlayerManager;
 Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
+Encore::SettingsGameplay TheGameplaySettings;
+Encore::SettingsAudioVideo TheAudioVideoSettings;
+Encore::SettingsController TheControllerSettings;
+Encore::SettingsKeyboard TheKeyboardSettings;
+Encore::SettingsCredits TheCredits;
 Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;

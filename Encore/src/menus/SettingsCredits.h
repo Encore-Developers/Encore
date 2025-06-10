@@ -1,32 +1,35 @@
 //
-// Created by marie on 17/11/2024.
+// Created by Jaydenz on 04/29/2025.
 //
 
-#ifndef SETTINGSMENU_H
-#define SETTINGSMENU_H
+#pragma once
+
 #include "menu.h"
 #include "settings.h"
 #include "assets.h"
 #include "OvershellMenu.h"
 
+#ifndef SETTINGSCREDITS_H
+#define SETTINGSCREDITS_H
+
 namespace Encore {
-    class SettingsMenu {
+    class SettingsCredits {
     };
 }
 
-class SettingsMenu : public OvershellMenu {
+class SettingsCredits : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
     SETTINGS_OPTIONS;
 #undef OPTION
 public:
-    SettingsMenu() = default;
-    ~SettingsMenu() override = default;
+    SettingsCredits() = default;
+    ~SettingsCredits() override = default;
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
     void ControllerInputCallback(int joypadID, GLFWgamepadstate state) override;
     void Load() override;
     void Draw() override;
 };
 
-extern Encore::SettingsMenu TheSettingsMenu;
+extern Encore::SettingsCredits TheCredits;
 
-#endif //SETTINGSMENU_H
+#endif //SETTINGSCREDITS_H

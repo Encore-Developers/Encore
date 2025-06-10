@@ -7,160 +7,172 @@
 #include "assets.h"
 #include "raygui.h"
 
-// what was wrong with me
+// will update when other menus are made
+#include <string>
+#include <functional>
+#include <sstream>
+#include <iomanip>
 
-std::string trFloatString(float &input) {
-    std::string inputStr = std::to_string(input);
-    size_t dotPos = inputStr.find('.');
-    if (dotPos != std::string::npos && dotPos + 3 < inputStr.length()) {
-        return inputStr.substr(0, dotPos + 3);
-    }
-    return "";
+std::string trFloatString(float input) {
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << input;
+    return ss.str();
 }
 
-Units units = Units::getInstance();
-Assets &soreAss = Assets::getInstance();
+static Units& units = Units::getInstance();
+static Assets& assets = Assets::getInstance();
 
-float width = 0.989f;
+static constexpr float WIDTH = 0.989f;
+
+static float truncateFloatString(float value) {
+    std::string str = std::to_string(value);
+    size_t dotPos = str.find('.');
+    if (dotPos != std::string::npos && dotPos + 3 < str.length()) {
+        return std::stof(str.substr(0, dotPos + 3));
+    }
+    return value;
+}
+
+struct Layout {
+    float overshellBottom;
+    float entryFontSize;
+    float entryHeight;
+    float entryTop;
+    float entryTextLeft;
+    float entryTextTop;
+    float optionLeft;
+    float optionWidth;
+    float optionRight;
+
+    Layout() {
+        overshellBottom = units.hpct(0.15f);
+        entryFontSize = units.hinpct(0.03f);
+        entryHeight = units.hinpct(0.05f);
+        entryTop = overshellBottom + units.hinpct(0.1f);
+        entryTextLeft = units.LeftSide + units.winpct(0.025f);
+        entryTextTop = entryTop + units.hinpct(0.01f);
+        optionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(WIDTH) / 3);
+        optionWidth = units.winpct(WIDTH) / 3;
+        optionRight = optionLeft + optionWidth;
+    }
+
+    float getEntryTop(int entryNum) const {
+        return entryTop + entryHeight * (entryNum - 1);
+    }
+
+    float getEntryTextTop(int entryNum) const {
+        return entryTextTop + entryHeight * (entryNum - 1);
+    }
+};
 
 float settingsOptionRenderer::sliderEntry(
-    float value, float min, float max, int entryNum, std::string Label, float increment
+    float value, float min, float max, int entryNum, const std::string& label, float increment
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
+    static Layout layout;
 
-    float lengthTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float lengthTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
-    float *lengthFloat = &value;
+    float lengthTop = layout.getEntryTop(entryNum);
+    float lengthTextTop = layout.getEntryTextTop(entryNum);
+    float* valuePtr = &value;
+
     DrawTextEx(
-        soreAss.rubikBold,
-        Label.c_str(),
-        { EntryTextLeft, lengthTextTop },
-        EntryFontSize,
+        assets.rubikBold,
+        label.c_str(),
+        { layout.entryTextLeft, lengthTextTop },
+        layout.entryFontSize,
         0,
         WHITE
     );
-    // main slider
 
     if (GuiSliderBar(
-            { OptionLeft + EntryHeight,
+            { layout.optionLeft + layout.entryHeight,
               lengthTop,
-              OptionWidth - (EntryHeight * 2),
-              EntryHeight },
+              layout.optionWidth - (layout.entryHeight * 2),
+              layout.entryHeight },
             "",
             "",
-            lengthFloat,
+            valuePtr,
             min,
             max
         )) {
-        value = *lengthFloat;
+        value = *valuePtr;
     }
-    // slider side buttons
-    if (GuiButton({ OptionLeft, lengthTop, EntryHeight, EntryHeight }, "<")) {
+
+    if (GuiButton({ layout.optionLeft, lengthTop, layout.entryHeight, layout.entryHeight }, "<")) {
         value -= increment;
     }
-    if (GuiButton(
-            { OptionRight - EntryHeight, lengthTop, EntryHeight, EntryHeight }, ">"
-        )) {
+    if (GuiButton({ layout.optionRight - layout.entryHeight, lengthTop, layout.entryHeight, layout.entryHeight }, ">")) {
         value += increment;
     }
-    float ValueMiddle =
-        MeasureTextEx(soreAss.rubikBold, trFloatString(value).c_str(), EntryFontSize, 0).x
-        / 2;
+
+    std::string valueStr = trFloatString(value);
+    float valueMiddle = MeasureTextEx(assets.rubikBold, valueStr.c_str(), layout.entryFontSize, 0).x / 2;
     DrawTextEx(
-        soreAss.rubikBold,
-        trFloatString(value).c_str(),
-        { OptionRight - (OptionWidth / 2) - ValueMiddle, lengthTextTop },
-        EntryFontSize,
+        assets.rubikBold,
+        valueStr.c_str(),
+        { layout.optionRight - (layout.optionWidth / 2) - valueMiddle, lengthTextTop },
+        layout.entryFontSize,
         0,
         WHITE
     );
+
+
     return value;
-};
+}
 
-bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, std::string Label) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
+bool settingsOptionRenderer::toggleEntry(bool value, int entryNum, const std::string& label) {
+    static Layout layout;
 
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    float valueTop = layout.getEntryTop(entryNum);
+    float valueTextTop = layout.getEntryTextTop(entryNum);
+
     DrawTextEx(
-        soreAss.rubikBold,
-        Label.c_str(),
-        { EntryTextLeft, valueTextTop },
-        EntryFontSize,
+        assets.rubikBold,
+        label.c_str(),
+        { layout.entryTextLeft, valueTextTop },
+        layout.entryFontSize,
         0,
         WHITE
     );
-    // main slider
-    if (GuiButton(
-            { OptionLeft, valueTop, OptionWidth, EntryHeight },
-            TextFormat("%s", value ? "On" : "Off")
-        )) {
+
+    if (GuiButton({ layout.optionLeft, valueTop, layout.optionWidth, layout.entryHeight }, value ? "On" : "Off")) {
         value = !value;
     }
     return value;
-};
+}
 
-void settingsOptionRenderer::keybind5kAltEntry(
-    int altValue, int entryNum, std::string Label, Keybinds keybinds, int lane
+static void renderKeybindButton(
+    float left, float top, float width, float height,
+    const std::string& label, const std::string& keyStr,
+    std::function<void()> onClick
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
-
-    if (GuiButton(
-            { OptionLeft + (OptionWidth / 2), valueTop, OptionWidth / 2, EntryHeight },
-            keybinds.getKeyStr(altValue).c_str()
-        )) {
-        changing4k = false;
-        changingAlt = true;
-        selLane = lane;
-        changingKey = true;
+    DrawTextEx(assets.rubikBold, label.c_str(), { left - 100, top + 5 }, 20, 0, WHITE);
+    if (GuiButton({ left, top, width, height }, keyStr.c_str())) {
+        onClick();
     }
 }
 
-void settingsOptionRenderer::keybind5kEntry(
-    int value, int entryNum, std::string Label, Keybinds keybinds, int lane
-) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
+void settingsOptionRenderer::keybindEntryText(int entryNum, const std::string& label) {
+    static Layout layout;
+    float valueTextTop = layout.getEntryTextTop(entryNum);
 
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    DrawTextEx(
+        assets.rubikBold,
+        label.c_str(),
+        { layout.entryTextLeft, valueTextTop },
+        layout.entryFontSize,
+        0,
+        WHITE
+    );
+}
+
+void settingsOptionRenderer::keybind5kEntry(
+    int value, int entryNum, const std::string& label, Keybinds keybinds, int lane
+) {
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft, valueTop, OptionWidth / 2, EntryHeight },
+            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
             keybinds.getKeyStr(value).c_str()
         )) {
         changing4k = false;
@@ -169,28 +181,17 @@ void settingsOptionRenderer::keybind5kEntry(
         changingKey = true;
     }
 }
-
-void settingsOptionRenderer::keybind4kAltEntry(
-    int altValue, int entryNum, std::string Label, Keybinds keybinds, int lane
+void settingsOptionRenderer::keybind5kAltEntry(
+    int altValue, int entryNum, const std::string& label, Keybinds keybinds, int lane
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft + (OptionWidth / 2), valueTop, OptionWidth / 2, EntryHeight },
+            { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
             keybinds.getKeyStr(altValue).c_str()
         )) {
-        changing4k = true;
+        changing4k = false;
         changingAlt = true;
         selLane = lane;
         changingKey = true;
@@ -198,23 +199,13 @@ void settingsOptionRenderer::keybind4kAltEntry(
 }
 
 void settingsOptionRenderer::keybind4kEntry(
-    int value, int entryNum, std::string Label, Keybinds keybinds, int lane
+    int value, int entryNum, const std::string& label, Keybinds keybinds, int lane
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft, valueTop, OptionWidth / 2, EntryHeight },
+            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
             keybinds.getKeyStr(value).c_str()
         )) {
         changing4k = true;
@@ -224,50 +215,31 @@ void settingsOptionRenderer::keybind4kEntry(
     }
 }
 
-void settingsOptionRenderer::keybindOdAltEntry(
-    int altValue, int entryNum, std::string Label, Keybinds keybinds
+void settingsOptionRenderer::keybind4kAltEntry(
+    int altValue, int entryNum, const std::string& label, Keybinds keybinds, int lane
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft + (OptionWidth / 2), valueTop, OptionWidth / 2, EntryHeight },
+            { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
             keybinds.getKeyStr(altValue).c_str()
         )) {
+        changing4k = true;
         changingAlt = true;
-        changingKey = false;
-        changingOverdrive = true;
+        selLane = lane;
+        changingKey = true;
     }
 }
 
 void settingsOptionRenderer::keybindOdEntry(
-    int value, int entryNum, std::string Label, Keybinds keybinds
+    int value, int entryNum, const std::string& label, Keybinds keybinds
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft, valueTop, OptionWidth / 2, EntryHeight },
+            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
             keybinds.getKeyStr(value).c_str()
         )) {
         changingAlt = false;
@@ -276,24 +248,30 @@ void settingsOptionRenderer::keybindOdEntry(
     }
 }
 
-void settingsOptionRenderer::keybindPauseEntry(
-    int value, int entryNum, std::string Label, Keybinds keybinds
+void settingsOptionRenderer::keybindOdAltEntry(
+    int altValue, int entryNum, const std::string& label, Keybinds keybinds
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft, valueTop, OptionWidth / 2, EntryHeight },
+            { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
+            keybinds.getKeyStr(altValue).c_str()
+        )) {
+        changingAlt = true;
+        changingKey = false;
+        changingOverdrive = true;
+    }
+}
+
+void settingsOptionRenderer::keybindPauseEntry(
+    int value, int entryNum, const std::string& label, Keybinds keybinds
+) {
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
+
+    if (GuiButton(
+            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
             keybinds.getKeyStr(value).c_str()
         )) {
         changingPause = true;
@@ -301,51 +279,19 @@ void settingsOptionRenderer::keybindPauseEntry(
 }
 
 void settingsOptionRenderer::keybindStrumEntry(
-    int value, int entryNum, int key, Keybinds keybinds
+    int strumDirection, int entryNum, int value, Keybinds keybinds
 ) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-
-    float valueTop = EntryTop + (EntryHeight * (entryNum - 1));
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
+    static Layout layout;
+    float valueTop = layout.getEntryTop(entryNum);
 
     if (GuiButton(
-            { OptionLeft, valueTop, OptionWidth / 2, EntryHeight },
-            keybinds.getKeyStr(key).c_str()
+            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
+            keybinds.getKeyStr(value).c_str()
         )) {
-        if (value == 0) {
+        if (strumDirection == 0) {
             changingStrumUp = true;
-        } else if (value == 1) {
+        } else if (strumDirection == 1) {
             changingStrumDown = true;
         }
     }
-}
-
-void settingsOptionRenderer::keybindEntryText(int entryNum, std::string Label) {
-    float OvershellBottom = units.hpct(0.15f);
-    float EntryFontSize = units.hinpct(0.03f);
-    float EntryHeight = units.hinpct(0.05f);
-    float EntryTop = OvershellBottom + units.hinpct(0.1f);
-    float EntryTextLeft = units.LeftSide + units.winpct(0.025f);
-    float EntryTextTop = EntryTop + units.hinpct(0.01f);
-    float OptionLeft = units.LeftSide + units.winpct(0.005f) + (units.winpct(width) / 3);
-    float OptionWidth = units.winpct(width) / 3;
-    float OptionRight = OptionLeft + OptionWidth;
-    float valueTextTop = EntryTextTop + (EntryHeight * (entryNum - 1));
-
-    DrawTextEx(
-        soreAss.rubikBold,
-        Label.c_str(),
-        { EntryTextLeft, valueTextTop },
-        EntryFontSize,
-        0,
-        WHITE
-    );
 }

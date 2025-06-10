@@ -1,5 +1,7 @@
 #pragma once
 #include "raylib.h"
+#include "menus/uiUnits.h"
+
 #include <filesystem>
 #include <vector>
 
@@ -172,6 +174,8 @@ public:
     Font redHatDisplayBlack;
     Font redHatDisplayItalicLarge;
     Font josefinSansItalic;
+    Font josefinSansNormal;
+    Font josefinSansBold;
     Font redHatMono;
     Font rubik;
     Font rubikItalic;
@@ -211,9 +215,26 @@ public:
         DrawTextEx(rubik, text, { posX, posY }, fontSize, 1, color);
         EndShaderMode();
     }
-    void DrawTextRHDI(const char *text, float posX, float posY, Color color) const {
+    void DrawTextRHDI(const char* text, float x, float y, float fontSize, Color color) {
+        DrawTextEx(redHatDisplayItalic, text, {x, y}, fontSize, 0, color);
         BeginShaderMode(sdfShader);
-        DrawTextEx(redHatDisplayItalic, text, { posX, posY }, 48, 1, color);
+        EndShaderMode();
+    }
+    void DrawTextJSN(const char *text, float posX, float posY, Color color) const {
+        BeginShaderMode(sdfShader);
+        DrawTextEx(josefinSansNormal, text, { posX, posY }, Units::getInstance().hinpct(0.05f), 1, color);
+        EndShaderMode();
+    }
+
+    void DrawTextJSB(const char *text, float posX, float posY, Color color) const {
+        BeginShaderMode(sdfShader);
+        DrawTextEx(josefinSansBold, text, { posX, posY }, Units::getInstance().hinpct(0.05f), 1, color);
+        EndShaderMode();
+    }
+
+    void DrawTextJSI(const char *text, float posX, float posY, Color color) const {
+        BeginShaderMode(sdfShader);
+        DrawTextEx(josefinSansItalic, text, { posX, posY }, Units::getInstance().hinpct(0.05f), 1, color);
         EndShaderMode();
     }
     float MeasureTextRubik(const char *text, float fontSize) const {
@@ -222,7 +243,15 @@ public:
     float MeasureTextRHDI(const char *text) const {
         return MeasureTextEx(redHatDisplayItalic, text, 48, 1).x;
     }
-
+    float MeasureTextJSN(const char *text, float fontSize) const {
+        return MeasureTextEx(josefinSansNormal, text, 48, 1).x;
+    }
+    float MeasureTextJSB(const char *text, float fontSize) const {
+        return MeasureTextEx(josefinSansBold, text, 48, 1).x;
+    }
+    float MeasureTextJSI(const char *text, float fontSize) const {
+        return MeasureTextEx(josefinSansItalic, text, 48, 1).x;
+    }
     static Texture2D
     LoadTextureFilter(const std::filesystem::path &texturePath, int &loadedAssets);
     static Model LoadModel_(const std::filesystem::path &modelPath, int &loadedAssets);

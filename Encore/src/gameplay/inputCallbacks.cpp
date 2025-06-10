@@ -25,6 +25,26 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
         TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
         break;
     }
+    case SETTINGSAUDIOVIDEO: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSCONTROLLER: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSGAMEPLAY: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSKEYBOARD: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
+    case SETTINGSCREDITS: {
+        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+        break;
+    }
     case RESULTS: {
         TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
         break;
@@ -100,6 +120,27 @@ void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
     case GAMEPLAY: {
         TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
         break;
+
+        case SETTINGSAUDIOVIDEO: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSCONTROLLER: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSGAMEPLAY: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSKEYBOARD: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
+        case SETTINGSCREDITS: {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+            break;
+        }
     }
     default:;
     }
