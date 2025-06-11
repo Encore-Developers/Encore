@@ -5,7 +5,6 @@
 #include "GuitarLoader.h"
 std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
 
-
 static bool HasPSSig(const smf::MidiEvent &event) {
     return event[1] == 'P' && event[2] == 'S' && event[3] == '\0';
 }
@@ -116,7 +115,7 @@ void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track
             chart.overdrive.push_back(
                 { event.tick,
                   event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
+                  event.getLinkedEvent()->tick - event.tick,
                   event.getLinkedEvent()->seconds - event.seconds }
             );
         }
@@ -124,7 +123,7 @@ void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track
             chart.solos.push_back(
                 { event.tick,
                   event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
+                  event.getLinkedEvent()->tick - event.tick,
                   event.getLinkedEvent()->seconds - event.seconds }
             );
         }
