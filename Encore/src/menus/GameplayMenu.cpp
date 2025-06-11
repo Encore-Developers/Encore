@@ -1354,8 +1354,6 @@ void GameplayMenu::Load() {
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
-
-
     }
     /*
     if (ThePlayerManager.PlayersActive > 1) {
