@@ -64,7 +64,7 @@ double GetNotePos(double noteTime, double songTime, float noteSpeed, float lengt
 }
 
 /* double TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {
-    double timeDelta = timeEnd - timeStart;
+    double timeDScrollEndPoselta = timeEnd - timeStart;
     double beatDelta = timeDelta * bpm.bpm / 60.0;
     return beatDelta * 480.0;
 }

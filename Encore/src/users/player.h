@@ -8,6 +8,7 @@
 #include <filesystem>
 
 #include "raylib.h"
+#include "timingvalues.h"
 #include "RhythmEngine/Engine/GuitarEngine.h"
 #include "song/chart.h"
 #include "song/scoring.h"
@@ -192,7 +193,7 @@ public:
     std::string PlayerID; // UUID
     // std::filesystem::path SettingsFile;
     // PlayerGameplayStats *stats;
-
+    std::array<Encore::RhythmEngine::EncNote, NOTE_POOL_SIZE> NotePool; // todo: TEMP
     Color AccentColor = { 255, 0, 255, 255 };
 #define SETTING_ACTION(type, name) type name;
     PLAYER_CONFIG_LIST;

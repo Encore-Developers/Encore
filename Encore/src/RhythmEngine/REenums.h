@@ -59,8 +59,24 @@ namespace Encore::RhythmEngine {
         STRUM_UP = 7,
         STRUM_DOWN = 8,
         PAUSE = 9,
-        OVERDRIVE = 10
+        OVERDRIVE = 10,
+        INVALID = -1
     };
+    inline InputChannel IntIC(int lane) {
+        switch (lane) {
+        case 0:
+            return InputChannel::LANE_1;
+        case 1:
+            return InputChannel::LANE_2;
+        case 2:
+            return InputChannel::LANE_3;
+        case 3:
+            return InputChannel::LANE_4;
+        case 4:
+            return InputChannel::LANE_5;
+        }
+        return InputChannel::INVALID;
+    }
     inline int ICInt(InputChannel channel) {
         switch (channel) {
         case InputChannel::LANE_1:

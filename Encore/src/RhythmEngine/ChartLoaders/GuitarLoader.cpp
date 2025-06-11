@@ -5,8 +5,6 @@
 #include "GuitarLoader.h"
 std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
 
-Encore::RhythmEngine::GuitarLoader::GuitarLoader(int diff_, smf::MidiEventList track_)
-    : BaseLoader(Difficulty = diff_, track = track_) {}
 
 static bool HasPSSig(const smf::MidiEvent &event) {
     return event[1] == 'P' && event[2] == 'S' && event[3] == '\0';
@@ -75,52 +73,65 @@ void Encore::RhythmEngine::GuitarLoader::CheckTaps(const smf::MidiEvent &event) 
 }
 [[nodiscard]] int
 Encore::RhythmEngine::GuitarLoader::GetNoteType(const smf::MidiEvent &event) {
-    if (TapMarker.front().first <= event.tick) {
-        return 2;
+    if (!TapMarker.empty()) {
+        if (TapMarker.front().first <= event.tick) {
+            return 2;
+        }
     }
-    if (ForceHopoOn.front().first <= event.tick) {
-        return 1;
+    if (!ForceHopoOn.empty()) {
+        if (ForceHopoOn.front().first <= event.tick) {
+            return 1;
+        }
     }
-    if (ForceHopoOff.front().first <= event.tick) {
-        return 0;
+    if (!ForceHopoOff.empty()) {
+        if (ForceHopoOff.front().first <= event.tick) {
+            return 0;
+        }
     }
-    if (chart[0].back().StartTicks + 170 >= event.tick) {
-        return 1;
+    if (!chart.empty()) {
+        if (chart[0].back().StartTicks + 170 >= event.tick) {
+            return 1;
+        }
     }
     return 0;
 }
 void Encore::RhythmEngine::GuitarLoader::CheckEvents(const smf::MidiEvent &event) {
-    if (chart.solos[CurrentSolo].EndTick < event.tick
-        && CurrentSolo < chart.solos.size() - 1)
-        CurrentSolo++;
+    if (!chart.solos.empty()) {
+        if (CurrentSolo < chart.solos.size() - 1
+            && chart.solos[CurrentSolo].EndTick < event.tick)
+            CurrentSolo++;
+    }
 
-    if (chart.overdrive[CurrentOverdrive].EndTick < event.tick
-        && CurrentOverdrive < chart.overdrive.size() - 1)
-        CurrentSolo++;
+    if (!chart.overdrive.empty()) {
+        if (CurrentOverdrive < chart.overdrive.size() - 1
+            && chart.overdrive[CurrentOverdrive].EndTick < event.tick)
+            CurrentOverdrive++;
+    }
 }
-void Encore::RhythmEngine::GuitarLoader::GetChartEvents() {
+void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track) {
+    track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         if (event[1] == 116 && event.isNoteOn()) {
-            chart.overdrive.emplace_back(
+            chart.overdrive.push_back({
                 event.tick,
                 event.seconds,
                 event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
+                  event.getLinkedEvent()->seconds - event.seconds}
             );
         }
         if (event[1] == 103 && event.isNoteOn()) {
-            chart.solos.emplace_back(
+            chart.solos.push_back({
                 event.tick,
                 event.seconds,
                 event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
+                  event.getLinkedEvent()->seconds - event.seconds}
             );
         }
     }
 }
 void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event) {
-    chart[0].push(
+    chart[0].push_back(
         { event.tick,
           event.getLinkedEvent()->tick - event.tick,
           event.seconds,
@@ -128,12 +139,15 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
           GetNoteType(event),
           PlasticFrets[GetEventLane(Difficulty, event)] }
     );
-    if (event.tick >= chart.solos[CurrentSolo].StartTick) {
-        chart.solos[CurrentSolo].NoteCount++;
+    if (!chart.solos.empty()) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
+            chart.solos[CurrentSolo].NoteCount++;
+        }
     }
 }
 
-void Encore::RhythmEngine::GuitarLoader::GetNoteModifiers() {
+void Encore::RhythmEngine::GuitarLoader::GetNoteModifiers(smf::MidiEventList track) {
+    track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         CheckSysEx(event);
@@ -160,13 +174,18 @@ void Encore::RhythmEngine::GuitarLoader::CheckModifiers(const smf::MidiEvent &ev
     }
 }
 
-void Encore::RhythmEngine::GuitarLoader::GetNotes() {
+void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
+    track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         // im tired boss
         CheckEvents(event);
         CheckModifiers(event);
         if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
+            if (chart[0].empty()) {
+                CreateNote(event);
+                continue;
+            }
             if (chart[0].back().StartTicks == event.tick) {
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
             } else {

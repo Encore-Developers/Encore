@@ -5,6 +5,7 @@
 #include "GuitarEngine.h"
 
 #include "timingvalues.h"
+#include "gameplay/enctime.h"
 
 #include <bit>
 
@@ -55,7 +56,8 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
     if (stats->OverdriveFill >= 0.25 && channel == InputChannel::OVERDRIVE
         && action == Action::PRESS) {
         stats->OverdriveActive = true;
-        stats->OverdriveActivationTime = 0.0; // todo: set to current input time
+        stats->OverdriveActivationTime = TheSongTime.GetSongTime(); // todo: set to
+                                                                    // current input time
         return true;
     }
     return false;
@@ -63,7 +65,7 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
     InputChannel channel, Action action
 ) {
-    stats->InputTime = 0.0; // todo: REPLACE WITH ACTUAL SONG TIME (IN SECONDS)
+    stats->InputTime = TheSongTime.GetSongTime(); // todo: REPLACE WITH ACTUAL SONG TIME (IN SECONDS)
     if (action == Action::PRESS) {
         switch (channel) {
         case InputChannel::LANE_1:
@@ -142,7 +144,7 @@ void Encore::RhythmEngine::GuitarEngine::HitNote() {
     stats->HitNote(std::popcount(chart->at(0).front().Lane));
     // todo: you know the drill, maybe set track state too with this info?
     stats->FretAfterStrum = false;
-    chart->at(0).pop();
+    chart->at(0).erase(chart->at(0).begin());
 }
 void Encore::RhythmEngine::GuitarEngine::Overhit() {
     stats->Overhit();

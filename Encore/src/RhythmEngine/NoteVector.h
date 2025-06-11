@@ -32,7 +32,7 @@ namespace Encore::RhythmEngine {
     // but holy fuck ive come so far
 
     template <typename NoteType>
-    class NoteVector : public std::queue<NoteType> {
+    class NoteVector : public std::vector<NoteType> {
     public:
         NoteType &operator[](int i) { return this->at(i); }
     };

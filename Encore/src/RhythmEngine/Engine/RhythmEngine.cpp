@@ -10,6 +10,7 @@
 #include "RhythmEngine/ChartLoaders/GuitarLoader.h"
 #include "users/playerManager.h"
 
+/*
 void Encore::RhythmEngine::lol() {
     smf::MidiFile MidiFile;
     int track = 0; // this would be gathered from finding PART_GUITAR in .ini
@@ -25,3 +26,4 @@ void Encore::RhythmEngine::lol() {
     ThePlayerManager.GetActivePlayer(0).engine->stats = Stats;
     ThePlayerManager.GetActivePlayer(0).engine->chart = Chart;
 }
+*/

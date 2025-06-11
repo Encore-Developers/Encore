@@ -18,6 +18,8 @@
 #include "rapidjson/document.h"
 #include "util/enclog.h"
 
+#include <array>
+
 enum PartIcon {
     IconDrum,
     IconBass,
@@ -52,8 +54,9 @@ enum Difficulty {
 
 struct SongPart {
     int diff = -1;
-    bool hasPart = false;
-    bool plastic = false;
+    int TrackInt = -1;
+    bool Valid = false;
+    std::array<bool, 4> ValidDiffs { false, false, false, false };
 };
 
 struct TimeSig {
@@ -75,88 +78,83 @@ struct Beat {
 };
 static std::atomic_int LoadingState = -1;
 
-inline std::string diffList[4] = { "Easy", "Medium", "Hard", "Expert" };
+inline std::array<std::string, 4> diffList = { "Easy", "Medium", "Hard", "Expert" };
 inline std::vector<std::string> songPartsList {
     "Drums",        "Bass",           "Lead",           "Keys",
     "Vocals",       "Classic Drums",  "Classic Bass",   "Classic Lead",
     "Classic Keys", "Classic Vocals", "Classic Vocals",
 };
+
+inline std::unordered_map<std::string, PartIcon> stringToEnum = {
+
+    { "Drum", PartIcon::IconDrum },
+    { "Bass", PartIcon::IconBass },
+    { "Guitar", PartIcon::IconGuitar },
+    { "Vocals", PartIcon::IconVocals },
+    { "Keyboard", PartIcon::IconKeyboard },
+    { "None", PartIcon::IconNone },
+    { "", PartIcon::IconNone }
+
+};
+
+inline PartIcon iconFromString(const std::string &str) {
+    auto it = stringToEnum.find(str);
+    if (it != stringToEnum.end()) {
+        return it->second;
+    } else {
+        throw std::runtime_error("Invalid enum string");
+    }
+}
+
+inline std::unordered_map<std::string, SongParts> midiNameToEnum = {
+    { "PART DRUMS", SongParts::PartDrums },
+    { "PART BASS", SongParts::PartBass },
+    { "PART GUITAR", SongParts::PartGuitar },
+    { "PART VOCALS", SongParts::PartVocals },
+    { "PART KEYS", SongParts::PartKeys },
+    { "PLASTIC DRUMS", SongParts::PlasticDrums },
+    { "PLASTIC BASS", SongParts::PlasticBass },
+    { "PLASTIC GUITAR", SongParts::PlasticGuitar },
+    { "PLASTIC VOCALS", SongParts::PlasticVocals },
+    { "PLASTIC KEYS", SongParts::PlasticKeys },
+    { "PITCHED VOCALS", SongParts::Invalid },
+    { "BEAT", SongParts::BeatLines }
+};
+
+inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
+    { "PAD DRUMS", SongParts::PartDrums },    { "PAD BASS", SongParts::PartBass },
+    { "PAD GUITAR", SongParts::PartGuitar },  { "PAD VOCALS", SongParts::PartVocals },
+    { "PAD KEYS", SongParts::PartKeys },      { "PART DRUMS", SongParts::PlasticDrums },
+    { "PART BASS", SongParts::PlasticBass },  { "PART GUITAR", SongParts::PlasticGuitar },
+    { "PART VOCALS", SongParts::Invalid },    { "PART KEYS", SongParts::PlasticKeys },
+    { "PLASTIC VOCALS", SongParts::Invalid }, { "BEAT", SongParts::BeatLines }
+};
+
+inline std::vector<int> PlasticToPadEnumConverter = { PartDrums,  PartBass,   PartGuitar,
+                                                      PartVocals, PartKeys,   PartDrums,
+                                                      PartBass,   PartGuitar, PartVocals,
+                                                      PartKeys,   PartVocals, Invalid };
+
+inline SongParts partFromString(const std::string &str) {
+    auto it = midiNameToEnum.find(str);
+    if (it != midiNameToEnum.end()) {
+        return it->second;
+    } else {
+        return SongParts::Invalid;
+    }
+}
+
+inline SongParts partFromStringINI(const std::string &str) {
+    auto it = midiNameToEnumINI.find(str);
+    if (it != midiNameToEnumINI.end()) {
+        return it->second;
+    } else {
+        return SongParts::Invalid;
+    }
+}
+
 class Song {
 public:
-    std::unordered_map<std::string, PartIcon> stringToEnum = {
-
-        { "Drum", PartIcon::IconDrum },
-        { "Bass", PartIcon::IconBass },
-        { "Guitar", PartIcon::IconGuitar },
-        { "Vocals", PartIcon::IconVocals },
-        { "Keyboard", PartIcon::IconKeyboard },
-        { "None", PartIcon::IconNone },
-        { "", PartIcon::IconNone }
-
-    };
-    bool AlbumArtLoaded = false;
-    PartIcon iconFromString(const std::string &str) {
-        auto it = stringToEnum.find(str);
-        if (it != stringToEnum.end()) {
-            return it->second;
-        } else {
-            throw std::runtime_error("Invalid enum string");
-        }
-    }
-
-    std::unordered_map<std::string, SongParts> midiNameToEnum = {
-        { "PART DRUMS", SongParts::PartDrums },
-        { "PART BASS", SongParts::PartBass },
-        { "PART GUITAR", SongParts::PartGuitar },
-        { "PART VOCALS", SongParts::PartVocals },
-        { "PART KEYS", SongParts::PartKeys },
-        { "PLASTIC DRUMS", SongParts::PlasticDrums },
-        { "PLASTIC BASS", SongParts::PlasticBass },
-        { "PLASTIC GUITAR", SongParts::PlasticGuitar },
-        { "PLASTIC VOCALS", SongParts::PlasticVocals },
-        { "PLASTIC KEYS", SongParts::PlasticKeys },
-        { "PITCHED VOCALS", SongParts::Invalid },
-        { "BEAT", SongParts::BeatLines }
-    };
-
-    std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
-        { "PAD DRUMS", SongParts::PartDrums },
-        { "PAD BASS", SongParts::PartBass },
-        { "PAD GUITAR", SongParts::PartGuitar },
-        { "PAD VOCALS", SongParts::PartVocals },
-        { "PAD KEYS", SongParts::PartKeys },
-        { "PART DRUMS", SongParts::PlasticDrums },
-        { "PART BASS", SongParts::PlasticBass },
-        { "PART GUITAR", SongParts::PlasticGuitar },
-        { "PART VOCALS", SongParts::Invalid },
-        { "PART KEYS", SongParts::PlasticKeys },
-        { "PLASTIC VOCALS", SongParts::Invalid },
-        { "BEAT", SongParts::BeatLines }
-    };
-
-    std::vector<int> PlasticToPadEnumConverter = { PartDrums,  PartBass,   PartGuitar,
-                                                   PartVocals, PartKeys,   PartDrums,
-                                                   PartBass,   PartGuitar, PartVocals,
-                                                   PartKeys,   PartVocals, Invalid };
-
-    SongParts partFromString(const std::string &str) {
-        auto it = midiNameToEnum.find(str);
-        if (it != midiNameToEnum.end()) {
-            return it->second;
-        } else {
-            return SongParts::Invalid;
-        }
-    }
-
-    SongParts partFromStringINI(const std::string &str) {
-        auto it = midiNameToEnumINI.find(str);
-        if (it != midiNameToEnumINI.end()) {
-            return it->second;
-        } else {
-            return SongParts::Invalid;
-        }
-    }
-
     bool midiParsed = false;
     std::string title = "";
     float titleXOffset = 0;
@@ -175,7 +173,7 @@ public:
     int BeatTrackID = 0;
     std::vector<BPM> bpms {};
     std::vector<TimeSig> timesigs {};
-
+    bool AlbumArtLoaded = false;
     double music_start = 0.0;
     double end = 0.0;
     std::vector<PartIcon> partIcons {
@@ -409,8 +407,7 @@ public:
             if (item.name == "charters" || item.name == "charter") {
                 if (item.value.IsString()) {
                     charters.push_back(item.value.GetString());
-                }
-                else if (item.value.IsArray()) {
+                } else if (item.value.IsArray()) {
                     for (auto &charter : item.value.GetArray()) {
                         if (charter.IsString()) {
                             charters.push_back(charter.GetString());
@@ -617,9 +614,7 @@ public:
     void parseBeatLines(smf::MidiFile &midiFile, int trkidx) {
         int MaxTick = midiFile[trkidx].last().tick;
         for (int i = 0; i < MaxTick; i += 240) {
-            beatLines.push_back(
-                    { midiFile.getTimeInSeconds(i),false,false, i }
-            );
+            beatLines.push_back({ midiFile.getTimeInSeconds(i), false, false, i });
         }
 
         /*

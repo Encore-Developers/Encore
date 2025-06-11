@@ -10,11 +10,8 @@
 #include "uiUnits.h"
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
-void ReadyUpMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
-}
-void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-
-}
+void ReadyUpMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
+void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
 SongParts GetSongPart(smf::MidiEventList track) {
     for (int events = 0; events < track.getSize(); events++) {
@@ -26,12 +23,11 @@ SongParts GetSongPart(smf::MidiEventList track) {
                 trackName += track[events][k];
             }
             if (TheSongList.curSong->ini)
-                return TheSongList.curSong->partFromStringINI(trackName);
-            else
-                return TheSongList.curSong->partFromString(trackName);
-            break;
+                return partFromStringINI(trackName);
+            return partFromString(trackName);
         }
     }
+    return Invalid;
 }
 
 std::vector<std::vector<int> > pDiffRangeNotes = {
@@ -39,30 +35,25 @@ std::vector<std::vector<int> > pDiffRangeNotes = {
 };
 
 void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) {
-    /*
-    if (songPart != SongParts::Invalid && songPart != PitchedVocals
-        && songPart != BeatLines) {
-        for (int diff = 0; diff < 4; diff++) {
-            bool StopSearching = false;
-            Chart newChart;
-            for (int i = 0; i < track.getSize(); i++) {
-                if (track[i].isNoteOn() && !track[i].isMeta()
-                    && (int)track[i][1] >= pDiffRangeNotes[diff][0]
-                    && (int)track[i][1] <= pDiffRangeNotes[diff][1] && !StopSearching) {
-                    newChart.valid = true;
-                    newChart.diff = diff;
-                    newChart.track = trackNumber;
-                    TheSongList.curSong->parts[(int)songPart]->hasPart = true;
-                    StopSearching = true;
-                }
+    if (songPart == Invalid || songPart == PitchedVocals || songPart == BeatLines) {
+        return;
+    }
+    for (int diff = 0; diff < 4; diff++) {
+        bool StopSearching = false;
+
+        for (int i = 0; i < track.getSize(); i++) {
+            if (track[i].isNoteOn() && !track[i].isMeta()
+                && track[i][1] >= pDiffRangeNotes[diff][0]
+                && track[i][1] <= pDiffRangeNotes[diff][1] && !StopSearching) {
+                TheSongList.curSong->parts[songPart]->ValidDiffs.at(diff) = true;
+                TheSongList.curSong->parts[songPart]->TrackInt = trackNumber;
+                TheSongList.curSong->parts[songPart]->Valid = true;
+                StopSearching = true;
             }
-            if (songPart > PartVocals && songPart < PlasticVocals)
-                TheSongList.curSong->parts[songPart]->plastic = true;
-            if (songPart < PlasticVocals)
-                TheSongList.curSong->parts[(int)songPart]->charts.push_back(newChart);
+            if (StopSearching)
+                break;
         }
     }
-    */
 }
 
 void ReadyUpMenu::Draw() {
@@ -137,13 +128,13 @@ void ReadyUpMenu::Draw() {
     // todo: allow this to be run per player
     // load midi
     GameMenu::DrawBottomOvershell();
-    /*
+
     for (int playerInt = 0; playerInt < 4; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
 
-        if (!TheGameRenderer.midiLoaded && !TheSongList.curSong->midiParsed) {
+        if (!TheSongList.curSong->midiParsed) {
             smf::MidiFile midiFile;
             midiFile.read(TheSongList.curSong->midiPath.string());
             for (int track = 0; track < midiFile.getTrackCount(); track++) {
@@ -154,29 +145,26 @@ void ReadyUpMenu::Draw() {
                 }
             }
 
-            TheSongList.curSong->midiParsed = true;
-            TheGameRenderer.midiLoaded = true;
 
             if (!player.ReadiedUpBefore
-                || !TheSongList.curSong->parts[player.Instrument]->hasPart) {
+                || !TheSongList.curSong->parts[player.Instrument]->Valid) {
                 player.ReadyUpMenuState = Player::INSTRUMENT;
             } else if (!TheSongList.curSong->parts[player.Instrument]
-                            ->charts[player.Difficulty]
-                            .valid) {
+                            ->ValidDiffs[player.Difficulty]) {
                 player.ReadyUpMenuState = Player::DIFFICULTY;
             } else if (player.ReadiedUpBefore) {
                 player.ReadyUpMenuState = Player::PREVIEW;
             }
-        } else if (TheGameRenderer.midiLoaded) {
+            TheSongList.curSong->midiParsed = true;
+        } else if (TheSongList.curSong->midiParsed) {
             float LeftOfMenu = u.wpct(0.025);
             float xPosOfMenu = LeftOfMenu + ((playerInt)*u.winpct(0.25f));
             switch (player.ReadyUpMenuState) {
             case Player::INSTRUMENT: {
                 if (GuiButton({ 0, 0, 60, 60 }, "<")) {
                     if (!player.ReadiedUpBefore
-                        || !TheSongList.curSong->parts[player.Instrument]->hasPart) {
+                        || !TheSongList.curSong->parts[player.Instrument]->Valid) {
                         player.ReadyUpMenuState = Player::INSTRUMENT;
-                        TheGameRenderer.midiLoaded = false;
                         TheMenuManager.SwitchScreen(SONG_SELECT);
                     } else {
                         player.ReadyUpMenuState = Player::PREVIEW;
@@ -187,7 +175,7 @@ void ReadyUpMenu::Draw() {
                 // TheSongList.curSong->artist.c_str()), 70,7, WHITE);
                 std::vector<int> PartsToDisplay = {};
                 for (int i = 0; i < TheSongList.curSong->parts.size(); i++) {
-                    if (TheSongList.curSong->parts[i]->hasPart) {
+                    if (TheSongList.curSong->parts[i]->Valid) {
                         PartsToDisplay.push_back(i);
                     }
                 }
@@ -220,7 +208,7 @@ void ReadyUpMenu::Draw() {
                         player.instSelected = true;
                         player.Instrument = PartsToDisplay[i];
                         int isBassOrVocal = 0;
-                        if (PartsToDisplay[i] > PartVocals)
+                        if (player.Instrument > PartVocals)
                             player.ClassicMode = true;
                         else
                             player.ClassicMode = false;
@@ -271,8 +259,7 @@ void ReadyUpMenu::Draw() {
                             "Done"
                         )) {
                         if (TheSongList.curSong->parts[player.Instrument]
-                                ->charts[player.Difficulty]
-                                .notes.empty()) {
+                                ->ValidDiffs[player.Difficulty]) {
                             player.ReadyUpMenuState = Player::DIFFICULTY;
                         } else {
                             player.ReadyUpMenuState = Player::PREVIEW;
@@ -291,13 +278,13 @@ void ReadyUpMenu::Draw() {
             }
             case Player::DIFFICULTY: {
                 {
-                    for (auto &chartDiff :
-                         TheSongList.curSong->parts[player.Instrument]->charts) {
-                        if (chartDiff.valid) {
+                    for (int i = 0; i < 4; i++) {
+                        SongPart *chart = TheSongList.curSong->parts[player.Instrument];
+                        if (chart->ValidDiffs[i]) {
                             GuiSetStyle(
                                 BUTTON,
                                 BASE_COLOR_NORMAL,
-                                chartDiff.diff == player.Difficulty && player.diffSelected
+                                chart->diff == player.Difficulty && player.diffSelected
                                     ? ColorToInt(
                                           ColorBrightness(player.AccentColor, -0.25)
                                       )
@@ -306,19 +293,19 @@ void ReadyUpMenu::Draw() {
                             if (GuiButton(
                                     { xPosOfMenu,
                                       BottomOvershell - u.hinpct(0.05f)
-                                          - (u.hinpct(0.05f) * chartDiff.diff),
+                                          - (u.hinpct(0.05f) * chart->diff),
                                       u.winpct(0.2f),
                                       u.hinpct(0.05f) },
-                                    diffList[chartDiff.diff].c_str()
+                                    diffList[i].c_str()
                                 )) {
-                                player.Difficulty = chartDiff.diff;
+                                player.Difficulty = i;
                                 player.diffSelected = true;
                             }
                         } else {
                             GuiButton(
                                 { xPosOfMenu,
                                   BottomOvershell - u.hinpct(0.05f)
-                                      - (u.hinpct(0.05f) * chartDiff.diff),
+                                      - (u.hinpct(0.05f) * chart->diff),
                                   u.winpct(0.2f),
                                   u.hinpct(0.05f) },
                                 ""
@@ -326,7 +313,7 @@ void ReadyUpMenu::Draw() {
                             DrawRectangle(
                                 xPosOfMenu + 2,
                                 BottomOvershell + 2 - u.hinpct(0.05f)
-                                    - (u.hinpct(0.05f) * chartDiff.diff),
+                                    - (u.hinpct(0.05f) * chart->diff),
                                 u.winpct(0.2f) - 4,
                                 u.hinpct(0.05f) - 4,
                                 Color { 0, 0, 0, 128 }
@@ -361,8 +348,7 @@ void ReadyUpMenu::Draw() {
                         }
                         if (GuiButton({ 0, 0, 60, 60 }, "<")) {
                             if (player.ReadiedUpBefore
-                                || !TheSongList.curSong->parts[player.Instrument]
-                                        ->hasPart) {
+                                || !TheSongList.curSong->parts[player.Instrument]->Valid) {
                                 player.ReadyUpMenuState = Player::INSTRUMENT;
                                 player.instSelected = false;
                                 player.diffSelected = false;
@@ -478,12 +464,10 @@ void ReadyUpMenu::Draw() {
         }
 
         if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-            TheGameRenderer.midiLoaded = false;
             TheSongList.curSong->midiParsed = false;
             TheMenuManager.SwitchScreen(SONG_SELECT);
         }
     }
-    */
     DrawOvershell();
 }
 

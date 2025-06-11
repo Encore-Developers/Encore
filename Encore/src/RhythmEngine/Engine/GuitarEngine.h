@@ -11,7 +11,6 @@ namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
 
         bool ActivateOverdrive(InputChannel channel, Action action) override;
-        void SetStatsInputState(InputChannel channel, Action action) override;
 
         /*
          * STRUM PATH: ___________________________________________________________________
@@ -41,11 +40,13 @@ namespace Encore::RhythmEngine {
 
 
     public:
+        void SetStatsInputState(InputChannel channel, Action action) override;
         void HitNote() override;
         void Overhit() override;
         std::shared_ptr<GuitarChart> chart;
         std::shared_ptr<GuitarStats> stats;
-        GuitarEngine() {};
+        GuitarEngine(auto _chart, auto _stats)
+            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {};
         ~GuitarEngine() override {};
     };
 }

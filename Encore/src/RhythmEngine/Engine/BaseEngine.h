@@ -18,8 +18,9 @@ namespace Encore::RhythmEngine {
 
     class BaseEngine {
     public:
-        BaseEngine() {};
+        BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats) {};
         virtual ~BaseEngine() {};
+        virtual void SetStatsInputState(InputChannel channel, Action action) {};
 
         void ProcessInput(InputChannel channel, Action action);
         /*
@@ -38,7 +39,6 @@ namespace Encore::RhythmEngine {
         virtual void Overhit() {};
         virtual int RunHitStateCheck(Action action) = 0;
         virtual bool ActivateOverdrive(InputChannel channel, Action action) = 0;
-        virtual void SetStatsInputState(InputChannel channel, Action action) {};
 
         bool PauseGame(InputChannel channel, Action action);
     };

@@ -10,7 +10,6 @@ namespace Encore::RhythmEngine {
     class GuitarStats final : public BaseStats<5> {
     public:
         explicit GuitarStats(int BaseScore) : BaseStats<5>(BaseScore) {}
-        StrumState strumState = StrumState::Default;
         double FretAfterStrumTime = -1;
         bool FretAfterStrum = false;
         [[nodiscard]] uint8_t HeldFretsArrayToMask() const;

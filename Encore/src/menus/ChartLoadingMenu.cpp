@@ -7,6 +7,8 @@
 #include "MenuManager.h"
 #include "gameMenu.h"
 #include "uiUnits.h"
+#include "RhythmEngine/ChartLoaders/GuitarLoader.h"
+#include "RhythmEngine/ChartLoaders/PadLoader.h"
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
 
@@ -16,64 +18,71 @@ bool StartLoading = true;
 bool FinishedLoading = false;
 
 void LoadCharts() {
-    /*
     smf::MidiFile midiFile;
     midiFile.read(TheSongList.curSong->midiPath.string());
-    TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
-    TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
+    midiFile.doTimeAnalysis();
+    // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
+    // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
         int diff = player.Difficulty;
         int inst = player.Instrument;
 
-        int track = TheSongList.curSong->parts[inst]->charts[diff].track;
+        int track = TheSongList.curSong->parts[inst]->TrackInt;
         std::string trackName;
 
-        Chart &chart = TheSongList.curSong->parts[inst]->charts[diff];
-        if (!chart.Loaded && chart.valid) {
+        if (TheSongList.curSong->parts[inst]->Valid) {
+            trackName = songPartsList[inst];
             Encore::EncoreLog(
                 LOG_DEBUG,
                 TextFormat("Loading part %s, diff %01i", trackName.c_str(), diff)
             );
-            LoadingState = NOTE_PARSING;
+            // LoadingState = NOTE_PARSING;
+            // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
-                chart.plastic = true;
-                chart.parsePlasticNotes(
-                    midiFile, track, diff, inst, TheSongList.curSong->hopoThreshold
-                );
+                midiFile[track].linkNotePairs();
+                Encore::RhythmEngine::GuitarLoader chartLoader(diff);
+                chartLoader.LoadChart(midiFile[track]);
+
+                ThePlayerManager.GetActivePlayer(playerNum).engine =
+                    std::make_shared<Encore::RhythmEngine::GuitarEngine>(
+                        std::make_shared<Encore::RhythmEngine::GuitarChart>(
+                            chartLoader.chart
+                        ),
+                        std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
+                    );
             } else if (inst == PlasticDrums) {
-                chart.plastic = true;
-                chart.parsePlasticDrums(
-                    midiFile, track, midiFile[track], diff, inst, player.ProDrums, true
-                );
-            } else {
-                chart.plastic = false;
-                chart.parseNotes(midiFile, track, midiFile[track], diff, inst);
+                // chart.plastic = true;
+                // chart.parsePlasticDrums(
+                //     midiFile, track, midiFile[track], diff, inst, player.ProDrums, true
+                //);
+            } else if (inst < PlasticDrums) {
+                midiFile[track].linkNotePairs();
+                Encore::RhythmEngine::PadLoader chartLoader(diff);
+                chartLoader.LoadChart(midiFile[track]);
+                // todo: make pad engine shit how did u forget
             }
 
-            if (!chart.plastic) {
-                LoadingState = EXTRA_PROCESSING;
-                int noteIdx = 0;
-                for (Note &note : chart.notes) {
-                    chart.notes_perlane[note.lane].push_back(noteIdx);
-                    noteIdx++;
-                }
-            }
-            chart.Loaded = true;
+            // if (!chart.plastic) {
+            //     LoadingState = EXTRA_PROCESSING;
+            //     int noteIdx = 0;
+            //     for (Note &note : chart.notes) {
+            //         chart.notes_perlane[note.lane].push_back(noteIdx);
+            //         noteIdx++;
+            //     }
+            // }
+            // chart.Loaded = true;
         }
-        player.stats->CurPlayingChart = chart;
         //}
         //}
         //}
-
     }
 
     TheSongList.curSong->getCodas(midiFile);
 
-    LoadingState = READY;
+    // LoadingState = READY;
 
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-        */
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
     FinishedLoading = true;
 }
 /**
@@ -88,8 +97,9 @@ void ChartLoadingMenu::Load() {
     // }
     // ThePlayerManager.BandStats = new BandGameplayStats;
     TheSongList.curSong->LoadAlbumArt();
-    std::thread ChartLoader(LoadCharts);
-    ChartLoader.detach();
+    LoadCharts();
+    //std::thread ChartLoader(LoadCharts);
+    //ChartLoader.detach();
 }
 
 void ChartLoadingMenu::Draw() {
@@ -110,8 +120,9 @@ void ChartLoadingMenu::Draw() {
     float AfterLoadingTextPos =
         MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
 
-    std::string LoadingPhrase = TheSongList.curSong->loadingPhrase.empty() ?
-        "Loading Song..." : TheSongList.curSong->loadingPhrase;
+    std::string LoadingPhrase = TheSongList.curSong->loadingPhrase.empty()
+        ? "Loading Song..."
+        : TheSongList.curSong->loadingPhrase;
 
     DrawTextEx(
         assets.rubikBold,

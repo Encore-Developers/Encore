@@ -98,7 +98,7 @@ void Encore::AudioManager::unloadStreams() {
     }
 }
 
-void Encore::AudioManager::pauseStreams() {
+void Encore::AudioManager::pauseStreams() const {
     if (!loadedStreams.empty()) {
         for (auto stream : loadedStreams) {
             BASS_ChannelPause(stream.handle);
@@ -106,15 +106,15 @@ void Encore::AudioManager::pauseStreams() {
     }
 }
 
-void Encore::AudioManager::playStreams() {
+void Encore::AudioManager::playStreams() const {
     if (!loadedStreams.empty()) {
-        for (auto stream : loadedStreams) {
-            BASS_ChannelPlay(loadedStreams[0].handle, false);
-        }
+        // for (auto stream : loadedStreams) {
+        BASS_ChannelPlay(loadedStreams[0].handle, false);
+        //}
     }
 }
 
-void Encore::AudioManager::restartStreams() {
+void Encore::AudioManager::restartStreams() const {
     if (!loadedStreams.empty()) {
         for (auto &stream : loadedStreams) {
             BASS_ChannelSetPosition(stream.handle, 0, BASS_POS_BYTE);
@@ -122,7 +122,7 @@ void Encore::AudioManager::restartStreams() {
         BASS_ChannelPlay(loadedStreams[0].handle, true);
     }
 }
-void Encore::AudioManager::seekStreams(double time) {
+void Encore::AudioManager::seekStreams(double time) const {
     if (!loadedStreams.empty()) {
         BASS_ChannelPause(loadedStreams[0].handle);
         for (auto &stream : loadedStreams) {
@@ -134,7 +134,7 @@ void Encore::AudioManager::seekStreams(double time) {
     }
 }
 
-void Encore::AudioManager::unpauseStreams() {
+void Encore::AudioManager::unpauseStreams() const {
     if (!loadedStreams.empty()) {
         for (auto &stream : loadedStreams) {
             int rewindTimeBytes = BASS_ChannelSeconds2Bytes(stream.handle, 3.0);
@@ -151,7 +151,7 @@ void Encore::AudioManager::unpauseStreams() {
     }
 }
 
-double Encore::AudioManager::GetMusicTimePlayed() {
+double Encore::AudioManager::GetMusicTimePlayed() const {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE)
@@ -159,7 +159,7 @@ double Encore::AudioManager::GetMusicTimePlayed() {
     CHECK_BASS_ERROR2();
 }
 
-double Encore::AudioManager::GetMusicTimeLength() {
+double Encore::AudioManager::GetMusicTimeLength() const {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE)

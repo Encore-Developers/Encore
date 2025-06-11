@@ -18,11 +18,12 @@ namespace Encore::RhythmEngine {
         void CreateNote(const smf::MidiEvent &event);
         int GetNoteType(const smf::MidiEvent &event) override;
 
-        void GetChartEvents() override;
-        void GetNoteModifiers() override;
-        void GetNotes() override;
+        void GetChartEvents(smf::MidiEventList track) override;
+        void GetNoteModifiers(smf::MidiEventList track) override;
+        void GetNotes(smf::MidiEventList track) override;
+
     public:
-        PadLoader(int diff_, smf::MidiEventList track_);
+        PadLoader(int diff_);
     };
 }
 

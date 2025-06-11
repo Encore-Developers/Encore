@@ -12,9 +12,9 @@ namespace Encore::RhythmEngine {
     template <typename ChartType>
     class BaseLoader {
         // returns -1 for no event, good for plastic guitar i think
-        virtual void GetChartEvents() {};
-        virtual void GetNoteModifiers() {};
-        virtual void GetNotes() {};
+        virtual void GetChartEvents(smf::MidiEventList track) {};
+        virtual void GetNoteModifiers(smf::MidiEventList track) {};
+        virtual void GetNotes(smf::MidiEventList track) {};
         virtual int GetNoteType(const smf::MidiEvent &event) { return 0; };
 
     public:
@@ -31,21 +31,17 @@ namespace Encore::RhythmEngine {
         // run these few things:
         // midiFile.absoluteTicks();
         // midiFile.doTimeAnalysis();
-        BaseLoader(int diff_, smf::MidiEventList track_) {
-            Difficulty = diff_;
-            track = track_;
-        }
+        BaseLoader(int diff_) : Difficulty(diff_) {}
 
         ChartType chart;
         int Difficulty;
-        smf::MidiEventList track;
 
-        virtual void LoadChart() {
+        virtual void LoadChart(smf::MidiEventList track) {
             track.linkNotePairs();
             // first get events, hopos, taps, lifts, the likes
-            GetChartEvents();
-            GetNoteModifiers();
-            GetNotes();
+            GetChartEvents(track);
+            GetNoteModifiers(track);
+            GetNotes(track);
         };
         // have a for loop in here to get the shit in the right lanes
     };

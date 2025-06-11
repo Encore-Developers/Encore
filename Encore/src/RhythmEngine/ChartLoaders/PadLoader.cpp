@@ -4,8 +4,7 @@
 
 #include "PadLoader.h"
 
-Encore::RhythmEngine::PadLoader::PadLoader(int diff_, smf::MidiEventList track_)
-    : BaseLoader(Difficulty = diff_, track = track_) {}
+Encore::RhythmEngine::PadLoader::PadLoader(int diff_) : BaseLoader(Difficulty = diff_) {}
 
 [[nodiscard]] bool IsInLiftMarkerRange(int diff, const smf::MidiEvent &event) {
     return event[1] >= LiftMinMaxDiff[diff].first
@@ -17,7 +16,8 @@ Encore::RhythmEngine::PadLoader::PadLoader(int diff_, smf::MidiEventList track_)
 void Encore::RhythmEngine::PadLoader::CreateLiftMarker(const smf::MidiEvent &event) {
     LiftMarkers[GetLiftLane(Difficulty, event)].emplace(event.tick);
 }
-void Encore::RhythmEngine::PadLoader::GetNoteModifiers() {
+void Encore::RhythmEngine::PadLoader::GetNoteModifiers(smf::MidiEventList track) {
+    track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         if (IsInLiftMarkerRange(Difficulty, event) && event.isNoteOn()) {
@@ -25,6 +25,7 @@ void Encore::RhythmEngine::PadLoader::GetNoteModifiers() {
         }
     }
 };
+
 void Encore::RhythmEngine::PadLoader::CheckModifiers(const smf::MidiEvent &event) {
     if (!LiftMarkers[GetEventLane(Difficulty, event)].empty()) {
         if (LiftMarkers[GetEventLane(Difficulty, event)].front() < event.tick)
@@ -33,23 +34,29 @@ void Encore::RhythmEngine::PadLoader::CheckModifiers(const smf::MidiEvent &event
 }
 
 void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
-    if (chart.solos[CurrentSolo].EndTick < event.tick
-        && CurrentSolo < chart.solos.size() - 1)
-        CurrentSolo++;
-
-    if (chart.overdrive[CurrentOverdrive].EndTick < event.tick
-        && CurrentOverdrive < chart.overdrive.size() - 1)
-        CurrentOverdrive++;
+    if (!chart.solos.empty()) {
+        if (CurrentSolo < chart.solos.size() - 1
+            && chart.solos[CurrentSolo].EndTick < event.tick)
+            CurrentSolo++;
+    }
+    if (!chart.overdrive.empty()) {
+        if (CurrentOverdrive < chart.overdrive.size() - 1
+            && chart.overdrive[CurrentOverdrive].EndTick < event.tick)
+            CurrentOverdrive++;
+    }
 }
 
 [[nodiscard]] int
 Encore::RhythmEngine::PadLoader::GetNoteType(const smf::MidiEvent &event) {
-    if (LiftMarkers[GetEventLane(Difficulty, event)].front() == event.tick) {
-        return 1; // lift
+    if (!LiftMarkers.empty()) {
+        if (LiftMarkers[GetEventLane(Difficulty, event)].front() == event.tick) {
+            return 1; // lift
+        }
     }
     return 0;
 }
-void Encore::RhythmEngine::PadLoader::GetChartEvents() {
+void Encore::RhythmEngine::PadLoader::GetChartEvents(smf::MidiEventList track) {
+    track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         if (event[1] == 116 && event.isNoteOn()) {
@@ -72,7 +79,7 @@ void Encore::RhythmEngine::PadLoader::GetChartEvents() {
 }
 
 void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
-    chart[GetEventLane(Difficulty, event)].push(
+    chart[GetEventLane(Difficulty, event)].push_back(
         {
             event.tick,
             event.getLinkedEvent()->tick - event.tick,
@@ -87,7 +94,8 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
     }
 }
 
-void Encore::RhythmEngine::PadLoader::GetNotes() {
+void Encore::RhythmEngine::PadLoader::GetNotes(smf::MidiEventList track) {
+    track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         CheckEvents(event);

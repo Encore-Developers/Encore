@@ -51,6 +51,7 @@ namespace Encore::RhythmEngine {
         double InputOffset = 0;
         bool Paused = false;
         double Health = 1.0;
+        StrumState strumState = StrumState::Default;
         void HitNote(int chordSize) {
             Combo++;
             Score = (25 * chordSize) * multiplier();
