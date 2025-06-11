@@ -115,7 +115,7 @@ void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track
         if (event[1] == 116 && event.isNoteOn()) {
             chart.overdrive.push_back(
                 { event.tick,
-                event.seconds,
+                  event.seconds,
                 event.getLinkedEvent()->tick - event.tick,
                   event.getLinkedEvent()->seconds - event.seconds }
             );
@@ -123,7 +123,7 @@ void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track
         if (event[1] == 103 && event.isNoteOn()) {
             chart.solos.push_back(
                 { event.tick,
-                event.seconds,
+                  event.seconds,
                 event.getLinkedEvent()->tick - event.tick,
                   event.getLinkedEvent()->seconds - event.seconds }
             );
