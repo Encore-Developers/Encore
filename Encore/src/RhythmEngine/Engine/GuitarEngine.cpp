@@ -109,43 +109,64 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
         }
     }
 }
-int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(Action action) {
-    EncNote &CurrentNote = chart->at(0).front();
 
+int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
+    InputChannel channel, Action action
+) {
+    if (chart->empty())
+        return CheckNextInput;
+    ;
+    auto curNoteItr = chart->at(0).begin();
+    while (curNoteItr->StartSeconds + goodBackend
+           < TheSongTime.GetSongTime() - stats->InputOffset) {
+        ++curNoteItr;
+    }
+    EncNote &CurrentNote = *curNoteItr;
     // STRUM PATH
-    if ((stats->strumState != StrumState::Default) && action == Action::PRESS) {
+    bool StrumInput = (stats->strumState != StrumState::Default)
+        && action == Action::PRESS
+        && (channel == InputChannel::STRUM_UP || channel == InputChannel::STRUM_DOWN);
+    if (StrumInput) {
         // miss should be managed by current frame
         // overhit is managed here
         if (EarlyStrike(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
-            return HitState::OverhitNote;
+            return OverhitNote;
         }
         // if frets match, continue and try to hit
         if (InHitwindow(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
             if (!MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())) {
                 stats->FretAfterStrum = true;
                 stats->FretAfterStrumTime = stats->InputTime;
-                return HitState::CheckNextInput;
+                return CheckNextInput;
             }
         }
     }
     // if FAS is active, or if there was a strum
     // really couldve just put it up there LMFAO
-    bool strum = HittableAsStrum(CurrentNote.NoteType, stats->FretAfterStrum, stats->InputTime, stats->FretAfterStrumTime)
-        || (stats->strumState != StrumState::Default && action == Action::PRESS);
+    bool strum = HittableAsStrum(
+                     CurrentNote.NoteType,
+                     stats->FretAfterStrum,
+                     stats->InputTime,
+                     stats->FretAfterStrumTime
+                 )
+        || StrumInput;
 
     if (MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())
         && InHitwindow(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)
-        && (HittableAsHopo(CurrentNote.NoteType, stats->Combo) || HittableAsTap(CurrentNote.NoteType)
-            || strum)) {
+        && (HittableAsHopo(CurrentNote.NoteType, stats->Combo)
+            || HittableAsTap(CurrentNote.NoteType) || strum)) {
+        stats->HitNote(std::popcount(chart->at(0).front().Lane));
+        stats->FretAfterStrum = false;
+        chart->at(0).erase(curNoteItr);
         return HitState::HitNote;
     }
-    return HitState::CheckNextInput;
+    return CheckNextInput;
 }
 void Encore::RhythmEngine::GuitarEngine::HitNote() {
-    stats->HitNote(std::popcount(chart->at(0).front().Lane));
+    // stats->HitNote(std::popcount(chart->at(0).front().Lane));
     // todo: you know the drill, maybe set track state too with this info?
-    stats->FretAfterStrum = false;
-    chart->at(0).erase(chart->at(0).begin());
+    // stats->FretAfterStrum = false;
+    // chart->at(0).erase(chart->at(0).begin());
 }
 void Encore::RhythmEngine::GuitarEngine::Overhit() {
     stats->Overhit();

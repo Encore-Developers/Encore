@@ -15,6 +15,7 @@ namespace Encore::RhythmEngine {
         double LengthSeconds = 0;
         int NoteType = 0;
         uint8_t Lane = 0;
+        bool NotePassed = false;
     };
 }
 

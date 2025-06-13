@@ -16,7 +16,11 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action
     }
     SetStatsInputState(channel, action);
     // look its really stupid but like. cmon
-    switch (RunHitStateCheck(action)) {
+    if ((channel == InputChannel::STRUM_DOWN || channel == InputChannel::STRUM_UP)
+        && action == Action::RELEASE) {
+        return;
+    }
+    switch (RunHitStateCheck(channel, action)) {
     case HitState::HitNote: {
         HitNote();
         break;

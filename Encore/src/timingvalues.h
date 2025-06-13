@@ -20,4 +20,4 @@ constexpr float healthGainPerNote = 0.015f;
 constexpr float healthLossSustainDrop = 0.01f;
 constexpr float healthOverdriveGainMult = 3.0f;
 
-#define NOTE_POOL_SIZE 5
+#define NOTE_POOL_SIZE 100

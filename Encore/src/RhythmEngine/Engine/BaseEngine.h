@@ -37,7 +37,7 @@ namespace Encore::RhythmEngine {
         virtual void TogglePause() = 0;
         virtual void HitNote() {};
         virtual void Overhit() {};
-        virtual int RunHitStateCheck(Action action) = 0;
+        virtual int RunHitStateCheck(InputChannel channel, Action action) = 0;
         virtual bool ActivateOverdrive(InputChannel channel, Action action) = 0;
 
         bool PauseGame(InputChannel channel, Action action);

@@ -487,43 +487,52 @@ void GameplayMenu::Draw() {
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
-        int TopOfScreen = GetScreenWidth();
-        int FakeStrikeline = (TopOfScreen / 3) * 2;
+        int TopOfScreen = GetScreenHeight(); // width
+        int FakeStrikeline = (TopOfScreen / 5) * 4;
         int NoteXWidth = 50;
-        int MiddleOfScreen = GetScreenHeight() / 2;
-        int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
+        int MiddleOfScreen = GetScreenWidth() / 2; // height
+        int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth;
+        auto chart = player.engine->chart;
+
+        GameMenu::mhDrawText(
+            assets.rubik,
+            std::to_string(player.engine->stats->Combo),
+            { MiddleOfScreen + (NoteXWidth * 3.0f), float(FakeStrikeline) },
+            u.hinpct(0.05),
+            WHITE,
+            assets.sdfShader,
+            0
+        );
+        GameMenu::mhDrawText(
+            assets.rubik,
+            std::to_string(player.engine->stats->multiplier()) + "x",
+            { MiddleOfScreen + (NoteXWidth * 3.0f),
+              float(FakeStrikeline) + u.hinpct(0.05) },
+            u.hinpct(0.05),
+            WHITE,
+            assets.sdfShader,
+            0
+        );
+
+        if (chart->at(0).empty()) {
+            continue;
+        }
+        size_t NotePoolSize =
+            chart->at(0).size() > NOTE_POOL_SIZE ? NOTE_POOL_SIZE : chart->at(0).size();
+        // because i have to do bounds checks myself
+        std::span NotePool { chart->at(0).begin(), NotePoolSize };
         for (int j = 0; j < 5; j++) {
             Color background = j % 2 ? Color { 0, 0, 0, 128 } : Color { 0, 0, 0, 64 };
             DrawRectangle(
-                0, TrackLeft - (NoteXWidth * j), GetScreenWidth(), NoteXWidth, background
+                TrackLeft + (NoteXWidth * j), 0, NoteXWidth, GetScreenHeight(), background
+                // width
             );
         }
-
-        {
-            for (int noteInt = 0; noteInt < NOTE_POOL_SIZE; noteInt++) {
-            }
-        }
-
-        {
-            auto &curNote = player.engine.get()->chart.get()->at(0).front();
-            if (curNote.StartSeconds + goodBackend
-                < TheSongTime.GetSongTime() - player.InputCalibration) {
-                player.engine.get()->chart.get()->at(0).erase(
-                    player.engine.get()->chart.get()->at(0).begin()
-                );
-                player.engine.get()->stats->Combo = 0;
-                player.engine.get()->stats->Misses += 1;
-                player.engine.get()->stats->AttemptedNotes += 1;
-                TraceLog(
-                    LOG_DEBUG,
-                    "Missed note %01i",
-                    player.engine.get()->stats->AttemptedNotes
-                );
-            }
-        }
-
-        if (!player.engine.get()->chart.get()->solos.empty()) {
-            solo &currentSolo = player.engine.get()->chart.get()->solos.front();
+        /*  0 is the top of the screen, and is earlier/negative in time
+         *
+         */
+        if (!chart->solos.empty()) {
+            solo &currentSolo = chart->solos.front();
             int ScrollPos = -1
                 * GetNotePos(
                     currentSolo.StartSec,
@@ -541,14 +550,12 @@ void GameplayMenu::Draw() {
             int ScrollEndPos = ScrollPos - NoteLength;
             int topPos = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth - 25;
             int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
-            DrawRectangle(NoteLength, topPos, ScrollEndPos, 25, SKYBLUE);
-            DrawRectangle(NoteLength, bottomPos, ScrollEndPos, 25, SKYBLUE);
+            DrawRectangle(topPos, NoteLength, 25, ScrollEndPos, SKYBLUE);
+            DrawRectangle(bottomPos, NoteLength, 25, ScrollEndPos, SKYBLUE);
             if (currentSolo.StartSec + currentSolo.EndSec < TheSongTime.GetSongTime())
-                player.engine.get()->chart.get()->solos.erase(
-                    player.engine.get()->chart.get()->solos.begin()
-                );
+                chart->solos.erase(chart.get()->solos.begin());
         }
-        if (!player.engine.get()->chart.get()->overdrive.empty()) {
+        if (!chart->overdrive.empty()) {
             odPhrase &currentSolo = player.engine.get()->chart.get()->overdrive.front();
             int ScrollPos = -1
                 * GetNotePos(
@@ -567,14 +574,33 @@ void GameplayMenu::Draw() {
             int ScrollEndPos = ScrollPos - NoteLength;
             int topPos = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth - 15;
             int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
-            DrawRectangle(NoteLength, topPos, ScrollEndPos, 15, GOLD);
-            DrawRectangle(NoteLength, bottomPos, ScrollEndPos, 15, GOLD);
+            DrawRectangle(topPos, NoteLength, 15, ScrollEndPos, GOLD);
+            DrawRectangle(bottomPos, NoteLength, 15, ScrollEndPos, GOLD);
             if (currentSolo.StartSec + currentSolo.EndSec < TheSongTime.GetSongTime())
                 player.engine.get()->chart.get()->overdrive.erase(
                     player.engine.get()->chart.get()->overdrive.begin()
                 );
         }
-        for (auto &note : player.engine.get()->chart.get()->at(0)) {
+
+        for (auto &note : NotePool) {
+            // basic miss check, only delays for showing misses
+            if (note.StartSeconds + goodBackend
+                    < TheSongTime.GetSongTime() - player.InputCalibration
+                && !note.NotePassed) {
+                player.engine->stats->Combo = 0;
+                player.engine->stats->Misses += 1;
+                player.engine->stats->AttemptedNotes += 1;
+                note.NotePassed = true;
+                player.engine->stats->AudioMuted = true;
+                Encore::EncoreLog(
+                    LOG_DEBUG,
+                    TextFormat("Missed note %01i", player.engine->stats->AttemptedNotes)
+                );
+            }
+            if (note.StartSeconds + note.LengthSeconds + goodBackend + 1
+                < TheSongTime.GetSongTime() - player.InputCalibration) {
+                player.engine->chart->at(0).erase(player.engine->chart->at(0).begin());
+            }
             int ScrollPos = -1
                 * GetNotePos(
                     note.StartSeconds,
@@ -596,45 +622,46 @@ void GameplayMenu::Draw() {
             DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
             while (x) {
                 uint8_t y = x & ~(x - 1);
-                int pos = MiddleOfScreen - (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
+                int pos = TrackLeft;
                 Color color = GREEN;
                 if (y == Encore::RhythmEngine::PlasticFrets[1]) {
-                    pos -= NoteXWidth;
+                    pos += NoteXWidth;
                     color = RED;
                 } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
-                    pos -= NoteXWidth * 2;
+                    pos += NoteXWidth * 2;
                     color = YELLOW;
                 } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
-                    pos -= NoteXWidth * 3;
+                    pos += NoteXWidth * 3;
                     color = BLUE;
                 } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
-                    pos -= NoteXWidth * 4;
+                    pos += NoteXWidth * 4;
                     color = ORANGE;
                 }
-                DrawRectangle(NoteLength, pos, ScrollEndPos, NoteXWidth, color);
+                if (note.NotePassed)
+                    color = MAROON;
+                DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
                 if (note.NoteType == 1) {
                     DrawRectangle(
-                        NoteLength + 5, pos + 5, ScrollEndPos - 10, NoteXWidth - 10, WHITE
+                        pos + 5, NoteLength + 5, NoteXWidth - 10, ScrollEndPos - 10, WHITE
                     );
                 }
                 x &= (x - 1);
             }
-            DrawRectangle(
-                (FakeStrikeline)-5,
-                MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
-                10,
-                NoteXWidth * 6,
-                BLACK
-            );
         }
+        DrawRectangle(
+            MiddleOfScreen - (NoteXWidth * 3),
+            (FakeStrikeline)-5,
+            NoteXWidth * 6,
+            10,
+            BLACK
+        );
         std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
-        player.engine.get()->stats;
-        for (int g = 0; g < player.engine.get()->stats->HeldFrets.size(); g++) {
-            if (player.engine.get()->stats->HeldFrets[g]) {
+        for (int g = 0; g < player.engine->stats->HeldFrets.size(); g++) {
+            if (player.engine->stats->HeldFrets[g]) {
                 Color background = grybo[g];
                 DrawRectangle(
+                    TrackLeft + (NoteXWidth * g),
                     (FakeStrikeline) - (NoteXWidth / 2),
-                    TrackLeft - (NoteXWidth * g),
                     NoteXWidth,
                     NoteXWidth,
                     background
@@ -642,25 +669,23 @@ void GameplayMenu::Draw() {
             }
         }
 
-        if (player.engine.get()->stats.get()->strumState
+        if (player.engine->stats->strumState
             == Encore::RhythmEngine::StrumState::UpStrum) {
-            Color background = grybo[0];
             DrawRectangle(
-                (FakeStrikeline)-10,
                 MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
-                10,
+                (FakeStrikeline)-10,
                 NoteXWidth * 6,
+                10,
                 WHITE
             );
         }
         if (player.engine.get()->stats.get()->strumState
             == Encore::RhythmEngine::StrumState::DownStrum) {
-            Color background = grybo[0];
             DrawRectangle(
-                (FakeStrikeline),
                 MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
-                10,
+                (FakeStrikeline),
                 NoteXWidth * 6,
+                10,
                 WHITE
             );
         }
@@ -669,8 +694,10 @@ void GameplayMenu::Draw() {
                 == stream.instrument) {
                 TheAudioManager.SetAudioStreamVolume(
                     stream.handle,
-                    TheGameSettings.avMainVolume
-                        * TheGameSettings.avActiveInstrumentVolume
+                    player.engine->stats->AudioMuted
+                        ? TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume
+                        : TheGameSettings.avMainVolume
+                            * TheGameSettings.avActiveInstrumentVolume
                 );
             } else {
                 TheAudioManager.SetAudioStreamVolume(
