@@ -14,6 +14,10 @@ namespace Encore::RhythmEngine {
         UpStrum = 1,
         DownStrum = 2
     };
+    enum StatsType {
+        Pad = 1,
+        Guitar = 0
+    };
     /**
      * @brief BaseStats is the default base class for handling statistics
      * that Encore needs to keep track of. This is basic gameplay information,
@@ -39,6 +43,7 @@ namespace Encore::RhythmEngine {
         double OverdriveActivationTick = 0.0;
         bool OverdriveActive = false;
 
+        int Type = 0;
         double Score = 0;
         int Combo = 0;
         int PerfectHits = 0;
@@ -54,7 +59,7 @@ namespace Encore::RhythmEngine {
         StrumState strumState = StrumState::Default;
         void HitNote(int chordSize) {
             Combo++;
-            Score = (25 * chordSize) * multiplier();
+            Score += (25 * chordSize) * multiplier();
             // PerfectHits = 0;
             NotesHit++;
             AttemptedNotes++;

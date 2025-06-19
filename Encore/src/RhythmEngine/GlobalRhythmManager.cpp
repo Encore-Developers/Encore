@@ -8,6 +8,7 @@
 #include "song/songlist.h"
 
 namespace Encore::RhythmEngine {
+    /*
     double
     GlobalRhythmManager::TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {
         double timeDelta = timeEnd - timeStart;
@@ -15,10 +16,10 @@ namespace Encore::RhythmEngine {
         return beatDelta * 480.0;
     }
     void GlobalRhythmManager::UpdateTime() {
-        CurrentTime = TheSongTime.GetSongTime();
+        CurrentTime = TheSongTime.GetElapsedTime();
     }
     void GlobalRhythmManager::UpdateCurrentBeat() {
-        if (TheSongTime.GetSongTime() > TheSongList.curSong->bpms[CurrentBPM].time
+        if (TheSongTime.GetElapsedTime() > TheSongList.curSong->bpms[CurrentBPM].time
             && CurrentBPM < TheSongList.curSong->bpms.size() - 1)
             CurrentBPM++;
     }
@@ -34,5 +35,6 @@ namespace Encore::RhythmEngine {
     void GlobalRhythmManager::EndFrameTick() {
         LastTick = CurrentTick;
     }
+    */
 
 }

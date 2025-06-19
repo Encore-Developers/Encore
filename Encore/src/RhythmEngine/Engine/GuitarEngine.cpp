@@ -8,20 +8,8 @@
 #include "gameplay/enctime.h"
 
 #include <bit>
+#include <filesystem>
 
-bool EarlyStrike(double noteStartTime, double inputTime, double inputOffset) {
-    if (noteStartTime - goodFrontend > inputTime - inputOffset) {
-        return true;
-    }
-    return false;
-}
-bool InHitwindow(double noteStartTime, double inputTime, double inputOffset) {
-    if ((noteStartTime - goodFrontend < inputTime - inputOffset)
-        && (noteStartTime + goodBackend > inputTime - inputOffset)) {
-        return true;
-    }
-    return false;
-}
 bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
     // chord check
     if (std::has_single_bit(noteMask)) {
@@ -56,16 +44,22 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
     if (stats->OverdriveFill >= 0.25 && channel == InputChannel::OVERDRIVE
         && action == Action::PRESS) {
         stats->OverdriveActive = true;
-        stats->OverdriveActivationTime = TheSongTime.GetSongTime(); // todo: set to
+        stats->OverdriveActivationTime = TheSongTime.GetElapsedTime(); // todo: set to
                                                                     // current input time
         return true;
     }
     return false;
 }
+void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
+    CheckMissedNotes(0, TheSongTime.GetElapsedTime());
+    stats->OverdriveFill += chart->overdrive.CheckOverdrive(CurrentTime);
+    if (stats->OverdriveFill > 1.0) stats->OverdriveFill = 1.0;
+    // there is ONLY lane 0 for guitar
+}
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
     InputChannel channel, Action action
 ) {
-    stats->InputTime = TheSongTime.GetSongTime(); // todo: REPLACE WITH ACTUAL SONG TIME
+    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG TIME
                                                   // (IN SECONDS)
     if (action == Action::PRESS) {
         switch (channel) {
@@ -113,12 +107,15 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
 int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
     InputChannel channel, Action action
 ) {
-    if (chart->empty())
+    if (chart->at(0).empty())
         return CheckNextInput;
-    ;
+
     auto curNoteItr = chart->at(0).begin();
     while (curNoteItr->StartSeconds + goodBackend
-           < TheSongTime.GetSongTime() - stats->InputOffset) {
+           < TheSongTime.GetElapsedTime() - stats->InputOffset) {
+        if (curNoteItr + 1 == chart->at(0).end()) {
+            return CheckNextInput;
+        }
         ++curNoteItr;
     }
     EncNote &CurrentNote = *curNoteItr;
@@ -130,6 +127,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
         // miss should be managed by current frame
         // overhit is managed here
         if (EarlyStrike(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
+            chart->overdrive.UpdateEventViaNote(false, CurrentNote.StartTicks);
             return OverhitNote;
         }
         // if frets match, continue and try to hit
@@ -155,7 +153,8 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
         && InHitwindow(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)
         && (HittableAsHopo(CurrentNote.NoteType, stats->Combo)
             || HittableAsTap(CurrentNote.NoteType) || strum)) {
-        stats->HitNote(std::popcount(chart->at(0).front().Lane));
+        stats->HitNote(std::popcount(CurrentNote.Lane));
+        chart->overdrive.UpdateEventViaNote(true, CurrentNote.StartTicks);
         stats->FretAfterStrum = false;
         chart->at(0).erase(curNoteItr);
         return HitState::HitNote;

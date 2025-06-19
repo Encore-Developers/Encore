@@ -40,6 +40,7 @@ namespace Encore::RhythmEngine {
 
 
     public:
+        void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(InputChannel channel, Action action) override;
         void HitNote() override;
         void Overhit() override;

@@ -9,6 +9,8 @@
 #include "uiUnits.h"
 #include "RhythmEngine/ChartLoaders/GuitarLoader.h"
 #include "RhythmEngine/ChartLoaders/PadLoader.h"
+#include "RhythmEngine/Engine/PadEngine.h"
+#include "gameplay/enctime.h"
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
 
@@ -21,6 +23,9 @@ void LoadCharts() {
     smf::MidiFile midiFile;
     midiFile.read(TheSongList.curSong->midiPath.string());
     midiFile.doTimeAnalysis();
+    TheSongTime.BeatmapFromMidiTrack(
+        midiFile, TheSongList.curSong->BeatTrackID, TheSongList.curSong->endTick
+    );
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
@@ -51,6 +56,8 @@ void LoadCharts() {
                         ),
                         std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
                     );
+                ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
+                    Encore::RhythmEngine::Guitar;
             } else if (inst == PlasticDrums) {
                 // chart.plastic = true;
                 // chart.parsePlasticDrums(
@@ -60,6 +67,15 @@ void LoadCharts() {
                 midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::PadLoader chartLoader(diff);
                 chartLoader.LoadChart(midiFile[track]);
+
+                ThePlayerManager.GetActivePlayer(playerNum).engine =
+                    std::make_shared<Encore::RhythmEngine::PadEngine>(
+                        std::make_shared<Encore::RhythmEngine::PadChart>(chartLoader.chart
+                        ),
+                        std::make_shared<Encore::RhythmEngine::PadStats>(0)
+                    );
+                ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
+                    Encore::RhythmEngine::Pad;
                 // todo: make pad engine shit how did u forget
             }
 
@@ -98,8 +114,8 @@ void ChartLoadingMenu::Load() {
     // ThePlayerManager.BandStats = new BandGameplayStats;
     TheSongList.curSong->LoadAlbumArt();
     LoadCharts();
-    //std::thread ChartLoader(LoadCharts);
-    //ChartLoader.detach();
+    // std::thread ChartLoader(LoadCharts);
+    // ChartLoader.detach();
 }
 
 void ChartLoadingMenu::Draw() {

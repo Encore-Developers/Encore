@@ -9,6 +9,7 @@
 namespace Encore::RhythmEngine {
     class GuitarStats final : public BaseStats<5> {
     public:
+        int Type = 0;
         explicit GuitarStats(int BaseScore) : BaseStats<5>(BaseScore) {}
         double FretAfterStrumTime = -1;
         bool FretAfterStrum = false;

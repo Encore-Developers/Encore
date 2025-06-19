@@ -87,9 +87,16 @@ Encore::RhythmEngine::GuitarLoader::GetNoteType(const smf::MidiEvent &event) {
             return 0;
         }
     }
-    if (!chart.empty()) {
-        if (chart[0].back().StartTicks + 170 >= event.tick) {
-            return 1;
+    if (!chart[0].empty()) {
+        // DUDE ARE YOU A FUCKING MORON
+        // HOPOS HAVE SPECIFIC REQURIEMENTS TO BE HOPOS, NOT JUST "its close enough"
+        // GOD FUCKING DAMN
+        // ALSO THAT IF STATEMENT IS FUCKING UTTERLY USELESS
+        // oh my god i might DIE what the FUCK
+        if (chart[0].back().Lane != PlasticFrets[GetEventLane(Difficulty, event)]) {
+            if (chart[0].back().StartTicks + 170 >= event.tick) {
+                return 1;
+            }
         }
     }
     return 0;
@@ -130,11 +137,17 @@ void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track
     }
 }
 void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event) {
+    int lengthTicks = event.getLinkedEvent()->tick - event.tick;
+    double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
+    if (event.getLinkedEvent()->tick - event.tick < 170) {
+        lengthTicks = 0;
+        lengthSec = 0;
+    }
     chart[0].push_back(
         { event.tick,
-          event.getLinkedEvent()->tick - event.tick,
+          lengthTicks,
           event.seconds,
-          event.getLinkedEvent()->seconds - event.seconds,
+          lengthSec,
           GetNoteType(event),
           PlasticFrets[GetEventLane(Difficulty, event)] }
     );
@@ -187,6 +200,12 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
             }
             if (chart[0].back().StartTicks == event.tick) {
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
+                chart[0].back().NoteType = 0;
+                if (!ForceHopoOn.empty()) {
+                    if (ForceHopoOn.front().first <= event.tick) {
+                        chart[0].back().NoteType = 1;
+                    }
+                }
             } else {
                 CreateNote(event);
             }

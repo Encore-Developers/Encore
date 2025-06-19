@@ -7,6 +7,7 @@
 #include "song/song.h"
 
 namespace Encore::RhythmEngine {
+    /*
     class GlobalRhythmManager {
         static double TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm);
 
@@ -21,6 +22,7 @@ namespace Encore::RhythmEngine {
         void EndFrameTick();
     };
     GlobalRhythmManager TheRhythmManager;
+    */
 }
 
 #endif // GLOBALRHYTHMMANAGER_H

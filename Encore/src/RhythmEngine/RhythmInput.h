@@ -27,7 +27,7 @@ namespace Encore::RhythmEngine {
         }
 
         void ProcessInput(InputChannel channel, Action action) {
-            double time = TheSongTime.GetSongTime();
+            double time = TheSongTime.GetElapsedTime();
             if (action == Action::REPEAT)
                 return;
             if (action == Action::PRESS) {

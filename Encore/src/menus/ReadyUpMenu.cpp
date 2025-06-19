@@ -143,6 +143,9 @@ void ReadyUpMenu::Draw() {
                 if (songPart == BeatLines) {
                     TheSongList.curSong->BeatTrackID = track;
                 }
+                if (songPart == Events) {
+                    TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
+                }
             }
 
 

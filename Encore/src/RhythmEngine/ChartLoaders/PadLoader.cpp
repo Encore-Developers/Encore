@@ -48,7 +48,7 @@ void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
 
 [[nodiscard]] int
 Encore::RhythmEngine::PadLoader::GetNoteType(const smf::MidiEvent &event) {
-    if (!LiftMarkers.empty()) {
+    if (!LiftMarkers[GetEventLane(Difficulty, event)].empty()) {
         if (LiftMarkers[GetEventLane(Difficulty, event)].front() == event.tick) {
             return 1; // lift
         }
@@ -79,18 +79,26 @@ void Encore::RhythmEngine::PadLoader::GetChartEvents(smf::MidiEventList track) {
 }
 
 void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
+    int lengthTicks = event.getLinkedEvent()->tick - event.tick;
+    double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
+    if (event.getLinkedEvent()->tick - event.tick < 170) {
+        lengthTicks = 0;
+        lengthSec = 0;
+    }
     chart[GetEventLane(Difficulty, event)].push_back(
         {
             event.tick,
-            event.getLinkedEvent()->tick - event.tick,
+            lengthTicks,
             event.seconds,
-            event.getLinkedEvent()->seconds - event.seconds,
+            lengthSec,
             GetNoteType(event),
         }
     );
     // i hate how solos need note counts before entering lol
-    if (event.tick >= chart.solos[CurrentSolo].StartTick) {
-        chart.solos[CurrentSolo].NoteCount++;
+    if (!chart.solos.empty()) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
+            chart.solos[CurrentSolo].NoteCount++;
+        }
     }
 }
 
@@ -98,9 +106,10 @@ void Encore::RhythmEngine::PadLoader::GetNotes(smf::MidiEventList track) {
     track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
+        if (event[0] == 255) continue;
         CheckEvents(event);
-        CheckModifiers(event);
-        if (IsInLiftMarkerRange(Difficulty, event) && event.isNoteOn()) {
+        if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
+            CheckModifiers(event);
             CreateNote(event);
         }
     }
