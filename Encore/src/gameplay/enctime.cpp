@@ -11,16 +11,16 @@ void SongTime::BeatmapFromMidiTrack(
     smf::MidiEventList &track = midiFile[0];
     for (int i = 0; i < track.getSize(); i++) {
         if (track[i].isTempo()) {
-            BPMChanges.push_back(
-                { midiFile.getTimeInSeconds(0, i), track[i].getTempoBPM(), track[i].tick }
+            BPMChanges.emplace_back(
+                midiFile.getTimeInSeconds(0, i), track[i].getTempoBPM(), track[i].tick
             );
             // std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
             //           << events[i].getTempoBPM() << std::endl;
         } else if (track[i].isMeta() && track[i][1] == 0x58) {
             int numer = (int)track[i][3];
             int denom = pow(2, (int)track[i][4]);
-            TimeSigChanges.push_back(
-                { midiFile.getTimeInSeconds(0, i), numer, denom, track[i].tick }
+            TimeSigChanges.emplace_back(
+                midiFile.getTimeInSeconds(0, i), numer, denom, track[i].tick
             );
             // std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ":
             // "
@@ -28,8 +28,8 @@ void SongTime::BeatmapFromMidiTrack(
         }
     }
     if (TimeSigChanges.empty()) {
-        TimeSigChanges.push_back({ 0, 4, 4, 0 }); // midi always assumed to be 4/4 if time
-                                                  // sig
+        TimeSigChanges.emplace_back(0, 4, 4, 0); // midi always assumed to be 4/4 if time
+                                                 // sig
         // event isn't found
     }
     GenerateBeatmap(songEndTick);

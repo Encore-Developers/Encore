@@ -45,7 +45,8 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
         && action == Action::PRESS) {
         stats->OverdriveActive = true;
         stats->OverdriveActivationTime = TheSongTime.GetElapsedTime(); // todo: set to
-                                                                    // current input time
+                                                                       // current input
+                                                                       // time
         return true;
     }
     return false;
@@ -59,7 +60,8 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
     InputChannel channel, Action action
 ) {
-    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG TIME
+    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG
+                                                     // TIME
                                                   // (IN SECONDS)
     if (action == Action::PRESS) {
         switch (channel) {

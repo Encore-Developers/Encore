@@ -9,12 +9,15 @@
 #include <vector>
 
 struct BPM {
+    BPM(double _time, int _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
     double time;
     double bpm;
     int tick;
 };
 
 struct TimeSig {
+    TimeSig(double _time, int _numer, int _denom, int _tick)
+        : time(_time), numer(_numer), denom(_denom), tick(_tick) {};
     double time;
     int numer;
     int denom;
@@ -27,6 +30,8 @@ enum BeatType {
 };
 
 struct Beatline {
+    Beatline(double _time, int _tick, int _type)
+        : time(_time), tick(_tick), type(_type) {};
     double time;
     int tick;
     int type = Major;
