@@ -2,6 +2,7 @@
 #include "enctime.h"
 
 #include <iostream>
+#include <cmath>
 
 SongTime TheSongTime;
 
