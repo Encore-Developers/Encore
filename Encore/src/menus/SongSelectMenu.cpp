@@ -338,7 +338,7 @@ void SongSelectMenu::Draw() {
         if (isCurSong && i == animatingSongID) {
             float t = (float)(curTime - animationStartTime) / animationDuration;
             if (t < 1.0f) {
-                t = EaseInOutQuad(t); // Apply easing
+                t = EaseInOutQuad(t);
                 currentEntryHeight = baseSongEntryHeight + (selectedSongEntryHeight - baseSongEntryHeight) * t;
             } else {
                 currentEntryHeight = selectedSongEntryHeight;

@@ -3,8 +3,12 @@
 
 #include <set>
 
+#include <algorithm>
+#include <nlohmann/json.hpp>
+#include <fstream>
 #include "util/binary.h"
 
+using json = nlohmann::json;
 // sorting
 void SongList::Clear() {
     listMenuEntries.clear();
@@ -86,7 +90,6 @@ void SongList::sortList(SortType sortType) {
         std::sort(songs.begin(), songs.end(), sortSource);
         break;
     case SortType::Length:
-        std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortLen);
         break;
     case SortType::Year:
@@ -99,7 +102,11 @@ void SongList::sortList(SortType sortType) {
 }
 
 void SongList::sortList(SortType sortType, int &selectedSong) {
-    Song &curSong = songs[selectedSong];
+    Song curSong;
+    bool hasCurrentSong = selectedSong >= 0 && selectedSong < songs.size();
+    if (hasCurrentSong) {
+        curSong = songs[selectedSong];
+    }
     selectedSong = 0;
     switch (sortType) {
     case SortType::Title:
@@ -114,7 +121,6 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
         std::sort(songs.begin(), songs.end(), sortSource);
         break;
     case SortType::Length:
-        std::sort(songs.begin(), songs.end(), sortTitle);
         std::sort(songs.begin(), songs.end(), sortLen);
         break;
     case SortType::Year:
@@ -123,10 +129,12 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
     break;
     default:;
     }
-    for (int i = 0; i < songs.size(); i++) {
-        if (songs[i].artist == curSong.artist && songs[i].title == curSong.title) {
-            selectedSong = i;
-            break;
+    if (hasCurrentSong) {
+        for (size_t i = 0; i < songs.size(); i++) {
+            if (songs[i].artist == curSong.artist && songs[i].title == curSong.title) {
+                selectedSong = i;
+                break;
+            }
         }
     }
     listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
@@ -180,26 +188,114 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
             }
 
             directoryCount++;
-            if (std::filesystem::exists(entry.path() / "info.json")) {
-                Song song;
-                song.LoadSong(entry.path() / "info.json");
-                songs.push_back(std::move(song));
-                songCount++;
-            } else if (std::filesystem::exists(entry.path() / "song.ini")) {
-                Song song;
+            Song song;
+            std::filesystem::path infoPath = entry.path() / "info.json";
+            if (std::filesystem::exists(infoPath)) {
+                song.LoadSong(infoPath);
+                try {
+                    json infoData;
+                    std::ifstream infoFile(infoPath);
+                    infoFile >> infoData;
+                    infoFile.close();
 
+                    if (infoData.contains("source") && infoData["source"].is_string()) {
+                        song.source = infoData["source"].get<std::string>();
+                        if (song.source.empty()) {
+                            song.source = "Unknown Source";
+                        }
+                    } else {
+                        song.source = "Unknown Source";
+                    }
+
+                    if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
+                        song.releaseYear = infoData["release_year"].get<std::string>();
+                        if (song.releaseYear.empty()) {
+                            song.releaseYear = "Unknown Year";
+                        }
+                    } else {
+                        song.releaseYear = "Unknown Year";
+                    }
+
+                    if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
+                        song.previewStartTime = infoData["preview_start_time"].get<int>();
+                    } else {
+                        song.previewStartTime = 3000;
+                    }
+
+                } catch (const std::exception& e) {
+                    song.source = "Unknown Source";
+                    song.releaseYear = "Unknown Year";
+                    song.previewStartTime = 500;
+                }
+            } else if (std::filesystem::exists(entry.path() / "song.ini")) {
                 song.songInfoPath = (entry.path() / "song.ini").string();
                 song.songDir = entry.path().string();
                 song.LoadSongIni(entry.path());
                 song.ini = true;
-                songs.push_back(std::move(song));
-                songCount++;
+                if (std::filesystem::exists(infoPath)) {
+                    try {
+                        json infoData;
+                        std::ifstream infoFile(infoPath);
+                        infoFile >> infoData;
+                        infoFile.close();
+
+                        if (infoData.contains("source") && infoData["source"].is_string()) {
+                            song.source = infoData["source"].get<std::string>();
+                            if (song.source.empty()) {
+                                song.source = "Unknown Source";
+                            }
+                        } else {
+                            song.source = "Unknown Source";
+                        }
+
+                        if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
+                            song.releaseYear = infoData["release_year"].get<std::string>();
+                            if (song.releaseYear.empty()) {
+                                song.releaseYear = "Unknown Year";
+                            }
+                        } else {
+                            song.releaseYear = "Unknown Year";
+                        }
+
+                        if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
+                            song.previewStartTime = infoData["preview_start_time"].get<int>();
+                        } else {
+                            song.previewStartTime = 500;
+                        }
+
+                        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Read metadata for INI song %s - %s from %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str()));
+                    } catch (const std::exception& e) {
+                        Encore::EncoreLog(LOG_ERROR, TextFormat("CACHE: Failed to read metadata for INI song %s - %s from %s: %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str(), e.what()));
+                        song.source = "Unknown Source";
+                        song.releaseYear = "Unknown Year";
+                        song.previewStartTime = 500;
+                    }
+                } else {
+                    song.source = "Unknown Source";
+                    song.releaseYear = "Unknown Year";
+                    song.previewStartTime = 500;
+                    Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: No info.json for INI song %s - %s, using default metadata", song.title.c_str(), song.artist.c_str()));
+                }
+            } else {
+                continue;
             }
+
+            songs.push_back(std::move(song));
+            songCount++;
         }
     }
 
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
+}
+
+std::string GetLengthHeader(int length) {
+    if (length < 60) return "< 1:00";
+    if (length < 120) return "1:00-2:00";
+    if (length < 180) return "2:00-3:00";
+    if (length < 240) return "3:00-4:00";
+    if (length < 300) return "4:00-5:00";
+    return "5:00+";
 }
 
 std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
@@ -208,54 +304,41 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
     std::vector<ListMenuEntry> songEntries;
     std::string currentHeader = "";
     int pos = 0;
-    for (int i = 0; i < songs.size(); i++) {
+    for (size_t i = 0; i < songs.size(); i++) {
         const Song &song = songs[i];
+        std::string header;
         switch (sortType) {
         case SortType::Title: {
             std::string title = removeArticle(TextToLower(song.title.c_str()));
-            if (toupper(title[0]) != currentHeader[0]) {
-                currentHeader = toupper(title[0]);
-                songEntries.emplace_back(true, 0, currentHeader, false);
-                pos++;
-            }
+            header = title.empty() ? "#" : std::string(1, toupper(title[0]));
             break;
         }
         case SortType::Artist: {
             std::string artist = removeArticle(song.artist);
-            if (artist != currentHeader) {
-                currentHeader = song.artist;
-                songEntries.emplace_back(true, 0, currentHeader, false);
-                pos++;
-            }
+            header = artist.empty() ? "#" : artist;
             break;
         }
         case SortType::Source: {
             std::string source = removeArticle(song.source);
-            if (source != currentHeader) {
-                currentHeader = song.source;
-                songEntries.emplace_back(true, 0, currentHeader, false);
-                pos++;
-            }
+            header = source.empty() ? "Unknown" : source;
             break;
         }
         case SortType::Length: {
-            if (std::to_string(song.length) != currentHeader) {
-                currentHeader = std::to_string(song.length);
-                songEntries.emplace_back(true, 0, currentHeader, false);
-                pos++;
-            }
+            header = GetLengthHeader(song.length);
             break;
         }
         case SortType::Year: {
-            std::string year = removeArticle(song.releaseYear);
-            if (year != currentHeader) {
-                currentHeader = song.releaseYear;
-                songEntries.emplace_back(true, 0, currentHeader, false);
-                pos++;
-            }
+            header = song.releaseYear.empty() ? "Unknown Year" : song.releaseYear;
             break;
         }
-        default:;
+        default:
+            header = "#";
+            break;
+        }
+        if (header != currentHeader) {
+            currentHeader = header;
+            songEntries.emplace_back(true, 0, currentHeader, false);
+            pos++;
         }
         songEntries.emplace_back(false, i, "", false);
         pos++;
