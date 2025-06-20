@@ -32,6 +32,7 @@ namespace Encore {
         static void UpdateMusicStream(unsigned int handle);
         void unpauseStreams() const;
         static void SetAudioStreamVolume(unsigned int handle, float volume);
+        static void SetAudioStreamPosition(unsigned int handle, double time);
         static void BeginPlayback(unsigned int handle);
         static void StopPlayback(unsigned int handle);
 
