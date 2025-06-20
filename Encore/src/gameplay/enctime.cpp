@@ -19,7 +19,7 @@ void SongTime::BeatmapFromMidiTrack(
             //           << events[i].getTempoBPM() << std::endl;
         } else if (track[i].isMeta() && track[i][1] == 0x58) {
             int numer = (int)track[i][3];
-            int denom = pow(2, (int)track[i][4]);
+            int denom = pow(2, track[i][4]);
             TimeSigChanges.emplace_back(
                 midiFile.getTimeInSeconds(0, i), numer, denom, track[i].tick
             );

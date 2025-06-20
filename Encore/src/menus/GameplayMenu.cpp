@@ -451,7 +451,7 @@ void GameplayMenu::Draw() {
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     // if (ThePlayerManager.BandStats->PlayersInOverdrive > 0) {
-    BackgroundColor = BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 8, 960);
+   // BackgroundColor = BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 8, 960);
     //}
     if (!songPlaying) {
         TheSongTime.Reset();
@@ -502,6 +502,26 @@ void GameplayMenu::Draw() {
               float(FakeStrikeline) + u.hinpct(0.1) },
             u.hinpct(0.05),
             WHITE,
+            assets.sdfShader,
+            0
+        );
+        std::string FASState = player.engine->Timers["FAS"].CanBeUsedUp(curTime) ? "FAS Active" : "";
+        GameMenu::mhDrawText(
+            assets.rubik,
+            FASState,
+            { MiddleOfScreen + (NoteXWidth * 5.0f), float(FakeStrikeline)},
+            u.hinpct(0.05),
+            GREEN,
+            assets.sdfShader,
+            0
+        );
+        std::string SAHState = player.engine->Timers["SAH"].CanBeUsedUp(curTime) ? "SAH Active" : "";
+        GameMenu::mhDrawText(
+            assets.rubik,
+            SAHState,
+            { MiddleOfScreen + (NoteXWidth * 5.0f), float(FakeStrikeline) + u.hinpct(0.5)},
+            u.hinpct(0.05),
+            GREEN,
             assets.sdfShader,
             0
         );

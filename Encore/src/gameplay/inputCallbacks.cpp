@@ -10,7 +10,7 @@
 #include <cstring>
 
 void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
-   Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s", key, ToString(TheMenuManager.currentScreen)) );
+    // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s", key, ToString(TheMenuManager.currentScreen)) );
     switch (TheMenuManager.currentScreen) { // NOTE: when adding a new Menu
                                             // derivative, you
         // must put its enum value in Screens, and its

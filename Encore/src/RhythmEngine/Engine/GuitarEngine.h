@@ -9,7 +9,6 @@
 
 namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
-
         bool ActivateOverdrive(InputChannel channel, Action action) override;
 
         /*
@@ -38,8 +37,8 @@ namespace Encore::RhythmEngine {
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
 
-
     public:
+        std::unordered_map<std::string, RhythmTimer> Timers;
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(InputChannel channel, Action action) override;
         void HitNote() override;
@@ -47,7 +46,12 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<GuitarChart> chart;
         std::shared_ptr<GuitarStats> stats;
         GuitarEngine(auto _chart, auto _stats)
-            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {};
+            : BaseEngine(_chart, _stats),
+              Timers{
+                  std::pair<std::string, RhythmTimer>("FAS", 0.025),
+                  std::pair<std::string, RhythmTimer>("SAH", 0.05)
+              },
+              chart(_chart), stats(_stats) {};
         ~GuitarEngine() override {};
     };
 }

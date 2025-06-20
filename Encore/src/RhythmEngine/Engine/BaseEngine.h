@@ -5,13 +5,17 @@
 #ifndef BASEENGINE_H
 #define BASEENGINE_H
 #include "BaseStats.h"
+#include "RhythmTimer.h"
 #include "timingvalues.h"
 #include "RhythmEngine/NoteVector.h"
 
 #include <memory>
 #include <span>
+#include <unordered_map>
 
 namespace Encore::RhythmEngine {
+
+
     enum HitState {
         HitNote = 0,
         OverhitNote = 1,
@@ -20,7 +24,7 @@ namespace Encore::RhythmEngine {
 
     class BaseEngine {
     public:
-        BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats) {};
+        BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats), Timers() {};
         virtual ~BaseEngine() {};
         virtual void SetStatsInputState(InputChannel channel, Action action) {};
         bool EarlyStrike(double noteStartTime, double inputTime, double inputOffset) {
@@ -46,7 +50,7 @@ namespace Encore::RhythmEngine {
          */
         std::shared_ptr<BaseChart<EncNote, 5> > chart;
         std::shared_ptr<BaseStats<5> > stats;
-
+        std::unordered_map<std::string, RhythmTimer> Timers;
         virtual void UpdateOnFrame(double CurrentTime) {
 
         };
