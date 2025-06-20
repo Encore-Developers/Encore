@@ -131,10 +131,10 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
         // overhit is managed here
         if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
             Timers["SAH"].ResetTimer();
+            TraceLog(LOG_DEBUG, "SAH Disabled");
             return CheckNextInput;
         }
         if (EarlyStrike(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
-
             chart->overdrive.UpdateEventViaNote(false, CurrentNote.StartTicks);
             return OverhitNote;
         }
@@ -142,6 +142,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
         if (InHitwindow(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
             if (!MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())) {
                 Timers["FAS"].ActivateTimer(stats->InputTime);
+                EncoreLog(LOG_DEBUG, "FAS Enabled");
                 return CheckNextInput;
             }
         }
@@ -156,11 +157,13 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
             || HittableAsTap(CurrentNote.NoteType) || strum)) {
         stats->HitNote(std::popcount(CurrentNote.Lane));
         chart->overdrive.UpdateEventViaNote(true, CurrentNote.StartTicks);
-        if (CurrentNote.NoteType == 1 && !StrumInput && !Timers["FAS"].CanBeUsedUp(stats->InputTime)) {
+        if (CurrentNote.NoteType == 1 && !StrumInput
+            && !Timers["FAS"].CanBeUsedUp(stats->InputTime)) {
             Timers["SAH"].ActivateTimer(stats->InputTime);
+            EncoreLog(LOG_DEBUG, "SAH Enabled");
         }
         Timers["FAS"].ResetTimer();
-
+        EncoreLog(LOG_DEBUG, "FAS Disabled");
         chart->at(0).erase(curNoteItr);
         return HitState::HitNote;
     }

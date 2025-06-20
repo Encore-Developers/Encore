@@ -46,7 +46,11 @@ void LoadCharts() {
             // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
                 midiFile[track].linkNotePairs();
-                Encore::RhythmEngine::GuitarLoader chartLoader(diff);
+                Encore::EncoreLog(
+                LOG_DEBUG,
+                TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
+            );
+                Encore::RhythmEngine::GuitarLoader chartLoader(diff, TheSongList.curSong->hopoThreshold);
                 chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =

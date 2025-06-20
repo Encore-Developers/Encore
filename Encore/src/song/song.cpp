@@ -50,6 +50,8 @@ void Song::LoadInfoINI(std::filesystem::path iniPath) {
     releaseYear = ini.GetString("song", "year", "Unknown Year");
 
     hopoThreshold = ini.GetInteger("song", "hopo_threshold", 170);
+    hopoThreshold = ini.GetInteger("song", "hopo_frequency", 170);
+
     length = ini.GetInteger("song", "song_length", 0);
 
     parts[PlasticGuitar]->diff = ini.GetInteger("song", "diff_guitar", -1);

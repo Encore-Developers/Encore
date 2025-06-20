@@ -15,7 +15,6 @@
 
 namespace Encore::RhythmEngine {
 
-
     enum HitState {
         HitNote = 0,
         OverhitNote = 1,
@@ -24,7 +23,7 @@ namespace Encore::RhythmEngine {
 
     class BaseEngine {
     public:
-        BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats), Timers() {};
+        BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats) {};
         virtual ~BaseEngine() {};
         virtual void SetStatsInputState(InputChannel channel, Action action) {};
         bool EarlyStrike(double noteStartTime, double inputTime, double inputOffset) {
@@ -94,7 +93,6 @@ namespace Encore::RhythmEngine {
                 chart->at(lane).erase(chart->at(lane).begin());
             }
         }
-
     private:
         virtual bool PlayerIsPaused() = 0;
         virtual void TogglePause() = 0;

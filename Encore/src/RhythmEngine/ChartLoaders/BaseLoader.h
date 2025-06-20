@@ -31,11 +31,11 @@ namespace Encore::RhythmEngine {
         // run these few things:
         // midiFile.absoluteTicks();
         // midiFile.doTimeAnalysis();
-        BaseLoader(int diff_) : Difficulty(diff_) {}
+        BaseLoader(int diff_, int thresh_) : Difficulty(diff_), Threshold(thresh_) {}
 
         ChartType chart;
         int Difficulty;
-
+        int Threshold; // shouldnt be here but who care
         virtual void LoadChart(smf::MidiEventList track) {
             track.linkNotePairs();
             // first get events, hopos, taps, lifts, the likes

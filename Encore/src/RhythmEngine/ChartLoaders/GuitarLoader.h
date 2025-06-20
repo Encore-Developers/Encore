@@ -32,7 +32,8 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        GuitarLoader(int diff_) : BaseLoader(Difficulty = diff_) {}
+        GuitarLoader(int diff_, int thresh_)
+            : BaseLoader(Difficulty = diff_, Threshold = thresh_) {}
     };
 }
 

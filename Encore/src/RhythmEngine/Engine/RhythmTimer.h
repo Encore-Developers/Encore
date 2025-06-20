@@ -26,10 +26,11 @@ namespace Encore::RhythmEngine {
             Time = -1;
             Active = false;
         }
+
     private:
         double Duration;
         double Time;
         bool Active;
     };
-    }
-#endif //RHYTHMTIMER_H
+}
+#endif // RHYTHMTIMER_H
