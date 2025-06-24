@@ -29,6 +29,8 @@ struct TimeSig {
 // the "delta" would just be this "tick" + the current % of time between this tick and the
 // next, if the next exists in fact i think this could just be a vector of double
 struct OverdriveTick {
+    OverdriveTick(double _time, int _tick)
+        : time(_time), tick(_tick) {};
     double time;
     int tick;
 };
