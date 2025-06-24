@@ -4,7 +4,8 @@
 
 #include "PadLoader.h"
 
-Encore::RhythmEngine::PadLoader::PadLoader(int diff_) : BaseLoader(Difficulty = diff_, Threshold = 170) {}
+Encore::RhythmEngine::PadLoader::PadLoader(int diff_)
+    : BaseLoader(Difficulty = diff_, Threshold = 170) {}
 
 [[nodiscard]] bool IsInLiftMarkerRange(int diff, const smf::MidiEvent &event) {
     return event[1] >= LiftMinMaxDiff[diff].first

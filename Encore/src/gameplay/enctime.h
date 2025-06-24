@@ -23,6 +23,15 @@ struct TimeSig {
     int denom;
     int tick;
 };
+// these are defined by position in BEAT or made off of the chart's beatmap if no BEAT
+// exists i think it should just be position? theres no real reason to have length i think
+// maybe the tick its at? but that doesnt matter since its like. a timeline.
+// the "delta" would just be this "tick" + the current % of time between this tick and the
+// next, if the next exists in fact i think this could just be a vector of double
+struct OverdriveTick {
+    double time;
+    int tick;
+};
 enum BeatType {
     Major = 1,
     Minor = 0,
@@ -47,6 +56,8 @@ private:
     bool paused = false;
 
 public:
+    std::vector<OverdriveTick> OverdriveTicks {};
+    int CurrentODTickItr;
     std::vector<BPM> BPMChanges {};
     int CurrentBPM;
     std::vector<TimeSig> TimeSigChanges {};
@@ -55,10 +66,13 @@ public:
     int CurrentBeatline;
 
     SongTime() = default;
-
+    void GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID);
+    void UpdateOverdriveTick();
     double LastTick = 0;
     double CurrentTick = 0;
-    void BeatmapFromMidiTrack(smf::MidiFile &midiFile, int TrackID, int songEndTick);
+    double LastODTick = 0;
+    double CurrentODTick = 0;
+    void BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick);
 
     void UpdateTick();
     [[nodiscard]] double GetCurrentTick() const;

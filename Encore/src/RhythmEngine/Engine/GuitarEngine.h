@@ -38,9 +38,9 @@ namespace Encore::RhythmEngine {
         void TogglePause() override { stats->Paused = !stats->Paused; };
 
     public:
-        //std::unordered_map<std::string, RhythmTimer> Timers {
-        //    { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
-        //};
+        // std::unordered_map<std::string, RhythmTimer> Timers {
+        //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
+        // };
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(InputChannel channel, Action action) override;
         void HitNote() override;
@@ -48,11 +48,8 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<GuitarChart> chart;
         std::shared_ptr<GuitarStats> stats;
         GuitarEngine(auto _chart, auto _stats)
-            : BaseEngine(_chart, _stats),
-              chart(_chart), stats(_stats) {
-            Timers = {
-                { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
-            };
+            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {
+            Timers = { { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) } };
         };
         ~GuitarEngine() override {};
     };

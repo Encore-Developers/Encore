@@ -46,73 +46,60 @@ void ManagePausedGame(GameplayInputHandler inputHandler, Player &player) {
 }
 */
 void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    // Encore::EncoreLog(
-    //     LOG_DEBUG,
-    //     TextFormat(
-    //         "Keyboard key %01i inputted on menu %s, action ",
-    //         key,
-    //         ToString(TheMenuManager.currentScreen),
-    //         action
-    //     )
-    //);
+    /*Encore::EncoreLog(
+        LOG_DEBUG,
+        TextFormat(
+            "Keyboard key %01i inputted on menu %s, action ",
+            key,
+            ToString(TheMenuManager.currentScreen),
+            action
+        )
+    );*/
     Player &player = ThePlayerManager.GetActivePlayer(0);
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
     SettingsOld &settingsMain = SettingsOld::getInstance();
 
-    if (action < 2) {
-        // if the key action is NOT repeat (release is 0, press is 1)
-        Encore::RhythmEngine::InputChannel lane =
-            Encore::RhythmEngine::InputChannel::INVALID;
-        if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
-            // ManagePausedGame(inputHandler, player);
-        } else if ((key == settingsMain.keybindOverdrive
-                    || key == settingsMain.keybindOverdriveAlt)) {
-            // inputHandler.handleInputs(player, -1, action);
-        } else if (!player.Bot) {
-            Encore::RhythmEngine::Action REaction;
-            Encore::RhythmEngine::InputChannel Channel =
-                Encore::RhythmEngine::InputChannel::INVALID;
-            if (action == GLFW_PRESS) {
-                REaction = Encore::RhythmEngine::Action::PRESS;
-            } else if (action == GLFW_RELEASE) {
-                REaction = Encore::RhythmEngine::Action::RELEASE;
-            }
-            if (player.Instrument != PlasticDrums) {
-                if (player.Difficulty == 3 || player.ClassicMode) {
-                    for (int i = 0; i < 5; i++) {
-                        if (key == settingsMain.keybinds5K[i]
-                            || key == settingsMain.keybinds5KAlt[i]) {
-                            Channel = Encore::RhythmEngine::IntIC(i);
-                        }
-                    }
-                } else {
-                    for (int i = 0; i < 4; i++) {
-                        if (key == settingsMain.keybinds4K[i]
-                            || key == settingsMain.keybinds4KAlt[i]) {
-                            if (action == GLFW_PRESS) {
-                                stats->HeldFrets[i] = true;
-                            } else if (action == GLFW_RELEASE) {
-                                stats->HeldFrets[i] = false;
-                            }
-                        }
-                    }
-                }
-                if (player.ClassicMode) {
-                    if (key == settingsMain.keybindStrumUp) {
-                        Channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
-                    }
-                    if (key == settingsMain.keybindStrumDown) {
-                        Channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
-                    }
-                }
-                // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i",
-                // lane));
-                if (Channel != Encore::RhythmEngine::InputChannel::INVALID)
-                    engine->ProcessInput(Channel, REaction);
-            }
+    if (action == 2)
+        return;
+    if (player.Bot)
+        return;
+    // if the key action is NOT repeat (release is 0, press is 1)
+    /*if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
+        // ManagePausedGame(inputHandler, player);
+    } else if ((key == settingsMain.keybindOverdrive
+                || key == settingsMain.keybindOverdriveAlt)) {
+        // inputHandler.handleInputs(player, -1, action);
+    } else */
+
+    Encore::RhythmEngine::Action REaction;
+    Encore::RhythmEngine::InputChannel Channel =
+        Encore::RhythmEngine::InputChannel::INVALID;
+    if (action == GLFW_PRESS) {
+        REaction = Encore::RhythmEngine::Action::PRESS;
+    } else if (action == GLFW_RELEASE) {
+        REaction = Encore::RhythmEngine::Action::RELEASE;
+    }
+    if (key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) {
+        Channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+    } else if (player.ClassicMode) {
+        if (key == settingsMain.keybindStrumUp) {
+            Channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+        } else if (key == settingsMain.keybindStrumDown) {
+            Channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
         }
     }
+    int DiffMax = (player.Difficulty == 3 || player.ClassicMode) ? 5 : 4;
+    for (int i = 0; i < DiffMax; i++) {
+        if (key == settingsMain.keybinds5K[i] || key == settingsMain.keybinds5KAlt[i]) {
+            Channel = Encore::RhythmEngine::IntIC(i);
+        }
+    }
+
+    // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i",
+    // lane));
+    if (Channel != Encore::RhythmEngine::InputChannel::INVALID)
+        engine->ProcessInput(Channel, REaction);
 };
 void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
     /*
@@ -444,6 +431,7 @@ void GameplayMenu::Draw() {
     Assets &assets = Assets::getInstance();
     // SettingsOld &settings = SettingsOld::getInstance();
     TheSongTime.UpdateTick();
+    TheSongTime.UpdateOverdriveTick();
     //    OvershellRenderer osr;
     double curTime = GetTime();
 
@@ -495,13 +483,14 @@ void GameplayMenu::Draw() {
             assets.sdfShader,
             0
         );
+        Color OverdriveText = player.engine->stats->OverdriveActive ? GOLD : WHITE;
         GameMenu::mhDrawText(
             assets.rubik,
             std::to_string(player.engine->stats->OverdriveFill),
             { MiddleOfScreen + (NoteXWidth * 3.0f),
               float(FakeStrikeline) + u.hinpct(0.1) },
             u.hinpct(0.05),
-            WHITE,
+            OverdriveText,
             assets.sdfShader,
             0
         );
@@ -767,6 +756,18 @@ void GameplayMenu::Draw() {
                 }
             }
         }
+        DrawRectangle(
+            MiddleOfScreen - (NoteXWidth * 3),
+            GetScreenHeight() - 50,
+            NoteXWidth * 6,
+            50,
+            BLACK
+        );
+        double ODBarWidth =
+            Remap(player.engine->stats->OverdriveFill, 1.0, 0, NoteXWidth * 6, 0);
+        DrawRectangle(
+            MiddleOfScreen - (NoteXWidth * 3), GetScreenHeight() - 50, ODBarWidth, 50, GOLD
+        );
         DrawRectangle(
             MiddleOfScreen - (NoteXWidth * 3),
             (FakeStrikeline)-5,

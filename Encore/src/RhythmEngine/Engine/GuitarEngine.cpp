@@ -44,9 +44,11 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
     if (stats->OverdriveFill >= 0.25 && channel == InputChannel::OVERDRIVE
         && action == Action::PRESS) {
         stats->OverdriveActive = true;
-        stats->OverdriveActivationTime = TheSongTime.GetElapsedTime(); // todo: set to
-                                                                       // current input
-                                                                       // time
+        stats->OverdriveActivationTime = TheSongTime.GetElapsedTime();
+        stats->OverdriveActivationTick = TheSongTime.CurrentODTick;
+        EncoreLog(
+            LOG_DEBUG, TextFormat("First OD Tick: %4.4f", TheSongTime.CurrentODTick)
+        );
         return true;
     }
     return false;
@@ -56,6 +58,26 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     stats->OverdriveFill += chart->overdrive.CheckOverdrive(CurrentTime);
     if (stats->OverdriveFill > 1.0)
         stats->OverdriveFill = 1.0;
+
+    if (stats->OverdriveActive) {
+        // EncoreLog(LOG_DEBUG, TextFormat("Overdrive delta: %4.4f",
+        // (TheSongTime.CurrentODTick - TheSongTime.LastODTick))); EncoreLog(LOG_DEBUG,
+        // TextFormat("Overdrive tick: %4.4f", (TheSongTime.CurrentODTick)));
+        // EncoreLog(LOG_DEBUG, TextFormat("Last Overdrive tick: %4.4f",
+        // (TheSongTime.LastODTick)));
+        //  two measures per charge at 4/4
+        //  8 beats per charge
+        //  64 for full charge
+        stats->OverdriveFill -= (TheSongTime.CurrentODTick - TheSongTime.LastODTick) / 64;
+
+        if (stats->OverdriveFill <= 0) {
+            stats->OverdriveFill = 0;
+            EncoreLog(
+                LOG_DEBUG, TextFormat("Last OD Tick: %4.4f", TheSongTime.CurrentODTick)
+            );
+            stats->OverdriveActive = false;
+        }
+    }
     // there is ONLY lane 0 for guitar
 }
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
@@ -129,12 +151,12 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
     if (StrumInput) {
         // miss should be managed by current frame
         // overhit is managed here
-        if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
-            Timers["SAH"].ResetTimer();
-            TraceLog(LOG_DEBUG, "SAH Disabled");
-            return CheckNextInput;
-        }
         if (EarlyStrike(CurrentNote.StartSeconds, stats->InputTime, stats->InputOffset)) {
+            if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
+                Timers["SAH"].ResetTimer();
+                TraceLog(LOG_DEBUG, "SAH Disabled");
+                return CheckNextInput;
+            }
             chart->overdrive.UpdateEventViaNote(false, CurrentNote.StartTicks);
             return OverhitNote;
         }

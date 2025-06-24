@@ -23,9 +23,8 @@ void LoadCharts() {
     smf::MidiFile midiFile;
     midiFile.read(TheSongList.curSong->midiPath.string());
     midiFile.doTimeAnalysis();
-    TheSongTime.BeatmapFromMidiTrack(
-        midiFile, TheSongList.curSong->BeatTrackID, TheSongList.curSong->endTick
-    );
+    TheSongTime.BeatmapFromMidiTrack(midiFile, TheSongList.curSong->endTick);
+    TheSongTime.GenerateOverdriveTicks(midiFile, TheSongList.curSong->BeatTrackID);
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
@@ -47,10 +46,12 @@ void LoadCharts() {
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
                 midiFile[track].linkNotePairs();
                 Encore::EncoreLog(
-                LOG_DEBUG,
-                TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
-            );
-                Encore::RhythmEngine::GuitarLoader chartLoader(diff, TheSongList.curSong->hopoThreshold);
+                    LOG_DEBUG,
+                    TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
+                );
+                Encore::RhythmEngine::GuitarLoader chartLoader(
+                    diff, TheSongList.curSong->hopoThreshold
+                );
                 chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
