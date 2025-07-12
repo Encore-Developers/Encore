@@ -9,7 +9,6 @@
 #include "midifile/MidiFile.h"
 
 namespace Encore::RhythmEngine {
-    template <typename ChartType>
     class BaseLoader {
         // returns -1 for no event, good for plastic guitar i think
         virtual void GetChartEvents(smf::MidiEventList track) {};
@@ -33,7 +32,7 @@ namespace Encore::RhythmEngine {
         // midiFile.doTimeAnalysis();
         BaseLoader(int diff_, int thresh_) : Difficulty(diff_), Threshold(thresh_) {}
 
-        ChartType chart;
+        BaseChart chart;
         int Difficulty;
         int Threshold; // shouldnt be here but who care
         virtual void LoadChart(smf::MidiEventList track) {

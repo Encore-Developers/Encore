@@ -9,6 +9,7 @@
 #include "song/events/EncEventVects/EventVectors.h"
 
 #include <array>
+#include <memory>
 #include <queue>
 #include <vector>
 
@@ -31,25 +32,67 @@ namespace Encore::RhythmEngine {
     // shouldnt be that bad once i get to the gritty part of the code
     // but holy fuck ive come so far
 
-    template <typename NoteType>
-    class NoteVector : public std::vector<NoteType> {
+    class NoteVector : public std::deque<EncNote> {
     public:
-        NoteType &operator[](int i) { return this->at(i); }
+        EncNote &operator[](const int i) { return this->at(i); }
     };
 
-    template <typename NoteType, int size>
-    class BaseChart : public std::array<NoteVector<NoteType>, size> {
+    class BaseChart {
     public:
-        virtual ~BaseChart() = default;
-        NoteVector<NoteType> &operator[](int i) { return this->at(i); }
+        explicit BaseChart(int _size) : size(_size) {
+            Lanes.resize(_size);
+            CurrentNoteIterators.resize(_size);
+            HeldNotePointers.resize(_size);
+        };
+        BaseChart() : size(5) {
+            Lanes.resize(5);
+            CurrentNoteIterators.resize(5);
+            HeldNotePointers.resize(5);
+        };
+        unsigned char size;
+        NoteVector &operator[](const int i) { return this->Lanes.at(i); }
+        NoteVector &at(const int i) { return this->Lanes.at(i); }
+        std::vector<NoteVector> Lanes;
+        std::vector<NoteVector::iterator> CurrentNoteIterators;
+        std::vector<EncNote *> HeldNotePointers;
+
+        /**
+         * this DOES NOT CARE about timing or ANYTHING.
+         * it simply just gets the next note in said lane
+         */
+        bool UpdateCurrentNote(int lane) {
+            // if (std::distance(Lanes.at(lane).begin(), CurrentNoteIterators.at(lane))
+            //     >= Lanes.at(lane).size()) {
+            //     // bounds check
+            //     return false;
+            // }
+            ++CurrentNoteIterators.at(lane);
+            return true;
+        }
+
+        /**
+         * sustains
+         */
+        void SetCurrentNoteAsHeldNote(int lane) {
+            HeldNotePointers.at(lane) = &*CurrentNoteIterators.at(lane);
+        }
+
+        /**
+         * reset notes
+         */
+        void Reset(int lane) {
+            for (int i = 0; i < CurrentNoteIterators.size(); i++) {
+                CurrentNoteIterators.at(i) = Lanes.at(i).begin();
+            }
+            for (int i = 0; i < HeldNotePointers.size(); i++) {
+                HeldNotePointers.at(i) = nullptr;
+            }
+        }
+
         SoloEvents solos;
         ODEvents overdrive;
         SectionEvents sections;
     };
-
-    class GuitarChart : public BaseChart<EncNote, 5> {};
-
-    class PadChart : public BaseChart<EncNote, 5> {};
 }
 
 #endif // NOTEVECTOR_H

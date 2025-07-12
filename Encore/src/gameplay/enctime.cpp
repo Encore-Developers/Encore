@@ -1,6 +1,7 @@
 
 #include "enctime.h"
 
+#include "song/songlist.h"
 #include "util/enclog.h"
 
 #include <algorithm>
@@ -12,6 +13,7 @@ SongTime TheSongTime;
 void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
     midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[0];
+    track.linkEventPairs();
     for (int i = 0; i < track.getSize(); i++) {
         if (track[i].isTempo()) {
             BPMChanges.emplace_back(
@@ -22,15 +24,17 @@ void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
         } else if (track[i].isMeta() && track[i][1] == 0x58) {
             int numer = (int)track[i][3];
             int denom = pow(2, track[i][4]);
-            TimeSigChanges.emplace_back(track[i].seconds, numer, denom, track[i].tick);
+            TimeSigChanges.emplace_back(
+                track[i].seconds, numer, denom, track[i][4], track[i].tick
+            );
             // std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ":
             // "
             //           << numer << "/" << denom << std::endl;
         }
     }
     if (TimeSigChanges.empty()) {
-        TimeSigChanges.emplace_back(0, 4, 4, 0); // midi always assumed to be 4/4 if time
-                                                 // sig
+        TimeSigChanges.emplace_back(0, 4, 4, 2, 0); // midi always assumed to be 4/4 if
+                                                    // time sig
         // event isn't found
     }
     GenerateBeatmap(songEndTick);
@@ -66,12 +70,12 @@ void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
 
 void SongTime::UpdateOverdriveTick() {
     // this is the overdrive code right here
-    std::cout << std::endl;
+    // std::cout << std::endl;
     double CurrentTime = GetElapsedTime();
     while (CurrentODTickItr < OverdriveTicks.size() - 1) {
         // if the next tick's time is greater than the current time, stop
         // otherwise, just increase lmfao
-        std::cout << std::endl;
+        // std::cout << std::endl;
         const auto &NextTick = OverdriveTicks.at(CurrentODTickItr + 1);
         // Encore::EncoreLog(LOG_DEBUG, TextFormat("Next tick time: %4.4f",
         // NextTick.time)); Encore::EncoreLog(LOG_DEBUG, TextFormat("Current time: %4.4f",
@@ -97,11 +101,19 @@ void SongTime::UpdateOverdriveTick() {
     //     - OverdriveTicks.at(CurrentODTickItr).tick;
 
     // double tickDeltaToPct = tickDelta / tickBetweenTicks;
-    double timeBetweenTicks = OverdriveTicks.at(CurrentODTickItr + 1).time
-        - OverdriveTicks.at(CurrentODTickItr).time;
+    if (CurrentODTickItr == OverdriveTicks.size() - 1) {
+        double timeBetweenTicks =
+            (GetElapsedTime() + 10) - OverdriveTicks.at(CurrentODTickItr).time;
 
-    double deltaMappedToPercentage = timeDelta / timeBetweenTicks;
-    CurrentODTick = CurrentODTickItr + deltaMappedToPercentage;
+        double deltaMappedToPercentage = timeDelta / timeBetweenTicks;
+        CurrentODTick = CurrentODTickItr + deltaMappedToPercentage;
+    } else {
+        double timeBetweenTicks = OverdriveTicks.at(CurrentODTickItr + 1).time
+            - OverdriveTicks.at(CurrentODTickItr).time;
+
+        double deltaMappedToPercentage = timeDelta / timeBetweenTicks;
+        CurrentODTick = CurrentODTickItr + deltaMappedToPercentage;
+    }
 }
 
 void SongTime::UpdateTick() {
@@ -134,25 +146,10 @@ double SongTime::GetLastTick() const {
  * maybe put this in there to generate said Beatmap
  */
 
-double TimeRangeToTickDelta(double timeStart, double timeEnd, BPM bpm) {
+double SongTime::TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm) {
     double timeDelta = timeEnd - timeStart;
     double beatDelta = timeDelta * bpm.bpm / 60.0;
     return beatDelta * 480.0;
-}
-double TickRangeToTimeDelta(int tickStart, int tickEnd, BPM currentBPM) {
-    if (tickStart < currentBPM.tick)
-        return 0;
-    if (tickEnd < tickStart)
-        return 0;
-
-    int tickDelta = tickEnd - tickStart;
-    double beatDelta = tickDelta / (double)480;
-    double timeDelta = beatDelta * 60.0 / currentBPM.bpm;
-
-    return timeDelta;
-}
-double TickToTime(BPM bpm, int endTick) {
-    return bpm.time + TickRangeToTimeDelta(bpm.tick, endTick, bpm);
 }
 
 // major is like. the subdivision
@@ -160,12 +157,20 @@ double TickToTime(BPM bpm, int endTick) {
 
 int GetBeatlineType(TimeSig curTimeSig, int beatlineCount) {
     int majorStep = 4;
-    int measureBeatCount = beatlineCount % curTimeSig.numer;
+    int numer = curTimeSig.denom == 4 ? curTimeSig.numer * 2 : curTimeSig.numer;
+    int denom = curTimeSig.denom == 4 ? 8 : curTimeSig.denom;
+    int measureBeatCount = beatlineCount % numer;
+    // say, beat 2 of the measure. that would technically be beat 4.
+    // measures need to be treated as DOUBLE.
+
     // 8 or 16 divided by 4 would equal 2 or 4
-    int majorRate = curTimeSig.denom <= 4 ? 1 : curTimeSig.denom / majorStep;
+    // since denom would be doubled, it would be 16 or 32 equalling 4 or 8.
+    // actually. i think major rate being 2 makes more sense in this case, since
+    // major beatlines are supposed to be representative of the actual beat (esp in 4/4)
+    int majorRate = denom <= 4 ? 2 : denom / majorStep;
 
     // 1/x time sigs
-    if (curTimeSig.numer == 1) {
+    if (numer == 2) {
         // if this is the first beat of the time sig region, just make it a measure
         if (beatlineCount < 1) {
             return Measure;
@@ -178,12 +183,12 @@ int GetBeatlineType(TimeSig curTimeSig, int beatlineCount) {
         return Measure;
 
     // well if it isnt a measure beat its something else
-    if (curTimeSig.denom <= 4)
-        return Major;
+    // if (denomDoubled <= 8)
+    //    return Major;
 
     if ((measureBeatCount % majorRate) == 0) {
         // if its the last beat of the measure, its a minor beatline
-        if (measureBeatCount == curTimeSig.numer - 1)
+        if (measureBeatCount == numer - 1)
             return Minor;
         // if its a major subdiv, make it major lol
         return Major;
@@ -191,33 +196,42 @@ int GetBeatlineType(TimeSig curTimeSig, int beatlineCount) {
     return Minor;
 }
 
-void SongTime::CreateBeatlines(TimeSig timeSig, int startTick, int endTick) {
-    int CurrentTick = startTick;
-    const int BeatSubdiv = (480 * 4) / timeSig.denom;
-    auto &CurBPM = BPMChanges.at(CurrentBPM);
+void SongTime::CreateBeatlines(
+    TimeSig timeSig, int startTick, int endTick, int &curTempo
+) {
+    // so actually this works fine in 4/4 but i realize in /8 that it gets *weird*
+    // maybe have it so that /8 is just It Always?
+    const int ThingForBeatSubdiv = timeSig.denom == 4 ? 8 : timeSig.denom;
+    const int BeatSubdiv = (480 * 4) / ThingForBeatSubdiv;
+
     int BeatlineCount = 0;
-    for (; CurrentTick <= endTick; CurrentTick += BeatSubdiv) {
-        while (CurrentBPM < BPMChanges.size() - 1) {
-            const auto &NextBPM = BPMChanges.at(CurrentBPM + 1);
-            if (NextBPM.tick > CurrentTick) {
+    int curTick = startTick;
+    auto &CurBPM = BPMChanges.at(curTempo);
+    while (curTick <= endTick) {
+        while (curTempo < BPMChanges.size() - 1) {
+            const auto &NextBPM = BPMChanges.at(curTempo + 1);
+            if (NextBPM.tick > curTick) {
                 break;
             };
             CurBPM = NextBPM;
-            CurrentBPM++;
+            curTempo++;
         } // such a funky way to progress through this whilst checking behind
         // and forwards
+
         Beatlines.emplace_back(
-            TickToTime(CurBPM, CurrentTick),
-            CurrentTick,
+            TheSongList.curSong->midiFile.getTimeInSeconds(curTick),
+            // TimeSinceBPMStart(CurBPM, curTick),
+            curTick,
             GetBeatlineType(timeSig, BeatlineCount)
         );
+        curTick += BeatSubdiv;
         BeatlineCount++;
-    };
+    }
 }
 
 void SongTime::GenerateBeatmap(int songEndTick) {
-    CurrentBPM = 0;
     int curTSidx = 0;
+    int curTempo = 0;
     auto &CurTS = TimeSigChanges.at(curTSidx);
     for (; curTSidx < TimeSigChanges.size() - 1; curTSidx++) {
         const auto &NextTS = TimeSigChanges.at(curTSidx + 1);
@@ -225,11 +239,11 @@ void SongTime::GenerateBeatmap(int songEndTick) {
         const int StartTick = CurTS.tick;
         const int EndTick = NextTS.tick - 1;
 
-        CreateBeatlines(CurTS, StartTick, EndTick);
+        CreateBeatlines(CurTS, StartTick, EndTick, curTempo);
         CurTS = NextTS;
     }
 
-    CreateBeatlines(CurTS, CurTS.tick, songEndTick);
+    CreateBeatlines(CurTS, CurTS.tick, songEndTick, curTempo);
 }
 
 void SongTime::SetOffset(double audioCalibration) {
@@ -251,6 +265,7 @@ void SongTime::Start(double end) {
         std::cout << "Started gameplay";
     }
 };
+
 double SongTime::GetFakeStartTime() {
     return fakeStartTime;
 }
@@ -287,6 +302,7 @@ void SongTime::Stop() {
     running = false;
     paused = false;
 }
+
 bool SongTime::Running() {
     return running;
 }

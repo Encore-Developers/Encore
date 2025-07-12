@@ -4,6 +4,10 @@
 
 #include "BaseEngine.h"
 
+#include "gameplay/enctime.h"
+
+#include <bit>
+#include <memory>
 
 void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action action) {
     if (PauseGame(channel, action)) {
@@ -20,21 +24,26 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action
         && action == Action::RELEASE) {
         return;
     }
-    switch (RunHitStateCheck(channel, action)) {
-    case HitState::HitNote: {
-        HitNote();
-        break;
-    }
-    case HitState::OverhitNote: {
-        Overhit();
-        break;
-    }
-    case HitState::CheckNextInput: {
-        break;
-    }
-    }
+    RunHitStateCheck(channel, action);
 }
+// i dont think this is needed because it was technically already taken care of by
+// BaseChart
+/*bool Encore::RhythmEngine::BaseEngine::GetCurrentNote(int lane) {
+    if (chart->at(lane).empty())
+        return false;
 
+    curNoteItrs[lane] = chart->at(lane).begin();
+    while (curNoteItrs[lane]->StartSeconds + goodBackend
+           < TheSongTime.GetElapsedTime() - stats->InputOffset) {
+        if (curNoteItrs[lane] + 1 == chart->at(lane).end()) {
+            return false;
+        }
+        ++curNoteItrs[lane];
+    }
+    // EncNote& lol = *curNoteItrs[lane];
+    CurrentNoteItr = std::make_shared<NoteVector::iterator>(curNoteItrs[lane]);
+    return true;
+}*/
 
 bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action action) {
     if (channel == InputChannel::PAUSE && action == Action::PRESS) {
@@ -42,4 +51,28 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action ac
         return true;
     }
     return false;
+}
+
+void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
+    stats->HitNote(std::popcount(chart->CurrentNoteIterators.at(0)->Lane));
+    chart->overdrive.UpdateEventViaNote(
+        true, chart->CurrentNoteIterators.at(0)->StartTicks
+    );
+    chart->solos.UpdateEventViaNote(true, chart->CurrentNoteIterators.at(0)->StartTicks);
+    chart->UpdateCurrentNote(lane);
+}
+
+void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
+    stats->MissNote();
+    chart->overdrive.UpdateEventViaNote(
+        false, chart->CurrentNoteIterators.at(0)->StartTicks
+    );
+    chart->UpdateCurrentNote(lane);
+}
+
+void Encore::RhythmEngine::BaseEngine::Overhit() {
+    stats->Overhit();
+    chart->overdrive.UpdateEventViaNote(
+        false, chart->CurrentNoteIterators.at(0)->StartTicks
+    );
 }

@@ -8,7 +8,7 @@
 #include "BaseLoader.h"
 
 namespace Encore::RhythmEngine {
-    class GuitarLoader final : public BaseLoader<GuitarChart> {
+    class GuitarLoader final : public BaseLoader {
         // start, end
         std::queue<std::pair<int, int> > ForceHopoOn = {};
         std::queue<std::pair<int, int> > ForceHopoOff = {};
@@ -33,7 +33,9 @@ namespace Encore::RhythmEngine {
 
     public:
         GuitarLoader(int diff_, int thresh_)
-            : BaseLoader(Difficulty = diff_, Threshold = thresh_) {}
+            : BaseLoader(Difficulty = diff_, Threshold = thresh_) {
+            chart.Lanes.resize(1);
+        }
     };
 }
 

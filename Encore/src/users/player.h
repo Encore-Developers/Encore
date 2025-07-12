@@ -9,7 +9,7 @@
 
 #include "raylib.h"
 #include "timingvalues.h"
-#include "RhythmEngine/Engine/GuitarEngine.h"
+#include "RhythmEngine/Engine/BaseEngine.h"
 #include "song/chart.h"
 #include "song/scoring.h"
 

@@ -16,11 +16,12 @@ struct BPM {
 };
 
 struct TimeSig {
-    TimeSig(double _time, int _numer, int _denom, int _tick)
-        : time(_time), numer(_numer), denom(_denom), tick(_tick) {};
+    TimeSig(double _time, int _numer, int _denom, int _pow, int _tick)
+        : time(_time), numer(_numer), denom(_denom), pow(_pow), tick(_tick) {};
     double time;
     int numer;
     int denom;
+    int pow;
     int tick;
 };
 // these are defined by position in BEAT or made off of the chart's beatmap if no BEAT
@@ -29,8 +30,7 @@ struct TimeSig {
 // the "delta" would just be this "tick" + the current % of time between this tick and the
 // next, if the next exists in fact i think this could just be a vector of double
 struct OverdriveTick {
-    OverdriveTick(double _time, int _tick)
-        : time(_time), tick(_tick) {};
+    OverdriveTick(double _time, int _tick) : time(_time), tick(_tick) {};
     double time;
     int tick;
 };
@@ -79,8 +79,11 @@ public:
     void UpdateTick();
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
+    static double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);
     void GenerateBeatmap(int songEndTick);
-    void CreateBeatlines(TimeSig timeSig, int tickStart, int tickEnd);
+    static double TickRangeToTimeDelta(int tickStart, int tickEnd, const BPM &currentBPM);
+    static double TimeSinceBPMStart(BPM bpm, int endTick);
+    void CreateBeatlines(TimeSig timeSig, int tickStart, int tickEnd, int &curTempo);
     // Start the timer
     void SetOffset(double audioCalibration);
 

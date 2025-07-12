@@ -86,14 +86,10 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
         lengthTicks = 0;
         lengthSec = 0;
     }
-    chart[GetEventLane(Difficulty, event)].push_back(
-        {
-            event.tick,
-            lengthTicks,
-            event.seconds,
-            lengthSec,
-            GetNoteType(event),
-        }
+    chart[GetEventLane(Difficulty, event)].emplace_back(
+
+        event.tick, lengthTicks, event.seconds, lengthSec, GetNoteType(event)
+
     );
     // i hate how solos need note counts before entering lol
     if (!chart.solos.empty()) {
@@ -107,7 +103,8 @@ void Encore::RhythmEngine::PadLoader::GetNotes(smf::MidiEventList track) {
     track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
-        if (event[0] == 255) continue;
+        if (event[0] == 255)
+            continue;
         CheckEvents(event);
         if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
             CheckModifiers(event);

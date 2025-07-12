@@ -2,13 +2,13 @@
 // Created by maria on 13/06/2025.
 //
 
-#ifndef PADENGINE_H
-#define PADENGINE_H
+#ifndef DRUMSENGINE_H
+#define DRUMSENGINE_H
 #include "BaseEngine.h"
-#include "PadStats.h"
+#include "DrumsStats.h"
 
 namespace Encore::RhythmEngine {
-    class PadEngine : public BaseEngine {
+    class DrumsEngine : public BaseEngine {
         bool ActivateOverdrive(InputChannel channel, Action action) override;
 
         /*
@@ -23,13 +23,11 @@ namespace Encore::RhythmEngine {
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(InputChannel channel, Action action) override;
         std::shared_ptr<BaseChart> chart;
-        std::shared_ptr<PadStats> stats;
-        PadEngine(auto _chart, auto _stats)
+        std::shared_ptr<DrumsStats> stats;
+        DrumsEngine(auto _chart, auto _stats)
             : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {};
-        ~PadEngine() override {};
+        ~DrumsEngine() override {};
     };
 };
 
-
-
-#endif //PADENGINE_H
+#endif // DRUMSENGINE_H

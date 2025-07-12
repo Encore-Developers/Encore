@@ -47,57 +47,37 @@ namespace Encore::RhythmEngine {
          * If that check went well, hit the note.
          * If not, the player overhit the note and should be penalized.
          */
-        std::shared_ptr<BaseChart<EncNote, 5> > chart;
+
+        std::shared_ptr<BaseChart> chart;
         std::shared_ptr<BaseStats<5> > stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
+
+        // bool GetCurrentNote(int lane);
+
+        // virtual bool CanNoteBeHit();
         virtual void UpdateOnFrame(double CurrentTime) {
 
         };
-        void CheckMissedNotes(int Lane, double SongTime) const {
-            auto &chartLane = chart->at(Lane);
-            if (chartLane.empty())
+        void CheckMissedNotes(int Lane, double SongTime) {
+            if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
                 return;
-            auto itr = chartLane.begin();
-
-            for (int notePos = 0; notePos < chartLane.size(); notePos++) {
-                // no need to check things in the hitwindow
-                auto& curNote = chartLane.at(notePos);
-                if (curNote.StartSeconds + curNote.LengthSeconds + goodBackend
-                    >= SongTime - stats->InputOffset) {
-                    return;
-                }
-                if (curNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
-                    && !curNote.NotePassed) {
-                    stats->Combo = 0;
-                    stats->Misses += 1;
-                    stats->AttemptedNotes += 1;
-                    curNote.NotePassed = true;
-                    chart->overdrive.UpdateEventViaNote(false, curNote.StartTicks);
-                    stats->AudioMuted = true;
-                    Encore::EncoreLog(
-                        LOG_DEBUG, TextFormat("Missed note %01i", stats->AttemptedNotes)
-                    );
-                }
-                if (curNote.StartSeconds + curNote.LengthSeconds + goodBackend + 0.5
-                < SongTime - stats->InputOffset) {
-                    chartLane.erase(chartLane.begin());
-                }
-            }
-
-        }
-        void RemoveMissedNote(
-            const EncNote &note, const double CurrentTime, const int lane
-        ) const {
-            if (note.StartSeconds + note.LengthSeconds + goodBackend + 0.5
-                < CurrentTime - stats->InputOffset) {
-                chart->at(lane).erase(chart->at(lane).begin());
+            EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
+            if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
+                && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
+                MissNote(Lane);
+                Encore::EncoreLog(
+                    LOG_DEBUG, TextFormat("Missed note %01i", stats->AttemptedNotes)
+                );
             }
         }
+        void HitNote(int lane);
+        void MissNote(int lane);
+        void Overhit();
+
     private:
         virtual bool PlayerIsPaused() = 0;
         virtual void TogglePause() = 0;
-        virtual void HitNote() {};
-        virtual void Overhit() {};
+
         virtual int RunHitStateCheck(InputChannel channel, Action action) = 0;
         virtual bool ActivateOverdrive(InputChannel channel, Action action) = 0;
 

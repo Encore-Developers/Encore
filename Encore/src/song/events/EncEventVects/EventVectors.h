@@ -11,6 +11,13 @@
 #include "raylib.h"
 
 struct SoloEvents final : EncEventVect<solo> {
+    bool TickDuringCurrentEvent(int tick) override {
+        if (tick >= this->front().StartTick
+            && tick < this->front().StartTick + this->front().EndTick) {
+            return true;
+            }
+        return false;
+    }
     void UpdateEventViaNote(bool hit, int tick) override {
         if (this->empty()) {
             return;
@@ -19,13 +26,13 @@ struct SoloEvents final : EncEventVect<solo> {
             return;
         }
         if (hit) {
-            this->at(CurrentEvent).NotesHit++;
+            this->front().NotesHit++;
             Encore::EncoreLog(
                 LOG_DEBUG,
                 TextFormat(
                     "Solo note hit: %01i/%01i",
-                    this->at(CurrentEvent).NotesHit,
-                    this->at(CurrentEvent).NoteCount
+                    this->front().NotesHit,
+                    this->front().NoteCount
                 )
             );
         }

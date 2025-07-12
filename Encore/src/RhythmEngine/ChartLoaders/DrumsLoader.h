@@ -2,17 +2,22 @@
 // Created by maria on 17/05/2025.
 //
 
-#ifndef PADLOADER_H
-#define PADLOADER_H
+#ifndef DRUMSLOADER_H
+#define DRUMSLOADER_H
 
 #include "BaseLoader.h"
 
 namespace Encore::RhythmEngine {
-    class PadLoader final : public BaseLoader {
-        std::array<std::queue<int>, 5> LiftMarkers = {};
+    class DrumsLoader final : public BaseLoader {
+        // start, end
+        std::queue<std::pair<int, int> > GreenTom = {};
+        std::queue<std::pair<int, int> > BlueTom = {};
+        std::queue<std::pair<int, int> > YellowTom = {};
+        std::queue<int> OpenMarker = {};
         int CurrentSolo = 0;
         int CurrentOverdrive = 0;
-        void CreateLiftMarker(const smf::MidiEvent &event);
+
+        void CheckToms(const smf::MidiEvent &event);
         void CheckModifiers(const smf::MidiEvent &event);
         void CheckEvents(const smf::MidiEvent &event);
         void CreateNote(const smf::MidiEvent &event);
@@ -23,8 +28,8 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        PadLoader(int diff_);
+        DrumsLoader(int diff_) : BaseLoader(Difficulty = diff_, Threshold = 0) {}
     };
 }
 
-#endif // PADLOADER_H
+#endif // DRUMSLOADER_H

@@ -2,7 +2,7 @@
 // Created by maria on 13/06/2025.
 //
 
-#include "PadEngine.h"
+#include "DrumsEngine.h"
 //
 // Created by maria on 01/06/2025.
 //
@@ -10,23 +10,24 @@
 #include "timingvalues.h"
 #include "gameplay/enctime.h"
 
-bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
+bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
     InputChannel channel, Action action
 ) {
     if (stats->OverdriveFill >= 0.25 && channel == InputChannel::OVERDRIVE
         && action == Action::PRESS) {
         stats->OverdriveActive = true;
         stats->OverdriveActivationTime = TheSongTime.GetElapsedTime(); // todo: set to
-                                                                    // current input time
+                                                                       // current input
+                                                                       // time
         return true;
     }
     return false;
 }
-void Encore::RhythmEngine::PadEngine::SetStatsInputState(
+void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
     InputChannel channel, Action action
 ) {
-    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG TIME
-                                                  // (IN SECONDS)
+    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG
+                                                     // TIME (IN SECONDS)
     if (action == Action::PRESS) {
         switch (channel) {
         case InputChannel::LANE_1:
@@ -57,18 +58,28 @@ void Encore::RhythmEngine::PadEngine::SetStatsInputState(
     }
 }
 
-int Encore::RhythmEngine::PadEngine::RunHitStateCheck(
+int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
     InputChannel channel, Action action
 ) {
     if (channel == InputChannel::STRUM_UP || channel == InputChannel::STRUM_DOWN)
         return CheckNextInput;
     int lane = ICInt(channel);
-
+    // auto &chartLane = chart->at(lane);
+    // if (chartLane.empty())
+    //     return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-    bool lift = action == Action::RELEASE && CurrentNote->NoteType == 1;
-    if (action == Action::PRESS || lift) {
-        if (EarlyStrike(CurrentNote->StartSeconds, stats->InputTime, stats->InputOffset)
-            && !lift) {
+    // auto curNoteItr = chartLane.begin();
+    // while (curNoteItr->StartSeconds + goodBackend
+    //        < TheSongTime.GetElapsedTime() - stats->InputOffset) {
+    //     if (curNoteItr + 1 == chartLane.end()) {
+    //         return CheckNextInput;
+    //     }
+    //     ++curNoteItr;
+    // }
+    // EncNote &CurrentNote = *curNoteItr;
+    // bool lift = false; //action == Action::RELEASE && CurrentNote.NoteType == 1;
+    if (action == Action::PRESS) {
+        if (EarlyStrike(CurrentNote->StartSeconds, stats->InputTime, stats->InputOffset)) {
             Overhit();
             return OverhitNote;
         };
@@ -80,7 +91,7 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(
     return CheckNextInput;
 }
 
-void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
+void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
     for (int Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         CheckMissedNotes(Lane, TheSongTime.GetElapsedTime());
     }

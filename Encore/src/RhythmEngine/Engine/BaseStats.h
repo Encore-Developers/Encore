@@ -16,7 +16,8 @@ namespace Encore::RhythmEngine {
     };
     enum StatsType {
         Pad = 1,
-        Guitar = 0
+        Guitar = 0,
+        Drums = 2
     };
     /**
      * @brief BaseStats is the default base class for handling statistics
@@ -50,11 +51,14 @@ namespace Encore::RhythmEngine {
         int NotesHit = 0;
         int Misses = 0;
         int AttemptedNotes = 0;
+        int Overhits = 0;
         bool AudioMuted = false;
         int StarCalcBaseScore;
         double InputTime = -1;
         double InputOffset = 0;
+        bool SixMultiplier = false;
         bool Paused = false;
+        bool Bot = false;
         double Health = 1.0;
         StrumState strumState = StrumState::Default;
         void HitNote(int chordSize) {
@@ -65,7 +69,14 @@ namespace Encore::RhythmEngine {
             AttemptedNotes++;
             AudioMuted = false;
         };
+        void MissNote() {
+            Combo = 0;
+            Misses++;
+            AttemptedNotes++;
+            AudioMuted = true;
+        };
         void Overhit() {
+            Overhits++;
             Combo = 0;
             AudioMuted = true;
         };
@@ -76,10 +87,25 @@ namespace Encore::RhythmEngine {
             //         return 6 * od;
 
             //} else {
-            if (Combo >= 30)
-                return 4 * od;
-            //};
-            return (Combo / 10) + 1 * od;
+            int MaxMult = SixMultiplier ? 6 : 4;
+            int Multiplier = (Combo / 10) + 1;
+            if (Multiplier > MaxMult) {
+                Multiplier = MaxMult;
+            }
+            return Multiplier * od;
+
+            // if (Combo >= 30)
+            //     return MaxMult * od;
+            // };
+            // return (Combo / 10) + 1 * od;
+        };
+        [[nodiscard]] int multNoOD() const {
+            int MaxMult = SixMultiplier ? 6 : 4;
+            int Multiplier = (Combo / 10) + 1;
+            if (Multiplier > MaxMult) {
+                Multiplier = MaxMult;
+            }
+            return Multiplier;
         };
         std::array<bool, LaneCount> HeldFrets = {};
     };

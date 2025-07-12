@@ -192,7 +192,7 @@ public:
     std::string jsonHash = "";
     int hopoThreshold = 170;
     bool ini = false;
-
+    smf::MidiFile midiFile;
     void LoadAudioINI(std::filesystem::path songPath);
 
     void LoadAudio(std::filesystem::path jsonPath) {
