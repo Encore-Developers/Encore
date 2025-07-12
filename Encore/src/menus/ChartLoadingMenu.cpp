@@ -57,8 +57,7 @@ void LoadCharts() {
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
                     std::make_shared<Encore::RhythmEngine::GuitarEngine>(
-                    std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart
-                        ),
+                    std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                         std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
                     );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
@@ -84,12 +83,13 @@ void LoadCharts() {
                     std::make_shared<Encore::RhythmEngine::PadEngine>(
                         std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                     std::make_shared<Encore::RhythmEngine::PadStats>(0)
-                    );
+                );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Pad;
                 // todo: make pad engine shit how did u forget
             }
-            for (int i = 0; i < ThePlayerManager.GetActivePlayer(playerNum).engine->chart->Lanes.size(
+            for (int i = 0; i
+                 < ThePlayerManager.GetActivePlayer(playerNum).engine->chart->Lanes.size(
                  );
                  i++) {
                 ThePlayerManager.GetActivePlayer(playerNum)
