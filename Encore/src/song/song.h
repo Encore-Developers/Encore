@@ -194,6 +194,7 @@ public:
     bool ini = false;
     float previewStartTime = 0.0f;
 
+    smf::MidiFile midiFile;
     void LoadAudioINI(std::filesystem::path songPath);
 
     void LoadAudio(std::filesystem::path jsonPath) {
