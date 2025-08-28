@@ -10,7 +10,7 @@
 #include <array>
 #include <ctime>
 #include <iostream>
-#include <bits/chrono.h>
+#include <chrono>
 
 void Encore::Discord::Initialize() {
     auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
