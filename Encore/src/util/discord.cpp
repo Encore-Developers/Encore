@@ -3,11 +3,12 @@
 //
 
 #include "discord.h"
-
+#include "discord-rpc/core.h"
 #include <array>
 #include <ctime>
 #include <iostream>
 #include <chrono>
+discord::Core* core{};
 
 void Encore::Discord::Initialize() {
     auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);

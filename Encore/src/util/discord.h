@@ -4,7 +4,7 @@
 
 #ifndef DISCORD_H
 #define DISCORD_H
-#include "discord-rpc/core.h"
+
 
 #include <memory>
 #include <string>
@@ -12,7 +12,7 @@
 
 namespace Encore {
     class Discord {
-        discord::Core* core{};
+
         int64_t startTime;
     public:
         bool Initialized = false;
