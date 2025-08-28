@@ -4,9 +4,6 @@
 
 #include "discord.h"
 
-#include "enclog.h"
-#include "raylib.h"
-
 #include <array>
 #include <ctime>
 #include <iostream>
@@ -20,29 +17,6 @@ void Encore::Discord::Initialize() {
         Initialized = false;
         return;
     }
-    core->SetLogHook(
-        discord::LogLevel::Debug, [](discord::LogLevel level, const char* message) {
-            TraceLogLevel LogLevel = LOG_DEBUG;
-            switch (level) {
-            case discord::LogLevel::Debug: {
-                LogLevel = LOG_DEBUG;
-                break;
-            }
-                case discord::LogLevel::Info: {
-                LogLevel = LOG_INFO;
-                break;
-            }
-                case discord::LogLevel::Warn: {
-                LogLevel = LOG_WARNING;
-                break;
-            }
-                case discord::LogLevel::Error: {
-                LogLevel = LOG_ERROR;
-                break;
-            }
-            }
-            EncoreLog(LogLevel, TextFormat("Discord: %s", message));
-        });
     const auto p0 = std::chrono::system_clock::now();
     startTime = std::chrono::duration_cast<std::chrono::seconds>(p0.time_since_epoch()).count();
     /*
@@ -77,7 +51,7 @@ void Encore::Discord::DiscordUpdatePresence(const std::string &title, const std:
         activity.SetState("Playing solo");
     }
     else {
-        activity.SetState(TextFormat("In a band (%01i/4)", players));
+        activity.SetState("In a band");
     }
     activity.SetDetails((details).c_str());
     activity.SetName("encore");
@@ -113,7 +87,7 @@ void Encore::Discord::DiscordUpdatePresenceSong(
         activity.SetState("Playing solo");
     }
     else {
-        activity.SetState(TextFormat("In a band (%01i/4)", length));
+        activity.SetState("In a band");
     }
 
     activity.SetName("encore");
