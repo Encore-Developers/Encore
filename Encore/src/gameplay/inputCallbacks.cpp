@@ -40,7 +40,14 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
 }
 
 void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
-    Encore::EncoreLog(LOG_DEBUG, TextFormat("Gamepad %01i inputted on menu %s", joypadID, ToString(TheMenuManager.currentScreen)) );
+    //Encore::EncoreLog(
+    //    LOG_DEBUG,
+    //    TextFormat(
+    //        "Gamepad %01i inputted on menu %s",
+    //        joypadID,
+    //        ToString(TheMenuManager.currentScreen)
+    //    )
+    //);
     switch (TheMenuManager.currentScreen) { // NOTE: when adding a new Menu
         // derivative, you
         // must put its enum value in Screens, and its
@@ -82,28 +89,26 @@ void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
     case GAMEPLAY: {
         TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
         break;
-
-        case SETTINGSAUDIOVIDEO: {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-            break;
-        }
-        case SETTINGSCONTROLLER: {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-            break;
-        }
-        case SETTINGSGAMEPLAY: {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-            break;
-        }
-        case SETTINGSKEYBOARD: {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-            break;
-        }
-        case SETTINGSCREDITS: {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-            break;
-        }
     }
-    default:;
+    case SETTINGSAUDIOVIDEO: {
+        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+        break;
+    }
+    case SETTINGSCONTROLLER: {
+        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+        break;
+    }
+    case SETTINGSGAMEPLAY: {
+        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+        break;
+    }
+    case SETTINGSKEYBOARD: {
+        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+        break;
+    }
+    case SETTINGSCREDITS: {
+        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
+        break;
+    }
     }
 }

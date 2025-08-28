@@ -175,4 +175,36 @@ struct SectionEvents final : EncEventVect<section> {
     }
 };
 
+struct TrillEvents final : EncEventVect<trill> {
+    // EncNote
+    void UpdateEventViaNote(bool note, int curEvent) override {
+        if (!this->empty())
+            return;
+
+        if (!TickDuringCurrentEvent(curEvent))
+            return;
+
+        if (note) {
+            ++this->at(CurrentEvent).NotesHit;
+        }
+        ++this->at(CurrentEvent).NoteCount;
+    }
+};
+
+struct RollEvents final : EncEventVect<roll> {
+    // EncNote
+    void UpdateEventViaNote(bool note, int curEvent) override {
+        if (!this->empty())
+            return;
+
+        if (!TickDuringCurrentEvent(curEvent))
+            return;
+
+        if (note) {
+            ++this->at(CurrentEvent).NotesHit;
+        }
+        ++this->at(CurrentEvent).NoteCount;
+    }
+};
+
 #endif // ELSE_H

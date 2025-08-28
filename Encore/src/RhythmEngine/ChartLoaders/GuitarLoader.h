@@ -14,8 +14,6 @@ namespace Encore::RhythmEngine {
         std::queue<std::pair<int, int> > ForceHopoOff = {};
         std::queue<std::pair<int, int> > TapMarker = {};
         std::queue<int> OpenMarker = {};
-        int CurrentSolo = 0;
-        int CurrentOverdrive = 0;
 
         void CheckSysEx(const smf::MidiEvent &event);
         void SysExTap(const smf::MidiEvent &event);

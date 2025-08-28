@@ -26,19 +26,8 @@ namespace Encore::RhythmEngine {
         BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats) {};
         virtual ~BaseEngine() {};
         virtual void SetStatsInputState(InputChannel channel, Action action) {};
-        bool EarlyStrike(double noteStartTime, double inputTime, double inputOffset) {
-            if (noteStartTime - goodFrontend > inputTime - inputOffset) {
-                return true;
-            }
-            return false;
-        }
-        bool InHitwindow(double noteStartTime, double inputTime, double inputOffset) {
-            if ((noteStartTime - goodFrontend < inputTime - inputOffset)
-                && (noteStartTime + goodBackend > inputTime - inputOffset)) {
-                return true;
-            }
-            return false;
-        }
+        bool EarlyStrike(double noteStartTime);
+        bool InHitwindow(double noteStartTime);
         void ProcessInput(InputChannel channel, Action action);
         /*
          * Before hitting the note,
@@ -58,21 +47,10 @@ namespace Encore::RhythmEngine {
         virtual void UpdateOnFrame(double CurrentTime) {
 
         };
-        void CheckMissedNotes(int Lane, double SongTime) {
-            if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
-                return;
-            EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
-            if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
-                && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
-                MissNote(Lane);
-                Encore::EncoreLog(
-                    LOG_DEBUG, TextFormat("Missed note %01i", stats->AttemptedNotes)
-                );
-            }
-        }
+        void CheckMissedNotes(int Lane, double SongTime);
         void HitNote(int lane);
         void MissNote(int lane);
-        void Overhit();
+        void Overhit(int lane);
 
     private:
         virtual bool PlayerIsPaused() = 0;

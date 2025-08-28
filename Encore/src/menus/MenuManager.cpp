@@ -42,56 +42,56 @@ void MenuManager::LoadMenu() {
         // add its case to the `ActiveMenu->Draw();`
         // cases.
     case MAIN_MENU: {
-        TheGameRPC.DiscordUpdatePresence("Main menu", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new MainMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGS: {
-        TheGameRPC.DiscordUpdatePresence("Configuring", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SettingsMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSAUDIOVIDEO: {
-        TheGameRPC.DiscordUpdatePresence("Configuring Audio and Video Settings", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SettingsAudioVideo;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSGAMEPLAY: {
-        TheGameRPC.DiscordUpdatePresence("Configuring Gameplay Settings", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SettingsGameplay;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSKEYBOARD: {
-        TheGameRPC.DiscordUpdatePresence("Configuring Keyboard Keybinds", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SettingsKeyboard;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSCONTROLLER: {
-        TheGameRPC.DiscordUpdatePresence("Configuring Controller Keybinds", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SettingsController;
         ActiveMenu->Load();
         break;
     }
     case RESULTS: {
-        TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new resultsMenu;
         ActiveMenu->Load();
         break;
     }
     case SONG_SELECT: {
         glfwSetGamepadStateCallback(gamepadStateCallback);
-        TheGameRPC.DiscordUpdatePresence("Viewing songs", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SongSelectMenu;
         ActiveMenu->Load();
         break;
     }
     case READY_UP: {
-        TheGameRPC.DiscordUpdatePresence("Readying up", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new ReadyUpMenu;
         ActiveMenu->Load();
         break;
@@ -102,13 +102,14 @@ void MenuManager::LoadMenu() {
         break;
     }
     case CACHE_LOADING_SCREEN: {
-        TheGameRPC.DiscordUpdatePresence("Loading game", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new cacheLoadingScreen;
         ActiveMenu->Load();
         break;
     }
     case CHART_LOADING_SCREEN: {
-        TheGameRPC.DiscordUpdatePresence("Loading a song", "In the menus");
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",
+            ThePlayerManager.PlayersActive);
         ActiveMenu = new ChartLoadingMenu;
         ActiveMenu->Load();
         break;
@@ -117,7 +118,8 @@ void MenuManager::LoadMenu() {
         TheGameRPC.DiscordUpdatePresenceSong(
             "Playing a song",
             TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
-            ThePlayerManager.GetActivePlayer(0).Instrument
+            ThePlayerManager.GetActivePlayer(0).Instrument,
+            ThePlayerManager.PlayersActive
         );
 
         ActiveMenu = new GameplayMenu;

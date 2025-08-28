@@ -13,12 +13,8 @@
 bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
     InputChannel channel, Action action
 ) {
-    if (stats->OverdriveFill >= 0.25 && channel == InputChannel::OVERDRIVE
-        && action == Action::PRESS) {
-        stats->OverdriveActive = true;
-        stats->OverdriveActivationTime = TheSongTime.GetElapsedTime(); // todo: set to
-                                                                       // current input
-                                                                       // time
+    if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
+        stats->overdrive.Activate(stats->InputTime);                                                    // time
         return true;
     }
     return false;
@@ -79,11 +75,11 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
     // EncNote &CurrentNote = *curNoteItr;
     // bool lift = false; //action == Action::RELEASE && CurrentNote.NoteType == 1;
     if (action == Action::PRESS) {
-        if (EarlyStrike(CurrentNote->StartSeconds, stats->InputTime, stats->InputOffset)) {
-            Overhit();
+        if (EarlyStrike(CurrentNote->StartSeconds)) {
+            Overhit(lane);
             return OverhitNote;
         };
-        if (InHitwindow(CurrentNote->StartSeconds, stats->InputTime, stats->InputOffset)) {
+        if (InHitwindow(CurrentNote->StartSeconds)) {
             HitNote(lane);
             return HitState::HitNote;
         };
@@ -93,7 +89,15 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
 
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
     for (int Lane = 0; Lane < chart->Lanes.size(); Lane++) {
-        CheckMissedNotes(Lane, TheSongTime.GetElapsedTime());
+        if (stats->Bot) {
+            EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
+            if (CurrentNote->StartSeconds <= CurrentTime) {
+                HitNote(Lane);
+            }
+        } else {
+            CheckMissedNotes(Lane, CurrentTime);
+        }
     }
-    stats->OverdriveFill += chart->overdrive.CheckOverdrive(CurrentTime);
+    stats->overdrive.Add(CurrentTime, chart);
+    stats->overdrive.Update(CurrentTime);
 }

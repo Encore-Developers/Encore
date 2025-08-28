@@ -6,9 +6,10 @@
 #define BASESTATS_H
 #include <array>
 #include <vector>
-#include <cstdint>
+#include "Overdrive.h"
 
 namespace Encore::RhythmEngine {
+
     enum class StrumState {
         Default = 0,
         UpStrum = 1,
@@ -37,12 +38,10 @@ namespace Encore::RhythmEngine {
     template <size_t LaneCount>
     class BaseStats {
     public:
-        explicit BaseStats(const int BaseScore) { StarCalcBaseScore = BaseScore; };
+        explicit BaseStats(const int BaseScore) {
+            StarCalcBaseScore = BaseScore;
+        };
         virtual ~BaseStats() = default;
-        double OverdriveFill = 0.0;
-        double OverdriveActivationTime = 0.0;
-        double OverdriveActivationTick = 0.0;
-        bool OverdriveActive = false;
 
         int Type = 0;
         double Score = 0;
@@ -61,6 +60,7 @@ namespace Encore::RhythmEngine {
         bool Bot = false;
         double Health = 1.0;
         StrumState strumState = StrumState::Default;
+        Overdrive overdrive;
         void HitNote(int chordSize) {
             Combo++;
             Score += (25 * chordSize) * multiplier();
@@ -81,7 +81,7 @@ namespace Encore::RhythmEngine {
             AudioMuted = true;
         };
         [[nodiscard]] int multiplier() const {
-            int od = OverdriveActive ? 2 : 1;
+            int od = overdrive.Active ? 2 : 1;
             // if (IsBassOrVox()) {
             //     if (Combo >= 50)
             //         return 6 * od;

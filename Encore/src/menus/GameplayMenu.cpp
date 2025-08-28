@@ -102,6 +102,71 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
         engine->ProcessInput(Channel, REaction);
 };
 void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+    // Encore::EncoreLog(LOG_DEBUG, "Controller inputted.");
+    Player &player = ThePlayerManager.GetActivePlayer(0);
+    Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
+    Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
+    SettingsOld &settingsMain = SettingsOld::getInstance();
+
+    // if (player.Bot)
+    //    return;
+    // if the key action is NOT repeat (release is 0, press is 1)
+    /*if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
+        // ManagePausedGame(inputHandler, player);
+    } else if ((key == settingsMain.keybindOverdrive
+                || key == settingsMain.keybindOverdriveAlt)) {
+        // inputHandler.handleInputs(player, -1, action);
+    } else */
+
+    Encore::RhythmEngine::Action REaction;
+    Encore::RhythmEngine::InputChannel Channel =
+        Encore::RhythmEngine::InputChannel::INVALID;
+
+    switch (player.padState.GetButtonState(state, GLFW_GAMEPAD_BUTTON_A)) {
+    case GLFW_PRESS: {
+        engine->ProcessInput(
+            Encore::RhythmEngine::InputChannel::OVERDRIVE,
+            Encore::RhythmEngine::Action::PRESS
+        );
+        return;
+    }
+    case GLFW_RELEASE: {
+        engine->ProcessInput(
+            Encore::RhythmEngine::InputChannel::OVERDRIVE,
+            Encore::RhythmEngine::Action::RELEASE
+        );
+        return;
+    }
+    default:
+        break;
+    }
+    int DiffMax = (player.Difficulty == 3 || player.ClassicMode) ? 5 : 4;
+    for (int buttonInt = 0; buttonInt < player.padState.FacePadLayout.size();
+         buttonInt++) {
+        switch (player.padState.GetButtonState(
+            state, player.padState.FacePadLayout.at(buttonInt)
+        )) {
+        case GLFW_PRESS: {
+            engine->ProcessInput(
+                Encore::RhythmEngine::IntIC(buttonInt),
+                Encore::RhythmEngine::Action::PRESS
+            );
+            break;
+        }
+        case GLFW_RELEASE: {
+            engine->ProcessInput(
+                Encore::RhythmEngine::IntIC(buttonInt),
+                Encore::RhythmEngine::Action::RELEASE
+            );
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i",
+    // lane));
     /*
      * actually kinda important tbh this isnt supposed to be here
     if (TheMenuManager.currentScreen == SONG_SELECT) {
@@ -558,8 +623,8 @@ void GameplayMenu::Draw() {
             assets.sdfShader,
             0
         );
-        Color OverdriveText = player.engine->stats->OverdriveActive ? GOLD : WHITE;
-        double ODNum = player.engine->stats->OverdriveFill * 100.0;
+        Color OverdriveText = player.engine->stats->overdrive.Active ? GOLD : WHITE;
+        double ODNum = player.engine->stats->overdrive.Fill * 100.0;
         GameMenu::mhDrawText(
             assets.JetBrainsMono,
             TextFormat("%05.2f%%", ODNum),
@@ -639,7 +704,7 @@ void GameplayMenu::Draw() {
         for (int j = 0; j <= 5; j++) {
             Color DividerColors = { WHITE.r, WHITE.g, WHITE.b, 128 };
             int DividerWidth = 2;
-            if (player.engine->stats->OverdriveActive) {
+            if (player.engine->stats->overdrive.Active) {
                 DividerColors = { GOLD.r, GOLD.g, GOLD.b, 128 };
                 DividerWidth = 4;
             }
@@ -741,19 +806,30 @@ void GameplayMenu::Draw() {
             size_t NotePoolPerLane = NOTE_POOL_SIZE / chart->Lanes.size();
             for (int Lane = 0; Lane < chart->Lanes.size(); ++Lane) {
                 auto &chartLane = chart->at(Lane);
+
                 if (chartLane.empty()) {
                     continue;
                 }
-                size_t NotePoolSize = chartLane.size() > NotePoolPerLane
-                    ? NotePoolPerLane
-                    : chartLane.size();
-                // because i have to do bounds checks myself
-                // just might not use span for this then LMAO
-                // std::span<Encore::RhythmEngine::NoteVector<Encore::RhythmEngine::EncNote>>
-                // NotePool { chartLane.begin(), chartLane.begin() + NotePoolSize };
+                int NotePoolStart = std::distance(
+                    chart->at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)
+                );
+                int NotePoolEnd = NotePoolPerLane
+                    + std::distance(chart->at(Lane).begin(),
+                                    chart->CurrentNoteIterators.at(Lane));
+                NotePoolEnd = chart->at(Lane).size() > NotePoolEnd
+                    ? NotePoolEnd
+                    : chart->at(Lane).size();
+                int NotePoolSize = NotePoolEnd - NotePoolStart;
+                // size_t NotePoolSize = chartLane.size() > NotePoolPerLane
+                //     ? NotePoolPerLane
+                //     : chartLane.size();
+                //  because i have to do bounds checks myself
+                //  just might not use span for this then LMAO
+                //  std::span<Encore::RhythmEngine::NoteVector<Encore::RhythmEngine::EncNote>>
+                //  NotePool { chartLane.begin(), chartLane.begin() + NotePoolSize };
 
                 // for (auto &note : NotePool) {
-                for (int curNote = 0; curNote < NotePoolSize; curNote++) {
+                for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
                     auto &note = chartLane.at(curNote);
 
                     int ScrollPos = -1
@@ -809,6 +885,52 @@ void GameplayMenu::Draw() {
                         );
                     }
                 }
+                if (chart->HeldNotePointers.at(Lane)) {
+                    auto &note = chart->HeldNotePointers.at(Lane);
+                    int ScrollPos = -1
+                        * GetNotePos(
+                            note->StartSeconds,
+                            TheSongTime.GetElapsedTime(),
+                            FakeStrikeline / 2,
+                            FakeStrikeline
+                        );
+
+                    int NoteLength = -1
+                        * GetNotePos(
+                            note->StartSeconds + note->LengthSeconds,
+                            TheSongTime.GetElapsedTime(),
+                            FakeStrikeline / 2,
+                            FakeStrikeline
+                        );
+                    int ScrollEndPos = FakeStrikeline - NoteLength;
+                    int ScrollStartPos = ScrollPos;
+                    int NoteWidth = NoteXWidth;
+                    Color color;
+                    int pos = TrackLeft + (NoteXWidth * Lane);
+                    if (player.engine->stats->Type == Encore::RhythmEngine::Drums) {
+                        color = orybg[Lane];
+                        if (Lane == 0) {
+                            NoteWidth *= 5;
+                            NoteLength += NoteHeight / 2;
+                            ScrollEndPos = NoteHeight / 2;
+                        }
+                    } else {
+                        color = grybo[Lane];
+                    }
+
+                    if (note->NotePassed)
+                        color = MAROON;
+                    DrawRectangle(pos, NoteLength, NoteWidth, ScrollEndPos, color);
+                    if (note->NoteType == 1) {
+                        DrawRectangle(
+                            pos + 5,
+                            NoteLength + 5,
+                            NoteWidth - 10,
+                            ScrollEndPos - 10,
+                            WHITE
+                        );
+                    }
+                }
             }
         } else {
             if (chart->at(0).empty()) {
@@ -823,6 +945,104 @@ void GameplayMenu::Draw() {
                 chart->at(0).size() > NotePoolEnd ? NotePoolEnd : chart->at(0).size();
             int NotePoolSize = NotePoolEnd - NotePoolStart;
 
+            if (!chart->rolls.empty()) {
+                for (auto &roll : chart->rolls) {
+                    int ScrollPos = -1
+                        * GetNotePos(
+                            roll.StartSec,
+                            TheSongTime.GetElapsedTime(),
+                            FakeStrikeline / 2,
+                            FakeStrikeline
+                        );
+
+                    int NoteLength = -1
+                        * GetNotePos(
+                            roll.StartSec + roll.EndSec,
+                            TheSongTime.GetElapsedTime(),
+                            FakeStrikeline / 2,
+                            FakeStrikeline
+                        );
+
+                    int ScrollEndPos = ScrollPos - NoteLength;
+                    uint8_t x = roll.lane;
+                    while (x) {
+                        uint8_t y = x & ~(x - 1);
+                        int pos = TrackLeft;
+                        Color color = GREEN;
+                        if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+                            pos += NoteXWidth;
+                            color = RED;
+                        } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
+                            pos += NoteXWidth * 2;
+                            color = YELLOW;
+                        } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
+                            pos += NoteXWidth * 3;
+                            color = BLUE;
+                        } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
+                            pos += NoteXWidth * 4;
+                            color = ORANGE;
+                        }
+                        color = ColorBrightness(color, -0.75);
+                        DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                        x &= (x - 1);
+                    }
+                }
+            }
+            if (!chart->trills.empty()) {
+                for (auto &trill : chart->trills) {
+                    int ScrollPos = -1
+                        * GetNotePos(
+                            trill.StartSec,
+                            TheSongTime.GetElapsedTime(),
+                            FakeStrikeline / 2,
+                            FakeStrikeline
+                        );
+
+                    int NoteLength = -1
+                        * GetNotePos(
+                            trill.StartSec + trill.EndSec,
+                            TheSongTime.GetElapsedTime(),
+                            FakeStrikeline / 2,
+                            FakeStrikeline
+                        );
+
+                    int ScrollEndPos = ScrollPos - NoteLength;
+                    int pos = TrackLeft;
+                    Color color = GREEN;
+                    if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[1]) {
+                        pos += NoteXWidth;
+                        color = RED;
+                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[2]) {
+                        pos += NoteXWidth * 2;
+                        color = YELLOW;
+                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[3]) {
+                        pos += NoteXWidth * 3;
+                        color = BLUE;
+                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[4]) {
+                        pos += NoteXWidth * 4;
+                        color = ORANGE;
+                    }
+                    color = ColorBrightness(color, -0.5);
+                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                    color = GREEN;
+                    pos = TrackLeft;
+                    if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[1]) {
+                        pos += NoteXWidth;
+                        color = RED;
+                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[2]) {
+                        pos += NoteXWidth * 2;
+                        color = YELLOW;
+                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[3]) {
+                        pos += NoteXWidth * 3;
+                        color = BLUE;
+                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[4]) {
+                        pos += NoteXWidth * 4;
+                        color = ORANGE;
+                    }
+                    color = ColorBrightness(color, -0.75);
+                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                }
+            }
             // because i have to do bounds checks myself
             // std::span NotePool { chart->CurrentNoteIterators.at(0),
             // chart->CurrentNoteIterators.at(0) + NotePoolSize }; for (auto &note :
@@ -951,7 +1171,7 @@ void GameplayMenu::Draw() {
                 TheSongTime.GetCurrentTick(), 0, 64, flashInterval
             );
             Color StreakColor = { 255, 255, 255, streakFlash };
-            if (player.engine->stats->OverdriveActive) {
+            if (player.engine->stats->overdrive.Active) {
                 StreakColor.r = GOLD.r;
                 StreakColor.g = GOLD.g;
                 StreakColor.b = GOLD.b;
@@ -979,7 +1199,7 @@ void GameplayMenu::Draw() {
             BLACK
         );
         double ODBarWidth =
-            Remap(player.engine->stats->OverdriveFill, 1.0, 0, ODBarLength, 0);
+            Remap(player.engine->stats->overdrive.Fill, 1.0, 0, ODBarLength, 0);
 
         unsigned char streakFlash =
             BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 255, flashInterval);

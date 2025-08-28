@@ -5,6 +5,7 @@
 
 #include "player.h"
 #include "rapidjson/document.h"
+#include "util/discord.h"
 
 class PlayerManager {
 public:
@@ -34,11 +35,13 @@ public:
         ActivePlayers.at(slot) = playerNum;
         GetActivePlayer(slot).joypadID = slot;
         PlayersActive += 1;
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
     }
 
     void RemoveActivePlayer(int slot) {
         ActivePlayers.at(slot) = -1;
         PlayersActive -= 1;
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
     }
 
     bool IsGamepadActive(int joystickID) {

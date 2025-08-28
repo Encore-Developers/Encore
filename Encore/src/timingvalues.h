@@ -14,6 +14,7 @@ constexpr float hopoBackend = 0;
 constexpr float fretAfterStrumTime = 0.05f; /**< Allows the player to strum earlier than expected and still hit a note. */
 
 constexpr float liftLeniencyTime = 0.1f; /**< Allows the player to strike right after hitting a lift without penalty. */
+constexpr float overdriveHitLeniency = 0.1f; /**< Allows the player to strike right after activation overdrive without penalty */
 
 constexpr float healthLossPerNote = 0.03f;
 constexpr float healthGainPerNote = 0.015f;

@@ -57,6 +57,29 @@ struct solo : EncChartEvent {
           ) {}
 };
 
+struct trill : EncChartEvent {
+    trill(int tickStart, double secondStart, int tickEnd, double secondEnd)
+        : EncChartEvent(
+              StartTick = tickStart,
+              StartSec = secondStart,
+              EndTick = tickEnd,
+              EndSec = secondEnd
+          ) {}
+    uint8_t lane1 = 255;
+    uint8_t lane2 = 255;
+};
+
+struct roll : EncChartEvent {
+    roll(int tickStart, double secondStart, int tickEnd, double secondEnd)
+        : EncChartEvent(
+              StartTick = tickStart,
+              StartSec = secondStart,
+              EndTick = tickEnd,
+              EndSec = secondEnd
+          ) {}
+    uint8_t lane = 255;
+};
+
 struct DrumFill : EncChartEvent {};
 
 struct odPhrase : EncChartEvent {

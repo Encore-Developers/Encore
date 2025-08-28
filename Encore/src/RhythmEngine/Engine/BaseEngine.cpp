@@ -9,7 +9,27 @@
 #include <bit>
 #include <memory>
 
+bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
+    double noteStartTime
+) {
+    if (noteStartTime - goodFrontend > stats->InputTime - stats->InputOffset) {
+        return true;
+    }
+    return false;
+}
+bool Encore::RhythmEngine::BaseEngine::InHitwindow(
+    double noteStartTime
+) {
+    if ((noteStartTime - goodFrontend < stats->InputTime - stats->InputOffset)
+        && (noteStartTime + goodBackend > stats->InputTime - stats->InputOffset)) {
+        return true;
+        }
+    return false;
+}
 void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action action) {
+    if (channel == InputChannel::INVALID)
+        return;
+
     if (PauseGame(channel, action)) {
         return;
     }
@@ -52,27 +72,43 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action ac
     }
     return false;
 }
-
+void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTime) {
+    if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
+        return;
+    EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
+    if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
+        && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
+        MissNote(Lane);
+        Encore::EncoreLog(
+            LOG_DEBUG, TextFormat("Missed note %01i:%01i", Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)))
+        );
+        }
+}
 void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
-    stats->HitNote(std::popcount(chart->CurrentNoteIterators.at(0)->Lane));
-    chart->overdrive.UpdateEventViaNote(
-        true, chart->CurrentNoteIterators.at(0)->StartTicks
-    );
-    chart->solos.UpdateEventViaNote(true, chart->CurrentNoteIterators.at(0)->StartTicks);
-    chart->UpdateCurrentNote(lane);
+    int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
+    int startTick = chart->CurrentNoteIterators.at(lane)->StartTicks;
+    Encore::EncoreLog(
+            LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
+        );
+    if (!chart->UpdateCurrentNote(lane))
+        return;
+    stats->HitNote(chordSize);
+    chart->overdrive.UpdateEventViaNote(true, startTick);
+    chart->solos.UpdateEventViaNote(true, startTick);
 }
 
 void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
     stats->MissNote();
     chart->overdrive.UpdateEventViaNote(
-        false, chart->CurrentNoteIterators.at(0)->StartTicks
+        false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
     chart->UpdateCurrentNote(lane);
 }
 
-void Encore::RhythmEngine::BaseEngine::Overhit() {
+void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
+    EncoreLog(LOG_DEBUG, "Overhit note");
     stats->Overhit();
     chart->overdrive.UpdateEventViaNote(
-        false, chart->CurrentNoteIterators.at(0)->StartTicks
+        false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
 }

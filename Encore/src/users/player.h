@@ -9,6 +9,7 @@
 
 #include "raylib.h"
 #include "timingvalues.h"
+#include "PadHandler/Controller.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
 #include "song/chart.h"
 #include "song/scoring.h"
@@ -206,7 +207,7 @@ public:
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};
-
+    Encore::Controller padState;
     std::shared_ptr <Encore::RhythmEngine::BaseEngine>
             engine = nullptr;
 

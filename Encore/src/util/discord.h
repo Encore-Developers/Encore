@@ -4,21 +4,25 @@
 
 #ifndef DISCORD_H
 #define DISCORD_H
-#include "discord-rpc/discord_rpc.h"
+#include "discord-rpc/core.h"
 
+#include <memory>
 #include <string>
+
 
 namespace Encore {
     class Discord {
-
-        DiscordRichPresence presence;
+        discord::Core* core{};
+        int64_t startTime;
     public:
-        Discord();
+        bool Initialized = false;
+        void Initialize();
         ~Discord();
         void DiscordUpdatePresence(
-            const std::string &title, const std::string &details
+            const std::string &title, const std::string &details, int players
         );
-        void DiscordUpdatePresenceSong(const std::string &title, const std::string &details, int instrument);
+        void DiscordUpdatePresenceSong(const std::string &title, const std::string &details, int instrument, int players);
+        void Update();
     };
 };
 

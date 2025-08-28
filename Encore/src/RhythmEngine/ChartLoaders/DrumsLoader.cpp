@@ -47,41 +47,17 @@ Encore::RhythmEngine::DrumsLoader::GetNoteType(const smf::MidiEvent &event) {
     return 1;
 }
 void Encore::RhythmEngine::DrumsLoader::CheckEvents(const smf::MidiEvent &event) {
-    if (!chart.solos.empty()) {
-        if (CurrentSolo < chart.solos.size() - 1
-            && chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].EndTick
-                < event.tick)
-            CurrentSolo++;
-    }
-
-    if (!chart.overdrive.empty()) {
-        if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick
-                    + chart.overdrive[CurrentOverdrive].EndTick
-                < event.tick)
-            CurrentOverdrive++;
-    }
+    ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
+    ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 void Encore::RhythmEngine::DrumsLoader::GetChartEvents(smf::MidiEventList track) {
     track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
-        if (event[1] == 116 && event.isNoteOn()) {
-            chart.overdrive.emplace_back(
-                event.tick,
-                event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
-            );
-        }
-        if (event[1] == 103 && event.isNoteOn()) {
-            chart.solos.emplace_back(
-                event.tick,
-                event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
-            );
-        }
+        ATTEMPT_TO_ADD_CHART_EVENT(116, overdrive, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(103, solos, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(127, trills, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(126, rolls, event);
     }
 }
 void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) {
@@ -91,8 +67,21 @@ void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) 
         lengthTicks = 0;
         lengthSec = 0;
     }
-    chart[GetEventLane(Difficulty, event)].emplace_back(
-        event.tick, lengthTicks, event.seconds, lengthSec, GetNoteType(event)
+    int lane = GetEventLane(Difficulty, event);
+    int type = GetNoteType(event);
+    if (!DiscoFlip.empty()) {
+        if (DiscoFlip.front().first <= event.tick) {
+            if (lane == 1) {
+                lane = 2;
+                type = 1;
+            } else if (lane == 2) {
+                lane = 1;
+                type = 0;
+            }
+        }
+    }
+    chart[lane].emplace_back(
+        event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[1]
     );
     if (!chart.solos.empty()) {
         if (event.tick >= chart.solos[CurrentSolo].StartTick) {
@@ -113,18 +102,10 @@ void Encore::RhythmEngine::DrumsLoader::GetNoteModifiers(smf::MidiEventList trac
 }
 
 void Encore::RhythmEngine::DrumsLoader::CheckModifiers(const smf::MidiEvent &event) {
-    if (!BlueTom.empty()) {
-        if (BlueTom.front().second <= event.tick)
-            BlueTom.pop();
-    }
-    if (!YellowTom.empty()) {
-        if (YellowTom.front().second <= event.tick)
-            YellowTom.pop();
-    }
-    if (!GreenTom.empty()) {
-        if (GreenTom.front().second <= event.tick)
-            GreenTom.pop();
-    }
+    ITERATE_MODIFIER_BY_NOTE(BlueTom, event)
+    ITERATE_MODIFIER_BY_NOTE(YellowTom, event)
+    ITERATE_MODIFIER_BY_NOTE(GreenTom, event)
+    ITERATE_MODIFIER_BY_NOTE(DiscoFlip, event)
 }
 
 void Encore::RhythmEngine::DrumsLoader::GetNotes(smf::MidiEventList track) {

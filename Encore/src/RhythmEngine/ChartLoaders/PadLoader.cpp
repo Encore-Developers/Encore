@@ -35,16 +35,8 @@ void Encore::RhythmEngine::PadLoader::CheckModifiers(const smf::MidiEvent &event
 }
 
 void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
-    if (!chart.solos.empty()) {
-        if (CurrentSolo < chart.solos.size() - 1
-            && chart.solos[CurrentSolo].EndTick < event.tick)
-            CurrentSolo++;
-    }
-    if (!chart.overdrive.empty()) {
-        if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].EndTick < event.tick)
-            CurrentOverdrive++;
-    }
+    ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
+    ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 
 [[nodiscard]] int
@@ -60,22 +52,11 @@ void Encore::RhythmEngine::PadLoader::GetChartEvents(smf::MidiEventList track) {
     track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
-        if (event[1] == 116 && event.isNoteOn()) {
-            chart.overdrive.emplace_back(
-                event.tick,
-                event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
-            );
-        }
-        if ((event[1] == 108 || event[1] == 101) && event.isNoteOn()) {
-            chart.solos.emplace_back(
-                event.tick,
-                event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
-            );
-        }
+        ATTEMPT_TO_ADD_CHART_EVENT(116, overdrive, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(108, solos, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(101, solos, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(127, trills, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(126, rolls, event);
     }
 }
 
@@ -88,7 +69,7 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
     }
     chart[GetEventLane(Difficulty, event)].emplace_back(
 
-        event.tick, lengthTicks, event.seconds, lengthSec, GetNoteType(event)
+        event.tick, lengthTicks, event.seconds, lengthSec, GetNoteType(event), PlasticFrets[GetEventLane(Difficulty, event)]
 
     );
     // i hate how solos need note counts before entering lol

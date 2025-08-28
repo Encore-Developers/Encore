@@ -102,41 +102,19 @@ Encore::RhythmEngine::GuitarLoader::GetNoteType(const smf::MidiEvent &event) {
     return 0;
 }
 void Encore::RhythmEngine::GuitarLoader::CheckEvents(const smf::MidiEvent &event) {
-    if (!chart.solos.empty()) {
-        if (CurrentSolo < chart.solos.size() - 1
-            && chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].EndTick
-                < event.tick)
-            CurrentSolo++;
-    }
-
-    if (!chart.overdrive.empty()) {
-        if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick
-                    + chart.overdrive[CurrentOverdrive].EndTick
-                < event.tick)
-            CurrentOverdrive++;
-    }
+    ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
+    ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
+    ITERATE_EVENT_BY_NOTE(trills, CurrentTrill, event)
+    ITERATE_EVENT_BY_NOTE(rolls, CurrentRoll, event)
 }
 void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track) {
     track.linkNotePairs();
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
-        if (event[1] == 116 && event.isNoteOn()) {
-            chart.overdrive.emplace_back(
-                event.tick,
-                event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
-            );
-        }
-        if (event[1] == 103 && event.isNoteOn()) {
-            chart.solos.emplace_back(
-                event.tick,
-                event.seconds,
-                event.getLinkedEvent()->tick - event.tick,
-                event.getLinkedEvent()->seconds - event.seconds
-            );
-        }
+        ATTEMPT_TO_ADD_CHART_EVENT(116, overdrive, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(103, solos, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(127, trills, event);
+        ATTEMPT_TO_ADD_CHART_EVENT(126, rolls, event);
     }
 }
 void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event) {
@@ -159,6 +137,22 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
             chart.solos[CurrentSolo].NoteCount++;
         }
     }
+    if (!chart.trills.empty()) {
+        if (event.tick >= chart.trills[CurrentTrill].StartTick) {
+            if (chart.trills[CurrentTrill].lane1 == 255) {
+                chart.trills[CurrentTrill].lane1 =
+                    PlasticFrets[GetEventLane(Difficulty, event)];
+            } else if (chart.trills[CurrentTrill].lane2 == 255) {
+                chart.trills[CurrentTrill].lane2 =
+                    PlasticFrets[GetEventLane(Difficulty, event)];
+            }
+        }
+    }
+    if (!chart.solos.empty()) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
+            chart.solos[CurrentSolo].NoteCount++;
+        }
+    }
 }
 
 void Encore::RhythmEngine::GuitarLoader::GetNoteModifiers(smf::MidiEventList track) {
@@ -175,18 +169,9 @@ void Encore::RhythmEngine::GuitarLoader::GetNoteModifiers(smf::MidiEventList tra
 }
 
 void Encore::RhythmEngine::GuitarLoader::CheckModifiers(const smf::MidiEvent &event) {
-    if (!ForceHopoOn.empty()) {
-        if (ForceHopoOn.front().second <= event.tick)
-            ForceHopoOn.pop();
-    }
-    if (!ForceHopoOff.empty()) {
-        if (ForceHopoOff.front().second <= event.tick)
-            ForceHopoOff.pop();
-    }
-    if (!TapMarker.empty()) {
-        if (TapMarker.front().second <= event.tick)
-            TapMarker.pop();
-    }
+    ITERATE_MODIFIER_BY_NOTE(ForceHopoOn, event)
+    ITERATE_MODIFIER_BY_NOTE(ForceHopoOff, event)
+    ITERATE_MODIFIER_BY_NOTE(TapMarker, event)
 }
 
 void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
@@ -204,6 +189,12 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
             if (chart[0].back().StartTicks == event.tick) {
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
                 chart[0].back().NoteType = 0;
+                if (!chart.trills.empty()) {
+                    if (event.tick >= chart.trills[CurrentTrill].StartTick) {
+                        chart.rolls[CurrentRoll].lane +=
+                            PlasticFrets[GetEventLane(Difficulty, event)];
+                    }
+                }
                 if (!ForceHopoOn.empty()) {
                     if (ForceHopoOn.front().first <= event.tick) {
                         chart[0].back().NoteType = 1;

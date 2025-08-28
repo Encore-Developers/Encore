@@ -13,9 +13,8 @@ namespace Encore::RhythmEngine {
         std::queue<std::pair<int, int> > GreenTom = {};
         std::queue<std::pair<int, int> > BlueTom = {};
         std::queue<std::pair<int, int> > YellowTom = {};
+        std::queue<std::pair<int, int> > DiscoFlip = {};
         std::queue<int> OpenMarker = {};
-        int CurrentSolo = 0;
-        int CurrentOverdrive = 0;
 
         void CheckToms(const smf::MidiEvent &event);
         void CheckModifiers(const smf::MidiEvent &event);

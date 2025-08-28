@@ -18,7 +18,7 @@ namespace Encore::RhythmEngine {
         int RunHitStateCheck(InputChannel channel, Action action) override;
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
-
+        void HitNote(int lane);
     public:
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(InputChannel channel, Action action) override;

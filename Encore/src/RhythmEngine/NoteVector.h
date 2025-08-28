@@ -55,6 +55,7 @@ namespace Encore::RhythmEngine {
         std::vector<NoteVector> Lanes;
         std::vector<NoteVector::iterator> CurrentNoteIterators;
         std::vector<EncNote *> HeldNotePointers;
+        std::vector<EncNote *> MissedNotePointers;
 
         /**
          * this DOES NOT CARE about timing or ANYTHING.
@@ -66,6 +67,8 @@ namespace Encore::RhythmEngine {
             //     // bounds check
             //     return false;
             // }
+            if (CurrentNoteIterators.at(lane) == Lanes.at(lane).end())
+                return false;
             ++CurrentNoteIterators.at(lane);
             return true;
         }
@@ -92,6 +95,8 @@ namespace Encore::RhythmEngine {
         SoloEvents solos;
         ODEvents overdrive;
         SectionEvents sections;
+        TrillEvents trills;
+        RollEvents rolls;
     };
 }
 
