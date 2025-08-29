@@ -225,43 +225,43 @@ public:
                                     jsonPath.parent_path() / path.value.GetString()
                                 )) {
                                 if (stem == "drums")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
+                                    stemsPath.emplace_back(
+                                         (jsonPath.parent_path() / path.value.GetString()
                                           )
                                               .string(),
-                                          PartDrums }
+                                          PartDrums
                                     );
 
                                 else if (stem == "bass")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
+                                    stemsPath.emplace_back(
+                                         (jsonPath.parent_path() / path.value.GetString()
                                           )
                                               .string(),
-                                          PartBass }
+                                          PartBass
                                     );
 
                                 else if (stem == "lead")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
+                                    stemsPath.emplace_back(
+                                         (jsonPath.parent_path() / path.value.GetString()
                                           )
                                               .string(),
-                                          PartGuitar }
+                                          PartGuitar
                                     );
 
                                 else if (stem == "vocals")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
+                                    stemsPath.emplace_back(
+                                         (jsonPath.parent_path() / path.value.GetString()
                                           )
                                               .string(),
-                                          PartVocals }
+                                          PartVocals
                                     );
 
                                 else if (stem == "backing")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
+                                    stemsPath.emplace_back(
+                                         (jsonPath.parent_path() / path.value.GetString()
                                           )
                                               .string(),
-                                          5 }
+                                          5
                                     );
                             }
                         } else if (path.value.IsArray()) {
@@ -270,38 +270,38 @@ public:
                                         jsonPath.parent_path() / path2.GetString()
                                     )) {
                                     if (stem == "drums")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
+                                        stemsPath.emplace_back(
+                                             (jsonPath.parent_path() / path2.GetString())
                                                   .string(),
-                                              PartDrums }
+                                              PartDrums
                                         );
 
                                     else if (stem == "bass")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
+                                        stemsPath.emplace_back(
+                                             (jsonPath.parent_path() / path2.GetString())
                                                   .string(),
-                                              PartBass }
+                                              PartBass
                                         );
 
                                     else if (stem == "lead")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
+                                        stemsPath.emplace_back(
+                                             (jsonPath.parent_path() / path2.GetString())
                                                   .string(),
-                                              PartGuitar }
+                                              PartGuitar
                                         );
 
                                     else if (stem == "vocals")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
+                                        stemsPath.emplace_back(
+                                             (jsonPath.parent_path() / path2.GetString())
                                                   .string(),
-                                              PartVocals }
+                                              PartVocals
                                         );
 
                                     else if (stem == "backing")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
+                                        stemsPath.emplace_back(
+                                             (jsonPath.parent_path() / path2.GetString())
                                                   .string(),
-                                              5 }
+                                              5
                                         );
                                 }
                             }

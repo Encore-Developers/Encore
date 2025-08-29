@@ -6,9 +6,10 @@
 #define BASESTATS_H
 #include <array>
 #include <vector>
-#include <cstdint>
+#include "Overdrive.h"
 
 namespace Encore::RhythmEngine {
+
     enum class StrumState {
         Default = 0,
         UpStrum = 1,
@@ -16,7 +17,8 @@ namespace Encore::RhythmEngine {
     };
     enum StatsType {
         Pad = 1,
-        Guitar = 0
+        Guitar = 0,
+        Drums = 2
     };
     /**
      * @brief BaseStats is the default base class for handling statistics
@@ -36,12 +38,10 @@ namespace Encore::RhythmEngine {
     template <size_t LaneCount>
     class BaseStats {
     public:
-        explicit BaseStats(const int BaseScore) { StarCalcBaseScore = BaseScore; };
+        explicit BaseStats(const int BaseScore) {
+            StarCalcBaseScore = BaseScore;
+        };
         virtual ~BaseStats() = default;
-        double OverdriveFill = 0.0;
-        double OverdriveActivationTime = 0.0;
-        double OverdriveActivationTick = 0.0;
-        bool OverdriveActive = false;
 
         int Type = 0;
         double Score = 0;
@@ -50,13 +50,17 @@ namespace Encore::RhythmEngine {
         int NotesHit = 0;
         int Misses = 0;
         int AttemptedNotes = 0;
+        int Overhits = 0;
         bool AudioMuted = false;
         int StarCalcBaseScore;
         double InputTime = -1;
         double InputOffset = 0;
+        bool SixMultiplier = false;
         bool Paused = false;
+        bool Bot = false;
         double Health = 1.0;
         StrumState strumState = StrumState::Default;
+        Overdrive overdrive;
         void HitNote(int chordSize) {
             Combo++;
             Score += (25 * chordSize) * multiplier();
@@ -65,21 +69,43 @@ namespace Encore::RhythmEngine {
             AttemptedNotes++;
             AudioMuted = false;
         };
+        void MissNote() {
+            Combo = 0;
+            Misses++;
+            AttemptedNotes++;
+            AudioMuted = true;
+        };
         void Overhit() {
+            Overhits++;
             Combo = 0;
             AudioMuted = true;
         };
         [[nodiscard]] int multiplier() const {
-            int od = OverdriveActive ? 2 : 1;
+            int od = overdrive.Active ? 2 : 1;
             // if (IsBassOrVox()) {
             //     if (Combo >= 50)
             //         return 6 * od;
 
             //} else {
-            if (Combo >= 30)
-                return 4 * od;
-            //};
-            return (Combo / 10) + 1 * od;
+            int MaxMult = SixMultiplier ? 6 : 4;
+            int Multiplier = (Combo / 10) + 1;
+            if (Multiplier > MaxMult) {
+                Multiplier = MaxMult;
+            }
+            return Multiplier * od;
+
+            // if (Combo >= 30)
+            //     return MaxMult * od;
+            // };
+            // return (Combo / 10) + 1 * od;
+        };
+        [[nodiscard]] int multNoOD() const {
+            int MaxMult = SixMultiplier ? 6 : 4;
+            int Multiplier = (Combo / 10) + 1;
+            if (Multiplier > MaxMult) {
+                Multiplier = MaxMult;
+            }
+            return Multiplier;
         };
         std::array<bool, LaneCount> HeldFrets = {};
     };

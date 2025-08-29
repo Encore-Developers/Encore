@@ -8,10 +8,8 @@
 #include "BaseLoader.h"
 
 namespace Encore::RhythmEngine {
-    class PadLoader final : public BaseLoader<PadChart> {
+    class PadLoader final : public BaseLoader {
         std::array<std::queue<int>, 5> LiftMarkers = {};
-        int CurrentSolo = 0;
-        int CurrentOverdrive = 0;
         void CreateLiftMarker(const smf::MidiEvent &event);
         void CheckModifiers(const smf::MidiEvent &event);
         void CheckEvents(const smf::MidiEvent &event);

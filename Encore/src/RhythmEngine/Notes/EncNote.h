@@ -16,6 +16,17 @@ namespace Encore::RhythmEngine {
         int NoteType = 0;
         uint8_t Lane = 0;
         bool NotePassed = false;
+        bool operator==(const EncNote &value) const {
+            if (&value == this)
+                return true;
+            return false;
+        };
+
+        bool operator!=(const EncNote &value) const {
+            if (&value == this)
+                return false;
+            return true;
+        };
     };
 }
 

@@ -3,13 +3,6 @@
 //
 
 #include "RhythmEngine.h"
-
-#include "GuitarEngine.h"
-#include "GuitarStats.h"
-#include "RhythmEngine/NoteVector.h"
-#include "RhythmEngine/ChartLoaders/GuitarLoader.h"
-#include "users/playerManager.h"
-
 /*
 void Encore::RhythmEngine::lol() {
     smf::MidiFile MidiFile;

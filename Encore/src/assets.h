@@ -179,7 +179,7 @@ public:
     Font redHatMono;
     Font rubik;
     Font rubikItalic;
-
+    Font JetBrainsMono;
     Font rubikBoldItalic;
 
     Font rubikBold;

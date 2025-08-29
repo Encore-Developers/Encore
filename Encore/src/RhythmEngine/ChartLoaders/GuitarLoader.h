@@ -8,14 +8,12 @@
 #include "BaseLoader.h"
 
 namespace Encore::RhythmEngine {
-    class GuitarLoader final : public BaseLoader<GuitarChart> {
+    class GuitarLoader final : public BaseLoader {
         // start, end
         std::queue<std::pair<int, int> > ForceHopoOn = {};
         std::queue<std::pair<int, int> > ForceHopoOff = {};
         std::queue<std::pair<int, int> > TapMarker = {};
         std::queue<int> OpenMarker = {};
-        int CurrentSolo = 0;
-        int CurrentOverdrive = 0;
 
         void CheckSysEx(const smf::MidiEvent &event);
         void SysExTap(const smf::MidiEvent &event);
@@ -32,7 +30,10 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        GuitarLoader(int diff_) : BaseLoader(Difficulty = diff_) {}
+        GuitarLoader(int diff_, int thresh_)
+            : BaseLoader(Difficulty = diff_, Threshold = thresh_) {
+            chart.Lanes.resize(1);
+        }
     };
 }
 

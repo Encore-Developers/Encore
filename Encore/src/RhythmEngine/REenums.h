@@ -6,7 +6,7 @@
 #define REENUMS_H
 #include <cstdint>
 
-#endif // REENUMS_H
+
 namespace Encore::RhythmEngine {
     constexpr uint8_t PlasticFrets[6] { // open			0		     0| technically not a
                                         // "fretted note" so i put it on
@@ -99,3 +99,4 @@ namespace Encore::RhythmEngine {
         REPEAT = 2 // not needed but whatever
     };
 }
+#endif // REENUMS_H

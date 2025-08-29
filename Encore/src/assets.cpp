@@ -26,12 +26,12 @@ Font Assets::LoadFontFilter(
     const std::filesystem::path &fontPath, int fontSize, int &loadedAssets
 ) {
     Font font = LoadFontEx(fontPath.string().c_str(), fontSize, nullptr, 250);
-    font.baseSize = 128;
+    font.baseSize = fontSize;
     font.glyphCount = 250;
     int fileSize = 0;
     unsigned char *fileData = LoadFileData(fontPath.string().c_str(), &fileSize);
-    font.glyphs = LoadFontData(fileData, fileSize, 128, 0, 250, FONT_SDF);
-    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 0);
+    font.glyphs = LoadFontData(fileData, fileSize, fontSize, 0, 250, FONT_SDF);
+    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
@@ -43,8 +43,11 @@ void Assets::FirstAssets() {
     encoreWhiteLogo =
         Assets::LoadTextureFilter((directory / "Assets/encore-white.png"), loadedAssets);
     rubik = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-Regular.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/Rubik-Regular.ttf"), 128, loadedAssets
     );
+    JetBrainsMono = LoadFontFilter(
+    (directory / "Assets/fonts/JetBrainsMonoNL-Regular.ttf"), 64, loadedAssets
+        );
 }
 void Assets::LoadAssets() {
     Color accentColor = { 255, 0, 255, 255 };
@@ -331,29 +334,29 @@ void Assets::LoadAssets() {
         Assets::LoadTextureFilter((directory / "Assets/background.png"), loadedAssets);
 
     redHatDisplayItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 128, loadedAssets
     );
     redHatDisplayItalicLarge = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 128, loadedAssets
     );
     redHatDisplayBlack = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-Black.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/RedHatDisplay-Black.ttf"), 128, loadedAssets
     );
 
     rubikBoldItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 128, loadedAssets
     );
     rubikBold = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-Bold.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/Rubik-Bold.ttf"), 128, loadedAssets
     );
     rubikItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/Rubik-Italic.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/Rubik-Italic.ttf"), 128, loadedAssets
     );
 
     josefinSansItalic = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/JosefinSans-Italic.ttf"), 256, loadedAssets
+        (directory / "Assets/fonts/JosefinSans-Italic.ttf"), 128, loadedAssets
     );
-    redHatMono = Assets::LoadFontFilter(directory /"Assets/fonts/RedHatMono-Bold.ttf", 256, loadedAssets);
+    redHatMono = Assets::LoadFontFilter(directory /"Assets/fonts/RedHatMono-Bold.ttf", 128, loadedAssets);
     fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.frag").string().c_str());
     texLoc = GetShaderLocation(fxaa, "texture0");
     resLoc = GetShaderLocation(fxaa, "resolution");

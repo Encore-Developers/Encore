@@ -82,6 +82,7 @@ int minWidth = 640;
 int minHeight = 480;
 
 int main(int argc, char *argv[]) {
+    TheGameRPC.Initialize();
     SetTraceLogCallback(Encore::EncoreLog);
     Units u = Units::getInstance();
     commitHash.erase(7);
@@ -127,6 +128,7 @@ int main(int argc, char *argv[]) {
         CFRelease(bundle);
     }
 #endif
+
     TheSettingsInitializer.InitSettings(directory);
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();
@@ -213,9 +215,10 @@ int main(int argc, char *argv[]) {
         if (TheMenuManager.onNewMenu) {
             TheMenuManager.LoadMenu();
         }
-
+        TheGameRPC.Update();
         TheMenuManager.DrawMenu();
         EndDrawing();
+
         TheFrameManager.WaitForFrame();
     }
     CloseWindow();

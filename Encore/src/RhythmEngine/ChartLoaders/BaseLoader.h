@@ -8,8 +8,31 @@
 #include "RhythmEngine/NoteVector.h"
 #include "midifile/MidiFile.h"
 
+#define ATTEMPT_TO_ADD_CHART_EVENT(lane, type, event)                                    \
+    if (event[1] == lane && event.isNoteOn()) {                                          \
+        chart.type.emplace_back(                                                         \
+            event.tick,                                                                  \
+            event.seconds,                                                               \
+            event.getLinkedEvent()->tick - event.tick,                                   \
+            event.getLinkedEvent()->seconds - event.seconds                              \
+        );                                                                               \
+        continue;                                                                        \
+    }
+
+#define ITERATE_MODIFIER_BY_NOTE(modifier, note)                                         \
+    if (!modifier.empty()) {                                                             \
+        if (modifier.front().second <= note.tick)                                        \
+            modifier.pop();                                                              \
+    }
+
+#define ITERATE_EVENT_BY_NOTE(event, itr, note)                                          \
+    if (!chart.event.empty()) {                                                          \
+        if (itr < chart.event.size() - 1                                                 \
+            && chart.event[itr].StartTick + chart.event[itr].EndTick < note.tick)        \
+            itr++;                                                                       \
+    }
+
 namespace Encore::RhythmEngine {
-    template <typename ChartType>
     class BaseLoader {
         // returns -1 for no event, good for plastic guitar i think
         virtual void GetChartEvents(smf::MidiEventList track) {};
@@ -24,18 +47,25 @@ namespace Encore::RhythmEngine {
             return event[1] >= MinMaxDiff[diff].first
                 && event[1] <= MinMaxDiff[diff].second;
         }
+
         [[nodiscard]] static int GetEventLane(int diff, const smf::MidiEvent &event) {
             return event[1] - MinMaxDiff[diff].first;
         }
+
         // when handing the loader a midi
         // run these few things:
         // midiFile.absoluteTicks();
         // midiFile.doTimeAnalysis();
-        BaseLoader(int diff_) : Difficulty(diff_) {}
+        BaseLoader(int diff_, int thresh_) : Difficulty(diff_), Threshold(thresh_) {}
 
-        ChartType chart;
+        int CurrentSolo = 0;
+        int CurrentOverdrive = 0;
+        int CurrentTrill = 0;
+        int CurrentRoll = 0;
+
+        BaseChart chart;
         int Difficulty;
-
+        int Threshold; // shouldnt be here but who care
         virtual void LoadChart(smf::MidiEventList track) {
             track.linkNotePairs();
             // first get events, hopos, taps, lifts, the likes

@@ -7,9 +7,7 @@
 #include "MenuManager.h"
 #include "gameMenu.h"
 #include "uiUnits.h"
-#include "RhythmEngine/ChartLoaders/GuitarLoader.h"
-#include "RhythmEngine/ChartLoaders/PadLoader.h"
-#include "RhythmEngine/Engine/PadEngine.h"
+#include "RhythmEngine/engines.h"
 #include "gameplay/enctime.h"
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
@@ -20,11 +18,13 @@ bool StartLoading = true;
 bool FinishedLoading = false;
 
 void LoadCharts() {
-    smf::MidiFile midiFile;
-    midiFile.read(TheSongList.curSong->midiPath.string());
-    midiFile.doTimeAnalysis();
+    TheSongList.curSong->midiFile.read(TheSongList.curSong->midiPath.string());
+    TheSongList.curSong->midiFile.doTimeAnalysis();
     TheSongTime.BeatmapFromMidiTrack(
-        midiFile, TheSongList.curSong->BeatTrackID, TheSongList.curSong->endTick
+        TheSongList.curSong->midiFile, TheSongList.curSong->endTick
+    );
+    TheSongTime.GenerateOverdriveTicks(
+        TheSongList.curSong->midiFile, TheSongList.curSong->BeatTrackID
     );
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
@@ -45,38 +45,61 @@ void LoadCharts() {
             // LoadingState = NOTE_PARSING;
             // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
-                midiFile[track].linkNotePairs();
-                Encore::RhythmEngine::GuitarLoader chartLoader(diff);
-                chartLoader.LoadChart(midiFile[track]);
+                TheSongList.curSong->midiFile[track].linkNotePairs();
+                Encore::EncoreLog(
+                    LOG_DEBUG,
+                    TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
+                );
+                Encore::RhythmEngine::GuitarLoader chartLoader(
+                    diff, TheSongList.curSong->hopoThreshold
+                );
+                chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
                     std::make_shared<Encore::RhythmEngine::GuitarEngine>(
-                        std::make_shared<Encore::RhythmEngine::GuitarChart>(
-                            chartLoader.chart
-                        ),
+                    std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                         std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
                     );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Guitar;
             } else if (inst == PlasticDrums) {
-                // chart.plastic = true;
-                // chart.parsePlasticDrums(
-                //     midiFile, track, midiFile[track], diff, inst, player.ProDrums, true
-                //);
+                TheSongList.curSong->midiFile[track].linkNotePairs();
+                Encore::RhythmEngine::DrumsLoader chartLoader(diff);
+                chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
+
+                ThePlayerManager.GetActivePlayer(playerNum)
+                    .engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
+                    std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
+                    std::make_shared<Encore::RhythmEngine::DrumsStats>(0)
+                );
+                ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
+                    Encore::RhythmEngine::Drums;
             } else if (inst < PlasticDrums) {
-                midiFile[track].linkNotePairs();
+                TheSongList.curSong->midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::PadLoader chartLoader(diff);
-                chartLoader.LoadChart(midiFile[track]);
+                chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
                     std::make_shared<Encore::RhythmEngine::PadEngine>(
-                        std::make_shared<Encore::RhythmEngine::PadChart>(chartLoader.chart
-                        ),
-                        std::make_shared<Encore::RhythmEngine::PadStats>(0)
-                    );
+                        std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
+                    std::make_shared<Encore::RhythmEngine::PadStats>(0)
+                );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Pad;
                 // todo: make pad engine shit how did u forget
+            }
+            for (int i = 0; i
+                 < ThePlayerManager.GetActivePlayer(playerNum).engine->chart->Lanes.size(
+                 );
+                 i++) {
+                ThePlayerManager.GetActivePlayer(playerNum)
+                    .engine->chart->Lanes.at(i)
+                    .shrink_to_fit();
+                ThePlayerManager.GetActivePlayer(playerNum)
+                    .engine->chart->CurrentNoteIterators.at(i) =
+                    ThePlayerManager.GetActivePlayer(playerNum)
+                        .engine->chart->Lanes.at(i)
+                        .begin();
             }
 
             // if (!chart.plastic) {
@@ -94,7 +117,7 @@ void LoadCharts() {
         //}
     }
 
-    TheSongList.curSong->getCodas(midiFile);
+    TheSongList.curSong->getCodas(TheSongList.curSong->midiFile);
 
     // LoadingState = READY;
 
