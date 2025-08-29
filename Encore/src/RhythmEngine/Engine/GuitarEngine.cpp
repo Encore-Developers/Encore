@@ -62,7 +62,7 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
                 + chart->HeldNotePointers.at(0)->LengthSeconds
             >= CurrentTime) {
         double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
-        stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * PointsPerTick;
+        stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick * stats->multiplier()) * std::popcount(chart->HeldNotePointers.at(0)->Lane));
     }
     CheckMissedNotes(0, CurrentTime);
     stats->overdrive.Add(CurrentTime, chart);
