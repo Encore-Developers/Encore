@@ -97,8 +97,8 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(
         if (EarlyStrike(CurrentNote->StartSeconds) && !lift) {
             if (stats->overdrive.ActivationTime + overdriveHitLeniency > stats->InputTime - stats->InputOffset )
                 return CheckNextInput;
-            if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
-                Timers["SAH"].ResetTimer();
+            if (Timers["LOP"].CanBeUsedUp(stats->InputTime)) {
+                Timers["LOP"].ResetTimer();
                 return CheckNextInput;
             }
             Overhit(lane);
