@@ -25,7 +25,9 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<PadStats> stats;
         PadEngine(auto _chart, auto _stats)
-            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {};
+            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {
+            Timers = { { "LOP", RhythmTimer(liftLeniencyTime) } };
+        };
         ~PadEngine() override {};
     };
 };
