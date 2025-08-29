@@ -1260,11 +1260,13 @@ void GameplayMenu::Draw() {
         if (player.engine.get()->stats.get()->AudioMuted) {
             int InstrumentNum =
                 player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+            if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum) == nullptr) break;
             TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
                 TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume;
         } else {
             int InstrumentNum =
                 player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+            if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum) == nullptr) break;
             TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
                 TheGameSettings.avMainVolume * TheGameSettings.avActiveInstrumentVolume;
         }
