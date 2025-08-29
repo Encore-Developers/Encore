@@ -10,6 +10,7 @@ namespace Encore {
 
         struct AudioStream {
             unsigned int handle = 0;
+            float volume = 1.0;
             int instrument = 0;
         };
         std::vector<AudioStream> loadedStreams; // Loaded audio streams
@@ -31,6 +32,8 @@ namespace Encore {
         // Audio stream control
         static void UpdateMusicStream(unsigned int handle);
         void unpauseStreams() const;
+        void UpdateAudioStreamVolumes();
+        AudioStream* GetAudioStreamByInstrument(int instrument);
         static void SetAudioStreamVolume(unsigned int handle, float volume);
         static void BeginPlayback(unsigned int handle);
         static void StopPlayback(unsigned int handle);

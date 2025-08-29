@@ -1257,24 +1257,19 @@ void GameplayMenu::Draw() {
                 WHITE
             );
         }
-        for (auto &stream : TheAudioManager.loadedStreams) {
-            if ((player.ClassicMode ? player.Instrument - 5 : player.Instrument)
-                == stream.instrument) {
-                TheAudioManager.SetAudioStreamVolume(
-                    stream.handle,
-                    TheGameSettings.avMainVolume
-                        * TheGameSettings.avActiveInstrumentVolume
-                );
-            } /*else {
-                TheAudioManager.SetAudioStreamVolume(
-                    stream.handle,
-                    TheGameSettings.avMainVolume
-                        * TheGameSettings.avInactiveInstrumentVolume
-                );
-            }*/
+        if (player.engine.get()->stats.get()->AudioMuted) {
+            int InstrumentNum =
+                player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+            TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume;
+        } else {
+            int InstrumentNum =
+                player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+            TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avActiveInstrumentVolume;
         }
     }
-
+    TheAudioManager.UpdateAudioStreamVolumes();
     // ClearBackground({ 0, 0, 0, 0 });
     /* Band Multiplier Drawing
     float bandMult = u.RightSide - WidthOfScorebox;
@@ -1953,6 +1948,9 @@ void GameplayMenu::Load() {
         }
         if (player.Bot)
             player.engine->stats->Bot = true;
+    }
+    for (auto &stream : TheAudioManager.loadedStreams) {
+        stream.volume = TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
     }
     /*
     if (ThePlayerManager.PlayersActive > 1) {
