@@ -29,11 +29,6 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
         };
     }
     if (channel == InputChannel::OVERDRIVE && action == Action::RELEASE) {
-        for (int lane = 0; lane < chart->Lanes.size(); lane++) {
-            if (chart->HeldNotePointers.at(lane)) {
-                chart->HeldNotePointers.at(lane) = nullptr;
-            }
-        }
         if (stats->overdrive.UseOverdriveLift) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
