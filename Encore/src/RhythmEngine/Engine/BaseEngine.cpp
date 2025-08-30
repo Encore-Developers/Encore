@@ -26,6 +26,16 @@ bool Encore::RhythmEngine::BaseEngine::InHitwindow(
         }
     return false;
 }
+
+bool Encore::RhythmEngine::BaseEngine::PerfectHit(
+    double noteStartTime
+) {
+    if ((noteStartTime - perfectFrontend < stats->InputTime - stats->InputOffset)
+        && (noteStartTime + perfectBackend > stats->InputTime - stats->InputOffset)) {
+        return true;
+        }
+    return false;
+}
 void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action action) {
     if (channel == InputChannel::INVALID)
         return;
@@ -87,12 +97,14 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
 void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
     int startTick = chart->CurrentNoteIterators.at(lane)->StartTicks;
+    double startTime = chart->CurrentNoteIterators.at(lane)->StartSeconds;
     Encore::EncoreLog(
             LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
         );
     if (!chart->UpdateCurrentNote(lane))
         return;
-    stats->HitNote(chordSize);
+    if (PerfectHit(startTime)) stats->LastPerfectTime = stats->InputTime;
+    stats->HitNote(chordSize, PerfectHit(startTime));
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
 }
