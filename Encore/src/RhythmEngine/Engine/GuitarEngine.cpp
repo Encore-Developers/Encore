@@ -21,8 +21,8 @@ bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
     return playerMask == noteMask;
     // if its a chord just. go wild lmfao
 }
-bool HittableAsHopo(int NoteType, int Combo) {
-    if (Combo > 0 && NoteType == 1)
+bool HittableAsHopo(int NoteType, int Combo, int GhostCount) {
+    if (Combo > 0 && NoteType == 1  && GhostCount < 3)
         return true;
     return false;
 }
@@ -48,6 +48,10 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
     }
     return false;
 }
+void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
+    GhostCount = 0;
+    BaseEngine::CheckMissedNotes(0, CurrentTime);
+}
 void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     if (stats->Bot) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
@@ -62,9 +66,9 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
                 + chart->HeldNotePointers.at(0)->LengthSeconds
             >= CurrentTime) {
         double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
-        stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * PointsPerTick;
+        stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick * stats->multiplier()) * std::popcount(chart->HeldNotePointers.at(0)->Lane));
     }
-    CheckMissedNotes(0, CurrentTime);
+    this->CheckMissedNotes(CurrentTime);
     stats->overdrive.Add(CurrentTime, chart);
     stats->overdrive.Update(CurrentTime);
     // there is ONLY lane 0 for guitar
@@ -133,6 +137,14 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
         return CheckNextInput;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
+
+    // GHOSTING
+    if (action == Action::RELEASE && channel <= InputChannel::LANE_5 && channel != InputChannel::INVALID) {
+        if (!InHitwindow(CurrentNote.StartSeconds)) {
+            GhostCount++;
+        }
+    }
+
     // STRUM PATH
     bool StrumInput = (stats->strumState != StrumState::Default)
         && action == Action::PRESS
@@ -164,7 +176,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
 
     if (MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())
         && InHitwindow(CurrentNote.StartSeconds)
-        && (HittableAsHopo(CurrentNote.NoteType, stats->Combo)
+        && (HittableAsHopo(CurrentNote.NoteType, stats->Combo, GhostCount)
             || HittableAsTap(CurrentNote.NoteType) || strum)) {
         HitNote(StrumInput);
         return HitState::HitNote;
@@ -172,8 +184,8 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
     return CheckNextInput;
 }
 void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
-    if (chart->CurrentNoteIterators.at(0)->NoteType == 1 && !strumInput
-        && !Timers["FAS"].CanBeUsedUp(stats->InputTime)) {
+    GhostCount = 0;
+    if (chart->CurrentNoteIterators.at(0)->NoteType == 1 && !strumInput) {
         Timers["SAH"].ActivateTimer(stats->InputTime);
         EncoreLog(LOG_DEBUG, "SAH Enabled");
     }

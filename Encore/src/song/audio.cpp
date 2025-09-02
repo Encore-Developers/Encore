@@ -126,7 +126,6 @@ void Encore::AudioManager::seekStreams(double time) const {
     if (!loadedStreams.empty()) {
         BASS_ChannelPause(loadedStreams[0].handle);
         for (auto &stream : loadedStreams) {
-
             int rewindTimeBytes = BASS_ChannelSeconds2Bytes(stream.handle, time);
             BASS_ChannelSetPosition(stream.handle, rewindTimeBytes, BASS_POS_BYTE);
         }
@@ -149,6 +148,24 @@ void Encore::AudioManager::unpauseStreams() const {
         }
         BASS_ChannelPlay(loadedStreams[0].handle, false);
     }
+}
+void Encore::AudioManager::UpdateAudioStreamVolumes() {
+    if (loadedStreams.empty())
+        return;
+    for (const auto &stream : loadedStreams) {
+        BASS_ChannelSetAttribute(stream.handle, BASS_ATTRIB_VOL, stream.volume);
+    };
+    CHECK_BASS_ERROR2();
+}
+Encore::AudioManager::AudioStream *
+Encore::AudioManager::GetAudioStreamByInstrument(int instrument) {
+    if (loadedStreams.empty())
+        return nullptr;
+    for (auto &stream : loadedStreams) {
+        if (stream.instrument == instrument)
+            return &stream;
+    };
+    return nullptr;
 }
 
 double Encore::AudioManager::GetMusicTimePlayed() const {

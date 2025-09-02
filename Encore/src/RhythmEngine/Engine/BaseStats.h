@@ -7,6 +7,7 @@
 #include <array>
 #include <vector>
 #include "Overdrive.h"
+#include "song/scoring.h"
 
 namespace Encore::RhythmEngine {
 
@@ -51,25 +52,30 @@ namespace Encore::RhythmEngine {
         int Misses = 0;
         int AttemptedNotes = 0;
         int Overhits = 0;
+        int MaxCombo = 0;
         bool AudioMuted = false;
         int StarCalcBaseScore;
         double InputTime = -1;
         double InputOffset = 0;
+        double LastPerfectTime = -1;
         bool SixMultiplier = false;
         bool Paused = false;
         bool Bot = false;
         double Health = 1.0;
         StrumState strumState = StrumState::Default;
         Overdrive overdrive;
-        void HitNote(int chordSize) {
+        void HitNote(int chordSize, bool perfect) {
             Combo++;
-            Score += (25 * chordSize) * multiplier();
+            int PointsPerNote = perfect ? 30 : BASE_NOTE_POINT;
+            Score += (PointsPerNote * chordSize) * multiplier();
+            if (perfect) PerfectHits++;
             // PerfectHits = 0;
             NotesHit++;
             AttemptedNotes++;
             AudioMuted = false;
         };
         void MissNote() {
+            if (Combo > MaxCombo) MaxCombo = Combo;
             Combo = 0;
             Misses++;
             AttemptedNotes++;
@@ -77,6 +83,7 @@ namespace Encore::RhythmEngine {
         };
         void Overhit() {
             Overhits++;
+            if (Combo > MaxCombo) MaxCombo = Combo;
             Combo = 0;
             AudioMuted = true;
         };

@@ -524,12 +524,6 @@ void GameplayMenu::Draw() {
     std::span<Beatline> BeatlinePool;
 
     if (TheSongTime.GetElapsedTime() > TheSongList.curSong->end + 1) {
-        for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-            Player &player = ThePlayerManager.GetActivePlayer(i);
-            player.engine->stats.reset();
-            player.engine->chart.reset();
-            player.engine.reset();
-        }
         // TODO: endgame
         TheSongTime.Reset();
         TheAudioManager.unloadStreams();
@@ -554,7 +548,7 @@ void GameplayMenu::Draw() {
         TheSongTime.CurrentODTickItr = 0;
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
-        TheMenuManager.SwitchScreen(SONG_SELECT);
+        TheMenuManager.SwitchScreen(RESULTS);
         return;
     }
 
@@ -658,6 +652,28 @@ void GameplayMenu::Draw() {
             assets.sdfShader,
             0
         );
+        {
+
+            float TimeSinceHit = (TheSongTime.GetElapsedTime() - player.engine->stats->LastPerfectTime);
+            if (TimeSinceHit <= 0.75f) {
+                unsigned char HitAlpha = Remap(
+                    getEasingFunction(EaseOutQuad)(TimeSinceHit / 0.75f),
+                    0,
+                    1.0,
+                    255,
+                    0
+                );
+                GameMenu::mhDrawText(
+                    assets.JetBrainsMono,
+                    "Perfect",
+                    { MiddleOfScreen + (NoteXWidth * 3.0f), float(FakeStrikeline) - u.hinpct(0.1) },
+                    u.hinpct(0.05),
+                    {GOLD.r, GOLD.g, GOLD.b, HitAlpha},
+                    assets.sdfShader,
+                    0
+                );
+            }
+        }
         DrawRectangle(TrackLeft, 0, NoteXWidth * 5, GetScreenHeight(), { 0, 0, 0, 128 });
         if (!TheSongTime.Beatlines.empty()) {
             for (auto &beatline : BeatlinePool) {
@@ -1257,24 +1273,24 @@ void GameplayMenu::Draw() {
                 WHITE
             );
         }
-        for (auto &stream : TheAudioManager.loadedStreams) {
-            if ((player.ClassicMode ? player.Instrument - 5 : player.Instrument)
-                == stream.instrument) {
-                TheAudioManager.SetAudioStreamVolume(
-                    stream.handle,
-                    TheGameSettings.avMainVolume
-                        * TheGameSettings.avActiveInstrumentVolume
-                );
-            } /*else {
-                TheAudioManager.SetAudioStreamVolume(
-                    stream.handle,
-                    TheGameSettings.avMainVolume
-                        * TheGameSettings.avInactiveInstrumentVolume
-                );
-            }*/
+
+        if (player.engine.get()->stats.get()->AudioMuted) {
+            int InstrumentNum =
+                player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+            if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum) == nullptr)
+                break;
+            TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume;
+        } else {
+            int InstrumentNum =
+                player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+            if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum) == nullptr)
+                break;
+            TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avActiveInstrumentVolume;
         }
     }
-
+    TheAudioManager.UpdateAudioStreamVolumes();
     // ClearBackground({ 0, 0, 0, 0 });
     /* Band Multiplier Drawing
     float bandMult = u.RightSide - WidthOfScorebox;
@@ -1953,6 +1969,10 @@ void GameplayMenu::Load() {
         }
         if (player.Bot)
             player.engine->stats->Bot = true;
+    }
+    for (auto &stream : TheAudioManager.loadedStreams) {
+        stream.volume =
+            TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
     }
     /*
     if (ThePlayerManager.PlayersActive > 1) {

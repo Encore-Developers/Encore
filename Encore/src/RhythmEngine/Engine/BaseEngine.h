@@ -28,6 +28,7 @@ namespace Encore::RhythmEngine {
         virtual void SetStatsInputState(InputChannel channel, Action action) {};
         bool EarlyStrike(double noteStartTime);
         bool InHitwindow(double noteStartTime);
+        bool PerfectHit(double noteStartTime);
         void ProcessInput(InputChannel channel, Action action);
         /*
          * Before hitting the note,

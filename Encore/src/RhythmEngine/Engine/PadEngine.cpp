@@ -15,7 +15,9 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
     InputChannel channel, Action action
 ) {
     // todo: hit notes (THIS IS PAD)
+    stats->InputTime = TheSongTime.GetElapsedTime();
     if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
+        // activates overdrive
         if (stats->overdrive.Activate(stats->InputTime)) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
@@ -32,6 +34,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
                 if (InHitwindow(CurrentNote->StartSeconds) && CurrentNote->NoteType == 1) {
+                    Timers["LOP"].ActivateTimer(stats->InputTime);
                     this->HitNote(lane);
                 };
             }
@@ -94,7 +97,10 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(
         if (EarlyStrike(CurrentNote->StartSeconds) && !lift) {
             if (stats->overdrive.ActivationTime + overdriveHitLeniency > stats->InputTime - stats->InputOffset )
                 return CheckNextInput;
-
+            if (Timers["LOP"].CanBeUsedUp(stats->InputTime)) {
+                Timers["LOP"].ResetTimer();
+                return CheckNextInput;
+            }
             Overhit(lane);
             return OverhitNote;
         };
@@ -129,7 +135,7 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
                 >= CurrentTime) {
             double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
             stats->Score +=
-                (TheSongTime.CurrentTick - TheSongTime.LastTick) * PointsPerTick;
+                (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * stats->multiplier());
         }
         CheckMissedNotes(Lane, CurrentTime);
     }
