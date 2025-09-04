@@ -62,11 +62,13 @@ namespace Encore::RhythmEngine {
         bool Paused = false;
         bool Bot = false;
         double Health = 1.0;
+        int Stars = 0;
+        double StarThresholdValue = 0.0;
         StrumState strumState = StrumState::Default;
         Overdrive overdrive;
         void HitNote(int chordSize, bool perfect) {
             Combo++;
-            int PointsPerNote = perfect ? 30 : BASE_NOTE_POINT;
+            const double PointsPerNote = BASE_NOTE_POINT * (perfect ? PERFECT_MULTIPLIER : 1.0);
             Score += (PointsPerNote * chordSize) * multiplier();
             if (perfect) PerfectHits++;
             // PerfectHits = 0;
@@ -116,6 +118,7 @@ namespace Encore::RhythmEngine {
         };
         std::array<bool, LaneCount> HeldFrets = {};
     };
+
 }
 
 #endif // BASESTATS_H

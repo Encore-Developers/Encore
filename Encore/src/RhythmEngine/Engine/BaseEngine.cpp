@@ -5,6 +5,8 @@
 #include "BaseEngine.h"
 
 #include "gameplay/enctime.h"
+#include "song/song.h"
+#include "users/player.h"
 
 #include <bit>
 #include <memory>
@@ -123,4 +125,37 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
+}
+void Encore::RhythmEngine::BaseEngine::UpdateStats(int instrument, int difficulty) {
+    int inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
+    stats->StarThresholdValue = stats->Score / chart->BaseScore;
+    if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][0]) {
+        stats->Stars = 0;
+        return;
+    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][1]) {
+        stats->Stars = 1;
+        return;
+    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][2]) {
+        stats->Stars = 2;
+        return;
+    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][3]) {
+        stats->Stars = 3;
+        return;
+    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][4]) {
+        stats->Stars = 4;
+        return;
+    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][5]) {
+        stats->Stars = 5;
+        return;
+    } else if (stats->StarThresholdValue >= STAR_THRESHOLDS[inst][5]) {
+        stats->Stars = 5;
+        return;
+    } else {
+        stats->Stars = 5;
+        return;
+    }
+
+    //if (difficulty != 3 && stats->Stars > 4)
+    //    stats->Stars = 4;
+
 }

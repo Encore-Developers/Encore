@@ -3,6 +3,8 @@
 //
 
 #include "DrumsLoader.h"
+
+#include "song/scoring.h"
 // i hate sysex
 
 void Encore::RhythmEngine::DrumsLoader::CheckToms(const smf::MidiEvent &event) {
@@ -80,6 +82,7 @@ void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) 
             }
         }
     }
+    chart.BaseScore += BASE_SCORE_NOTE_POINT;
     chart[lane].emplace_back(
         event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[1]
     );

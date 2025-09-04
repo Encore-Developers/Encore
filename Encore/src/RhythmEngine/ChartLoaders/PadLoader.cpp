@@ -4,6 +4,8 @@
 
 #include "PadLoader.h"
 
+#include "song/scoring.h"
+
 Encore::RhythmEngine::PadLoader::PadLoader(int diff_)
     : BaseLoader(Difficulty = diff_, Threshold = 170) {}
 
@@ -66,6 +68,11 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
     if (event.getLinkedEvent()->tick - event.tick < 170) {
         lengthTicks = 0;
         lengthSec = 0;
+    }
+    chart.BaseScore += BASE_SCORE_NOTE_POINT;
+
+    if (lengthTicks > 0) {
+        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
     }
     chart[GetEventLane(Difficulty, event)].emplace_back(
 

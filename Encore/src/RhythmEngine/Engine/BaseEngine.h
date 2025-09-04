@@ -52,7 +52,7 @@ namespace Encore::RhythmEngine {
         void HitNote(int lane);
         void MissNote(int lane);
         void Overhit(int lane);
-
+        void UpdateStats(int instrument, int difficulty);
     private:
         virtual bool PlayerIsPaused() = 0;
         virtual void TogglePause() = 0;
