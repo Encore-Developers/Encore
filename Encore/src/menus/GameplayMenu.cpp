@@ -888,9 +888,13 @@ void GameplayMenu::Draw() {
                         );
 
                     int ScrollEndPos = ScrollPos - NoteLength;
+                    bool sust = false;
+                    int sustLength = ScrollPos - NoteHeight;
                     if (note.LengthTicks == 0) {
                         NoteLength = ScrollPos - NoteHeight;
                         ScrollEndPos = NoteHeight;
+                    } else {
+                        sust = true;
                     }
                     int ScrollStartPos = ScrollPos;
 
@@ -913,13 +917,16 @@ void GameplayMenu::Draw() {
 
                     if (note.NotePassed)
                         color = MAROON;
-                    DrawRectangle(pos, NoteLength, NoteWidth, ScrollEndPos, color);
+                    if (sust) {
+                        DrawRectangle(pos + (NoteXWidth/4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                    }
+                    DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
                     if (note.NoteType == 1) {
                         DrawRectangle(
                             pos + 5,
-                            NoteLength + 5,
-                            NoteWidth - 10,
-                            ScrollEndPos - 10,
+                            sustLength + 5,
+                            NoteXWidth - 10,
+                            NoteHeight - 10,
                             WHITE
                         );
                     }
@@ -959,16 +966,16 @@ void GameplayMenu::Draw() {
 
                     if (note->NotePassed)
                         color = MAROON;
-                    DrawRectangle(pos, NoteLength, NoteWidth, ScrollEndPos, color);
-                    if (note->NoteType == 1) {
-                        DrawRectangle(
-                            pos + 5,
-                            NoteLength + 5,
-                            NoteWidth - 10,
-                            ScrollEndPos - 10,
-                            WHITE
-                        );
-                    }
+                    DrawRectangle(pos + (NoteXWidth / 4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                    //if (note->NoteType == 1) {
+                    //    DrawRectangle(
+                    //        pos + 5,
+                    //        NoteLength + 5,
+                    //        NoteWidth - 10,
+                    //        ScrollEndPos - 10,
+                    //        WHITE
+                    //    );
+                    //}
                 }
             }
         } else {
@@ -1107,9 +1114,13 @@ void GameplayMenu::Draw() {
                     );
 
                 int ScrollEndPos = ScrollPos - NoteLength;
+                bool sust = false;
+                int sustLength = ScrollPos - NoteHeight;
                 if (note.LengthTicks == 0) {
                     NoteLength = ScrollPos - NoteHeight;
                     ScrollEndPos = NoteHeight;
+                } else {
+                    sust = true;
                 }
                 int ScrollStartPos = ScrollPos;
 
@@ -1135,13 +1146,17 @@ void GameplayMenu::Draw() {
                     }
                     if (note.NotePassed)
                         color = MAROON;
-                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                    // DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                    if (sust) {
+                        DrawRectangle(pos + (NoteXWidth/4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                    }
+                    DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
                     if (note.NoteType == 1) {
                         DrawRectangle(
                             pos + 5,
-                            NoteLength + 5,
+                            sustLength + 5,
                             NoteXWidth - 10,
-                            ScrollEndPos - 10,
+                            NoteHeight - 10,
                             WHITE
                         );
                     }
@@ -1188,16 +1203,16 @@ void GameplayMenu::Draw() {
                     }
                     if (note->NotePassed)
                         color = MAROON;
-                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                    if (note->NoteType == 1) {
-                        DrawRectangle(
-                            pos + 5,
-                            NoteLength + 5,
-                            NoteXWidth - 10,
-                            ScrollEndPos - 10,
-                            WHITE
-                        );
-                    }
+                    DrawRectangle(pos + (NoteXWidth / 4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                    //if (note->NoteType == 1) {
+                    //    DrawRectangle(
+                    //        pos + 5,
+                    //        NoteLength + 5,
+                    //        NoteXWidth - 10,
+                    //        ScrollEndPos - 10,
+                    //        WHITE
+                    //    );
+                    //}
                     x &= (x - 1);
                 }
             }
