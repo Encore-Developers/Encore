@@ -260,13 +260,13 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
         CENTER
     );
 
-    //renderPlayerStars(
-    //player.stats,
-    //    (cardPos + cardHalfWidth),
-    //    (float)GetScreenHeight() / 2 - u.hinpct(0.06f),
-    //    u.hinpct(0.055f),
-    //    false
-    //);
+    renderPlayerStars(
+    player,
+        (cardPos + cardHalfWidth),
+        (float)GetScreenHeight() / 2 - u.hinpct(0.06f),
+        u.hinpct(0.055f),
+        false
+    );
 
     std::string ImportantInfoText;
     Color ImportantInfoTextColor = WHITE;
@@ -462,11 +462,11 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
     // u.hinpct(0.03f),0,WHITE);
 };
 
-/*
+
 void resultsMenu::renderPlayerStars(
-    PlayerGameplayStats *&stats, float xPos, float yPos, float scale, bool left
+    Player &player, float xPos, float yPos, float scale, bool left
 ) {
-    int starsval = stats->Stars();
+    int starsval = player.engine->stats->Stars;
 
     float starX = left ? 0 : scale * 2.5f;
     for (int i = 0; i < 5; i++) {
@@ -482,7 +482,7 @@ void resultsMenu::renderPlayerStars(
     for (int i = 0; i < starsval; i++) {
 
         DrawTexturePro(
-            stats->GoldStars() ? GoldStar : Star,
+            starsval > 4 ? GoldStar : Star,
             { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
             { (xPos + ((i) * scale) - starX), yPos, scale, scale },
             { 0, 0 },
@@ -491,7 +491,7 @@ void resultsMenu::renderPlayerStars(
         );
     }
 };
-
+/*
 void resultsMenu::renderStars(
     BandGameplayStats *&stats, float xPos, float yPos, float scale, bool left
 ) {

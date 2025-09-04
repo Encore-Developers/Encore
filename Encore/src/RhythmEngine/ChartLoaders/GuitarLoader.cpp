@@ -3,6 +3,8 @@
 //
 
 #include "GuitarLoader.h"
+
+#include "song/scoring.h"
 std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
 
 static bool HasPSSig(const smf::MidiEvent &event) {
@@ -124,6 +126,9 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         lengthTicks = 0;
         lengthSec = 0;
     }
+    if (lengthTicks > 0) {
+        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
+    }
     chart[0].emplace_back(
         event.tick,
         lengthTicks,
@@ -183,10 +188,12 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
         CheckModifiers(event);
         if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
             if (chart[0].empty()) {
+                chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 CreateNote(event);
                 continue;
             }
             if (chart[0].back().StartTicks == event.tick) {
+                chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
                 chart[0].back().NoteType = 0;
                 if (!chart.trills.empty()) {
@@ -195,12 +202,16 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
                             PlasticFrets[GetEventLane(Difficulty, event)];
                     }
                 }
+                if (chart[0].back().LengthTicks > 0) {
+                    chart.BaseScore += (chart[0].back().LengthTicks / 480) * (SUSTAIN_POINTS_PER_BEAT * BASE_SCORE_NOTE_MULT);
+                }
                 if (!ForceHopoOn.empty()) {
                     if (ForceHopoOn.front().first <= event.tick) {
                         chart[0].back().NoteType = 1;
                     }
                 }
             } else {
+                chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 CreateNote(event);
             }
         }

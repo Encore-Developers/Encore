@@ -417,10 +417,12 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
 void GameplayMenu::DrawGameplayStars(
     Units &u, Assets &assets, float scorePos, float starY
 ) {
-    /*
-    int starsval = ThePlayerManager.BandStats->Stars();
-    float starPercent = (float)ThePlayerManager.BandStats->Score
-        / (float)ThePlayerManager.BandStats->BaseScore;
+    // todo: redo for band
+    auto& player = ThePlayerManager.GetActivePlayer(0);
+    int inst = player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+    int diff = player.Difficulty;
+    double starPercent = player.engine->stats->StarThresholdValue;
+    int starsVal = player.engine->stats->Stars;
     for (int i = 0; i < 5; i++) {
         bool firstStar = (i == 0);
         float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
@@ -432,8 +434,8 @@ void GameplayMenu::DrawGameplayStars(
         DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, { 0, 0 }, 0, WHITE);
         float yMaskPos = Remap(
             starPercent,
-            firstStar ? 0 : BAND_STAR_THRESHOLD[i - 1],
-            BAND_STAR_THRESHOLD[i],
+            firstStar ? 0 : STAR_THRESHOLDS[inst][i - 1],
+            STAR_THRESHOLDS[inst][i],
             0,
             u.hinpct(0.05)
         );
@@ -444,18 +446,17 @@ void GameplayMenu::DrawGameplayStars(
             starRect,
             { 0, 0 },
             0,
-            i == starsval ? Color { 192, 192, 192, 128 } : WHITE
+            i == starsVal ? Color { 192, 192, 192, 128 } : WHITE
         );
         EndScissorMode();
     }
-    if (starPercent >= BAND_STAR_THRESHOLD[4]
-        && ThePlayerManager.BandStats->EligibleForGoldStars) {
+    if (starPercent >= STAR_THRESHOLDS[inst][4]) {
         float starWH = u.hinpct(0.05);
         Rectangle emptyStarWH = {
             0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
         };
         float yMaskPos = Remap(
-            starPercent, BAND_STAR_THRESHOLD[4], BAND_STAR_THRESHOLD[5], 0, u.hinpct(0.05)
+            starPercent, STAR_THRESHOLDS[inst][4], STAR_THRESHOLDS[inst][5], 0, u.hinpct(0.05)
         );
         BeginScissorMode(
             scorePos - (starWH * 6), (starY + starWH) - yMaskPos, scorePos, yMaskPos
@@ -464,7 +465,7 @@ void GameplayMenu::DrawGameplayStars(
             float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
             Rectangle starRect = { starX, starY, starWH, starWH };
             DrawTexturePro(
-                ThePlayerManager.BandStats->GoldStars() ? assets.goldStar
+                 starPercent >= STAR_THRESHOLDS[inst][5]? assets.goldStar
                                                         : assets.goldStarUnfilled,
                 emptyStarWH,
                 starRect,
@@ -474,7 +475,7 @@ void GameplayMenu::DrawGameplayStars(
             );
         }
         EndScissorMode();
-    }*/
+    }
 }
 
 unsigned char BeatToCharViaTickThing(
@@ -572,6 +573,7 @@ void GameplayMenu::Draw() {
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
         player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
+        player.engine->UpdateStats(player.Instrument, player.Difficulty);
 
         int TopOfScreen = GetScreenHeight(); // width
         int FakeStrikeline = (TopOfScreen / 5) * 4;
@@ -592,6 +594,27 @@ void GameplayMenu::Draw() {
             assets.JetBrainsMono,
             GameMenu::scoreCommaFormatter(player.engine->stats->Score),
             { MiddleOfScreen + (NoteXWidth * 3.0f),
+              float(FakeStrikeline) - u.hinpct(0.05) },
+            u.hinpct(0.05),
+            WHITE,
+            assets.sdfShader,
+            0
+        );
+        int scoreWidth = MeasureTextEx(assets.JetBrainsMono, GameMenu::scoreCommaFormatter(player.engine->stats->Score).c_str(), u.hinpct(0.05), 0).x;
+        GameMenu::mhDrawText(
+            assets.JetBrainsMono,
+            std::to_string(player.engine->stats->StarThresholdValue) + "%*",
+            { MiddleOfScreen + (NoteXWidth * 3.3f) + scoreWidth ,
+              float(FakeStrikeline) },
+            u.hinpct(0.05),
+            WHITE,
+            assets.sdfShader,
+            0
+        );
+        GameMenu::mhDrawText(
+            assets.JetBrainsMono,
+            "*" + std::to_string(player.engine->stats->Stars),
+            { MiddleOfScreen + (NoteXWidth * 3.3f) + scoreWidth ,
               float(FakeStrikeline) - u.hinpct(0.05) },
             u.hinpct(0.05),
             WHITE,

@@ -56,7 +56,7 @@ namespace Encore::RhythmEngine {
         std::vector<NoteVector::iterator> CurrentNoteIterators;
         std::vector<EncNote *> HeldNotePointers;
         std::vector<EncNote *> MissedNotePointers;
-
+        double BaseScore = 0;
         /**
          * this DOES NOT CARE about timing or ANYTHING.
          * it simply just gets the next note in said lane
