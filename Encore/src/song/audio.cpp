@@ -204,6 +204,12 @@ void Encore::AudioManager::StopPlayback(unsigned int handle) {
     CHECK_BASS_ERROR2();
 }
 
+void Encore::AudioManager::SetAudioStreamPosition(unsigned int handle, double time) {
+    int positionBytes = BASS_ChannelSeconds2Bytes(handle, time);
+    BASS_ChannelSetPosition(handle, positionBytes, BASS_POS_BYTE);
+    CHECK_BASS_ERROR2();
+}
+
 void Encore::AudioManager::loadSample(const std::string &path, const std::string &name) {
     HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 1, 0);
     if (sample) {

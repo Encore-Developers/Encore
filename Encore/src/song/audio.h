@@ -35,6 +35,7 @@ namespace Encore {
         void UpdateAudioStreamVolumes();
         AudioStream* GetAudioStreamByInstrument(int instrument);
         static void SetAudioStreamVolume(unsigned int handle, float volume);
+        static void SetAudioStreamPosition(unsigned int handle, double time);
         static void BeginPlayback(unsigned int handle);
         static void StopPlayback(unsigned int handle);
 

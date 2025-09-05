@@ -194,7 +194,7 @@ public:
     bool ini = false;
     smf::MidiFile midiFile;
     void LoadAudioINI(std::filesystem::path songPath);
-
+    float previewStartTime = 0.0f;
     void LoadAudio(std::filesystem::path jsonPath) {
         std::ifstream ifs(jsonPath);
 
@@ -402,6 +402,36 @@ public:
                     for (auto &charter : item.value.GetArray()) {
                         if (charter.IsString()) {
                             charters.push_back(charter.GetString());
+                        }
+                    }
+                }
+            }
+            if (document.HasMember("preview_start_time") && document["preview_start_time"].IsInt()) {
+                previewStartTime = static_cast<float>(document["preview_start_time"].GetInt());
+            }
+        }
+        if (document.HasMember("stems") && document["stems"].IsObject()) {
+            for (auto &path : document["stems"].GetObject()) {
+                std::string stem = std::string(path.name.GetString());
+                int partIndex = -1;
+                if (stem == "drums") partIndex = PartDrums;
+                else if (stem == "bass") partIndex = PartBass;
+                else if (stem == "lead") partIndex = PartGuitar;
+                else if (stem == "vocals") partIndex = PartVocals;
+                else if (stem == "backing") partIndex = 5;
+
+                if (path.value.IsString()) {
+                    std::filesystem::path stemPath = jsonPath.parent_path() / path.value.GetString();
+                    if (std::filesystem::exists(stemPath)) {
+                        stemsPath.push_back({ stemPath.string(), partIndex });
+                    }
+                } else if (path.value.IsArray()) {
+                    for (auto &path2 : path.value.GetArray()) {
+                        if (path2.IsString()) {
+                            std::filesystem::path stemPath = jsonPath.parent_path() / path2.GetString();
+                            if (std::filesystem::exists(stemPath)) {
+                                stemsPath.push_back({ stemPath.string(), partIndex });
+                            }
                         }
                     }
                 }

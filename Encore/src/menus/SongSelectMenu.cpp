@@ -9,22 +9,144 @@
 #include "MenuManager.h"
 #include "gameMenu.h"
 #include "raygui.h"
+#include "settings.h"
 #include "uiUnits.h"
 #include "gameplay/gameplayRenderer.h"
+#include "song/audio.h"
 #include "song/songlist.h"
+#include "assets.h"
+#include <filesystem>
+#include <string>
+#include <set>
+#include <vector>
 
+float EaseInOutQuad(float t) {
+    t = t < 0.5f ? 2.0f * t * t : 1.0f - powf(-2.0f * t + 2.0f, 2.0f) / 2.0f;
+    return t;
+}
 
 SortType currentSortValue = SortType::Title;
 Color AccentColor = {255, 0, 255, 255};
+SongSelectMenu::~SongSelectMenu() {
+    Unload();
+}
 
 void SongSelectMenu::Load() {
-    TheSongList.curSong->LoadAlbumArt();
-    SetTextureWrap(TheSongList.curSong->albumArtBlur, TEXTURE_WRAP_REPEAT);
-    SetTextureFilter(TheSongList.curSong->albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
-    TheSongList.SongSelectOffset = TheSongList.curSong->songListPos - 5;
+    if (!IsAudioDeviceReady()) {
+        InitAudioDevice();
+        TraceLog(LOG_INFO, "Initialized audio device");
+    }
+    previewStartTime = 0.0;
+    phaseStartTime = 0.0;
+    currentPreviewVolume = 0.0f;
+    previewState = PreviewState::FadeIn;
+    pendingSongID = -1;
+    selectionTime = 0.0;
+
+    if (TheSongList.curSong && !TheSongList.curSong->AlbumArtLoaded) {
+        try {
+            TheSongList.curSong->LoadAlbumArt();
+            SetTextureWrap(TheSongList.curSong->albumArtBlur, TEXTURE_WRAP_REPEAT);
+            SetTextureFilter(TheSongList.curSong->albumArtBlur, TEXTURE_FILTER_ANISOTROPIC_16X);
+            TheSongList.curSong->AlbumArtLoaded = true;
+            TraceLog(LOG_DEBUG, "Loaded album art for %s", TheSongList.curSong->title.c_str());
+        } catch (const std::exception& e) {
+            TraceLog(LOG_ERROR, "Failed to load album art for %s: %s", TheSongList.curSong->title.c_str(), e.what());
+        }
+    }
+
+    if (TheSongList.curSong) {
+        TheSongList.SongSelectOffset = TheSongList.curSong->songListPos - 5;
+        if (TheSongList.SongSelectOffset < 1) TheSongList.SongSelectOffset = 1;
+        if (TheSongList.SongSelectOffset > TheSongList.listMenuEntries.size() - 10)
+            TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
+    } else {
+        TheSongList.SongSelectOffset = 1;
+    }
+
     // TheGameRenderer.streamsLoaded = false;
     // TheGameRenderer.midiLoaded = false;
+    for (Song& song : TheSongList.songs) {
+        if (!song.ini) {
+            song.LoadInfo(song.songInfoPath);
+        } else {
+            song.LoadInfoINI(song.songInfoPath);
+        }
+    }
 }
+
+void SongSelectMenu::Unload() {
+    if (!TheAudioManager.loadedStreams.empty()) {
+        for (auto& stream : TheAudioManager.loadedStreams) {
+            TheAudioManager.StopPlayback(stream.handle);
+        }
+        TheAudioManager.loadedStreams.clear();
+    }
+}
+
+
+void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
+    float targetVolume = TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
+    float t;
+
+    if (TheAudioManager.loadedStreams.empty()) {
+        currentPreviewVolume = 0.0f;
+        return;
+    }
+
+    switch (previewState) {
+        case PreviewState::FadeIn:
+            t = (currentTime - phaseStartTime) / fadeDuration;
+            if (t >= 1.0f) {
+                currentPreviewVolume = targetVolume;
+                previewState = PreviewState::Playing;
+                phaseStartTime = currentTime;
+            } else {
+                t = EaseInOutQuad(t);
+                currentPreviewVolume = t * targetVolume;
+            }
+            break;
+        case PreviewState::Playing:
+            currentPreviewVolume = targetVolume;
+            if (currentTime - phaseStartTime >= previewPlayDuration) {
+                previewState = PreviewState::FadeOut;
+                phaseStartTime = currentTime;
+            }
+            break;
+        case PreviewState::FadeOut:
+            t = (currentTime - phaseStartTime) / fadeDuration;
+            if (t >= 1.0f) {
+                currentPreviewVolume = 0.0f;
+                previewState = PreviewState::Pause;
+                phaseStartTime = currentTime;
+            } else {
+                t = EaseInOutQuad(t);
+                currentPreviewVolume = (1.0f - t) * targetVolume;
+            }
+            break;
+        case PreviewState::Pause:
+            currentPreviewVolume = 0.0f;
+            if (currentTime - phaseStartTime >= pauseDuration) {
+                previewState = PreviewState::FadeIn;
+                phaseStartTime = currentTime;
+                if (TheSongList.curSong && !TheAudioManager.loadedStreams.empty()) {
+                    float previewStartTimeSec = TheSongList.curSong->previewStartTime / 1000.0f;
+                    TheAudioManager.seekStreams(previewStartTimeSec);
+                    for (auto& stream : TheAudioManager.loadedStreams) {
+                        TheAudioManager.BeginPlayback(stream.handle);
+                    }
+                }
+            }
+            break;
+    }
+
+    for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
+        float volume = currentPreviewVolume;
+        if (i == PartVocals) volume = 0;
+        TheAudioManager.SetAudioStreamVolume(TheAudioManager.loadedStreams[i].handle, volume);
+    }
+}
+
 
 void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS && key == GLFW_KEY_UP) {
@@ -49,10 +171,32 @@ void SongSelectMenu::Draw() {
 
     double curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
-    Vector2 mouseWheel = GetMouseWheelMoveV();
-    int lastIntChosen = (int)mouseWheel.y;
-    // set to specified height
+    if (pendingSongID >= 0 && curTime - selectionTime >= 0.75) {
+        if (pendingSongID < TheSongList.songs.size()) {
+            try {
+                TheAudioManager.loadStreams(TheSongList.songs[pendingSongID].stemsPath);
+                float previewStartTimeSec = TheSongList.songs[pendingSongID].previewStartTime / 1000.0f;
+                TheAudioManager.seekStreams(previewStartTimeSec);
+                for (int j = 0; j < TheAudioManager.loadedStreams.size(); j++) {
+                    float volume = 0.0f;
+                    if (j == PartVocals) volume = 0;
+                    TheAudioManager.SetAudioStreamVolume(TheAudioManager.loadedStreams[j].handle, volume);
+                    TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[j].handle);
+                }
+                previewStartTime = curTime;
+                phaseStartTime = curTime;
+                currentPreviewVolume = 0.0f;
+                previewState = PreviewState::FadeIn;
+            } catch (const std::exception& e) {
+                TraceLog(LOG_ERROR, "Failed to load preview audio for song %d: %s", pendingSongID, e.what());
+            }
+        }
+        pendingSongID = -1;
+    }
 
+    UpdatePreviewVolume(curTime);
+
+    Vector2 mouseWheel = GetMouseWheelMoveV();
     // Update song select offset based on mouse wheel
     if (TheSongList.SongSelectOffset <= TheSongList.listMenuEntries.size() && TheSongList.SongSelectOffset >= 1
         && TheSongList.listMenuEntries.size() >= 10) {
@@ -68,17 +212,21 @@ void SongSelectMenu::Draw() {
         TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
 
     // todo(3drosalia): clean this shit up after changing it
+    Song SongToDisplayInfo = TheSongList.curSong ? *TheSongList.curSong : Song();
+    if (TheSongList.curSong) {
+        if (TheSongList.curSong->ini)
+            TheSongList.curSong->LoadInfoINI(TheSongList.curSong->songInfoPath);
+        else
+            TheSongList.curSong->LoadInfo(TheSongList.curSong->songInfoPath);
+    }
 
-    Song SongToDisplayInfo;
-    BeginShaderMode(assets.bgShader);
-    // todo(3drosalia): this too
-    SongToDisplayInfo = *TheSongList.curSong;
-    if (TheSongList.curSong->ini)
-        TheSongList.curSong->LoadInfoINI(TheSongList.curSong->songInfoPath);
-    else
-        TheSongList.curSong->LoadInfo(TheSongList.curSong->songInfoPath);
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    EndShaderMode();
+    BeginDrawing();
+    ClearBackground(DARKGRAY);
+    if (TheSongList.curSong && TheSongList.curSong->AlbumArtLoaded) {
+        BeginShaderMode(assets.bgShader);
+        GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+        EndShaderMode();
+    }
 
     float TopOvershell = u.hpct(0.15f);
     DrawRectangle(
@@ -95,7 +243,6 @@ void SongSelectMenu::Draw() {
     int AlbumHeight = u.winpct(0.25f);
     int AlbumOuter = u.hinpct(0.01f);
     int AlbumInner = u.hinpct(0.005f);
-    int BorderBetweenAlbumStuff = (u.RightSide - u.LeftSide) - u.winpct(0.25f);
 
     DrawTextEx(
         assets.josefinSansItalic,
@@ -167,7 +314,7 @@ void SongSelectMenu::Draw() {
                 WHITE
             );
         } else if (!TheSongList.listMenuEntries[i].hiddenEntry) {
-            bool isCurSong = i == TheSongList.curSong->songListPos - 1;
+            bool isCurSong = TheSongList.curSong && i == TheSongList.curSong->songListPos - 1;
             Font &artistFont = isCurSong ? assets.josefinSansItalic : assets.josefinSansItalic;
             Song &songi = TheSongList.songs[TheSongList.listMenuEntries[i].songListID];
             int songID = TheSongList.listMenuEntries[i].songListID;
@@ -194,6 +341,18 @@ void SongSelectMenu::Draw() {
                     ""
                 )) {
                 TheSongList.curSong = &TheSongList.songs[songID];
+
+                if (!TheAudioManager.loadedStreams.empty()) {
+                    for (auto& stream : TheAudioManager.loadedStreams) {
+                        TheAudioManager.StopPlayback(stream.handle);
+                    }
+                    TheAudioManager.loadedStreams.clear();
+                    currentPreviewVolume = 0.0f;
+                    previewState = PreviewState::FadeIn;
+                }
+                pendingSongID = songID;
+                selectionTime = curTime;
+
                 if (!TheSongList.songs[songID].AlbumArtLoaded) {
                     try {
                         TheSongList.songs[songID].LoadAlbumArt();
@@ -255,7 +414,6 @@ void SongSelectMenu::Draw() {
                 }
             }
 
-            auto SelectedText = WHITE;
             BeginScissorMode(
                 (int)songXPos + 30 + (int)songTitleWidth,
                 (int)songYPos,
@@ -273,6 +431,54 @@ void SongSelectMenu::Draw() {
             );
             EndScissorMode();
         }
+    }
+    if (TheSongList.SongSelectOffset > 0 && TheSongList.SongSelectOffset < TheSongList.listMenuEntries.size()) {
+        std::string categoryHeaderText = "";
+        int songIndex = TheSongList.SongSelectOffset;
+
+        if (TheSongList.listMenuEntries[songIndex].isHeader && songIndex > 0 && !TheSongList.listMenuEntries[songIndex - 1].isHeader) {
+            songIndex--;
+        } else if (!TheSongList.listMenuEntries[songIndex].isHeader) {
+        } else if (songIndex + 1 < TheSongList.listMenuEntries.size() && !TheSongList.listMenuEntries[songIndex + 1].isHeader) {
+            songIndex++;
+        }
+
+        if (songIndex < TheSongList.listMenuEntries.size() && !TheSongList.listMenuEntries[songIndex].isHeader) {
+            Song& representativeSong = TheSongList.songs[TheSongList.listMenuEntries[songIndex].songListID];
+            switch (currentSortValue) {
+                case SortType::Title:
+                    categoryHeaderText = representativeSong.title.empty() ? "#" : std::string(1, toupper(representativeSong.title[0]));
+                    break;
+                case SortType::Artist:
+                    categoryHeaderText = representativeSong.artist.empty() ? "#" : std::string(1, toupper(representativeSong.artist[0]));
+                    break;
+                case SortType::Source:
+                    categoryHeaderText = representativeSong.source.empty() ? "Unknown" : representativeSong.source;
+                    break;
+                case SortType::Length:
+                    categoryHeaderText = TheSongList.listMenuEntries[TheSongList.SongSelectOffset].headerChar;
+                    break;
+                case SortType::Year:
+                    categoryHeaderText = representativeSong.releaseYear.empty() ? "Unknown Year" : representativeSong.releaseYear;
+                    break;
+                default:
+                    categoryHeaderText = "";
+                    break;
+            }
+        }
+
+        if (categoryHeaderText.empty()) {
+            categoryHeaderText = TheSongList.listMenuEntries[TheSongList.SongSelectOffset].headerChar;
+        }
+
+        DrawTextEx(
+            assets.rubikBold,
+            categoryHeaderText.c_str(),
+            { u.LeftSide + 5, u.hpct(0.218333f) },
+            u.hinpct(0.035f),
+            0,
+            WHITE
+        );
     }
 
     DrawRectangle(
@@ -298,12 +504,11 @@ void SongSelectMenu::Draw() {
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
 
-    // Display song title above the album cover
     std::string titleText = SongToDisplayInfo.title.empty() ? "Unknown Song" : SongToDisplayInfo.title;
     float titleFontSize = u.hinpct(0.035f);
     float titleTextWidth = MeasureTextEx(assets.rubikBold, titleText.c_str(), titleFontSize, 0).x;
     float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth / 2.0f);
-    float titleTextY = AlbumY - u.hinpct(0.045f); // Same position as current year
+    float titleTextY = AlbumY - u.hinpct(0.045f);
     DrawTextEx(
         assets.rubikBold,
         titleText.c_str(),
@@ -313,127 +518,28 @@ void SongSelectMenu::Draw() {
         WHITE
     );
 
-    // Draw album cover
-    DrawTexturePro(
-        TheSongList.curSong->albumArt,
-        Rectangle { 0,
-                    0,
-                    (float)TheSongList.curSong->albumArt.width,
-                    (float)TheSongList.curSong->albumArt.width },
-        Rectangle { (float)AlbumX - AlbumInner,
-                    (float)AlbumY,
-                    (float)AlbumHeight,
-                    (float)AlbumHeight },
-        { 0, 0 },
-        0,
-        WHITE
-    );
-    // TODO: replace this with actual sorting/category hiding
-
-    // Sorting/category header
-    if (TheSongList.SongSelectOffset > 0) {
-        std::string SongTitleForCharThingyThatsTemporary =
-            TheSongList.listMenuEntries[TheSongList.SongSelectOffset].headerChar;
-        switch (currentSortValue) {
-        case SortType::Title: {
-            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
-                        .title[0];
-            } else {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
-                        .title[0];
-            }
-            break;
-        }
-        case SortType::Artist: {
-            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
-                        .artist[0];
-            } else {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
-                        .artist[0];
-            }
-            break;
-        }
-        case SortType::Source: {
-            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
-                        .source;
-            } else {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
-                        .source;
-            }
-            break;
-        }
-        case SortType::Length: {
-            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
-                SongTitleForCharThingyThatsTemporary = std::to_string(
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
-                        .length
-                );
-            } else {
-                SongTitleForCharThingyThatsTemporary = std::to_string(
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
-                        .length
-                );
-            }
-            break;
-        }
-        case SortType::Year: {
-            if (TheSongList.listMenuEntries[TheSongList.SongSelectOffset].isHeader) {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset - 1].songListID]
-                        .releaseYear[0];
-            } else {
-                SongTitleForCharThingyThatsTemporary =
-                    TheSongList
-                        .songs[TheSongList.listMenuEntries[TheSongList.SongSelectOffset].songListID]
-                        .releaseYear[0];
-            }
-            break;
-        }
-        default:
-            // Handle EnumEnd or unexpected values
-            SongTitleForCharThingyThatsTemporary = "";
-            break;
-        }
-
-        DrawTextEx(
-            assets.rubikBold,
-            SongTitleForCharThingyThatsTemporary.c_str(),
-            { u.LeftSide + 5, u.hpct(0.218333f) },
-            u.hinpct(0.035f),
+    if (TheSongList.curSong && TheSongList.curSong->AlbumArtLoaded) {
+        DrawTexturePro(
+            TheSongList.curSong->albumArt,
+            Rectangle { 0,
+                        0,
+                        (float)TheSongList.curSong->albumArt.width,
+                        (float)TheSongList.curSong->albumArt.width },
+            Rectangle { (float)AlbumX - AlbumInner,
+                        (float)AlbumY,
+                        (float)AlbumHeight,
+                        (float)AlbumHeight },
+            { 0, 0 },
             0,
             WHITE
         );
+    } else {
+        DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, DARKGRAY);
     }
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
-    GameMenu::mhDrawText(
-        assets.redHatDisplayBlack,
-        "MUSIC LIBRARY",
-        { TextPlacementLR, TextPlacementTB },
-        u.hinpct(0.125f),
-        WHITE,
-        assets.sdfShader,
-        LEFT
-    );
+    GameMenu::mhDrawText(assets.redHatDisplayBlack, "MUSIC LIBRARY", { TextPlacementLR, TextPlacementTB }, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
 
     std::string albumText = SongToDisplayInfo.album.empty() ? "No Album Listed" : SongToDisplayInfo.album;
     std::string yearText = SongToDisplayInfo.releaseYear.empty() ? "Unknown Year" : SongToDisplayInfo.releaseYear;
@@ -442,61 +548,17 @@ void SongSelectMenu::Draw() {
     float albumTextWidth = MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), u.hinpct(0.035f), 0).x;
     float albumNameTextCenter = u.RightSide - u.winpct(0.125f) - AlbumInner;
     float albumTTop = AlbumY + AlbumHeight + u.hinpct(0.011f);
-    float albumNameFontSize = albumTextWidth <= u.winpct(0.25f)
-        ? u.hinpct(0.035f)
-        : u.winpct(0.23f) / (albumTextWidth / albumTextHeight);
-    float albumNameLeft = albumNameTextCenter
-        - (MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), albumNameFontSize, 0).x / 2);
-    float albumNameTextTop = albumTextWidth <= u.winpct(0.25f)
-        ? albumTTop
-        : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
-    DrawTextEx(
-        assets.rubikBold,
-        albumDisplayText.c_str(),
-        { albumNameLeft, albumNameTextTop },
-        albumNameFontSize,
-        0,
-        WHITE
-    );
+    float albumNameFontSize = albumTextWidth <= u.winpct(0.25f) ? u.hinpct(0.035f) : u.winpct(0.23f) / (albumTextWidth / albumTextHeight);
+    float albumNameLeft = albumNameTextCenter - (MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), albumNameFontSize, 0).x / 2);
+    float albumNameTextTop = albumTextWidth <= u.winpct(0.25f) ? albumTTop : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
+    DrawTextEx(assets.rubikBold, albumDisplayText.c_str(), { albumNameLeft, albumNameTextTop }, albumNameFontSize, 0, WHITE);
 
-    DrawLine(
-        u.RightSide - AlbumHeight - AlbumOuter,
-        AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
-        u.RightSide,
-        AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
-        WHITE
-    );
+    DrawLine(u.RightSide - AlbumHeight - AlbumOuter, AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)), u.RightSide, AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)), WHITE);
 
     float DiffTop = AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.045f));
-    float DiffHeight = u.hinpct(0.035f);
-    float DiffTextSize = u.hinpct(0.03f);
-    float DiffDotLeft =
-        u.RightSide - MeasureTextEx(assets.rubikBold, "OOOOO  ", DiffHeight, 0).x;
-    float ScrollbarLeft = u.RightSide - AlbumHeight - AlbumOuter - (AlbumInner * 2);
-    float ScrollbarTop = u.hpct(0.208333f);
-    float ScrollbarHeight = GetScreenHeight() - u.hpct(0.208333f) - u.hpct(0.15f);
-    GuiSetStyle(SCROLLBAR, BACKGROUND_COLOR, 0x181827FF);
-    GuiSetStyle(SCROLLBAR, SCROLL_SLIDER_SIZE, u.hinpct(0.03f));
     float IconWidth = float(AlbumHeight - AlbumOuter) / 5.0f;
-    GameMenu::mhDrawText(
-        assets.rubikItalic,
-        "Pad",
-        { (u.RightSide - AlbumHeight + AlbumInner), DiffTop },
-        AlbumOuter * 3,
-        WHITE,
-        assets.sdfShader,
-        LEFT
-    );
-    GameMenu::mhDrawText(
-        assets.rubikItalic,
-        "Classic",
-        { (u.RightSide - AlbumHeight + AlbumInner),
-          DiffTop + IconWidth + (AlbumOuter * 3) },
-        AlbumOuter * 3,
-        WHITE,
-        assets.sdfShader,
-        LEFT
-    );
+    GameMenu::mhDrawText(assets.rubikItalic, "Pad", { (u.RightSide - AlbumHeight + AlbumInner), DiffTop }, AlbumOuter * 3, WHITE, assets.sdfShader, LEFT);
+    GameMenu::mhDrawText(assets.rubikItalic, "Classic", { (u.RightSide - AlbumHeight + AlbumInner), DiffTop + IconWidth + (AlbumOuter * 3) }, AlbumOuter * 3, WHITE, assets.sdfShader, LEFT);
     for (int i = 0; i < 10; i++) {
         bool RowTwo = i < 5;
         int RowTwoInt = i - 5;
@@ -504,67 +566,28 @@ void SongSelectMenu::Draw() {
         float BoxTopPos = DiffTop + PosTopAddition + float(IconWidth * (RowTwo ? 0 : 1));
         float ResetToLeftPos = (float)(RowTwo ? i : RowTwoInt);
         int asdasd = (float)(RowTwo ? i : RowTwoInt);
-        float IconLeftPos =
-            (float)(u.RightSide - AlbumHeight) + IconWidth * ResetToLeftPos;
+        float IconLeftPos = (float)(u.RightSide - AlbumHeight) + IconWidth * ResetToLeftPos;
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        if (SongToDisplayInfo.parts[i]->diff == -1)
-            TintColor = DARKGRAY;
-        DrawTexturePro(
-            assets.InstIcons[asdasd],
-            { 0,
-              0,
-              (float)assets.InstIcons[asdasd].width,
-              (float)assets.InstIcons[asdasd].height },
-            Placement,
-            { 0, 0 },
-            0,
-            TintColor
-        );
-        DrawTexturePro(
-            assets.BaseRingTexture,
-            { 0,
-              0,
-              (float)assets.BaseRingTexture.width,
-              (float)assets.BaseRingTexture.height },
-            Placement,
-            { 0, 0 },
-            0,
-            ColorBrightness(WHITE, 2)
-        );
-        if (SongToDisplayInfo.parts[i]->diff > 0)
-            DrawTexturePro(
-                assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1],
-                { 0,
-                  0,
-                  (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].width,
-                  (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].height },
-                Placement,
-                { 0, 0 },
-                0,
-                WHITE
-            );
+        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff == -1) TintColor = DARKGRAY;
+        DrawTexturePro(assets.InstIcons[asdasd], { 0, 0, (float)assets.InstIcons[asdasd].width, (float)assets.InstIcons[asdasd].height }, Placement, { 0, 0 }, 0, TintColor);
+        DrawTexturePro(assets.BaseRingTexture, { 0, 0, (float)assets.BaseRingTexture.width, (float)assets.BaseRingTexture.height }, Placement, { 0, 0 }, 0, ColorBrightness(WHITE, 2));
+        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff > 0)
+            DrawTexturePro(assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1], { 0, 0, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].width, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].height }, Placement, { 0, 0 }, 0, WHITE);
     }
 
     GameMenu::DrawBottomOvershell();
-    float BottomOvershell = (float)GetScreenHeight() - 120;
-
-    GuiSetStyle(
-        BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(AccentColor, -0.25))
-    );
-    if (GuiButton(
-            Rectangle { u.LeftSide,
-                        GetScreenHeight() - u.hpct(0.1475f),
-                        u.winpct(0.2f),
-                        u.hinpct(0.05f) },
-            "Play Song"
-        )) {
-        if (!TheSongList.curSong->ini) {
-            TheSongList.curSong->LoadSong(TheSongList.curSong->songInfoPath);
-        } else {
-            TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(AccentColor, -0.25)));
+    if (GuiButton(Rectangle{ u.LeftSide, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Play Song")) {
+        if (TheSongList.curSong) {
+            Unload();
+            if (!TheSongList.curSong->ini) {
+                TheSongList.curSong->LoadSong(TheSongList.curSong->songInfoPath);
+            } else {
+                TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
+            }
+            TheMenuManager.SwitchScreen(READY_UP);
         }
-        TheMenuManager.SwitchScreen(READY_UP);
     }
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
 
@@ -575,20 +598,43 @@ void SongSelectMenu::Draw() {
                         u.hinpct(0.05f) },
             "Sort"
         )) {
-        currentSortValue = NextSortType(currentSortValue);
-        TheSongList.sortList(currentSortValue, TheSongList.curSong->songListPos);
-    }
-    if (GuiButton(
-            Rectangle { u.LeftSide + u.winpct(0.2f) - 1,
-                        GetScreenHeight() - u.hpct(0.1475f),
-                        u.winpct(0.2f),
-                        u.hinpct(0.05f) },
-            "Back"
-        )) {
-        for (Song &songi : TheSongList.songs) {
-            songi.titleXOffset = 0;
-            songi.artistXOffset = 0;
+        int selectedSongIndex = -1;
+        if (TheSongList.curSong) {
+            for (size_t i = 0; i < TheSongList.songs.size(); i++) {
+                if (&TheSongList.songs[i] == TheSongList.curSong) {
+                    selectedSongIndex = i;
+                    break;
+                }
+            }
         }
+        currentSortValue = NextSortType(currentSortValue);
+        TheSongList.sortList(currentSortValue, selectedSongIndex);
+        if (selectedSongIndex >= 0 && selectedSongIndex < TheSongList.songs.size()) {
+            TheSongList.curSong = &TheSongList.songs[selectedSongIndex];
+            TheSongList.SongSelectOffset = TheSongList.curSong->songListPos - 5;
+            if (TheSongList.SongSelectOffset < 1) TheSongList.SongSelectOffset = 1;
+            if (TheSongList.SongSelectOffset > TheSongList.listMenuEntries.size() - 10)
+                TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
+            if (!TheAudioManager.loadedStreams.empty()) {
+                for (auto& stream : TheAudioManager.loadedStreams) {
+                    TheAudioManager.StopPlayback(stream.handle);
+                }
+                TheAudioManager.loadedStreams.clear();
+                currentPreviewVolume = 0.0f;
+                previewState = PreviewState::FadeIn;
+            }
+            pendingSongID = selectedSongIndex;
+            selectionTime = curTime;
+        }
+    }
+    if (GuiButton(Rectangle{ u.LeftSide + u.winpct(0.2f) - 1, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Back")) {
+        if (!TheAudioManager.loadedStreams.empty()) {
+            for (auto& stream : TheAudioManager.loadedStreams) {
+                TheAudioManager.StopPlayback(stream.handle);
+            }
+            TheAudioManager.loadedStreams.clear();
+        }
+        Unload();
         TheMenuManager.SwitchScreen(MAIN_MENU);
     }
     DrawOvershell();
