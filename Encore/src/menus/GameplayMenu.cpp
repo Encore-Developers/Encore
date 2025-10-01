@@ -22,8 +22,12 @@
 #include "settings-old.h"
 #include "settings.h"
 #include "timingvalues.h"
+#include "gameplay/video.h"
+#include <filesystem>
 
 #include <raylib.h>
+
+VideoStream backgroundVideo;
 
 GameplayMenu::GameplayMenu() {}
 GameplayMenu::~GameplayMenu() {}
@@ -501,8 +505,15 @@ void GameplayMenu::Draw() {
     //    OvershellRenderer osr;
     double curTime = GetTime();
 
-    // IMAGE BACKGROUNDS??????
     ClearBackground(BLACK);
+    backgroundVideo.Update();
+
+    if (backgroundVideo.IsLoaded()) {
+        backgroundVideo.Draw(0, 0, WHITE);
+    } else {
+        GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    }
+
     unsigned char BackgroundColor = 0;
     // if (ThePlayerManager.BandStats->PlayersInOverdrive > 0) {
     // BackgroundColor = BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 8, 960);
@@ -516,7 +527,6 @@ void GameplayMenu::Draw() {
     }
     std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
     DrawRectangle(
         0, 0, GetScreenWidth(), GetScreenHeight(), Color { 255, 255, 255, BackgroundColor }
@@ -978,24 +988,127 @@ void GameplayMenu::Draw() {
                     //}
                 }
             }
-        } else {
-            if (chart->at(0).empty()) {
-                continue;
-            }
-            // if the size of the chart is bigger than the selected "range"
-            int NotePoolStart =
-                std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
-            int NotePoolEnd = NOTE_POOL_SIZE
-                + std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
-            NotePoolEnd =
-                chart->at(0).size() > NotePoolEnd ? NotePoolEnd : chart->at(0).size();
-            int NotePoolSize = NotePoolEnd - NotePoolStart;
+            } else {
+                if (chart->at(0).empty()) {
+                    continue;
+                }
+                int NotePoolStart =
+                    std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
+                int NotePoolEnd = NOTE_POOL_SIZE
+                    + std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
+                NotePoolEnd =
+                    chart->at(0).size() > NotePoolEnd ? NotePoolEnd : chart->at(0).size();
+                int NotePoolSize = NotePoolEnd - NotePoolStart;
 
-            if (!chart->rolls.empty()) {
-                for (auto &roll : chart->rolls) {
+                if (!chart->rolls.empty()) {
+                    for (auto &roll : chart->rolls) {
+                        int ScrollPos = -1
+                            * GetNotePos(
+                                roll.StartSec,
+                                TheSongTime.GetElapsedTime(),
+                                FakeStrikeline / 2,
+                                FakeStrikeline
+                            );
+
+                        int NoteLength = -1
+                            * GetNotePos(
+                                roll.StartSec + roll.EndSec,
+                                TheSongTime.GetElapsedTime(),
+                                FakeStrikeline / 2,
+                                FakeStrikeline
+                            );
+
+                        int ScrollEndPos = ScrollPos - NoteLength;
+                        uint8_t x = roll.lane;
+                        while (x) {
+                            uint8_t y = x & ~(x - 1);
+                            int pos = TrackLeft;
+                            Color color = GREEN;
+                            if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+                                pos += NoteXWidth;
+                                color = RED;
+                            } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
+                                pos += NoteXWidth * 2;
+                                color = YELLOW;
+                            } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
+                                pos += NoteXWidth * 3;
+                                color = BLUE;
+                            } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
+                                pos += NoteXWidth * 4;
+                                color = ORANGE;
+                            }
+                            color = ColorBrightness(color, -0.75);
+                            DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                            x &= (x - 1);
+                        }
+                    }
+                }
+                if (!chart->trills.empty()) {
+                    for (auto &trill : chart->trills) {
+                        int ScrollPos = -1
+                            * GetNotePos(
+                                trill.StartSec,
+                                TheSongTime.GetElapsedTime(),
+                                FakeStrikeline / 2,
+                                FakeStrikeline
+                            );
+
+                        int NoteLength = -1
+                            * GetNotePos(
+                                trill.StartSec + trill.EndSec,
+                                TheSongTime.GetElapsedTime(),
+                                FakeStrikeline / 2,
+                                FakeStrikeline
+                            );
+
+                        int ScrollEndPos = ScrollPos - NoteLength;
+                        int pos = TrackLeft;
+                        Color color = GREEN;
+                        if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[1]) {
+                            pos += NoteXWidth;
+                            color = RED;
+                        } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[2]) {
+                            pos += NoteXWidth * 2;
+                            color = YELLOW;
+                        } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[3]) {
+                            pos += NoteXWidth * 3;
+                            color = BLUE;
+                        } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[4]) {
+                            pos += NoteXWidth * 4;
+                            color = ORANGE;
+                        }
+                        color = ColorBrightness(color, -0.5);
+                        DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                        color = GREEN;
+                        pos = TrackLeft;
+                        if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[1]) {
+                            pos += NoteXWidth;
+                            color = RED;
+                        } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[2]) {
+                            pos += NoteXWidth * 2;
+                            color = YELLOW;
+                        } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[3]) {
+                            pos += NoteXWidth * 3;
+                            color = BLUE;
+                        } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[4]) {
+                            pos += NoteXWidth * 4;
+                            color = ORANGE;
+                        }
+                        color = ColorBrightness(color, -0.75);
+                        DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                    }
+                }
+                // because i have to do bounds checks myself
+                // std::span NotePool { chart->CurrentNoteIterators.at(0),
+                // chart->CurrentNoteIterators.at(0) + NotePoolSize }; for (auto &note :
+                // NotePool) {
+
+                for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
+                    auto &note = chart->at(0).at(curNote);
+                    // basic miss check, only delays for showing misses
                     int ScrollPos = -1
                         * GetNotePos(
-                            roll.StartSec,
+                            note.StartSeconds,
                             TheSongTime.GetElapsedTime(),
                             FakeStrikeline / 2,
                             FakeStrikeline
@@ -1003,14 +1116,26 @@ void GameplayMenu::Draw() {
 
                     int NoteLength = -1
                         * GetNotePos(
-                            roll.StartSec + roll.EndSec,
+                            note.StartSeconds + note.LengthSeconds,
                             TheSongTime.GetElapsedTime(),
                             FakeStrikeline / 2,
                             FakeStrikeline
                         );
 
                     int ScrollEndPos = ScrollPos - NoteLength;
-                    uint8_t x = roll.lane;
+                    bool sust = false;
+                    int sustLength = ScrollPos - NoteHeight;
+                    if (note.LengthTicks == 0) {
+                        NoteLength = ScrollPos - NoteHeight;
+                        ScrollEndPos = NoteHeight;
+                    } else {
+                        sust = true;
+                    }
+                    int ScrollStartPos = ScrollPos;
+
+                    uint8_t x = note.Lane;
+
+                    DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
                     while (x) {
                         uint8_t y = x & ~(x - 1);
                         int pos = TrackLeft;
@@ -1028,17 +1153,30 @@ void GameplayMenu::Draw() {
                             pos += NoteXWidth * 4;
                             color = ORANGE;
                         }
-                        color = ColorBrightness(color, -0.75);
-                        DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                        if (note.NotePassed)
+                            color = MAROON;
+                        // DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+                        if (sust) {
+                            DrawRectangle(pos + (NoteXWidth/4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                        }
+                        DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
+                        if (note.NoteType == 1) {
+                            DrawRectangle(
+                                pos + 5,
+                                sustLength + 5,
+                                NoteXWidth - 10,
+                                NoteHeight - 10,
+                                WHITE
+                            );
+                        }
                         x &= (x - 1);
                     }
                 }
-            }
-            if (!chart->trills.empty()) {
-                for (auto &trill : chart->trills) {
+                if (chart->HeldNotePointers.at(0)) {
+                    auto &note = chart->HeldNotePointers.at(0);
                     int ScrollPos = -1
                         * GetNotePos(
-                            trill.StartSec,
+                            note->StartSeconds,
                             TheSongTime.GetElapsedTime(),
                             FakeStrikeline / 2,
                             FakeStrikeline
@@ -1046,177 +1184,48 @@ void GameplayMenu::Draw() {
 
                     int NoteLength = -1
                         * GetNotePos(
-                            trill.StartSec + trill.EndSec,
+                            note->StartSeconds + note->LengthSeconds,
                             TheSongTime.GetElapsedTime(),
                             FakeStrikeline / 2,
                             FakeStrikeline
                         );
+                    int ScrollEndPos = FakeStrikeline - NoteLength;
+                    int ScrollStartPos = ScrollPos;
 
-                    int ScrollEndPos = ScrollPos - NoteLength;
-                    int pos = TrackLeft;
-                    Color color = GREEN;
-                    if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
+                    uint8_t x = note->Lane;
+                    while (x) {
+                        uint8_t y = x & ~(x - 1);
+                        int pos = TrackLeft;
+                        Color color = GREEN;
+                        if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+                            pos += NoteXWidth;
+                            color = RED;
+                        } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
+                            pos += NoteXWidth * 2;
+                            color = YELLOW;
+                        } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
+                            pos += NoteXWidth * 3;
+                            color = BLUE;
+                        } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
+                            pos += NoteXWidth * 4;
+                            color = ORANGE;
+                        }
+                        if (note->NotePassed)
+                            color = MAROON;
+                        DrawRectangle(pos + (NoteXWidth / 4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                        //if (note->NoteType == 1) {
+                        //    DrawRectangle(
+                        //        pos + 5,
+                        //        NoteLength + 5,
+                        //        NoteXWidth - 10,
+                        //        ScrollEndPos - 10,
+                        //        WHITE
+                        //    );
+                        //}
+                        x &= (x - 1);
                     }
-                    color = ColorBrightness(color, -0.5);
-                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                    color = GREEN;
-                    pos = TrackLeft;
-                    if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    color = ColorBrightness(color, -0.75);
-                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
                 }
             }
-            // because i have to do bounds checks myself
-            // std::span NotePool { chart->CurrentNoteIterators.at(0),
-            // chart->CurrentNoteIterators.at(0) + NotePoolSize }; for (auto &note :
-            // NotePool) {
-
-            for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
-                auto &note = chart->at(0).at(curNote);
-                // basic miss check, only delays for showing misses
-                int ScrollPos = -1
-                    * GetNotePos(
-                        note.StartSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-
-                int NoteLength = -1
-                    * GetNotePos(
-                        note.StartSeconds + note.LengthSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-
-                int ScrollEndPos = ScrollPos - NoteLength;
-                bool sust = false;
-                int sustLength = ScrollPos - NoteHeight;
-                if (note.LengthTicks == 0) {
-                    NoteLength = ScrollPos - NoteHeight;
-                    ScrollEndPos = NoteHeight;
-                } else {
-                    sust = true;
-                }
-                int ScrollStartPos = ScrollPos;
-
-                uint8_t x = note.Lane;
-
-                DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
-                while (x) {
-                    uint8_t y = x & ~(x - 1);
-                    int pos = TrackLeft;
-                    Color color = GREEN;
-                    if (y == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    if (note.NotePassed)
-                        color = MAROON;
-                    // DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                    if (sust) {
-                        DrawRectangle(pos + (NoteXWidth/4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
-                    }
-                    DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
-                    if (note.NoteType == 1) {
-                        DrawRectangle(
-                            pos + 5,
-                            sustLength + 5,
-                            NoteXWidth - 10,
-                            NoteHeight - 10,
-                            WHITE
-                        );
-                    }
-                    x &= (x - 1);
-                }
-            }
-            if (chart->HeldNotePointers.at(0)) {
-                auto &note = chart->HeldNotePointers.at(0);
-                int ScrollPos = -1
-                    * GetNotePos(
-                        note->StartSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-
-                int NoteLength = -1
-                    * GetNotePos(
-                        note->StartSeconds + note->LengthSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-                int ScrollEndPos = FakeStrikeline - NoteLength;
-                int ScrollStartPos = ScrollPos;
-
-                uint8_t x = note->Lane;
-                while (x) {
-                    uint8_t y = x & ~(x - 1);
-                    int pos = TrackLeft;
-                    Color color = GREEN;
-                    if (y == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    if (note->NotePassed)
-                        color = MAROON;
-                    DrawRectangle(pos + (NoteXWidth / 4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
-                    //if (note->NoteType == 1) {
-                    //    DrawRectangle(
-                    //        pos + 5,
-                    //        NoteLength + 5,
-                    //        NoteXWidth - 10,
-                    //        ScrollEndPos - 10,
-                    //        WHITE
-                    //    );
-                    //}
-                    x &= (x - 1);
-                }
-            }
-        }
         bool maxmult = player.engine->stats->SixMultiplier
             ? player.engine->stats->multNoOD() >= 5
             : player.engine->stats->multNoOD() == 4;
@@ -1300,7 +1309,7 @@ void GameplayMenu::Draw() {
                 10,
                 WHITE
             );
-        }
+            }
         if (player.engine.get()->stats.get()->strumState
             == Encore::RhythmEngine::StrumState::DownStrum) {
             DrawRectangle(
@@ -1310,7 +1319,7 @@ void GameplayMenu::Draw() {
                 10,
                 WHITE
             );
-        }
+            }
 
         if (player.engine.get()->stats.get()->AudioMuted) {
             int InstrumentNum =
@@ -1379,6 +1388,7 @@ void GameplayMenu::Draw() {
             TheGameRenderer.LowerHighway();
         }
         if (TheSongTime.SongComplete()) {
+            TheGameRenderer.backgroundVideo.Unload();
             TheSongList.curSong->LoadAlbumArt();
             TheGameRenderer.midiLoaded = false;
             TheGameRenderer.highwayInAnimation = false;
@@ -1602,8 +1612,8 @@ void GameplayMenu::Draw() {
             35,
             -SongNameWidth
         );
-    } else if (curTime > TheSongTime.GetStartTime() + 7.5 + SongNameDuration)
-        SongNameAlpha = 0;
+        } else if (curTime > TheSongTime.GetStartTime() + 7.5 + SongNameDuration)
+            SongNameAlpha = 0;
 
     if (curTime > TheSongTime.GetStartTime() + 7.75
         && curTime < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
@@ -1627,7 +1637,7 @@ void GameplayMenu::Draw() {
             35,
             -SongArtistWidth
         );
-    }
+        }
     if (curTime > TheSongTime.GetStartTime() + 8
         && curTime < TheSongTime.GetStartTime() + 8 + SongNameDuration) {
         double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 8);
@@ -1659,7 +1669,7 @@ void GameplayMenu::Draw() {
             35,
             -SongExtrasWidth
         );
-    }
+        }
     if (curTime < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
         DrawRectangleGradientH(
             0,
@@ -1732,6 +1742,7 @@ void GameplayMenu::Draw() {
         if (GuiButton(ResumeBox, "Resume")) {
             TheAudioManager.unpauseStreams();
             TheSongTime.Resume();
+            TheGameRenderer.backgroundVideo.Resume();
             ThePlayerManager.BandStats->Paused = false;
             for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive;
                  playerNum++) {
@@ -1739,6 +1750,7 @@ void GameplayMenu::Draw() {
             }
         }
         if (GuiButton(RestartBox, "Restart")) {
+            TheGameRenderer.backgroundVideo.Stop();
             TheSongTime.Reset();
             TheGameRenderer.highwayInAnimation = false;
             TheGameRenderer.highwayInEndAnim = false;
@@ -1762,10 +1774,7 @@ void GameplayMenu::Draw() {
             ThePlayerManager.BandStats->Paused = false;
         }
         if (GuiButton(QuitBox, "Back to Music Library")) {
-            // notes =
-            // TheSongList.curSong->parts[instrument]->charts[diff].notes.size();
-            // notes = TheSongList.curSong->parts[instrument]->charts[diff];
-
+            TheGameRenderer.backgroundVideo.Unload();
             TheSongList.curSong->LoadAlbumArt();
             // ThePlayerManager.BandStats->ResetBandGameplayStats();
             // TheGameRenderer.midiLoaded = false;
@@ -1867,133 +1876,6 @@ void GameplayMenu::Draw() {
     */
     GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
     GameMenu::DrawVersion();
-    /*
-    if (!ThePlayerManager.BandStats->Multiplayer
-        && ThePlayerManager.GetActivePlayer(0).stats->Health <= 0) {
-        TheSongList.curSong->LoadAlbumArt();
-        ThePlayerManager.BandStats->ResetBandGameplayStats();
-        TheGameRenderer.midiLoaded = false;
-        TheSongTime.Reset();
-
-        TheAudioManager.unloadStreams();
-        TheGameRenderer.highwayInAnimation = false;
-        TheGameRenderer.highwayInEndAnim = false;
-        TheGameRenderer.songPlaying = false;
-
-        TheSongList.curSong->parts[ThePlayerManager.GetActivePlayer(0).Instrument]
-            ->charts[ThePlayerManager.GetActivePlayer(0).Difficulty]
-            .resetNotes();
-        ThePlayerManager.GetActivePlayer(0).stats->Quit = true;
-        TheMenuManager.SwitchScreen(RESULTS);
-    }
-    // if (!TheGameRenderer.bot)
-    //	DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
-    //				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
-    //				GOLD);
-    // if (TheGameRenderer.bot)
-    //	DrawTextEx(assets.rubikBold, "BOT",
-    //				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
-    //				SKYBLUE);
-    // if (!TheGameRenderer.bot)
-    /*
-    GuiProgressBar(
-        Rectangle { 0,
-                    (float)GetScreenHeight() - u.hinpct(0.005f),
-                    (float)GetScreenWidth(),
-                    u.hinpct(0.01f) },
-        "",
-        "",
-        &floatSongLength,
-        0,
-        (float)songLength
-    );
-
-    std::string ScriptDisplayString = "";
-    lua.script_file("scripts/testing.lua");
-    ScriptDisplayString = lua["TextDisplay"];
-    DrawTextEx(assets.rubikBold, ScriptDisplayString.c_str(),
-                                    {5, GetScreenHeight() - u.hinpct(0.1f)},
-    u.hinpct(0.04), 0, GOLD);
-
-
-    if (ThePlayerManager.PlayersActive) {
-        DrawRectangle(
-            u.wpct(0.5f) - (u.winpct(0.12f) / 2),
-            u.hpct(0.02f) - u.winpct(0.01f),
-            u.winpct(0.12f),
-            u.winpct(0.065f),
-            DARKGRAY
-        );
-        for (int fretBox = 0;
-             fretBox < ThePlayerManager.GetActivePlayer(0).stats->HeldFrets.size();
-             fretBox++) {
-            float leftInputBoxSize = (5 * u.winpct(0.02f)) / 2;
-
-            Color fretColor;
-            switch (fretBox) {
-            default:
-                fretColor = BROWN;
-                break;
-            case (0):
-                fretColor = GREEN;
-                break;
-            case (1):
-                fretColor = RED;
-                break;
-            case (2):
-                fretColor = YELLOW;
-                break;
-            case (3):
-                fretColor = BLUE;
-                break;
-            case (4):
-                fretColor = ORANGE;
-                break;
-            }
-
-            DrawRectangle(
-                u.wpct(0.5f) - leftInputBoxSize + (fretBox * u.winpct(0.02f)),
-                u.hpct(0.02f),
-                u.winpct(0.02f),
-                u.winpct(0.02f),
-                ThePlayerManager.GetActivePlayer(0).stats->HeldFrets[fretBox]
-                        ||
-    ThePlayerManager.GetActivePlayer(0).stats->HeldFretsAlt[fretBox] ? fretColor : GRAY
-            );
-        }
-        DrawRectangle(
-            u.wpct(0.5f) - ((5 * u.winpct(0.02f)) / 2),
-            u.hpct(0.02f) + u.winpct(0.025f),
-            u.winpct(0.1f),
-            u.winpct(0.01f),
-            ThePlayerManager.GetActivePlayer(0).stats->UpStrum ? WHITE : GRAY
-        );
-        DrawRectangle(
-            u.wpct(0.5f) - ((5 * u.winpct(0.02f)) / 2),
-            u.hpct(0.02f) + u.winpct(0.035f),
-            u.winpct(0.1f),
-            u.winpct(0.01f),
-            ThePlayerManager.GetActivePlayer(0).stats->DownStrum ? WHITE : GRAY
-        );
-    }
-
-    DrawTextEx(
-        assets.rubik,
-        TextFormat("song time: %f", TheSongTime.GetSongTime()),
-        { 0, u.hpct(0.5f) },
-        u.hinpct(SmallHeader),
-        0,
-        WHITE
-    );
-    DrawTextEx(
-        assets.rubik,
-        TextFormat("audio time: %f", TheAudioManager.GetMusicTimePlayed()),
-        { 0, u.hpct(0.5f + SmallHeader) },
-        u.hinpct(SmallHeader),
-        0,
-        WHITE
-    );
-    */
 }
 
 void GameplayMenu::Load() {
@@ -2012,6 +1894,13 @@ void GameplayMenu::Load() {
         stream.volume =
             TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
     }
+    
+    std::filesystem::path songPath(TheSongList.curSong->songInfoPath);
+    std::filesystem::path videoPath = songPath.parent_path() / "video.mp4";
+    if (backgroundVideo.Load(videoPath)) {
+        backgroundVideo.Play();
+    }
+    
     /*
     if (ThePlayerManager.PlayersActive > 1) {
         ThePlayerManager.BandStats->Multiplayer = true;

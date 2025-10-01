@@ -1,0 +1,21 @@
+
+set(FFMPEG_LIB_DIR "$ENV{FFMPEG_LIB_DIR}")
+set(TARGET_DIR "$ENV{TARGET_DIR}")
+
+if(FFMPEG_LIB_DIR AND TARGET_DIR)
+    file(GLOB FFMPEG_DYLIB_FILES "${FFMPEG_LIB_DIR}/*.dylib")
+    
+    if(FFMPEG_DYLIB_FILES)
+        list(LENGTH FFMPEG_DYLIB_FILES NUM_FILES)
+        message(STATUS "Copying ${NUM_FILES} FFmpeg .dylib files...")
+        foreach(DYLIB_FILE ${FFMPEG_DYLIB_FILES})
+            get_filename_component(FILENAME ${DYLIB_FILE} NAME)
+            message(STATUS "  Copying ${FILENAME}")
+            file(COPY ${DYLIB_FILE} DESTINATION ${TARGET_DIR})
+        endforeach()
+    else()
+        message(STATUS "No FFmpeg .dylib files found in ${FFMPEG_LIB_DIR}")
+    endif()
+else()
+    message(STATUS "FFMPEG_LIB_DIR or TARGET_DIR not set")
+endif()

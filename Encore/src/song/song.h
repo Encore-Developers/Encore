@@ -774,6 +774,9 @@ public:
         SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
         UnloadImage(albumImage);
     };
+    
+    // Video background support
+    double videoStartTime = 0.0;
 };
 
 #endif // ENCORE_SONG_H
