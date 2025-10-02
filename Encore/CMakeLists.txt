@@ -1,4 +1,4 @@
-﻿# CMakeList.txt : CMake project for Encore, include source and define
+# CMakeList.txt : CMake project for Encore, include source and define
 # project specific logic here.
 #
 
@@ -69,10 +69,7 @@ if (WIN32)
 else()
   add_executable(Encore ${SRC_FILES} ${INC_FILES})
 endif()
-# Temp player file
-
-file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+# Assets and Songs will be copied by post-build commands
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include" "src" ${FFMPEG_INCLUDE_DIR})
 if(WIN32)
@@ -229,32 +226,13 @@ INSTALL_RPATH_USE_LINK_PATH FALSE
 endif()
 
 # Set up runtime output directories
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Encore/Debug)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Encore/Release)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/Encore/RelWithDebInfo)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/Encore/MinSizeRel)
+# Set up runtime output directories - all platforms use the same structure
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Encore)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Encore)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Encore)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Encore/Debug)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Encore/Release)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/Encore/RelWithDebInfo)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/Encore/MinSizeRel)
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/Encore/Debug)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/Encore/Release)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/Encore/RelWithDebInfo)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/Encore/MinSizeRel)
-
-if(NOT CMAKE_CONFIGURATION_TYPES)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Encore/${CMAKE_BUILD_TYPE})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Encore/${CMAKE_BUILD_TYPE})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Encore/${CMAKE_BUILD_TYPE})
-endif()
-
-if(CMAKE_CONFIGURATION_TYPES)
-setup_all_post_build(Encore ${CMAKE_BINARY_DIR}/Encore/$<CONFIG>)
-else()
-setup_all_post_build(Encore ${CMAKE_BINARY_DIR}/Encore/${CMAKE_BUILD_TYPE})
-endif()
+# Set up post-build steps
+setup_all_post_build(Encore ${CMAKE_BINARY_DIR}/Encore)
 
 
 
