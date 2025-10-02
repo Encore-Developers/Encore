@@ -1,0 +1,14 @@
+prefix=../ffmpeg-macos
+exec_prefix=${prefix}
+libdir=../ffmpeg-macos/lib
+includedir=../ffmpeg-macos/include
+
+Name: libavutil
+Description: FFmpeg utility library
+Version: 58.29.100
+Requires: 
+Requires.private: 
+Conflicts:
+Libs: -L${libdir}  -lavutil 
+Libs.private: -pthread -lm -framework VideoToolbox -framework CoreFoundation -framework CoreMedia -framework CoreVideo -framework CoreServices
+Cflags: -I${includedir}
