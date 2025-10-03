@@ -95,8 +95,7 @@ jobs:
         # Copy FFmpeg .so files directly to the current directory
         if [ -d "ffmpeg/lib" ]; then
           for lib in libavcodec libavformat libavutil libswscale libswresample libavfilter libavdevice; do
-            find ffmpeg/lib -name "${lib}.so.[0-9]*" ! -name "*.100" -exec cp {} . \; 2>/dev/null || true
-            cp ffmpeg/lib/${lib}.so . 2>/dev/null || true
+            find ffmpeg/lib -name "${lib}.so.[0-9]*" ! -name "*.100" ! -name "*.102" -exec cp {} . \; 2>/dev/null || true
           done
         fi
         # Remove the ffmpeg directory to ensure it's not included
