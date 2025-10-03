@@ -69,8 +69,10 @@ if (WIN32)
 else()
   add_executable(Encore ${SRC_FILES} ${INC_FILES})
 endif()
-# Assets and Songs will be copied by post-build commands
-# Set the include directory for the executable
+
+file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+
 target_include_directories(Encore PRIVATE "include" "src" ${FFMPEG_INCLUDE_DIR})
 if(WIN32)
   if (CMAKE_SIZEOF_VOID_P EQUAL 4) 
