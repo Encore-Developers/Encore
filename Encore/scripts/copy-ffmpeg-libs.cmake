@@ -12,20 +12,15 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
             message(STATUS "  - ${FILENAME}")
         endforeach()
         
-        file(GLOB SO_FILES "${FFMPEG_LIB_DIR}/*.so*")
-        message(STATUS "FFmpeg .so files found:")
-        foreach(FILE ${SO_FILES})
-            get_filename_component(FILENAME ${FILE} NAME)
-            message(STATUS "  - ${FILENAME}")
-        endforeach()
-        
+        set(FFMPEG_LIBS "avcodec" "avformat" "avutil" "swscale" "swresample" "avfilter" "avdevice")
         set(COPIED_COUNT 0)
-        foreach(LIB_FILE ${SO_FILES})
-            get_filename_component(LIB_NAME ${LIB_FILE} NAME)
-            
-            if(LIB_NAME MATCHES "^lib.*\\.so.*$")
-                message(STATUS "  Copying file: ${LIB_NAME}")
-                configure_file(${LIB_FILE} ${TARGET_DIR}/${LIB_NAME} COPYONLY)
+        
+        foreach(LIB_BASE ${FFMPEG_LIBS})
+            file(GLOB VERSIONED_FILES "${FFMPEG_LIB_DIR}/lib${LIB_BASE}.so.[0-9]*")
+            foreach(VERSIONED_FILE ${VERSIONED_FILES})
+                get_filename_component(LIB_NAME ${VERSIONED_FILE} NAME)
+                message(STATUS "  Copying versioned file: ${LIB_NAME}")
+                configure_file(${VERSIONED_FILE} ${TARGET_DIR}/${LIB_NAME} COPYONLY)
                 
                 if(EXISTS "${TARGET_DIR}/${LIB_NAME}")
                     message(STATUS "    ✓ Successfully copied to ${TARGET_DIR}/${LIB_NAME}")
@@ -33,8 +28,19 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
                 else()
                     message(STATUS "    ✗ Failed to copy ${LIB_NAME}")
                 endif()
-            else()
-                message(STATUS "  Skipping: ${LIB_NAME} (not a library file)")
+            endforeach()
+            
+            set(BASE_FILE "${FFMPEG_LIB_DIR}/lib${LIB_BASE}.so")
+            if(EXISTS ${BASE_FILE})
+                message(STATUS "  Copying base file: lib${LIB_BASE}.so")
+                configure_file(${BASE_FILE} ${TARGET_DIR}/lib${LIB_BASE}.so COPYONLY)
+                
+                if(EXISTS "${TARGET_DIR}/lib${LIB_BASE}.so")
+                    message(STATUS "    ✓ Successfully copied to ${TARGET_DIR}/lib${LIB_BASE}.so")
+                    math(EXPR COPIED_COUNT "${COPIED_COUNT} + 1")
+                else()
+                    message(STATUS "    ✗ Failed to copy lib${LIB_BASE}.so")
+                endif()
             endif()
         endforeach()
     else()
@@ -125,16 +131,7 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
     endforeach()
     
 
-    message(STATUS "Verifying critical files:")
-    set(CRITICAL_FILES "libavutil.so.58" "libswresample.so.4" "libavcodec.so.60" "libavformat.so.60" "libswscale.so.7" "libavfilter.so.9")
-    foreach(CRITICAL_FILE ${CRITICAL_FILES})
-        if(EXISTS "${TARGET_DIR}/${CRITICAL_FILE}")
-            message(STATUS "  ✓ ${CRITICAL_FILE} exists")
-        else()
-            message(STATUS "  ✗ ${CRITICAL_FILE} missing!")
-        endif()
-    endforeach()
-    
+
 
     
     find_program(PATCHELF_PROGRAM patchelf)
@@ -210,25 +207,21 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
         endif()
     endif()
     
-    message(STATUS "Creating comprehensive symlinks for dependency resolution...")
-    set(SYMLINK_NAMES "libavutil.so" "libswresample.so" "libavcodec.so" "libavformat.so" "libswscale.so" "libavfilter.so" "libavdevice.so")
-    set(TARGET_NAMES "libavutil.so.58" "libswresample.so.4" "libavcodec.so.60" "libavformat.so.60" "libswscale.so.7" "libavfilter.so.9" "libavdevice.so.60")
+    message(STATUS "Creating symlinks for dependency resolution...")
+    set(FFMPEG_LIBS "avcodec" "avformat" "avutil" "swscale" "swresample" "avfilter" "avdevice")
     
-    list(LENGTH SYMLINK_NAMES NUM_MAPPINGS)
-    math(EXPR LAST_INDEX "${NUM_MAPPINGS} - 1")
-    
-    foreach(INDEX RANGE ${LAST_INDEX})
-        list(GET SYMLINK_NAMES ${INDEX} SYMLINK_NAME)
-        list(GET TARGET_NAMES ${INDEX} TARGET_NAME)
-        
-        set(SYMLINK_PATH "${TARGET_DIR}/${SYMLINK_NAME}")
-        set(TARGET_PATH "${TARGET_DIR}/${TARGET_NAME}")
-        
-        if(EXISTS ${TARGET_PATH})
+    foreach(LIB_BASE ${FFMPEG_LIBS})
+        file(GLOB VERSIONED_FILE "${TARGET_DIR}/lib${LIB_BASE}.so.[0-9]*")
+        if(VERSIONED_FILE)
+            list(GET VERSIONED_FILE 0 VERSION_FILE)
+            get_filename_component(VERSION_FILENAME ${VERSION_FILE} NAME)
+            
+            set(SYMLINK_PATH "${TARGET_DIR}/lib${LIB_BASE}.so")
+            
             if(NOT EXISTS ${SYMLINK_PATH})
-                message(STATUS "  Creating symlink: ${SYMLINK_NAME} -> ${TARGET_NAME}")
+                message(STATUS "  Creating symlink: lib${LIB_BASE}.so -> ${VERSION_FILENAME}")
                 execute_process(
-                    COMMAND ${CMAKE_COMMAND} -E create_symlink ${TARGET_NAME} ${SYMLINK_NAME}
+                    COMMAND ${CMAKE_COMMAND} -E create_symlink ${VERSION_FILENAME} lib${LIB_BASE}.so
                     WORKING_DIRECTORY ${TARGET_DIR}
                     RESULT_VARIABLE SYMLINK_RESULT
                 )
@@ -238,36 +231,25 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
                     message(STATUS "    ✗ Failed to create symlink")
                 endif()
             else()
-                message(STATUS "  Symlink already exists: ${SYMLINK_NAME}")
+                message(STATUS "  Base .so already exists: lib${LIB_BASE}.so")
             endif()
         else()
-            message(STATUS "  Target ${TARGET_NAME} not found, skipping symlink")
+            message(STATUS "  No versioned file found for lib${LIB_BASE}")
         endif()
     endforeach()
     
-    find_program(LDD_PROGRAM ldd)
-    if(LDD_PROGRAM AND EXISTS "${TARGET_DIR}/libavcodec.so.62")
-        message(STATUS "Final dependency check for libavcodec.so.62:")
-        execute_process(
-            COMMAND env LD_LIBRARY_PATH=${TARGET_DIR} ${LDD_PROGRAM} ${TARGET_DIR}/libavcodec.so.62
-            OUTPUT_VARIABLE FINAL_LDD_OUTPUT
-            ERROR_VARIABLE FINAL_LDD_ERROR
-            RESULT_VARIABLE FINAL_LDD_RESULT
-        )
-        if(FINAL_LDD_RESULT EQUAL 0)
-            message(STATUS "Dependencies with LD_LIBRARY_PATH set:")
-            string(REPLACE "\n" "\n  " FINAL_LDD_FORMATTED "  ${FINAL_LDD_OUTPUT}")
-            message(STATUS "${FINAL_LDD_FORMATTED}")
+    message(STATUS "Final files in target directory:")
+    file(GLOB TARGET_SO_FILES "${TARGET_DIR}/lib*.so*")
+    foreach(FILE ${TARGET_SO_FILES})
+        get_filename_component(FILENAME ${FILE} NAME)
+        if(IS_SYMLINK ${FILE})
+            message(STATUS "  - ${FILENAME} (symlink)")
         else()
-            message(STATUS "ldd failed: ${FINAL_LDD_ERROR}")
+            message(STATUS "  - ${FILENAME}")
         endif()
-    endif()
+    endforeach()
     
-
-    
-
-    
-    message(STATUS "Copied ${COPIED_COUNT} FFmpeg major version .so files and created symlinks")
+    message(STATUS "Copied ${COPIED_COUNT} FFmpeg .so files and created symlinks")
 else()
     message(STATUS "FFMPEG_LIB_DIR or TARGET_DIR not set")
 endif()
