@@ -94,22 +94,10 @@ jobs:
         rm -r -f CMakeFiles Makefile cmake_install.cmake
         # Copy FFmpeg .so files directly to the current directory
         if [ -d "ffmpeg/lib" ]; then
-          # Copy versioned files (e.g., libavcodec.so.60)
-          cp ffmpeg/lib/libavcodec.so.[0-9]* . 2>/dev/null || true
-          cp ffmpeg/lib/libavformat.so.[0-9]* . 2>/dev/null || true
-          cp ffmpeg/lib/libavutil.so.[0-9]* . 2>/dev/null || true
-          cp ffmpeg/lib/libswscale.so.[0-9]* . 2>/dev/null || true
-          cp ffmpeg/lib/libswresample.so.[0-9]* . 2>/dev/null || true
-          cp ffmpeg/lib/libavfilter.so.[0-9]* . 2>/dev/null || true
-          cp ffmpeg/lib/libavdevice.so.[0-9]* . 2>/dev/null || true
-          # Copy base files (e.g., libavcodec.so)
-          cp ffmpeg/lib/libavcodec.so . 2>/dev/null || true
-          cp ffmpeg/lib/libavformat.so . 2>/dev/null || true
-          cp ffmpeg/lib/libavutil.so . 2>/dev/null || true
-          cp ffmpeg/lib/libswscale.so . 2>/dev/null || true
-          cp ffmpeg/lib/libswresample.so . 2>/dev/null || true
-          cp ffmpeg/lib/libavfilter.so . 2>/dev/null || true
-          cp ffmpeg/lib/libavdevice.so . 2>/dev/null || true
+          for lib in libavcodec libavformat libavutil libswscale libswresample libavfilter libavdevice; do
+            find ffmpeg/lib -name "${lib}.so.[0-9]*" ! -name "*.100" -exec cp {} . \; 2>/dev/null || true
+            cp ffmpeg/lib/${lib}.so . 2>/dev/null || true
+          done
         fi
         # Remove the ffmpeg directory to ensure it's not included
         rm -rf ffmpeg
