@@ -9,6 +9,7 @@
 #include "raygui.h"
 #include "assets.h"
 #include "settings.h"
+#include "settings-old.h"
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
@@ -78,7 +79,6 @@ void SettingsGameplay::Draw() {
         // scan Songs
         {
             "Scan Songs",
-            "TBD"
         }
     };
 
@@ -235,6 +235,8 @@ void SettingsGameplay::Draw() {
             }
         }
     }
+
+
 
     if (!isHovering) {
         selectedIndex = 0;

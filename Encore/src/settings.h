@@ -24,7 +24,12 @@
     OPTION(bool, DiscordRichPresence, true)                                              \
     OPTION(int, Framerate, 60)                                                           \
     OPTION(bool, VerticalSync, true)                                                     \
-    OPTION(bool, BackgroundBeatFlash, true)
+    OPTION(bool, BackgroundBeatFlash, true)                                              \
+    OPTION(bool, HideHitWindow, false)                                                   \
+    OPTION(bool, ShowHealthBar, true)                                                    \
+    OPTION(bool, HideFPSCounter, false)                                                  \
+    OPTION(bool, HideVersionInfo, false)                                                 \
+    OPTION(int, HUDPosition, 0)
 namespace Encore {
     inline void WriteJsonFile(const std::filesystem::path &FileToWrite, const nlohmann::json &JSONobject) {
         std::ofstream o(FileToWrite, std::ios::out | std::ios::trunc);
@@ -55,7 +60,12 @@ namespace Encore {
         AudioOffset,
         DiscordRichPresence,
         SongPaths,
-        BackgroundBeatFlash
+        BackgroundBeatFlash,
+        HideHitWindow,
+        ShowHealthBar,
+        HideFPSCounter,
+        HideVersionInfo,
+        HUDPosition
     );
 
     class SettingsInit {

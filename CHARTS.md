@@ -12,7 +12,8 @@ A fully fleshed out `info.json` file will look similar to the following:
 {   
 	"title": "Through the Fire and Flames",    
 	"artist": "DragonForce",    
-	"preview_start_time": 41727,    
+	"preview_start_time": 41727,
+	"video_start_time": 1400,    
 	"release_year": "2006",    
 	"source": "rb3dlc",    
 	"album": "Inhuman Rampage",    
