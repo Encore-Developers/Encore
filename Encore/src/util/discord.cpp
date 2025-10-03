@@ -11,6 +11,14 @@
 discord::Core* core{};
 
 void Encore::Discord::Initialize() {
+#ifdef __linux__
+    // Disable Discord on Linux to prevent loading errors
+    std::cout << "Discord integration disabled on Linux\n";
+    Initialized = false;
+    core = nullptr;
+    return;
+#endif
+
     auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
     if (!core) {
         std::cout << "Failed to instantiate discord core! (err " << static_cast<int>(result)
@@ -40,11 +48,13 @@ Encore::Discord::~Discord() {
     Initialized = false;
 }
 void Encore::Discord::Update() {
+    if (!Initialized || !core)
+        return;
     core->RunCallbacks();
 }
 
 void Encore::Discord::DiscordUpdatePresence(const std::string &title, const std::string &details, int players) {
-    if (!Initialized)
+    if (!Initialized || !core)
         return;
     discord::Activity activity{};
     // activity.SetState(title.c_str());
@@ -80,7 +90,7 @@ std::array<std::string, 11> PartNames = {
 void Encore::Discord::DiscordUpdatePresenceSong(
     const std::string &title, const std::string &details, int instrument, int length
 ) {
-    if (!Initialized)
+    if (!Initialized || !core)
         return;
     discord::Activity activity{};
     activity.SetDetails((details).c_str());
