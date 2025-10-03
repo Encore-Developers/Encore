@@ -81,43 +81,6 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
         endif()
     endif()
     
-    set(FFMPEG_LIBS_TO_LINK
-        "avcodec"
-        "avformat"
-        "avutil"
-        "swscale"
-        "avfilter"
-        "avdevice"
-        "postproc"
-    )
-    
-    foreach(LIB_BASE ${FFMPEG_LIBS_TO_LINK})
-        file(GLOB MAJOR_VERSION_FILE "${TARGET_DIR}/lib${LIB_BASE}.so.[0-9]*")
-        if(MAJOR_VERSION_FILE)
-            list(GET MAJOR_VERSION_FILE 0 VERSION_FILE)
-            get_filename_component(VERSION_FILENAME ${VERSION_FILE} NAME)
-            
-            set(BASE_SYMLINK "${TARGET_DIR}/lib${LIB_BASE}.so")
-            
-            if(NOT EXISTS ${BASE_SYMLINK})
-                message(STATUS "  Creating symlink: lib${LIB_BASE}.so -> ${VERSION_FILENAME}")
-                execute_process(
-                    COMMAND ${CMAKE_COMMAND} -E create_symlink ${VERSION_FILENAME} lib${LIB_BASE}.so
-                    WORKING_DIRECTORY ${TARGET_DIR}
-                    RESULT_VARIABLE SYMLINK_RESULT
-                )
-                if(SYMLINK_RESULT EQUAL 0)
-                    message(STATUS "    ✓ Symlink created successfully")
-                else()
-                    message(STATUS "    ✗ Failed to create symlink (result: ${SYMLINK_RESULT})")
-                endif()
-            else()
-                message(STATUS "  Symlink already exists: lib${LIB_BASE}.so")
-            endif()
-        else()
-            message(STATUS "  No major version file found for lib${LIB_BASE}")
-        endif()
-    endforeach()
     
     message(STATUS "Final files in target directory:")
     file(GLOB TARGET_FILES "${TARGET_DIR}/lib*.so*")
@@ -207,46 +170,13 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
         endif()
     endif()
     
-    message(STATUS "Creating symlinks for dependency resolution...")
-    set(FFMPEG_LIBS "avcodec" "avformat" "avutil" "swscale" "swresample" "avfilter" "avdevice")
-    
-    foreach(LIB_BASE ${FFMPEG_LIBS})
-        file(GLOB VERSIONED_FILE "${TARGET_DIR}/lib${LIB_BASE}.so.[0-9]*")
-        if(VERSIONED_FILE)
-            list(GET VERSIONED_FILE 0 VERSION_FILE)
-            get_filename_component(VERSION_FILENAME ${VERSION_FILE} NAME)
-            
-            set(SYMLINK_PATH "${TARGET_DIR}/lib${LIB_BASE}.so")
-            
-            if(NOT EXISTS ${SYMLINK_PATH})
-                message(STATUS "  Creating symlink: lib${LIB_BASE}.so -> ${VERSION_FILENAME}")
-                execute_process(
-                    COMMAND ${CMAKE_COMMAND} -E create_symlink ${VERSION_FILENAME} lib${LIB_BASE}.so
-                    WORKING_DIRECTORY ${TARGET_DIR}
-                    RESULT_VARIABLE SYMLINK_RESULT
-                )
-                if(SYMLINK_RESULT EQUAL 0)
-                    message(STATUS "    ✓ Symlink created successfully")
-                else()
-                    message(STATUS "    ✗ Failed to create symlink")
-                endif()
-            else()
-                message(STATUS "  Base .so already exists: lib${LIB_BASE}.so")
-            endif()
-        else()
-            message(STATUS "  No versioned file found for lib${LIB_BASE}")
-        endif()
-    endforeach()
+
     
     message(STATUS "Final files in target directory:")
     file(GLOB TARGET_SO_FILES "${TARGET_DIR}/lib*.so*")
     foreach(FILE ${TARGET_SO_FILES})
         get_filename_component(FILENAME ${FILE} NAME)
-        if(IS_SYMLINK ${FILE})
-            message(STATUS "  - ${FILENAME} (symlink)")
-        else()
-            message(STATUS "  - ${FILENAME}")
-        endif()
+        message(STATUS "  - ${FILENAME}")
     endforeach()
     
     message(STATUS "Copied ${COPIED_COUNT} FFmpeg .so files and created symlinks")
