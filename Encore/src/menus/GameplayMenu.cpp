@@ -27,7 +27,7 @@
 
 #include <raylib.h>
 
-VideoStream backgroundVideo;
+Encore::RhythmEngine::VideoStream backgroundVideo;
 
 GameplayMenu::GameplayMenu() {}
 GameplayMenu::~GameplayMenu() {}

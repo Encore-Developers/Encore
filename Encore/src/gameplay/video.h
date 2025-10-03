@@ -15,6 +15,7 @@
 
 #include "settings.h"
 
+namespace Encore::RhythmEngine {
 // Check if FFmpeg is available
 #ifdef __has_include
   #if __has_include(<libavcodec/avcodec.h>)
@@ -386,5 +387,5 @@ public:
     bool IsLoaded() const { return false; }
 };
 #endif
-
+}
 #endif // VIDEO_H

@@ -79,16 +79,6 @@ void SettingsGameplay::Draw() {
         // scan Songs
         {
             "Scan Songs",
-        },
-        // Hit Window
-        {
-            "Hit Window",
-            "Show or hide the hit window display during gameplay"
-        },
-        // HUD Position
-        {
-            "HUD Position",
-            "Change the position of the HUD elements (scorebox, timer, stars)"
         }
     };
 
@@ -246,66 +236,7 @@ void SettingsGameplay::Draw() {
         }
     }
 
-    settingOffset++;
-    float hideHitWindowTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
-    Rectangle hideHitWindowBoxRect = {boxLeft - borderWidth, hideHitWindowTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
-    DrawRectangle(boxLeft - borderWidth, hideHitWindowTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
-    DrawRectangle(boxLeft, hideHitWindowTop, boxWidth, EntryHeight, boxBackground);
-    Vector2 hideHitWindowTextSize = MeasureTextEx(assets.rubikBold, "Hit Window", EntryFontSize, 0);
-    DrawTextEx(assets.rubikBold, "Hit Window", {boxLeft + u.winpct(0.01f), hideHitWindowTop + (EntryHeight - hideHitWindowTextSize.y) / 2}, EntryFontSize, 0, WHITE);
-    Rectangle hitWindowOffButtonRect = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, hideHitWindowTop, toggleButtonWidth, EntryHeight};
-    Rectangle hitWindowOnButtonRect = {OptionLeft + OptionWidth - toggleButtonWidth - toggleOffset, hideHitWindowTop, toggleButtonWidth, EntryHeight};
 
-    if (CheckCollisionPointRec(mousePos, hitWindowOffButtonRect) || CheckCollisionPointRec(mousePos, hitWindowOnButtonRect)) {
-        selectedIndex = 2;
-        isHovering = true;
-        DrawRectangleLinesEx(hideHitWindowBoxRect, highlightBorderWidth, glowColor);
-    }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, !TheGameSettings.HideHitWindow ? defaultColor : ColorToInt(activeColor));
-    if (GuiButton(hitWindowOffButtonRect, "Off")) {
-        if (!TheGameSettings.HideHitWindow) {
-            TheGameSettings.HideHitWindow = true;
-            TheGameSettings.SaveToFile((settingsMain.getDirectory() / "settings.json").string());
-        }
-    }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, !TheGameSettings.HideHitWindow ? ColorToInt(activeColor) : defaultColor);
-    if (GuiButton(hitWindowOnButtonRect, "On")) {
-        if (TheGameSettings.HideHitWindow) {
-            TheGameSettings.HideHitWindow = false;
-            TheGameSettings.SaveToFile((settingsMain.getDirectory() / "settings.json").string());
-        }
-    }
-    if (TheGameSettings.HideHitWindow) {
-        DrawRectangleLinesEx(hitWindowOffButtonRect, highlightBorderWidth, glowColor);
-    } else {
-        DrawRectangleLinesEx(hitWindowOnButtonRect, highlightBorderWidth, glowColor);
-    }
-
-    // HUD Position setting
-    settingOffset++;
-    float hudPositionTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
-    Rectangle hudPositionBoxRect = {boxLeft - borderWidth, hudPositionTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
-    DrawRectangle(boxLeft - borderWidth, hudPositionTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
-    DrawRectangle(boxLeft, hudPositionTop, boxWidth, EntryHeight, boxBackground);
-    Vector2 hudPositionTextSize = MeasureTextEx(assets.rubikBold, "HUD Position", EntryFontSize, 0);
-    DrawTextEx(assets.rubikBold, "HUD Position", {boxLeft + u.winpct(0.01f), hudPositionTop + (EntryHeight - hudPositionTextSize.y) / 2}, EntryFontSize, 0, WHITE);
-    
-    float cycleButtonWidth = toggleButtonWidth * 2 + toggleOffset;
-    Rectangle hudCycleButtonRect = {OptionLeft + OptionWidth - cycleButtonWidth, hudPositionTop, cycleButtonWidth, EntryHeight};
-    
-    const char* hudPositionNames[] = {"Top-Right", "Top-Left", "Bottom-Right", "Bottom-Left"};
-    const char* currentHUDPosition = hudPositionNames[TheGameSettings.HUDPosition % 4];
-    
-    if (CheckCollisionPointRec(mousePos, hudCycleButtonRect)) {
-        selectedIndex = 3;
-        isHovering = true;
-        DrawRectangleLinesEx(hudPositionBoxRect, highlightBorderWidth, glowColor);
-    }
-    
-    if (GuiButton(hudCycleButtonRect, currentHUDPosition)) {
-        TheGameSettings.HUDPosition = (TheGameSettings.HUDPosition + 1) % 4;
-        TheGameSettings.SaveToFile((settingsMain.getDirectory() / "settings.json").string());
-    }
 
     if (!isHovering) {
         selectedIndex = 0;

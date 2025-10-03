@@ -11,31 +11,20 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
             get_filename_component(FILENAME ${FILE} NAME)
             message(STATUS "  - ${FILENAME}")
         endforeach()
-    else()
-        message(STATUS "FFmpeg lib directory does not exist!")
-    endif()
-    
-
-    set(SOURCE_DIR "$ENV{SOURCE_DIR}")
-    set(LOCAL_FFMPEG_LIB_DIR "${SOURCE_DIR}/lib/ffmpeg/linux/lib")
-    message(STATUS "Using local FFmpeg libraries from: ${LOCAL_FFMPEG_LIB_DIR}")
-
-    
-    if(EXISTS ${LOCAL_FFMPEG_LIB_DIR})
-        file(GLOB LOCAL_SO_FILES "${LOCAL_FFMPEG_LIB_DIR}/*.so*")
-        message(STATUS "Local FFmpeg files found:")
-        foreach(FILE ${LOCAL_SO_FILES})
+        
+        file(GLOB SO_FILES "${FFMPEG_LIB_DIR}/*.so*")
+        message(STATUS "FFmpeg .so files found:")
+        foreach(FILE ${SO_FILES})
             get_filename_component(FILENAME ${FILE} NAME)
             message(STATUS "  - ${FILENAME}")
         endforeach()
         
         set(COPIED_COUNT 0)
-        foreach(LIB_FILE ${LOCAL_SO_FILES})
+        foreach(LIB_FILE ${SO_FILES})
             get_filename_component(LIB_NAME ${LIB_FILE} NAME)
             
-
             if(LIB_NAME MATCHES "^lib.*\\.so.*$")
-                message(STATUS "  Copying local file: ${LIB_NAME}")
+                message(STATUS "  Copying file: ${LIB_NAME}")
                 configure_file(${LIB_FILE} ${TARGET_DIR}/${LIB_NAME} COPYONLY)
                 
                 if(EXISTS "${TARGET_DIR}/${LIB_NAME}")
@@ -49,7 +38,41 @@ if(FFMPEG_LIB_DIR AND TARGET_DIR)
             endif()
         endforeach()
     else()
-        message(FATAL_ERROR "Local FFmpeg lib directory not found: ${LOCAL_FFMPEG_LIB_DIR}")
+        message(STATUS "FFmpeg lib directory does not exist!")
+        # Try fallback to local FFmpeg
+        set(SOURCE_DIR "$ENV{SOURCE_DIR}")
+        set(LOCAL_FFMPEG_LIB_DIR "${SOURCE_DIR}/lib/ffmpeg/linux/lib")
+        message(STATUS "Trying fallback local FFmpeg libraries from: ${LOCAL_FFMPEG_LIB_DIR}")
+        
+        if(EXISTS ${LOCAL_FFMPEG_LIB_DIR})
+            file(GLOB LOCAL_SO_FILES "${LOCAL_FFMPEG_LIB_DIR}/*.so*")
+            message(STATUS "Local FFmpeg files found:")
+            foreach(FILE ${LOCAL_SO_FILES})
+                get_filename_component(FILENAME ${FILE} NAME)
+                message(STATUS "  - ${FILENAME}")
+            endforeach()
+            
+            set(COPIED_COUNT 0)
+            foreach(LIB_FILE ${LOCAL_SO_FILES})
+                get_filename_component(LIB_NAME ${LIB_FILE} NAME)
+                
+                if(LIB_NAME MATCHES "^lib.*\\.so.*$")
+                    message(STATUS "  Copying local file: ${LIB_NAME}")
+                    configure_file(${LIB_FILE} ${TARGET_DIR}/${LIB_NAME} COPYONLY)
+                    
+                    if(EXISTS "${TARGET_DIR}/${LIB_NAME}")
+                        message(STATUS "    ✓ Successfully copied to ${TARGET_DIR}/${LIB_NAME}")
+                        math(EXPR COPIED_COUNT "${COPIED_COUNT} + 1")
+                    else()
+                        message(STATUS "    ✗ Failed to copy ${LIB_NAME}")
+                    endif()
+                else()
+                    message(STATUS "  Skipping: ${LIB_NAME} (not a library file)")
+                endif()
+            endforeach()
+        else()
+            message(FATAL_ERROR "Neither downloaded nor local FFmpeg lib directory found")
+        endif()
     endif()
     
     set(FFMPEG_LIBS_TO_LINK
