@@ -225,50 +225,6 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
         song.songDir = folder.string();
         song.LoadSongIni(folder);
         song.ini = true;
-        if (std::filesystem::exists(infoPath)) {
-            try {
-                json infoData;
-                std::ifstream infoFile(infoPath);
-                infoFile >> infoData;
-                infoFile.close();
-
-                if (infoData.contains("source") && infoData["source"].is_string()) {
-                    song.source = infoData["source"].get<std::string>();
-                    if (song.source.empty()) {
-                        song.source = "Unknown Source";
-                    }
-                } else {
-                    song.source = "Unknown Source";
-                }
-
-                if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
-                    song.releaseYear = infoData["release_year"].get<std::string>();
-                    if (song.releaseYear.empty()) {
-                        song.releaseYear = "Unknown Year";
-                    }
-                } else {
-                    song.releaseYear = "Unknown Year";
-                }
-
-                if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
-                    song.previewStartTime = infoData["preview_start_time"].get<int>();
-                } else {
-                    song.previewStartTime = 500;
-                }
-
-                Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Read metadata for INI song %s - %s from %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str()));
-            } catch (const std::exception& e) {
-                Encore::EncoreLog(LOG_ERROR, TextFormat("CACHE: Failed to read metadata for INI song %s - %s from %s: %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str(), e.what()));
-                song.source = "Unknown Source";
-                song.releaseYear = "Unknown Year";
-                song.previewStartTime = 500;
-            }
-        } else {
-            song.source = "Unknown Source";
-            song.releaseYear = "Unknown Year";
-            song.previewStartTime = 500;
-            Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: No info.json for INI song %s - %s, using default metadata", song.title.c_str(), song.artist.c_str()));
-        }
     } else {
         // If this folder doesn't have song.ini or song.json, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
