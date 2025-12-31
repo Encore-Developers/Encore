@@ -316,10 +316,17 @@ public:
     void LoadInfoINI(std::filesystem::path iniPath);
 
     void LoadInfo(std::filesystem::path jsonPath) {
+
+        if (jsonPath.empty()) {
+            std::cerr << "Empty JSON path." << std::endl;
+            return;
+        }
+
         std::ifstream ifs(jsonPath);
 
         if (!ifs.is_open()) {
             std::cerr << "Failed to open JSON file." << std::endl;
+            return;
         }
         if (!stemsPath.empty())
             stemsPath.clear();

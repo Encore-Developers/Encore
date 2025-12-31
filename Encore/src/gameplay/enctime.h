@@ -91,7 +91,6 @@ public:
     // TODO: reset after songs
     void Reset();
     void Start(double end);
-    void Start(double start, double end);
     void Pause();
     void Resume();
     void Stop();

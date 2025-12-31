@@ -174,6 +174,112 @@ void SongList::WriteCache() {
     SongCache.close();
 }
 
+
+void SongList::ScanFolder(const std::filesystem::path &folder) {
+    if (!std::filesystem::is_directory(folder)) {
+        return;
+    }
+
+    directoryCount++;
+    Song song;
+    std::filesystem::path infoPath = folder / "info.json";
+    if (std::filesystem::exists(infoPath)) {
+        song.LoadSong(infoPath);
+        try {
+            json infoData;
+            std::ifstream infoFile(infoPath);
+            infoFile >> infoData;
+            infoFile.close();
+
+            if (infoData.contains("source") && infoData["source"].is_string()) {
+                song.source = infoData["source"].get<std::string>();
+                if (song.source.empty()) {
+                    song.source = "Unknown Source";
+                }
+            } else {
+                song.source = "Unknown Source";
+            }
+
+            if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
+                song.releaseYear = infoData["release_year"].get<std::string>();
+                if (song.releaseYear.empty()) {
+                    song.releaseYear = "Unknown Year";
+                }
+            } else {
+                song.releaseYear = "Unknown Year";
+            }
+
+            if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
+                song.previewStartTime = infoData["preview_start_time"].get<int>();
+            } else {
+                song.previewStartTime = 3000;
+            }
+
+        } catch (const std::exception& e) {
+            song.source = "Unknown Source";
+            song.releaseYear = "Unknown Year";
+            song.previewStartTime = 500;
+        }
+    } else if (std::filesystem::exists(folder / "song.ini")) {
+        song.songInfoPath = (folder / "song.ini").string();
+        song.songDir = folder.string();
+        song.LoadSongIni(folder);
+        song.ini = true;
+        if (std::filesystem::exists(infoPath)) {
+            try {
+                json infoData;
+                std::ifstream infoFile(infoPath);
+                infoFile >> infoData;
+                infoFile.close();
+
+                if (infoData.contains("source") && infoData["source"].is_string()) {
+                    song.source = infoData["source"].get<std::string>();
+                    if (song.source.empty()) {
+                        song.source = "Unknown Source";
+                    }
+                } else {
+                    song.source = "Unknown Source";
+                }
+
+                if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
+                    song.releaseYear = infoData["release_year"].get<std::string>();
+                    if (song.releaseYear.empty()) {
+                        song.releaseYear = "Unknown Year";
+                    }
+                } else {
+                    song.releaseYear = "Unknown Year";
+                }
+
+                if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
+                    song.previewStartTime = infoData["preview_start_time"].get<int>();
+                } else {
+                    song.previewStartTime = 500;
+                }
+
+                Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Read metadata for INI song %s - %s from %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str()));
+            } catch (const std::exception& e) {
+                Encore::EncoreLog(LOG_ERROR, TextFormat("CACHE: Failed to read metadata for INI song %s - %s from %s: %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str(), e.what()));
+                song.source = "Unknown Source";
+                song.releaseYear = "Unknown Year";
+                song.previewStartTime = 500;
+            }
+        } else {
+            song.source = "Unknown Source";
+            song.releaseYear = "Unknown Year";
+            song.previewStartTime = 500;
+            Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: No info.json for INI song %s - %s, using default metadata", song.title.c_str(), song.artist.c_str()));
+        }
+    } else {
+        // If this folder doesn't have song.ini or song.json, this must be a organizational folder; continue scanning.
+        for (const auto &entry : std::filesystem::directory_iterator(folder)) {
+            ScanFolder(entry.path());
+        };
+    }
+
+    songs.push_back(std::move(song));
+    songCount++;
+}
+
 void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) {
     Clear();
 
@@ -181,108 +287,8 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
         if (!std::filesystem::is_directory(folder)) {
             continue;
         }
-
-        for (const auto &entry : std::filesystem::directory_iterator(folder)) {
-            if (!std::filesystem::is_directory(entry)) {
-                continue;
-            }
-
-            directoryCount++;
-            Song song;
-            std::filesystem::path infoPath = entry.path() / "info.json";
-            if (std::filesystem::exists(infoPath)) {
-                song.LoadSong(infoPath);
-                try {
-                    json infoData;
-                    std::ifstream infoFile(infoPath);
-                    infoFile >> infoData;
-                    infoFile.close();
-
-                    if (infoData.contains("source") && infoData["source"].is_string()) {
-                        song.source = infoData["source"].get<std::string>();
-                        if (song.source.empty()) {
-                            song.source = "Unknown Source";
-                        }
-                    } else {
-                        song.source = "Unknown Source";
-                    }
-
-                    if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
-                        song.releaseYear = infoData["release_year"].get<std::string>();
-                        if (song.releaseYear.empty()) {
-                            song.releaseYear = "Unknown Year";
-                        }
-                    } else {
-                        song.releaseYear = "Unknown Year";
-                    }
-
-                    if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
-                        song.previewStartTime = infoData["preview_start_time"].get<int>();
-                    } else {
-                        song.previewStartTime = 3000;
-                    }
-
-                } catch (const std::exception& e) {
-                    song.source = "Unknown Source";
-                    song.releaseYear = "Unknown Year";
-                    song.previewStartTime = 500;
-                }
-            } else if (std::filesystem::exists(entry.path() / "song.ini")) {
-                song.songInfoPath = (entry.path() / "song.ini").string();
-                song.songDir = entry.path().string();
-                song.LoadSongIni(entry.path());
-                song.ini = true;
-                if (std::filesystem::exists(infoPath)) {
-                    try {
-                        json infoData;
-                        std::ifstream infoFile(infoPath);
-                        infoFile >> infoData;
-                        infoFile.close();
-
-                        if (infoData.contains("source") && infoData["source"].is_string()) {
-                            song.source = infoData["source"].get<std::string>();
-                            if (song.source.empty()) {
-                                song.source = "Unknown Source";
-                            }
-                        } else {
-                            song.source = "Unknown Source";
-                        }
-
-                        if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
-                            song.releaseYear = infoData["release_year"].get<std::string>();
-                            if (song.releaseYear.empty()) {
-                                song.releaseYear = "Unknown Year";
-                            }
-                        } else {
-                            song.releaseYear = "Unknown Year";
-                        }
-
-                        if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
-                            song.previewStartTime = infoData["preview_start_time"].get<int>();
-                        } else {
-                            song.previewStartTime = 500;
-                        }
-
-                        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Read metadata for INI song %s - %s from %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str()));
-                    } catch (const std::exception& e) {
-                        Encore::EncoreLog(LOG_ERROR, TextFormat("CACHE: Failed to read metadata for INI song %s - %s from %s: %s", song.title.c_str(), song.artist.c_str(), infoPath.string().c_str(), e.what()));
-                        song.source = "Unknown Source";
-                        song.releaseYear = "Unknown Year";
-                        song.previewStartTime = 500;
-                    }
-                } else {
-                    song.source = "Unknown Source";
-                    song.releaseYear = "Unknown Year";
-                    song.previewStartTime = 500;
-                    Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: No info.json for INI song %s - %s, using default metadata", song.title.c_str(), song.artist.c_str()));
-                }
-            } else {
-                continue;
-            }
-
-            songs.push_back(std::move(song));
-            songCount++;
-        }
+        
+        ScanFolder(folder);
     }
 
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
@@ -440,45 +446,6 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     SongCacheIn.close();
     size_t loadedSongCount = songs.size();
 
-    // Load additional songs from directories if needed
-    LoadingState = SCANNING_EXTRAS;
-    for (const auto &folder : songsFolder) {
-        if (!std::filesystem::is_directory(folder)) {
-            continue;
-        }
-
-        for (const auto &entry : std::filesystem::directory_iterator(folder)) {
-            if (!std::filesystem::is_directory(entry)) {
-                continue;
-            }
-
-            if (std::filesystem::exists(entry.path() / "info.json")) {
-                if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
-                    Song song;
-                    song.LoadSong(entry.path() / "info.json");
-                    songs.push_back(std::move(song));
-                    songCount++;
-                } else {
-                    badSongCount++;
-                }
-            }
-
-            if (std::filesystem::exists(entry.path() / "song.ini")) {
-                if (loadedSongs.find(entry.path().string()) == loadedSongs.end()) {
-                    Song song;
-                    song.songInfoPath = (entry.path() / "song.ini").string();
-                    song.songDir = entry.path().string();
-                    song.LoadSongIni(entry.path());
-                    song.ini = true;
-
-                    songs.push_back(std::move(song));
-                    songCount++;
-                } else {
-                    badSongCount++;
-                }
-            }
-        }
-    }
 
     if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
         Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");

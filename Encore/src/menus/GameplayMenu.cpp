@@ -526,7 +526,7 @@ void GameplayMenu::Draw() {
 
     std::span<Beatline> BeatlinePool;
 
-    if (TheSongTime.GetElapsedTime() > TheSongList.curSong->end + 1) {
+    if (TheSongTime.GetElapsedTime() > TheSongList.curSong->end - 1) {
         // TODO: endgame
         TheSongTime.Reset();
         TheAudioManager.unloadStreams();
@@ -2001,6 +2001,7 @@ void GameplayMenu::Draw() {
 void GameplayMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
+    TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals

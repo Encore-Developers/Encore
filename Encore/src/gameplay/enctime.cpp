@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include "song/audio.h"
 
 SongTime TheSongTime;
 
@@ -250,57 +251,33 @@ void SongTime::SetOffset(double audioCalibration) {
     aCalib = audioCalibration;
 };
 
+void SongTime::Start(double end) {
+    endTime = end;
+}
+
+// Resets internal state, 
 void SongTime::Reset() {
     pauseTime = 0.0;
     running = false;
     paused = false;
 }
-// start at audio beginning
-void SongTime::Start(double end) {
-    if (!running) {
-        startTime = GetTime() + aCalib;
-        endTime = end + aCalib;
-        running = true;
-        paused = false;
-        std::cout << "Started gameplay";
-    }
-};
 
-double SongTime::GetFakeStartTime() {
-    return fakeStartTime;
-}
-
-// start at a specific time
-void SongTime::Start(double start, double end) {
-    if (!running) {
-        startTime = GetTime() - start + aCalib;
-        fakeStartTime = GetTime() + aCalib;
-        endTime = end + aCalib;
-        running = true;
-        paused = false;
-    }
-};
 void SongTime::Pause() {
-    if (running && !paused) {
-        pauseTime = GetTime();
-        running = false;
-        paused = true;
-    }
+    pauseTime = GetElapsedTime();
+    TheAudioManager.pauseStreams();
+    paused = true;
 };
 
 void SongTime::Resume() {
-    if (!running && paused) {
-        double startOffset = GetTime() - pauseTime;
-        startTime += startOffset + 3.0;
-        pauseTime = 0.0;
-        running = true;
-        paused = false;
-    }
+    TheAudioManager.seekStreams(pauseTime - 5 + aCalib);
+    TheAudioManager.unpauseStreams();
+    paused = false;
 };
 
 void SongTime::Stop() {
     running = false;
     paused = false;
+    TheAudioManager.unloadStreams();
 }
 
 bool SongTime::Running() {
@@ -308,21 +285,16 @@ bool SongTime::Running() {
 }
 
 double SongTime::GetElapsedTime() {
-    if (!paused && running) {
-        return GetTime() - startTime;
-    } else if (paused) {
-        return pauseTime - startTime;
-    }
-    return 0.0;
+    return TheAudioManager.GetMusicTimePlayed() - aCalib;
 };
 double SongTime::GetStartTime() {
-    return startTime;
+    return 0;
 }
 
 // this is actually a lie. it returns "the system time when it ends" i think i forgort
 // use GetSongLength if you need song duration
 double SongTime::GetEndTime() {
-    return endTime + startTime;
+    return endTime;
 }
 
 double SongTime::GetSongLength() {

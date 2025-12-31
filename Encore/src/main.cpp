@@ -173,7 +173,6 @@ int main(int argc, char *argv[]) {
     GuiSetFont(assets.rubik);
     assets.LoadAssets();
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
-    TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
 
     if (TheGameSettings.Framerate > 0)
         Encore::EncoreLog(

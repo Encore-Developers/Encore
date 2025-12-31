@@ -10,7 +10,7 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
-#define SONG_CACHE_VERSION 25042503
+#define SONG_CACHE_VERSION 25123001
 #define SONG_CACHE_HEADER 0x52434E45 // "ENCR"
 
 struct ListMenuEntry {
@@ -94,6 +94,7 @@ public:
     void WriteCache();
 
     void ScanSongs(const std::vector<std::filesystem::path> &songsFolder);
+    void ScanFolder(const std::filesystem::path &folder);
 
     std::vector<ListMenuEntry>
     GenerateSongEntriesWithHeaders(const std::vector<Song> &songs, SortType sortType);
