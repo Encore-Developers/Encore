@@ -13,8 +13,9 @@
 static const std::vector<std::string> presets = {
     "Thumb", "Thumb & Index", "Index & Middle"
 };
-
+// TODO: fuck my ass
 void SettingsController::resetToDefaultKeys() {
+    /*
     settings.controller4K = settings.defaultController4K;
     settings.controller5K = settings.defaultController5K;
     settings.controllerOverdrive = settings.defaultControllerOverdrive;
@@ -38,9 +39,11 @@ void SettingsController::resetToDefaultKeys() {
     }
     settings.syncKeybindsToGame();
     TraceLog(LOG_INFO, "Reset controller bindings to defaults");
+    */
 }
 
 void SettingsController::applyPreset(int presetIndex) { // i fixed this in the most janky way possible
+    /*
     switch (presetIndex) {
         case 0: // Thumb
             settings.controller4K = settings.defaultController4K;
@@ -91,13 +94,14 @@ void SettingsController::applyPreset(int presetIndex) { // i fixed this in the m
     }
     settings.syncKeybindsToGame();
     TraceLog(LOG_INFO, "Applied preset: %s", presets[presetIndex].c_str());
+    */
 }
 
 void SettingsController::Draw() {
     static bool dropdownActive = false;
     static int selectedPreset = 0;
-    TraceLog(LOG_INFO, "SettingsController::Draw entered, options.size=%zu, selectedIndex=%d",
-             options.size(), selectedIndex);
+    // TraceLog(LOG_INFO, "SettingsController::Draw entered, options.size=%zu, selectedIndex=%d",
+    //         options.size(), selectedIndex);
     if (!TheSongList.curSong) {
         TraceLog(LOG_ERROR, "TheSongList.curSong is null");
         Units& u = Units::getInstance();
@@ -216,7 +220,7 @@ void SettingsController::Draw() {
 
     Vector2 mousePos = GetMousePosition();
     isHovering = false;
-
+    /*
     TraceLog(LOG_INFO, "Rendering %zu controller entries", options.size());
     for (size_t i = 0; i < options.size(); ++i) {
         float optionTop = EntryTop + (EntryHeight + verticalGap) * i;
@@ -269,7 +273,7 @@ void SettingsController::Draw() {
     if (!isHovering) {
         selectedIndex = 0;
     }
-
+*/
     GameMenu::DrawBottomOvershell();
     DrawOvershell();
 }
@@ -335,6 +339,7 @@ void SettingsController::KeyboardInputCallback(int key, int scancode, int action
 }
 
 void SettingsController::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+    /*
     static GLFWgamepadstate prevState;
     static std::vector<float> debounceTimers(GLFW_GAMEPAD_AXIS_LAST + 1, 0.0f);
     const float debounceTime = 0.2f;
@@ -408,9 +413,11 @@ void SettingsController::ControllerInputCallback(int joypadID, GLFWgamepadstate 
         TheMenuManager.SwitchScreen(SETTINGS);
     }
     prevState = state;
+    */
 }
 
 void SettingsController::Load() {
+    /*
     TraceLog(LOG_INFO, "SettingsController: Loaded controller binds from settings-old.json");
     TraceLog(LOG_INFO, "Controller Type: %d", settings.controllerType);
     TraceLog(LOG_INFO, "4K Controller: [%d, %d, %d, %d]",
@@ -435,7 +442,7 @@ void SettingsController::Load() {
     options.emplace_back("5K Lane 5", &settings.controller5K[4]);
     options.emplace_back("Overdrive", &settings.controllerOverdrive);
     options.emplace_back("Pause", &settings.controllerPause);
-
+*/
     sidebarContents = {
         {"Controller Bindings", "Configure your controller bindings"},
         {"4K Lane 1", "TBA"},
@@ -453,7 +460,7 @@ void SettingsController::Load() {
 }
 
 void SettingsController::Save() {
-    settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
-    settings.syncKeybindsToGame();
+    // settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
+    // settings.syncKeybindsToGame();
     TraceLog(LOG_INFO, "SettingsController: Saved controller binds to settings-old.json");
 }

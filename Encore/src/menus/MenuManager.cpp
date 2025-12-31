@@ -15,8 +15,8 @@
 #include "menu.h"
 #include "raygui.h"
 #include "resultsMenu.h"
-#include "settings-old.h"
-#include "settings.h"
+// #include "settings-old.h"
+#include "settings/settings.h"
 #include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"
 #include "song/audio.h"
@@ -24,6 +24,8 @@
 #include "util/discord.h"
 
 #include <cstddef>
+
+#include "settings/keybinds.h"
 
 void MenuManager::SwitchScreen(Screens screen) {
     currentScreen = screen;
@@ -148,7 +150,7 @@ float inputFeedbackAlpha = 1.0f;
 void MenuManager::DrawMenu() {
     switch (TheMenuManager.currentScreen) {
         case CALIBRATION: {
-            SettingsOld &settingsMain = SettingsOld::getInstance();
+            // SettingsOld &settingsMain = SettingsOld::getInstance();
             Units &u = Units::getInstance();
             Assets &assets = Assets::getInstance();
 
@@ -188,7 +190,7 @@ void MenuManager::DrawMenu() {
                             + calibrationStartTime;
                         totalDifference += (tapTime - expectedClickTime);
                     }
-                    settingsMain.avOffsetMS = 0;
+                    TheGameSettings.AudioOffset = 0;
                         static_cast<int>((totalDifference / tapTimes.size()) * 1000);
                     // Convert to milliseconds
                     std::cout
@@ -210,7 +212,7 @@ void MenuManager::DrawMenu() {
                     std::cout << "Click" << std::endl;
                 }
 
-                if (IsKeyPressed(settingsMain.keybindOverdrive)) {
+                if (IsKeyPressed(TheGameKeybinds.overdriveBinds.first)) {
                     tapTimes.push_back(currentTime);
                     std::cout << "Input Registered" << std::endl;
 
@@ -253,11 +255,11 @@ void MenuManager::DrawMenu() {
                     "Cancel"
                 )) {
                 isCalibrating = false;
-                settingsMain.avOffsetMS = settingsMain.prevAvOffsetMS;
-                settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
+                // TheGameSettings.AudioOffset = settingsMain.prevAvOffsetMS;
+                // settingsMain.inputOffsetMS = settingsMain.prevInputOffsetMS;
                 tapTimes.clear();
 
-                settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
+                TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
                 TheMenuManager.SwitchScreen(SETTINGS);
             }
 
@@ -269,11 +271,11 @@ void MenuManager::DrawMenu() {
                     "Apply"
                 )) {
                 isCalibrating = false;
-                settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
-                settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
+                // settingsMain.prevAvOffsetMS = settingsMain.avOffsetMS;
+               // settingsMain.prevInputOffsetMS = settingsMain.inputOffsetMS;
                 tapTimes.clear();
 
-                settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
+                TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
                 TheMenuManager.SwitchScreen(SETTINGS);
             }
 

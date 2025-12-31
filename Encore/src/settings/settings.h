@@ -33,6 +33,8 @@ namespace Encore {
     }
     class Settings {
     public:
+        std::filesystem::path executablePath;
+        std::filesystem::path directory;
 #define OPTION(type, value, default) type value = default;
         SETTINGS_OPTIONS
 #undef OPTION
@@ -62,8 +64,6 @@ namespace Encore {
         std::filesystem::path directory;
         void ReadSettings();
         void CreateSettings();
-        void MigrateSettings();
-        void LegacyMigrateSettings();
     public:
         void InitSettings(std::filesystem::path directory);
     };

@@ -19,11 +19,13 @@
 #include "users/playerManager.h"
 #include "MenuManager.h"
 #include "OvershellHelper.h"
-#include "settings-old.h"
-#include "settings.h"
+// #include "settings-old.h"
+#include "../settings/settings.h"
 #include "timingvalues.h"
 
 #include <raylib.h>
+
+#include "settings/keybinds.h"
 
 GameplayMenu::GameplayMenu() {}
 GameplayMenu::~GameplayMenu() {}
@@ -58,7 +60,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
     Player &player = ThePlayerManager.GetActivePlayer(0);
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
-    SettingsOld &settingsMain = SettingsOld::getInstance();
+    // SettingsOld &settingsMain = SettingsOld::getInstance();
 
     if (action == 2)
         return;
@@ -80,18 +82,18 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
     } else if (action == GLFW_RELEASE) {
         REaction = Encore::RhythmEngine::Action::RELEASE;
     }
-    if (key == settingsMain.keybindOverdrive || key == settingsMain.keybindOverdriveAlt) {
+    if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.overdriveBinds.second) {
         Channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
     } else if (player.ClassicMode) {
-        if (key == settingsMain.keybindStrumUp) {
+        if (key == TheGameKeybinds.strumBinds.first) {
             Channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
-        } else if (key == settingsMain.keybindStrumDown) {
+        } else if (key == TheGameKeybinds.strumBinds.second) {
             Channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
         }
     }
     int DiffMax = (player.Difficulty == 3 || player.ClassicMode) ? 5 : 4;
     for (int i = 0; i < DiffMax; i++) {
-        if (key == settingsMain.keybinds5K[i] || key == settingsMain.keybinds5KAlt[i]) {
+        if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[i]) {
             Channel = Encore::RhythmEngine::IntIC(i);
         }
     }
@@ -106,7 +108,7 @@ void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state)
     Player &player = ThePlayerManager.GetActivePlayer(0);
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
-    SettingsOld &settingsMain = SettingsOld::getInstance();
+    // SettingsOld &settingsMain = SettingsOld::getInstance();
 
     // if (player.Bot)
     //    return;

@@ -6,6 +6,8 @@
 #include "util/enclog.h"
 #include "gameplay/enctime.h"
 #include <cassert>
+
+#include "settings/keybinds.h"
 #define assertm(exp, msg) assert((void(msg), exp))
 
 #define RAYGUI_IMPLEMENTATION
@@ -34,8 +36,8 @@
 
 #include "menus/uiUnits.h"
 
-#include "settings.h"
-#include "settings-old.h"
+#include "settings/settings.h"
+// #include "settings-old.h"
 #include "menus/SettingsAudioVideo.h"
 #include "menus/SettingsController.h"
 #include "menus/SettingsCredits.h"
@@ -54,6 +56,7 @@ PlayerManager ThePlayerManager;
 Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
+Encore::Keybinds TheGameKeybinds;
 Encore::SettingsGameplay TheGameplaySettings;
 Encore::SettingsAudioVideo TheAudioVideoSettings;
 Encore::SettingsController TheControllerSettings;

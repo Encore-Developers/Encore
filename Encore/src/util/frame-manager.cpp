@@ -5,7 +5,7 @@
 #include "frame-manager.h"
 
 #include "raylib.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "menus/MenuManager.h"
 
 void Encore::FrameManager::InitFrameManager() {

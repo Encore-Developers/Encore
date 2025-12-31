@@ -80,7 +80,7 @@ void SettingsKeyboard::Draw() {
 
     Vector2 mousePos = GetMousePosition();
     isHovering = false;
-
+    /*
     for (size_t i = 0; i < options.size(); ++i) {
         float optionTop = EntryTop + (EntryHeight + verticalGap) * i;
         Rectangle optionBoxRect = {boxLeft - borderWidth, optionTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
@@ -112,7 +112,7 @@ void SettingsKeyboard::Draw() {
             DrawRectangleLinesEx(buttonRect, highlightBorderWidth, glowColor);
         }
     }
-
+*/
     if (!isHovering) {
         selectedIndex = 0;
     }
@@ -141,7 +141,8 @@ std::pair<std::string, int> SettingsKeyboard::getBindTypeAndIndex(size_t optionI
 
 void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (action != GLFW_PRESS) return;
-
+    // TODO: change this system to use TheGameKeybinds instead of SettingsOld
+    /*
     if (bindingOption >= 0) {
         if (key != GLFW_KEY_ESCAPE) { // Allow any key except ESC
             *options[bindingOption].second = key;
@@ -153,7 +154,7 @@ void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, 
         bindingOption = -1;
         return;
     }
-
+    */
     if (key == GLFW_KEY_DOWN) {
         selectedIndex = (selectedIndex + 1) % sidebarContents.size();
         if (selectedIndex == 0) selectedIndex = 1; // fixed header
@@ -166,6 +167,7 @@ void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, 
         Save();
         TheMenuManager.SwitchScreen(SETTINGS);
     }
+
 }
 
 void SettingsKeyboard::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
@@ -180,7 +182,7 @@ void SettingsKeyboard::Load() {
 }
 
 void SettingsKeyboard::Save() {
-    settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
-    settings.syncKeybindsToGame();
+   //  settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
+    // settings.syncKeybindsToGame();
     TraceLog(LOG_INFO, "SettingsKeyboard: Saved keybinds to settings-old.json");
 }

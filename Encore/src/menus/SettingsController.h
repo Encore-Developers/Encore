@@ -4,7 +4,7 @@
 #pragma once
 
 #include "OvershellMenu.h"
-#include "settings-old.h"
+// #include "../settings/settings-old.h"
 #include "keybinds.h"
 #include <string>
 #include <utility>
@@ -32,7 +32,7 @@ public:
     void Save();
 
 private:
-    SettingsOld& settings = SettingsOld::getInstance();
+    // SettingsOld& settings = SettingsOld::getInstance();
     Keybinds keybinds;
     int selectedIndex = 0;
     int bindingOption = -1;
@@ -40,6 +40,7 @@ private:
     int selectedPreset = 0;
     bool isHovering = false;
     const float boxWidthPct = 0.55f;
+    /*
     std::vector<std::pair<std::string, int*>> options = {
         {"4K Lane 1", &settings.controller4K[0]},
         {"4K Lane 2", &settings.controller4K[1]},
@@ -52,7 +53,7 @@ private:
         {"5K Lane 5", &settings.controller5K[4]},
         {"Overdrive", &settings.controllerOverdrive},
         {"Pause", &settings.controllerPause}
-    };
+    };*/
     struct SidebarContent {
         const char* header;
         const char* body;

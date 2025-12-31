@@ -26,7 +26,7 @@
 #endif
 #include "MenuManager.h"
 #include "keybinds.h"
-#include "settings.h"
+#include "../settings/settings.h"
 #include "users/playerManager.h"
 
 #ifndef ENCORE_VERSION

@@ -5,10 +5,10 @@
 #pragma once
 
 #include "OvershellMenu.h"
-#include "settings-old.h"
+// #include "settings-old.h"
 #include "keybinds.h"
 #include "assets.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 #ifndef SETTINGSKEYBOARD_H
 #define SETTINGSKEYBOARD_H
@@ -33,12 +33,13 @@ public:
     void Save();
 
 private:
-    SettingsOld& settings = SettingsOld::getInstance();
+    // SettingsOld& settings = SettingsOld::getInstance();
     Keybinds keybinds;
     int selectedIndex = 0;
     int bindingOption = -1;
     bool isHovering = false;
     const float boxWidthPct = 0.55f;
+    /*
     std::vector<std::pair<std::string, int*>> options = {
         {"4K Lane 1", &settings.keybinds4K[0]},
         {"4K Lane 2", &settings.keybinds4K[1]},
@@ -52,7 +53,7 @@ private:
         {"Overdrive", &settings.keybindOverdrive},
         {"Overdrive Alt", &settings.keybindOverdriveAlt},
         {"Pause", &settings.keybindPause}
-    };
+    };*/
     struct SidebarContent {
         const char* header;
         const char* body;

@@ -9,7 +9,7 @@
 #include "MenuManager.h"
 #include "gameMenu.h"
 #include "raygui.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "uiUnits.h"
 #include "gameplay/gameplayRenderer.h"
 #include "song/audio.h"

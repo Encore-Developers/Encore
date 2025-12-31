@@ -13,7 +13,7 @@
 #include "song/songlist.h"
 #include "raygui.h"
 #include "MenuManager.h"
-#include "settings.h"
+#include "settings/settings.h"
 
 std::vector<std::string> CacheSplash = {
     "Want a break from the cache?",

@@ -7,7 +7,7 @@
 #include "MenuManager.h"
 #include "gameMenu.h"
 #include "raygui.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
@@ -26,7 +26,7 @@ enum OptionsCategories {
 void SettingsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
-    SettingsOld &settingsMain = SettingsOld::getInstance();
+    // SettingsOld &settingsMain = SettingsOld::getInstance();
     SongTime &enctime = TheSongTime;
     settingsOptionRenderer sor;
     encOS::DrawTopOvershell(0.15f);

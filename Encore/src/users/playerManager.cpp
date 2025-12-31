@@ -4,7 +4,7 @@
 
 #include "playerManager.h"
 
-#include "settings.h"
+#include "settings/settings.h"
 
 #include <nlohmann/json.hpp>
 

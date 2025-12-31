@@ -10,7 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <nlohmann/json.hpp>
-
+/*
 class SettingsOld {
 private:
     static const int KEY_COUNT = 512;
@@ -21,7 +21,7 @@ private:
         if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory)) {
             std::cerr << "Error: Invalid directory " << directory << ". Using current directory as fallback." << std::endl;
             directory = std::filesystem::current_path();
-            oldSettingsFile = directory / "settings-old.json";
+            // oldSettingsFile = directory / "settings-old.json";
             newSettingsFile = directory / "settings.json";
         }
 
@@ -30,21 +30,26 @@ private:
         } catch (const std::exception& e) {
             std::cerr << "Error: Failed to load " << newSettingsFile << ": " << e.what() << std::endl;
         }
-        MainVolume = settings.avMainVolume;
-        PlayerVolume = settings.avActiveInstrumentVolume;
-        BandVolume = settings.avInactiveInstrumentVolume;
-        SFXVolume = settings.avSoundEffectVolume;
-        MissVolume = settings.avMuteVolume;
-        MenuVolume = settings.avMenuMusicVolume;
-        fullscreen = settings.Fullscreen;
-        songPaths = settings.SongPaths;
 
-        if (std::filesystem::exists(oldSettingsFile)) {
-            loadOldSettings(oldSettingsFile);
-        } else {
-            std::cerr << "Warning: " << oldSettingsFile << " does not exist. Creating with defaults." << std::endl;
-            saveOldSettings(oldSettingsFile);
-        }
+        /*
+         * No. Everything after this is deprecated.
+         *
+
+        // MainVolume = settings.avMainVolume;
+        // PlayerVolume = settings.avActiveInstrumentVolume;
+        // BandVolume = settings.avInactiveInstrumentVolume;
+        // SFXVolume = settings.avSoundEffectVolume;
+        // MissVolume = settings.avMuteVolume;
+        // MenuVolume = settings.avMenuMusicVolume;
+        // fullscreen = settings.Fullscreen;
+        // songPaths = settings.SongPaths;
+
+        // if (std::filesystem::exists(oldSettingsFile)) {
+        //    loadOldSettings(oldSettingsFile);
+        // } else {
+            // std::cerr << "Warning: " << oldSettingsFile << " does not exist. Creating with defaults." << std::endl;
+            // saveOldSettings(oldSettingsFile);
+        // }
     }
 
     Encore::Settings& settings = TheGameSettings;
@@ -61,15 +66,15 @@ public:
     SettingsOld(const SettingsOld&) = delete;
     void operator=(const SettingsOld &) = delete;void rebindKey(const std::string & bind_type, int index, int i);
 
-    std::vector<int> defaultKeybinds4K = {KEY_D, KEY_F, KEY_J, KEY_K};
-    std::vector<int> defaultKeybinds5K = {KEY_D, KEY_F, KEY_J, KEY_K, KEY_L};
-    std::vector<int> defaultKeybinds4KAlt = {-2, -2, -2, -2};
-    std::vector<int> defaultKeybinds5KAlt = {-2, -2, -2, -2, -2};
-    int defaultKeybindStrumUp = KEY_UP;
-    int defaultKeybindStrumDown = KEY_DOWN;
-    int defaultKeybindOverdrive = KEY_SPACE;
-    int defaultKeybindOverdriveAlt = -2;
-    int defaultKeybindPause = KEY_ESCAPE;
+    // std::vector<int> defaultKeybinds4K = {KEY_D, KEY_F, KEY_J, KEY_K};
+    // std::vector<int> defaultKeybinds5K = {KEY_D, KEY_F, KEY_J, KEY_K, KEY_L};
+    // std::vector<int> defaultKeybinds4KAlt = {-2, -2, -2, -2};
+    // std::vector<int> defaultKeybinds5KAlt = {-2, -2, -2, -2, -2};
+    // int defaultKeybindStrumUp = KEY_UP;
+    // int defaultKeybindStrumDown = KEY_DOWN;
+    // int defaultKeybindOverdrive = KEY_SPACE;
+    // int defaultKeybindOverdriveAlt = -2;
+    // int defaultKeybindPause = KEY_ESCAPE;
     std::vector<int> defaultController4K = {
         GLFW_GAMEPAD_BUTTON_DPAD_LEFT, GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,
         GLFW_GAMEPAD_BUTTON_X, GLFW_GAMEPAD_BUTTON_B};
@@ -922,3 +927,4 @@ public:
         std::cout << "Info: Successfully saved " << oldSettingsFile << std::endl;
     }
 };
+*/

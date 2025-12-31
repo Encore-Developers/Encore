@@ -5,7 +5,7 @@
 #ifndef SETTINGSMENU_H
 #define SETTINGSMENU_H
 #include "menu.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "assets.h"
 #include "OvershellMenu.h"
 

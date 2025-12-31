@@ -8,7 +8,7 @@
 #include "gameMenu.h"
 #include "raygui.h"
 #include "assets.h"
-#include "settings.h"
+#include "settings/settings.h"
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
@@ -21,25 +21,25 @@ void SettingsGameplay::Draw() {
     if (!IsWindowReady()) {
         return;
     }
-
+    // null checks not needed, references are never null + all of these things WILL be initialized on run
     Units& u = Units::getInstance();
-    if (&u == nullptr) {
-        return;
-    }
+    //if (&u == nullptr) {
+    //    return;
+    //}
 
     Assets& assets = Assets::getInstance();
-    if (&assets == nullptr) {
-        return;
-    }
+    //if (&assets == nullptr) {
+    //    return;
+    //}
 
-    SettingsOld& settingsMain = SettingsOld::getInstance();
-    if (&settingsMain == nullptr) {
-        return;
-    }
+    //SettingsOld& settingsMain = SettingsOld::getInstance();
+    //if (&settingsMain == nullptr) {
+    //    return;
+    //}
 
     SongTime& enctime = TheSongTime;
-    if (&enctime == nullptr) {
-    }
+    // if (&enctime == nullptr) {
+    // }
 
     settingsOptionRenderer sor;
     const float boxWidthPct = 0.55f;
@@ -175,27 +175,28 @@ void SettingsGameplay::Draw() {
         DrawRectangleLinesEx(fullscreenBoxRect, highlightBorderWidth, glowColor);
     }
     // might redo later - Jaydenz
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, settingsMain.fullscreen ? defaultColor : ColorToInt(activeColor));
+    // TODO: fix this because oh my lordy lord
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, TheGameSettings.Fullscreen ? defaultColor : ColorToInt(activeColor));
     if (GuiButton(offButtonRect, "Off")) {
-        if (settingsMain.fullscreen) {
-            settingsMain.fullscreen = false;
+        if (TheGameSettings.Fullscreen) {
+            TheGameSettings.Fullscreen = false;
             if (IsWindowFullscreen()) {
                 ToggleFullscreen();
             }
-            settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
+            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
         }
     }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, settingsMain.fullscreen ? ColorToInt(activeColor) : defaultColor);
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, TheGameSettings.Fullscreen ? ColorToInt(activeColor) : defaultColor);
     if (GuiButton(onButtonRect, "On")) {
-        if (!settingsMain.fullscreen) {
-            settingsMain.fullscreen = true;
+        if (!TheGameSettings.Fullscreen) {
+            TheGameSettings.Fullscreen = true;
             if (!IsWindowFullscreen()) {
                 ToggleFullscreen();
             }
-            settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
+            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
         }
     }
-    if (!settingsMain.fullscreen) {
+    if (!TheGameSettings.Fullscreen) {
         DrawRectangleLinesEx(offButtonRect, highlightBorderWidth, glowColor);
     } else {
         DrawRectangleLinesEx(onButtonRect, highlightBorderWidth, glowColor);
@@ -258,16 +259,16 @@ void SettingsGameplay::ControllerInputCallback(int joypadID, GLFWgamepadstate st
 }
 
 void SettingsGameplay::Load() {
-    SettingsOld& settingsMain = SettingsOld::getInstance();
+    // SettingsOld& settingsMain = SettingsOld::getInstance();
     // Ensure window state matches settings
-    if (settingsMain.fullscreen && !IsWindowFullscreen()) {
+    if (TheGameSettings.Fullscreen && !IsWindowFullscreen()) {
         ToggleFullscreen();
-    } else if (!settingsMain.fullscreen && IsWindowFullscreen()) {
+    } else if (!TheGameSettings.Fullscreen && IsWindowFullscreen()) {
         ToggleFullscreen();
     }
 }
 
 void SettingsGameplay::Save() {
-    SettingsOld& settingsMain = SettingsOld::getInstance();
-    settingsMain.saveSettings(settingsMain.getDirectory() / "settings.json");
+    // SettingsOld& settingsMain = SettingsOld::getInstance();
+    TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
 }
