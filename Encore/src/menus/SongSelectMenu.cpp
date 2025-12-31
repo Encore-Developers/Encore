@@ -68,7 +68,7 @@ void SongSelectMenu::Load() {
     // TheGameRenderer.midiLoaded = false;
     for (Song& song : TheSongList.songs) {
         if (!song.ini) {
-            song.LoadInfo(song.songInfoPath);
+            // song.LoadSongJSON(song.songInfoPath);
         } else {
             song.LoadInfoINI(song.songInfoPath);
         }
@@ -96,7 +96,7 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
 
     switch (previewState) {
         case PreviewState::FadeIn:
-            t = (currentTime - phaseStartTime) / fadeDuration;
+            t = (currentTime - phaseStartTime) / 1.0f;
             if (t >= 1.0f) {
                 currentPreviewVolume = targetVolume;
                 previewState = PreviewState::Playing;
@@ -217,7 +217,7 @@ void SongSelectMenu::Draw() {
         if (TheSongList.curSong->ini)
             TheSongList.curSong->LoadInfoINI(TheSongList.curSong->songInfoPath);
         else
-            TheSongList.curSong->LoadInfo(TheSongList.curSong->songInfoPath);
+            TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
     }
 
     BeginDrawing();
@@ -582,7 +582,7 @@ void SongSelectMenu::Draw() {
         if (TheSongList.curSong) {
             Unload();
             if (!TheSongList.curSong->ini) {
-                TheSongList.curSong->LoadSong(TheSongList.curSong->songInfoPath);
+                TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
             } else {
                 TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
             }

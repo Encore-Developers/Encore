@@ -21,6 +21,8 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#define JSON_DIAGNOSTICS 1
+
 #include <filesystem>
 #include <vector>
 #include <thread>
@@ -69,6 +71,8 @@ Encore::FrameManager TheFrameManager;
 // OvershellRenderer overshellRenderer;
 
 vector<std::string> ArgumentList::arguments;
+
+
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH

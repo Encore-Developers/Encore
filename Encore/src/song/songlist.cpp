@@ -155,7 +155,7 @@ void SongList::WriteCache() {
     for (const auto &song : songs) {
         SongCache << song.songDir;
         SongCache << song.albumArtPath;
-        SongCache << song.songInfoPath;
+        SongCache << song.songInfoPath.string();
         SongCache << song.jsonHash;
 
         SongCache << song.title;
@@ -184,42 +184,18 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     Song song;
     std::filesystem::path infoPath = folder / "info.json";
     if (std::filesystem::exists(infoPath)) {
-        song.LoadSong(infoPath);
-        try {
-            json infoData;
-            std::ifstream infoFile(infoPath);
-            infoFile >> infoData;
-            infoFile.close();
-
-            if (infoData.contains("source") && infoData["source"].is_string()) {
-                song.source = infoData["source"].get<std::string>();
-                if (song.source.empty()) {
-                    song.source = "Unknown Source";
-                }
-            } else {
-                song.source = "Unknown Source";
-            }
-
-            if (infoData.contains("release_year") && infoData["release_year"].is_string()) {
-                song.releaseYear = infoData["release_year"].get<std::string>();
-                if (song.releaseYear.empty()) {
-                    song.releaseYear = "Unknown Year";
-                }
-            } else {
-                song.releaseYear = "Unknown Year";
-            }
-
-            if (infoData.contains("preview_start_time") && infoData["preview_start_time"].is_number_integer()) {
-                song.previewStartTime = infoData["preview_start_time"].get<int>();
-            } else {
-                song.previewStartTime = 3000;
-            }
-
-        } catch (const std::exception& e) {
-            song.source = "Unknown Source";
-            song.releaseYear = "Unknown Year";
-            song.previewStartTime = 500;
+        song.songInfoPath = (folder / "info.json");
+        song.songDir = folder.string();
+        if (std::filesystem::exists(folder / "cover.png")) {
+            song.albumArtPath = (folder / "cover.png").string();
         }
+        if (std::filesystem::exists(folder / "cover.jpg")) {
+            song.albumArtPath = (folder / "cover.jpg").string();
+        }
+        if (std::filesystem::exists(folder / "cover.jpeg")) {
+            song.albumArtPath = (folder / "cover.jpeg").string();
+        }
+        song.LoadSongJSON(song.songInfoPath);
     } else if (std::filesystem::exists(folder / "song.ini")) {
         song.songInfoPath = (folder / "song.ini").string();
         song.songDir = folder.string();
@@ -240,7 +216,7 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     Clear();
 
     for (const auto &folder : songsFolder) {
-        if (!std::filesystem::is_directory(folder)) {
+        if (!is_directory(folder)) {
             continue;
         }
         
@@ -360,7 +336,11 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         // Read cache values
         SongCacheIn >> song.songDir;
         SongCacheIn >> song.albumArtPath;
-        SongCacheIn >> song.songInfoPath;
+
+        std::string infopath;
+        SongCacheIn >> infopath;
+        song.songInfoPath = infopath;
+
         SongCacheIn >> song.jsonHash;
 
         SongCacheIn >> song.title;

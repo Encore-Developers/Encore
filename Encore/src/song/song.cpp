@@ -53,6 +53,8 @@ void Song::LoadInfoINI(std::filesystem::path iniPath) {
 
     length = ini.GetInteger("song", "song_length", 0);
 
+    previewStartTime = ini.GetInteger("song", "preview_start_time", 0);
+
     parts[PlasticGuitar]->diff = ini.GetInteger("song", "diff_guitar", -1);
 
     parts[PlasticBass]->diff = ini.GetInteger("song", "diff_bass", -1);

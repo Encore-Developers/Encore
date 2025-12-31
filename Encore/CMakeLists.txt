@@ -41,6 +41,7 @@ if (NOT json_FOUND)
     FetchContent_MakeAvailable(json)
   endif()
 endif()
+option(JSON_Diagnostics "" ON)
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 # Add all subdirectories of src

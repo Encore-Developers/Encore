@@ -19,6 +19,7 @@
 #include "util/enclog.h"
 
 #include <array>
+#include <nlohmann/json.hpp>
 
 enum PartIcon {
     IconDrum,
@@ -57,7 +58,7 @@ struct SongPart {
     int diff = -1;
     int TrackInt = -1;
     bool Valid = false;
-    std::array<bool, 4> ValidDiffs { false, false, false, false };
+    std::array<bool, 4> ValidDiffs{ false, false, false, false };
 };
 
 struct Beat {
@@ -66,12 +67,13 @@ struct Beat {
     bool Clapped = false;
     int Tick;
 };
+
 static std::atomic_int LoadingState = -1;
 
 inline std::array<std::string, 4> diffList = { "Easy", "Medium", "Hard", "Expert" };
-inline std::vector<std::string> songPartsList {
-    "Drums",        "Bass",           "Lead",           "Keys",
-    "Vocals",       "Classic Drums",  "Classic Bass",   "Classic Lead",
+inline std::vector<std::string> songPartsList{
+    "Drums", "Bass", "Lead", "Keys",
+    "Vocals", "Classic Drums", "Classic Bass", "Classic Lead",
     "Classic Keys", "Classic Vocals", "Classic Vocals",
 };
 
@@ -113,19 +115,28 @@ inline std::unordered_map<std::string, SongParts> midiNameToEnum = {
 };
 
 inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
-    { "PAD DRUMS", SongParts::PartDrums },    { "PAD BASS", SongParts::PartBass },
-    { "PAD GUITAR", SongParts::PartGuitar },  { "PAD VOCALS", SongParts::PartVocals },
-    { "PAD KEYS", SongParts::PartKeys },      { "PART DRUMS", SongParts::PlasticDrums },
-    { "PART BASS", SongParts::PlasticBass },  { "PART GUITAR", SongParts::PlasticGuitar },
-    { "PART VOCALS", SongParts::Invalid },    { "PART KEYS", SongParts::PlasticKeys },
+    { "PAD DRUMS", SongParts::PartDrums }, { "PAD BASS", SongParts::PartBass },
+    { "PAD GUITAR", SongParts::PartGuitar }, { "PAD VOCALS", SongParts::PartVocals },
+    { "PAD KEYS", SongParts::PartKeys }, { "PART DRUMS", SongParts::PlasticDrums },
+    { "PART BASS", SongParts::PlasticBass }, { "PART GUITAR", SongParts::PlasticGuitar },
+    { "PART VOCALS", SongParts::Invalid }, { "PART KEYS", SongParts::PlasticKeys },
     { "PLASTIC VOCALS", SongParts::Invalid }, { "BEAT", SongParts::BeatLines },
     { "EVENTS", SongParts::Events }
 };
 
-inline std::vector<int> PlasticToPadEnumConverter = { PartDrums,  PartBass,   PartGuitar,
-                                                      PartVocals, PartKeys,   PartDrums,
-                                                      PartBass,   PartGuitar, PartVocals,
-                                                      PartKeys,   PartVocals, Invalid };
+inline std::unordered_map<std::string, SongParts> stemEnumToPart = {
+    { "drums", SongParts::PartDrums },
+    { "bass", SongParts::PartBass },
+    { "lead", SongParts::PartGuitar },
+    { "vocals", SongParts::PartVocals },
+    { "backing", SongParts::Invalid },
+    { "keys", SongParts::PartKeys }
+};
+
+inline std::vector<int> PlasticToPadEnumConverter = { PartDrums, PartBass, PartGuitar,
+                                                      PartVocals, PartKeys, PartDrums,
+                                                      PartBass, PartGuitar, PartVocals,
+                                                      PartKeys, PartVocals, Invalid };
 
 inline SongParts partFromString(const std::string &str) {
     auto it = midiNameToEnum.find(str);
@@ -167,478 +178,85 @@ public:
     bool AlbumArtLoaded = false;
     double music_start = 0.0;
     double end = 0.0;
-    std::vector<PartIcon> partIcons {
+    std::vector<PartIcon> partIcons{
         PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone
     };
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
-    std::vector<SongPart *> parts { new SongPart, new SongPart, new SongPart,
-                                    new SongPart, new SongPart, new SongPart,
-                                    new SongPart, new SongPart, new SongPart,
-                                    new SongPart, new SongPart };
+    std::vector<SongPart *> parts{ new SongPart, new SongPart, new SongPart,
+                                   new SongPart, new SongPart, new SongPart,
+                                   new SongPart, new SongPart, new SongPart,
+                                   new SongPart, new SongPart };
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 
-    std::vector<std::pair<std::string, int> > stemsPath {};
+    std::vector<std::pair<std::string, int>> stemsPath{};
 
     std::filesystem::path midiPath = "";
 
     std::string songDir = "";
     std::string albumArtPath = "";
-    std::string songInfoPath = "";
+    std::filesystem::path songInfoPath = "";
     std::string releaseYear = "";
     std::string loadingPhrase = "";
-    std::vector<std::string> charters {};
+    std::vector<std::string> charters{};
     std::string jsonHash = "";
     int hopoThreshold = 170;
     bool ini = false;
     smf::MidiFile midiFile;
     void LoadAudioINI(std::filesystem::path songPath);
     float previewStartTime = 0.0f;
-    void LoadAudio(std::filesystem::path jsonPath) {
-        std::ifstream ifs(jsonPath);
 
-        if (!ifs.is_open()) {
-            std::cerr << "Failed to open JSON file." << std::endl;
-        }
+    void LoadAudioJSON(const nlohmann::json &jsonPath) {
         if (!stemsPath.empty())
             stemsPath.clear();
-        if (!charters.empty())
-            charters.clear();
-        std::string jsonString(
-            (std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>()
-        );
-        ifs.close();
-        jsonHash = picosha2::hash256_hex_string(jsonString);
-        rapidjson::Document document;
-        document.Parse(jsonString.c_str());
-        songInfoPath = jsonPath.string();
-        songDir = jsonPath.parent_path().string();
 
-        if (document.IsObject()) {
-            for (auto &item : document.GetObject()) {
-                if (item.name == "stems" && item.value.IsObject()) {
-                    for (auto &path : item.value.GetObject()) {
-                        std::string stem = std::string(path.name.GetString());
-                        if (path.value.IsString()) {
-                            if (std::filesystem::exists(
-                                    jsonPath.parent_path() / path.value.GetString()
-                                )) {
-                                if (stem == "drums")
-                                    stemsPath.emplace_back(
-                                         (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          PartDrums
-                                    );
-
-                                else if (stem == "bass")
-                                    stemsPath.emplace_back(
-                                         (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          PartBass
-                                    );
-
-                                else if (stem == "lead")
-                                    stemsPath.emplace_back(
-                                         (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          PartGuitar
-                                    );
-
-                                else if (stem == "vocals")
-                                    stemsPath.emplace_back(
-                                         (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          PartVocals
-                                    );
-
-                                else if (stem == "backing")
-                                    stemsPath.emplace_back(
-                                         (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          5
-                                    );
-                            }
-                        } else if (path.value.IsArray()) {
-                            for (auto &path2 : path.value.GetArray()) {
-                                if (std::filesystem::exists(
-                                        jsonPath.parent_path() / path2.GetString()
-                                    )) {
-                                    if (stem == "drums")
-                                        stemsPath.emplace_back(
-                                             (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              PartDrums
-                                        );
-
-                                    else if (stem == "bass")
-                                        stemsPath.emplace_back(
-                                             (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              PartBass
-                                        );
-
-                                    else if (stem == "lead")
-                                        stemsPath.emplace_back(
-                                             (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              PartGuitar
-                                        );
-
-                                    else if (stem == "vocals")
-                                        stemsPath.emplace_back(
-                                             (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              PartVocals
-                                        );
-
-                                    else if (stem == "backing")
-                                        stemsPath.emplace_back(
-                                             (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              5
-                                        );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        for (auto & [key, val] : jsonPath.at("stems").items()) {
+            stemsPath.emplace_back(
+                (songInfoPath.parent_path() / val).string(),
+                midiNameToEnum[key]);
         }
-        ifs.close();
     }
 
     void LoadInfoINI(std::filesystem::path iniPath);
 
-    void LoadInfo(std::filesystem::path jsonPath) {
+    void LoadInfo(const nlohmann::json &infoData) {
 
-        if (jsonPath.empty()) {
-            std::cerr << "Empty JSON path." << std::endl;
-            return;
-        }
-
-        std::ifstream ifs(jsonPath);
-
-        if (!ifs.is_open()) {
-            std::cerr << "Failed to open JSON file." << std::endl;
-            return;
-        }
-        if (!stemsPath.empty())
-            stemsPath.clear();
         if (!charters.empty())
             charters.clear();
-        std::string jsonString(
-            (std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>()
-        );
-        ifs.close();
-        jsonHash = picosha2::hash256_hex_string(jsonString);
-        rapidjson::Document document;
-        document.Parse(jsonString.c_str());
-        songInfoPath = jsonPath.string();
-        songDir = jsonPath.parent_path().string();
-        for (auto &item : document.GetObject()) {
-            if (item.name == "title" && item.value.IsString())
-                title = item.value.GetString();
-            if (item.name == "artist" && item.value.IsString())
-                artist = item.value.GetString();
-            if (item.name == "album" && item.value.IsString())
-                album = item.value.GetString();
-            if (item.name == "source" && item.value.IsString())
-                source = item.value.GetString();
-            if (item.name == "length" && item.value.IsInt())
-                length = item.value.GetInt();
-            if (item.name == "release_year" && item.value.IsString())
-                releaseYear = item.value.GetString();
-            if (item.name == "loading_phrase" && item.value.IsString())
-                loadingPhrase = item.value.GetString();
-            if ((item.name == "sid" || item.name == "icon_drums")
-                && item.value.IsString())
-                partIcons[0] = iconFromString(item.value.GetString());
-            if ((item.name == "sib" || item.name == "icon_bass") && item.value.IsString())
-                partIcons[1] = iconFromString(item.value.GetString());
-            if ((item.name == "sig" || item.name == "icon_guitar")
-                && item.value.IsString())
-                partIcons[2] = iconFromString(item.value.GetString());
-            if ((item.name == "siv" || item.name == "icon_vocals")
-                && item.value.IsString())
-                partIcons[3] = iconFromString(item.value.GetString());
-            if (item.name == "midi" && item.value.IsString())
-                midiPath = jsonPath.parent_path() / item.value.GetString();
-            if (item.name == "art" && item.value.IsString()) {
-                albumArtPath = (jsonPath.parent_path() / item.value.GetString()).string();
-            }
-            if (item.name == "diff" && item.value.IsObject()) {
-                for (auto &diff : item.value.GetObject()) {
-                    std::string part = std::string(diff.name.GetString());
-                    if (diff.value.IsInt()) {
-                        if (part == "ds" || part == "drums") {
-                            // parts[PartDrums]->diff = diff.value.GetInt();
-                        } else if (part == "ba" || part == "bass") {
-                            // parts[PartBass]->diff = diff.value.GetInt();
-                        } else if (part == "gr" || part == "guitar") {
-                            // parts[PartGuitar]->diff = diff.value.GetInt();
-                        } else if (part == "vl" || part == "vocals") {
-                            // parts[PartVocals]->diff = diff.value.GetInt();
-                        } else if (part == "ky" || part == "keys") {
-                            // parts[PartKeys]->diff = diff.value.GetInt();
-                        } else if (part == "pd" || part == "plastic_drums") {
-                            // parts[PlasticDrums]->diff = diff.value.GetInt();
-                        } else if (part == "pb" || part == "plastic_bass") {
-                            // parts[PlasticBass]->diff = diff.value.GetInt();
-                        } else if (part == "pg" || part == "plastic_guitar") {
-                            // parts[PlasticGuitar]->diff = diff.value.GetInt();
-                        } else if (part == "pk" || part == "plastic_keys") {
-                            // parts[PlasticKeys]->diff = diff.value.GetInt();
-                        } else if (part == "pv" || part == "plastic_vocals") {
-                            // parts[PlasticVocals]->diff = diff.value.GetInt();
-                        } else if (part == "tv" || part == "pitched_vocals") {
-                            // parts[PitchedVocals]->diff = diff.value.GetInt();
-                        }
-                    }
-                }
-            }
-            if (item.name == "charters" || item.name == "charter") {
-                if (item.value.IsString()) {
-                    charters.push_back(item.value.GetString());
-                } else if (item.value.IsArray()) {
-                    for (auto &charter : item.value.GetArray()) {
-                        if (charter.IsString()) {
-                            charters.push_back(charter.GetString());
-                        }
-                    }
-                }
-            }
-            if (document.HasMember("preview_start_time") && document["preview_start_time"].IsInt()) {
-                previewStartTime = static_cast<float>(document["preview_start_time"].GetInt());
-            }
-        }
-        if (document.HasMember("stems") && document["stems"].IsObject()) {
-            for (auto &path : document["stems"].GetObject()) {
-                std::string stem = std::string(path.name.GetString());
-                int partIndex = -1;
-                if (stem == "drums") partIndex = PartDrums;
-                else if (stem == "bass") partIndex = PartBass;
-                else if (stem == "lead") partIndex = PartGuitar;
-                else if (stem == "vocals") partIndex = PartVocals;
-                else if (stem == "backing") partIndex = 5;
 
-                if (path.value.IsString()) {
-                    std::filesystem::path stemPath = jsonPath.parent_path() / path.value.GetString();
-                    if (std::filesystem::exists(stemPath)) {
-                        stemsPath.push_back({ stemPath.string(), partIndex });
-                    }
-                } else if (path.value.IsArray()) {
-                    for (auto &path2 : path.value.GetArray()) {
-                        if (path2.IsString()) {
-                            std::filesystem::path stemPath = jsonPath.parent_path() / path2.GetString();
-                            if (std::filesystem::exists(stemPath)) {
-                                stemsPath.push_back({ stemPath.string(), partIndex });
-                            }
-                        }
-                    }
-                }
-            }
+        title = infoData.value<std::string>("title", "Unknown song");
+        artist = infoData.value<std::string>("artist", "Unknown artist");
+        album = infoData.value<std::string>("album", "Unknown album");
+        source = infoData.value<std::string>("source", "Unknown source");
+        length = infoData.value<int>("length", 0);
+        releaseYear = infoData.value("release_year", "");
+        loadingPhrase = infoData.value<std::string>("loading_phrase", "");
+        midiPath =
+            (std::filesystem::path(songDir) /
+                infoData.value<std::string>("midi", "")).string();
+
+        try {
+            std::string charter = infoData.value<std::string>("charters", "Unknown chart author");
+            charters.push_back(charter);
+        } catch (const std::exception &e) {
+            charters.push_back("Unknown chart author");
         }
-        if (charters.empty()) {
-            charters.push_back("Unknown Charter");
-        }
-        ifs.close();
     }
 
     void LoadSongIni(std::filesystem::path songPath);
 
-    void LoadSong(std::filesystem::path jsonPath) {
-        std::ifstream ifs(jsonPath);
+    using json = nlohmann::json;
 
-        if (!ifs.is_open()) {
-            Encore::EncoreLog(
-                LOG_ERROR,
-                TextFormat("Failed to open song JSON file. %s", jsonPath.c_str())
-            );
-        }
-        if (!stemsPath.empty())
-            stemsPath.clear();
-        if (!charters.empty())
-            charters.clear();
-        std::string jsonString(
-            (std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>()
-        );
-        ifs.close();
-        jsonHash = picosha2::hash256_hex_string(jsonString);
-        rapidjson::Document document;
-        document.Parse(jsonString.c_str());
-        songInfoPath = jsonPath.string();
-        songDir = jsonPath.parent_path().string();
-        if (document.IsObject()) {
-            for (auto &item : document.GetObject()) {
-                if (item.name == "title" && item.value.IsString())
-                    title = item.value.GetString();
-                if (item.name == "artist" && item.value.IsString())
-                    artist = item.value.GetString();
-                if (item.name == "album" && item.value.IsString())
-                    album = item.value.GetString();
-                if (item.name == "source" && item.value.IsString())
-                    source = item.value.GetString();
-                if (item.name == "length" && item.value.IsInt())
-                    length = item.value.GetInt();
-                if (item.name == "release_year" && item.value.IsInt())
-                    releaseYear = item.value.GetInt();
-                if (item.name == "loading_phrase" && item.value.IsString())
-                    loadingPhrase = item.value.GetString();
-                if ((item.name == "sid" || item.name == "icon_drums")
-                    && item.value.IsString())
-                    partIcons[0] = iconFromString(item.value.GetString());
-                if ((item.name == "sib" || item.name == "icon_bass")
-                    && item.value.IsString())
-                    partIcons[1] = iconFromString(item.value.GetString());
-                if ((item.name == "sig" || item.name == "icon_guitar")
-                    && item.value.IsString())
-                    partIcons[2] = iconFromString(item.value.GetString());
-                if ((item.name == "siv" || item.name == "icon_vocals")
-                    && item.value.IsString())
-                    partIcons[3] = iconFromString(item.value.GetString());
-                if (item.name == "midi" && item.value.IsString())
-                    midiPath = jsonPath.parent_path() / item.value.GetString();
-                if (item.name == "art" && item.value.IsString()) {
-                    albumArtPath =
-                        (jsonPath.parent_path() / item.value.GetString()).string();
-                }
-                if (item.name == "diff" && item.value.IsObject()) {
-                    for (auto &diff : item.value.GetObject()) {
-                        std::string part = std::string(diff.name.GetString());
-                        if (diff.value.IsInt()) {
-                            if (part == "ds" || part == "drums") {
-                                // parts[PartDrums]->diff = diff.value.GetInt();
-                            } else if (part == "ba" || part == "bass") {
-                                // parts[PartBass]->diff = diff.value.GetInt();
-                            } else if (part == "gr" || part == "guitar") {
-                                // parts[PartGuitar]->diff = diff.value.GetInt();
-                            } else if (part == "vl" || part == "vocals") {
-                                // parts[PartVocals]->diff = diff.value.GetInt();
-                            } else if (part == "pd" || part == "plastic_drums") {
-                                // parts[PlasticDrums]->diff = diff.value.GetInt();
-                            } else if (part == "pb" || part == "plastic_bass") {
-                                // parts[PlasticBass]->diff = diff.value.GetInt();
-                            } else if (part == "pg" || part == "plastic_guitar") {
-                                // parts[PlasticGuitar]->diff = diff.value.GetInt();
-                            }
-                        }
-                    }
-                }
-                if (item.name == "stems" && item.value.IsObject()) {
-                    for (auto &path : item.value.GetObject()) {
-                        std::string stem = std::string(path.name.GetString());
-                        if (path.value.IsString()) {
-                            if (std::filesystem::exists(
-                                    jsonPath.parent_path() / path.value.GetString()
-                                )) {
-                                if (stem == "drums")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          0 }
-                                    );
+    void LoadSongJSON(std::filesystem::path jsonPath) {
+        std::ifstream infoFile(jsonPath);
+        json infoData = json::parse(infoFile);
+        infoFile.close();
 
-                                else if (stem == "bass")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          1 }
-                                    );
-
-                                else if (stem == "lead")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          2 }
-                                    );
-
-                                else if (stem == "vocals")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          3 }
-                                    );
-
-                                else if (stem == "backing")
-                                    stemsPath.push_back(
-                                        { (jsonPath.parent_path() / path.value.GetString()
-                                          )
-                                              .string(),
-                                          4 }
-                                    );
-                            }
-                        } else if (path.value.IsArray()) {
-                            for (auto &path2 : path.value.GetArray()) {
-                                if (std::filesystem::exists(
-                                        jsonPath.parent_path() / path2.GetString()
-                                    )) {
-                                    if (stem == "drums")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              0 }
-                                        );
-
-                                    else if (stem == "bass")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              1 }
-                                        );
-
-                                    else if (stem == "lead")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              2 }
-                                        );
-
-                                    else if (stem == "vocals")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              3 }
-                                        );
-
-                                    else if (stem == "backing")
-                                        stemsPath.push_back(
-                                            { (jsonPath.parent_path() / path2.GetString())
-                                                  .string(),
-                                              4 }
-                                        );
-                                }
-                            }
-                        }
-                    }
-                }
-                if (item.name == "charters" || item.name == "charter") {
-                    if (item.value.IsString()) {
-                        charters.push_back(item.value.GetString());
-                    } else if (item.value.IsArray()) {
-                        for (auto &charter : item.value.GetArray()) {
-                            if (charter.IsString()) {
-                                charters.push_back(charter.GetString());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (charters.empty()) {
-            charters.push_back("Unknown Charter");
-        }
-        ifs.close();
+        LoadInfo(infoData);
+        LoadAudioJSON(infoData);
     }
+
     void parseBeatLines(smf::MidiFile &midiFile, int trkidx) {
         int MaxTick = midiFile[trkidx].last().tick;
         for (int i = 0; i < MaxTick; i += 240) {
@@ -658,6 +276,7 @@ public:
         }
         */
     }
+
     /*
     void getTiming(smf::MidiFile &midiFile, int trkidx, smf::MidiEventList events) {
         for (int i = 0; i < events.getSize(); i++) {
@@ -686,6 +305,7 @@ public:
     }
 */
     int endTick = 0;
+
     void getStartEnd(smf::MidiFile &midiFile, int trkidx, smf::MidiEventList events) {
         for (int i = 0; i < events.getSize(); i++) {
             if (events[i].isMeta() && (int)events[i][1] == 1) {
@@ -698,19 +318,22 @@ public:
                 if (evt_string == "[music_start]") {
                     music_start = time;
                     Encore::EncoreLog(
-                        LOG_DEBUG, TextFormat("SONG: Song start: %5.4f", time)
+                        LOG_DEBUG,
+                        TextFormat("SONG: Song start: %5.4f", time)
                     );
                 }
                 if (evt_string == "[end]") {
                     end = time;
                     endTick = events[i].tick;
                     Encore::EncoreLog(
-                        LOG_DEBUG, TextFormat("SONG: Song end: %5.4f", time)
+                        LOG_DEBUG,
+                        TextFormat("SONG: Song end: %5.4f", time)
                     );
                 }
             }
         }
     }
+
     // Coda BRE {};
     void getCodas(smf::MidiFile &midiFile) {
         int codaCount = 0;
@@ -729,7 +352,7 @@ public:
                             songPart = partFromString(trackName);
                         if (songPart > PlasticDrums && songPart <= PlasticGuitar) {
                             int codaNote = 120; // i dont wanna bother with checking all
-                                                // five lanes
+                            // five lanes
                             for (int i = 0; i < midiFile[track].getSize(); i++) {
                                 if (midiFile[track][i].isNoteOn()
                                     && !midiFile[track][i].isMeta()
