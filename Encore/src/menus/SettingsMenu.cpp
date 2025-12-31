@@ -30,7 +30,8 @@ void SettingsMenu::Draw() {
     SongTime &enctime = TheSongTime;
     settingsOptionRenderer sor;
     encOS::DrawTopOvershell(0.15f);
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    if (TheSongList.curSong != nullptr)
+        GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{50, 0, 0, 200});
 
     float TextPlacementTB = u.hpct(0.05f);

@@ -181,9 +181,10 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     }
 
     directoryCount++;
-    Song song;
+
     std::filesystem::path infoPath = folder / "info.json";
     if (std::filesystem::exists(infoPath)) {
+        Song song;
         song.songInfoPath = (folder / "info.json");
         song.songDir = folder.string();
         for (auto &file : std::filesystem::directory_iterator(folder)) {
@@ -193,11 +194,14 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
             }
         }
         song.LoadSongJSON(song.songInfoPath);
+        songs.push_back(std::move(song));
     } else if (std::filesystem::exists(folder / "song.ini")) {
+        Song song;
         song.songInfoPath = (folder / "song.ini").string();
         song.songDir = folder.string();
         song.LoadSongIni(folder);
         song.ini = true;
+        songs.push_back(std::move(song));
     } else {
         // If this folder doesn't have song.ini or song.json, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
@@ -205,7 +209,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
         };
     }
 
-    songs.push_back(std::move(song));
+
     songCount++;
 }
 

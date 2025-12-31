@@ -43,8 +43,7 @@ bool finished = false;
 bool started = false;
 
 void LoadCache() {
-    SongList &list = TheSongList;
-    list.LoadCache(TheGameSettings.SongPaths);
+    TheSongList.LoadCache(TheGameSettings.SongPaths);
     finished = true;
 }
 
