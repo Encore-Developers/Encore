@@ -15,9 +15,9 @@ namespace Encore {
         std::array<int, 4> keybinds4k = {68, 70, 74, 75};
         std::array<int, 5> keybinds5k = {68, 70, 74, 75, 76};
         std::array<int, 4> keybinds4kalt = {-2, -2, -2, -2};
-        std::array<int, 5> keybinds5kalt = {-2, -2, -2, -2, -2};
+        std::array<int, 5> keybinds5kalt = {49, 50, 51, 52, 53};
         std::pair<int, int> strumBinds = {344, 345}; // first is up, second is down
-        std::pair<int, int> overdriveBinds = {32, -2}; // first is main, second is alt
+        std::pair<int, int> overdriveBinds = {32, 267}; // first is main, second is alt
         int pauseBind = 256;
 
         void SaveToFile(const std::string& filename) const;
