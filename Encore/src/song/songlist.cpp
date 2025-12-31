@@ -186,14 +186,11 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     if (std::filesystem::exists(infoPath)) {
         song.songInfoPath = (folder / "info.json");
         song.songDir = folder.string();
-        if (std::filesystem::exists(folder / "cover.png")) {
-            song.albumArtPath = (folder / "cover.png").string();
-        }
-        if (std::filesystem::exists(folder / "cover.jpg")) {
-            song.albumArtPath = (folder / "cover.jpg").string();
-        }
-        if (std::filesystem::exists(folder / "cover.jpeg")) {
-            song.albumArtPath = (folder / "cover.jpeg").string();
+        for (auto &file : std::filesystem::directory_iterator(folder)) {
+            if (file.path().stem() == "cover") {
+                song.albumArtPath = file.path().string();
+                break;
+            }
         }
         song.LoadSongJSON(song.songInfoPath);
     } else if (std::filesystem::exists(folder / "song.ini")) {
