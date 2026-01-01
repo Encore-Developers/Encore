@@ -112,7 +112,7 @@ void cacheLoadingScreen::Draw() {
     );
     if (!started) {
         started = true;
-        std::jthread CacheLoader(LoadCache);
+        std::thread CacheLoader(LoadCache);
         CacheLoader.detach();
     }
     if (finished) {
