@@ -393,7 +393,6 @@ void MainMenu::MainMenuScreen() {
             "Invalid song cache!"
         );
         // TheSongList.ScanSongs(TheGameSettings.SongPaths);
-        songsLoaded = false;
         DrawRectanglePro(
             { ((float)GetScreenWidth() / 2) - 125,
               ((float)GetScreenHeight() / 2) - 120,

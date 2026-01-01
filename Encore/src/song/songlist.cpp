@@ -185,7 +185,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     std::filesystem::path infoPath = folder / "info.json";
     if (std::filesystem::exists(infoPath)) {
         Song song;
-        song.songInfoPath = (folder / "info.json");
+        song.songInfoPath = folder / "info.json";
         song.songDir = folder.string();
         for (auto &file : std::filesystem::directory_iterator(folder)) {
             if (file.path().stem() == "cover") {
@@ -197,7 +197,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
         songs.push_back(std::move(song));
     } else if (std::filesystem::exists(folder / "song.ini")) {
         Song song;
-        song.songInfoPath = (folder / "song.ini").string();
+        song.songInfoPath = folder / "song.ini";
         song.songDir = folder.string();
         song.LoadSongIni(folder);
         song.ini = true;
@@ -371,12 +371,12 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
 
             jsonHashNew = picosha2::hash256_hex_string(jsonString);
         }
-
-        if (song.jsonHash != jsonHashNew) {
-            continue;
-        }
+        // todo: FIX THIS
+        //if (song.jsonHash != jsonHashNew) {
+        //    continue;
+        //}
         loadedSongs.insert(song.songDir);
-        songs.push_back(std::move(song));
+        this->songs.emplace_back(song);
 
     }
 
@@ -384,10 +384,10 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     size_t loadedSongCount = songs.size();
 
 
-    if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
-        Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");
-        WriteCache();
-    }
+    //if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
+    //    Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");
+    //    WriteCache();
+    //}
 
     // ScanSongs(songsFolder);
     sortList(SortType::Title);

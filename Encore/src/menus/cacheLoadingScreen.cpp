@@ -5,6 +5,7 @@
 #include "cacheLoadingScreen.h"
 
 #include <filesystem>
+#include <mutex>
 #include <thread>
 
 #include "gameMenu.h"
@@ -39,8 +40,8 @@ void cacheLoadingScreen::Load() {
 
 // todo(3drosalia): make another class for drawing these things without having to uh.
 // implement it in every menu class
-bool finished = false;
-bool started = false;
+std::atomic_bool finished = false;
+std::atomic_bool started = false;
 
 void LoadCache() {
     TheSongList.LoadCache(TheGameSettings.SongPaths);
@@ -111,11 +112,12 @@ void cacheLoadingScreen::Draw() {
     );
     if (!started) {
         started = true;
-        std::thread CacheLoader(LoadCache);
+        std::jthread CacheLoader(LoadCache);
         CacheLoader.detach();
     }
-    if (finished)
+    if (finished) {
         TheMenuManager.SwitchScreen(MAIN_MENU);
+    }
 }
 
 cacheLoadingScreen::~cacheLoadingScreen() {}
