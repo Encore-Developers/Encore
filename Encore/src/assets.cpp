@@ -6,7 +6,90 @@
 #include <filesystem>
 #include "raygui.h"
 
+#include <fstream>
+#include <iostream>
+
 class Assets;
+class Asset;
+
+void Asset::CheckForFetch() {
+    switch (state) {
+    case UNLOADED:
+        Load();
+        std::cout << "Warning: Asset" << id << " was fetched while unloaded. Loading on render thread...";
+        break;
+    case LOADING:
+        loadingThread.join();
+        std::cout << "Warning: Asset " << id << " was fetched before it was done loading. Waiting for loading to be finished...";
+        break;
+    case PREFINALIZED:
+        Finalize();
+        break;
+    }
+}
+
+void Asset::StartLoad() {
+    if (state == UNLOADED) {
+        state = LOADING;
+        loadingThread = std::thread([this](){Asset::Load();});
+    }
+}
+
+void FileAsset::LoadFile() {
+    std::ifstream file(GetPath(), std::ios::binary | std::ios::ate);
+    fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    fileBuffer = (char*)malloc(fileSize);
+    file.read(fileBuffer, fileSize);
+    file.close();
+}
+
+void FileAsset::FreeFileBuffer() {
+    free(fileBuffer);
+}
+
+void FileAsset::Load() {
+    LoadFile();
+    state = LOADED;
+}
+
+char *FileAsset::FetchRaw() {
+    CheckForFetch();
+    return fileBuffer;
+}
+
+void TextureAsset::Load() {
+    LoadFile();
+    auto image = LoadImageFromMemory(GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize);
+    tex = LoadTextureFromImage(image);
+    if (filter) {
+        GenTextureMipmaps(&tex);
+        SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
+    }
+    UnloadImage(image);
+    FreeFileBuffer();
+    state = LOADED;
+}
+
+void FontAsset::Load() {
+    LoadFile();
+    font = LoadFontFromMemory(GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize, fontSize, nullptr, 250);
+    font.baseSize = fontSize;
+    font.glyphCount = 250;
+    font.glyphs = LoadFontData((const unsigned char*)fileBuffer, fileSize, fontSize, nullptr, 250, FONT_SDF);
+    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+    font.texture = LoadTextureFromImage(atlas);
+    UnloadImage(atlas);
+    SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
+    state = LOADED;
+}
+
+void Assets::RegisterAllAssets() {
+    RegisterAsset(new TextureAsset("encore-white.png", true));
+    RegisterAsset(new FontAsset("fonts/Rubik-Regular.ttf", 128));
+    RegisterAsset(new FontAsset("fonts/JetBrainsMonoNL-Regular.ttf", 64));
+}
 
 Texture2D
 Assets::LoadTextureFilter(const std::filesystem::path &texturePath, int &loadedAssets) {

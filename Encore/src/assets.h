@@ -2,8 +2,95 @@
 #include "raylib.h"
 #include "menus/uiUnits.h"
 
+#include <cassert>
+#include <atomic>
 #include <filesystem>
+#include <map>
+#include <thread>
 #include <vector>
+
+enum AssetState {
+    UNLOADED,
+    LOADING,
+    PREFINALIZED,
+    LOADED
+};
+
+
+class Asset {
+    virtual void StartLoad();
+    virtual void Load();
+    virtual void Finalize();
+public:
+    std::atomic<AssetState> state = UNLOADED;
+    std::string id;
+    std::thread loadingThread ;
+    Asset(const std::string &id) {
+        this->id = id;
+    }
+
+    /// Checks if this asset is loaded. Only use in the render thread!
+    void CheckForFetch();
+
+    /// Call when you're polling the asset's for when it's loaded.
+    bool CanFetch() const {
+        return state == LOADED || state == PREFINALIZED;
+    }
+
+};
+
+class FileAsset : public Asset {
+    std::filesystem::path path;
+protected:
+    char *fileBuffer;
+    size_t fileSize;
+    void LoadFile();
+    virtual void Load();
+    void FreeFileBuffer();
+
+public:
+    FileAsset(const std::string &id) : Asset(id) {
+        path = std::filesystem::path("Assets") / id;
+    }
+    std::filesystem::path &GetPath() {
+        return path;
+    }
+    char *FetchRaw();
+};
+
+class TextureAsset : public FileAsset {
+    Texture2D tex;
+    virtual void Load();
+    bool filter;
+public:
+    TextureAsset(const std::string &id, bool filter) : FileAsset(id) {
+        this->filter = filter;
+    }
+    Texture2D Fetch() {
+        CheckForFetch();
+        return tex;
+    }
+    operator Texture2D() {
+        return Fetch();
+    }
+};
+
+class FontAsset : public FileAsset {
+    Font font;
+    int fontSize;
+    virtual void Load();
+public:
+    FontAsset(const std::string &id, int fontSize) : FileAsset(id) {
+        this->fontSize = fontSize;
+    }
+    Font Fetch() {
+        CheckForFetch();
+        return font;
+    }
+    operator Font() {
+        return Fetch();
+    }
+};
 
 class Assets {
 private:
@@ -12,8 +99,16 @@ private:
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     Font
     LoadFontFilter(const std::filesystem::path &fontPath, int fontSize, int &loadedAssets);
+    std::map<std::string, Asset*> assetMap = {};
 
 public:
+    Asset *RegisterAsset(Asset *asset) {
+        assetMap.emplace(asset->id, asset);
+    }
+
+    void RegisterAllAssets();
+
+
     static Assets &getInstance() {
         static Assets instance; // This is the single instance
         return instance;
