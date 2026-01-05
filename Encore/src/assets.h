@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <map>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 enum AssetState {
@@ -112,7 +113,7 @@ private:
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     Font
     LoadFontFilter(const std::filesystem::path &fontPath, int fontSize, int &loadedAssets);
-    std::map<std::string, Asset*> assetMap = {};
+    std::unordered_map<std::string, Asset*> assetMap = {};
 
 public:
     Asset *RegisterAsset(Asset *asset) {

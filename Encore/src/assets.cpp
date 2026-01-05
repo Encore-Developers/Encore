@@ -147,13 +147,19 @@ Model Assets::LoadModel_(const std::filesystem::path &modelPath, int &loadedAsse
 Font Assets::LoadFontFilter(
     const std::filesystem::path &fontPath, int fontSize, int &loadedAssets
 ) {
-    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, nullptr, 250);
+    Font font = {};
     font.baseSize = fontSize;
     font.glyphCount = 250;
+    font.glyphPadding = 4;
     int fileSize = 0;
     unsigned char *fileData = LoadFileData(fontPath.string().c_str(), &fileSize);
-    font.glyphs = LoadFontData(fileData, fileSize, fontSize, 0, 250, FONT_SDF);
+    font.glyphs = LoadFontData((const unsigned char*)fileData, fileSize, fontSize, nullptr, 250, FONT_SDF);
     Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+    for (int i = 0; i < font.glyphCount; i++)
+    {
+        UnloadImage(font.glyphs[i].image);
+        font.glyphs[i].image = ImageFromImage(atlas, font.recs[i]);
+    }
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
