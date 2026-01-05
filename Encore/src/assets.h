@@ -18,9 +18,9 @@ enum AssetState {
 
 
 class Asset {
-    virtual void StartLoad();
-    virtual void Load();
-    virtual void Finalize();
+protected:
+    virtual void Load() {}
+    virtual void Finalize() {}
 public:
     std::atomic<AssetState> state = UNLOADED;
     std::string id;
@@ -29,6 +29,11 @@ public:
         this->id = id;
     }
 
+    /// Starts loading this asset.
+    virtual void StartLoad();
+
+    /// Starts loading this asset and blocks until it is loaded.
+    virtual void LoadImmediate();
     /// Checks if this asset is loaded. Only use in the render thread!
     void CheckForFetch();
 
@@ -55,12 +60,18 @@ public:
     std::filesystem::path &GetPath() {
         return path;
     }
+    size_t GetFileSize();
     char *FetchRaw();
+    operator const unsigned char*() {
+        return (const unsigned char *)FetchRaw();
+    }
 };
 
 class TextureAsset : public FileAsset {
     Texture2D tex;
+    Image image;
     virtual void Load();
+    virtual void Finalize();
     bool filter;
 public:
     TextureAsset(const std::string &id, bool filter) : FileAsset(id) {
@@ -78,7 +89,9 @@ public:
 class FontAsset : public FileAsset {
     Font font;
     int fontSize;
+    Image atlas;
     virtual void Load();
+    virtual void Finalize();
 public:
     FontAsset(const std::string &id, int fontSize) : FileAsset(id) {
         this->fontSize = fontSize;
@@ -104,9 +117,15 @@ private:
 public:
     Asset *RegisterAsset(Asset *asset) {
         assetMap.emplace(asset->id, asset);
+        return asset;
     }
 
     void RegisterAllAssets();
+
+    template<class A> static A *Get(const std::string &id) {
+        Assets &instance = getInstance();
+        return static_cast<A *>(instance.assetMap.at(id));
+    }
 
 
     static Assets &getInstance() {
@@ -352,4 +371,59 @@ public:
     static Model LoadModel_(const std::filesystem::path &modelPath, int &loadedAssets);
     void FirstAssets();
     void LoadAssets();
+};
+
+/// Used for easily loading groups of assets and polling their state as one.
+class AssetSet {
+    std::vector<Asset *> assets;
+public:
+
+    AssetSet(std::initializer_list<const char *> l) {
+        const auto names = std::vector(l);
+        assets.reserve(l.size());
+        for (int i = 0; i < l.size(); i++) {
+            assets.push_back(Assets::Get<Asset>(names[i]));
+        }
+    }
+
+    void StartLoad() {
+        for (int i = 0; i < assets.size(); i++) {
+            auto asset = assets[i];
+            if (asset->state == UNLOADED) {
+                asset->StartLoad();
+            }
+        }
+    }
+
+    bool PollLoaded() {
+        for (int i = 0; i < assets.size(); i++) {
+            auto asset = assets[i];
+            if (!asset->CanFetch()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    int CountLoaded() {
+        int loaded = 0;
+        for (int i = 0; i < assets.size(); i++) {
+            if (assets[i]->CanFetch()) {
+                loaded++;
+            }
+        }
+        return loaded;
+    }
+
+    int AssetCount() {
+        return assets.size();
+    }
+
+    float GetProgress() {
+        return static_cast<float>(CountLoaded()) / static_cast<float>(AssetCount());
+    }
+
+    void BlockUntilLoaded() {
+        while (!PollLoaded()) {}
+    }
 };

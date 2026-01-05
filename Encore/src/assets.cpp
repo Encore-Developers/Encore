@@ -5,6 +5,7 @@
 #include "assets.h"
 #include <filesystem>
 #include "raygui.h"
+#include "util/enclog.h"
 
 #include <fstream>
 #include <iostream>
@@ -16,13 +17,18 @@ void Asset::CheckForFetch() {
     switch (state) {
     case UNLOADED:
         Load();
-        std::cout << "Warning: Asset" << id << " was fetched while unloaded. Loading on render thread...";
+        Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was fetched before it was loaded. Loading immediately on main thread...", id.c_str()));
         break;
     case LOADING:
-        loadingThread.join();
-        std::cout << "Warning: Asset " << id << " was fetched before it was done loading. Waiting for loading to be finished...";
+        Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was fetched while it is being loaded. Blocking until it is loaded...", id.c_str()));
+        while (state == LOADING) {} // spin spin spin
+        if (state == PREFINALIZED) {
+            Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+            Finalize();
+        }
         break;
     case PREFINALIZED:
+        Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
         Finalize();
         break;
     }
@@ -31,8 +37,18 @@ void Asset::CheckForFetch() {
 void Asset::StartLoad() {
     if (state == UNLOADED) {
         state = LOADING;
-        loadingThread = std::thread([this](){Asset::Load();});
+        loadingThread = std::thread([this](){this->Load();});
+        loadingThread.detach();
+        //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
+    } else {
+        Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was double loaded.", id.c_str()));
     }
+}
+
+void Asset::LoadImmediate() {
+    Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s immediately...", id.c_str()));
+    StartLoad();
+    while (state == LOADING) {}
 }
 
 void FileAsset::LoadFile() {
@@ -54,6 +70,10 @@ void FileAsset::Load() {
     state = LOADED;
 }
 
+size_t FileAsset::GetFileSize() {
+    CheckForFetch();
+    return fileSize;
+}
 char *FileAsset::FetchRaw() {
     CheckForFetch();
     return fileBuffer;
@@ -61,24 +81,42 @@ char *FileAsset::FetchRaw() {
 
 void TextureAsset::Load() {
     LoadFile();
-    auto image = LoadImageFromMemory(GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize);
+    image = LoadImageFromMemory(GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize);
+    FreeFileBuffer();
+    state = PREFINALIZED;
+}
+
+void TextureAsset::Finalize() {
     tex = LoadTextureFromImage(image);
     if (filter) {
         GenTextureMipmaps(&tex);
         SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
     }
     UnloadImage(image);
-    FreeFileBuffer();
     state = LOADED;
 }
 
 void FontAsset::Load() {
+    auto start = std::chrono::high_resolution_clock::now();
     LoadFile();
-    font = LoadFontFromMemory(GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize, fontSize, nullptr, 250);
+    font = {};
     font.baseSize = fontSize;
     font.glyphCount = 250;
+    font.glyphPadding = 4;
     font.glyphs = LoadFontData((const unsigned char*)fileBuffer, fileSize, fontSize, nullptr, 250, FONT_SDF);
-    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+    atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+    for (int i = 0; i < font.glyphCount; i++)
+    {
+        UnloadImage(font.glyphs[i].image);
+        font.glyphs[i].image = ImageFromImage(atlas, font.recs[i]);
+    }
+    FreeFileBuffer();
+    auto end = std::chrono::high_resolution_clock::now();
+    Encore::EncoreLog(LOG_INFO, TextFormat("Generated font data for %s in %i microseconds.", id.c_str(), (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count())));
+    state = PREFINALIZED;
+}
+
+void FontAsset::Finalize() {
     font.texture = LoadTextureFromImage(atlas);
     UnloadImage(atlas);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
@@ -86,6 +124,7 @@ void FontAsset::Load() {
 }
 
 void Assets::RegisterAllAssets() {
+    RegisterAsset(new FileAsset("encore_favicon-NEW.png"));
     RegisterAsset(new TextureAsset("encore-white.png", true));
     RegisterAsset(new FontAsset("fonts/Rubik-Regular.ttf", 128));
     RegisterAsset(new FontAsset("fonts/JetBrainsMonoNL-Regular.ttf", 64));

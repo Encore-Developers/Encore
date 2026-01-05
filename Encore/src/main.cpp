@@ -172,9 +172,15 @@ int main(int argc, char *argv[]) {
     SETDEFAULTSTYLE();
 
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
-    assets.FirstAssets();
-    SetWindowIcon(assets.icon);
-    GuiSetFont(assets.rubik);
+    assets.RegisterAllAssets();
+    AssetSet initialSet = {"encore_favicon-NEW.png", "fonts/Rubik-Regular.ttf", "fonts/JetBrainsMonoNL-Regular.ttf", "encore-white.png"};
+    initialSet.StartLoad();
+    initialSet.BlockUntilLoaded();
+    auto icon = Assets::Get<FileAsset>("encore_favicon-NEW.png");
+    SetWindowIcon(LoadImageFromMemory(".png", *icon, icon->GetFileSize()));
+    assets.rubik = *Assets::Get<FontAsset>("fonts/Rubik-Regular.ttf");
+    assets.JetBrainsMono = *Assets::Get<FontAsset>("fonts/JetBrainsMonoNL-Regular.ttf");
+    assets.encoreWhiteLogo = *Assets::Get<TextureAsset>("encore-white.png");
     assets.LoadAssets();
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
 
@@ -186,7 +192,6 @@ int main(int argc, char *argv[]) {
         Encore::EncoreLog(LOG_INFO, TextFormat("Unlocked framerate."));
         TheFrameManager.removeFPSLimit = true;
     }
-
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
         u.calcUnits();
