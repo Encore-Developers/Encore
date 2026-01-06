@@ -22,6 +22,7 @@ class Asset {
 protected:
     virtual void Load() {}
     virtual void Finalize() {}
+    Asset(Asset& other) {}
 public:
     std::atomic<AssetState> state = UNLOADED;
     std::string id;
@@ -75,6 +76,8 @@ class TextureAsset : public FileAsset {
     virtual void Finalize();
     bool filter;
 public:
+    int width = 0;
+    int height = 0;
     TextureAsset(const std::string &id, bool filter) : FileAsset(id) {
         this->filter = filter;
     }
@@ -106,33 +109,28 @@ public:
     }
 };
 
+#define ASSET(varname) TheAssets.varname
+#define ASSETPTR(varname) &TheAssets.varname
+
+
+#define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
+#define NEWFONTASSET(varname, path, size) FontAsset varname = FontAsset(path, size)
+#define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path, true)
+#define NEWTEXASSET_NOFILTER(varname, path) TextureAsset varname = TextureAsset(path, false)
+
+
+
 class Assets {
 private:
-    Assets() {}
     std::vector<Image> images;
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     Font
     LoadFontFilter(const std::filesystem::path &fontPath, int fontSize, int &loadedAssets);
-    std::unordered_map<std::string, Asset*> assetMap = {};
 
 public:
-    Asset *RegisterAsset(Asset *asset) {
-        assetMap.emplace(asset->id, asset);
-        return asset;
-    }
+    Assets() {}
 
-    void RegisterAllAssets();
-
-    template<class A> static A *Get(const std::string &id) {
-        Assets &instance = getInstance();
-        return static_cast<A *>(instance.assetMap.at(id));
-    }
-
-
-    static Assets &getInstance() {
-        static Assets instance; // This is the single instance
-        return instance;
-    }
+    static Assets &getInstance();
 
     void setDirectory(std::filesystem::path assetsDirectory) {
         directory = assetsDirectory;
@@ -282,19 +280,19 @@ public:
     std::vector<Texture2D> InstIcons;
 
     Image icon;
-    Texture2D encoreWhiteLogo;
+    NEWTEXASSET(encoreWhiteLogo, "encore-white.png");
     Texture2D songBackground;
 
     Font redHatDisplayItalic;
-    Font redHatDisplayBlack;
+    NEWFONTASSET(redHatDisplayBlack, "fonts/RedHatDisplay-Black.ttf", 128);
     Font redHatDisplayItalicLarge;
     Font josefinSansItalic;
     Font josefinSansNormal;
     Font josefinSansBold;
     Font redHatMono;
-    Font rubik;
+    NEWFONTASSET(rubik, "fonts/Rubik-Regular.ttf", 128);
     Font rubikItalic;
-    Font JetBrainsMono;
+    NEWFONTASSET(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", 64);
     Font rubikBoldItalic;
 
     Font rubikBold;
@@ -325,7 +323,7 @@ public:
     // Sound clapOD;
     void DrawTextRubik(
         const char *text, float posX, float posY, float fontSize, Color color
-    ) const {
+    ) {
         BeginShaderMode(sdfShader);
         DrawTextEx(rubik, text, { posX, posY }, fontSize, 1, color);
         EndShaderMode();
@@ -335,36 +333,38 @@ public:
         BeginShaderMode(sdfShader);
         EndShaderMode();
     }
-    void DrawTextJSN(const char *text, float posX, float posY, Color color) const {
+    void DrawTextJSN(const char *text, float posX, float posY, Color color) {
         BeginShaderMode(sdfShader);
         DrawTextEx(josefinSansNormal, text, { posX, posY }, Units::getInstance().hinpct(0.05f), 1, color);
         EndShaderMode();
     }
 
-    void DrawTextJSB(const char *text, float posX, float posY, Color color) const {
+    void DrawTextJSB(const char *text, float posX, float posY, Color color) {
         BeginShaderMode(sdfShader);
         DrawTextEx(josefinSansBold, text, { posX, posY }, Units::getInstance().hinpct(0.05f), 1, color);
         EndShaderMode();
     }
 
-    void DrawTextJSI(const char *text, float posX, float posY, Color color) const {
+    void DrawTextJSI(const char *text, float posX, float posY, Color color) {
         BeginShaderMode(sdfShader);
         DrawTextEx(josefinSansItalic, text, { posX, posY }, Units::getInstance().hinpct(0.05f), 1, color);
         EndShaderMode();
     }
-    float MeasureTextRubik(const char *text, float fontSize) const {
+    // I don't like these measure functions. Why are they so inconsistent?
+    // These would probably be better inlined... - Sulfrix
+    float MeasureTextRubik(const char *text, float fontSize) {
         return MeasureTextEx(rubik, text, fontSize, 1).x;
     }
-    float MeasureTextRHDI(const char *text) const {
+    float MeasureTextRHDI(const char *text) {
         return MeasureTextEx(redHatDisplayItalic, text, 48, 1).x;
     }
-    float MeasureTextJSN(const char *text, float fontSize) const {
+    float MeasureTextJSN(const char *text, float fontSize) {
         return MeasureTextEx(josefinSansNormal, text, 48, 1).x;
     }
-    float MeasureTextJSB(const char *text, float fontSize) const {
+    float MeasureTextJSB(const char *text, float fontSize) {
         return MeasureTextEx(josefinSansBold, text, 48, 1).x;
     }
-    float MeasureTextJSI(const char *text, float fontSize) const {
+    float MeasureTextJSI(const char *text, float fontSize) {
         return MeasureTextEx(josefinSansItalic, text, 48, 1).x;
     }
     static Texture2D
@@ -372,19 +372,23 @@ public:
     static Model LoadModel_(const std::filesystem::path &modelPath, int &loadedAssets);
     void FirstAssets();
     void LoadAssets();
+    void TempAssets(); // For development of the asset rework, this should be removed!
 };
+
+#undef NEWTEXASSET
+#undef NEWTEXASSET_NOFILTER
+#undef NEWFONTASSET
+#undef NEWFILEASSET
+
+extern Assets TheAssets;
 
 /// Used for easily loading groups of assets and polling their state as one.
 class AssetSet {
     std::vector<Asset *> assets;
 public:
 
-    AssetSet(std::initializer_list<const char *> l) {
-        const auto names = std::vector(l);
-        assets.reserve(l.size());
-        for (int i = 0; i < l.size(); i++) {
-            assets.push_back(Assets::Get<Asset>(names[i]));
-        }
+    AssetSet(std::initializer_list<Asset *> l) {
+        assets = std::vector<Asset *>(l);
     }
 
     void StartLoad() {
@@ -426,5 +430,10 @@ public:
 
     void BlockUntilLoaded() {
         while (!PollLoaded()) {}
+        for (int i = 0; i < assets.size(); i++) {
+            // This finalizes any assets that need it
+            // We're blocking anyways so why not
+            assets[i]->CheckForFetch();
+        }
     }
 };

@@ -97,7 +97,6 @@ int main(int argc, char *argv[]) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    SetWindowState(FLAG_MSAA_4X_HINT);
     bool windowToggle = true;
     ArgumentList::InitArguments(argc, argv);
 
@@ -144,20 +143,19 @@ int main(int argc, char *argv[]) {
         SetConfigFlags(FLAG_VSYNC_HINT);
     }
     Encore::EncoreLog(LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg));
+    InitWindow(800, 600, "Encore");
     if (!TheGameSettings.Fullscreen) {
-        InitWindow(
-            GetMonitorWidth(GetCurrentMonitor()) * 0.75f,
-            GetMonitorHeight(GetCurrentMonitor()) * 0.75f,
-            "Encore"
-        );
-        SET_WINDOW_WINDOWED();
+        int x, y, width, height;
+        glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
+        Encore::EncoreLog(LOG_INFO, TextFormat("Workarea of monitor %s: %i %i %i %i", glfwGetMonitorName(glfwGetPrimaryMonitor()), x, y, width, height));
+        int windowWidth = width * 0.75;
+        int windowHeight = height * 0.75;
+        SetWindowPosition(width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y);
+        SetWindowSize(windowWidth, windowHeight);
+        ClearWindowState(FLAG_WINDOW_UNDECORATED);
         MaximizeWindow();
     } else {
-        InitWindow(
-            GetMonitorWidth(GetCurrentMonitor()),
-            GetMonitorHeight(GetCurrentMonitor()),
-            "Encore"
-        );
+        SetWindowSize(GetMonitorWidth(0), GetMonitorHeight(0));
         SET_WINDOW_FULLSCREEN_BORDERLESS();
     }
     bool AudioInitSuccessful = TheAudioManager.Init();
@@ -172,17 +170,14 @@ int main(int argc, char *argv[]) {
     SETDEFAULTSTYLE();
 
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
-    assets.RegisterAllAssets();
-    AssetSet initialSet = {"encore_favicon-NEW.png", "fonts/Rubik-Regular.ttf", "fonts/JetBrainsMonoNL-Regular.ttf", "encore-white.png"};
+    auto icon = FileAsset("encore_favicon-NEW.png");
+    AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), &icon, ASSETPTR(redHatDisplayBlack)};
     initialSet.StartLoad();
     initialSet.BlockUntilLoaded();
-    auto icon = Assets::Get<FileAsset>("encore_favicon-NEW.png");
-    SetWindowIcon(LoadImageFromMemory(".png", *icon, icon->GetFileSize()));
-    assets.rubik = *Assets::Get<FontAsset>("fonts/Rubik-Regular.ttf");
-    assets.JetBrainsMono = *Assets::Get<FontAsset>("fonts/JetBrainsMonoNL-Regular.ttf");
-    assets.encoreWhiteLogo = *Assets::Get<TextureAsset>("encore-white.png");
-    assets.LoadAssets();
+    SetWindowIcon(LoadImageFromMemory(".png", icon, icon.GetFileSize()));
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
+    TheAssets.TempAssets();
+
 
     if (TheGameSettings.Framerate > 0)
         Encore::EncoreLog(

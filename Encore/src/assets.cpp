@@ -13,11 +13,21 @@
 class Assets;
 class Asset;
 
+Assets TheAssets; // This is the single instance
+
+Assets &Assets::getInstance() {
+    return TheAssets;
+}
+
 void Asset::CheckForFetch() {
     switch (state) {
     case UNLOADED:
         Load();
         Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was fetched before it was loaded. Loading immediately on main thread...", id.c_str()));
+        if (state == PREFINALIZED) { // TODO: Don't duplicate this logic
+            Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+            Finalize();
+        }
         break;
     case LOADING:
         Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was fetched while it is being loaded. Blocking until it is loaded...", id.c_str()));
@@ -82,6 +92,8 @@ char *FileAsset::FetchRaw() {
 void TextureAsset::Load() {
     LoadFile();
     image = LoadImageFromMemory(GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize);
+    width = image.width;
+    height = image.height;
     FreeFileBuffer();
     state = PREFINALIZED;
 }
@@ -123,13 +135,6 @@ void FontAsset::Finalize() {
     state = LOADED;
 }
 
-void Assets::RegisterAllAssets() {
-    RegisterAsset(new FileAsset("encore_favicon-NEW.png"));
-    RegisterAsset(new TextureAsset("encore-white.png", true));
-    RegisterAsset(new FontAsset("fonts/Rubik-Regular.ttf", 128));
-    RegisterAsset(new FontAsset("fonts/JetBrainsMonoNL-Regular.ttf", 64));
-}
-
 Texture2D
 Assets::LoadTextureFilter(const std::filesystem::path &texturePath, int &loadedAssets) {
     Texture2D tex = LoadTexture(texturePath.string().c_str());
@@ -166,7 +171,7 @@ Font Assets::LoadFontFilter(
     loadedAssets++;
     return font;
 }
-void Assets::FirstAssets() {
+/*void Assets::FirstAssets() {
     icon = LoadImage((directory / "Assets/encore_favicon-NEW.png").string().c_str());
     encoreWhiteLogo =
         Assets::LoadTextureFilter((directory / "Assets/encore-white.png"), loadedAssets);
@@ -176,6 +181,10 @@ void Assets::FirstAssets() {
     JetBrainsMono = LoadFontFilter(
     (directory / "Assets/fonts/JetBrainsMonoNL-Regular.ttf"), 64, loadedAssets
         );
+}*/
+
+void Assets::TempAssets() {
+    sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
 }
 void Assets::LoadAssets() {
     Color accentColor = { 255, 0, 255, 255 };
@@ -467,9 +476,9 @@ void Assets::LoadAssets() {
     redHatDisplayItalicLarge = Assets::LoadFontFilter(
         (directory / "Assets/fonts/RedHatDisplay-BlackItalic.ttf"), 128, loadedAssets
     );
-    redHatDisplayBlack = Assets::LoadFontFilter(
-        (directory / "Assets/fonts/RedHatDisplay-Black.ttf"), 128, loadedAssets
-    );
+    // redHatDisplayBlack = Assets::LoadFontFilter(
+    //     (directory / "Assets/fonts/RedHatDisplay-Black.ttf"), 128, loadedAssets
+    // );
 
     rubikBoldItalic = Assets::LoadFontFilter(
         (directory / "Assets/fonts/Rubik-BoldItalic.ttf"), 128, loadedAssets
