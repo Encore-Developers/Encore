@@ -212,7 +212,7 @@ Font Assets::LoadFontFilter(
         );
 }*/
 
-AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), ASSETPTR(favicon), ASSETPTR(redHatDisplayBlack), ASSETPTR(sdfShader), ASSETPTR(josefinSansItalic)};
+AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), ASSETPTR(favicon), ASSETPTR(faviconTex), ASSETPTR(redHatDisplayBlack), ASSETPTR(sdfShader), ASSETPTR(josefinSansItalic)};
 AssetSet mainMenuSet = {ASSETPTR(redHatDisplayItalic)};
 
 #ifdef DONTCOMPILE

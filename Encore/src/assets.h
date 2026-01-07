@@ -189,6 +189,7 @@ public:
     void operator=(const Assets &) = delete;
 
     NEWFILEASSET(favicon, "encore_favicon-NEW.png");
+    NEWTEXASSET(faviconTex, "encore_favicon-NEW.png");
 
     int loadedAssets;
     int totalAssets = 32;

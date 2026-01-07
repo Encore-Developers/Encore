@@ -5,6 +5,8 @@
 #include "util/discord.h"
 #include "util/enclog.h"
 #include "gameplay/enctime.h"
+
+
 #include <cassert>
 
 #include "settings/keybinds.h"
@@ -87,6 +89,18 @@ std::string commitHash = GIT_COMMIT_HASH;
 
 int minWidth = 640;
 int minHeight = 480;
+
+void DrawLoadingScreen(unsigned char alpha, float progress) {
+    Texture icon = ASSET(faviconTex);
+    float scale = (GetScreenHeight() / 1080.0f) * 0.3;
+    int iconSize = (icon.height * scale)/2; // Dividing by 2 for centering
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), {0, 0, 0, alpha});
+    DrawTextureEx(icon, {GetScreenWidth()/2.0f-iconSize, GetScreenHeight()/2.0f-iconSize}, 0, scale, {255, 255, 255, alpha});
+
+    Vector2 screenCenter = {GetScreenWidth()/2.0f, GetScreenHeight()/2.0f};
+    DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360-90, 64, {255, 255, 255, (unsigned char)(alpha/3)});
+    DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360*progress-90, 64, {255, 255, 255, alpha});
+}
 
 int main(int argc, char *argv[]) {
     TheGameRPC.Initialize();
@@ -171,9 +185,11 @@ int main(int argc, char *argv[]) {
 
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
     initialSet.StartLoad();
-    initialSet.BlockUntilLoaded();
+    AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).BlockUntilLoaded();
     SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
+
+
 
 
     if (TheGameSettings.Framerate > 0)
@@ -214,12 +230,20 @@ int main(int argc, char *argv[]) {
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
-
-        if (TheMenuManager.onNewMenu) {
-            TheMenuManager.LoadMenu();
+        if (!initialSet.PollLoaded()) {
+            DrawLoadingScreen(255, initialSet.GetProgress());
+        } else {
+            static float loadingScreenFade = 1.0f;
+            if (TheMenuManager.onNewMenu) {
+                TheMenuManager.LoadMenu();
+            }
+            TheGameRPC.Update();
+            TheMenuManager.DrawMenu();
+            if (loadingScreenFade > 0) {
+                loadingScreenFade -= GetFrameTime()*5.0f;
+                DrawLoadingScreen(255*loadingScreenFade, 1);
+            }
         }
-        TheGameRPC.Update();
-        TheMenuManager.DrawMenu();
         EndDrawing();
 
         TheFrameManager.WaitForFrame();
