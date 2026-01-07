@@ -27,15 +27,8 @@ std::vector<std::string> CacheSplash = {
 };
 
 void cacheLoadingScreen::Load() {
-    std::filesystem::path assetsdir = GetApplicationDirectory();
-    assetsdir /= "Assets";
-    RedHatDisplay = GameMenu::LoadFontFilter(assetsdir / "fonts/RedHatDisplay-Black.ttf");
-    RubikBold = GameMenu::LoadFontFilter(assetsdir / "fonts/Rubik-Bold.ttf");
-    JosefinSansItalic =
-        GameMenu::LoadFontFilter(assetsdir / "fonts/JosefinSans-Italic.ttf");
-    encoreLogo = GameMenu::LoadTextureFilter(assetsdir / "encore_favicon-NEW.png");
+
     SplashSel = GetRandomValue(0, CacheSplash.size() - 1);
-    sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
 }
 
 // todo(3drosalia): make another class for drawing these things without having to uh.
@@ -65,12 +58,12 @@ void cacheLoadingScreen::Draw() {
     );
 
     GameMenu::mhDrawText(
-        RedHatDisplay,
+        ASSET(redHatDisplayBlack),
         "LOADING CACHE",
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
         WHITE,
-        sdfShader,
+        ASSET(sdfShader),
         LEFT
     );
     float RubikFontSize = u.hinpct(0.05f);
@@ -78,12 +71,12 @@ void cacheLoadingScreen::Draw() {
     int toLoad = MaxChartsToLoad;
     std::string LoadingText = TextFormat("%d/%d songs loaded", loaded, toLoad);
     GameMenu::mhDrawText(
-        RubikBold,
+        ASSET(rubikBold),
         LoadingText,
         { u.RightSide, u.hpct(0.085f) },
         RubikFontSize,
         LIGHTGRAY,
-        sdfShader,
+        ASSET(sdfShader),
         RIGHT
     );
     GameMenu::DrawBottomOvershell();
@@ -92,22 +85,24 @@ void cacheLoadingScreen::Draw() {
                            GetScreenHeight() - u.hpct(0.14f) + u.hinpct(0.07f),
                            u.hinpct(0.14f),
                            u.hinpct(0.14f) };
+
+    auto logo = ASSETPTR(encoreWhiteLogo); // TODO: this should be the favicon
     DrawTexturePro(
-        encoreLogo,
-        { 0, 0, (float)encoreLogo.width, (float)encoreLogo.height },
+        *logo,
+        { 0, 0, (float)logo->width, (float)logo->height },
         LogoRect,
         { u.hinpct(0.07f), u.hinpct(0.07f) },
         0,
         WHITE
     );
     GameMenu::mhDrawText(
-        JosefinSansItalic,
+        ASSET(josefinSansItalic),
         CacheSplash[SplashSel],
         { u.LeftSide + u.hinpct(0.16),
           GetScreenHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
         RubikFontSize / 1.5f,
         WHITE,
-        sdfShader,
+        ASSET(sdfShader),
         LEFT
     );
     if (!started) {

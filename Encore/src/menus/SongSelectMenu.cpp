@@ -315,7 +315,7 @@ void SongSelectMenu::Draw() {
             );
         } else if (!TheSongList.listMenuEntries[i].hiddenEntry) {
             bool isCurSong = TheSongList.curSong && i == TheSongList.curSong->songListPos - 1;
-            Font &artistFont = isCurSong ? assets.josefinSansItalic : assets.josefinSansItalic;
+            Font artistFont = assets.josefinSansItalic;
             Song &songi = TheSongList.songs[TheSongList.listMenuEntries[i].songListID];
             int songID = TheSongList.listMenuEntries[i].songListID;
 

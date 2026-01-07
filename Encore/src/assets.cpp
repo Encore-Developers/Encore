@@ -50,8 +50,6 @@ void Asset::StartLoad() {
         loadingThread = std::thread([this](){this->Load();});
         loadingThread.detach();
         //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
-    } else {
-        Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was double loaded.", id.c_str()));
     }
 }
 
@@ -64,15 +62,22 @@ void Asset::LoadImmediate() {
 void FileAsset::LoadFile() {
     std::ifstream file(GetPath(), std::ios::binary | std::ios::ate);
     fileSize = file.tellg();
+    int realFileSize = fileSize;
+    if (addNullTerminator)
+        fileSize ++;
     file.seekg(0, std::ios::beg);
 
     fileBuffer = (char*)malloc(fileSize);
-    file.read(fileBuffer, fileSize);
+    file.read(fileBuffer, realFileSize);
     file.close();
+    if (addNullTerminator)
+        fileBuffer[fileSize-1] = '\0';
 }
 
 void FileAsset::FreeFileBuffer() {
-    free(fileBuffer);
+    if (fileBuffer != nullptr) {
+        free(fileBuffer);
+    }
 }
 
 void FileAsset::Load() {
@@ -87,6 +92,30 @@ size_t FileAsset::GetFileSize() {
 char *FileAsset::FetchRaw() {
     CheckForFetch();
     return fileBuffer;
+}
+
+void ShaderAsset::Load() {
+    AssetSet code = {};
+    if (fragmentCode)
+        code.AddAsset(fragmentCode);
+    if (vertexCode)
+        code.AddAsset(vertexCode);
+    code.StartLoad();
+    code.BlockUntilLoaded();
+    state = PREFINALIZED;
+}
+
+void ShaderAsset::Finalize() {
+    const char *fragString = fragmentCode ? fragmentCode->FetchRaw() : nullptr;
+    const char *vertString = vertexCode ? vertexCode->FetchRaw() : nullptr;
+    shader = LoadShaderFromMemory(vertString, fragString);
+    for (auto uniform : uniformPositions) {
+        uniform.second = GetShaderLocation(shader, uniform.first.c_str());
+    }
+    state = LOADED;
+    // These destructors probably don't free the file buffers. Sad!
+    delete fragmentCode;
+    delete vertexCode;
 }
 
 void TextureAsset::Load() {
@@ -183,9 +212,10 @@ Font Assets::LoadFontFilter(
         );
 }*/
 
-void Assets::TempAssets() {
-    sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
-}
+AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), ASSETPTR(favicon), ASSETPTR(redHatDisplayBlack), ASSETPTR(sdfShader), ASSETPTR(josefinSansItalic)};
+AssetSet mainMenuSet = {ASSETPTR(redHatDisplayItalic)};
+
+#ifdef DONTCOMPILE
 void Assets::LoadAssets() {
     Color accentColor = { 255, 0, 255, 255 };
     Color overdriveColor = Color { 255, 200, 0, 255 };
@@ -497,7 +527,7 @@ void Assets::LoadAssets() {
     fxaa = LoadShader(0, (directory / "Assets/ui/fxaa.frag").string().c_str());
     texLoc = GetShaderLocation(fxaa, "texture0");
     resLoc = GetShaderLocation(fxaa, "resolution");
-    sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
+    //sdfShader = LoadShader(0, (directory / "Assets/fonts/sdf.fs").string().c_str());
     bgShader = LoadShader(0, (directory / "Assets/ui/wavy.fs").string().c_str());
     bgTimeLoc = GetShaderLocation(bgShader, "time");
     // clapOD = LoadSound((highwayDir / "clap.ogg"));
@@ -619,3 +649,4 @@ odHighwayX.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = highwayTextureOD;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].texture = sustainTexture;
     sustainMatMiss.maps[MATERIAL_MAP_DIFFUSE].color = DARKGRAY;
 }
+#endif

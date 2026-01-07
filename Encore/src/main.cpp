@@ -170,13 +170,10 @@ int main(int argc, char *argv[]) {
     SETDEFAULTSTYLE();
 
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
-    auto icon = FileAsset("encore_favicon-NEW.png");
-    AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), &icon, ASSETPTR(redHatDisplayBlack)};
     initialSet.StartLoad();
     initialSet.BlockUntilLoaded();
-    SetWindowIcon(LoadImageFromMemory(".png", icon, icon.GetFileSize()));
+    SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
     TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
-    TheAssets.TempAssets();
 
 
     if (TheGameSettings.Framerate > 0)

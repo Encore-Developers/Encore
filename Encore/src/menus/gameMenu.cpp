@@ -225,6 +225,9 @@ void MainMenu::Load() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     ChooseSplashText(directory);
     PickRandomMenuSong();
+    if (!mainMenuSet.PollLoaded()) {
+        mainMenuSet.StartLoad();
+    }
 }
 void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (ThePlayerManager.PlayersActive == 0) {
@@ -263,7 +266,7 @@ void MainMenu::AttractScreen() {
     };
 
     DrawTextEx(
-        menuAss.josefinSansItalic,
+        ASSET(josefinSansItalic),
         SplashString.c_str(),
         GreetSplashPos,
         SplashFontSize,

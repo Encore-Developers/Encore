@@ -5,6 +5,7 @@
 #include <cassert>
 #include <atomic>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <thread>
 #include <unordered_map>
@@ -22,7 +23,7 @@ class Asset {
 protected:
     virtual void Load() {}
     virtual void Finalize() {}
-    Asset(Asset& other) {}
+    //Asset(Asset& other) {}
 public:
     std::atomic<AssetState> state = UNLOADED;
     std::string id;
@@ -49,13 +50,15 @@ public:
 class FileAsset : public Asset {
     std::filesystem::path path;
 protected:
-    char *fileBuffer;
     size_t fileSize;
     void LoadFile();
     virtual void Load();
     void FreeFileBuffer();
 
 public:
+    char *fileBuffer;
+    bool addNullTerminator = false;
+
     FileAsset(const std::string &id) : Asset(id) {
         path = std::filesystem::path("Assets") / id;
     }
@@ -66,6 +69,46 @@ public:
     char *FetchRaw();
     operator const unsigned char*() {
         return (const unsigned char *)FetchRaw();
+    }
+    virtual ~FileAsset() {
+        //FreeFileBuffer();
+    }
+};
+
+class ShaderAsset : public Asset {
+    FileAsset *fragmentCode;
+    FileAsset *vertexCode;
+    std::unordered_map<std::string, int> uniformPositions;
+    const char *fStr;
+    const char *vStr;
+    std::function<void(Asset*)> postFinalizeFunc;
+    Shader shader;
+protected:
+    virtual void Load();
+    virtual void Finalize();
+public:
+    ShaderAsset(const std::string &fsPath, const std::string &vsPath, std::initializer_list<const char *> uniforms, std::function<void(Asset*)> postFinalizeFunc) : Asset(fsPath) {
+        if (!fsPath.empty()) {
+            fragmentCode = new FileAsset(fsPath);
+            fragmentCode->addNullTerminator = true;
+        }
+        if (!vsPath.empty()) {
+            vertexCode = new FileAsset(vsPath);
+            vertexCode->addNullTerminator = true;
+        }
+        this->postFinalizeFunc = postFinalizeFunc;
+        for (auto uniform : uniforms) {
+            uniformPositions.emplace(uniform, 0);
+        }
+    }
+
+    Shader Fetch() {
+        CheckForFetch();
+        return shader;
+    }
+
+    operator Shader() {
+        return Fetch();
     }
 };
 
@@ -117,6 +160,8 @@ public:
 #define NEWFONTASSET(varname, path, size) FontAsset varname = FontAsset(path, size)
 #define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path, true)
 #define NEWTEXASSET_NOFILTER(varname, path) TextureAsset varname = TextureAsset(path, false)
+#define NEWSHADERASSET(varname, fspath, vspath, uniforms) ShaderAsset varname = ShaderAsset(fspath, vspath, uniforms, {})
+#define NEWSHADERASSET_POSTFINALIZE(varname, fspath, vspath, uniforms, postfinalize) ShaderAsset varname = ShaderAsset(fspath, vspath, uniforms, postfinalize)
 
 
 
@@ -142,6 +187,8 @@ public:
 
     Assets(const Assets &) = delete;
     void operator=(const Assets &) = delete;
+
+    NEWFILEASSET(favicon, "encore_favicon-NEW.png");
 
     int loadedAssets;
     int totalAssets = 32;
@@ -283,10 +330,10 @@ public:
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");
     Texture2D songBackground;
 
-    Font redHatDisplayItalic;
+    NEWFONTASSET(redHatDisplayItalic, "fonts/RedHatDisplay-BlackItalic.ttf", 128);
     NEWFONTASSET(redHatDisplayBlack, "fonts/RedHatDisplay-Black.ttf", 128);
-    Font redHatDisplayItalicLarge;
-    Font josefinSansItalic;
+    NEWFONTASSET(redHatDisplayItalicLarge, "fonts/RedHatDisplay-Black.ttf", 128);
+    NEWFONTASSET(josefinSansItalic, "fonts/JosefinSans-Italic.ttf", 128);
     Font josefinSansNormal;
     Font josefinSansBold;
     Font redHatMono;
@@ -317,7 +364,7 @@ public:
     Material CodaLane;
     Texture2D CodaLaneTex;
 
-    Shader sdfShader;
+    NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
     Shader bgShader;
     int bgTimeLoc;
     // Sound clapOD;
@@ -381,7 +428,6 @@ public:
 #undef NEWFILEASSET
 
 extern Assets TheAssets;
-
 /// Used for easily loading groups of assets and polling their state as one.
 class AssetSet {
     std::vector<Asset *> assets;
@@ -389,6 +435,10 @@ public:
 
     AssetSet(std::initializer_list<Asset *> l) {
         assets = std::vector<Asset *>(l);
+    }
+
+    void AddAsset(Asset *asset) {
+        assets.push_back(asset);
     }
 
     void StartLoad() {
@@ -437,3 +487,5 @@ public:
         }
     }
 };
+extern AssetSet initialSet;
+extern AssetSet mainMenuSet;
