@@ -454,14 +454,18 @@ public:
         }
     }
 
-    bool PollLoaded() {
+    bool PollLoaded(bool doFinalize = false) {
+        bool loaded = true;
         for (int i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (!asset->CanFetch()) {
-                return false;
+                loaded = false;
+            }
+            if (doFinalize && asset->state == PREFINALIZED) {
+                asset->CheckForFetch();
             }
         }
-        return true;
+        return loaded;
     }
 
     int CountLoaded() {

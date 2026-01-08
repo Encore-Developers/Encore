@@ -93,14 +93,18 @@ int minHeight = 480;
 
 void DrawLoadingScreen(unsigned char alpha, float progress) {
     Texture icon = ASSET(faviconTex);
+    float fade = (1.0 - (alpha/255.0));
+    fade *= fade;
+    unsigned char quadAlpha = 255*(1.0-fade);
     float scale = (GetScreenHeight() / 1080.0f) * 0.3;
-    int iconSize = (icon.height * scale)/2; // Dividing by 2 for centering
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), {0, 0, 0, alpha});
-    DrawTextureEx(icon, {GetScreenWidth()/2.0f-iconSize, GetScreenHeight()/2.0f-iconSize}, 0, scale, {255, 255, 255, alpha});
+    float iconScale = scale + fade * 0.5;
+    int iconSize = (icon.height * iconScale)/2; // Dividing by 2 for centering
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), {0, 0, 0, quadAlpha});
 
     Vector2 screenCenter = {GetScreenWidth()/2.0f, GetScreenHeight()/2.0f};
     DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360-90, 64, {255, 255, 255, (unsigned char)(alpha/3)});
     DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360*progress-90, 64, {255, 255, 255, alpha});
+    DrawTextureEx(icon, {GetScreenWidth()/2.0f-iconSize, GetScreenHeight()/2.0f-iconSize}, 0, iconScale, {255, 255, 255, alpha});
 }
 
 int main(int argc, char *argv[]) {
@@ -149,10 +153,10 @@ int main(int argc, char *argv[]) {
         CFRelease(bundle);
     }
 #endif
-
     TheSettingsInitializer.InitSettings(directory);
     CacheLoad::StartLoad();
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
+
     ThePlayerManager.LoadPlayerList();
 
     if (TheGameSettings.VerticalSync) {
@@ -189,7 +193,11 @@ int main(int argc, char *argv[]) {
     initialSet.StartLoad();
     AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).BlockUntilLoaded();
     SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
-    TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
+    if (!CacheLoad::finished) {
+        TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
+    } else {
+        TheMenuManager.currentScreen = MAIN_MENU;
+    }
 
 
 
@@ -232,7 +240,7 @@ int main(int argc, char *argv[]) {
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
-        if (!initialSet.PollLoaded()) {
+        if (!initialSet.PollLoaded(true)) {
             DrawLoadingScreen(255, initialSet.GetProgress());
         } else {
             static float loadingScreenFade = 1.0f;
@@ -243,7 +251,12 @@ int main(int argc, char *argv[]) {
             TheMenuManager.DrawMenu();
             if (loadingScreenFade > 0) {
                 DrawLoadingScreen(255*loadingScreenFade, 1);
-                loadingScreenFade -= GetFrameTime()*5.0f;
+                float frameTime = GetFrameTime();
+                // Cap the frame time here so the fade animation doesn't get skipped by the stutter caused by loading the song preview
+                if (frameTime > 0.032) {
+                    frameTime = 0.032;
+                }
+                loadingScreenFade -= frameTime*5.0f;
             }
         }
         EndDrawing();
