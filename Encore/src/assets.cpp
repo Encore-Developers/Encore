@@ -212,8 +212,22 @@ Font Assets::LoadFontFilter(
         );
 }*/
 
-AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), ASSETPTR(favicon), ASSETPTR(faviconTex), ASSETPTR(redHatDisplayBlack), ASSETPTR(sdfShader), ASSETPTR(josefinSansItalic), ASSETPTR(bgShader)};
-AssetSet mainMenuSet = {ASSETPTR(redHatDisplayItalic), ASSETPTR(BaseRingTexture), ASSETPTR(rubikBold), ASSETPTR(rubikBoldItalic), ASSETPTR(rubikItalic)};
+// Assets that need to be loaded in order to display the cache loading screen and the
+// title screen. Adding assets to this set will affect boot times (especially fonts)
+AssetSet initialSet = { ASSETPTR(encoreWhiteLogo),
+                        ASSETPTR(rubik),
+                        ASSETPTR(favicon),
+                        ASSETPTR(faviconTex),
+                        ASSETPTR(redHatDisplayBlack),
+                        ASSETPTR(sdfShader),
+                        ASSETPTR(josefinSansItalic),
+                        ASSETPTR(bgShader) };
+// Assets that are queued to load at boot but aren't critical for displaying the title
+// screen. Adding assets to this set results in a smaller impact on boot times
+AssetSet mainMenuSet = {
+    ASSETPTR(redHatDisplayItalic), ASSETPTR(BaseRingTexture), ASSETPTR(rubikBold),
+    ASSETPTR(rubikBoldItalic),     ASSETPTR(rubikItalic),     ASSETPTR(JetBrainsMono),
+};
 
 #ifdef DONTCOMPILE
 void Assets::LoadAssets() {
