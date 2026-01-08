@@ -241,10 +241,12 @@ int main(int argc, char *argv[]) {
 
         BeginDrawing();
         ClearBackground(DARKGRAY);
-        if (!initialSet.PollLoaded(true)) {
+        static bool showLoading = true;
+        if (showLoading && !initialSet.PollLoaded(true)) {
             DrawLoadingScreen(255, initialSet.GetProgress());
         } else {
             static float loadingScreenFade = 1.0f;
+            showLoading = false;
             if (TheMenuManager.onNewMenu) {
                 TheMenuManager.LoadMenu();
             }

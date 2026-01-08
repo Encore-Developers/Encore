@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "menus/uiUnits.h"
+#include "util/enclog.h"
 
 #include <cassert>
 #include <atomic>
@@ -103,7 +104,12 @@ public:
     }
 
     int GetUniformLoc(const std::string& uniformName) {
-        return uniformPositions.find(uniformName)->second;
+        if (!uniformPositions.contains(uniformName)) {
+            Encore::EncoreLog(LOG_ERROR, TextFormat("Attempted to get unknown uniform %s on asset %s", uniformName.c_str(), id.c_str()));
+            return -1;
+        }
+        auto found = uniformPositions.find(uniformName);
+        return found->second;
     }
 
     Shader Fetch() {
@@ -164,8 +170,10 @@ public:
 #define NEWFONTASSET(varname, path, size) FontAsset varname = FontAsset(path, size)
 #define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path, true)
 #define NEWTEXASSET_NOFILTER(varname, path) TextureAsset varname = TextureAsset(path, false)
-#define NEWSHADERASSET(varname, fspath, vspath, uniforms) ShaderAsset varname = ShaderAsset(fspath, vspath, uniforms, {})
-#define NEWSHADERASSET_POSTFINALIZE(varname, fspath, vspath, uniforms, postfinalize) ShaderAsset varname = ShaderAsset(fspath, vspath, uniforms, postfinalize)
+// Have to use variadic macros here because the preprocessor can't understand that the
+// commas in the initializer list are not parameter seperators
+#define NEWSHADERASSET(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__, {})
+#define NEWSHADERASSET_POSTFINALIZE(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__)
 
 
 
@@ -370,7 +378,7 @@ public:
     Texture2D CodaLaneTex;
 
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
-    NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
+    NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time", "test"});
     // Sound clapOD;
     void DrawTextRubik(
         const char *text, float posX, float posY, float fontSize, Color color

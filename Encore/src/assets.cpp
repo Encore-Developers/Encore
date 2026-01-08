@@ -109,7 +109,7 @@ void ShaderAsset::Finalize() {
     const char *fragString = fragmentCode ? fragmentCode->FetchRaw() : nullptr;
     const char *vertString = vertexCode ? vertexCode->FetchRaw() : nullptr;
     shader = LoadShaderFromMemory(vertString, fragString);
-    for (auto uniform : uniformPositions) {
+    for (auto &uniform : uniformPositions) {
         uniform.second = GetShaderLocation(shader, uniform.first.c_str());
     }
     state = LOADED;
