@@ -124,7 +124,8 @@ void ShaderAsset::Finalize() {
 
 void TextureAsset::Load() {
     LoadFile();
-    image = LoadImageFromMemory((const char *)GetPath().extension().c_str(), (const unsigned char*)fileBuffer, fileSize);
+    image = LoadImageFromMemory(
+        reinterpret_cast<const char *>(GetPath().extension().generic_u8string().c_str()), (const unsigned char*)fileBuffer, fileSize);
     width = image.width;
     height = image.height;
     FreeFileBuffer();
