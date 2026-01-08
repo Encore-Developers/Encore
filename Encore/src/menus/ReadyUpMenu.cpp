@@ -220,12 +220,12 @@ void ReadyUpMenu::Draw() {
                             || player.Instrument == PlasticBass) {
                             isBassOrVocal = 1;
                         }
-                        SetShaderValue(
-                            assets.odMultShader,
-                            assets.isBassOrVocalLoc,
-                            &isBassOrVocal,
-                            SHADER_UNIFORM_INT
-                        );
+                        // SetShaderValue(
+                        //     assets.odMultShader,
+                        //     assets.isBassOrVocalLoc,
+                        //     &isBassOrVocal,
+                        //     SHADER_UNIFORM_INT
+                        // );
                     }
                     GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
                     GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);

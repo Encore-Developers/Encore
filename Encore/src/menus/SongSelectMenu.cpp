@@ -569,12 +569,16 @@ void SongSelectMenu::Draw() {
         float IconLeftPos = (float)(u.RightSide - AlbumHeight) + IconWidth * ResetToLeftPos;
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff == -1) TintColor = DARKGRAY;
+        int diffNumber = SongToDisplayInfo.parts[i]->diff;
+        if (SongToDisplayInfo.parts[i] && diffNumber == -1) TintColor = DARKGRAY;
         auto instIcon = assets.InstIcons[asdasd];
         DrawTexturePro(*instIcon, { 0, 0, (float)instIcon->width, (float)instIcon->height }, Placement, { 0, 0 }, 0, TintColor);
         DrawTexturePro(assets.BaseRingTexture, { 0, 0, (float)assets.BaseRingTexture.width, (float)assets.BaseRingTexture.height }, Placement, { 0, 0 }, 0, ColorBrightness(WHITE, 2));
-        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff > 0) {
-            auto ring = assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1];
+        if (SongToDisplayInfo.parts[i] && diffNumber > 0) {
+            if (diffNumber > 6) {
+                diffNumber = 6;
+            }
+            auto ring = assets.YargRings[diffNumber - 1];
             DrawTexturePro(
                 *ring,
                 { 0, 0, (float)ring->width, (float)ring->height },
