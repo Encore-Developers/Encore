@@ -15,6 +15,7 @@
 #include "raygui.h"
 #include "MenuManager.h"
 #include "settings/settings.h"
+#include "song/cacheload.h"
 
 std::vector<std::string> CacheSplash = {
     "Want a break from the cache?",
@@ -31,15 +32,6 @@ void cacheLoadingScreen::Load() {
     SplashSel = GetRandomValue(0, CacheSplash.size() - 1);
 }
 
-// todo(3drosalia): make another class for drawing these things without having to uh.
-// implement it in every menu class
-std::atomic_bool finished = false;
-std::atomic_bool started = false;
-
-void LoadCache() {
-    TheSongList.LoadCache(TheGameSettings.SongPaths);
-    finished = true;
-}
 
 void cacheLoadingScreen::Draw() {
     Units u = Units::getInstance();
@@ -86,7 +78,7 @@ void cacheLoadingScreen::Draw() {
                            u.hinpct(0.14f),
                            u.hinpct(0.14f) };
 
-    auto logo = ASSETPTR(encoreWhiteLogo); // TODO: this should be the favicon
+    auto logo = ASSETPTR(faviconTex);
     DrawTexturePro(
         *logo,
         { 0, 0, (float)logo->width, (float)logo->height },
@@ -105,12 +97,10 @@ void cacheLoadingScreen::Draw() {
         ASSET(sdfShader),
         LEFT
     );
-    if (!started) {
-        started = true;
-        std::thread CacheLoader(LoadCache);
-        CacheLoader.detach();
+    if (!CacheLoad::started) {
+        CacheLoad::StartLoad();
     }
-    if (finished) {
+    if (CacheLoad::finished) {
         TheMenuManager.SwitchScreen(MAIN_MENU);
     }
 }

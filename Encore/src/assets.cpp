@@ -213,7 +213,7 @@ Font Assets::LoadFontFilter(
 }*/
 
 AssetSet initialSet = {ASSETPTR(encoreWhiteLogo), ASSETPTR(JetBrainsMono), ASSETPTR(rubik), ASSETPTR(favicon), ASSETPTR(faviconTex), ASSETPTR(redHatDisplayBlack), ASSETPTR(sdfShader), ASSETPTR(josefinSansItalic)};
-AssetSet mainMenuSet = {ASSETPTR(redHatDisplayItalic)};
+AssetSet mainMenuSet = {ASSETPTR(redHatDisplayItalic), ASSETPTR(BaseRingTexture)};
 
 #ifdef DONTCOMPILE
 void Assets::LoadAssets() {

@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include "settings/keybinds.h"
+#include "song/cacheload.h"
 #define assertm(exp, msg) assert((void(msg), exp))
 
 #define RAYGUI_IMPLEMENTATION
@@ -150,6 +151,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     TheSettingsInitializer.InitSettings(directory);
+    CacheLoad::StartLoad();
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();
 
@@ -205,7 +207,7 @@ int main(int argc, char *argv[]) {
         u.calcUnits();
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
-        SetShaderValue(assets.bgShader, assets.bgTimeLoc, &bgTime, SHADER_UNIFORM_FLOAT);
+        SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
         if (IsKeyPressed(KEY_F11)
             || (IsKeyPressed(KEY_LEFT_ALT) && IsKeyPressed(KEY_ENTER))) {
             TheGameSettings.Fullscreen = !TheGameSettings.Fullscreen;
@@ -240,8 +242,8 @@ int main(int argc, char *argv[]) {
             TheGameRPC.Update();
             TheMenuManager.DrawMenu();
             if (loadingScreenFade > 0) {
-                loadingScreenFade -= GetFrameTime()*5.0f;
                 DrawLoadingScreen(255*loadingScreenFade, 1);
+                loadingScreenFade -= GetFrameTime()*5.0f;
             }
         }
         EndDrawing();

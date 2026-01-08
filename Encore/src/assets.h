@@ -102,6 +102,10 @@ public:
         }
     }
 
+    int GetUniformLoc(const std::string& uniformName) {
+        return uniformPositions.find(uniformName)->second;
+    }
+
     Shader Fetch() {
         CheckForFetch();
         return shader;
@@ -324,7 +328,7 @@ public:
     Model liftModelOD;
 
     std::vector<Texture2D> YargRings;
-    Texture2D BaseRingTexture;
+    NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
     std::vector<Texture2D> InstIcons;
 
     Image icon;
@@ -343,7 +347,7 @@ public:
     NEWFONTASSET(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", 64);
     Font rubikBoldItalic;
 
-    Font rubikBold;
+    NEWFONTASSET(rubikBold, "fonts/Rubik-Bold.ttf", 128);
 
     // clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
     // SetSoundVolume(clapOD, 0.375);
@@ -366,8 +370,7 @@ public:
     Texture2D CodaLaneTex;
 
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
-    Shader bgShader;
-    int bgTimeLoc;
+    NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
     // Sound clapOD;
     void DrawTextRubik(
         const char *text, float posX, float posY, float fontSize, Color color
