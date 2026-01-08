@@ -339,13 +339,13 @@ public:
     NEWFONTASSET(redHatDisplayBlack, "fonts/RedHatDisplay-Black.ttf", 128);
     NEWFONTASSET(redHatDisplayItalicLarge, "fonts/RedHatDisplay-Black.ttf", 128);
     NEWFONTASSET(josefinSansItalic, "fonts/JosefinSans-Italic.ttf", 128);
-    Font josefinSansNormal;
-    Font josefinSansBold;
-    Font redHatMono;
+    NEWFONTASSET(josefinSansNormal, "fonts/JosefinSans-Normal.ttf", 128);
+    NEWFONTASSET(josefinSansBold, "fonts/JosefinSans-Bold.ttf", 128);
+    NEWFONTASSET(redHatMono, "fonts/RedHatMono-Bold.ttf", 128);
     NEWFONTASSET(rubik, "fonts/Rubik-Regular.ttf", 128);
-    Font rubikItalic;
+    NEWFONTASSET(rubikItalic, "fonts/Rubik-Italic.ttf", 128);
     NEWFONTASSET(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", 64);
-    Font rubikBoldItalic;
+    NEWFONTASSET(rubikBoldItalic, "fonts/Rubik-BoldItalic.ttf", 128);
 
     NEWFONTASSET(rubikBold, "fonts/Rubik-Bold.ttf", 128);
 
