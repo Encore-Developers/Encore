@@ -191,6 +191,7 @@ int main(int argc, char *argv[]) {
 
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
     initialSet.StartLoad();
+    TheAssets.AddRingsAndInstruments();
     mainMenuSet.StartLoad();
     AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).BlockUntilLoaded();
     SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));

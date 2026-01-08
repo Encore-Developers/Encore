@@ -32,6 +32,8 @@ public:
     Asset(const std::string &id) {
         this->id = id;
     }
+    /// Empty constructor provided so vectors can initialize. Do not use!
+    Asset() {}
 
     /// Starts loading this asset.
     virtual void StartLoad();
@@ -45,6 +47,10 @@ public:
     bool CanFetch() const {
         return state == LOADED || state == PREFINALIZED;
     }
+
+    Asset(Asset &&other) noexcept : id(std::move(other.id)),
+                                    state(state.load()),
+                                    loadingThread() {}
 
 };
 
@@ -63,6 +69,7 @@ public:
     FileAsset(const std::string &id) : Asset(id) {
         path = std::filesystem::path("Assets") / id;
     }
+    FileAsset() {}
     std::filesystem::path &GetPath() {
         return path;
     }
@@ -74,6 +81,9 @@ public:
     virtual ~FileAsset() {
         //FreeFileBuffer();
     }
+    FileAsset(FileAsset&& other) noexcept : path(std::move(other.path)),
+                                            fileSize(other.fileSize),
+                                            fileBuffer(other.fileBuffer) {}
 };
 
 class ShaderAsset : public Asset {
@@ -134,6 +144,7 @@ public:
     TextureAsset(const std::string &id, bool filter) : FileAsset(id) {
         this->filter = filter;
     }
+    TextureAsset() {}
     Texture2D Fetch() {
         CheckForFetch();
         return tex;
@@ -141,6 +152,11 @@ public:
     operator Texture2D() {
         return Fetch();
     }
+
+    TextureAsset(TextureAsset &&other) noexcept : FileAsset(std::move(other)),
+                                                  tex(other.tex),
+                                                  image(other.image),
+                                                  filter(other.filter) {}
 };
 
 class FontAsset : public FileAsset {
@@ -186,6 +202,7 @@ private:
 
 public:
     Assets() {}
+    void AddRingsAndInstruments();
 
     static Assets &getInstance();
 
@@ -225,14 +242,14 @@ public:
     Model smasherPressed;
     Texture2D smasherPressTex;
 
-    Texture2D goldStarUnfilled;
-    Texture2D star;
-    Texture2D goldStar;
-    Texture2D emptyStar;
+    NEWTEXASSET(goldStarUnfilled, "ui/gold-star_unfilled.png");
+    NEWTEXASSET(star, "ui/star.png");
+    NEWTEXASSET(goldStar, "ui/gold-star.png");
+    NEWTEXASSET(emptyStar, "ui/empty-star.png");
 
-    Texture2D Scorebox;
-    Texture2D Timerbox;
-    Texture2D TimerboxOutline;
+    NEWTEXASSET(Scorebox, "gameplay/ui/Scorebox.png");
+    NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");
+    NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
 
     Model odFrame;
     Model odBar;
@@ -335,9 +352,9 @@ public:
     Model liftModel;
     Model liftModelOD;
 
-    std::vector<Texture2D> YargRings;
+    std::vector<TextureAsset*> YargRings;
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
-    std::vector<Texture2D> InstIcons;
+    std::vector<TextureAsset*> InstIcons;
 
     Image icon;
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");
@@ -360,8 +377,8 @@ public:
     // clapOD = LoadSound((directory / "Assets/highway/clap.ogg").string().c_str());
     // SetSoundVolume(clapOD, 0.375);
 
-    Texture2D discord;
-    Texture2D github;
+    NEWTEXASSET(discord, "ui/discord-mark-white.png");
+    NEWTEXASSET(github, "ui/github-mark-white.png");
 
     Texture2D sustainTexture;
     Texture2D sustainHeldTexture;
@@ -378,7 +395,7 @@ public:
     Texture2D CodaLaneTex;
 
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
-    NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time", "test"});
+    NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
     // Sound clapOD;
     void DrawTextRubik(
         const char *text, float posX, float posY, float fontSize, Color color

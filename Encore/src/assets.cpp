@@ -41,6 +41,7 @@ void Asset::CheckForFetch() {
         Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
         Finalize();
         break;
+    default:;
     }
 }
 
@@ -224,10 +225,41 @@ AssetSet initialSet = { ASSETPTR(encoreWhiteLogo),
                         ASSETPTR(bgShader) };
 // Assets that are queued to load at boot but aren't critical for displaying the title
 // screen. Adding assets to this set results in a smaller impact on boot times
-AssetSet mainMenuSet = {
-    ASSETPTR(redHatDisplayItalic), ASSETPTR(BaseRingTexture), ASSETPTR(rubikBold),
-    ASSETPTR(rubikBoldItalic),     ASSETPTR(rubikItalic),     ASSETPTR(JetBrainsMono),
-};
+AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
+                         ASSETPTR(BaseRingTexture),
+                         ASSETPTR(rubikBold),
+                         ASSETPTR(rubikBoldItalic),
+                         ASSETPTR(rubikItalic),
+                         ASSETPTR(JetBrainsMono),
+                         ASSETPTR(discord),
+                         ASSETPTR(github),
+                         ASSETPTR(emptyStar),
+                         ASSETPTR(star),
+                         ASSETPTR(goldStar),
+                         ASSETPTR(goldStarUnfilled),
+                         ASSETPTR(redHatMono),
+                         ASSETPTR(Timerbox),
+                         ASSETPTR(TimerboxOutline),
+                         ASSETPTR(Scorebox) };
+
+
+
+void Assets::AddRingsAndInstruments() {
+    for (int i = 1; i <= 6; i++) {
+        TextureAsset *tex = new TextureAsset(TextFormat("ui/hugh ring/rings-%i.png", i), true);
+        YargRings.push_back(tex);
+        // Grabbing from the vec because it moved
+        mainMenuSet.AddAsset(tex);
+    }
+    InstIcons.push_back(new TextureAsset("ui/hugh ring/drums-inv.png", true));
+    InstIcons.push_back(new TextureAsset("ui/hugh ring/bass-inv.png", true));
+    InstIcons.push_back(new TextureAsset("ui/hugh ring/lead-inv.png", true));
+    InstIcons.push_back(new TextureAsset("ui/hugh ring/keys-inv.png", true));
+    InstIcons.push_back(new TextureAsset("ui/hugh ring/vox-inv.png", true));
+    for (auto icon : InstIcons) {
+        mainMenuSet.AddAsset(icon);
+    }
+}
 
 #ifdef DONTCOMPILE
 void Assets::LoadAssets() {

@@ -570,10 +570,20 @@ void SongSelectMenu::Draw() {
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
         if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff == -1) TintColor = DARKGRAY;
-        DrawTexturePro(assets.InstIcons[asdasd], { 0, 0, (float)assets.InstIcons[asdasd].width, (float)assets.InstIcons[asdasd].height }, Placement, { 0, 0 }, 0, TintColor);
+        auto instIcon = assets.InstIcons[asdasd];
+        DrawTexturePro(*instIcon, { 0, 0, (float)instIcon->width, (float)instIcon->height }, Placement, { 0, 0 }, 0, TintColor);
         DrawTexturePro(assets.BaseRingTexture, { 0, 0, (float)assets.BaseRingTexture.width, (float)assets.BaseRingTexture.height }, Placement, { 0, 0 }, 0, ColorBrightness(WHITE, 2));
-        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff > 0)
-            DrawTexturePro(assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1], { 0, 0, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].width, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].height }, Placement, { 0, 0 }, 0, WHITE);
+        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff > 0) {
+            auto ring = assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1];
+            DrawTexturePro(
+                *ring,
+                { 0, 0, (float)ring->width, (float)ring->height },
+                Placement,
+                { 0, 0 },
+                0,
+                WHITE
+            );
+        }
     }
 
     GameMenu::DrawBottomOvershell();
