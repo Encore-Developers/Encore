@@ -156,13 +156,13 @@ void SongList::WriteCache() {
         SongCache << song.songDir;
         SongCache << song.albumArtPath;
         SongCache << song.songInfoPath.string();
-        SongCache << song.jsonHash;
+        SongCache << song.midiPath.string();
+        SongCache << song.ini;
+        std::ifstream songInfo(song.songInfoPath);
+        std::ostringstream sstr;
+        sstr << songInfo.rdbuf();
+        SongCache << sstr.str();
 
-        SongCache << song.title;
-        SongCache << song.artist;
-
-        SongCache << song.length;
-        SongCache << song.releaseYear;
 
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
@@ -342,39 +342,30 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> infopath;
         song.songInfoPath = infopath;
 
-        SongCacheIn >> song.jsonHash;
+        std::string midiPath;
+        SongCacheIn >> midiPath;
+        song.midiPath = midiPath;
 
-        SongCacheIn >> song.title;
-        SongCacheIn >> song.artist;
+        SongCacheIn >> song.ini;
+        if (song.ini) {
+            std::string iniData;
+            SongCacheIn >> iniData;
+            INIReader reader(iniData.c_str(), iniData.length());
+            song.PullInfoFromINI(reader);
+        } else {
+            std::string jsonData;
+            SongCacheIn >> jsonData;
+            json infoData = json::parse(jsonData.c_str());
 
-        SongCacheIn >> song.length;
-        SongCacheIn >> song.releaseYear;
+            song.LoadInfo(infoData);
+            song.LoadAudioJSON(infoData);
+        }
 
         Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
 
         if (!std::filesystem::exists(song.songDir)) {
             continue;
         }
-
-        // Set other info properties
-        if (std::filesystem::path(song.songInfoPath).filename() == "song.ini") {
-            song.ini = true;
-        }
-
-        std::ifstream jsonFile(song.songInfoPath);
-        std::string jsonHashNew = "";
-        if (jsonFile) {
-            auto itBegin = std::istreambuf_iterator<char>(jsonFile);
-            auto itEnd = std::istreambuf_iterator<char>();
-            std::string jsonString(itBegin, itEnd);
-            jsonFile.close();
-
-            jsonHashNew = picosha2::hash256_hex_string(jsonString);
-        }
-        // todo: FIX THIS
-        //if (song.jsonHash != jsonHashNew) {
-        //    continue;
-        //}
         loadedSongs.insert(song.songDir);
         this->songs.emplace_back(song);
 

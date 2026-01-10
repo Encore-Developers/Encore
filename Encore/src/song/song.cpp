@@ -35,7 +35,11 @@ void Song::LoadInfoINI(std::filesystem::path iniPath) {
     }
 
     INIReader ini(iniPath.string());
+    PullInfoFromINI(ini);
 
+}
+
+void Song::PullInfoFromINI(INIReader &ini) {
     title = ini.GetString("song", "name", "Unknown Song");
 
     artist = ini.GetString("song", "artist", "Unknown Artist");

@@ -10,7 +10,7 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
-#define SONG_CACHE_VERSION 25123001
+#define SONG_CACHE_VERSION 26011001
 #define SONG_CACHE_HEADER 0x52434E45 // "ENCR"
 
 struct ListMenuEntry {

@@ -15,6 +15,7 @@
 #include <string>
 #include <atomic>
 #include "picosha2.h"
+#include "inih/INIReader.h"
 #include "rapidjson/document.h"
 #include "util/enclog.h"
 
@@ -219,6 +220,7 @@ public:
     }
 
     void LoadInfoINI(std::filesystem::path iniPath);
+    void PullInfoFromINI(INIReader &ini);
 
     void LoadInfo(const nlohmann::json &infoData) {
 
