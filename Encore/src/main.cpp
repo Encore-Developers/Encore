@@ -204,9 +204,7 @@ int main(int argc, char *argv[]) {
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
         u.calcUnits();
-        double curTime = GetTime();
-        float bgTime = curTime / 5.0f;
-        SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
+
         if (GetScreenWidth() < minWidth) {
             if (GetScreenHeight() < minHeight)
                 SetWindowSize(minWidth, minHeight);
@@ -226,6 +224,9 @@ int main(int argc, char *argv[]) {
         if (showLoading && !initialSet.PollLoaded(true)) {
             DrawLoadingScreen(255, initialSet.GetProgress());
         } else {
+            double curTime = GetTime();
+            float bgTime = curTime / 5.0f;
+            SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
             static float loadingScreenFade = 1.0f;
             showLoading = false;
             if (TheMenuManager.onNewMenu) {

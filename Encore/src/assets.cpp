@@ -179,12 +179,12 @@ AssetSet initialSet = { ASSETPTR(encoreWhiteLogo),
                         ASSETPTR(redHatDisplayBlack),
                         ASSETPTR(sdfShader),
                         ASSETPTR(josefinSansItalic),
-                        ASSETPTR(bgShader) };
+                        ASSETPTR(bgShader),
+                        ASSETPTR(rubikBold) };
 // Assets that are queued to load at boot but aren't critical for displaying the title
 // screen. Adding assets to this set results in a smaller impact on boot times
 AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(BaseRingTexture),
-                         ASSETPTR(rubikBold),
                          ASSETPTR(rubikBoldItalic),
                          ASSETPTR(rubikItalic),
                          ASSETPTR(JetBrainsMono),
@@ -197,7 +197,8 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(redHatMono),
                          ASSETPTR(Timerbox),
                          ASSETPTR(TimerboxOutline),
-                         ASSETPTR(Scorebox) };
+                         ASSETPTR(Scorebox),
+                         ASSETPTR(highwayTexture) };
 
 
 
