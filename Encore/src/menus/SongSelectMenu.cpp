@@ -66,13 +66,13 @@ void SongSelectMenu::Load() {
 
     // TheGameRenderer.streamsLoaded = false;
     // TheGameRenderer.midiLoaded = false;
-    for (Song& song : TheSongList.songs) {
-        if (!song.ini) {
-            // song.LoadSongJSON(song.songInfoPath);
-        } else {
-            // song.LoadInfoINI(song.songInfoPath);
-        }
-    }
+    // for (Song& song : TheSongList.songs) {
+    //     if (!song.ini) {
+    //         // song.LoadSongJSON(song.songInfoPath);
+    //     } else {
+    //         song.LoadInfoINI(song.songInfoPath);
+    //     }
+    // }
 }
 
 void SongSelectMenu::Unload() {

@@ -48,6 +48,11 @@ namespace Encore::RhythmEngine {
                 && event[1] <= MinMaxDiff[diff].second;
         }
 
+        [[nodiscard]] static bool IsInPitchRangeGB(int diff, const smf::MidiEvent &event) {
+            return event[1] >= GuitarMinMaxDiff[diff].first
+                && event[1] <= GuitarMinMaxDiff[diff].second;
+        }
+
         [[nodiscard]] static int GetEventLane(int diff, const smf::MidiEvent &event) {
             return event[1] - MinMaxDiff[diff].first;
         }

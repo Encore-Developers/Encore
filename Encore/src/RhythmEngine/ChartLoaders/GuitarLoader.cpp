@@ -186,7 +186,7 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
         // im tired boss
         CheckEvents(event);
         CheckModifiers(event);
-        if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
+        if (IsInPitchRangeGB(Difficulty, event) && event.isNoteOn()) {
             if (chart[0].empty()) {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 CreateNote(event);

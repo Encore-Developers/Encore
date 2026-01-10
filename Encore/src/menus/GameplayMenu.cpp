@@ -27,8 +27,11 @@
 
 #include "settings/keybinds.h"
 
-GameplayMenu::GameplayMenu() {}
-GameplayMenu::~GameplayMenu() {}
+GameplayMenu::GameplayMenu() {
+}
+
+GameplayMenu::~GameplayMenu() {
+}
 
 /*
 void ManagePausedGame(GameplayInputHandler inputHandler, Player &player) {
@@ -82,7 +85,8 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
     } else if (action == GLFW_RELEASE) {
         REaction = Encore::RhythmEngine::Action::RELEASE;
     }
-    if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.overdriveBinds.second) {
+    if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.
+        overdriveBinds.second) {
         Channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
     } else if (player.ClassicMode) {
         if (key == TheGameKeybinds.strumBinds.first) {
@@ -93,7 +97,8 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
     }
     int DiffMax = (player.Difficulty == 3 || player.ClassicMode) ? 5 : 4;
     for (int i = 0; i < DiffMax; i++) {
-        if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[i]) {
+        if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
+            i]) {
             Channel = Encore::RhythmEngine::IntIC(i);
         }
     }
@@ -103,6 +108,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
     if (Channel != Encore::RhythmEngine::InputChannel::INVALID)
         engine->ProcessInput(Channel, REaction);
 };
+
 void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
     // Encore::EncoreLog(LOG_DEBUG, "Controller inputted.");
     Player &player = ThePlayerManager.GetActivePlayer(0);
@@ -146,7 +152,8 @@ void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state)
     for (int buttonInt = 0; buttonInt < player.padState.FacePadLayout.size();
          buttonInt++) {
         switch (player.padState.GetButtonState(
-            state, player.padState.FacePadLayout.at(buttonInt)
+            state,
+            player.padState.FacePadLayout.at(buttonInt)
         )) {
         case GLFW_PRESS: {
             engine->ProcessInput(
@@ -335,8 +342,9 @@ void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state)
     }
     */
 };
+
 void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
-    Rectangle scoreboxSrc {
+    Rectangle scoreboxSrc{
         0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
     };
     float WidthOfScorebox = u.hinpct(0.28);
@@ -344,9 +352,14 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
     float ScoreboxX = u.RightSide;
     float ScoreboxY = u.hpct(0.1425f);
     float HeightOfScorebox = WidthOfScorebox / 4;
-    Rectangle scoreboxDraw { ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox };
+    Rectangle scoreboxDraw{ ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox };
     DrawTexturePro(
-        assets.Scorebox, scoreboxSrc, scoreboxDraw, { WidthOfScorebox, 0 }, 0, WHITE
+        assets.Scorebox,
+        scoreboxSrc,
+        scoreboxDraw,
+        { WidthOfScorebox, 0 },
+        0,
+        WHITE
     );
 
     GameMenu::mhDrawText(
@@ -356,14 +369,14 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         ),
         { u.RightSide - u.winpct(0.0145f), scoreY + u.hinpct(0.0025) },
         u.hinpct(0.05),
-        Color { 107, 161, 222, 255 },
+        Color{ 107, 161, 222, 255 },
         assets.sdfShader,
         RIGHT
     );
 }
 
 void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
-    Rectangle TimerboxSrc {
+    Rectangle TimerboxSrc{
         0, 0, float(assets.Timerbox.width), float(assets.Timerbox.height)
     };
     float WidthOfTimerbox = u.hinpct(0.14);
@@ -371,7 +384,7 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     float TimerboxX = u.RightSide;
     float TimerboxY = u.hpct(0.1425f);
     float HeightOfTimerbox = WidthOfTimerbox / 4;
-    Rectangle TimerboxDraw { TimerboxX, TimerboxY, WidthOfTimerbox, HeightOfTimerbox };
+    Rectangle TimerboxDraw{ TimerboxX, TimerboxY, WidthOfTimerbox, HeightOfTimerbox };
     DrawTexturePro(
         assets.Timerbox,
         TimerboxSrc,
@@ -403,7 +416,11 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     int songMinutes = length / 60;
     int songSeconds = length % 60;
     const char *textTime = TextFormat(
-        "%i:%02i / %i:%02i", playedMinutes, playedSeconds, songMinutes, songSeconds
+        "%i:%02i / %i:%02i",
+        playedMinutes,
+        playedSeconds,
+        songMinutes,
+        songSeconds
     );
     GameMenu::mhDrawText(
         assets.rubik,
@@ -417,10 +434,13 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
 }
 
 void GameplayMenu::DrawGameplayStars(
-    Units &u, Assets &assets, float scorePos, float starY
+    Units &u,
+    Assets &assets,
+    float scorePos,
+    float starY
 ) {
     // todo: redo for band
-    auto& player = ThePlayerManager.GetActivePlayer(0);
+    auto &player = ThePlayerManager.GetActivePlayer(0);
     int inst = player.ClassicMode ? player.Instrument - 5 : player.Instrument;
     int diff = player.Difficulty;
     double starPercent = player.engine->stats->StarThresholdValue;
@@ -448,7 +468,7 @@ void GameplayMenu::DrawGameplayStars(
             starRect,
             { 0, 0 },
             0,
-            i == starsVal ? Color { 192, 192, 192, 128 } : WHITE
+            i == starsVal ? Color{ 192, 192, 192, 128 } : WHITE
         );
         EndScissorMode();
     }
@@ -458,17 +478,25 @@ void GameplayMenu::DrawGameplayStars(
             0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
         };
         float yMaskPos = Remap(
-            starPercent, STAR_THRESHOLDS[inst][4], STAR_THRESHOLDS[inst][5], 0, u.hinpct(0.05)
+            starPercent,
+            STAR_THRESHOLDS[inst][4],
+            STAR_THRESHOLDS[inst][5],
+            0,
+            u.hinpct(0.05)
         );
         BeginScissorMode(
-            scorePos - (starWH * 6), (starY + starWH) - yMaskPos, scorePos, yMaskPos
+            scorePos - (starWH * 6),
+            (starY + starWH) - yMaskPos,
+            scorePos,
+            yMaskPos
         );
         for (int i = 0; i < 5; i++) {
             float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
             Rectangle starRect = { starX, starY, starWH, starWH };
             DrawTexturePro(
-                 starPercent >= STAR_THRESHOLDS[inst][5]? assets.goldStar
-                                                        : assets.goldStarUnfilled,
+                starPercent >= STAR_THRESHOLDS[inst][5]
+                ? assets.goldStar
+                : assets.goldStarUnfilled,
                 emptyStarWH,
                 starRect,
                 { 0, 0 },
@@ -481,13 +509,21 @@ void GameplayMenu::DrawGameplayStars(
 }
 
 unsigned char BeatToCharViaTickThing(
-    int tick, int MinBrightness, int MaxBrightness, int QuarterNoteLength
+    int tick,
+    int MinBrightness,
+    int MaxBrightness,
+    int QuarterNoteLength
 ) {
     float TickModulo = tick % QuarterNoteLength;
     return Remap(
-        TickModulo / float(QuarterNoteLength), 0, 1.0f, MaxBrightness, MinBrightness
+        TickModulo / float(QuarterNoteLength),
+        0,
+        1.0f,
+        MaxBrightness,
+        MinBrightness
     );
 }
+
 bool songPlaying = false;
 
 double GetNotePos(double noteTime, double songTime, float length, float end) {
@@ -519,9 +555,13 @@ void GameplayMenu::Draw() {
     std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
-        0, 0, GetScreenWidth(), GetScreenHeight(), Color { 255, 255, 255, BackgroundColor }
+        0,
+        0,
+        GetScreenWidth(),
+        GetScreenHeight(),
+        Color{ 255, 255, 255, BackgroundColor }
     );
 
     std::span<Beatline> BeatlinePool;
@@ -532,16 +572,20 @@ void GameplayMenu::Draw() {
         TheAudioManager.unloadStreams();
         songPlaying = false;
         TheSongTime.Beatlines.erase(
-            TheSongTime.Beatlines.begin(), TheSongTime.Beatlines.end()
+            TheSongTime.Beatlines.begin(),
+            TheSongTime.Beatlines.end()
         );
         TheSongTime.OverdriveTicks.erase(
-            TheSongTime.OverdriveTicks.begin(), TheSongTime.OverdriveTicks.end()
+            TheSongTime.OverdriveTicks.begin(),
+            TheSongTime.OverdriveTicks.end()
         );
         TheSongTime.TimeSigChanges.erase(
-            TheSongTime.TimeSigChanges.begin(), TheSongTime.TimeSigChanges.end()
+            TheSongTime.TimeSigChanges.begin(),
+            TheSongTime.TimeSigChanges.end()
         );
         TheSongTime.BPMChanges.erase(
-            TheSongTime.BPMChanges.begin(), TheSongTime.BPMChanges.end()
+            TheSongTime.BPMChanges.begin(),
+            TheSongTime.BPMChanges.end()
         );
         TheSongTime.LastTick = 0;
         TheSongTime.CurrentTick = 0;
@@ -584,7 +628,7 @@ void GameplayMenu::Draw() {
 
         int mospos =
             ((GetScreenWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
-             / (1 + ThePlayerManager.PlayersActive))
+                / (1 + ThePlayerManager.PlayersActive))
             - ((ThePlayerManager.PlayersActive * NoteXWidth * 5) / 2);
         int MiddleOfScreen = mospos + (mospos * i); // height
         int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth;
@@ -602,11 +646,15 @@ void GameplayMenu::Draw() {
             assets.sdfShader,
             0
         );
-        int scoreWidth = MeasureTextEx(assets.JetBrainsMono, GameMenu::scoreCommaFormatter(player.engine->stats->Score).c_str(), u.hinpct(0.05), 0).x;
+        int scoreWidth = MeasureTextEx(assets.JetBrainsMono,
+                                       GameMenu::scoreCommaFormatter(
+                                           player.engine->stats->Score).c_str(),
+                                       u.hinpct(0.05),
+                                       0).x;
         GameMenu::mhDrawText(
             assets.JetBrainsMono,
             std::to_string(player.engine->stats->StarThresholdValue) + "%*",
-            { MiddleOfScreen + (NoteXWidth * 3.3f) + scoreWidth ,
+            { MiddleOfScreen + (NoteXWidth * 3.3f) + scoreWidth,
               float(FakeStrikeline) },
             u.hinpct(0.05),
             WHITE,
@@ -616,7 +664,7 @@ void GameplayMenu::Draw() {
         GameMenu::mhDrawText(
             assets.JetBrainsMono,
             "*" + std::to_string(player.engine->stats->Stars),
-            { MiddleOfScreen + (NoteXWidth * 3.3f) + scoreWidth ,
+            { MiddleOfScreen + (NoteXWidth * 3.3f) + scoreWidth,
               float(FakeStrikeline) - u.hinpct(0.05) },
             u.hinpct(0.05),
             WHITE,
@@ -678,8 +726,8 @@ void GameplayMenu::Draw() {
             0
         );
         {
-
-            float TimeSinceHit = (TheSongTime.GetElapsedTime() - player.engine->stats->LastPerfectTime);
+            float TimeSinceHit = (TheSongTime.GetElapsedTime() - player.engine->stats->
+                LastPerfectTime);
             if (TimeSinceHit <= 0.75f) {
                 unsigned char HitAlpha = Remap(
                     getEasingFunction(EaseOutQuad)(TimeSinceHit / 0.75f),
@@ -691,9 +739,10 @@ void GameplayMenu::Draw() {
                 GameMenu::mhDrawText(
                     assets.JetBrainsMono,
                     "Perfect",
-                    { MiddleOfScreen + (NoteXWidth * 3.0f), float(FakeStrikeline) - u.hinpct(0.1) },
+                    { MiddleOfScreen + (NoteXWidth * 3.0f),
+                      float(FakeStrikeline) - u.hinpct(0.1) },
                     u.hinpct(0.05),
-                    {GOLD.r, GOLD.g, GOLD.b, HitAlpha},
+                    { GOLD.r, GOLD.g, GOLD.b, HitAlpha },
                     assets.sdfShader,
                     0
                 );
@@ -730,7 +779,7 @@ void GameplayMenu::Draw() {
                 }
                 DrawRectangle(
                     TrackLeft,
-                    (ScrollPos)-Height,
+                    (ScrollPos) - Height,
                     NoteXWidth * 5,
                     Height,
                     { beatlineColor.r, beatlineColor.g, beatlineColor.b, 128 }
@@ -786,7 +835,11 @@ void GameplayMenu::Draw() {
             int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
             Color soloColor = { BLUE.r, BLUE.g, BLUE.b, 64 };
             DrawRectangle(
-                TrackLeft, NoteLength, (NoteXWidth * 5), ScrollEndPos, soloColor
+                TrackLeft,
+                NoteLength,
+                (NoteXWidth * 5),
+                ScrollEndPos,
+                soloColor
             );
             if (currentSolo.StartSec < TheSongTime.GetElapsedTime()) {
                 // this should be some sort of track state here. like "solo active"
@@ -806,7 +859,7 @@ void GameplayMenu::Draw() {
                 GameMenu::mhDrawText(
                     assets.rubik,
                     std::to_string(currentSolo.NotesHit) + "/"
-                        + std::to_string(currentSolo.NoteCount),
+                    + std::to_string(currentSolo.NoteCount),
                     { float(MiddleOfScreen), float(TopOfScreen / 5) + u.hinpct(0.075) },
                     u.hinpct(0.025),
                     WHITE,
@@ -852,7 +905,8 @@ void GameplayMenu::Draw() {
                     continue;
                 }
                 int NotePoolStart = std::distance(
-                    chart->at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)
+                    chart->at(Lane).begin(),
+                    chart->CurrentNoteIterators.at(Lane)
                 );
                 int NotePoolEnd = NotePoolPerLane
                     + std::distance(chart->at(Lane).begin(),
@@ -920,7 +974,11 @@ void GameplayMenu::Draw() {
                     if (note.NotePassed)
                         color = MAROON;
                     if (sust) {
-                        DrawRectangle(pos + (NoteXWidth/4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                        DrawRectangle(pos + (NoteXWidth / 4),
+                                      NoteLength,
+                                      NoteXWidth / 2,
+                                      ScrollEndPos,
+                                      color);
                     }
                     DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
                     if (note.NoteType == 1) {
@@ -968,7 +1026,11 @@ void GameplayMenu::Draw() {
 
                     if (note->NotePassed)
                         color = MAROON;
-                    DrawRectangle(pos + (NoteXWidth / 4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                    DrawRectangle(pos + (NoteXWidth / 4),
+                                  NoteLength,
+                                  NoteXWidth / 2,
+                                  ScrollEndPos,
+                                  color);
                     //if (note->NoteType == 1) {
                     //    DrawRectangle(
                     //        pos + 5,
@@ -1129,11 +1191,38 @@ void GameplayMenu::Draw() {
                 uint8_t x = note.Lane;
 
                 DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
+                if (x == 0) {
+                    int pos = TrackLeft;
+                    int width = NoteXWidth;
+                    Color color = PURPLE;
+                    width = NoteXWidth * 4;
+                    if (sust) {
+                        DrawRectangle(pos + (NoteXWidth / 4),
+                                      NoteLength,
+                                      width / 2,
+                                      ScrollEndPos,
+                                      color);
+                    }
+                    DrawRectangle(pos, sustLength, width, NoteHeight, color);
+                    if (note.NoteType == 1) {
+                        DrawRectangle(
+                            pos + 5,
+                            sustLength + 5,
+                            width - 10,
+                            NoteHeight - 10,
+                            WHITE
+                        );
+                    }
+                }
                 while (x) {
                     uint8_t y = x & ~(x - 1);
                     int pos = TrackLeft;
+                    int width = NoteXWidth;
                     Color color = GREEN;
-                    if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+                    if (x == 0) {
+                        color = PURPLE;
+                        width = NoteXWidth * 4;
+                    } else if (y == Encore::RhythmEngine::PlasticFrets[1]) {
                         pos += NoteXWidth;
                         color = RED;
                     } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
@@ -1150,14 +1239,18 @@ void GameplayMenu::Draw() {
                         color = MAROON;
                     // DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
                     if (sust) {
-                        DrawRectangle(pos + (NoteXWidth/4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                        DrawRectangle(pos + (NoteXWidth / 4),
+                                      NoteLength,
+                                      width / 2,
+                                      ScrollEndPos,
+                                      color);
                     }
-                    DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
+                    DrawRectangle(pos, sustLength, width, NoteHeight, color);
                     if (note.NoteType == 1) {
                         DrawRectangle(
                             pos + 5,
                             sustLength + 5,
-                            NoteXWidth - 10,
+                            width - 10,
                             NoteHeight - 10,
                             WHITE
                         );
@@ -1205,7 +1298,11 @@ void GameplayMenu::Draw() {
                     }
                     if (note->NotePassed)
                         color = MAROON;
-                    DrawRectangle(pos + (NoteXWidth / 4), NoteLength, NoteXWidth/2, ScrollEndPos, color);
+                    DrawRectangle(pos + (NoteXWidth / 4),
+                                  NoteLength,
+                                  NoteXWidth / 2,
+                                  ScrollEndPos,
+                                  color);
                     //if (note->NoteType == 1) {
                     //    DrawRectangle(
                     //        pos + 5,
@@ -1224,7 +1321,10 @@ void GameplayMenu::Draw() {
             : player.engine->stats->multNoOD() == 4;
         if (maxmult) {
             unsigned char streakFlash = BeatToCharViaTickThing(
-                TheSongTime.GetCurrentTick(), 0, 64, flashInterval
+                TheSongTime.GetCurrentTick(),
+                0,
+                64,
+                flashInterval
             );
             Color StreakColor = { 255, 255, 255, streakFlash };
             if (player.engine->stats->overdrive.Active) {
@@ -1274,7 +1374,7 @@ void GameplayMenu::Draw() {
 
         DrawRectangle(
             MiddleOfScreen - (NoteXWidth * 3),
-            (FakeStrikeline)-5,
+            (FakeStrikeline) - 5,
             NoteXWidth * 6,
             10,
             BLACK
@@ -1297,7 +1397,7 @@ void GameplayMenu::Draw() {
             == Encore::RhythmEngine::StrumState::UpStrum) {
             DrawRectangle(
                 MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
-                (FakeStrikeline)-10,
+                (FakeStrikeline) - 10,
                 NoteXWidth * 6,
                 10,
                 WHITE
@@ -1551,27 +1651,30 @@ void GameplayMenu::Draw() {
     DrawScorebox(u, assets, scoreY);
 
     float SongNameWidth = MeasureTextEx(
-                              assets.rubikBoldItalic,
-                              TheSongList.curSong->title.c_str(),
-                              u.hinpct(MediumHeader),
-                              0
-    )
-                              .x;
+            assets.rubikBoldItalic,
+            TheSongList.curSong->title.c_str(),
+            u.hinpct(MediumHeader),
+            0
+        )
+        .x;
     std::string SongArtistString =
         TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear;
     float SongArtistWidth =
         MeasureTextEx(
-            assets.rubikBoldItalic, SongArtistString.c_str(), u.hinpct(SmallHeader), 0
+            assets.rubikBoldItalic,
+            SongArtistString.c_str(),
+            u.hinpct(SmallHeader),
+            0
         )
-            .x;
+        .x;
 
     float SongExtrasWidth = MeasureTextEx(
-                                assets.rubikBoldItalic,
-                                TheSongList.curSong->charters[0].c_str(),
-                                u.hinpct(SmallHeader),
-                                0
-    )
-                                .x;
+            assets.rubikBoldItalic,
+            TheSongList.curSong->charters[0].c_str(),
+            u.hinpct(SmallHeader),
+            0
+        )
+        .x;
 
     double SongNameDuration = 0.75f;
     unsigned char SongNameAlpha = 255;
@@ -1668,8 +1771,8 @@ void GameplayMenu::Draw() {
             u.hpct(0.19f),
             1.25 * SongBackgroundWidth,
             u.hinpct(0.02f + MediumHeader + SmallHeader + SmallHeader),
-            Color { 0, 0, 0, 128 },
-            Color { 0, 0, 0, 0 }
+            Color{ 0, 0, 0, 128 },
+            Color{ 0, 0, 0, 0 }
         );
         DrawTextEx(
             assets.rubikBoldItalic,
@@ -1677,7 +1780,7 @@ void GameplayMenu::Draw() {
             { SongNamePosition, u.hpct(0.2f) },
             u.hinpct(MediumHeader),
             0,
-            Color { 255, 255, 255, SongNameAlpha }
+            Color{ 255, 255, 255, SongNameAlpha }
         );
         DrawTextEx(
             assets.rubikItalic,
@@ -1685,7 +1788,7 @@ void GameplayMenu::Draw() {
             { SongArtistPosition, u.hpct(0.2f + MediumHeader) },
             u.hinpct(SmallHeader),
             0,
-            Color { 200, 200, 200, SongArtistAlpha }
+            Color{ 200, 200, 200, SongArtistAlpha }
         );
         DrawTextEx(
             assets.rubikItalic,
@@ -1693,7 +1796,7 @@ void GameplayMenu::Draw() {
             { SongExtrasPosition, u.hpct(0.2f + MediumHeader + SmallHeader) },
             u.hinpct(SmallHeader),
             0,
-            Color { 200, 200, 200, SongExtrasAlpha }
+            Color{ 200, 200, 200, SongExtrasAlpha }
         );
     }
 

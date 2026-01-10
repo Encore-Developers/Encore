@@ -22,6 +22,10 @@ inline std::vector<std::pair<int, int> > MinMaxDiff = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
 };
 
+inline std::vector<std::pair<int, int> > GuitarMinMaxDiff = {
+    { 59, 64 }, { 71, 76 }, { 83, 88 }, { 95, 100 }
+};
+
 inline std::vector<std::pair<int, int> > LiftMinMaxDiff = {
     { 66, 69 }, { 78, 81 }, { 90, 93 }, { 102, 106 }
 };

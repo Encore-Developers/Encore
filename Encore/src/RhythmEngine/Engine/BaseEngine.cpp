@@ -98,6 +98,8 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
 }
 void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
+    if (chordSize == 0) chordSize = 1;
+
     int startTick = chart->CurrentNoteIterators.at(lane)->StartTicks;
     double startTime = chart->CurrentNoteIterators.at(lane)->StartSeconds;
     Encore::EncoreLog(

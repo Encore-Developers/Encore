@@ -117,14 +117,16 @@ void ReadyUpMenu::Draw() {
         0,
         WHITE
     );
-    DrawTextEx(
-        assets.rubikItalic,
-        TheSongList.curSong->charters[0].c_str(),
-        { TextPlacementLR, TextPlacementTB + u.hinpct(0.095f) },
-        u.hinpct(0.04f),
-        0,
-        WHITE
-    );
+    if (!TheSongList.curSong->charters.empty()) {
+        DrawTextEx(
+            assets.rubikItalic,
+            TheSongList.curSong->charters[0].c_str(),
+            { TextPlacementLR, TextPlacementTB + u.hinpct(0.095f) },
+            u.hinpct(0.04f),
+            0,
+            WHITE
+        );
+    }
     // todo: allow this to be run per player
     // load midi
     GameMenu::DrawBottomOvershell();

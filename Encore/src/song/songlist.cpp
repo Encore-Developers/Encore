@@ -331,7 +331,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
     MaxChartsToLoad = cachedSongCount;
     for (int i = 0; i < cachedSongCount; i++) {
-        CurrentChartNumber = i;
+        CurrentChartNumber = i + 1;
         Song song;
 
         // Read cache values
@@ -361,7 +361,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
             song.LoadAudioJSON(infoData);
         }
 
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
+        // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
 
         if (!std::filesystem::exists(song.songDir)) {
             continue;

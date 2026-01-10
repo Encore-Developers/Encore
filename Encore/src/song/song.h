@@ -222,7 +222,7 @@ public:
     void LoadInfoINI(std::filesystem::path iniPath);
     void PullInfoFromINI(INIReader &ini);
 
-    void LoadInfo(const nlohmann::json &infoData) {
+    void LoadInfoJSON(const nlohmann::json &infoData) {
 
         if (!charters.empty())
             charters.clear();
@@ -255,7 +255,7 @@ public:
         json infoData = json::parse(infoFile);
         infoFile.close();
 
-        LoadInfo(infoData);
+        LoadInfoJSON(infoData);
         LoadAudioJSON(infoData);
     }
 
