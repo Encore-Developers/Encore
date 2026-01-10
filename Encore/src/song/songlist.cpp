@@ -357,7 +357,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
             SongCacheIn >> jsonData;
             json infoData = json::parse(jsonData.c_str());
 
-            song.LoadInfo(infoData);
+            song.LoadInfoINI(infoData);
             song.LoadAudioJSON(infoData);
         }
 
