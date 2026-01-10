@@ -315,7 +315,7 @@ void SongSelectMenu::Draw() {
             );
         } else if (!TheSongList.listMenuEntries[i].hiddenEntry) {
             bool isCurSong = TheSongList.curSong && i == TheSongList.curSong->songListPos - 1;
-            Font &artistFont = isCurSong ? assets.josefinSansItalic : assets.josefinSansItalic;
+            Font artistFont = assets.josefinSansItalic;
             Song &songi = TheSongList.songs[TheSongList.listMenuEntries[i].songListID];
             int songID = TheSongList.listMenuEntries[i].songListID;
 
@@ -569,11 +569,25 @@ void SongSelectMenu::Draw() {
         float IconLeftPos = (float)(u.RightSide - AlbumHeight) + IconWidth * ResetToLeftPos;
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff == -1) TintColor = DARKGRAY;
-        DrawTexturePro(assets.InstIcons[asdasd], { 0, 0, (float)assets.InstIcons[asdasd].width, (float)assets.InstIcons[asdasd].height }, Placement, { 0, 0 }, 0, TintColor);
+        int diffNumber = SongToDisplayInfo.parts[i]->diff;
+        if (SongToDisplayInfo.parts[i] && diffNumber == -1) TintColor = DARKGRAY;
+        auto instIcon = assets.InstIcons[asdasd];
+        DrawTexturePro(*instIcon, { 0, 0, (float)instIcon->width, (float)instIcon->height }, Placement, { 0, 0 }, 0, TintColor);
         DrawTexturePro(assets.BaseRingTexture, { 0, 0, (float)assets.BaseRingTexture.width, (float)assets.BaseRingTexture.height }, Placement, { 0, 0 }, 0, ColorBrightness(WHITE, 2));
-        if (SongToDisplayInfo.parts[i] && SongToDisplayInfo.parts[i]->diff > 0)
-            DrawTexturePro(assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1], { 0, 0, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].width, (float)assets.YargRings[SongToDisplayInfo.parts[i]->diff - 1].height }, Placement, { 0, 0 }, 0, WHITE);
+        if (SongToDisplayInfo.parts[i] && diffNumber > 0) {
+            if (diffNumber > 6) {
+                diffNumber = 6;
+            }
+            auto ring = assets.YargRings[diffNumber - 1];
+            DrawTexturePro(
+                *ring,
+                { 0, 0, (float)ring->width, (float)ring->height },
+                Placement,
+                { 0, 0 },
+                0,
+                WHITE
+            );
+        }
     }
 
     GameMenu::DrawBottomOvershell();

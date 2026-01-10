@@ -8,13 +8,7 @@
 #include "raylib.h"
 
 class cacheLoadingScreen : public Menu {
-    Texture2D encoreLogo;
-    Font RedHatDisplay;
-    Font RubikBold;
-    Font JosefinSansItalic;
     int SplashSel;
-    Texture2D LoadingScreenBackground;
-    Shader sdfShader;
 
 public:
     cacheLoadingScreen();
