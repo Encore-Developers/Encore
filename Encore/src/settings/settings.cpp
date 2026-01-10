@@ -57,7 +57,7 @@ namespace Encore {
             int windowHeight = height * 0.75;
             SetWindowPosition(width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y);
             SetWindowSize(windowWidth, windowHeight);
-            glfwSetWindowMonitor((GLFWwindow *)GetWindowHandle(), NULL, width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y, windowWidth, windowHeight, vidmode->refreshRate);
+            glfwSetWindowMonitor(glfwGetCurrentContext(), NULL, width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y, windowWidth, windowHeight, vidmode->refreshRate);
             ClearWindowState(FLAG_WINDOW_UNDECORATED);
             MaximizeWindow();
         } else {
@@ -68,7 +68,7 @@ namespace Encore {
 
             SetWindowPosition(x, y);
             SetWindowSize(vidmode->width, vidmode->height);
-            glfwSetWindowMonitor((GLFWwindow *)GetWindowHandle(), monitor, x, y, vidmode->width, vidmode->height, vidmode->refreshRate);
+            glfwSetWindowMonitor(glfwGetCurrentContext(), monitor, x, y, vidmode->width, vidmode->height, vidmode->refreshRate);
         }
     }
 
