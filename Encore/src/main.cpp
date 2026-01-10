@@ -107,6 +107,8 @@ void DrawLoadingScreen(unsigned char alpha, float progress) {
     DrawTextureEx(icon, {GetScreenWidth()/2.0f-iconSize, GetScreenHeight()/2.0f-iconSize}, 0, iconScale, {255, 255, 255, alpha});
 }
 
+
+
 int main(int argc, char *argv[]) {
     TheGameRPC.Initialize();
     SetTraceLogCallback(Encore::EncoreLog);
@@ -164,20 +166,7 @@ int main(int argc, char *argv[]) {
     }
     Encore::EncoreLog(LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg));
     InitWindow(800, 600, "Encore");
-    if (!TheGameSettings.Fullscreen) {
-        int x, y, width, height;
-        glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
-        Encore::EncoreLog(LOG_INFO, TextFormat("Workarea of monitor %s: %i %i %i %i", glfwGetMonitorName(glfwGetPrimaryMonitor()), x, y, width, height));
-        int windowWidth = width * 0.75;
-        int windowHeight = height * 0.75;
-        SetWindowPosition(width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y);
-        SetWindowSize(windowWidth, windowHeight);
-        ClearWindowState(FLAG_WINDOW_UNDECORATED);
-        MaximizeWindow();
-    } else {
-        SetWindowSize(GetMonitorWidth(0), GetMonitorHeight(0));
-        SET_WINDOW_FULLSCREEN_BORDERLESS();
-    }
+    TheGameSettings.UpdateFullscreen();
     bool AudioInitSuccessful = TheAudioManager.Init();
     assert(AudioInitSuccessful == true);
     Encore::EncoreLog(LOG_INFO, "Audio successfully initialized");
@@ -218,15 +207,6 @@ int main(int argc, char *argv[]) {
         double curTime = GetTime();
         float bgTime = curTime / 5.0f;
         SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
-        if (IsKeyPressed(KEY_F11)
-            || (IsKeyPressed(KEY_LEFT_ALT) && IsKeyPressed(KEY_ENTER))) {
-            TheGameSettings.Fullscreen = !TheGameSettings.Fullscreen;
-            if (!TheGameSettings.Fullscreen) {
-                SET_WINDOW_WINDOWED();
-            } else {
-                SET_WINDOW_FULLSCREEN_BORDERLESS();
-            }
-        }
         if (GetScreenWidth() < minWidth) {
             if (GetScreenHeight() < minHeight)
                 SetWindowSize(minWidth, minHeight);

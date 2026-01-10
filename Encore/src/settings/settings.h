@@ -41,6 +41,7 @@ namespace Encore {
         std::vector<std::filesystem::path> SongPaths;
         void SaveToFile(const std::string& filename) const;
         void LoadFromFile(const std::string& filename);
+        void UpdateFullscreen();
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(

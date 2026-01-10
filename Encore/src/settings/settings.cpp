@@ -4,6 +4,8 @@
 
 #include "settings.h"
 // #include "settings-old.h"
+#include "util/enclog.h"
+
 #include <raylib.h>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -43,6 +45,30 @@ namespace Encore {
             TraceLog(LOG_INFO, "Settings loaded from %s", filename.c_str());
         } catch (const std::exception& e) {
             TraceLog(LOG_ERROR, "Error loading settings from %s: %s", filename.c_str(), e.what());
+        }
+    }
+    void Settings::UpdateFullscreen() {
+        if (!Fullscreen) {
+            const GLFWvidmode *vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+            int x, y, width, height;
+            glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
+            EncoreLog(LOG_INFO, TextFormat("Workarea of monitor %s: %i %i %i %i", glfwGetMonitorName(glfwGetPrimaryMonitor()), x, y, width, height));
+            int windowWidth = width * 0.75;
+            int windowHeight = height * 0.75;
+            SetWindowPosition(width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y);
+            SetWindowSize(windowWidth, windowHeight);
+            glfwSetWindowMonitor((GLFWwindow *)GetWindowHandle(), NULL, width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y, windowWidth, windowHeight, vidmode->refreshRate);
+            ClearWindowState(FLAG_WINDOW_UNDECORATED);
+            MaximizeWindow();
+        } else {
+            auto monitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
+            int x, y, width, height;
+            glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
+
+            SetWindowPosition(x, y);
+            SetWindowSize(vidmode->width, vidmode->height);
+            glfwSetWindowMonitor((GLFWwindow *)GetWindowHandle(), monitor, x, y, vidmode->width, vidmode->height, vidmode->refreshRate);
         }
     }
 

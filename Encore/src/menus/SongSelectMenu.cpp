@@ -70,7 +70,7 @@ void SongSelectMenu::Load() {
         if (!song.ini) {
             // song.LoadSongJSON(song.songInfoPath);
         } else {
-            song.LoadInfoINI(song.songInfoPath);
+            // song.LoadInfoINI(song.songInfoPath);
         }
     }
 }

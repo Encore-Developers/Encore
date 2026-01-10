@@ -6,12 +6,22 @@
 #include "menus/MenuManager.h"
 #include "util/enclog.h"
 #include "raylib.h"
+#include "settings/settings.h"
 
 #include <cstring>
 
 void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s",
     // key, ToString(TheMenuManager.currentScreen)) );
+
+    if (action == GLFW_PRESS) {
+        if (key == KEY_F11 || (key == KEY_ENTER && mods & GLFW_MOD_ALT)) {
+            TheGameSettings.Fullscreen = !TheGameSettings.Fullscreen;
+            TheGameSettings.UpdateFullscreen();
+            return;
+        }
+    }
+
     switch (TheMenuManager.currentScreen) { // NOTE: when adding a new Menu
                                             // derivative, you
         // must put its enum value in Screens, and its
