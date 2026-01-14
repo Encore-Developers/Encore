@@ -3,7 +3,6 @@
 //
 
 #include "settings.h"
-// #include "settings-old.h"
 #include "util/enclog.h"
 
 #include <raylib.h>

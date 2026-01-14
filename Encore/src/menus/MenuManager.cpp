@@ -15,7 +15,6 @@
 #include "menu.h"
 #include "raygui.h"
 #include "resultsMenu.h"
-// #include "settings-old.h"
 #include "settings/settings.h"
 #include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"

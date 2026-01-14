@@ -4,7 +4,6 @@
 //
 
 #include "player.h"
-#include "rapidjson/document.h"
 #include "util/discord.h"
 
 class PlayerManager {

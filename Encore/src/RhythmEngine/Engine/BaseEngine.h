@@ -42,8 +42,9 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<BaseStats<5> > stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
 
-        // bool GetCurrentNote(int lane);
+        virtual std::pair<int, int> GetNotePoolSize() { return {0,0};};
 
+        // bool GetCurrentNote(int lane);
         // virtual bool CanNoteBeHit();
         virtual void UpdateOnFrame(double CurrentTime) {
 

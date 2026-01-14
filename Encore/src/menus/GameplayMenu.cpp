@@ -19,12 +19,12 @@
 #include "users/playerManager.h"
 #include "MenuManager.h"
 #include "OvershellHelper.h"
-// #include "settings-old.h"
 #include "../settings/settings.h"
 #include "timingvalues.h"
 
 #include <raylib.h>
 
+#include "gameplay/trackRenderer/GuitarTrack.h"
 #include "settings/keybinds.h"
 
 GameplayMenu::GameplayMenu() {
@@ -564,7 +564,7 @@ void GameplayMenu::Draw() {
         Color{ 255, 255, 255, BackgroundColor }
     );
 
-    std::span<Beatline> BeatlinePool;
+
 
     if (TheSongTime.GetElapsedTime() > TheSongList.curSong->end - 1) {
         // TODO: endgame
@@ -599,19 +599,6 @@ void GameplayMenu::Draw() {
         return;
     }
 
-    if (TheSongTime.Beatlines.empty()) {
-    } else {
-        if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
-            TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
-        }
-
-        int beatlinePoolMaxSize = NOTE_POOL_SIZE / 4;
-        size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
-            ? beatlinePoolMaxSize
-            : TheSongTime.Beatlines.size();
-        // because i have to do bounds checks myself
-        BeatlinePool = { TheSongTime.Beatlines.begin(), BeatlinePoolSize };
-    }
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     int flashInterval = (numer * 480) / denom;
@@ -620,7 +607,7 @@ void GameplayMenu::Draw() {
         Player &player = ThePlayerManager.GetActivePlayer(i);
         player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
         player.engine->UpdateStats(player.Instrument, player.Difficulty);
-
+        tracks.at(i)->Draw();
         int TopOfScreen = GetScreenHeight(); // width
         int FakeStrikeline = (TopOfScreen / 5) * 4;
         constexpr int NoteXWidth = 50;
@@ -748,574 +735,574 @@ void GameplayMenu::Draw() {
                 );
             }
         }
-        DrawRectangle(TrackLeft, 0, NoteXWidth * 5, GetScreenHeight(), { 0, 0, 0, 128 });
-        if (!TheSongTime.Beatlines.empty()) {
-            for (auto &beatline : BeatlinePool) {
-                int ScrollPos = -1
-                    * GetNotePos(
-                        beatline.time,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-                int Height = 0;
-                Color beatlineColor = WHITE;
-                switch (beatline.type) {
-                case Major: {
-                    beatlineColor = GRAY;
-                    Height = 10;
-                    break;
-                }
-                case Minor: {
-                    beatlineColor = DARKGRAY;
-                    Height = 10;
-                    break;
-                }
-                case Measure: {
-                    beatlineColor = WHITE;
-                    Height = 10;
-                    break;
-                }
-                }
-                DrawRectangle(
-                    TrackLeft,
-                    (ScrollPos) - Height,
-                    NoteXWidth * 5,
-                    Height,
-                    { beatlineColor.r, beatlineColor.g, beatlineColor.b, 128 }
-                );
-            }
-        }
+        // DrawRectangle(TrackLeft, 0, NoteXWidth * 5, GetScreenHeight(), { 0, 0, 0, 128 });
+        // if (!TheSongTime.Beatlines.empty()) {
+        //     for (auto &beatline : BeatlinePool) {
+        //         int ScrollPos = -1
+        //             * GetNotePos(
+        //                 beatline.time,
+        //                 TheSongTime.GetElapsedTime(),
+        //                 FakeStrikeline / 2,
+        //                 FakeStrikeline
+        //             );
+        //         int Height = 0;
+        //         Color beatlineColor = WHITE;
+        //         switch (beatline.type) {
+        //         case Major: {
+        //             beatlineColor = GRAY;
+        //             Height = 10;
+        //             break;
+        //         }
+        //         case Minor: {
+        //             beatlineColor = DARKGRAY;
+        //             Height = 10;
+        //             break;
+        //         }
+        //         case Measure: {
+        //             beatlineColor = WHITE;
+        //             Height = 10;
+        //             break;
+        //         }
+        //         }
+        //         DrawRectangle(
+        //             TrackLeft,
+        //             (ScrollPos) - Height,
+        //             NoteXWidth * 5,
+        //             Height,
+        //             { beatlineColor.r, beatlineColor.g, beatlineColor.b, 128 }
+        //         );
+        //     }
+        // }
 
         /*  0 is the top of the screen, and is earlier/negative in time
          *
          */
 
-        for (int j = 0; j <= 5; j++) {
-            Color DividerColors = { WHITE.r, WHITE.g, WHITE.b, 128 };
-            int DividerWidth = 2;
-            if (player.engine->stats->overdrive.Active) {
-                DividerColors = { GOLD.r, GOLD.g, GOLD.b, 128 };
-                DividerWidth = 4;
-            }
-            if (j == 0 || j == 5) {
-                int pos = (TrackLeft + (NoteXWidth * j)) - (RailWidth);
-                if (j == 5)
-                    pos = (TrackLeft + (NoteXWidth * j));
-                DrawRectangle(pos, 0, RailWidth, GetScreenHeight(), DARKGRAY);
-            }
-            DrawRectangle(
-                (TrackLeft + (NoteXWidth * j)) - (DividerWidth / 2),
-                0,
-                DividerWidth,
-                GetScreenHeight(),
-                DividerColors
-            ); // dividers
-        }
+        // for (int j = 0; j <= 5; j++) {
+        //     Color DividerColors = { WHITE.r, WHITE.g, WHITE.b, 128 };
+        //     int DividerWidth = 2;
+        //     if (player.engine->stats->overdrive.Active) {
+        //         DividerColors = { GOLD.r, GOLD.g, GOLD.b, 128 };
+        //         DividerWidth = 4;
+        //     }
+        //     if (j == 0 || j == 5) {
+        //         int pos = (TrackLeft + (NoteXWidth * j)) - (RailWidth);
+        //         if (j == 5)
+        //             pos = (TrackLeft + (NoteXWidth * j));
+        //         DrawRectangle(pos, 0, RailWidth, GetScreenHeight(), DARKGRAY);
+        //     }
+        //     DrawRectangle(
+        //         (TrackLeft + (NoteXWidth * j)) - (DividerWidth / 2),
+        //         0,
+        //         DividerWidth,
+        //         GetScreenHeight(),
+        //         DividerColors
+        //     ); // dividers
+        // }
+        //
+        // if (!chart->solos.empty()) {
+        //     solo &currentSolo = chart->solos.front();
+        //     int ScrollPos = -1
+        //         * GetNotePos(
+        //             currentSolo.StartSec,
+        //             TheSongTime.GetElapsedTime(),
+        //             FakeStrikeline / 2,
+        //             FakeStrikeline
+        //         );
+        //     int NoteLength = -1
+        //         * GetNotePos(
+        //             currentSolo.StartSec + currentSolo.EndSec,
+        //             TheSongTime.GetElapsedTime(),
+        //             FakeStrikeline / 2,
+        //             FakeStrikeline
+        //         );
+        //     int ScrollEndPos = ScrollPos - NoteLength;
+        //     int topPos =
+        //         MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth - SidesWidth;
+        //     int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
+        //     Color soloColor = { BLUE.r, BLUE.g, BLUE.b, 64 };
+        //     DrawRectangle(
+        //         TrackLeft,
+        //         NoteLength,
+        //         (NoteXWidth * 5),
+        //         ScrollEndPos,
+        //         soloColor
+        //     );
+        //     if (currentSolo.StartSec < TheSongTime.GetElapsedTime()) {
+        //         // this should be some sort of track state here. like "solo active"
+        //         // because you know. this is logic!
+        //         GameMenu::mhDrawText(
+        //             assets.rubik,
+        //             std::to_string(
+        //                 int((float(currentSolo.NotesHit) / float(currentSolo.NoteCount))
+        //                     * 100.0f)
+        //             ) + "%",
+        //             { float(MiddleOfScreen), float(TopOfScreen / 5) },
+        //             u.hinpct(0.075),
+        //             WHITE,
+        //             assets.sdfShader,
+        //             1
+        //         );
+        //         GameMenu::mhDrawText(
+        //             assets.rubik,
+        //             std::to_string(currentSolo.NotesHit) + "/"
+        //             + std::to_string(currentSolo.NoteCount),
+        //             { float(MiddleOfScreen), float(TopOfScreen / 5) + u.hinpct(0.075) },
+        //             u.hinpct(0.025),
+        //             WHITE,
+        //             assets.sdfShader,
+        //             1
+        //         );
+        //     }
+        //     if (currentSolo.StartSec + currentSolo.EndSec < TheSongTime.GetElapsedTime())
+        //         chart->solos.erase(chart.get()->solos.begin());
+        // }
+        // if (!chart->overdrive.empty()) {
+        //     odPhrase &currentSolo = player.engine.get()->chart.get()->overdrive.front();
+        //     auto asd = player.engine->chart->overdrive.begin();
+        //     int ScrollPos = -1
+        //         * GetNotePos(
+        //             currentSolo.StartSec,
+        //             TheSongTime.GetElapsedTime(),
+        //             FakeStrikeline / 2,
+        //             FakeStrikeline
+        //         );
+        //     int NoteLength = -1
+        //         * GetNotePos(
+        //             currentSolo.StartSec + currentSolo.EndSec,
+        //             TheSongTime.GetElapsedTime(),
+        //             FakeStrikeline / 2,
+        //             FakeStrikeline
+        //         );
+        //     int ScrollEndPos = ScrollPos - NoteLength;
+        //     int topPos = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth
+        //         - (SidesWidth / 2);
+        //     int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
+        //     DrawRectangle(topPos, NoteLength, SidesWidth / 2, ScrollEndPos, GOLD);
+        //     DrawRectangle(bottomPos, NoteLength, SidesWidth / 2, ScrollEndPos, GOLD);
+        // }
 
-        if (!chart->solos.empty()) {
-            solo &currentSolo = chart->solos.front();
-            int ScrollPos = -1
-                * GetNotePos(
-                    currentSolo.StartSec,
-                    TheSongTime.GetElapsedTime(),
-                    FakeStrikeline / 2,
-                    FakeStrikeline
-                );
-            int NoteLength = -1
-                * GetNotePos(
-                    currentSolo.StartSec + currentSolo.EndSec,
-                    TheSongTime.GetElapsedTime(),
-                    FakeStrikeline / 2,
-                    FakeStrikeline
-                );
-            int ScrollEndPos = ScrollPos - NoteLength;
-            int topPos =
-                MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth - SidesWidth;
-            int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
-            Color soloColor = { BLUE.r, BLUE.g, BLUE.b, 64 };
-            DrawRectangle(
-                TrackLeft,
-                NoteLength,
-                (NoteXWidth * 5),
-                ScrollEndPos,
-                soloColor
-            );
-            if (currentSolo.StartSec < TheSongTime.GetElapsedTime()) {
-                // this should be some sort of track state here. like "solo active"
-                // because you know. this is logic!
-                GameMenu::mhDrawText(
-                    assets.rubik,
-                    std::to_string(
-                        int((float(currentSolo.NotesHit) / float(currentSolo.NoteCount))
-                            * 100.0f)
-                    ) + "%",
-                    { float(MiddleOfScreen), float(TopOfScreen / 5) },
-                    u.hinpct(0.075),
-                    WHITE,
-                    assets.sdfShader,
-                    1
-                );
-                GameMenu::mhDrawText(
-                    assets.rubik,
-                    std::to_string(currentSolo.NotesHit) + "/"
-                    + std::to_string(currentSolo.NoteCount),
-                    { float(MiddleOfScreen), float(TopOfScreen / 5) + u.hinpct(0.075) },
-                    u.hinpct(0.025),
-                    WHITE,
-                    assets.sdfShader,
-                    1
-                );
-            }
-            if (currentSolo.StartSec + currentSolo.EndSec < TheSongTime.GetElapsedTime())
-                chart->solos.erase(chart.get()->solos.begin());
-        }
-        if (!chart->overdrive.empty()) {
-            odPhrase &currentSolo = player.engine.get()->chart.get()->overdrive.front();
-            auto asd = player.engine->chart->overdrive.begin();
-            int ScrollPos = -1
-                * GetNotePos(
-                    currentSolo.StartSec,
-                    TheSongTime.GetElapsedTime(),
-                    FakeStrikeline / 2,
-                    FakeStrikeline
-                );
-            int NoteLength = -1
-                * GetNotePos(
-                    currentSolo.StartSec + currentSolo.EndSec,
-                    TheSongTime.GetElapsedTime(),
-                    FakeStrikeline / 2,
-                    FakeStrikeline
-                );
-            int ScrollEndPos = ScrollPos - NoteLength;
-            int topPos = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth
-                - (SidesWidth / 2);
-            int bottomPos = MiddleOfScreen + (NoteXWidth / 2) + NoteXWidth + NoteXWidth;
-            DrawRectangle(topPos, NoteLength, SidesWidth / 2, ScrollEndPos, GOLD);
-            DrawRectangle(bottomPos, NoteLength, SidesWidth / 2, ScrollEndPos, GOLD);
-        }
-
-        if (player.engine->stats->Type == Encore::RhythmEngine::Pad
-            || player.engine->stats->Type == Encore::RhythmEngine::Drums) {
-            size_t NotePoolPerLane = NOTE_POOL_SIZE / chart->Lanes.size();
-            for (int Lane = 0; Lane < chart->Lanes.size(); ++Lane) {
-                auto &chartLane = chart->at(Lane);
-
-                if (chartLane.empty()) {
-                    continue;
-                }
-                int NotePoolStart = std::distance(
-                    chart->at(Lane).begin(),
-                    chart->CurrentNoteIterators.at(Lane)
-                );
-                int NotePoolEnd = NotePoolPerLane
-                    + std::distance(chart->at(Lane).begin(),
-                                    chart->CurrentNoteIterators.at(Lane));
-                NotePoolEnd = chart->at(Lane).size() > NotePoolEnd
-                    ? NotePoolEnd
-                    : chart->at(Lane).size();
-                int NotePoolSize = NotePoolEnd - NotePoolStart;
-                // size_t NotePoolSize = chartLane.size() > NotePoolPerLane
-                //     ? NotePoolPerLane
-                //     : chartLane.size();
-                //  because i have to do bounds checks myself
-                //  just might not use span for this then LMAO
-                //  std::span<Encore::RhythmEngine::NoteVector<Encore::RhythmEngine::EncNote>>
-                //  NotePool { chartLane.begin(), chartLane.begin() + NotePoolSize };
-
-                // for (auto &note : NotePool) {
-                for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
-                    auto &note = chartLane.at(curNote);
-
-                    int ScrollPos = -1
-                        * GetNotePos(
-                            note.StartSeconds,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int NoteLength = -1
-                        * GetNotePos(
-                            note.StartSeconds + note.LengthSeconds,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int ScrollEndPos = ScrollPos - NoteLength;
-                    bool sust = false;
-                    int sustLength = ScrollPos - NoteHeight;
-                    if (note.LengthTicks == 0) {
-                        NoteLength = ScrollPos - NoteHeight;
-                        ScrollEndPos = NoteHeight;
-                    } else {
-                        sust = true;
-                    }
-                    int ScrollStartPos = ScrollPos;
-
-                    uint8_t x = note.Lane;
-                    int NoteWidth = NoteXWidth;
-                    DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
-
-                    int pos = TrackLeft + (NoteXWidth * Lane);
-                    Color color;
-                    if (player.engine->stats->Type == Encore::RhythmEngine::Drums) {
-                        color = orybg[Lane];
-                        if (Lane == 0) {
-                            NoteWidth *= 5;
-                            NoteLength += NoteHeight / 2;
-                            ScrollEndPos = NoteHeight / 2;
-                        }
-                    } else {
-                        color = grybo[Lane];
-                    }
-
-                    if (note.NotePassed)
-                        color = MAROON;
-                    if (sust) {
-                        DrawRectangle(pos + (NoteXWidth / 4),
-                                      NoteLength,
-                                      NoteXWidth / 2,
-                                      ScrollEndPos,
-                                      color);
-                    }
-                    DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
-                    if (note.NoteType == 1) {
-                        DrawRectangle(
-                            pos + 5,
-                            sustLength + 5,
-                            NoteXWidth - 10,
-                            NoteHeight - 10,
-                            WHITE
-                        );
-                    }
-                }
-                if (chart->HeldNotePointers.at(Lane)) {
-                    auto &note = chart->HeldNotePointers.at(Lane);
-                    int ScrollPos = -1
-                        * GetNotePos(
-                            note->StartSeconds,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int NoteLength = -1
-                        * GetNotePos(
-                            note->StartSeconds + note->LengthSeconds,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-                    int ScrollEndPos = FakeStrikeline - NoteLength;
-                    int ScrollStartPos = ScrollPos;
-                    int NoteWidth = NoteXWidth;
-                    Color color;
-                    int pos = TrackLeft + (NoteXWidth * Lane);
-                    if (player.engine->stats->Type == Encore::RhythmEngine::Drums) {
-                        color = orybg[Lane];
-                        if (Lane == 0) {
-                            NoteWidth *= 5;
-                            NoteLength += NoteHeight / 2;
-                            ScrollEndPos = NoteHeight / 2;
-                        }
-                    } else {
-                        color = grybo[Lane];
-                    }
-
-                    if (note->NotePassed)
-                        color = MAROON;
-                    DrawRectangle(pos + (NoteXWidth / 4),
-                                  NoteLength,
-                                  NoteXWidth / 2,
-                                  ScrollEndPos,
-                                  color);
-                    //if (note->NoteType == 1) {
-                    //    DrawRectangle(
-                    //        pos + 5,
-                    //        NoteLength + 5,
-                    //        NoteWidth - 10,
-                    //        ScrollEndPos - 10,
-                    //        WHITE
-                    //    );
-                    //}
-                }
-            }
-        } else {
-            if (chart->at(0).empty()) {
-                continue;
-            }
-            // if the size of the chart is bigger than the selected "range"
-            int NotePoolStart =
-                std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
-            int NotePoolEnd = NOTE_POOL_SIZE
-                + std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
-            NotePoolEnd =
-                chart->at(0).size() > NotePoolEnd ? NotePoolEnd : chart->at(0).size();
-            int NotePoolSize = NotePoolEnd - NotePoolStart;
-
-            if (!chart->rolls.empty()) {
-                for (auto &roll : chart->rolls) {
-                    int ScrollPos = -1
-                        * GetNotePos(
-                            roll.StartSec,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int NoteLength = -1
-                        * GetNotePos(
-                            roll.StartSec + roll.EndSec,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int ScrollEndPos = ScrollPos - NoteLength;
-                    uint8_t x = roll.lane;
-                    while (x) {
-                        uint8_t y = x & ~(x - 1);
-                        int pos = TrackLeft;
-                        Color color = GREEN;
-                        if (y == Encore::RhythmEngine::PlasticFrets[1]) {
-                            pos += NoteXWidth;
-                            color = RED;
-                        } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
-                            pos += NoteXWidth * 2;
-                            color = YELLOW;
-                        } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
-                            pos += NoteXWidth * 3;
-                            color = BLUE;
-                        } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
-                            pos += NoteXWidth * 4;
-                            color = ORANGE;
-                        }
-                        color = ColorBrightness(color, -0.75);
-                        DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                        x &= (x - 1);
-                    }
-                }
-            }
-            if (!chart->trills.empty()) {
-                for (auto &trill : chart->trills) {
-                    int ScrollPos = -1
-                        * GetNotePos(
-                            trill.StartSec,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int NoteLength = -1
-                        * GetNotePos(
-                            trill.StartSec + trill.EndSec,
-                            TheSongTime.GetElapsedTime(),
-                            FakeStrikeline / 2,
-                            FakeStrikeline
-                        );
-
-                    int ScrollEndPos = ScrollPos - NoteLength;
-                    int pos = TrackLeft;
-                    Color color = GREEN;
-                    if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    color = ColorBrightness(color, -0.5);
-                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                    color = GREEN;
-                    pos = TrackLeft;
-                    if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    color = ColorBrightness(color, -0.75);
-                    DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                }
-            }
-            // because i have to do bounds checks myself
-            // std::span NotePool { chart->CurrentNoteIterators.at(0),
-            // chart->CurrentNoteIterators.at(0) + NotePoolSize }; for (auto &note :
-            // NotePool) {
-
-            for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
-                auto &note = chart->at(0).at(curNote);
-                // basic miss check, only delays for showing misses
-                int ScrollPos = -1
-                    * GetNotePos(
-                        note.StartSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-
-                int NoteLength = -1
-                    * GetNotePos(
-                        note.StartSeconds + note.LengthSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-
-                int ScrollEndPos = ScrollPos - NoteLength;
-                bool sust = false;
-                int sustLength = ScrollPos - NoteHeight;
-                if (note.LengthTicks == 0) {
-                    NoteLength = ScrollPos - NoteHeight;
-                    ScrollEndPos = NoteHeight;
-                } else {
-                    sust = true;
-                }
-                int ScrollStartPos = ScrollPos;
-
-                uint8_t x = note.Lane;
-
-                DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
-                if (x == 0) {
-                    int pos = TrackLeft;
-                    int width = NoteXWidth;
-                    Color color = PURPLE;
-                    width = NoteXWidth * 4;
-                    if (sust) {
-                        DrawRectangle(pos + (NoteXWidth / 4),
-                                      NoteLength,
-                                      width / 2,
-                                      ScrollEndPos,
-                                      color);
-                    }
-                    DrawRectangle(pos, sustLength, width, NoteHeight, color);
-                    if (note.NoteType == 1) {
-                        DrawRectangle(
-                            pos + 5,
-                            sustLength + 5,
-                            width - 10,
-                            NoteHeight - 10,
-                            WHITE
-                        );
-                    }
-                }
-                while (x) {
-                    uint8_t y = x & ~(x - 1);
-                    int pos = TrackLeft;
-                    int width = NoteXWidth;
-                    Color color = GREEN;
-                    if (x == 0) {
-                        color = PURPLE;
-                        width = NoteXWidth * 4;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    if (note.NotePassed)
-                        color = MAROON;
-                    // DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
-                    if (sust) {
-                        DrawRectangle(pos + (NoteXWidth / 4),
-                                      NoteLength,
-                                      width / 2,
-                                      ScrollEndPos,
-                                      color);
-                    }
-                    DrawRectangle(pos, sustLength, width, NoteHeight, color);
-                    if (note.NoteType == 1) {
-                        DrawRectangle(
-                            pos + 5,
-                            sustLength + 5,
-                            width - 10,
-                            NoteHeight - 10,
-                            WHITE
-                        );
-                    }
-                    x &= (x - 1);
-                }
-            }
-            if (chart->HeldNotePointers.at(0)) {
-                auto &note = chart->HeldNotePointers.at(0);
-                int ScrollPos = -1
-                    * GetNotePos(
-                        note->StartSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-
-                int NoteLength = -1
-                    * GetNotePos(
-                        note->StartSeconds + note->LengthSeconds,
-                        TheSongTime.GetElapsedTime(),
-                        FakeStrikeline / 2,
-                        FakeStrikeline
-                    );
-                int ScrollEndPos = FakeStrikeline - NoteLength;
-                int ScrollStartPos = ScrollPos;
-
-                uint8_t x = note->Lane;
-                while (x) {
-                    uint8_t y = x & ~(x - 1);
-                    int pos = TrackLeft;
-                    Color color = GREEN;
-                    if (y == Encore::RhythmEngine::PlasticFrets[1]) {
-                        pos += NoteXWidth;
-                        color = RED;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
-                        pos += NoteXWidth * 2;
-                        color = YELLOW;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
-                        pos += NoteXWidth * 3;
-                        color = BLUE;
-                    } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
-                        pos += NoteXWidth * 4;
-                        color = ORANGE;
-                    }
-                    if (note->NotePassed)
-                        color = MAROON;
-                    DrawRectangle(pos + (NoteXWidth / 4),
-                                  NoteLength,
-                                  NoteXWidth / 2,
-                                  ScrollEndPos,
-                                  color);
-                    //if (note->NoteType == 1) {
-                    //    DrawRectangle(
-                    //        pos + 5,
-                    //        NoteLength + 5,
-                    //        NoteXWidth - 10,
-                    //        ScrollEndPos - 10,
-                    //        WHITE
-                    //    );
-                    //}
-                    x &= (x - 1);
-                }
-            }
-        }
+        // if (player.engine->stats->Type == Encore::RhythmEngine::Pad
+        //     || player.engine->stats->Type == Encore::RhythmEngine::Drums) {
+        //     size_t NotePoolPerLane = NOTE_POOL_SIZE / chart->Lanes.size();
+        //     for (int Lane = 0; Lane < chart->Lanes.size(); ++Lane) {
+        //         auto &chartLane = chart->at(Lane);
+        //
+        //         if (chartLane.empty()) {
+        //             continue;
+        //         }
+        //         int NotePoolStart = std::distance(
+        //             chart->at(Lane).begin(),
+        //             chart->CurrentNoteIterators.at(Lane)
+        //         );
+        //         int NotePoolEnd = NotePoolPerLane
+        //             + std::distance(chart->at(Lane).begin(),
+        //                             chart->CurrentNoteIterators.at(Lane));
+        //         NotePoolEnd = chart->at(Lane).size() > NotePoolEnd
+        //             ? NotePoolEnd
+        //             : chart->at(Lane).size();
+        //         int NotePoolSize = NotePoolEnd - NotePoolStart;
+        //         // size_t NotePoolSize = chartLane.size() > NotePoolPerLane
+        //         //     ? NotePoolPerLane
+        //         //     : chartLane.size();
+        //         //  because i have to do bounds checks myself
+        //         //  just might not use span for this then LMAO
+        //         //  std::span<Encore::RhythmEngine::NoteVector<Encore::RhythmEngine::EncNote>>
+        //         //  NotePool { chartLane.begin(), chartLane.begin() + NotePoolSize };
+        //
+        //         // for (auto &note : NotePool) {
+        //         for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
+        //             auto &note = chartLane.at(curNote);
+        //
+        //             int ScrollPos = -1
+        //                 * GetNotePos(
+        //                     note.StartSeconds,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int NoteLength = -1
+        //                 * GetNotePos(
+        //                     note.StartSeconds + note.LengthSeconds,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int ScrollEndPos = ScrollPos - NoteLength;
+        //             bool sust = false;
+        //             int sustLength = ScrollPos - NoteHeight;
+        //             if (note.LengthTicks == 0) {
+        //                 NoteLength = ScrollPos - NoteHeight;
+        //                 ScrollEndPos = NoteHeight;
+        //             } else {
+        //                 sust = true;
+        //             }
+        //             int ScrollStartPos = ScrollPos;
+        //
+        //             uint8_t x = note.Lane;
+        //             int NoteWidth = NoteXWidth;
+        //             DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
+        //
+        //             int pos = TrackLeft + (NoteXWidth * Lane);
+        //             Color color;
+        //             if (player.engine->stats->Type == Encore::RhythmEngine::Drums) {
+        //                 color = orybg[Lane];
+        //                 if (Lane == 0) {
+        //                     NoteWidth *= 5;
+        //                     NoteLength += NoteHeight / 2;
+        //                     ScrollEndPos = NoteHeight / 2;
+        //                 }
+        //             } else {
+        //                 color = grybo[Lane];
+        //             }
+        //
+        //             if (note.NotePassed)
+        //                 color = MAROON;
+        //             if (sust) {
+        //                 DrawRectangle(pos + (NoteXWidth / 4),
+        //                               NoteLength,
+        //                               NoteXWidth / 2,
+        //                               ScrollEndPos,
+        //                               color);
+        //             }
+        //             DrawRectangle(pos, sustLength, NoteXWidth, NoteHeight, color);
+        //             if (note.NoteType == 1) {
+        //                 DrawRectangle(
+        //                     pos + 5,
+        //                     sustLength + 5,
+        //                     NoteXWidth - 10,
+        //                     NoteHeight - 10,
+        //                     WHITE
+        //                 );
+        //             }
+        //         }
+        //         if (chart->HeldNotePointers.at(Lane)) {
+        //             auto &note = chart->HeldNotePointers.at(Lane);
+        //             int ScrollPos = -1
+        //                 * GetNotePos(
+        //                     note->StartSeconds,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int NoteLength = -1
+        //                 * GetNotePos(
+        //                     note->StartSeconds + note->LengthSeconds,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //             int ScrollEndPos = FakeStrikeline - NoteLength;
+        //             int ScrollStartPos = ScrollPos;
+        //             int NoteWidth = NoteXWidth;
+        //             Color color;
+        //             int pos = TrackLeft + (NoteXWidth * Lane);
+        //             if (player.engine->stats->Type == Encore::RhythmEngine::Drums) {
+        //                 color = orybg[Lane];
+        //                 if (Lane == 0) {
+        //                     NoteWidth *= 5;
+        //                     NoteLength += NoteHeight / 2;
+        //                     ScrollEndPos = NoteHeight / 2;
+        //                 }
+        //             } else {
+        //                 color = grybo[Lane];
+        //             }
+        //
+        //             if (note->NotePassed)
+        //                 color = MAROON;
+        //             DrawRectangle(pos + (NoteXWidth / 4),
+        //                           NoteLength,
+        //                           NoteXWidth / 2,
+        //                           ScrollEndPos,
+        //                           color);
+        //             //if (note->NoteType == 1) {
+        //             //    DrawRectangle(
+        //             //        pos + 5,
+        //             //        NoteLength + 5,
+        //             //        NoteWidth - 10,
+        //             //        ScrollEndPos - 10,
+        //             //        WHITE
+        //             //    );
+        //             //}
+        //         }
+        //     }
+        // } else {
+        //     if (chart->at(0).empty()) {
+        //         continue;
+        //     }
+        //     // if the size of the chart is bigger than the selected "range"
+        //     int NotePoolStart =
+        //         std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
+        //     int NotePoolEnd = NOTE_POOL_SIZE
+        //         + std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
+        //     NotePoolEnd =
+        //         chart->at(0).size() > NotePoolEnd ? NotePoolEnd : chart->at(0).size();
+        //     int NotePoolSize = NotePoolEnd - NotePoolStart;
+        //
+        //     if (!chart->rolls.empty()) {
+        //         for (auto &roll : chart->rolls) {
+        //             int ScrollPos = -1
+        //                 * GetNotePos(
+        //                     roll.StartSec,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int NoteLength = -1
+        //                 * GetNotePos(
+        //                     roll.StartSec + roll.EndSec,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int ScrollEndPos = ScrollPos - NoteLength;
+        //             uint8_t x = roll.lane;
+        //             while (x) {
+        //                 uint8_t y = x & ~(x - 1);
+        //                 int pos = TrackLeft;
+        //                 Color color = GREEN;
+        //                 if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+        //                     pos += NoteXWidth;
+        //                     color = RED;
+        //                 } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
+        //                     pos += NoteXWidth * 2;
+        //                     color = YELLOW;
+        //                 } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
+        //                     pos += NoteXWidth * 3;
+        //                     color = BLUE;
+        //                 } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
+        //                     pos += NoteXWidth * 4;
+        //                     color = ORANGE;
+        //                 }
+        //                 color = ColorBrightness(color, -0.75);
+        //                 DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+        //                 x &= (x - 1);
+        //             }
+        //         }
+        //     }
+        //     if (!chart->trills.empty()) {
+        //         for (auto &trill : chart->trills) {
+        //             int ScrollPos = -1
+        //                 * GetNotePos(
+        //                     trill.StartSec,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int NoteLength = -1
+        //                 * GetNotePos(
+        //                     trill.StartSec + trill.EndSec,
+        //                     TheSongTime.GetElapsedTime(),
+        //                     FakeStrikeline / 2,
+        //                     FakeStrikeline
+        //                 );
+        //
+        //             int ScrollEndPos = ScrollPos - NoteLength;
+        //             int pos = TrackLeft;
+        //             Color color = GREEN;
+        //             if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[1]) {
+        //                 pos += NoteXWidth;
+        //                 color = RED;
+        //             } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[2]) {
+        //                 pos += NoteXWidth * 2;
+        //                 color = YELLOW;
+        //             } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[3]) {
+        //                 pos += NoteXWidth * 3;
+        //                 color = BLUE;
+        //             } else if (trill.lane1 == Encore::RhythmEngine::PlasticFrets[4]) {
+        //                 pos += NoteXWidth * 4;
+        //                 color = ORANGE;
+        //             }
+        //             color = ColorBrightness(color, -0.5);
+        //             DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+        //             color = GREEN;
+        //             pos = TrackLeft;
+        //             if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[1]) {
+        //                 pos += NoteXWidth;
+        //                 color = RED;
+        //             } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[2]) {
+        //                 pos += NoteXWidth * 2;
+        //                 color = YELLOW;
+        //             } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[3]) {
+        //                 pos += NoteXWidth * 3;
+        //                 color = BLUE;
+        //             } else if (trill.lane2 == Encore::RhythmEngine::PlasticFrets[4]) {
+        //                 pos += NoteXWidth * 4;
+        //                 color = ORANGE;
+        //             }
+        //             color = ColorBrightness(color, -0.75);
+        //             DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+        //         }
+        //     }
+        //     // because i have to do bounds checks myself
+        //     // std::span NotePool { chart->CurrentNoteIterators.at(0),
+        //     // chart->CurrentNoteIterators.at(0) + NotePoolSize }; for (auto &note :
+        //     // NotePool) {
+        //
+        //     for (int curNote = NotePoolStart; curNote < NotePoolEnd; curNote++) {
+        //         auto &note = chart->at(0).at(curNote);
+        //         // basic miss check, only delays for showing misses
+        //         int ScrollPos = -1
+        //             * GetNotePos(
+        //                 note.StartSeconds,
+        //                 TheSongTime.GetElapsedTime(),
+        //                 FakeStrikeline / 2,
+        //                 FakeStrikeline
+        //             );
+        //
+        //         int NoteLength = -1
+        //             * GetNotePos(
+        //                 note.StartSeconds + note.LengthSeconds,
+        //                 TheSongTime.GetElapsedTime(),
+        //                 FakeStrikeline / 2,
+        //                 FakeStrikeline
+        //             );
+        //
+        //         int ScrollEndPos = ScrollPos - NoteLength;
+        //         bool sust = false;
+        //         int sustLength = ScrollPos - NoteHeight;
+        //         if (note.LengthTicks == 0) {
+        //             NoteLength = ScrollPos - NoteHeight;
+        //             ScrollEndPos = NoteHeight;
+        //         } else {
+        //             sust = true;
+        //         }
+        //         int ScrollStartPos = ScrollPos;
+        //
+        //         uint8_t x = note.Lane;
+        //
+        //         DrawRectangle(0, NoteXWidth, NoteXWidth, NoteXWidth * 2, GREEN);
+        //         if (x == 0) {
+        //             int pos = TrackLeft;
+        //             int width = NoteXWidth;
+        //             Color color = PURPLE;
+        //             width = NoteXWidth * 4;
+        //             if (sust) {
+        //                 DrawRectangle(pos + (NoteXWidth / 4),
+        //                               NoteLength,
+        //                               width / 2,
+        //                               ScrollEndPos,
+        //                               color);
+        //             }
+        //             DrawRectangle(pos, sustLength, width, NoteHeight, color);
+        //             if (note.NoteType == 1) {
+        //                 DrawRectangle(
+        //                     pos + 5,
+        //                     sustLength + 5,
+        //                     width - 10,
+        //                     NoteHeight - 10,
+        //                     WHITE
+        //                 );
+        //             }
+        //         }
+        //         while (x) {
+        //             uint8_t y = x & ~(x - 1);
+        //             int pos = TrackLeft;
+        //             int width = NoteXWidth;
+        //             Color color = GREEN;
+        //             if (x == 0) {
+        //                 color = PURPLE;
+        //                 width = NoteXWidth * 4;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+        //                 pos += NoteXWidth;
+        //                 color = RED;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
+        //                 pos += NoteXWidth * 2;
+        //                 color = YELLOW;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
+        //                 pos += NoteXWidth * 3;
+        //                 color = BLUE;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
+        //                 pos += NoteXWidth * 4;
+        //                 color = ORANGE;
+        //             }
+        //             if (note.NotePassed)
+        //                 color = MAROON;
+        //             // DrawRectangle(pos, NoteLength, NoteXWidth, ScrollEndPos, color);
+        //             if (sust) {
+        //                 DrawRectangle(pos + (NoteXWidth / 4),
+        //                               NoteLength,
+        //                               width / 2,
+        //                               ScrollEndPos,
+        //                               color);
+        //             }
+        //             DrawRectangle(pos, sustLength, width, NoteHeight, color);
+        //             if (note.NoteType == 1) {
+        //                 DrawRectangle(
+        //                     pos + 5,
+        //                     sustLength + 5,
+        //                     width - 10,
+        //                     NoteHeight - 10,
+        //                     WHITE
+        //                 );
+        //             }
+        //             x &= (x - 1);
+        //         }
+        //     }
+        //     if (chart->HeldNotePointers.at(0)) {
+        //         auto &note = chart->HeldNotePointers.at(0);
+        //         int ScrollPos = -1
+        //             * GetNotePos(
+        //                 note->StartSeconds,
+        //                 TheSongTime.GetElapsedTime(),
+        //                 FakeStrikeline / 2,
+        //                 FakeStrikeline
+        //             );
+        //
+        //         int NoteLength = -1
+        //             * GetNotePos(
+        //                 note->StartSeconds + note->LengthSeconds,
+        //                 TheSongTime.GetElapsedTime(),
+        //                 FakeStrikeline / 2,
+        //                 FakeStrikeline
+        //             );
+        //         int ScrollEndPos = FakeStrikeline - NoteLength;
+        //         int ScrollStartPos = ScrollPos;
+        //
+        //         uint8_t x = note->Lane;
+        //         while (x) {
+        //             uint8_t y = x & ~(x - 1);
+        //             int pos = TrackLeft;
+        //             Color color = GREEN;
+        //             if (y == Encore::RhythmEngine::PlasticFrets[1]) {
+        //                 pos += NoteXWidth;
+        //                 color = RED;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[2]) {
+        //                 pos += NoteXWidth * 2;
+        //                 color = YELLOW;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[3]) {
+        //                 pos += NoteXWidth * 3;
+        //                 color = BLUE;
+        //             } else if (y == Encore::RhythmEngine::PlasticFrets[4]) {
+        //                 pos += NoteXWidth * 4;
+        //                 color = ORANGE;
+        //             }
+        //             if (note->NotePassed)
+        //                 color = MAROON;
+        //             DrawRectangle(pos + (NoteXWidth / 4),
+        //                           NoteLength,
+        //                           NoteXWidth / 2,
+        //                           ScrollEndPos,
+        //                           color);
+        //             //if (note->NoteType == 1) {
+        //             //    DrawRectangle(
+        //             //        pos + 5,
+        //             //        NoteLength + 5,
+        //             //        NoteXWidth - 10,
+        //             //        ScrollEndPos - 10,
+        //             //        WHITE
+        //             //    );
+        //             //}
+        //             x &= (x - 1);
+        //         }
+        //     }
+        // }
         bool maxmult = player.engine->stats->SixMultiplier
             ? player.engine->stats->multNoOD() >= 5
             : player.engine->stats->multNoOD() == 4;
@@ -1372,47 +1359,47 @@ void GameplayMenu::Draw() {
         );
         // ----------------
 
-        DrawRectangle(
-            MiddleOfScreen - (NoteXWidth * 3),
-            (FakeStrikeline) - 5,
-            NoteXWidth * 6,
-            10,
-            BLACK
-        );
+        // DrawRectangle(
+        //     MiddleOfScreen - (NoteXWidth * 3),
+        //     (FakeStrikeline) - 5,
+        //     NoteXWidth * 6,
+        //     10,
+        //     BLACK
+        // );
 
-        for (int g = 0; g < player.engine->stats->HeldFrets.size(); g++) {
-            if (player.engine->stats->HeldFrets[g]) {
-                Color background = grybo[g];
-                DrawRectangle(
-                    TrackLeft + (NoteXWidth * g),
-                    (FakeStrikeline) - (NoteXWidth / 2),
-                    NoteXWidth,
-                    NoteXWidth,
-                    background
-                );
-            }
-        }
-
-        if (player.engine->stats->strumState
-            == Encore::RhythmEngine::StrumState::UpStrum) {
-            DrawRectangle(
-                MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
-                (FakeStrikeline) - 10,
-                NoteXWidth * 6,
-                10,
-                WHITE
-            );
-        }
-        if (player.engine.get()->stats.get()->strumState
-            == Encore::RhythmEngine::StrumState::DownStrum) {
-            DrawRectangle(
-                MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
-                (FakeStrikeline),
-                NoteXWidth * 6,
-                10,
-                WHITE
-            );
-        }
+        // for (int g = 0; g < player.engine->stats->HeldFrets.size(); g++) {
+        //     if (player.engine->stats->HeldFrets[g]) {
+        //         Color background = grybo[g];
+        //         DrawRectangle(
+        //             TrackLeft + (NoteXWidth * g),
+        //             (FakeStrikeline) - (NoteXWidth / 2),
+        //             NoteXWidth,
+        //             NoteXWidth,
+        //             background
+        //         );
+        //     }
+        // }
+        //
+        // if (player.engine->stats->strumState
+        //     == Encore::RhythmEngine::StrumState::UpStrum) {
+        //     DrawRectangle(
+        //         MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
+        //         (FakeStrikeline) - 10,
+        //         NoteXWidth * 6,
+        //         10,
+        //         WHITE
+        //     );
+        // }
+        // if (player.engine.get()->stats.get()->strumState
+        //     == Encore::RhythmEngine::StrumState::DownStrum) {
+        //     DrawRectangle(
+        //         MiddleOfScreen - NoteXWidth - NoteXWidth - NoteXWidth,
+        //         (FakeStrikeline),
+        //         NoteXWidth * 6,
+        //         10,
+        //         WHITE
+        //     );
+        // }
 
         if (player.engine.get()->stats.get()->AudioMuted) {
             int InstrumentNum =
@@ -2105,8 +2092,11 @@ void GameplayMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
+
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
+        tracks.at(i) = std::make_shared<Encore::GuitarTrack>(player);
+        tracks.at(i)->Load();
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals
             || player.Instrument == PartBass) {
             player.engine->stats->SixMultiplier = true;

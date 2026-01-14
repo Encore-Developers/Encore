@@ -4,7 +4,6 @@
 
 #include "keybinds.h"
 
-#include "settings-old.h"
 #include <raylib.h>
 #include <fstream>
 #include <nlohmann/json.hpp>

@@ -1,7 +1,6 @@
 #pragma once
 #include "raylib.h"
 #include "GLFW/glfw3.h"
-#include "settings/settings-old.h"
 #include <unordered_map>
 #include <string>
 

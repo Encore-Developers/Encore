@@ -16,7 +16,6 @@
 #include <atomic>
 #include "picosha2.h"
 #include "inih/INIReader.h"
-#include "rapidjson/document.h"
 #include "util/enclog.h"
 
 #include <array>

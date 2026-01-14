@@ -84,6 +84,7 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action ac
     }
     return false;
 }
+
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTime) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;

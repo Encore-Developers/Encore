@@ -42,7 +42,6 @@
 #include "menus/uiUnits.h"
 
 #include "settings/settings.h"
-// #include "settings-old.h"
 #include "menus/SettingsAudioVideo.h"
 #include "menus/SettingsController.h"
 #include "menus/SettingsCredits.h"

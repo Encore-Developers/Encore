@@ -14,6 +14,8 @@
 
 #include <thread>
 
+#include "gameplay/trackRenderer/GuitarTrack.h"
+
 bool StartLoading = true;
 bool FinishedLoading = false;
 
@@ -55,13 +57,13 @@ void LoadCharts() {
                 );
                 chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
 
-                ThePlayerManager.GetActivePlayer(playerNum).engine =
+                player.engine =
                     std::make_shared<Encore::RhythmEngine::GuitarEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                         std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
                     );
-                ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
-                    Encore::RhythmEngine::Guitar;
+                player.engine->stats->Type = Encore::RhythmEngine::Guitar;
+
             } else if (inst == PlasticDrums) {
                 TheSongList.curSong->midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::DrumsLoader chartLoader(diff);
