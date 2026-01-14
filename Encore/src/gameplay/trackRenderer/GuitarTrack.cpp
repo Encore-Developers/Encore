@@ -71,7 +71,7 @@ void Encore::GuitarTrack::DrawNotes() {
             float pos = 0;
             float width = 1.0f;
             Color color = PURPLE;
-            width = 1 * 4;
+            width = 5;
             Vector3 position = { pos, 0 + 0.125, ScrollPos};
             if (sust) {
                 DrawCube({ position.x, position.y, position.z - (ScrollEndPos / 2) },
