@@ -285,7 +285,12 @@ bool SongTime::Running() {
 }
 
 double SongTime::GetElapsedTime() {
-    return TheAudioManager.GetMusicTimePlayed() - aCalib;
+    double audioTime = TheAudioManager.GetMusicTimePlayed();
+    if (audioTime >= TheAudioManager.GetMusicTimeLength()) {
+        return TheAudioManager.GetMusicTimeLength() + (GetTime() - lastTimeSample);
+    }
+    lastTimeSample = GetTime();
+    return audioTime - aCalib;
 };
 double SongTime::GetStartTime() {
     return 0;

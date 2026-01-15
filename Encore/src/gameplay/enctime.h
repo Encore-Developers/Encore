@@ -54,6 +54,7 @@ private:
     double fakeStartTime = 0.0;
     double endTime = 0.0;
     double pauseTime = 0.0;
+    double lastTimeSample = 0.0;
     bool running = false;
     bool paused = false;
 
