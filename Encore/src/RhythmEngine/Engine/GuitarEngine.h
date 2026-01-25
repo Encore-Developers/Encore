@@ -55,6 +55,7 @@ namespace Encore::RhythmEngine {
             Timers = { { "FAS", RhythmTimer(0.125) }, { "SAH", RhythmTimer(goodBackend + goodFrontend) } };
         };
         ~GuitarEngine() override {};
+        virtual bool UsesNoteMasks() {return true;};
     };
 }
 

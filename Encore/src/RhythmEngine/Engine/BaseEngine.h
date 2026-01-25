@@ -54,6 +54,7 @@ namespace Encore::RhythmEngine {
         void MissNote(int lane);
         void Overhit(int lane);
         void UpdateStats(int instrument, int difficulty);
+        virtual bool UsesNoteMasks() { return false; };
     private:
         virtual bool PlayerIsPaused() = 0;
         virtual void TogglePause() = 0;

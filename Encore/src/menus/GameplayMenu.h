@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "gameplay/trackRenderer/BaseTrack.h"
+#include "gameplay/trackRenderer/Track.h"
 
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
@@ -26,7 +26,7 @@ class GameplayMenu : public OvershellMenu {
         {4,0,-4,0},
         {4,12,-12,-4}
     };
-    std::array<std::shared_ptr<Encore::BaseTrack>, 4> tracks;
+    std::array<std::shared_ptr<Encore::Track>, 4> tracks;
 public:
     GameplayMenu();
     virtual ~GameplayMenu();

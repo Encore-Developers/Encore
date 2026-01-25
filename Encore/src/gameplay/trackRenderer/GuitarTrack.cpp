@@ -4,7 +4,10 @@
 
 #include "GuitarTrack.h"
 
+#include "raymath.h"
 #include "gameplay/enctime.h"
+
+#ifdef nuhuh
 
 double GetNotePos3D(double noteTime, double songTime, float noteSpeed, float length) {
     return ((noteTime - songTime) * (noteSpeed * length));
@@ -16,22 +19,25 @@ std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
 void Encore::GuitarTrack::DrawStrikeline() {
     DrawCube({ 0, 0, 0 }, 5, 0.1, 0.1, BLACK);
     for (int g = 0; g < player.engine->stats->HeldFrets.size(); g++) {
-        if (player.engine->stats->HeldFrets[g]) {
-            Color background = grybo[g];
-            DrawCube(
-                { 2.0f - g, 0, 0 },
-                1,
-                0.01,
-                1,
-                background
-            );
+        Color background = grybo[g];
+        if (!player.engine->stats->HeldFrets[g]) {
+            background.r /= 4;
+            background.g /= 4;
+            background.b /= 4;
         }
+        DrawCube(
+            { 2.0f - g, 0, 0 },
+            1,
+            0.01,
+            1,
+            background
+        );
     }
     if (player.engine->stats->strumState == RhythmEngine::StrumState::UpStrum) {
-        DrawCube({ 0, 0, 0.2 }, 5, 0.02, 0.4, ColorAlpha(WHITE, 0.75));
+        //DrawCube({ 0, 0, 0.2 }, 5, 0.02, 0.4, ColorAlpha(WHITE, 0.75));
     }
     if (player.engine->stats->strumState == RhythmEngine::StrumState::DownStrum) {
-        DrawCube({ 0, 0, -0.2 }, 5, 0.02, 0.4, ColorAlpha(WHITE, 0.75));
+        //DrawCube({ 0, 0, -0.2 }, 5, 0.02, 0.4, ColorAlpha(WHITE, 0.75));
     }
     // DrawCube({0,0,0}, 5, 0.1, 0.1, BLACK);
 }
@@ -46,12 +52,15 @@ void Encore::GuitarTrack::DrawNotes() {
         auto &note = player.engine->chart->at(0).at(curNote);
         float ScrollPos = GetNotePos3D(note.StartSeconds,
                                        TheSongTime.GetElapsedTime(),
-                                       1,
+                                       2,
                                        20);
+        if (ScrollPos > 25) {
+            continue;
+        }
         float NoteLength = GetNotePos3D(
             note.StartSeconds + note.LengthSeconds,
             TheSongTime.GetElapsedTime(),
-            1,
+            2,
             20
         );
         float ScrollEndPos = ScrollPos - NoteLength;
@@ -145,13 +154,13 @@ void Encore::GuitarTrack::DrawNotes() {
     if (player.engine->chart->HeldNotePointers.at(0)) {
             auto &note = player.engine->chart->HeldNotePointers.at(0);
         float ScrollPos = GetNotePos3D(note->StartSeconds,
-                                    TheSongTime.GetElapsedTime(),
-                                    1,
+                                    TheSongTime.GetElapsedTime(),2,
                                     20);
+
         float NoteLength = GetNotePos3D(
             note->StartSeconds + note->LengthSeconds,
             TheSongTime.GetElapsedTime(),
-            1,
+            2,
             20
         );
             float ScrollEndPos = 0 - NoteLength;
@@ -215,7 +224,7 @@ void Encore::GuitarTrack::DrawNotes() {
                 float ScrollPos = GetNotePos3D(
                     beatline.time,
                     TheSongTime.GetElapsedTime(),
-                    1,
+                    2,
                     20
                 );
                 float Size = 0;
@@ -237,6 +246,17 @@ void Encore::GuitarTrack::DrawNotes() {
                     break;
                 }
                 }
+                // this sucks
+                static std::vector<Vector3> verts;
+                verts.resize(0);
+                int wideVerts = 10;
+                for (int i = 0; i <= wideVerts; i++) {
+                    float xPos = Remap(i, 0, wideVerts, -2.5, 2.5);
+                    verts.push_back({xPos, 0, ScrollPos-Size});
+                    verts.push_back({xPos, 0, ScrollPos+Size});
+                }
+                DrawTriangleStrip3D(verts.data(), verts.size(), beatlineColor);
+                continue;
                 DrawCube(
                     { 0, 0, ScrollPos },
                     5,
@@ -247,3 +267,4 @@ void Encore::GuitarTrack::DrawNotes() {
             }
         }
     };
+#endif

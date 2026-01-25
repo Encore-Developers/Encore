@@ -610,7 +610,7 @@ void GameplayMenu::Draw() {
         tracks.at(i)->Draw();
         int TopOfScreen = GetScreenHeight(); // width
         int FakeStrikeline = (TopOfScreen / 5) * 4;
-        constexpr int NoteXWidth = 50;
+        constexpr int NoteXWidth = 150;
         constexpr int NoteHeight = 25;
 
         int mospos =
@@ -2095,8 +2095,15 @@ void GameplayMenu::Load() {
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
-        tracks.at(i) = std::make_shared<Encore::GuitarTrack>(player);
+        tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
+        switch (player.Instrument) {
+        case PlasticGuitar:
+        case PlasticBass:
+        case PlasticKeys:
+            tracks.at(i)->Configure5Lane();
+            break;
+        }
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals
             || player.Instrument == PartBass) {
             player.engine->stats->SixMultiplier = true;

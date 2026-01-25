@@ -4,15 +4,17 @@
 
 #ifndef ENCORE_GUITARTRACK_H
 #define ENCORE_GUITARTRACK_H
-#include "BaseTrack.h"
+#include "Track.h"
 #include "gameplay/enctime.h"
 
+#ifdef nuhuh
+
 namespace Encore {
-    class GuitarTrack : public BaseTrack
+    class GuitarTrack : public Track
     {
     public:
         explicit GuitarTrack(Player &player_)
-            : BaseTrack(player_) {
+            : Track(player_) {
         };
         void DrawNotes() override;
         void DrawStrikeline() override;
@@ -20,5 +22,6 @@ namespace Encore {
         std::span<Beatline> BeatlinePool;
     };
 }
+#endif
 
 #endif //ENCORE_GUITARTRACK_H
