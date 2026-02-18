@@ -96,6 +96,10 @@ if(APPLE)
   file(COPY "lib/bass/macos/libbass.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/macos")
   file(COPY "lib/bass/macos/libbassopus.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  add_custom_command(TARGET Encore
+          POST_BUILD COMMAND
+          ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path"
+          $<TARGET_FILE:Encore>)
 endif()
 
 # Get the current working branch
@@ -129,10 +133,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
-add_custom_command(TARGET Encore
-        POST_BUILD COMMAND
-        ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path"
-        $<TARGET_FILE:Encore>)
+
 
 target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK})
 
