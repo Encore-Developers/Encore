@@ -66,7 +66,7 @@ void ReadyUpMenu::Draw() {
     float AlbumArtRight = u.winpct(0.15f);
     float AlbumArtBottom = u.winpct(0.15f);
     DrawRectangle(
-        0, 0, (int)GetScreenWidth(), (int)GetScreenHeight(), GetColor(0x00000080)
+        0, 0, (int)GetRenderWidth(), (int)GetRenderHeight(), GetColor(0x00000080)
     );
 
     encOS::DrawTopOvershell(0.2f);

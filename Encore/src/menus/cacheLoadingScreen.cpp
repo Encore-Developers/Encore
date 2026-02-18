@@ -44,7 +44,7 @@ void cacheLoadingScreen::Draw() {
     DrawRectangle(
         0,
         u.hpct(0.15f),
-        Remap(CurrentChartNumber, 0, MaxChartsToLoad, 0, GetScreenWidth()),
+        Remap(CurrentChartNumber, 0, MaxChartsToLoad, 0, GetRenderWidth()),
         u.hinpct(0.01f),
         MAGENTA
     );
@@ -74,7 +74,7 @@ void cacheLoadingScreen::Draw() {
     GameMenu::DrawBottomOvershell();
 
     Rectangle LogoRect = { u.LeftSide + u.hinpct(0.075f),
-                           GetScreenHeight() - u.hpct(0.14f) + u.hinpct(0.07f),
+                           GetRenderHeight() - u.hpct(0.14f) + u.hinpct(0.07f),
                            u.hinpct(0.14f),
                            u.hinpct(0.14f) };
 
@@ -91,7 +91,7 @@ void cacheLoadingScreen::Draw() {
         ASSET(josefinSansItalic),
         CacheSplash[SplashSel],
         { u.LeftSide + u.hinpct(0.16),
-          GetScreenHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
+          GetRenderHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
         RubikFontSize / 1.5f,
         WHITE,
         ASSET(sdfShader),

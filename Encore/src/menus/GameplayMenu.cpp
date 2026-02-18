@@ -555,12 +555,12 @@ void GameplayMenu::Draw() {
     std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color{ 0, 0, 0, 128 });
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
         0,
         0,
-        GetScreenWidth(),
-        GetScreenHeight(),
+        GetRenderWidth(),
+        GetRenderHeight(),
         Color{ 255, 255, 255, BackgroundColor }
     );
 
@@ -608,13 +608,13 @@ void GameplayMenu::Draw() {
         player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
         player.engine->UpdateStats(player.Instrument, player.Difficulty);
         tracks.at(i)->Draw();
-        int TopOfScreen = GetScreenHeight(); // width
+        int TopOfScreen = GetRenderHeight(); // width
         int FakeStrikeline = (TopOfScreen / 5) * 4;
         constexpr int NoteXWidth = 150;
         constexpr int NoteHeight = 25;
 
         int mospos =
-            ((GetScreenWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
+            ((GetRenderWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
                 / (1 + ThePlayerManager.PlayersActive))
             - ((ThePlayerManager.PlayersActive * NoteXWidth * 5) / 2);
         int MiddleOfScreen = mospos + (mospos * i); // height
@@ -735,7 +735,7 @@ void GameplayMenu::Draw() {
                 );
             }
         }
-        // DrawRectangle(TrackLeft, 0, NoteXWidth * 5, GetScreenHeight(), { 0, 0, 0, 128 });
+        // DrawRectangle(TrackLeft, 0, NoteXWidth * 5, GetRenderHeight(), { 0, 0, 0, 128 });
         // if (!TheSongTime.Beatlines.empty()) {
         //     for (auto &beatline : BeatlinePool) {
         //         int ScrollPos = -1
@@ -789,13 +789,13 @@ void GameplayMenu::Draw() {
         //         int pos = (TrackLeft + (NoteXWidth * j)) - (RailWidth);
         //         if (j == 5)
         //             pos = (TrackLeft + (NoteXWidth * j));
-        //         DrawRectangle(pos, 0, RailWidth, GetScreenHeight(), DARKGRAY);
+        //         DrawRectangle(pos, 0, RailWidth, GetRenderHeight(), DARKGRAY);
         //     }
         //     DrawRectangle(
         //         (TrackLeft + (NoteXWidth * j)) - (DividerWidth / 2),
         //         0,
         //         DividerWidth,
-        //         GetScreenHeight(),
+        //         GetRenderHeight(),
         //         DividerColors
         //     ); // dividers
         // }
@@ -1336,7 +1336,7 @@ void GameplayMenu::Draw() {
         float BarWidth = NoteXWidth / 2;
         DrawRectangle(
             TrackLeft - RailWidth - BarWidth,
-            GetScreenHeight() - ODBarLength,
+            GetRenderHeight() - ODBarLength,
             BarWidth,
             ODBarLength,
             BLACK
@@ -1349,7 +1349,7 @@ void GameplayMenu::Draw() {
         float Percentage = float(streakFlash) / 255.0f;
         Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
-        float ODBarFillPosition = GetScreenHeight() - ODBarWidth;
+        float ODBarFillPosition = GetRenderHeight() - ODBarWidth;
         DrawRectangle(
             TrackLeft - RailWidth - BarWidth,
             ODBarFillPosition,
@@ -1502,7 +1502,7 @@ void GameplayMenu::Draw() {
             TheGameRenderer.renderPos =
                 CameraPosPerPlayer[ThePlayerManager.PlayersActive - 1][pnum];
         else
-            TheGameRenderer.renderPos = GetScreenWidth()
+            TheGameRenderer.renderPos = GetRenderWidth()
                 / CameraPosPerPlayer[ThePlayerManager.PlayersActive - 1][pnum];
         //for (int n = 0; n < TheSongList.curSong->parts[curPlayer.Instrument]
         //                        ->charts[curPlayer.Difficulty]
@@ -1617,7 +1617,7 @@ void GameplayMenu::Draw() {
             assets.rubikBold,
             NameText.c_str(),
             { (CenterPosForText - (textWidth / 2)) - (TheGameRenderer.renderPos),
-              GetScreenHeight() - u.hinpct(0.04) },
+              GetRenderHeight() - u.hinpct(0.04) },
             fontSize,
             0,
             headerUsernameColor
@@ -1809,7 +1809,7 @@ void GameplayMenu::Draw() {
     float floatSongLength = TheAudioManager.GetMusicTimePlayed();
 
     /*if (ThePlayerManager.BandStats->Paused) {
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 80 });
+        DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 80 });
         encOS::DrawTopOvershell(0.2f);
         SET_LARGE_BUTTON_STYLE();
         float Left = u.wpct(0.02f);
@@ -1980,18 +1980,18 @@ void GameplayMenu::Draw() {
     }
     // if (!TheGameRenderer.bot)
     //	DrawTextEx(assets.rubikBold, TextFormat("%s", player.FC ? "FC" : ""),
-    //				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
+    //				{5, GetRenderHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
     //				GOLD);
     // if (TheGameRenderer.bot)
     //	DrawTextEx(assets.rubikBold, "BOT",
-    //				{5, GetScreenHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
+    //				{5, GetRenderHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
     //				SKYBLUE);
     // if (!TheGameRenderer.bot)
     /*
     GuiProgressBar(
         Rectangle { 0,
-                    (float)GetScreenHeight() - u.hinpct(0.005f),
-                    (float)GetScreenWidth(),
+                    (float)GetRenderHeight() - u.hinpct(0.005f),
+                    (float)GetRenderWidth(),
                     u.hinpct(0.01f) },
         "",
         "",
@@ -2004,7 +2004,7 @@ void GameplayMenu::Draw() {
     lua.script_file("scripts/testing.lua");
     ScriptDisplayString = lua["TextDisplay"];
     DrawTextEx(assets.rubikBold, ScriptDisplayString.c_str(),
-                                    {5, GetScreenHeight() - u.hinpct(0.1f)},
+                                    {5, GetRenderHeight() - u.hinpct(0.1f)},
     u.hinpct(0.04), 0, GOLD);
 
 

@@ -230,7 +230,7 @@ void SongSelectMenu::Draw() {
 
     float TopOvershell = u.hpct(0.15f);
     DrawRectangle(
-        0, 0, u.RightSide - u.LeftSide, (float)GetScreenHeight(), GetColor(0x00000080)
+        0, 0, u.RightSide - u.LeftSide, (float)GetRenderHeight(), GetColor(0x00000080)
     );
     BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f), u.hinpct(0.7f));
     GameMenu::DrawTopOvershell(0.208333f);
@@ -592,7 +592,7 @@ void SongSelectMenu::Draw() {
 
     GameMenu::DrawBottomOvershell();
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(ColorBrightness(AccentColor, -0.25)));
-    if (GuiButton(Rectangle{ u.LeftSide, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Play Song")) {
+    if (GuiButton(Rectangle{ u.LeftSide, GetRenderHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Play Song")) {
         if (TheSongList.curSong) {
             Unload();
             if (!TheSongList.curSong->ini) {
@@ -607,7 +607,7 @@ void SongSelectMenu::Draw() {
 
     if (GuiButton(
             Rectangle { u.LeftSide + u.winpct(0.4f) - 2,
-                        GetScreenHeight() - u.hpct(0.1475f),
+                        GetRenderHeight() - u.hpct(0.1475f),
                         u.winpct(0.2f),
                         u.hinpct(0.05f) },
             "Sort"
@@ -641,7 +641,7 @@ void SongSelectMenu::Draw() {
             selectionTime = curTime;
         }
     }
-    if (GuiButton(Rectangle{ u.LeftSide + u.winpct(0.2f) - 1, GetScreenHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Back")) {
+    if (GuiButton(Rectangle{ u.LeftSide + u.winpct(0.2f) - 1, GetRenderHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Back")) {
         if (!TheAudioManager.loadedStreams.empty()) {
             for (auto& stream : TheAudioManager.loadedStreams) {
                 TheAudioManager.StopPlayback(stream.handle);

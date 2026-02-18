@@ -28,13 +28,13 @@ void Encore::Track::Draw() {
     EndMode3D();
     EndTextureMode();
 
-    int height = (float)GetScreenHeight();
-    int width = (float)GetScreenWidth();
+    int height = (float)GetRenderHeight();
+    int width = (float)GetRenderWidth();
     GameplayRenderTexture.texture.width = width;
     GameplayRenderTexture.texture.height = height;
     Rectangle source = { 0, 0, float(width), float(-height) };
-    Rectangle res = { 0, 0, float(GetScreenWidth()), float(GetScreenHeight()) };
-    Vector2 shaderResolution = { float(GetScreenWidth()), float(GetScreenHeight()) };
+    Rectangle res = { 0, 0, float(GetRenderWidth()), float(GetRenderHeight()) };
+    Vector2 shaderResolution = { float(GetRenderWidth()), float(GetRenderHeight()) };
 
     // BeginShaderMode(gprAssets.fxaa);
     // DrawTextureRec(GameplayRenderTexture.texture, res, {0}, WHITE);
@@ -56,7 +56,7 @@ void Encore::Track::Load() {
         { 0.0f, 1.0f, 0.0f },
         40.0f,
     };
-    GameplayRenderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    GameplayRenderTexture = LoadRenderTexture(GetRenderWidth(), GetRenderHeight());
     SetTextureFilter(GameplayRenderTexture.texture, TEXTURE_FILTER_BILINEAR);
 }
 void Encore::Track::DrawNotes() {

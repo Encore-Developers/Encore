@@ -18,7 +18,7 @@ SoundTestMenu::~SoundTestMenu() {
 void SoundTestMenu::Draw() {
     static int selectedSound;
     Units u = Units::getInstance();
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), BLACK);
     DrawTextEx(
         mFont, "SOUND TEST", { u.wpct(0.33), u.hpct(0.2) }, u.hinpct(0.1), 0, WHITE
     );

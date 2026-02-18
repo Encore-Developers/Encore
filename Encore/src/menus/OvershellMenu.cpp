@@ -12,16 +12,16 @@ using namespace encOS;
 void OvershellMenu::DrawOvershell() {
     Assets &assets = Assets::getInstance();
     Units &unit = Units::getInstance();
-    float BottomBottomOvershell = GetScreenHeight() - unit.hpct(0.1f);
+    float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
     float InnerBottom = BottomBottomOvershell + unit.hinpct(0.005f);
     DrawRectangle(
-        0, BottomBottomOvershell, (float)GetScreenWidth(), (float)GetScreenHeight(), WHITE
+        0, BottomBottomOvershell, (float)GetRenderWidth(), (float)GetRenderHeight(), WHITE
     );
     DrawRectangle(
         0,
         InnerBottom,
-        (float)GetScreenWidth(),
-        (float)GetScreenHeight(),
+        (float)GetRenderWidth(),
+        (float)GetRenderHeight(),
         ColorBrightness(GetColor(0x181827FF), -0.5f)
     );
     int ButtonHeight = unit.winpct(0.03f);
@@ -192,7 +192,7 @@ void OvershellMenu::DrawOvershell() {
                     OvershellLeftLoc,
                     InnerBottom,
                     HalfWidth * 2,
-                    GetScreenHeight(),
+                    GetRenderHeight(),
                     false,
                     playerManager.GetActivePlayer(i).AccentColor
                 );

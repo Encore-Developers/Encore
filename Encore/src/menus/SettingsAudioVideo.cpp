@@ -40,7 +40,7 @@ void SettingsAudioVideo::Draw() {
     const float boxWidthPct = 0.55f;
 
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0, 0, 0});
+    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
 
     encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();

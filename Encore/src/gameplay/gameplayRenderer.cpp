@@ -96,7 +96,7 @@ void gameplayRenderer::LoadGameplayAssets() {
     std::filesystem::path highwayModelPath = gprAssets.getDirectory();
     highwayModelPath /= "Assets/gameplay/highway";
 
-    GameplayRenderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    GameplayRenderTexture = LoadRenderTexture(GetRenderWidth(), GetRenderHeight());
 
     sustainPlane = GenMeshPlane(0.8f, 1.0f, 1, 1);
     dividerPlane = GenMeshPlane(1.0f, 1.0f, 1, 1);
@@ -367,7 +367,7 @@ void gameplayRenderer::LowerHighway() {
             1.0 - getEasingFunction(EaseInExpo)(timeSinceStart / animDuration),
             0,
             1.0,
-            -GetScreenHeight(),
+            -GetRenderHeight(),
             0
         );
         highwayOutEndAnim = true;
@@ -483,13 +483,13 @@ void gameplayRenderer::DrawRenderTexture() {
     EndBlendMode();
     EndTextureMode();
     SetTextureWrap(GameplayRenderTexture.texture, TEXTURE_WRAP_CLAMP);
-    int height = (float)GetScreenHeight();
-    int width = (float)GetScreenWidth();
+    int height = (float)GetRenderHeight();
+    int width = (float)GetRenderWidth();
     GameplayRenderTexture.texture.width = width;
     GameplayRenderTexture.texture.height = height;
     Rectangle source = { 0, 0, float(width), float(-height) };
-    Rectangle res = { 0, 0, float(GetScreenWidth()), float(GetScreenHeight()) };
-    Vector2 shaderResolution = { float(GetScreenWidth()), float(GetScreenHeight()) };
+    Rectangle res = { 0, 0, float(GetRenderWidth()), float(GetRenderHeight()) };
+    Vector2 shaderResolution = { float(GetRenderWidth()), float(GetRenderHeight()) };
 
     BeginShaderMode(gprAssets.fxaa);
     // DrawTextureRec(GameplayRenderTexture.texture, res, {0}, WHITE);
@@ -1173,10 +1173,10 @@ void gameplayRenderer::RenderHud(Player &player, float length) {
 }
 
 void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song song) {
-    if (GameplayRenderTexture.texture.width != GetScreenWidth()
-        || GameplayRenderTexture.texture.height != GetScreenHeight()
+    if (GameplayRenderTexture.texture.width != GetRenderWidth()
+        || GameplayRenderTexture.texture.height != GetRenderHeight()
         || IsWindowResized()) {
-        GameplayRenderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+        GameplayRenderTexture = LoadRenderTexture(GetRenderWidth(), GetRenderHeight());
         // hud_tex.texture.width = width;
         // hud_tex.texture.height = height;
         GenTextureMipmaps(&GameplayRenderTexture.texture);
@@ -1428,7 +1428,7 @@ void gameplayRenderer::RenderGameplay(Player &player, double curSongTime, Song s
         PlayerCombinedHealth / (ThePlayerManager.PlayersActive);
 
     float TempHealthBarHeight =
-        Remap(ThePlayerManager.BandStats->Health, 0, 100.0f, 0, GetScreenHeight());
+        Remap(ThePlayerManager.BandStats->Health, 0, 100.0f, 0, GetRenderHeight());
 
     DrawRectangle(
         gprU.hpct(0.0f), 0, 10, gprU.hinpct(ThePlayerManager.BandStats->Health), GREEN
@@ -1888,7 +1888,7 @@ void gameplayRenderer::DrawSolo(
         float soloPercentLength =
             MeasureTextEx(gprAssets.rubikBold, soloPct, gprU.hinpct(0.09f), 0).x;
 
-        Vector2 SoloBoxPos = { (GetScreenWidth() / 2) - (soloPercentLength / 2),
+        Vector2 SoloBoxPos = { (GetRenderWidth() / 2) - (soloPercentLength / 2),
                                gprU.hpct(0.2f) };
 
         // DrawTextEx(gprAssets.rubikBold, soloPct, SoloBoxPos, gprU.hinpct(0.09f), 0,

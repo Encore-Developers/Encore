@@ -31,16 +31,16 @@ void encOS::DrawTopOvershell(double height) {
     DrawRectangleGradientV(
         0,
         unit.hpct(height) - 2,
-        GetScreenWidth(),
+        GetRenderWidth(),
         unit.hinpct(0.025f),
         Color { 0, 0, 0, 128 },
         Color { 0, 0, 0, 0 }
     );
-    DrawRectangle(0, 0, (int)GetScreenWidth(), unit.hpct(height), WHITE);
+    DrawRectangle(0, 0, (int)GetRenderWidth(), unit.hpct(height), WHITE);
     DrawRectangle(
         0,
         0,
-        (int)GetScreenWidth(),
+        (int)GetRenderWidth(),
         unit.hpct(height) - unit.hinpct(0.005f),
         ColorBrightness(GetColor(0x181827FF), -0.25f)
     );

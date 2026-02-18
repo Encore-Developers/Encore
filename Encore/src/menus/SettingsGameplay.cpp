@@ -47,9 +47,9 @@ void SettingsGameplay::Draw() {
     if (TheSongList.curSong != nullptr && IsTextureValid(TheSongList.curSong->albumArtBlur)) {
         GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     } else {
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), BLACK);
+        DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), BLACK);
     }
-    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0, 0, 0});
+    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
 
     float SidebarLeft = u.LeftSide + u.winpct(0.70f);
     float SidebarWidth = u.wpct(0.235f);

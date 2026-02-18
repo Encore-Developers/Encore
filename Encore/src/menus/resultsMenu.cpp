@@ -253,7 +253,7 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
         scoreString,
-        { scorePos, (float)GetScreenHeight() / 2 },
+        { scorePos, (float)GetRenderHeight() / 2 },
         u.hinpct(0.065f),
         GetColor(0x00adffFF),
         sdfShader,
@@ -263,7 +263,7 @@ void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
     renderPlayerStars(
     player,
         (cardPos + cardHalfWidth),
-        (float)GetScreenHeight() / 2 - u.hinpct(0.06f),
+        (float)GetRenderHeight() / 2 - u.hinpct(0.06f),
         u.hinpct(0.055f),
         false
     );

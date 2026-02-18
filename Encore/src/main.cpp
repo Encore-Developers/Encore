@@ -95,15 +95,15 @@ void DrawLoadingScreen(unsigned char alpha, float progress) {
     float fade = (1.0 - (alpha/255.0));
     fade *= fade;
     unsigned char quadAlpha = 255*(1.0-fade);
-    float scale = (GetScreenHeight() / 1080.0f) * 0.3;
+    float scale = (GetRenderHeight() / 1080.0f) * 0.3;
     float iconScale = scale + fade * 0.5;
     int iconSize = (icon.height * iconScale)/2; // Dividing by 2 for centering
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), {0, 0, 0, quadAlpha});
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), {0, 0, 0, quadAlpha});
 
-    Vector2 screenCenter = {GetScreenWidth()/2.0f, GetScreenHeight()/2.0f};
+    Vector2 screenCenter = {GetRenderWidth()/2.0f, GetRenderHeight()/2.0f};
     DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360-90, 64, {255, 255, 255, (unsigned char)(alpha/3)});
     DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360*progress-90, 64, {255, 255, 255, alpha});
-    DrawTextureEx(icon, {GetScreenWidth()/2.0f-iconSize, GetScreenHeight()/2.0f-iconSize}, 0, iconScale, {255, 255, 255, alpha});
+    DrawTextureEx(icon, {GetRenderWidth()/2.0f-iconSize, GetRenderHeight()/2.0f-iconSize}, 0, iconScale, {255, 255, 255, alpha});
 }
 
 
@@ -115,7 +115,9 @@ int main(int argc, char *argv[]) {
     commitHash.erase(7);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
     glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 
     bool windowToggle = true;
     ArgumentList::InitArguments(argc, argv);
@@ -204,17 +206,17 @@ int main(int argc, char *argv[]) {
     while (!WindowShouldClose()) {
         u.calcUnits();
 
-        if (GetScreenWidth() < minWidth) {
-            if (GetScreenHeight() < minHeight)
+        if (GetRenderWidth() < minWidth) {
+            if (GetRenderHeight() < minHeight)
                 SetWindowSize(minWidth, minHeight);
             else
-                SetWindowSize(minWidth, GetScreenHeight());
+                SetWindowSize(minWidth, GetRenderHeight());
         }
-        if (GetScreenHeight() < minHeight) {
-            if (GetScreenWidth() < minWidth)
+        if (GetRenderHeight() < minHeight) {
+            if (GetRenderWidth() < minWidth)
                 SetWindowSize(minWidth, minHeight);
             else
-                SetWindowSize(GetScreenWidth(), minHeight);
+                SetWindowSize(GetRenderWidth(), minHeight);
         }
 
         BeginDrawing();

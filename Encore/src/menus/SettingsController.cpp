@@ -106,7 +106,7 @@ void SettingsController::Draw() {
         TraceLog(LOG_ERROR, "TheSongList.curSong is null");
         Units& u = Units::getInstance();
         Assets& assets = Assets::getInstance();
-        DrawRectangle(50, 50, GetScreenWidth() - 100, GetScreenHeight() - 100, Fade(BLACK, 0.8f));
+        DrawRectangle(50, 50, GetRenderWidth() - 100, GetRenderHeight() - 100, Fade(BLACK, 0.8f));
         DrawTextEx(assets.rubikBold, "Error: No song selected", {100, 100}, u.hinpct(0.04f), 0, RED);
         return;
     }
@@ -115,7 +115,7 @@ void SettingsController::Draw() {
     Assets& assets = Assets::getInstance();
     TraceLog(LOG_INFO, "Units=%p, Assets initialized, rubikBold=%p", &u, &assets.rubikBold);
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetScreenHeight(), Color{0, 0, 0});
+    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
     encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();

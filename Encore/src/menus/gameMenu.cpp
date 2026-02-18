@@ -33,8 +33,8 @@
 #define ENCORE_VERSION
 #endif
 
-const float Width = (float)GetScreenWidth();
-const float Height = (float)GetScreenHeight();
+const float Width = (float)GetRenderWidth();
+const float Height = (float)GetRenderHeight();
 
 bool randomSongChosen = false;
 std::string menuCommitHash = GIT_COMMIT_HASH;
@@ -102,31 +102,31 @@ void GameMenu::DrawTopOvershell(float TopOvershell) {
     DrawRectangleGradientV(
         0,
         u.hpct(TopOvershell) - 2,
-        GetScreenWidth(),
+        GetRenderWidth(),
         u.hinpct(0.025f),
         Color { 0, 0, 0, 128 },
         Color { 0, 0, 0, 0 }
     );
-    DrawRectangle(0, 0, (int)GetScreenWidth(), u.hpct(TopOvershell), WHITE);
+    DrawRectangle(0, 0, (int)GetRenderWidth(), u.hpct(TopOvershell), WHITE);
     DrawRectangle(
         0,
         0,
-        (int)GetScreenWidth(),
+        (int)GetRenderWidth(),
         u.hpct(TopOvershell) - u.hinpct(0.005f),
         ColorBrightness(GetColor(0x181827FF), -0.25f)
     );
 }
 
 void GameMenu::DrawBottomOvershell() {
-    float BottomOvershell = GetScreenHeight() - u.hpct(0.15f);
+    float BottomOvershell = GetRenderHeight() - u.hpct(0.15f);
     DrawRectangle(
-        0, BottomOvershell, (float)(GetScreenWidth()), (float)GetScreenHeight(), WHITE
+        0, BottomOvershell, (float)(GetRenderWidth()), (float)GetRenderHeight(), WHITE
     );
     DrawRectangle(
         0,
         BottomOvershell + u.hinpct(0.005f),
-        (float)(GetScreenWidth()),
-        (float)GetScreenHeight(),
+        (float)(GetRenderWidth()),
+        (float)GetRenderHeight(),
         ColorBrightness(GetColor(0x181827FF), -0.5f)
     );
 }
@@ -137,10 +137,10 @@ void GameMenu::DrawBottomOvershell() {
 
 void GameMenu::DrawAlbumArtBackground(Texture2D song) {
     float diagonalLength = sqrtf(
-        (float)(GetScreenWidth() * GetScreenWidth())
-        + (float)(GetScreenHeight() * GetScreenHeight())
+        (float)(GetRenderWidth() * GetRenderWidth())
+        + (float)(GetRenderHeight() * GetRenderHeight())
     );
-    float RectXPos = GetScreenWidth() / 2;
+    float RectXPos = GetRenderWidth() / 2;
     float RectYPos = diagonalLength / 2;
 
     BeginShaderMode(menuAss.bgShader);
@@ -255,7 +255,7 @@ void MainMenu::AttractScreen() {
     float SongFontSize = u.hinpct(0.03f);
 
     Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
     float LogoHeight = u.winpct(0.1f);
     float LogoWidth = u.winpct(0.48f);
@@ -306,7 +306,7 @@ void MainMenu::MainMenuScreen() {
     float SongFontSize = u.hinpct(0.03f);
 
     Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Color { 0, 0, 0, 128 });
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
     GameMenu::DrawTopOvershell(0.2f);
 
@@ -397,8 +397,8 @@ void MainMenu::MainMenuScreen() {
         );
         // TheSongList.ScanSongs(TheGameSettings.SongPaths);
         DrawRectanglePro(
-            { ((float)GetScreenWidth() / 2) - 125,
-              ((float)GetScreenHeight() / 2) - 120,
+            { ((float)GetRenderWidth() / 2) - 125,
+              ((float)GetRenderHeight() / 2) - 120,
               250,
               60 },
             { 0, 0 },
@@ -446,8 +446,8 @@ void MainMenu::MainMenuScreen() {
     GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
 
     if (GuiButton(
-            { (float)GetScreenWidth() - 60,
-              (float)GetScreenHeight() - u.hpct(0.15f) - 60,
+            { (float)GetRenderWidth() - 60,
+              (float)GetRenderHeight() - u.hpct(0.15f) - 60,
               60,
               60 },
             ""
@@ -456,8 +456,8 @@ void MainMenu::MainMenuScreen() {
     }
 
     if (GuiButton(
-            { (float)GetScreenWidth() - 120,
-              (float)GetScreenHeight() - u.hpct(0.15f) - 60,
+            { (float)GetRenderWidth() - 120,
+              (float)GetRenderHeight() - u.hpct(0.15f) - 60,
               60,
               60 },
             ""
@@ -470,14 +470,14 @@ void MainMenu::MainMenuScreen() {
     GuiSetFont(menuAss.rubik);
     DrawTextureEx(
         menuAss.github,
-        { (float)GetScreenWidth() - 54, (float)GetScreenHeight() - 54 - u.hpct(0.15f) },
+        { (float)GetRenderWidth() - 54, (float)GetRenderHeight() - 54 - u.hpct(0.15f) },
         0,
         0.2,
         WHITE
     );
     DrawTextureEx(
         menuAss.discord,
-        { (float)GetScreenWidth() - 113, (float)GetScreenHeight() - 48 - u.hpct(0.15f) },
+        { (float)GetRenderWidth() - 113, (float)GetRenderHeight() - 48 - u.hpct(0.15f) },
         0,
         0.075,
         WHITE
@@ -518,7 +518,7 @@ void MainMenu::MainMenuScreen() {
         DrawRectangle(
             0,
             u.hpct(0.2f) - u.hinpct(0.01f),
-            Remap(played, 0, length, 0, GetScreenWidth()),
+            Remap(played, 0, length, 0, GetRenderWidth()),
             u.hinpct(0.005f),
             SKYBLUE
         );

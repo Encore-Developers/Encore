@@ -160,8 +160,8 @@ void MenuManager::DrawMenu() {
             }
 
             if (GuiButton(
-                    { (float)GetScreenWidth() / 2 - 250,
-                      (float)GetScreenHeight() - 120,
+                    { (float)GetRenderWidth() / 2 - 250,
+                      (float)GetRenderHeight() - 120,
                       200,
                       60 },
                     "Start Calibration"
@@ -172,8 +172,8 @@ void MenuManager::DrawMenu() {
                 tapTimes.clear();
             }
             if (GuiButton(
-                    { (float)GetScreenWidth() / 2 + 50,
-                      (float)GetScreenHeight() - 120,
+                    { (float)GetRenderWidth() / 2 + 50,
+                      (float)GetRenderHeight() - 120,
                       200,
                       60 },
                     "Stop Calibration"
@@ -238,8 +238,8 @@ void MenuManager::DrawMenu() {
                 DrawTextEx(
                     assets.rubikBold,
                     "Input Registered",
-                    { static_cast<float>((GetScreenWidth() - u.hinpct(0.35f)) / 2),
-                      static_cast<float>(GetScreenHeight() / 2) },
+                    { static_cast<float>((GetRenderWidth() - u.hinpct(0.35f)) / 2),
+                      static_cast<float>(GetRenderHeight() / 2) },
                     u.hinpct(0.05f),
                     0,
                     feedbackColor
@@ -247,8 +247,8 @@ void MenuManager::DrawMenu() {
             }
 
             if (GuiButton(
-                    { ((float)GetScreenWidth() / 2) - 350,
-                      ((float)GetScreenHeight() - 60),
+                    { ((float)GetRenderWidth() / 2) - 350,
+                      ((float)GetRenderHeight() - 60),
                       100,
                       60 },
                     "Cancel"
@@ -263,8 +263,8 @@ void MenuManager::DrawMenu() {
             }
 
             if (GuiButton(
-                    { ((float)GetScreenWidth() / 2) + 250,
-                      ((float)GetScreenHeight() - 60),
+                    { ((float)GetRenderWidth() / 2) + 250,
+                      ((float)GetRenderHeight() - 60),
                       100,
                       60 },
                     "Apply"
