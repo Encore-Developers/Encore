@@ -21,6 +21,7 @@ namespace Encore {
         void DrawBeatlines();
         TrackSlot **GetSlotsForLane(uint8_t lane) const;
 
+        void AddSlot(TrackSlot* slot);
         void Configure5Lane();
         void Configure4Lane();
         void ConfigureDrums();
@@ -28,13 +29,14 @@ namespace Encore {
 
         float NoteSpeed = 1;
         float Length = 20;
+        float FadeSize = 3;
 
         Track(Player &player_)
             : player(player_) {
         };
         ~Track();
-    protected:
         Player& player;
+    protected:
         Camera3D camera;
         RenderTexture2D GameplayRenderTexture;
         std::vector<std::unique_ptr<TrackSlot>> slots;

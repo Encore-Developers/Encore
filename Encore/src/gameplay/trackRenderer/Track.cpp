@@ -12,10 +12,14 @@
 #include "gameplay/enctime.h"
 
 void Encore::Track::Draw() {
+    NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
+
     BeginTextureMode(GameplayRenderTexture);
     BeginMode3D(camera);
     ClearBackground({0,0,0,0});
 
+    //SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
+    //SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
@@ -65,17 +69,20 @@ void Encore::Track::DrawNotes() {
         return;
     }
 
-    std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize();
-    for (int curNote = NotePoolSize.first; curNote < NotePoolSize.second; curNote++) {
-        auto *note = &player.engine->chart->at(0).at(curNote);
-        auto slots = GetSlotsForLane(note->Lane);
-        for (int i = 0; i < 7; i++) {
-            if (slots[i]) {
-                auto slot = slots[i];
-                slot->DrawNote(note);
+    for (int lane = 0 ; lane < player.engine->chart->Lanes.size(); lane++) {
+        std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize(lane);
+        for (int curNote = NotePoolSize.first; curNote < NotePoolSize.second; curNote++) {
+            auto *note = &player.engine->chart->at(lane).at(curNote);
+            auto slots = GetSlotsForLane(player.engine->UsesNoteMasks() ? note->Lane : lane);
+            for (int i = 0; i < 7; i++) {
+                if (slots[i]) {
+                    auto slot = slots[i];
+                    slot->DrawNote(note);
+                }
             }
         }
     }
+
 }
 void Encore::Track::DrawSmashers() {
     for (int i = 0; i < slots.size(); i++) {
@@ -167,29 +174,35 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane) const {
     }
     return (TrackSlot **)&slotBuffer;
 }
+
+void Encore::Track::AddSlot(TrackSlot *slot) {
+    slot->index = slots.size();
+    slots.emplace_back(slot);
+}
 void Encore::Track::Configure5Lane() {
     slots.clear();
-    slots.emplace_back(new GemTrackSlot(this, -2, 1, 0));
-    slots.emplace_back(new GemTrackSlot(this, -1, 1, 1));
-    slots.emplace_back(new GemTrackSlot(this, 0, 1, 2));
-    slots.emplace_back(new GemTrackSlot(this, 1, 1, 3));
-    slots.emplace_back(new GemTrackSlot(this, 2, 1, 4));
-    // TODO: open track slot
+    AddSlot(new GemTrackSlot(this, 2, 1, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1, 1, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2, 1, SLOT_ORANGE));
+    AddSlot(new GemTrackSlot(this, 0, 5, SLOT_OPEN));
 }
 void Encore::Track::Configure4Lane() {
     slots.clear();
-    slots.emplace_back(new GemTrackSlot(this, -2, 1.25, 0));
-    slots.emplace_back(new GemTrackSlot(this, -1, 1.25, 1));
-    slots.emplace_back(new GemTrackSlot(this, 1, 1.25, 2));
-    slots.emplace_back(new GemTrackSlot(this, 2, 1.25, 3));
+    AddSlot(new GemTrackSlot(this, 2, 1.25, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 0.75, 1.25, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, -0.75, 1.25, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -2, 1.25, SLOT_BLUE));
 }
 void Encore::Track::ConfigureDrums() {
     slots.clear();
-    slots.emplace_back(new GemTrackSlot(this, -2, 1.25, 0));
-    slots.emplace_back(new GemTrackSlot(this, -1, 1.25, 1));
-    slots.emplace_back(new GemTrackSlot(this, 1, 1.25, 2));
-    slots.emplace_back(new GemTrackSlot(this, 2, 1.25, 3));
-    // TODO: kick track slot
+    AddSlot(new GemTrackSlot(this, 0, 5, SLOT_KICK)); // TODO: make the kick slot a different type
+    AddSlot(new GemTrackSlot(this, 2, 1.25, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0.625, 1.25, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -0.625, 1.25, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2, 1.25, SLOT_GREEN));
+
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {

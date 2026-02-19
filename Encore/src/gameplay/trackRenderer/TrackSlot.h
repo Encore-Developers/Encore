@@ -4,7 +4,7 @@
 #include "Track.h"
 #include "RhythmEngine/Notes/EncNote.h"
 #include "raylib.h"
-
+#include "users/ColorProfile.h"
 
 namespace Encore {
     class Track;
@@ -13,14 +13,15 @@ namespace Encore {
     public:
         float xPos;
         float width;
-        int colorSlot; // TODO: figure out a good system for these
+        ColorSlot colorSlot;
         Track *track;
+        int index = 0;
 
         virtual void DrawNote(RhythmEngine::EncNote *note) = 0;
         virtual void DrawSustainTail(double startTime, double endTime) = 0;
         virtual void DrawSmasher(bool held) = 0;
 
-        TrackSlot(Track *track, float xPos, float width, int colorSlot) : xPos(xPos), width(width), colorSlot(colorSlot), track(track) {};
+        TrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : xPos(xPos), width(width), colorSlot(colorSlot), track(track) {};
     };
 
 } // Encore

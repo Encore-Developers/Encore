@@ -329,6 +329,19 @@ void Player::ResetGameplayStats() {
     stats->BaseScore = 0;
     */
 }
+
+Encore::ColorProfile *Player::GetColorProfile() const {
+    if (colorProfile) {
+        return colorProfile.get();
+    } else {
+        return &Encore::defaultProfile;
+    }
+}
+
+Color Player::QueryColorProfile(Encore::ColorSlot slot) {
+    return GetColorProfile()->colors[slot];
+}
+
 /*
 BandGameplayStats::BandGameplayStats() {
     Quit = false;

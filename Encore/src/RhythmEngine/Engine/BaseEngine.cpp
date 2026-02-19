@@ -85,6 +85,17 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action ac
     return false;
 }
 
+std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) {
+    int NotePoolStart =
+            std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
+    int NotePoolEnd = NOTE_POOL_SIZE
+        + std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
+    NotePoolEnd =
+                    chart->at(lane).size() > NotePoolEnd ? NotePoolEnd : chart->at(lane).size();
+    int NotePoolSize = NotePoolEnd - NotePoolStart;
+
+    return std::pair<int, int> {NotePoolStart, NotePoolEnd};
+}
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTime) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;

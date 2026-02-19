@@ -4,6 +4,8 @@
 // Created by marie on 04/05/2024.
 //
 
+#include "ColorProfile.h"
+
 #include <string>
 #include <filesystem>
 
@@ -190,6 +192,8 @@ class Player {
     /**
      * @brief Player information. What else could be said?
      */
+private:
+    std::shared_ptr<Encore::ColorProfile> colorProfile;
 public:
     Player();
 
@@ -211,7 +215,11 @@ public:
     std::shared_ptr <Encore::RhythmEngine::BaseEngine>
             engine = nullptr;
 
+
     void ResetGameplayStats();
+
+    Encore::ColorProfile *GetColorProfile() const;
+    Color QueryColorProfile(Encore::ColorSlot slot);
 
     enum ReadyUpStates {
         PREVIEW,

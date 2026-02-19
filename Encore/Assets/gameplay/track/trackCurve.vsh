@@ -11,6 +11,8 @@ uniform mat4 mvp;
 uniform mat4 matModel;
 uniform mat4 matView;
 uniform mat4 matNormal;
+uniform float trackLength = 20;
+uniform float fadeSize = 3;
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
@@ -43,4 +45,6 @@ void main()
     PositionInViewSpace = matView * PositionInWorldSpace;
     vec4 PositionInObjectSpace = inverse(ModelViewMatrix) * PositionInViewSpace;
     gl_Position = mvp * PositionInObjectSpace;
+    //float fade = (fadeSize-clamp(vertexPosition.z - (trackLength-fadeSize), 0, fadeSize))/fadeSize;
+    //fragColor.a *= fade;
 }

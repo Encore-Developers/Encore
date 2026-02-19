@@ -53,17 +53,6 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
     BaseEngine::CheckMissedNotes(0, CurrentTime);
 }
 
-std::pair<int, int> Encore::RhythmEngine::GuitarEngine::GetNotePoolSize() {
-    int NotePoolStart =
-            std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
-    int NotePoolEnd = NOTE_POOL_SIZE
-        + std::distance(chart->at(0).begin(), chart->CurrentNoteIterators.at(0));
-    NotePoolEnd =
-                    chart->at(0).size() > NotePoolEnd ? NotePoolEnd : chart->at(0).size();
-    int NotePoolSize = NotePoolEnd - NotePoolStart;
-
-    return std::pair<int, int> {NotePoolStart, NotePoolEnd};
-}
 
 void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     if (stats->Bot) {

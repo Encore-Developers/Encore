@@ -6,7 +6,7 @@ namespace Encore {
 
     class GemTrackSlot : public TrackSlot {
     public:
-        GemTrackSlot(Track *track, float xPos, float width, int colorSlot) : TrackSlot(track, xPos, width, colorSlot) {};
+        GemTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, colorSlot) {};
 
         virtual void DrawNote(RhythmEngine::EncNote *note);
         virtual void DrawSustainTail(double startTime, double endTime);

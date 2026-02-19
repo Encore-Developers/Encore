@@ -261,7 +261,7 @@ public:
 
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
     NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
-    NEWSHADERASSET(trackCurveShader, "", "gameplay/track/trackCurve.vsh", {});
+    NEWSHADERASSET(trackCurveShader, "", "gameplay/track/trackCurve.vsh", {"trackLength", "fadeSize"});
 
     void DrawTextRHDI(const char* text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, {x, y}, fontSize, 0, color);

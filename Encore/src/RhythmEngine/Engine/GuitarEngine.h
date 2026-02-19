@@ -38,7 +38,6 @@ namespace Encore::RhythmEngine {
         void HitNote(bool strumInput);
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
-        std::pair<int, int> GetNotePoolSize() override;
     public:
         int GhostCount = 0;
         // std::unordered_map<std::string, RhythmTimer> Timers {

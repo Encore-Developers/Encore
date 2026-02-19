@@ -2103,6 +2103,15 @@ void GameplayMenu::Load() {
         case PlasticKeys:
             tracks.at(i)->Configure5Lane();
             break;
+        case PlasticDrums:
+            tracks.at(i)->ConfigureDrums();
+            break;
+        default:
+            if (player.Difficulty == 3) {
+                tracks.at(i)->Configure5Lane();
+            } else {
+                tracks.at(i)->Configure4Lane();
+            }
         }
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals
             || player.Instrument == PartBass) {
