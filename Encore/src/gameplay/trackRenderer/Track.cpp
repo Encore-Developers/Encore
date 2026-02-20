@@ -23,6 +23,8 @@ void Encore::Track::Draw() {
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
+    DrawSurface();
+
     DrawBeatlines();
     DrawSmashers();
     DrawNotes();
@@ -63,6 +65,26 @@ void Encore::Track::Load() {
     GameplayRenderTexture = LoadRenderTexture(GetRenderWidth(), GetRenderHeight());
     SetTextureFilter(GameplayRenderTexture.texture, TEXTURE_FILTER_BILINEAR);
 }
+
+void Encore::Track::DrawSurface() {
+    static std::vector<Vector3> points;
+    points.clear();
+    for (int i = 0; i <= 10; i++) {
+        auto x = Remap(i, 0, 10, -2.5, 2.5);
+        points.push_back({x, 0, -15});
+        points.push_back({x, 0, Length-FadeSize});
+    }
+    DrawTriangleStrip3D(points.data(), points.size(), DARKGRAY);
+
+    points.clear();
+    for (int i = 0; i <= 10; i++) {
+        auto x = Remap(i, 0, 10, -2.5, 2.5);
+        points.push_back({x, 0, Length-FadeSize});
+        points.push_back({x, 0, Length});
+    }
+    DrawTriangleStrip3D(points.data(), points.size(), DARKGRAY);
+}
+
 void Encore::Track::DrawNotes() {
 
     if (player.engine->chart->at(0).empty()) {

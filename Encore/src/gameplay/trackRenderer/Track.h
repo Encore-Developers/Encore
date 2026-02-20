@@ -19,6 +19,7 @@ namespace Encore {
         void DrawNotes();
         void DrawSmashers();
         void DrawBeatlines();
+        void DrawSurface();
         TrackSlot **GetSlotsForLane(uint8_t lane) const;
 
         void AddSlot(TrackSlot* slot);
