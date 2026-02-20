@@ -18,8 +18,8 @@ void Encore::Track::Draw() {
     BeginMode3D(camera);
     ClearBackground({0,0,0,0});
 
-    //SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
-    //SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
@@ -78,7 +78,7 @@ void Encore::Track::DrawNotes() {
                 if (slots[i]) {
                     auto slot = slots[i];
                     slot->DrawNote(note);
-                }
+                } else break;
             }
         }
     }

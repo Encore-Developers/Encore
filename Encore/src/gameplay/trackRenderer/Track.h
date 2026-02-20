@@ -28,8 +28,8 @@ namespace Encore {
         float GetNotePos3D(double noteTime);
 
         float NoteSpeed = 1;
-        float Length = 20;
-        float FadeSize = 3;
+        float Length = 25;
+        float FadeSize = 7;
 
         Track(Player &player_)
             : player(player_) {
