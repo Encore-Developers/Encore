@@ -1334,13 +1334,6 @@ void GameplayMenu::Draw() {
         // overdrive bar ------------
         float ODBarLength = (TopOfScreen / 5) * 2;
         float BarWidth = NoteXWidth / 2;
-        DrawRectangle(
-            TrackLeft - RailWidth - BarWidth,
-            GetRenderHeight() - ODBarLength,
-            BarWidth,
-            ODBarLength,
-            BLACK
-        );
         double ODBarWidth =
             Remap(player.engine->stats->overdrive.Fill, 1.0, 0, ODBarLength, 0);
 
@@ -1350,13 +1343,6 @@ void GameplayMenu::Draw() {
         Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
         float ODBarFillPosition = GetRenderHeight() - ODBarWidth;
-        DrawRectangle(
-            TrackLeft - RailWidth - BarWidth,
-            ODBarFillPosition,
-            BarWidth,
-            ODBarWidth,
-            OverdriveBarColor
-        );
         // ----------------
 
         // DrawRectangle(

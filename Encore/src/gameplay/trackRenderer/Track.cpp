@@ -26,6 +26,7 @@ void Encore::Track::Draw() {
     DrawSurface();
 
     DrawBeatlines();
+    DrawOverdriveMeter();
     DrawSmashers();
     DrawNotes();
 
@@ -85,6 +86,71 @@ void Encore::Track::DrawSurface() {
     DrawTriangleStrip3D(points.data(), points.size(), DARKGRAY);
 }
 
+void Encore::Track::DrawOverdriveMeter() {
+    static std::vector<Vector3> points;
+    points.clear();
+
+    for (int i = 0; i <= 10; i++) {
+        auto x = Remap(i, 0, 10, -2.5, 2.5);
+        points.push_back({x, 0, -1.5});
+        points.push_back({x, 0, -1});
+    }
+
+    DrawTriangleStrip3D(points.data(), points.size(), BLACK);
+
+    points.clear();
+    for (int i = 0; i <= 10; i++) {
+        auto x = Remap(i, 0, 10, -2.5, 2.5);
+        x = Lerp(x, 2.5, 1-player.engine->stats->overdrive.Fill);
+        points.push_back({x, 0, -1.5});
+        points.push_back({x, 0, -1});
+    }
+
+    int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
+    int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
+    int flashInterval = (numer * 480) / denom;
+
+    unsigned char streakFlash =
+            BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 255, flashInterval);
+    float Percentage = float(streakFlash) / 255.0f;
+    Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
+
+    DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
+    return;
+
+    BeginShaderMode(ASSET(sdfShader));
+    rlPushMatrix();
+    rlTranslatef(0, 0.5, -0);
+    rlRotatef(-90, -1, 0, 0);
+    rlRotatef(180, 0, 0, 1);
+
+    std::string multString = TextFormat("%ix", player.engine->stats->multiplier());
+    Vector2 size = MeasureTextEx(ASSET(JetBrainsMono), multString.c_str(), 0.8, 0);
+    DrawCircleSector({0, 0}, 0.5, 0, 360, 32, BLACK);
+    DrawTextEx(ASSET(JetBrainsMono), multString.c_str(), {-size.x/2, -size.y/2}, 0.8, 0, WHITE);
+    rlPopMatrix();
+    BeginShaderMode(ASSET(trackCurveShader));
+
+
+
+}
+
+unsigned char Encore::Track::BeatToCharViaTickThing(
+    int tick,
+    int MinBrightness,
+    int MaxBrightness,
+    int QuarterNoteLength
+) {
+    float TickModulo = tick % QuarterNoteLength;
+    return Remap(
+        TickModulo / float(QuarterNoteLength),
+        0,
+        1.0f,
+        MaxBrightness,
+        MinBrightness
+    );
+}
+
 void Encore::Track::DrawNotes() {
 
     if (player.engine->chart->at(0).empty()) {
@@ -109,7 +175,7 @@ void Encore::Track::DrawNotes() {
 void Encore::Track::DrawSmashers() {
     for (int i = 0; i < slots.size(); i++) {
         auto slot = slots.at(i).get();
-        slot->DrawSmasher(slot->index < player.engine->stats->HeldFrets.size() && !player.engine->stats->HeldFrets[slot->index]);
+        slot->DrawSmasher(slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->HeldFrets[slot->index]);
     }
 }
 

@@ -31,9 +31,13 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     Color color = track->player.QueryColorProfile(colorSlot);
 
     if (held) {
-        color.r /= 2;
-        color.g /= 2;
-        color.b /= 2;
+        color.r /= 1.25;
+        color.g /= 1.25;
+        color.b /= 1.25;
+    } else {
+        color.r /= 3;
+        color.g /= 3;
+        color.b /= 3;
     }
 
     DrawCube({xPos, 0.025, 0}, width, 0.05, 1, color);

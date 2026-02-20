@@ -20,6 +20,7 @@ namespace Encore {
         void DrawSmashers();
         void DrawBeatlines();
         void DrawSurface();
+        void DrawOverdriveMeter();
         TrackSlot **GetSlotsForLane(uint8_t lane) const;
 
         void AddSlot(TrackSlot* slot);
@@ -28,6 +29,13 @@ namespace Encore {
         void ConfigureDrums();
         float GetNotePos3D(double noteTime);
         float GetZPerSecond();
+
+        unsigned char BeatToCharViaTickThing(
+            int tick,
+            int MinBrightness,
+            int MaxBrightness,
+            int QuarterNoteLength
+        );
 
         float NoteSpeed = 1;
         float Length = 25;
