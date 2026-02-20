@@ -64,59 +64,7 @@ void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
         // assignment in this switch/case. You will also
         // add its case to the `ActiveMenu->Draw();`
         // cases.
-    case MAIN_MENU: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SETTINGS: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case RESULTS: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SONG_SELECT: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case READY_UP: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SOUND_TEST: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case CACHE_LOADING_SCREEN: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case CHART_LOADING_SCREEN: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case GAMEPLAY: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SETTINGSAUDIOVIDEO: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SETTINGSCONTROLLER: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SETTINGSGAMEPLAY: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SETTINGSKEYBOARD: {
-        TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    case SETTINGSCREDITS: {
+    default: {
         TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
         break;
     }
