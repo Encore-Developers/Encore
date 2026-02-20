@@ -3,7 +3,9 @@
 
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
-    DrawCube({xPos, 0.2, pos}, width, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
+    float finalWidth = width;
+    if (note->NoteType == 1) finalWidth *= 0.5f;
+    DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
 void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
 
