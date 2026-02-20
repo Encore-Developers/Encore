@@ -27,6 +27,7 @@ namespace Encore {
         void Configure4Lane();
         void ConfigureDrums();
         float GetNotePos3D(double noteTime);
+        float GetZPerSecond();
 
         float NoteSpeed = 1;
         float Length = 25;

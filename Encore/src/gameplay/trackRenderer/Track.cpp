@@ -109,7 +109,7 @@ void Encore::Track::DrawNotes() {
 void Encore::Track::DrawSmashers() {
     for (int i = 0; i < slots.size(); i++) {
         auto slot = slots.at(i).get();
-        slot->DrawSmasher(false);
+        slot->DrawSmasher(slot->index < player.engine->stats->HeldFrets.size() && !player.engine->stats->HeldFrets[slot->index]);
     }
 }
 
@@ -228,7 +228,11 @@ void Encore::Track::ConfigureDrums() {
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {
-    return ((noteTime - TheSongTime.GetElapsedTime()) * (NoteSpeed * Length));
+    return (noteTime - TheSongTime.GetElapsedTime()) * GetZPerSecond();
+}
+
+float Encore::Track::GetZPerSecond() {
+    return NoteSpeed * Length;
 }
 
 Encore::Track::~Track() {
