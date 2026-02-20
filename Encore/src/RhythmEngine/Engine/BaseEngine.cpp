@@ -141,7 +141,8 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     );
 }
 void Encore::RhythmEngine::BaseEngine::UpdateStats(int instrument, int difficulty) {
-    int inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
+
+    inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
     stats->StarThresholdValue = stats->Score / chart->BaseScore;
     if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][0]) {
         stats->Stars = 0;

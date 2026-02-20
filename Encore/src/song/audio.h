@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <string>
+
 namespace Encore {
     class AudioManager {
     public:
@@ -12,6 +13,7 @@ namespace Encore {
             unsigned int handle = 0;
             float volume = 1.0;
             int instrument = 0;
+            unsigned long fxhandle = 0;
         };
         std::vector<AudioStream> loadedStreams; // Loaded audio streams
 
@@ -43,6 +45,10 @@ namespace Encore {
         void loadSample(const std::string &path, const std::string &name);
         void playSample(const std::string &name, float volume);
         void unloadSample(const std::string &name);
+
+        //
+        void StartEffect(AudioStream* stream);
+        void StopEffect(AudioStream* stream);
 
     private:
         std::unordered_map<std::string, unsigned int> samples; // Loaded audio samples

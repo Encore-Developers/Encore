@@ -11,6 +11,8 @@
 #include <bit>
 #include <filesystem>
 
+#include "song/audio.h"
+
 bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
     // chord check
     if (std::has_single_bit(noteMask)) {
@@ -43,7 +45,11 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
     InputChannel channel, Action action
 ) {
     if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
+        int InstrumentNum =
+                stats->Type == Guitar ? inst - 5 : inst;
         stats->overdrive.Activate(stats->InputTime);
+        TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
+        EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
         return true;
     }
     return false;
@@ -72,7 +78,14 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     }
     this->CheckMissedNotes(CurrentTime);
     stats->overdrive.Add(CurrentTime, chart);
+    bool odWasActive = stats->overdrive.Active;
     stats->overdrive.Update(CurrentTime);
+    if (odWasActive == true && odWasActive != stats->overdrive.Active) {
+        int InstrumentNum =
+                stats->Type == Guitar ? inst - 5 : inst;
+        TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
+        EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
+    }
     // there is ONLY lane 0 for guitar
 }
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(

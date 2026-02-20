@@ -44,6 +44,7 @@ namespace Encore::RhythmEngine {
         };
         virtual ~BaseStats() = default;
 
+
         int Type = 0;
         double Score = 0;
         int Combo = 0;

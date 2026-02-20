@@ -199,6 +199,20 @@ void Encore::AudioManager::BeginPlayback(unsigned int handle) {
     CHECK_BASS_ERROR2();
 }
 
+
+void Encore::AudioManager::StartEffect(AudioStream* stream) {
+    BASS_DX8_FLANGER effect;
+    effect.fWetDryMix = 75;
+    BASS_FXSetParameters(BASS_FX_DX8_FLANGER, &effect);
+    stream->fxhandle = BASS_ChannelSetFX(stream->handle, BASS_FX_DX8_FLANGER, 0);
+    CHECK_BASS_ERROR2();
+}
+
+void Encore::AudioManager::StopEffect(AudioStream* stream) {
+    BASS_ChannelRemoveFX(stream->handle, stream->fxhandle);
+    CHECK_BASS_ERROR2();
+}
+
 void Encore::AudioManager::StopPlayback(unsigned int handle) {
     BASS_ChannelStop(handle);
     CHECK_BASS_ERROR2();
