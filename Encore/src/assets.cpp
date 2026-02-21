@@ -98,6 +98,12 @@ char *FileAsset::FetchRaw() {
     return fileBuffer;
 }
 
+void LegacyModelAsset::Finalize() {
+    model = LoadModel(id.c_str());
+    postFinalizeFunc(&model);
+    state = LOADED;
+}
+
 void ShaderAsset::Load() {
     AssetSet code = {};
     if (fragmentCode)
@@ -198,7 +204,12 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(Timerbox),
                          ASSETPTR(TimerboxOutline),
                          ASSETPTR(Scorebox),
-                         ASSETPTR(highwayTexture) };
+                         ASSETPTR(highwayTexture),
+                         ASSETPTR(regularNoteTex),
+                         ASSETPTR(regularNote),
+                         ASSETPTR(hopoNoteTex),
+                         ASSETPTR(hopoNote)
+};
 
 
 

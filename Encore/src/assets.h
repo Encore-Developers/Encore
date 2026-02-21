@@ -22,18 +22,25 @@ enum AssetState {
 
 class Asset {
 protected:
-    virtual void Load() {}
-    virtual void Finalize() {}
+    virtual void Load() {
+    }
+
+    virtual void Finalize() {
+    }
+
     //Asset(Asset& other) {}
 public:
     std::atomic<AssetState> state = UNLOADED;
     std::string id;
-    std::thread loadingThread ;
+    std::thread loadingThread;
+
     Asset(const std::string &id) {
         this->id = id;
     }
+
     /// Empty constructor provided so vectors can initialize. Do not use!
-    Asset() {}
+    Asset() {
+    }
 
     /// Starts loading this asset.
     virtual void StartLoad();
@@ -48,14 +55,16 @@ public:
         return state == LOADED || state == PREFINALIZED;
     }
 
-    Asset(Asset &&other) noexcept : id(std::move(other.id)),
-                                    state(state.load()),
-                                    loadingThread() {}
-
+    Asset(Asset &&other) noexcept
+        : id(std::move(other.id)),
+          state(state.load()),
+          loadingThread() {
+    }
 };
 
 class FileAsset : public Asset {
     std::filesystem::path path;
+
 protected:
     size_t fileSize;
     void LoadFile();
@@ -68,24 +77,60 @@ public:
 
     static const std::filesystem::path GetBaseDirectory();
 
-    FileAsset(const std::string &id) : Asset(id) {
+    FileAsset(const std::string &id)
+        : Asset(id) {
         path = GetBaseDirectory() / id;
     }
-    FileAsset() {}
+
+    FileAsset() {
+    }
+
     std::filesystem::path &GetPath() {
         return path;
     }
+
     size_t GetFileSize();
     char *FetchRaw();
-    operator const unsigned char*() {
+
+    operator const unsigned char *() {
         return (const unsigned char *)FetchRaw();
     }
+
     virtual ~FileAsset() {
         //FreeFileBuffer();
     }
-    FileAsset(FileAsset&& other) noexcept : path(std::move(other.path)),
-                                            fileSize(other.fileSize),
-                                            fileBuffer(other.fileBuffer) {}
+
+    FileAsset(FileAsset &&other) noexcept
+        : path(std::move(other.path)),
+          fileSize(other.fileSize),
+          fileBuffer(other.fileBuffer) {
+    }
+};
+
+class LegacyModelAsset : public Asset {
+    Model model;
+    std::function<void(Model *)> postFinalizeFunc;
+
+protected:
+    virtual void Load() {
+        this->state = PREFINALIZED;
+    };
+    virtual void Finalize();
+
+public:
+    LegacyModelAsset(const std::string &id, std::function<void(Model *)> postFinalizeFunc)
+        : Asset(id) {
+        this->postFinalizeFunc = postFinalizeFunc;
+    };
+
+    Model Fetch() {
+        CheckForFetch();
+        return model;
+    };
+
+    operator Model() {
+        return Fetch();
+    }
 };
 
 class ShaderAsset : public Asset {
@@ -94,13 +139,19 @@ class ShaderAsset : public Asset {
     std::unordered_map<std::string, int> uniformPositions;
     const char *fStr;
     const char *vStr;
-    std::function<void(Asset*)> postFinalizeFunc;
+    std::function<void(Asset *)> postFinalizeFunc;
     Shader shader;
+
 protected:
     virtual void Load();
     virtual void Finalize();
+
 public:
-    ShaderAsset(const std::string &fsPath, const std::string &vsPath, std::initializer_list<const char *> uniforms, std::function<void(Asset*)> postFinalizeFunc) : Asset(fsPath) {
+    ShaderAsset(const std::string &fsPath,
+                const std::string &vsPath,
+                std::initializer_list<const char *> uniforms,
+                std::function<void(Asset *)> postFinalizeFunc)
+        : Asset(fsPath) {
         if (!fsPath.empty()) {
             fragmentCode = new FileAsset(fsPath);
             fragmentCode->addNullTerminator = true;
@@ -115,9 +166,13 @@ public:
         }
     }
 
-    int GetUniformLoc(const std::string& uniformName) {
+    int GetUniformLoc(const std::string &uniformName) {
         if (!uniformPositions.contains(uniformName)) {
-            Encore::EncoreLog(LOG_ERROR, TextFormat("Attempted to get unknown uniform %s on asset %s", uniformName.c_str(), id.c_str()));
+            Encore::EncoreLog(LOG_ERROR,
+                              TextFormat(
+                                  "Attempted to get unknown uniform %s on asset %s",
+                                  uniformName.c_str(),
+                                  id.c_str()));
             return -1;
         }
         auto found = uniformPositions.find(uniformName);
@@ -140,25 +195,34 @@ class TextureAsset : public FileAsset {
     virtual void Load();
     virtual void Finalize();
     bool filter;
+
 public:
     int width = 0;
     int height = 0;
-    TextureAsset(const std::string &id, bool filter) : FileAsset(id) {
+
+    TextureAsset(const std::string &id, bool filter)
+        : FileAsset(id) {
         this->filter = filter;
     }
-    TextureAsset() {}
+
+    TextureAsset() {
+    }
+
     Texture2D Fetch() {
         CheckForFetch();
         return tex;
     }
+
     operator Texture2D() {
         return Fetch();
     }
 
-    TextureAsset(TextureAsset &&other) noexcept : FileAsset(std::move(other)),
-                                                  tex(other.tex),
-                                                  image(other.image),
-                                                  filter(other.filter) {}
+    TextureAsset(TextureAsset &&other) noexcept
+        : FileAsset(std::move(other)),
+          tex(other.tex),
+          image(other.image),
+          filter(other.filter) {
+    }
 };
 
 class FontAsset : public FileAsset {
@@ -167,14 +231,18 @@ class FontAsset : public FileAsset {
     Image atlas;
     virtual void Load();
     virtual void Finalize();
+
 public:
-    FontAsset(const std::string &id, int fontSize) : FileAsset(id) {
+    FontAsset(const std::string &id, int fontSize)
+        : FileAsset(id) {
         this->fontSize = fontSize;
     }
+
     Font Fetch() {
         CheckForFetch();
         return font;
     }
+
     operator Font() {
         return Fetch();
     }
@@ -192,7 +260,7 @@ public:
 // commas in the initializer list are not parameter seperators
 #define NEWSHADERASSET(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__, {})
 #define NEWSHADERASSET_POSTFINALIZE(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__)
-
+#define NEWLEGACYMODELASSET(varname, ...) LegacyModelAsset varname = LegacyModelAsset(__VA_ARGS__)
 
 
 class Assets {
@@ -200,7 +268,9 @@ private:
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
 public:
-    Assets() {}
+    Assets() {
+    }
+
     void AddRingsAndInstruments();
 
     static Assets &getInstance();
@@ -231,8 +301,8 @@ public:
 
 
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
-    std::vector<TextureAsset*> YargRings;
-    std::vector<TextureAsset*> InstIcons;
+    std::vector<TextureAsset *> YargRings;
+    std::vector<TextureAsset *> InstIcons;
 
     Image icon;
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");
@@ -261,10 +331,29 @@ public:
 
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
     NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
-    NEWSHADERASSET(trackCurveShader, "", "gameplay/track/trackCurve.vsh", {"trackLength", "fadeSize"});
+    NEWSHADERASSET(trackCurveShader,
+                   "",
+                   "gameplay/track/trackCurve.vsh",
+                   {"trackLength",
+                   "fadeSize"});
 
-    void DrawTextRHDI(const char* text, float x, float y, float fontSize, Color color) {
-        DrawTextEx(redHatDisplayItalic, text, {x, y}, fontSize, 0, color);
+    NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
+    NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");
+
+    NEWLEGACYMODELASSET(regularNote, "Assets/gameplay/track/note_normal.obj", [this](Model* model) {
+        SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
+        model->materials[0].maps[0].texture = regularNoteTex;
+        model->materials[0].shader = trackCurveShader;
+    });
+
+    NEWLEGACYMODELASSET(hopoNote, "Assets/gameplay/track/note_small.obj", [this](Model* model) {
+        SetTextureWrap(hopoNoteTex, TEXTURE_WRAP_CLAMP);
+        model->materials[0].maps[0].texture = hopoNoteTex;
+        model->materials[0].shader = trackCurveShader;
+    });
+
+    void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
+        DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);
         EndShaderMode();
     }
@@ -280,11 +369,12 @@ public:
 #undef NEWFILEASSET
 
 extern Assets TheAssets;
+
 /// Used for easily loading groups of assets and polling their state as one.
 class AssetSet {
     std::vector<Asset *> assets;
-public:
 
+public:
     AssetSet(std::initializer_list<Asset *> l) {
         assets = std::vector<Asset *>(l);
     }
@@ -335,7 +425,8 @@ public:
     }
 
     void BlockUntilLoaded() {
-        while (!PollLoaded()) {}
+        while (!PollLoaded()) {
+        }
         for (int i = 0; i < assets.size(); i++) {
             // This finalizes any assets that need it
             // We're blocking anyways so why not
@@ -343,5 +434,6 @@ public:
         }
     }
 };
+
 extern AssetSet initialSet;
 extern AssetSet mainMenuSet;

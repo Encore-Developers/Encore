@@ -1,15 +1,22 @@
 
 #include "GemTrackSlot.h"
 
+#include "assets.h"
+
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
-    float finalWidth = width;
+    float finalWidth = 1;
 
-    if (note->NoteType == 1) finalWidth *= 0.5f;
-    DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
     if (note->LengthSeconds > 0) {
         DrawSustainTail(note->StartSeconds, note->StartSeconds+note->LengthSeconds);
     }
+    // this is kinda nasty, just wanted a quick Thing
+    if (note->NoteType == 1) {
+        DrawModelEx(ASSET(hopoNote), {xPos, 0.0, pos}, {0,0,0}, 0, {1,1,1}, WHITE);
+    } else {
+        DrawModelEx(ASSET(regularNote), {xPos, 0.0, pos}, {0,0,0}, 0, {1,1,1}, WHITE);
+    }
+    //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
 void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
     if (endTime <= startTime) {
