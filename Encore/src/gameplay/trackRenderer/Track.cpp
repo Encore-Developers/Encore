@@ -21,6 +21,8 @@ void Encore::Track::Draw() {
 
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
