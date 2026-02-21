@@ -14,9 +14,10 @@
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
 
-    BeginTextureMode(GameplayRenderTexture);
+
+
+
     BeginMode3D(camera);
-    ClearBackground({0,0,0,0});
 
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
@@ -28,32 +29,14 @@ void Encore::Track::Draw() {
     DrawBeatlines();
     DrawOverdriveMeter();
     DrawSmashers();
+
+    EndMode3D();
+    BeginMode3D(camera);
     DrawNotes();
 
     EndShaderMode();
 
     EndMode3D();
-    EndTextureMode();
-
-    int height = (float)GetRenderHeight();
-    int width = (float)GetRenderWidth();
-    GameplayRenderTexture.texture.width = width;
-    GameplayRenderTexture.texture.height = height;
-    Rectangle source = { 0, 0, float(width), float(-height) };
-    Rectangle res = { 0, 0, float(GetRenderWidth()), float(GetRenderHeight()) };
-    Vector2 shaderResolution = { float(GetRenderWidth()), float(GetRenderHeight()) };
-
-    // BeginShaderMode(gprAssets.fxaa);
-    // DrawTextureRec(GameplayRenderTexture.texture, res, {0}, WHITE);
-
-    // SetShaderValueTexture(gprAssets.fxaa, gprAssets.texLoc, GameplayRenderTexture.texture);
-    //SetShaderValue(
-    //    gprAssets.fxaa, gprAssets.resLoc, &shaderResolution, SHADER_UNIFORM_VEC2
-    //);
-
-    DrawTexturePro(
-        GameplayRenderTexture.texture, source, res, { 0, 0 }, 0, WHITE
-    );
 }
 
 void Encore::Track::Load() {
@@ -63,8 +46,6 @@ void Encore::Track::Load() {
         { 0.0f, 1.0f, 0.0f },
         40.0f,
     };
-    GameplayRenderTexture = LoadRenderTexture(GetRenderWidth(), GetRenderHeight());
-    SetTextureFilter(GameplayRenderTexture.texture, TEXTURE_FILTER_BILINEAR);
 }
 
 void Encore::Track::DrawSurface() {

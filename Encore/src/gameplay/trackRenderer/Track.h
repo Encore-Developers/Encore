@@ -48,7 +48,6 @@ namespace Encore {
         Player& player;
     protected:
         Camera3D camera;
-        RenderTexture2D GameplayRenderTexture;
         std::vector<std::unique_ptr<TrackSlot>> slots;
         std::span<Beatline> BeatlinePool;
     };
