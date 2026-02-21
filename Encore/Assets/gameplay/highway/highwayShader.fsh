@@ -19,7 +19,7 @@ void main()
 {
     vec2 push = vec2(fragTexCoord.x, fragTexCoord.y-time);
 	
-    vec4 baseColor = texture2D(texture0, push) * fragColor * colDiffuse;
+    vec4 baseColor = texture(texture0, push) * fragColor * colDiffuse;
     baseColor.a *= smoothstep(trackLength, trackLength-fadeSize, fragPosition.z);
     finalColor = baseColor;
 }
