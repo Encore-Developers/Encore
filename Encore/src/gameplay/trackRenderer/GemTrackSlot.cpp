@@ -21,10 +21,9 @@ SHADER_UNIFORM_VEC4);
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
     float finalWidth = 1;
+    Vector3 position = { xPos, 0.0, pos };
 
-    if (note->LengthSeconds > 0) {
-        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
-    }
+
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
     COLOR_TO_VEC4(color, vec4color)
@@ -38,19 +37,13 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     }
     NOTE_COLOR(vec4color)
     if (note->NoteType == 1 || note->NoteType == 2) {
-        DrawModelEx(ASSET(hopoNote),
-                    { xPos, 0.0, pos },
-                    { 0, 0, 0 },
-                    0,
-                    { width, 1, 1 },
-                    WHITE);
+        DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, 1, 1 }, WHITE);
     } else {
-        DrawModelEx(ASSET(regularNote),
-                    { xPos, 0.0, pos },
-                    { 0, 0, 0 },
-                    0,
-                    { width, 1, 1 },
-                    WHITE);
+        DrawModelEx(ASSET(regularNote), position,{ 0 }, 0, { width, 1, 1 }, WHITE);
+    }
+
+    if (note->LengthSeconds > 0) {
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
     }
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
