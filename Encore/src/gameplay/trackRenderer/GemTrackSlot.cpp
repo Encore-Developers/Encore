@@ -2,6 +2,7 @@
 #include "GemTrackSlot.h"
 
 #include "assets.h"
+#include "rlgl.h"
 
 // first is color to use, second is name for converted vec4
 #define COLOR_TO_VEC4(color, vec4out) \
@@ -36,15 +37,20 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
         FRAME_COLOR(frameColor)
     }
     NOTE_COLOR(vec4color)
+
+    if (note->LengthSeconds > 0) {
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
+    }
+
+    rlDrawRenderBatchActive();
+
     if (note->NoteType == 1 || note->NoteType == 2) {
         DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, 1, 1 }, WHITE);
     } else {
         DrawModelEx(ASSET(regularNote), position,{ 0 }, 0, { width, 1, 1 }, WHITE);
     }
 
-    if (note->LengthSeconds > 0) {
-        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
-    }
+
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
 
