@@ -3,6 +3,21 @@
 
 #include "assets.h"
 
+// first is color to use, second is name for converted vec4
+#define COLOR_TO_VEC4(color, vec4out) \
+        Vector4 vec4out = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, \
+                               color.a / 255.0f };
+
+#define NOTE_COLOR(vec4) SetShaderValue(ASSET(noteShader),\
+                       ASSET(noteShader).GetUniformLoc("noteColor"),\
+                       &vec4,\
+                       SHADER_UNIFORM_VEC4);
+
+#define FRAME_COLOR(vec4) SetShaderValue(ASSET(noteShader),\
+ASSET(noteShader).GetUniformLoc("frameColor"),\
+&vec4,\
+SHADER_UNIFORM_VEC4);
+
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
     float finalWidth = 1;
@@ -12,27 +27,16 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     }
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
-    Vector4 vec4color = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f,
-                          color.a / 255.0f };
+    COLOR_TO_VEC4(color, vec4color)
     if (note->NoteType == 2) {
         vec4color = { 0.25f, 0.25f, 0.25f, 1.0f };
-        Vector4 frameColor = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f,
-                               color.a / 255.0f };
-        SetShaderValue(ASSET(noteShader),
-                       ASSET(noteShader).GetUniformLoc("frameColor"),
-                       &frameColor,
-                       SHADER_UNIFORM_VEC4);
+        COLOR_TO_VEC4(color, frameColor)
+        FRAME_COLOR(frameColor)
     } else {
-        Vector4 frameColor = { 1,1,1,1 };
-        SetShaderValue(ASSET(noteShader),
-                       ASSET(noteShader).GetUniformLoc("frameColor"),
-                       &frameColor,
-                       SHADER_UNIFORM_VEC4);
+        Vector4 frameColor = { 1, 1, 1, 1 };
+        FRAME_COLOR(frameColor)
     }
-    SetShaderValue(ASSET(noteShader),
-                   ASSET(noteShader).GetUniformLoc("noteColor"),
-                   &vec4color,
-                   SHADER_UNIFORM_VEC4);
+    NOTE_COLOR(vec4color)
     if (note->NoteType == 1 || note->NoteType == 2) {
         DrawModelEx(ASSET(hopoNote),
                     { xPos, 0.0, pos },
