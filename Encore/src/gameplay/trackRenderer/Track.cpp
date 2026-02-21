@@ -24,7 +24,7 @@ void Encore::Track::Draw() {
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
-    // DrawSurface();
+    DrawSurface();
 
     DrawBeatlines();
     DrawOverdriveMeter();
@@ -32,6 +32,7 @@ void Encore::Track::Draw() {
 
     EndMode3D();
     BeginMode3D(camera);
+    rlDisableDepthTest();
     DrawNotes();
 
     EndShaderMode();
@@ -54,17 +55,9 @@ void Encore::Track::DrawSurface() {
     for (int i = 0; i <= 10; i++) {
         auto x = Remap(i, 0, 10, -2.5, 2.5);
         points.push_back({x, 0, -15});
-        points.push_back({x, 0, Length-FadeSize});
-    }
-    DrawTriangleStrip3D(points.data(), points.size(), DARKGRAY);
-
-    points.clear();
-    for (int i = 0; i <= 10; i++) {
-        auto x = Remap(i, 0, 10, -2.5, 2.5);
-        points.push_back({x, 0, Length-FadeSize});
         points.push_back({x, 0, Length});
     }
-    DrawTriangleStrip3D(points.data(), points.size(), DARKGRAY);
+    DrawTriangleStrip3D(points.data(), points.size(), {0, 0, 0, 160});
 }
 
 void Encore::Track::DrawOverdriveMeter() {
@@ -140,7 +133,7 @@ void Encore::Track::DrawNotes() {
 
     for (int lane = 0 ; lane < player.engine->chart->Lanes.size(); lane++) {
         std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize(lane);
-        for (int curNote = NotePoolSize.first; curNote < NotePoolSize.second; curNote++) {
+        for (int curNote = NotePoolSize.second-1; curNote >= NotePoolSize.first; curNote--) {
             auto *note = &player.engine->chart->at(lane).at(curNote);
             auto slots = GetSlotsForLane(player.engine->UsesNoteMasks() ? note->Lane : lane);
             for (int i = 0; i < 7; i++) {
@@ -283,5 +276,4 @@ float Encore::Track::GetZPerSecond() {
 }
 
 Encore::Track::~Track() {
-    UnloadRenderTexture(GameplayRenderTexture);
 }
