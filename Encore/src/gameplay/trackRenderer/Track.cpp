@@ -13,7 +13,7 @@
 
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
-
+    Length = BaseLength * player.HighwayLength;
 
 
 
@@ -281,7 +281,7 @@ float Encore::Track::GetViewEndTime() const {
 }
 
 float Encore::Track::GetZPerSecond() const {
-    return NoteSpeed * Length;
+    return NoteSpeed * BaseLength;
 }
 
 Encore::Track::~Track() {
