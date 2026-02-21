@@ -8,19 +8,49 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     float finalWidth = 1;
 
     if (note->LengthSeconds > 0) {
-        DrawSustainTail(note->StartSeconds, note->StartSeconds+note->LengthSeconds);
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
     }
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
-    Vector4 vec4color = {color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f};
-    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("noteColor"), &vec4color, SHADER_UNIFORM_VEC4);
-    if (note->NoteType == 1) {
-        DrawModelEx(ASSET(hopoNote), {xPos, 0.0, pos}, {0,0,0}, 0, {width,1,1}, WHITE);
+    Vector4 vec4color = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f,
+                          color.a / 255.0f };
+    if (note->NoteType == 2) {
+        vec4color = { 0.25f, 0.25f, 0.25f, 1.0f };
+        Vector4 frameColor = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f,
+                               color.a / 255.0f };
+        SetShaderValue(ASSET(noteShader),
+                       ASSET(noteShader).GetUniformLoc("frameColor"),
+                       &frameColor,
+                       SHADER_UNIFORM_VEC4);
     } else {
-        DrawModelEx(ASSET(regularNote), {xPos, 0.0, pos}, {0,0,0}, 0, {width,1,1}, WHITE);
+        Vector4 frameColor = { 1,1,1,1 };
+        SetShaderValue(ASSET(noteShader),
+                       ASSET(noteShader).GetUniformLoc("frameColor"),
+                       &frameColor,
+                       SHADER_UNIFORM_VEC4);
+    }
+    SetShaderValue(ASSET(noteShader),
+                   ASSET(noteShader).GetUniformLoc("noteColor"),
+                   &vec4color,
+                   SHADER_UNIFORM_VEC4);
+    if (note->NoteType == 1 || note->NoteType == 2) {
+        DrawModelEx(ASSET(hopoNote),
+                    { xPos, 0.0, pos },
+                    { 0, 0, 0 },
+                    0,
+                    { width, 1, 1 },
+                    WHITE);
+    } else {
+        DrawModelEx(ASSET(regularNote),
+                    { xPos, 0.0, pos },
+                    { 0, 0, 0 },
+                    0,
+                    { width, 1, 1 },
+                    WHITE);
     }
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
+
 void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
     if (endTime <= startTime) {
         return;
@@ -28,9 +58,13 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
     float midPos = track->GetNotePos3D((endTime + startTime) / 2);
     float sustainLength = endTime - startTime;
 
-    DrawCube({xPos, 0.1, midPos}, 0.2, 0.2, sustainLength*track->GetZPerSecond(), track->player.QueryColorProfile(colorSlot));
-
+    DrawCube({ xPos, 0.1, midPos },
+             0.2,
+             0.2,
+             sustainLength * track->GetZPerSecond(),
+             track->player.QueryColorProfile(colorSlot));
 }
+
 void Encore::GemTrackSlot::DrawSmasher(bool held) {
     // HACK: don't render open and kick smasher
     // REMOVE THIS LATER!
@@ -50,9 +84,10 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         color.b /= 3;
     }
 
-    DrawCube({xPos, 0.025, 0}, width, 0.05, 1, color);
+    DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
     for (auto note : track->player.engine->chart->HeldNotePointers) {
-        if (!note) continue;
+        if (!note)
+            continue;
         bool matches = false;
         if (track->player.engine->UsesNoteMasks()) {
             if (note->Lane & RhythmEngine::PlasticFrets[index]) {
@@ -64,7 +99,8 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
             }
         }
         if (matches) {
-            DrawSustainTail(TheSongTime.GetElapsedTime(), note->StartSeconds+note->LengthSeconds);
+            DrawSustainTail(TheSongTime.GetElapsedTime(),
+                            note->StartSeconds + note->LengthSeconds);
             break;
         }
     }

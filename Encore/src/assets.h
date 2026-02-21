@@ -343,7 +343,8 @@ public:
                    {"trackLength",
                    "fadeSize",
                    "maskTexture",
-                   "noteColor"}, [this](Shader* asset) {
+                   "noteColor",
+                   "frameColor"}, [this](Shader* asset) {
                        asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
                    });
 
