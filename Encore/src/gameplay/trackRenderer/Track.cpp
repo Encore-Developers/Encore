@@ -23,7 +23,7 @@ void Encore::Track::Draw() {
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
-    DrawSurface();
+    // DrawSurface();
 
     DrawBeatlines();
     DrawOverdriveMeter();

@@ -11,7 +11,8 @@ uniform vec4 colorForAccent;
 uniform int useInAccent;
 // Output fragment color
 out vec4 finalColor;
-
+uniform float trackLength = 20;
+uniform float fadeSize = 3;
 
 void main()
 {
@@ -20,6 +21,6 @@ void main()
         ColorAccent = fragColor;
     }
     vec4 baseColor = texture(texture0, fragTexCoord) * ColorAccent;
-    baseColor.a *= smoothstep(fadeEnd, fadeStart, fragPosition.z);
+    baseColor.a *= smoothstep(trackLength, trackLength-fadeSize, fragPosition.z);
     finalColor = baseColor; // baseColor
 }

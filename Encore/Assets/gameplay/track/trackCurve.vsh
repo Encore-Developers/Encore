@@ -45,6 +45,6 @@ void main()
     PositionInViewSpace = matView * PositionInWorldSpace;
     vec4 PositionInObjectSpace = inverse(ModelViewMatrix) * PositionInViewSpace;
     gl_Position = mvp * PositionInObjectSpace;
-    float fade = (fadeSize-clamp(vertexPosition.z - (trackLength-fadeSize), 0, fadeSize))/fadeSize;
-    fragColor.a *= fade;
+    //float fade = (fadeSize-clamp(vertexPosition.z - (trackLength-fadeSize), 0, fadeSize))/fadeSize;
+    //fragColor.a *= fade;
 }

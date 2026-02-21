@@ -332,7 +332,7 @@ public:
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
     NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
     NEWSHADERASSET(trackCurveShader,
-                   "",
+                   "gameplay/highway/highwayShader.fsh",
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
                    "fadeSize"});
