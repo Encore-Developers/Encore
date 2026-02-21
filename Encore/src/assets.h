@@ -385,6 +385,7 @@ public:
     NEWTEXASSET(smasherOffTex, "gameplay/track/smasher_off.png");
     NEWTEXASSET(smasherOnTex, "gameplay/track/smasher_on.png");
     NEWTEXASSET(smasherFrameTex, "gameplay/track/smasher_frame.png");
+    NEWTEXASSET(kickFrameTex, "gameplay/track/kick_frame.png");
     NEWTEXASSET(trackRailsTex, "gameplay/track/rails.png");
 
     NEWLEGACYMODELASSET(smasherPiston, "Assets/gameplay/track/smasher_piston.obj",
@@ -406,7 +407,6 @@ public:
         [this](Model* model) {
             SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = highwayTexture;
-            // todo: make the actual track scroll shader
             model->materials[0].shader = highwayScrollShader;
         });
 
@@ -414,7 +414,18 @@ public:
         [this](Model* model) {
             SetTextureWrap(trackRailsTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = trackRailsTex;
-            // todo: make the actual track scroll shader
+            model->materials[0].shader = trackCurveShader;
+        });
+
+    NEWLEGACYMODELASSET(kickFrame, "Assets/gameplay/track/kick_frame.obj",
+        [this](Model* model) {
+            SetTextureWrap(kickFrameTex, TEXTURE_WRAP_CLAMP);
+            model->materials[0].maps[0].texture = kickFrameTex;
+            model->materials[0].shader = trackCurveShader;
+        });
+
+    NEWLEGACYMODELASSET(kickPiston, "Assets/gameplay/track/kick_piston.obj",
+        [this](Model* model) {
             model->materials[0].shader = trackCurveShader;
         });
 
