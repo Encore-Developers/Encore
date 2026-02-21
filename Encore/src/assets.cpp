@@ -23,15 +23,23 @@ void Asset::CheckForFetch() {
     switch (state) {
     case UNLOADED:
         Load();
-        Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was fetched before it was loaded. Loading immediately on main thread...", id.c_str()));
-        if (state == PREFINALIZED) { // TODO: Don't duplicate this logic
+        Encore::EncoreLog(LOG_WARNING,
+                          TextFormat(
+                              "Asset %s was fetched before it was loaded. Loading immediately on main thread...",
+                              id.c_str()));
+        if (state == PREFINALIZED) {
+            // TODO: Don't duplicate this logic
             Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
             Finalize();
         }
         break;
     case LOADING:
-        Encore::EncoreLog(LOG_WARNING, TextFormat("Asset %s was fetched while it is being loaded. Blocking until it is loaded...", id.c_str()));
-        while (state == LOADING) {} // spin spin spin
+        Encore::EncoreLog(LOG_WARNING,
+                          TextFormat(
+                              "Asset %s was fetched while it is being loaded. Blocking until it is loaded...",
+                              id.c_str()));
+        while (state == LOADING) {
+        } // spin spin spin
         if (state == PREFINALIZED) {
             Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
             Finalize();
@@ -41,23 +49,25 @@ void Asset::CheckForFetch() {
         Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
         Finalize();
         break;
-    default:;
+    default: ;
     }
 }
 
 void Asset::StartLoad() {
     if (state == UNLOADED) {
         state = LOADING;
-        loadingThread = std::thread([this](){this->Load();});
+        loadingThread = std::thread([this]() { this->Load(); });
         loadingThread.detach();
         //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
     }
 }
 
 void Asset::LoadImmediate() {
-    Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s immediately...", id.c_str()));
+    Encore::EncoreLog(LOG_INFO,
+                      TextFormat("Loading asset %s immediately...", id.c_str()));
     StartLoad();
-    while (state == LOADING) {}
+    while (state == LOADING) {
+    }
 }
 
 void FileAsset::LoadFile() {
@@ -65,14 +75,14 @@ void FileAsset::LoadFile() {
     fileSize = file.tellg();
     int realFileSize = fileSize;
     if (addNullTerminator)
-        fileSize ++;
+        fileSize++;
     file.seekg(0, std::ios::beg);
 
-    fileBuffer = (char*)malloc(fileSize);
+    fileBuffer = (char *)malloc(fileSize);
     file.read(fileBuffer, realFileSize);
     file.close();
     if (addNullTerminator)
-        fileBuffer[fileSize-1] = '\0';
+        fileBuffer[fileSize - 1] = '\0';
 }
 
 void FileAsset::FreeFileBuffer() {
@@ -80,6 +90,7 @@ void FileAsset::FreeFileBuffer() {
         free(fileBuffer);
     }
 }
+
 const std::filesystem::path FileAsset::GetBaseDirectory() {
     return TheAssets.getDirectory() / "Assets";
 }
@@ -93,6 +104,7 @@ size_t FileAsset::GetFileSize() {
     CheckForFetch();
     return fileSize;
 }
+
 char *FileAsset::FetchRaw() {
     CheckForFetch();
     return fileBuffer;
@@ -122,16 +134,20 @@ void ShaderAsset::Finalize() {
     for (auto &uniform : uniformPositions) {
         uniform.second = GetShaderLocation(shader, uniform.first.c_str());
     }
+    if (postFinalizeFunc) postFinalizeFunc(&shader);
     state = LOADED;
     // These destructors probably don't free the file buffers. Sad!
     delete fragmentCode;
     delete vertexCode;
+
 }
 
 void TextureAsset::Load() {
     LoadFile();
     image = LoadImageFromMemory(
-        reinterpret_cast<const char *>(GetPath().extension().generic_u8string().c_str()), (const unsigned char*)fileBuffer, fileSize);
+        reinterpret_cast<const char *>(GetPath().extension().generic_u8string().c_str()),
+        (const unsigned char *)fileBuffer,
+        fileSize);
     width = image.width;
     height = image.height;
     FreeFileBuffer();
@@ -155,16 +171,24 @@ void FontAsset::Load() {
     font.baseSize = fontSize;
     font.glyphCount = 250;
     font.glyphPadding = 4;
-    font.glyphs = LoadFontData((const unsigned char*)fileBuffer, fileSize, fontSize, nullptr, 250, FONT_SDF);
+    font.glyphs = LoadFontData((const unsigned char *)fileBuffer,
+                               fileSize,
+                               fontSize,
+                               nullptr,
+                               250,
+                               FONT_SDF);
     atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
-    for (int i = 0; i < font.glyphCount; i++)
-    {
+    for (int i = 0; i < font.glyphCount; i++) {
         UnloadImage(font.glyphs[i].image);
         font.glyphs[i].image = ImageFromImage(atlas, font.recs[i]);
     }
     FreeFileBuffer();
     auto end = std::chrono::high_resolution_clock::now();
-    Encore::EncoreLog(LOG_INFO, TextFormat("Generated font data for %s in %i microseconds.", id.c_str(), (std::chrono::duration_cast<std::chrono::microseconds>(end - start).count())));
+    Encore::EncoreLog(LOG_INFO,
+                      TextFormat("Generated font data for %s in %i microseconds.",
+                                 id.c_str(),
+                                 (std::chrono::duration_cast<std::chrono::microseconds>(
+                                     end - start).count())));
     state = PREFINALIZED;
 }
 
@@ -208,14 +232,16 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(regularNoteTex),
                          ASSETPTR(regularNote),
                          ASSETPTR(hopoNoteTex),
-                         ASSETPTR(hopoNote)
+                         ASSETPTR(hopoNote),
+                         ASSETPTR(hopoMaskTex),
+                         ASSETPTR(regularMaskTex)
 };
-
 
 
 void Assets::AddRingsAndInstruments() {
     for (int i = 1; i <= 6; i++) {
-        TextureAsset *tex = new TextureAsset(TextFormat("ui/hugh ring/rings-%i.png", i), true);
+        TextureAsset *tex = new TextureAsset(TextFormat("ui/hugh ring/rings-%i.png", i),
+                                             true);
         YargRings.push_back(tex);
         // Grabbing from the vec because it moved
         mainMenuSet.AddAsset(tex);

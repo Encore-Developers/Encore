@@ -139,7 +139,7 @@ class ShaderAsset : public Asset {
     std::unordered_map<std::string, int> uniformPositions;
     const char *fStr;
     const char *vStr;
-    std::function<void(Asset *)> postFinalizeFunc;
+    std::function<void(Shader *)> postFinalizeFunc;
     Shader shader;
 
 protected:
@@ -150,7 +150,7 @@ public:
     ShaderAsset(const std::string &fsPath,
                 const std::string &vsPath,
                 std::initializer_list<const char *> uniforms,
-                std::function<void(Asset *)> postFinalizeFunc)
+                std::function<void(Shader *)> postFinalizeFunc)
         : Asset(fsPath) {
         if (!fsPath.empty()) {
             fragmentCode = new FileAsset(fsPath);
@@ -337,19 +337,40 @@ public:
                    {"trackLength",
                    "fadeSize"});
 
+    NEWSHADERASSET_POSTFINALIZE(noteShader,
+                   "gameplay/track/noteShader.fsh",
+                   "gameplay/track/trackCurve.vsh",
+                   {"trackLength",
+                   "fadeSize",
+                   "maskTexture",
+                   "noteColor"}, [this](Shader* asset) {
+                       asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
+                   });
+
     NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
     NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");
 
+    NEWTEXASSET(hopoMaskTex, "gameplay/track/hopo_mask.png");
+    NEWTEXASSET(regularMaskTex, "gameplay/track/note_mask.png");
+
     NEWLEGACYMODELASSET(regularNote, "Assets/gameplay/track/note_normal.obj", [this](Model* model) {
         SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
+        SetTextureWrap(regularMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = regularNoteTex;
-        model->materials[0].shader = trackCurveShader;
+        // const Texture2D mask = regularMaskTex.Fetch();
+
+        model->materials[0].shader = noteShader;
+        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = regularMaskTex;
     });
 
     NEWLEGACYMODELASSET(hopoNote, "Assets/gameplay/track/note_small.obj", [this](Model* model) {
         SetTextureWrap(hopoNoteTex, TEXTURE_WRAP_CLAMP);
+        SetTextureWrap(hopoMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = hopoNoteTex;
-        model->materials[0].shader = trackCurveShader;
+        // const Texture2D mask = hopoMaskTex.Fetch();
+
+        model->materials[0].shader = noteShader;
+        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = hopoMaskTex;
     });
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {

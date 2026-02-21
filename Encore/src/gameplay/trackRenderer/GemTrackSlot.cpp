@@ -11,9 +11,17 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
         DrawSustainTail(note->StartSeconds, note->StartSeconds+note->LengthSeconds);
     }
     // this is kinda nasty, just wanted a quick Thing
+    Color color = track->player.QueryColorProfile(colorSlot);
+    Vector4 vec4color = {color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f};
+    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("noteColor"), &vec4color, SHADER_UNIFORM_VEC4);
     if (note->NoteType == 1) {
+        SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("maskTexture"), &ASSET(hopoMaskTex), SHADER_UNIFORM_SAMPLER2D);
+
         DrawModelEx(ASSET(hopoNote), {xPos, 0.0, pos}, {0,0,0}, 0, {width,1,1}, WHITE);
     } else {
+        SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("maskTexture"), &ASSET(regularMaskTex), SHADER_UNIFORM_SAMPLER2D);
+
+
         DrawModelEx(ASSET(regularNote), {xPos, 0.0, pos}, {0,0,0}, 0, {width,1,1}, WHITE);
     }
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));

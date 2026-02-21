@@ -7,6 +7,7 @@ in vec3 fragPosition;
 uniform sampler2D maskTexture;
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
+uniform vec4 noteColor;
 uniform float time;
 uniform float fadeStart;
 uniform float fadeEnd;
@@ -17,9 +18,15 @@ out vec4 finalColor;
 
 void main()
 {
-    vec2 push = vec2(fragTexCoord.x, fragTexCoord.y-time);
-	
-    vec4 baseColor = texture2D(texture0, push) * fragColor * colDiffuse;
+    // vec2 push = vec2(fragTexCoord.x, fragTexCoord.y-time);
+	float maskColor = texture2D(maskTexture, fragTexCoord).r;
+    vec4 baseColor;
+    if (maskColor > 0.5) {
+        baseColor = texture2D(texture0, fragTexCoord) * noteColor;
+    } else {
+        baseColor = texture2D(texture0, fragTexCoord);
+    }
+
     baseColor.a *= smoothstep(trackLength, trackLength-fadeSize, fragPosition.z);
     finalColor = baseColor;
 }
