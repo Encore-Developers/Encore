@@ -72,16 +72,19 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     Color color = track->player.QueryColorProfile(colorSlot);
 
     if (held) {
-        color.r /= 1.25;
-        color.g /= 1.25;
-        color.b /= 1.25;
+        ASSET(smasherPiston).Fetch().materials[0].maps[0].texture = ASSET(smasherOnTex);
+        //color.r /= 1.25;
+        //color.g /= 1.25;
+        //color.b /= 1.25;
     } else {
-        color.r /= 3;
-        color.g /= 3;
-        color.b /= 3;
+        ASSET(smasherPiston).Fetch().materials[0].maps[0].texture = ASSET(smasherOffTex);
+        //color.r /= 3;
+        //color.g /= 3;
+        //color.b /= 3;
     }
-
-    DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
+    DrawModelEx(ASSET(smasherFrame), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3 }, WHITE);
+    DrawModelEx(ASSET(smasherPiston), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3 }, color);
+    // DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)
             continue;

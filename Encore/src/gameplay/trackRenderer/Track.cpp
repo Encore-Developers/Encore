@@ -23,6 +23,8 @@ void Encore::Track::Draw() {
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
@@ -52,14 +54,19 @@ void Encore::Track::Load() {
 }
 
 void Encore::Track::DrawSurface() {
-    static std::vector<Vector3> points;
-    points.clear();
-    for (int i = 0; i <= 10; i++) {
-        auto x = Remap(i, 0, 10, -2.5, 2.5);
-        points.push_back({x, 0, -15});
-        points.push_back({x, 0, Length});
-    }
-    DrawTriangleStrip3D(points.data(), points.size(), {0, 0, 0, 160});
+    float time = GetNotePos3D(0) / 22.5;
+    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("time"), &time, SHADER_UNIFORM_FLOAT);
+
+    DrawModelEx(ASSET(trackSurface), {0}, {0}, 0, {1,1,1}, ColorBrightness(player.AccentColor, -0.25));
+    DrawModelEx(ASSET(rails), {0}, {0}, 0, {1,1,1}, WHITE);
+    // static std::vector<Vector3> points;
+    // points.clear();
+    // for (int i = 0; i <= 10; i++) {
+    //    auto x = Remap(i, 0, 10, -2.5, 2.5);
+    //    points.push_back({x, 0, -15});
+    //    points.push_back({x, 0, Length});
+    // }
+    // DrawTriangleStrip3D(points.data(), points.size(), {0, 0, 0, 160});
 }
 
 void Encore::Track::DrawOverdriveMeter() {

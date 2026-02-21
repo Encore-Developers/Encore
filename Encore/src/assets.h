@@ -348,6 +348,13 @@ public:
                        asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
                    });
 
+    NEWSHADERASSET(highwayScrollShader,
+                   "gameplay/track/highwayScroll.fsh",
+                   "gameplay/track/trackCurve.vsh",
+                   {"trackLength",
+                   "fadeSize",
+                   "time"});
+
     NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
     NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");
 
@@ -373,6 +380,43 @@ public:
         model->materials[0].shader = noteShader;
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = hopoMaskTex;
     });
+
+
+    NEWTEXASSET(smasherOffTex, "gameplay/track/smasher_off.png");
+    NEWTEXASSET(smasherOnTex, "gameplay/track/smasher_on.png");
+    NEWTEXASSET(smasherFrameTex, "gameplay/track/smasher_frame.png");
+    NEWTEXASSET(trackRailsTex, "gameplay/track/rails.png");
+
+    NEWLEGACYMODELASSET(smasherPiston, "Assets/gameplay/track/smasher_piston.obj",
+        [this](Model* model) {
+            SetTextureWrap(smasherOffTex, TEXTURE_WRAP_CLAMP);
+            SetTextureWrap(smasherOnTex, TEXTURE_WRAP_CLAMP);
+            model->materials[0].maps[0].texture = smasherOffTex;
+            model->materials[0].shader = trackCurveShader;
+        });
+
+    NEWLEGACYMODELASSET(smasherFrame, "Assets/gameplay/track/smasher_frame.obj",
+        [this](Model* model) {
+            SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
+            model->materials[0].maps[0].texture = smasherFrameTex;
+            model->materials[0].shader = trackCurveShader;
+        });
+
+    NEWLEGACYMODELASSET(trackSurface, "Assets/gameplay/track/track.obj",
+        [this](Model* model) {
+            SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
+            model->materials[0].maps[0].texture = highwayTexture;
+            // todo: make the actual track scroll shader
+            model->materials[0].shader = highwayScrollShader;
+        });
+
+    NEWLEGACYMODELASSET(rails, "Assets/gameplay/track/rails.obj",
+        [this](Model* model) {
+            SetTextureWrap(trackRailsTex, TEXTURE_WRAP_CLAMP);
+            model->materials[0].maps[0].texture = trackRailsTex;
+            // todo: make the actual track scroll shader
+            model->materials[0].shader = trackCurveShader;
+        });
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
