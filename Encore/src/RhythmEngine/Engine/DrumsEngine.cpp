@@ -11,19 +11,22 @@
 #include "gameplay/enctime.h"
 
 bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
-    InputChannel channel, Action action
+    InputChannel channel,
+    Action action
 ) {
     if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
-        stats->overdrive.Activate(stats->InputTime);                                                    // time
+        stats->overdrive.Activate(stats->InputTime); // time
         return true;
     }
     return false;
 }
+
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
-    InputChannel channel, Action action
+    InputChannel channel,
+    Action action
 ) {
     stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG
-                                                     // TIME (IN SECONDS)
+    // TIME (IN SECONDS)
     if (action == Action::PRESS) {
         switch (channel) {
         case InputChannel::LANE_1:
@@ -55,7 +58,8 @@ void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
 }
 
 int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
-    InputChannel channel, Action action
+    InputChannel channel,
+    Action action
 ) {
     if (channel == InputChannel::STRUM_UP || channel == InputChannel::STRUM_DOWN)
         return CheckNextInput;
@@ -90,9 +94,11 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
     for (int Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
-            EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
-            if (CurrentNote->StartSeconds <= CurrentTime) {
-                HitNote(Lane);
+            if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {
+                EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
+                if (CurrentNote->StartSeconds <= CurrentTime) {
+                    HitNote(Lane);
+                }
             }
         } else {
             CheckMissedNotes(Lane, CurrentTime);
