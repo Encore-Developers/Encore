@@ -28,7 +28,8 @@ namespace Encore {
         void Configure4Lane();
         void ConfigureDrums();
         float GetNotePos3D(double noteTime);
-        float GetZPerSecond();
+        float GetViewEndTime() const;
+        float GetZPerSecond() const;
 
         unsigned char BeatToCharViaTickThing(
             int tick,

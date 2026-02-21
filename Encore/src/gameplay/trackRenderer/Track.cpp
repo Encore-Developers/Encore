@@ -137,6 +137,9 @@ void Encore::Track::DrawNotes() {
         std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize(lane);
         for (int curNote = NotePoolSize.second-1; curNote >= NotePoolSize.first; curNote--) {
             auto *note = &player.engine->chart->at(lane).at(curNote);
+            if (note->StartSeconds > GetViewEndTime()) {
+                continue;
+            }
             auto slots = GetSlotsForLane(player.engine->UsesNoteMasks() ? note->Lane : lane);
             for (int i = 0; i < 7; i++) {
                 if (slots[i]) {
@@ -262,10 +265,10 @@ void Encore::Track::Configure4Lane() {
 void Encore::Track::ConfigureDrums() {
     slots.clear();
     AddSlot(new GemTrackSlot(this, 0, 5, SLOT_KICK)); // TODO: make the kick slot a different type
-    AddSlot(new GemTrackSlot(this, 2, 1.25, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 1.875, 1.25, SLOT_RED));
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -0.625, 1.25, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -2, 1.25, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, -1.875, 1.25, SLOT_GREEN));
 
 }
 
@@ -273,7 +276,11 @@ float Encore::Track::GetNotePos3D(double noteTime) {
     return (noteTime - TheSongTime.GetElapsedTime()) * GetZPerSecond();
 }
 
-float Encore::Track::GetZPerSecond() {
+float Encore::Track::GetViewEndTime() const {
+    return TheSongTime.GetElapsedTime() + (Length / GetZPerSecond());
+}
+
+float Encore::Track::GetZPerSecond() const {
     return NoteSpeed * Length;
 }
 
