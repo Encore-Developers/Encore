@@ -504,7 +504,7 @@ void SongSelectMenu::Draw() {
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
 
-    std::string titleText = SongToDisplayInfo.title.empty() ? "Unknown Song" : SongToDisplayInfo.title;
+    std::string titleText = SongToDisplayInfo.source.empty() ? "Custom" : SongToDisplayInfo.source;
     float titleFontSize = u.hinpct(0.035f);
     float titleTextWidth = MeasureTextEx(assets.rubikBold, titleText.c_str(), titleFontSize, 0).x;
     float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth / 2.0f);
