@@ -119,12 +119,17 @@ void FileAsset::FreeFileBuffer() {
 }
 
 const std::filesystem::path FileAsset::GetBaseDirectory() {
-    return TheAssets.getDirectory() / "Assets";
+    return TheAssets.getDirectory();
 }
 
 void FileAsset::Load() {
     LoadFile();
     state = LOADED;
+}
+
+void FileAsset::Unload() {
+    FreeFileBuffer();
+    state = UNLOADED;
 }
 
 size_t FileAsset::GetFileSize() {
@@ -138,9 +143,14 @@ char *FileAsset::FetchRaw() {
 }
 
 void LegacyModelAsset::Finalize() {
-    model = LoadModel(id.c_str());
+    model = LoadModel((TheAssets.getDirectory() / id).c_str());
     postFinalizeFunc(&model);
     state = LOADED;
+}
+
+void LegacyModelAsset::Unload() {
+    UnloadModel(model);
+    state = UNLOADED;
 }
 
 void ShaderAsset::Load() {
@@ -185,6 +195,17 @@ void ShaderAsset::SetUniform(
     SetShaderValue(shader, GetUniformLoc(uniformName), value, type);
 }
 
+void ShaderAsset::Unload() {
+    if (fragmentCode) {
+        fragmentCode->Unload();
+    }
+    if (vertexCode) {
+        vertexCode->Unload();
+    }
+    UnloadShader(shader);
+    state = UNLOADED;
+}
+
 void TextureAsset::Load() {
     LoadFile();
     image = LoadImageFromMemory(
@@ -205,6 +226,11 @@ void TextureAsset::Finalize() {
     }
     UnloadImage(image);
     state = LOADED;
+}
+
+void TextureAsset::Unload() {
+    UnloadTexture(tex);
+    FileAsset::Unload();
 }
 
 void FontAsset::Load() {
@@ -242,6 +268,11 @@ void FontAsset::Finalize() {
     UnloadImage(atlas);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
     state = LOADED;
+}
+
+void FontAsset::Unload() {
+    UnloadFont(font);
+    FileAsset::Unload();
 }
 
 

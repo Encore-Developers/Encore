@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "imgui.h"
+#include "extras/IconsFontAwesome6.h"
 #include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
 #include "settings/settings.h"
@@ -53,7 +54,7 @@ void EncoreDebug::MenuBar() {
         ImGui::MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         ImGui::EndMenu();
     }
-    if (ImGui::BeginMenu("Framerate")) {
+    if (ImGui::BeginMenu(TextFormat("Framerate (%i FPS)###Framerate", GetFPS()))) {
         ImGui::Text("%i FPS", GetFPS());
         ImGui::MenuItem("Uncap Framerate", 0, &TheFrameManager.removeFPSLimit);
         ImGui::MenuItem("VSync", 0, &TheGameSettings.VerticalSync);
@@ -120,6 +121,19 @@ void EncoreDebug::DrawPlayerManager() {
 void EncoreDebug::DrawAssetViewer() {
     ImGui::SetNextWindowSize({200, 300}, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Assets", &showAssets, 0)) {
+        ImGui::TextWrapped("Base Path: %s", TheAssets.getDirectory().c_str());
+        if (ImGui::Button("Reload All")) {
+            for (auto asset : TheAssets.assets) {
+                if (asset->state == LOADING || asset->state == PREFINALIZED) {
+                    asset->CheckForFetch();
+                }
+                if (asset->state == LOADED) {
+                    asset->Unload();
+                    asset->StartLoad();
+                }
+            }
+        }
+
         int i = 0;
         for (auto asset : TheAssets.assets) {
             ImGui::BeginChild(TextFormat("##%i", i), {0, 0}, ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeY);
@@ -128,16 +142,21 @@ void EncoreDebug::DrawAssetViewer() {
             ImGui::Text(AssetStateName(asset->state));
 
             switch (asset->state) {
-            case UNLOADED:
-                if (ImGui::Button("Load")) {
-                    asset->StartLoad();
-                }
-                break;
-            case PREFINALIZED:
-                if (ImGui::Button("Finalize")) {
-                    asset->CheckForFetch();
-                }
-                break;
+                case UNLOADED:
+                    if (ImGui::Button("Load")) {
+                        asset->StartLoad();
+                    }
+                    break;
+                case PREFINALIZED:
+                    if (ImGui::Button("Finalize")) {
+                        asset->CheckForFetch();
+                    }
+                    break;
+                case LOADED:
+                    if (ImGui::Button("Unload")) {
+                        asset->Unload();
+                    }
+                    break;
             }
 
             ImGui::EndChild();

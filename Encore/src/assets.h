@@ -49,6 +49,10 @@ public:
     /// Checks if this asset is loaded. Only use in the render thread!
     void CheckForFetch();
 
+    /// Unloads this asset. Only use in render thread!
+    virtual void Unload() {
+    }
+
     /// Call when you're polling the asset's for when it's loaded.
     bool CanFetch() const {
         return state == LOADED || state == PREFINALIZED;
@@ -85,6 +89,8 @@ public:
 
     FileAsset() {
     }
+
+    virtual void Unload();
 
     std::filesystem::path &GetPath() {
         return path;
@@ -128,6 +134,8 @@ public:
         CheckForFetch();
         return model;
     };
+
+    virtual void Unload();
 
     operator Model() {
         return Fetch();
@@ -184,6 +192,8 @@ public:
         return found->second;
     }
 
+    virtual void Unload();
+
     Shader Fetch() {
         CheckForFetch();
         return shader;
@@ -212,6 +222,8 @@ public:
 
     TextureAsset() {
     }
+
+    virtual void Unload();
 
     Texture2D Fetch() {
         CheckForFetch();
@@ -249,6 +261,8 @@ public:
         this->fontSize = fontSize;
         this->keepBuffer = true;
     }
+
+    virtual void Unload();
 
     Font Fetch() {
         CheckForFetch();
@@ -288,7 +302,7 @@ public:
 
 class Assets {
 private:
-    std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
+    std::filesystem::path directory = std::filesystem::path(GetPrevDirectoryPath(GetApplicationDirectory())) / "Assets";
 
 public:
     std::vector<Asset*> assets; // Stored for debugging
@@ -394,7 +408,7 @@ public:
     NEWTEXASSET(hopoMaskTex, "gameplay/track/hopo_mask.png");
     NEWTEXASSET(regularMaskTex, "gameplay/track/note_mask.png");
 
-    NEWLEGACYMODELASSET(regularNote, "Assets/gameplay/track/note_normal.obj", [this](Model* model) {
+    NEWLEGACYMODELASSET(regularNote, "gameplay/track/note_normal.obj", [this](Model* model) {
         SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
         SetTextureWrap(regularMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = regularNoteTex;
@@ -404,7 +418,7 @@ public:
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = regularMaskTex;
     });
 
-    NEWLEGACYMODELASSET(hopoNote, "Assets/gameplay/track/note_small.obj", [this](Model* model) {
+    NEWLEGACYMODELASSET(hopoNote, "gameplay/track/note_small.obj", [this](Model* model) {
         SetTextureWrap(hopoNoteTex, TEXTURE_WRAP_CLAMP);
         SetTextureWrap(hopoMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = hopoNoteTex;
@@ -421,7 +435,7 @@ public:
     NEWTEXASSET(kickFrameTex, "gameplay/track/kick_frame.png");
     NEWTEXASSET(trackRailsTex, "gameplay/track/rails.png");
 
-    NEWLEGACYMODELASSET(smasherPiston, "Assets/gameplay/track/smasher_piston.obj",
+    NEWLEGACYMODELASSET(smasherPiston, "gameplay/track/smasher_piston.obj",
         [this](Model* model) {
             SetTextureWrap(smasherOffTex, TEXTURE_WRAP_CLAMP);
             SetTextureWrap(smasherOnTex, TEXTURE_WRAP_CLAMP);
@@ -429,35 +443,35 @@ public:
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(smasherFrame, "Assets/gameplay/track/smasher_frame.obj",
+    NEWLEGACYMODELASSET(smasherFrame, "gameplay/track/smasher_frame.obj",
         [this](Model* model) {
             SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = smasherFrameTex;
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(trackSurface, "Assets/gameplay/track/track.obj",
+    NEWLEGACYMODELASSET(trackSurface, "gameplay/track/track.obj",
         [this](Model* model) {
             SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = highwayTexture;
             model->materials[0].shader = highwayScrollShader;
         });
 
-    NEWLEGACYMODELASSET(rails, "Assets/gameplay/track/rails.obj",
+    NEWLEGACYMODELASSET(rails, "gameplay/track/rails.obj",
         [this](Model* model) {
             SetTextureWrap(trackRailsTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = trackRailsTex;
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(kickFrame, "Assets/gameplay/track/kick_frame.obj",
+    NEWLEGACYMODELASSET(kickFrame, "gameplay/track/kick_frame.obj",
         [this](Model* model) {
             SetTextureWrap(kickFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = kickFrameTex;
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(kickPiston, "Assets/gameplay/track/kick_piston.obj",
+    NEWLEGACYMODELASSET(kickPiston, "gameplay/track/kick_piston.obj",
         [this](Model* model) {
             model->materials[0].shader = trackCurveShader;
         });

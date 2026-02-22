@@ -150,10 +150,26 @@ void SetImGuiTheme() {
     }
 }
 
+void LocateDevAssets() {
+    auto execPath = std::filesystem::path(GetApplicationDirectory());
+    for (int i = 0; i < 3; i++) {
+        execPath /= "..";
+        execPath = std::filesystem::canonical(execPath);
+        //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
+        if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
+            execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
+            Encore::EncoreLog(LOG_INFO, TextFormat("Found dev directory: %s", execPath.c_str()));
+            TheAssets.setDirectory(execPath);
+            break;
+        }
+    }
+}
+
 bool imGuiLoaded = false;
 ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
+    LocateDevAssets();
     TheGameRPC.Initialize();
     SetTraceLogCallback(Encore::EncoreLog);
     Units u = Units::getInstance();
@@ -184,7 +200,7 @@ int main(int argc, char *argv[]) {
             if (CFURLGetFileSystemRepresentation(
                     resourceURL, true, (UInt8 *)resourcePath, PATH_MAX
                 ))
-                assets.setDirectory(resourcePath);
+                assets.setDirectory(std::filesystem::path(resourcePath) / "Assets");
             CFRelease(resourceURL);
         }
         // do the next step manually (settings/config handling)
