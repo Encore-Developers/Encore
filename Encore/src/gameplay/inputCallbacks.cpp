@@ -7,6 +7,7 @@
 #include "util/enclog.h"
 #include "raylib.h"
 #include "settings/settings.h"
+#include "debug/EncoreDebug.h"
 
 #include <cstring>
 
@@ -19,6 +20,10 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
             TheGameSettings.Fullscreen = !TheGameSettings.Fullscreen;
             TheGameSettings.UpdateFullscreen();
             return;
+        }
+
+        if (key == KEY_F3) {
+            EncoreDebug::showDebug = !EncoreDebug::showDebug;
         }
     }
 

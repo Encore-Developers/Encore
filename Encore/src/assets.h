@@ -19,6 +19,7 @@ enum AssetState {
     LOADED
 };
 
+const char* AssetStateName(AssetState state);
 
 class Asset {
 protected:
@@ -34,9 +35,7 @@ public:
     std::string id;
     std::thread loadingThread;
 
-    Asset(const std::string &id) {
-        this->id = id;
-    }
+    Asset(const std::string &id);
 
     /// Empty constructor provided so vectors can initialize. Do not use!
     Asset() {
@@ -60,6 +59,8 @@ public:
           state(state.load()),
           loadingThread() {
     }
+
+    ~Asset();
 };
 
 class FileAsset : public Asset {
@@ -268,6 +269,7 @@ private:
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
 
 public:
+    std::vector<Asset*> assets; // Stored for debugging
     Assets() {
     }
 

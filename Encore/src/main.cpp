@@ -54,6 +54,7 @@
 #include "util/frame-manager.h"
 
 #include <menus/MenuManager.h>
+#include "debug/EncoreDebug.h"
 
 MenuManager TheMenuManager;
 // gameplayRenderer TheGameRenderer;

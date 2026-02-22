@@ -15,6 +15,20 @@ class Asset;
 
 Assets TheAssets; // This is the single instance
 
+const char *AssetStateName(AssetState state) {
+    switch (state) {
+    case UNLOADED:
+        return "UNLOADED";
+    case LOADING:
+        return "LOADING";
+    case PREFINALIZED:
+        return "PREFINALIZED";
+    case LOADED:
+        return "LOADED";
+    }
+    return "INVALID";
+}
+
 Assets &Assets::getInstance() {
     return TheAssets;
 }
@@ -52,7 +66,20 @@ void Asset::CheckForFetch() {
     default: ;
     }
 }
+Asset::~Asset() {
+    for (auto iter = TheAssets.assets.begin(); iter != TheAssets.assets.end(); ++iter) {
+        auto asset = *iter;
+        if (asset == this) {
+            TheAssets.assets.erase(iter);
+            break;
+        }
+    }
 
+}
+Asset::Asset(const std::string &id) {
+    this->id = id;
+    TheAssets.assets.push_back(this);
+}
 void Asset::StartLoad() {
     if (state == UNLOADED) {
         state = LOADING;
