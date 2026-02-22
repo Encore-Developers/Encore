@@ -355,7 +355,8 @@ public:
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
                    "fadeSize",
-                   "curveFac"});
+                   "curveFac",
+                   "offset"});
 
     NEWSHADERASSET_POSTFINALIZE(noteShader,
                    "gameplay/track/noteShader.fsh",
@@ -365,7 +366,8 @@ public:
                    "maskTexture",
                    "noteColor",
                    "frameColor",
-                   "curveFac"}, [this](Shader* asset) {
+                   "curveFac",
+                   "offset"}, [this](Shader* asset) {
                        asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
                    });
 
@@ -375,7 +377,8 @@ public:
                    {"trackLength",
                    "fadeSize",
                    "time",
-                   "curveFac"});
+                   "curveFac",
+                   "offset"});
 
     NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
     NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");

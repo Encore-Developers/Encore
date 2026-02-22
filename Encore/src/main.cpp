@@ -235,6 +235,7 @@ int main(int argc, char *argv[]) {
     }
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
+        glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
         if (GetRenderWidth() < minWidth) {

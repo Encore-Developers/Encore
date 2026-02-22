@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
+#include "settings/settings.h"
 #include "util/frame-manager.h"
 
 bool EncoreDebug::showDebug = false;
@@ -55,7 +56,9 @@ void EncoreDebug::MenuBar() {
     if (ImGui::BeginMenu("Framerate")) {
         ImGui::Text("%i FPS", GetFPS());
         ImGui::MenuItem("Uncap Framerate", 0, &TheFrameManager.removeFPSLimit);
+        ImGui::MenuItem("VSync", 0, &TheGameSettings.VerticalSync);
         ImGui::SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
+        ImGui::SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
         ImGui::EndMenu();
     }
 
