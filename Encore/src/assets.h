@@ -335,7 +335,8 @@ public:
                    "gameplay/highway/highwayShader.fsh",
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
-                   "fadeSize"});
+                   "fadeSize",
+                   "curveFac"});
 
     NEWSHADERASSET_POSTFINALIZE(noteShader,
                    "gameplay/track/noteShader.fsh",
@@ -344,7 +345,8 @@ public:
                    "fadeSize",
                    "maskTexture",
                    "noteColor",
-                   "frameColor"}, [this](Shader* asset) {
+                   "frameColor",
+                   "curveFac"}, [this](Shader* asset) {
                        asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
                    });
 
@@ -353,7 +355,8 @@ public:
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
                    "fadeSize",
-                   "time"});
+                   "time",
+                   "curveFac"});
 
     NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
     NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");

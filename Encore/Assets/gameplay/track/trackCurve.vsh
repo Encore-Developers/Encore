@@ -13,6 +13,7 @@ uniform mat4 matView;
 uniform mat4 matNormal;
 uniform float trackLength = 20;
 uniform float fadeSize = 3;
+uniform float curveFac = 50;
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
@@ -34,14 +35,13 @@ void main()
 
     float xPow = pow(xPos, 2);
     float yPow = pow(yPos, 2);
-    int curveConst = 50;
     // Send vertex attributes to fragment shader
     fragPosition = vec3((matModel) * vec4(vertexPosition, 1.0));;
     fragTexCoord = vertexTexCoord;
     fragColor = vertexColor;
     fragNormal = normalize(vec3(matNormal*vec4(vertexNormal, 1.0)));
-    PositionInWorldSpace.y = PositionInWorldSpace.y + (-xPow) / (curveConst);
-    PositionInWorldSpace.x = PositionInWorldSpace.x + (-(yPow)) / (curveConst * 2);
+    PositionInWorldSpace.y = PositionInWorldSpace.y + (-xPow) / (curveFac);
+    PositionInWorldSpace.x = PositionInWorldSpace.x + (-(yPow)) / (curveFac * 2);
     PositionInViewSpace = matView * PositionInWorldSpace;
     vec4 PositionInObjectSpace = inverse(ModelViewMatrix) * PositionInViewSpace;
     gl_Position = mvp * PositionInObjectSpace;
