@@ -115,6 +115,7 @@ void FileAsset::LoadFile() {
 void FileAsset::FreeFileBuffer() {
     if (fileBuffer != nullptr) {
         free(fileBuffer);
+        fileBuffer = nullptr;
     }
 }
 
@@ -176,6 +177,8 @@ void ShaderAsset::Finalize() {
     // These destructors probably don't free the file buffers. Sad!
     delete fragmentCode;
     delete vertexCode;
+    fragmentCode = nullptr;
+    vertexCode = nullptr;
 
 }
 void ShaderAsset::SetUniform(const std::string &uniformName, float value) {

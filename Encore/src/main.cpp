@@ -299,13 +299,13 @@ int main(int argc, char *argv[]) {
         ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
+        static float loadingScreenFade = 1.0f;
         if (showLoading && !initialSet.PollLoaded(true)) {
             DrawLoadingScreen(255, initialSet.GetProgress());
         } else {
             double curTime = GetTime();
             float bgTime = curTime / 5.0f;
             SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
-            static float loadingScreenFade = 1.0f;
             showLoading = false;
             if (TheMenuManager.onNewMenu) {
                 TheMenuManager.LoadMenu();
@@ -331,6 +331,11 @@ int main(int argc, char *argv[]) {
         rlImGuiEnd();
         EndDrawing();
 
+        if (EncoreDebug::reloadQueued) {
+            EncoreDebug::StartReloadAssets();
+            showLoading = true;
+            loadingScreenFade = 1.0f;
+        }
         TheFrameManager.WaitForFrame();
     }
     CloseWindow();

@@ -10,6 +10,7 @@
 #include "gameplay/trackRenderer/Track.h"
 
 bool EncoreDebug::showDebug = false;
+bool EncoreDebug::reloadQueued = false;
 
 bool showDemoWindow = false;
 bool showAssets = false;
@@ -118,21 +119,25 @@ void EncoreDebug::DrawPlayerManager() {
     }
     ImGui::End();
 }
+void EncoreDebug::StartReloadAssets() {
+    for (auto asset : TheAssets.assets) {
+        if (asset->state == LOADING || asset->state == PREFINALIZED) {
+            asset->CheckForFetch();
+        }
+        if (asset->state == LOADED) {
+            asset->Unload();
+            asset->StartLoad();
+        }
+    }
+    reloadQueued = false;
+}
 
 void EncoreDebug::DrawAssetViewer() {
     ImGui::SetNextWindowSize({200, 300}, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Assets", &showAssets, 0)) {
         ImGui::TextWrapped("Base Path: %s", TheAssets.getDirectory().c_str());
         if (ImGui::Button("Reload All")) {
-            for (auto asset : TheAssets.assets) {
-                if (asset->state == LOADING || asset->state == PREFINALIZED) {
-                    asset->CheckForFetch();
-                }
-                if (asset->state == LOADED) {
-                    asset->Unload();
-                    asset->StartLoad();
-                }
-            }
+            reloadQueued = true;
         }
 
         int i = 0;

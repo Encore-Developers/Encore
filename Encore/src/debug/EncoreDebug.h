@@ -17,11 +17,14 @@ namespace EncoreDebug {
     };
 
     extern bool showDebug;
+    extern bool reloadQueued;
 
     void DrawDebug();
     void MenuBar();
     void DrawAssetViewer();
     void DrawPlayerManager();
+
+    void StartReloadAssets();
 }
 
 

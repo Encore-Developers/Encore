@@ -68,7 +68,6 @@ public:
 };
 
 class FileAsset : public Asset {
-    std::filesystem::path path;
 
 protected:
     size_t fileSize;
@@ -84,7 +83,6 @@ public:
 
     FileAsset(const std::string &id)
         : Asset(id) {
-        path = GetBaseDirectory() / id;
     }
 
     FileAsset() {
@@ -92,8 +90,8 @@ public:
 
     virtual void Unload();
 
-    std::filesystem::path &GetPath() {
-        return path;
+    std::filesystem::path GetPath() {
+        return GetBaseDirectory() / id;
     }
 
     size_t GetFileSize();
@@ -108,7 +106,7 @@ public:
     }
 
     FileAsset(FileAsset &&other) noexcept
-        : path(std::move(other.path)),
+        :
           fileSize(other.fileSize),
           fileBuffer(other.fileBuffer) {
     }
