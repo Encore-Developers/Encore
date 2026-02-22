@@ -139,7 +139,7 @@ void SetImGuiTheme() {
 }
 
 bool imGuiLoaded = false;
-ImFont *proggyForever;
+ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
     TheGameRPC.Initialize();
@@ -253,17 +253,17 @@ int main(int argc, char *argv[]) {
 
         if (!imGuiLoaded) {
             rlImGuiSetup(true);
-            ImGui::GetCurrentContext()->FontSizeBase = 16;
-            ImGui::GetStyle().FontSizeBase = 16;
+            ImGui::GetCurrentContext()->FontSizeBase = 20;
+            ImGui::GetStyle().FontSizeBase = 20;
             auto io = ImGui::GetIO();
-            proggyForever = io.Fonts->AddFontDefaultVector();
-            io.FontDefault = proggyForever;
+            imGuiFont = io.Fonts->AddFontFromMemoryTTF(ASSET(JetBrainsMono).RawData(), ASSET(JetBrainsMono).RawDataSize());
+            io.FontDefault = imGuiFont;
             SetImGuiTheme();
             imGuiLoaded = true;
         }
         BeginDrawing();
         rlImGuiBegin();
-        ImGui::PushFont(proggyForever, ImGui::GetStyle().FontSizeBase);
+        ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
         if (showLoading && !initialSet.PollLoaded(true)) {

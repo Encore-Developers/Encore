@@ -132,7 +132,22 @@ void PlayerManager::CreatePlayer(const std::string &name) {
 }; // set it as the next one in PlayerList
 
 void PlayerManager::DeletePlayer(const Player &PlayerToDelete) {
-
+    for (int i = 0; i < ActivePlayers.size(); i++) {
+        auto player = ActivePlayers[i];
+        if (player == -1) {
+            continue;
+        }
+        if (&PlayerList[player] == &PlayerToDelete) {
+            RemoveActivePlayer(player);
+            ActivePlayers[i] = -1; // HACK: force the slot to -1 in case the player was assigned more than once
+        }
+    }
+    for (auto iter = PlayerList.begin(); iter != PlayerList.end(); iter++) {
+        if (&*iter == &PlayerToDelete) {
+            PlayerList.erase(iter++);
+            break;
+        }
+    }
 }; // remove player, reload playerlist
 void PlayerManager::RenamePlayer(const Player &PlayerToRename) {
 

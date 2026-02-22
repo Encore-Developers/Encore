@@ -263,6 +263,11 @@ public:
         CheckForFetch();
         return fileBuffer;
     }
+
+    size_t RawDataSize() {
+        CheckForFetch();
+        return fileSize;
+    }
 };
 
 #define ASSET(varname) TheAssets.varname

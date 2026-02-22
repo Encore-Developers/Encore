@@ -73,6 +73,10 @@ void EncoreDebug::MenuBar() {
 
 void EncoreDebug::DrawPlayerManager() {
     if (ImGui::Begin("Player Manager", &showPlayerManager, 0)) {
+        if (ImGui::Button("Save All")) {
+            ThePlayerManager.SavePlayerList();
+        }
+
         if (ImGui::BeginTabBar("Players")) {
             for (auto &player : ThePlayerManager.PlayerList) {
                 if (ImGui::BeginTabItem((player.Name + TextFormat("###%x", &player)).c_str())) {
@@ -84,18 +88,24 @@ void EncoreDebug::DrawPlayerManager() {
                     ColorEdit("Yellow", &player.GetColorProfile()->colors[Encore::SLOT_YELLOW], 0);
                     ColorEdit("Blue", &player.GetColorProfile()->colors[Encore::SLOT_BLUE], 0);
                     ColorEdit("Orange", &player.GetColorProfile()->colors[Encore::SLOT_ORANGE], 0);
+                    ColorEdit("Open", &player.GetColorProfile()->colors[Encore::SLOT_OPEN], 0);
 
                     ImGui::SeparatorText(std::string("Player: " + player.Name).c_str());
-                    ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
-                    float inputOffset = player.InputCalibration;
-                    ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
-                    player.InputCalibration = inputOffset;
-                    ImGui::DragFloat("Track Length", &player.HighwayLength, 0.1);
+                    ImGui::SliderFloat("Note Speed", &player.NoteSpeed, 0, 3);
+                    ImGui::SliderFloat("Track Length", &player.HighwayLength, 0, 5);
+                    int inputOffset = player.InputCalibration * 1000;
+                    ImGui::DragInt("Input Calibration", &inputOffset, 1, -1000, 1000, "%dms");
+                    player.InputCalibration = inputOffset / 1000.0;
                     ColorEdit("Accent Color", &player.AccentColor, 0);
                     ImGui::Checkbox("Bot", &player.Bot);
                     ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
                     ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
                     ImGui::EndTabItem();
+
+                    if (ImGui::Button("Delete Player")) {
+                        ThePlayerManager.DeletePlayer(player);
+                        ThePlayerManager.SavePlayerList();
+                    }
                 }
             }
             if (ImGui::TabItemButton("New", ImGuiTabItemFlags_Trailing)) {

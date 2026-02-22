@@ -225,7 +225,9 @@ void FontAsset::Load() {
         UnloadImage(font.glyphs[i].image);
         font.glyphs[i].image = ImageFromImage(atlas, font.recs[i]);
     }
-    FreeFileBuffer();
+    if (!keepBuffer) {
+        FreeFileBuffer();
+    }
     auto end = std::chrono::high_resolution_clock::now();
     Encore::EncoreLog(LOG_INFO,
                       TextFormat("Generated font data for %s in %i microseconds.",
