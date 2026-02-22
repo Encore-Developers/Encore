@@ -24,14 +24,17 @@ void Encore::Track::Draw() {
     ASSET(trackCurveShader).SetUniform("fadeSize", FadeSize);
     ASSET(trackCurveShader).SetUniform("curveFac", CurveFac);
     ASSET(trackCurveShader).SetUniform("offset", Offset);
+    ASSET(trackCurveShader).SetUniform("scale", Scale);
     ASSET(noteShader).SetUniform("trackLength", Length);
     ASSET(noteShader).SetUniform("fadeSize", FadeSize);
     ASSET(noteShader).SetUniform("curveFac", CurveFac);
     ASSET(noteShader).SetUniform("offset", Offset);
+    ASSET(noteShader).SetUniform("scale", Scale);
     ASSET(highwayScrollShader).SetUniform("trackLength", Length);
     ASSET(highwayScrollShader).SetUniform("fadeSize", FadeSize);
     ASSET(highwayScrollShader).SetUniform("curveFac", CurveFac);
     ASSET(highwayScrollShader).SetUniform("offset", Offset);
+    ASSET(highwayScrollShader).SetUniform("scale", Scale);
 
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
@@ -61,10 +64,11 @@ void Encore::Track::Draw() {
                 ImGui::DragFloat3("Camera Position", (float *)&camera.position, 0.1);
                 ImGui::DragFloat3("Camera Target", (float *)&camera.target, 0.1);
                 ImGui::DragFloat("Camera FOV", &camera.fovy);
-                ImGui::DragFloat("Track Length", &BaseLength, 0.1);
+                ImGui::DragFloat("Base Length", &BaseLength, 0.1);
                 ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
                 ImGui::DragFloat("Curve Factor", &CurveFac, 1);
                 ImGui::DragFloat("Offset", &Offset, 0.01);
+                ImGui::DragFloat("Scale", &Scale, 0.01);
             }
             if (ImGui::CollapsingHeader("Engine Stats")) {
                 EncoreDebug::Indent indent;

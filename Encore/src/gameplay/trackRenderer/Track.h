@@ -44,6 +44,7 @@ namespace Encore {
         float FadeSize = 3;
         float CurveFac = 50;
         float Offset = 0;
+        float Scale = 1;
 
         Track(Player &player_)
             : player(player_) {
