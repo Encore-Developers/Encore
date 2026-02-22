@@ -174,12 +174,6 @@ void ShaderAsset::Finalize() {
     }
     if (postFinalizeFunc) postFinalizeFunc(&shader);
     state = LOADED;
-    // These destructors probably don't free the file buffers. Sad!
-    delete fragmentCode;
-    delete vertexCode;
-    fragmentCode = nullptr;
-    vertexCode = nullptr;
-
 }
 void ShaderAsset::SetUniform(const std::string &uniformName, float value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_FLOAT);
