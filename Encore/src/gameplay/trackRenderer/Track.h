@@ -39,9 +39,10 @@ namespace Encore {
         );
 
         float NoteSpeed = 1;
-        float BaseLength = 20;
-        float Length = 20;
-        float FadeSize = 7;
+        float BaseLength = 22;
+        float Length = 22;
+        float FadeSize = 3;
+        float CurveFac = 50;
 
         Track(Player &player_)
             : player(player_) {

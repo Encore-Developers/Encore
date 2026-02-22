@@ -33,10 +33,13 @@ void Encore::Track::Draw() {
 
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("curveFac"), &CurveFac, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("curveFac"), &CurveFac, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
     SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("curveFac"), &CurveFac, SHADER_UNIFORM_FLOAT);
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
@@ -60,11 +63,30 @@ void Encore::Track::Draw() {
     if (EncoreDebug::showDebug) {
         if (ImGui::Begin("Track Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
 
-            ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
-            ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
-            ImGui::DragFloat("Camera FOV", &camera.fovy);
-            ImGui::DragFloat("Track Length", &BaseLength, 0.1);
-            ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
+        ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
+        ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
+        ImGui::DragFloat("Camera FOV", &camera.fovy);
+        ImGui::DragFloat("Track Length", &BaseLength, 0.1);
+        ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
+        ImGui::DragFloat("Curve Factor", &CurveFac, 1);
+
+        ImGui::SeparatorText("Color Profile");
+        ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
+        ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
+        ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
+        ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
+        ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
+
+        ImGui::SeparatorText(std::string("Player: " + player.Name).c_str());
+        ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
+        float inputOffset = player.engine->stats->InputOffset;
+        ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
+        player.engine->stats->InputOffset = inputOffset;
+        ImGui::DragFloat("Player Track Length", &player.HighwayLength, 0.1);
+        ColorEdit("Player Color Profile", &player.AccentColor, 0);
+        ImGui::Checkbox("Bot", &player.engine->stats->Bot);
+        ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
+        ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
 
             ImGui::SeparatorText("Color Profile");
             ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
@@ -81,10 +103,10 @@ void Encore::Track::Draw() {
 
 void Encore::Track::Load() {
     camera = {
-        {0, 7.5f, -14.3f},
-        { 0.0f, 0.0f, 11.0f },
+        {0, 8.0f, -13.5f},
+        { 0.0f, 0.0f, 15.0f },
         { 0.0f, 1.0f, 0.0f },
-        35.0f,
+        40.0f,
     };
 }
 
@@ -110,8 +132,8 @@ void Encore::Track::DrawOverdriveMeter() {
 
     for (int i = 0; i <= 10; i++) {
         auto x = Remap(i, 0, 10, -2.5, 2.5);
-        points.push_back({x, 0, -1.5});
-        points.push_back({x, 0, -1});
+        points.push_back({x, 0, -1.0});
+        points.push_back({x, 0, -0.5});
     }
 
     DrawTriangleStrip3D(points.data(), points.size(), BLACK);
@@ -120,8 +142,8 @@ void Encore::Track::DrawOverdriveMeter() {
     for (int i = 0; i <= 10; i++) {
         auto x = Remap(i, 0, 10, -2.5, 2.5);
         x = Lerp(x, 2.5, 1-player.engine->stats->overdrive.Fill);
-        points.push_back({x, 0, -1.5});
-        points.push_back({x, 0, -1});
+        points.push_back({x, 0, -1.0});
+        points.push_back({x, 0, -0.5});
     }
 
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
