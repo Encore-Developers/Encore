@@ -95,7 +95,7 @@ void Encore::Track::Draw() {
 
 void Encore::Track::Load() {
     camera = {
-        {0, 8.0f, -4.0f},
+        {0, 8.0f, -14.0f},
         { 0.0f, 0.0f, 15.0f },
         { 0.0f, 1.0f, 0.0f },
         40.0f,
