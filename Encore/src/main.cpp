@@ -7,7 +7,7 @@
 #include "gameplay/enctime.h"
 #include "rlImGui.h"
 #include "imgui.h"
-
+#include "imgui_internal.h"
 
 #include <cassert>
 
@@ -133,9 +133,13 @@ void SetImGuiTheme() {
     colors[ImGuiCol_TabSelected]            = ImVec4(0.51f, 0.20f, 0.68f, 1.00f);
     colors[ImGuiCol_TabSelectedOverline]    = ImVec4(0.67f, 0.26f, 0.98f, 1.00f);
     colors[ImGuiCol_TabDimmedSelected]      = ImVec4(0.32f, 0.14f, 0.42f, 1.00f);
+    colors[ImGuiCol_ResizeGrip]             = ImVec4(0.68f, 0.26f, 0.98f, 0.20f);
+
+
 }
 
-
+bool imGuiLoaded = false;
+ImFont *proggyForever;
 
 int main(int argc, char *argv[]) {
     TheGameRPC.Initialize();
@@ -220,11 +224,6 @@ int main(int argc, char *argv[]) {
         TheMenuManager.currentScreen = MAIN_MENU;
     }
 
-    rlImGuiSetup(true);
-    ImGui::GetIO().Fonts->AddFontDefaultVector();
-    SetImGuiTheme();
-
-
 
     if (TheGameSettings.Framerate > 0)
         Encore::EncoreLog(
@@ -251,8 +250,19 @@ int main(int argc, char *argv[]) {
                 SetWindowSize(GetRenderWidth(), minHeight);
         }
 
+        if (!imGuiLoaded) {
+            rlImGuiSetup(true);
+            ImGui::GetCurrentContext()->FontSizeBase = 16;
+            ImGui::GetStyle().FontSizeBase = 16;
+            auto io = ImGui::GetIO();
+            proggyForever = io.Fonts->AddFontDefaultVector();
+            io.FontDefault = proggyForever;
+            SetImGuiTheme();
+            imGuiLoaded = true;
+        }
         BeginDrawing();
         rlImGuiBegin();
+        ImGui::PushFont(proggyForever, ImGui::GetStyle().FontSizeBase);
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
         if (showLoading && !initialSet.PollLoaded(true)) {
@@ -283,6 +293,7 @@ int main(int argc, char *argv[]) {
             EncoreDebug::DrawDebug();
         }
 
+        ImGui::PopFont();
         rlImGuiEnd();
         EndDrawing();
 

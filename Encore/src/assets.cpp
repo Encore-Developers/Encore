@@ -253,6 +253,7 @@ AssetSet initialSet = { ASSETPTR(encoreWhiteLogo),
                         ASSETPTR(sdfShader),
                         ASSETPTR(josefinSansItalic),
                         ASSETPTR(bgShader),
+                        ASSETPTR(JetBrainsMono),
                         ASSETPTR(rubikBold) };
 // Assets that are queued to load at boot but aren't critical for displaying the title
 // screen. Adding assets to this set results in a smaller impact on boot times
@@ -260,7 +261,6 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(BaseRingTexture),
                          ASSETPTR(rubikBoldItalic),
                          ASSETPTR(rubikItalic),
-                         ASSETPTR(JetBrainsMono),
                          ASSETPTR(discord),
                          ASSETPTR(github),
                          ASSETPTR(emptyStar),

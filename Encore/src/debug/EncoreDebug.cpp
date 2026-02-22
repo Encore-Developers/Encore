@@ -4,12 +4,15 @@
 #include "imgui.h"
 #include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
+#include "util/frame-manager.h"
 
 bool EncoreDebug::showDebug = false;
 
 bool showDemoWindow = false;
 bool showAssets = false;
 bool showPlayerManager = false;
+
+const char* versionHash = nullptr;
 
 void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
     float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
@@ -22,6 +25,11 @@ void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
 }
 
 void EncoreDebug::DrawDebug() {
+    if (!versionHash) {
+        versionHash = TextFormat(
+            "Encore %s-%s:%s", ENCORE_VERSION, GIT_COMMIT_HASH, GIT_BRANCH
+        );
+    }
     MenuBar();
     if (showAssets) {
         DrawAssetViewer();
@@ -44,6 +52,19 @@ void EncoreDebug::MenuBar() {
         ImGui::MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("Framerate")) {
+        ImGui::Text("%i FPS", GetFPS());
+        ImGui::MenuItem("Uncap Framerate", 0, &TheFrameManager.removeFPSLimit);
+        ImGui::SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
+        ImGui::EndMenu();
+    }
+
+    auto avail = ImGui::GetWindowWidth();
+    auto size = ImGui::CalcTextSize(versionHash).x;
+
+    ImGui::SetCursorPosX(avail - size - ImGui::GetStyle().FramePadding.x);
+    ImGui::Text(versionHash);
+
     ImGui::EndMainMenuBar();
 }
 
@@ -66,8 +87,8 @@ void EncoreDebug::DrawPlayerManager() {
                     float inputOffset = player.InputCalibration;
                     ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
                     player.InputCalibration = inputOffset;
-                    ImGui::DragFloat("Player Track Length", &player.HighwayLength, 0.1);
-                    ColorEdit("Player Color Profile", &player.AccentColor, 0);
+                    ImGui::DragFloat("Track Length", &player.HighwayLength, 0.1);
+                    ColorEdit("Accent Color", &player.AccentColor, 0);
                     ImGui::Checkbox("Bot", &player.Bot);
                     ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
                     ImGui::Checkbox("Brutal Mode", &player.BrutalMode);

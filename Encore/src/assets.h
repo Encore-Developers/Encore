@@ -234,6 +234,7 @@ class FontAsset : public FileAsset {
     Font font;
     int fontSize;
     Image atlas;
+    bool keepBuffer = false;
     virtual void Load();
     virtual void Finalize();
 
@@ -241,6 +242,12 @@ public:
     FontAsset(const std::string &id, int fontSize)
         : FileAsset(id) {
         this->fontSize = fontSize;
+    }
+
+    FontAsset(const std::string &id, int fontSize, bool keepBuffer)
+        : FileAsset(id) {
+        this->fontSize = fontSize;
+        this->keepBuffer = true;
     }
 
     Font Fetch() {
@@ -251,6 +258,11 @@ public:
     operator Font() {
         return Fetch();
     }
+
+    char* RawData() {
+        CheckForFetch();
+        return fileBuffer;
+    }
 };
 
 #define ASSET(varname) TheAssets.varname
@@ -259,6 +271,7 @@ public:
 
 #define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
 #define NEWFONTASSET(varname, path, size) FontAsset varname = FontAsset(path, size)
+#define NEWFONTASSET_KEEPRAW(varname, path, size) FontAsset varname = FontAsset(path, size, true)
 #define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path, true)
 #define NEWTEXASSET_NOFILTER(varname, path) TextureAsset varname = TextureAsset(path, false)
 // Have to use variadic macros here because the preprocessor can't understand that the
@@ -326,7 +339,7 @@ public:
     NEWFONTASSET(redHatMono, "fonts/RedHatMono-Bold.ttf", 128);
     NEWFONTASSET(rubik, "fonts/Rubik-Regular.ttf", 128);
     NEWFONTASSET(rubikItalic, "fonts/Rubik-Italic.ttf", 128);
-    NEWFONTASSET(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", 64);
+    NEWFONTASSET_KEEPRAW(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", 64);
     NEWFONTASSET(rubikBoldItalic, "fonts/Rubik-BoldItalic.ttf", 128);
 
     NEWFONTASSET(rubikBold, "fonts/Rubik-Bold.ttf", 128);
