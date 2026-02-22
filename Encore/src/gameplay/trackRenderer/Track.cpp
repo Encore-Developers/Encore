@@ -13,15 +13,7 @@
 #include "imgui.h"
 #include "debug/EncoreDebug.h"
 
-void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
-    float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
 
-    ImGui::ColorEdit3(label, (float*)&floats, flags);
-
-    color->r = floats[0]*255;
-    color->g = floats[1]*255;
-    color->b = floats[2]*255;
-}
 
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
@@ -72,35 +64,6 @@ void Encore::Track::Draw() {
                 ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
                 ImGui::DragFloat("Curve Factor", &CurveFac, 1);
             }
-
-
-
-
-            if (ImGui::CollapsingHeader("Color Profile")) {
-                EncoreDebug::Indent indent;
-
-                ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
-                ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
-                ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
-                ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
-                ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
-            }
-
-
-            if (ImGui::CollapsingHeader("Player Settings")) {
-                EncoreDebug::Indent indent;
-
-                ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
-                float inputOffset = player.engine->stats->InputOffset;
-                ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
-                player.engine->stats->InputOffset = inputOffset;
-                ImGui::DragFloat("Track Length##player", &player.HighwayLength, 0.1);
-                ColorEdit("Accent Color", &player.AccentColor, 0);
-                ImGui::Checkbox("Bot", &player.engine->stats->Bot);
-                ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
-                ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
-            }
-
         }
         ImGui::End();
     }

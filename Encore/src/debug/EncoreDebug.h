@@ -21,6 +21,7 @@ namespace EncoreDebug {
     void DrawDebug();
     void MenuBar();
     void DrawAssetViewer();
+    void DrawPlayerManager();
 }
 
 

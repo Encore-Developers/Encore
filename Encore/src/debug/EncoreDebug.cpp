@@ -2,12 +2,24 @@
 
 #include "assets.h"
 #include "imgui.h"
+#include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
 
 bool EncoreDebug::showDebug = false;
 
 bool showDemoWindow = false;
 bool showAssets = false;
+bool showPlayerManager = false;
+
+void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
+    float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
+
+    ImGui::ColorEdit3(label, (float*)&floats, flags);
+
+    color->r = floats[0]*255;
+    color->g = floats[1]*255;
+    color->b = floats[2]*255;
+}
 
 void EncoreDebug::DrawDebug() {
     MenuBar();
@@ -18,6 +30,9 @@ void EncoreDebug::DrawDebug() {
     if (showDemoWindow) {
         ImGui::ShowDemoWindow(&showDemoWindow);
     }
+    if (showPlayerManager) {
+        DrawPlayerManager();
+    }
 }
 
 
@@ -25,10 +40,47 @@ void EncoreDebug::MenuBar() {
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("Windows")) {
         ImGui::MenuItem("Assets", 0, &showAssets);
+        ImGui::MenuItem("Player Manager", 0, &showPlayerManager);
         ImGui::MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
+}
+
+void EncoreDebug::DrawPlayerManager() {
+    if (ImGui::Begin("Player Manager", &showPlayerManager, 0)) {
+        if (ImGui::BeginTabBar("Players")) {
+            for (auto &player : ThePlayerManager.PlayerList) {
+                if (ImGui::BeginTabItem((player.Name + TextFormat("##%x", &player)).c_str())) {
+
+
+                    ImGui::SeparatorText("Color Profile");
+                    ColorEdit("Green", &player.GetColorProfile()->colors[Encore::SLOT_GREEN], 0);
+                    ColorEdit("Red", &player.GetColorProfile()->colors[Encore::SLOT_RED], 0);
+                    ColorEdit("Yellow", &player.GetColorProfile()->colors[Encore::SLOT_YELLOW], 0);
+                    ColorEdit("Blue", &player.GetColorProfile()->colors[Encore::SLOT_BLUE], 0);
+                    ColorEdit("Orange", &player.GetColorProfile()->colors[Encore::SLOT_ORANGE], 0);
+
+                    ImGui::SeparatorText(std::string("Player: " + player.Name).c_str());
+                    ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
+                    float inputOffset = player.engine->stats->InputOffset;
+                    ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
+                    player.engine->stats->InputOffset = inputOffset;
+                    ImGui::DragFloat("Player Track Length", &player.HighwayLength, 0.1);
+                    ColorEdit("Player Color Profile", &player.AccentColor, 0);
+                    ImGui::Checkbox("Bot", &player.engine->stats->Bot);
+                    ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
+                    ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
+                    ImGui::EndTabItem();
+                }
+            }
+            if (ImGui::TabItemButton("New", ImGuiTabItemFlags_Trailing)) {
+                ThePlayerManager.CreatePlayer("New Player");
+            }
+        }
+        ImGui::EndTabBar();
+    }
+    ImGui::End();
 }
 
 void EncoreDebug::DrawAssetViewer() {
