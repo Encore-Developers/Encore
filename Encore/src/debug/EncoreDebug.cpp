@@ -2,11 +2,12 @@
 
 #include "assets.h"
 #include "imgui.h"
-#include "extras/IconsFontAwesome6.h"
+#include "raymath.h"
 #include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
 #include "settings/settings.h"
 #include "util/frame-manager.h"
+#include "gameplay/trackRenderer/Track.h"
 
 bool EncoreDebug::showDebug = false;
 
@@ -165,4 +166,50 @@ void EncoreDebug::DrawAssetViewer() {
     }
     ImGui::End();
 
+}
+
+void Encore::Track::DrawTrackDebugWindow() {
+    ImGui::SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
+    if (ImGui::Begin(
+            std::string("Track Settings: " + player.Name).c_str(),
+            nullptr,
+            ImGuiWindowFlags_AlwaysAutoResize
+        )) {
+        if (ImGui::CollapsingHeader("Camera Settings")) {
+            ImGui::DragFloat3("Camera Position", (float *)&camera.position, 0.1);
+            ImGui::DragFloat3("Camera Target", (float *)&camera.target, 0.1);
+            ImGui::DragFloat("Camera FOV", &camera.fovy);
+            ImGui::DragFloat("Base Length", &BaseLength, 0.1);
+            ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
+            ImGui::DragFloat("Curve Factor", &CurveFac, 1);
+            ImGui::DragFloat("Offset", &Offset, 0.01);
+            ImGui::DragFloat("Scale", &Scale, 0.01);
+            ImGui::DragFloat("Note Height", &NoteHeight, 0.01);
+        }
+        if (ImGui::CollapsingHeader("Engine State")) {
+            ImGui::SeparatorText("Timers");
+            for (auto timer : player.engine->Timers) {
+                float countdown = Clamp(
+                    (timer.second.Time + timer.second.Duration)
+                        - TheSongTime.GetElapsedTime(),
+                    0,
+                    timer.second.Duration
+                );
+                ImGui::ProgressBar(countdown / timer.second.Duration, {-FLT_MIN, 0}, TextFormat("%s: %4.4f", timer.first.c_str(), countdown));
+            };
+            ImGui::SeparatorText("Stats");
+            ImGui::Text(TextFormat("Combo: %i", player.engine->stats->Combo));
+            ImGui::Text(TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
+            ImGui::Text(
+                TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes)
+            );
+            ImGui::Text(TextFormat("Misses: %i", player.engine->stats->Misses));
+            ImGui::Text(TextFormat("Notes hit: %i (%.0f%)", player.engine->stats->NotesHit, (float)player.engine->stats->NotesHit/player.engine->stats->AttemptedNotes*100));
+            ImGui::Text(TextFormat("Score: %4.2f", player.engine->stats->Score));
+            ImGui::Text(TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
+            ImGui::Text(TextFormat("Stars: *%i", player.engine->stats->Stars));
+            ImGui::Text(TextFormat("Multiplier: %ix", player.engine->stats->multiplier()));
+        }
+    }
+    ImGui::End();
 }

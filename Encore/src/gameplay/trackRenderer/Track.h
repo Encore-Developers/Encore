@@ -14,6 +14,7 @@ namespace Encore {
 
     class Track {
     public:
+        void DrawTrackDebugWindow();
         void Draw();
         void Load();
         void DrawNotes();
@@ -45,6 +46,7 @@ namespace Encore {
         float CurveFac = 50;
         float Offset = 0;
         float Scale = 1;
+        float NoteHeight = 1;
 
         Track(Player &player_)
             : player(player_) {

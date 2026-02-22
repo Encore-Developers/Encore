@@ -28,32 +28,12 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
         }
     }
 
-    switch (TheMenuManager.currentScreen) { // NOTE: when adding a new Menu
-                                            // derivative, you
-        // must put its enum value in Screens, and its
-        // assignment in this switch/case. You will also
-        // add its case to the `ActiveMenu->Draw();`
-        // cases.
-    case MAIN_MENU:
-    case SETTINGS:
-    case SETTINGSAUDIOVIDEO:
-    case SETTINGSCONTROLLER:
-    case SETTINGSGAMEPLAY:
-    case SETTINGSKEYBOARD:
-    case SETTINGSCREDITS:
-    case RESULTS:
-    case SONG_SELECT:
-    case READY_UP:
-    case SOUND_TEST:
-    case CACHE_LOADING_SCREEN:
-    case CHART_LOADING_SCREEN:
-    case GAMEPLAY: {
-        TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
-        break;
-    }
-    default:;
-    }
     rlImGuiPushKeyEvent(key, scancode, action, mods);
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
+    TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
 }
 
 void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {

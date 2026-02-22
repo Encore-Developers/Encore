@@ -45,9 +45,9 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     rlDrawRenderBatchActive();
 
     if (note->NoteType == 1 || note->NoteType == 2) {
-        DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, 1, 1 }, WHITE);
+        DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, track->NoteHeight, 1 }, WHITE);
     } else {
-        DrawModelEx(ASSET(regularNote), position,{ 0 }, 0, { width, 1, 1 }, WHITE);
+        DrawModelEx(ASSET(regularNote), position,{ 0 }, 0, { width, track->NoteHeight, 1 }, WHITE);
     }
 
 

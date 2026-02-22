@@ -13,7 +13,6 @@
 #include "imgui.h"
 #include "debug/EncoreDebug.h"
 
-
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
@@ -55,43 +54,7 @@ void Encore::Track::Draw() {
     EndMode3D();
 
     if (EncoreDebug::showDebug) {
-        ImGui::SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
-        if (ImGui::Begin(std::string("Track Settings: " + player.Name).c_str(),
-                         nullptr,
-                         ImGuiWindowFlags_AlwaysAutoResize)) {
-            if (ImGui::CollapsingHeader("Camera Settings")) {
-                EncoreDebug::Indent indent;
-                ImGui::DragFloat3("Camera Position", (float *)&camera.position, 0.1);
-                ImGui::DragFloat3("Camera Target", (float *)&camera.target, 0.1);
-                ImGui::DragFloat("Camera FOV", &camera.fovy);
-                ImGui::DragFloat("Base Length", &BaseLength, 0.1);
-                ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
-                ImGui::DragFloat("Curve Factor", &CurveFac, 1);
-                ImGui::DragFloat("Offset", &Offset, 0.01);
-                ImGui::DragFloat("Scale", &Scale, 0.01);
-            }
-            if (ImGui::CollapsingHeader("Engine Stats")) {
-                EncoreDebug::Indent indent;
-                for (auto timer : player.engine->Timers) {
-                    float countdown = Clamp((timer.second.Time + timer.second.Duration) - TheSongTime.
-                            GetElapsedTime(), 0, timer.second.Duration);
-                    ImGui::Text((timer.first + TextFormat(": %4.4f", countdown)).c_str());
-                    ImGui::SameLine();
-                    ImGui::ProgressBar(countdown / timer.second.Duration);
-                };
-                ImGui::Text(TextFormat("Combo: %i", player.engine->stats->Combo));
-                ImGui::Text(TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
-                ImGui::Text(TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes));
-                ImGui::Text(TextFormat("Misses: %i", player.engine->stats->Misses));
-                ImGui::Text(TextFormat("Notes hit: %i", player.engine->stats->NotesHit));
-                ImGui::Text(TextFormat("Score: %4.2f", player.engine->stats->Score));
-                ImGui::Text(TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
-                ImGui::Text(TextFormat("Stars: *%i", player.engine->stats->Stars));
-                ImGui::Text(TextFormat("Multiplier: %ix", player.engine->stats->multiplier()));
-
-            }
-        }
-        ImGui::End();
+        DrawTrackDebugWindow();
     }
 }
 

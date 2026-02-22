@@ -291,6 +291,11 @@ int main(int argc, char *argv[]) {
         }
         BeginDrawing();
         rlImGuiBegin();
+        if (ImGui::GetIO().WantCaptureMouse) {
+            GuiLock();
+        } else {
+            GuiUnlock();
+        }
         ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
