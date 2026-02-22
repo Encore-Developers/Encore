@@ -12,7 +12,7 @@ bool showDemoWindow = false;
 bool showAssets = false;
 bool showPlayerManager = false;
 
-const char* versionHash = nullptr;
+std::string debugVersionHash = "";
 
 void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
     float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
@@ -25,8 +25,8 @@ void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
 }
 
 void EncoreDebug::DrawDebug() {
-    if (!versionHash) {
-        versionHash = TextFormat(
+    if (debugVersionHash.empty()) {
+        debugVersionHash = TextFormat(
             "Encore %s-%s:%s", ENCORE_VERSION, GIT_COMMIT_HASH, GIT_BRANCH
         );
     }
@@ -60,10 +60,10 @@ void EncoreDebug::MenuBar() {
     }
 
     auto avail = ImGui::GetWindowWidth();
-    auto size = ImGui::CalcTextSize(versionHash).x;
+    auto size = ImGui::CalcTextSize(debugVersionHash.c_str()).x;
 
     ImGui::SetCursorPosX(avail - size - ImGui::GetStyle().FramePadding.x);
-    ImGui::Text(versionHash);
+    ImGui::Text(debugVersionHash.c_str());
 
     ImGui::EndMainMenuBar();
 }
