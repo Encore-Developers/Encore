@@ -221,7 +221,9 @@ int main(int argc, char *argv[]) {
     }
 
     rlImGuiSetup(true);
+    ImGui::GetIO().Fonts->AddFontDefaultVector();
     SetImGuiTheme();
+
 
 
     if (TheGameSettings.Framerate > 0)

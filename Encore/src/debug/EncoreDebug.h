@@ -6,6 +6,7 @@ namespace EncoreDebug {
     extern bool showDebug;
 
     void DrawDebug();
+    void MenuBar();
     void DrawAssetViewer();
 }
 
