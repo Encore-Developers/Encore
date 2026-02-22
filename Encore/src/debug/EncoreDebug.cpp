@@ -140,34 +140,53 @@ void EncoreDebug::DrawAssetViewer() {
             reloadQueued = true;
         }
 
-        int i = 0;
-        for (auto asset : TheAssets.assets) {
-            ImGui::BeginChild(TextFormat("##%i", i), {0, 0}, ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeY);
-            ImGui::Text(TextFormat("%s (%x)", asset->id.c_str(), (size_t)asset));
-            ImGui::Text(typeid(*asset).name());
-            ImGui::Text(AssetStateName(asset->state));
+        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+        auto actionsWidth = ImGui::CalcTextSize("Finalize").x;
+        if (ImGui::BeginTable("AssetList", 4, flags, ImGui::GetContentRegionAvail())) {
+            ImGui::TableSetupScrollFreeze(0, 1);
+            ImGui::TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableHeadersRow();
 
-            switch (asset->state) {
+            ImGui::PushFont(ImGui::GetIO().FontDefault, 16);
+            int i = 0;
+            for (auto asset : TheAssets.assets) {
+                ImGui::TableNextRow();
+                ImGui::PushID(i);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::Text(TextFormat("%s (%x)", asset->id.c_str(), (size_t)asset));
+                ImGui::TableSetColumnIndex(2);
+                ImGui::Text(typeid(*asset).name());
+                ImGui::TableSetColumnIndex(3);
+                ImGui::Text(AssetStateName(asset->state));
+
+                ImGui::TableSetColumnIndex(0);
+                switch (asset->state) {
                 case UNLOADED:
-                    if (ImGui::Button("Load")) {
+                    if (ImGui::SmallButton("Load")) {
                         asset->StartLoad();
                     }
                     break;
                 case PREFINALIZED:
-                    if (ImGui::Button("Finalize")) {
+                    if (ImGui::SmallButton("Finalize")) {
                         asset->CheckForFetch();
                     }
                     break;
                 case LOADED:
-                    if (ImGui::Button("Unload")) {
+                    if (ImGui::SmallButton("Unload")) {
                         asset->Unload();
                     }
                     break;
+                }
+                ImGui::PopID();
+                i++;
             }
-
-            ImGui::EndChild();
-            i++;
+            ImGui::PopFont();
+            ImGui::EndTable();
         }
+
     }
     ImGui::End();
 
