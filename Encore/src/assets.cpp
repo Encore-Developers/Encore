@@ -168,6 +168,22 @@ void ShaderAsset::Finalize() {
     delete vertexCode;
 
 }
+void ShaderAsset::SetUniform(const std::string &uniformName, float value) {
+    SetUniform(uniformName, &value, SHADER_UNIFORM_FLOAT);
+}
+
+void ShaderAsset::SetUniform(const std::string &uniformName, Color value) {
+    Vector4 vec4 = {
+        value.r / 255.0f, value.g / 255.0f, value.b / 255.0f, value.a / 255.0f
+    };
+    SetUniform(uniformName, &vec4, SHADER_UNIFORM_VEC4);
+}
+void ShaderAsset::SetUniform(
+    const std::string &uniformName, void *value, ShaderUniformDataType type
+) {
+    CheckForFetch();
+    SetShaderValue(shader, GetUniformLoc(uniformName), value, type);
+}
 
 void TextureAsset::Load() {
     LoadFile();

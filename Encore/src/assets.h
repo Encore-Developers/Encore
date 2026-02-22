@@ -167,6 +167,10 @@ public:
         }
     }
 
+    void SetUniform(const std::string &uniformName, float value);
+    void SetUniform(const std::string &uniformName, Color value);
+    void SetUniform(const std::string &uniformName, void* value, ShaderUniformDataType type);
+
     int GetUniformLoc(const std::string &uniformName) {
         if (!uniformPositions.contains(uniformName)) {
             Encore::EncoreLog(LOG_ERROR,

@@ -11,7 +11,7 @@
 #include "rlgl.h"
 #include "gameplay/enctime.h"
 #include "imgui.h"
-
+#include "debug/EncoreDebug.h"
 
 void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
     float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
@@ -57,21 +57,22 @@ void Encore::Track::Draw() {
 
 
 
-    if (ImGui::Begin("Track Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (EncoreDebug::showDebug) {
+        if (ImGui::Begin("Track Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
 
-        ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
-        ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
-        ImGui::DragFloat("Camera FOV", &camera.fovy);
-        ImGui::DragFloat("Track Length", &BaseLength, 0.1);
-        ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
+            ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
+            ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
+            ImGui::DragFloat("Camera FOV", &camera.fovy);
+            ImGui::DragFloat("Track Length", &BaseLength, 0.1);
+            ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
 
-        ImGui::SeparatorText("Color Profile");
-        ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
-        ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
-        ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
-        ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
-        ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
-
+            ImGui::SeparatorText("Color Profile");
+            ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
+            ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
+            ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
+            ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
+            ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
+        }
         ImGui::End();
     }
 }
