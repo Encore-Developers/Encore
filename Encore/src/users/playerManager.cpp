@@ -75,45 +75,50 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
 
 void PlayerManager::SavePlayerList() {
     for (int i = 0; i < PlayerList.size(); i++) {
-        SaveSpecificPlayer(i);
+        SaveSpecificPlayer(i, false);
     }
 }; // ough this is gonna be complicated
 
-void PlayerManager::SaveSpecificPlayer(const int slot) {
+void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
     json PlayerListJson;
     if (exists(PlayerListSaveFile)) {
         std::ifstream f(PlayerListSaveFile);
         PlayerListJson = json::parse(f);
         f.close();
     }
-    Player &player = GetActivePlayer(slot);
-    if (!PlayerListJson.contains(player.playerJsonObjectName)) {
-        PlayerListJson[player.playerJsonObjectName] = {
-            { "name", player.Name },
-            { "UUID", player.PlayerID },
-#define SETTING_ACTION(type, name, key) { key, player.name },
+    Player *player;
+    if (active) {
+        player = &GetActivePlayer(slot);
+    } else {
+        player = &PlayerList.at(slot);
+    }
+    if (!PlayerListJson.contains(player->playerJsonObjectName)) {
+        PlayerListJson[player->playerJsonObjectName] = {
+            { "name", player->Name },
+            { "UUID", player->PlayerID },
+#define SETTING_ACTION(type, name, key) { key, player->name },
             PLAYER_JSON_SETTINGS
 #undef SETTING_ACTION
             { "accentColor",
-              { { "r", player.AccentColor.r },
-                { "g", player.AccentColor.g },
-                { "b", player.AccentColor.b } } }
+              { { "r", player->AccentColor.r },
+                { "g", player->AccentColor.g },
+                { "b", player->AccentColor.b } } }
         };
     } else {
-        PlayerListJson.at(player.playerJsonObjectName)["name"] = player.Name;
-        PlayerListJson.at(player.playerJsonObjectName)["UUID"] = player.PlayerID;
+        PlayerListJson.at(player->playerJsonObjectName)["name"] = player->Name;
+        PlayerListJson.at(player->playerJsonObjectName)["UUID"] = player->PlayerID;
 
 #define SETTING_ACTION(type, name, key)                                                  \
-    PlayerListJson.at(player.playerJsonObjectName)[key] = player.name;
+    PlayerListJson.at(player->playerJsonObjectName)[key] = player->name;
         PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
 
-        PlayerListJson.at(player.playerJsonObjectName)["accentColor"]["r"] =
-            player.AccentColor.r;
-        PlayerListJson.at(player.playerJsonObjectName)["accentColor"]["g"] =
-            player.AccentColor.g;
-        PlayerListJson.at(player.playerJsonObjectName)["accentColor"]["b"] =
-            player.AccentColor.b;
+        PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["r"] =
+            player->AccentColor.r;
+        PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["g"] =
+            player->AccentColor.g;
+        PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["b"] =
+            player->AccentColor.b;
     }
 
     Encore::WriteJsonFile(PlayerListSaveFile, PlayerListJson);

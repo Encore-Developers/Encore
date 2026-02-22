@@ -171,14 +171,14 @@ void OvershellMenu::DrawOvershell() {
                 i, 2, "Lefty Flip", playerManager.GetActivePlayer(i).LeftyFlip
             );
             if (OvershellButton(i, 1, "Drop Out")) {
-                playerManager.SaveSpecificPlayer(i);
+                playerManager.SaveSpecificPlayer(i, true);;
                 playerManager.RemoveActivePlayer(i);
                 OvershellState[i] = OS_ATTRACT;
                 CancelButtonActivation = true;
                 continue;
             }
             if (OvershellButton(i, 0, "Cancel")) {
-                playerManager.SaveSpecificPlayer(i);
+                playerManager.SaveSpecificPlayer(i, true);
                 OvershellState[i] = OS_ATTRACT;
                 CancelButtonActivation = true;
             }

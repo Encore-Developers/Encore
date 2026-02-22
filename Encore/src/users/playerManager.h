@@ -15,7 +15,7 @@ public:
     // player stuff to
     // PlayerList
     void SavePlayerList();
-    void SaveSpecificPlayer(int slot);
+    void SaveSpecificPlayer(int slot, bool active);
     // BandGameplayStats *BandStats;
     std::filesystem::path PlayerListSaveFile;
     std::vector<Player> PlayerList;

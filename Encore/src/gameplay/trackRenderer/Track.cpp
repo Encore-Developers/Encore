@@ -14,7 +14,6 @@
 #include "debug/EncoreDebug.h"
 
 
-
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
@@ -49,20 +48,39 @@ void Encore::Track::Draw() {
 
     EndMode3D();
 
-
-
     if (EncoreDebug::showDebug) {
-        ImGui::SetNextWindowSizeConstraints({400, 0.0f}, {FLT_MAX, FLT_MAX});
-        if (ImGui::Begin(std::string("Track Settings: " + player.Name).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-
+        ImGui::SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
+        if (ImGui::Begin(std::string("Track Settings: " + player.Name).c_str(),
+                         nullptr,
+                         ImGuiWindowFlags_AlwaysAutoResize)) {
             if (ImGui::CollapsingHeader("Camera Settings")) {
                 EncoreDebug::Indent indent;
-                ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
-                ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
+                ImGui::DragFloat3("Camera Position", (float *)&camera.position, 0.1);
+                ImGui::DragFloat3("Camera Target", (float *)&camera.target, 0.1);
                 ImGui::DragFloat("Camera FOV", &camera.fovy);
                 ImGui::DragFloat("Track Length", &BaseLength, 0.1);
                 ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
                 ImGui::DragFloat("Curve Factor", &CurveFac, 1);
+            }
+            if (ImGui::CollapsingHeader("Engine Stats")) {
+                EncoreDebug::Indent indent;
+                for (auto timer : player.engine->Timers) {
+                    float countdown = Clamp((timer.second.Time + timer.second.Duration) - TheSongTime.
+                            GetElapsedTime(), 0, timer.second.Duration);
+                    ImGui::Text((timer.first + TextFormat(": %4.4f", countdown)).c_str());
+                    ImGui::SameLine();
+                    ImGui::ProgressBar(countdown / timer.second.Duration);
+                };
+                ImGui::Text(TextFormat("Combo: %i", player.engine->stats->Combo));
+                ImGui::Text(TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
+                ImGui::Text(TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes));
+                ImGui::Text(TextFormat("Misses: %i", player.engine->stats->Misses));
+                ImGui::Text(TextFormat("Notes hit: %i", player.engine->stats->NotesHit));
+                ImGui::Text(TextFormat("Score: %4.2f", player.engine->stats->Score));
+                ImGui::Text(TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
+                ImGui::Text(TextFormat("Stars: *%i", player.engine->stats->Stars));
+                ImGui::Text(TextFormat("Multiplier: %ix", player.engine->stats->multiplier()));
+
             }
         }
         ImGui::End();
@@ -70,10 +88,9 @@ void Encore::Track::Draw() {
 }
 
 
-
 void Encore::Track::Load() {
     camera = {
-        {0, 8.0f, -14.0f},
+        { 0, 8.0f, -14.0f },
         { 0.0f, 0.0f, 15.0f },
         { 0.0f, 1.0f, 0.0f },
         40.0f,
@@ -82,10 +99,18 @@ void Encore::Track::Load() {
 
 void Encore::Track::DrawSurface() {
     float time = GetNotePos3D(0) / 22.5;
-    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("time"), &time, SHADER_UNIFORM_FLOAT);
+    SetShaderValue(ASSET(highwayScrollShader),
+                   ASSET(highwayScrollShader).GetUniformLoc("time"),
+                   &time,
+                   SHADER_UNIFORM_FLOAT);
 
-    DrawModelEx(ASSET(trackSurface), {0}, {0}, 0, {1,1,1}, ColorBrightness(player.AccentColor, -0.25));
-    DrawModelEx(ASSET(rails), {0}, {0}, 0, {1,1,1}, WHITE);
+    DrawModelEx(ASSET(trackSurface),
+                { 0 },
+                { 0 },
+                0,
+                { 1, 1, 1 },
+                ColorBrightness(player.AccentColor, -0.25));
+    DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
     // static std::vector<Vector3> points;
     // points.clear();
     // for (int i = 0; i <= 10; i++) {
@@ -102,8 +127,8 @@ void Encore::Track::DrawOverdriveMeter() {
 
     for (int i = 0; i <= 10; i++) {
         auto x = Remap(i, 0, 10, -2.5, 2.5);
-        points.push_back({x, 0, -1.0});
-        points.push_back({x, 0, -0.5});
+        points.push_back({ x, 0, -1.0 });
+        points.push_back({ x, 0, -0.5 });
     }
 
     DrawTriangleStrip3D(points.data(), points.size(), BLACK);
@@ -111,9 +136,9 @@ void Encore::Track::DrawOverdriveMeter() {
     points.clear();
     for (int i = 0; i <= 10; i++) {
         auto x = Remap(i, 0, 10, -2.5, 2.5);
-        x = Lerp(x, 2.5, 1-player.engine->stats->overdrive.Fill);
-        points.push_back({x, 0, -1.0});
-        points.push_back({x, 0, -0.5});
+        x = Lerp(x, 2.5, 1 - player.engine->stats->overdrive.Fill);
+        points.push_back({ x, 0, -1.0 });
+        points.push_back({ x, 0, -0.5 });
     }
 
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
@@ -121,7 +146,7 @@ void Encore::Track::DrawOverdriveMeter() {
     int flashInterval = (numer * 480) / denom;
 
     unsigned char streakFlash =
-            BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 255, flashInterval);
+        BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 255, flashInterval);
     float Percentage = float(streakFlash) / 255.0f;
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
@@ -136,13 +161,15 @@ void Encore::Track::DrawOverdriveMeter() {
 
     std::string multString = TextFormat("%ix", player.engine->stats->multiplier());
     Vector2 size = MeasureTextEx(ASSET(JetBrainsMono), multString.c_str(), 0.8, 0);
-    DrawCircleSector({0, 0}, 0.5, 0, 360, 32, BLACK);
-    DrawTextEx(ASSET(JetBrainsMono), multString.c_str(), {-size.x/2, -size.y/2}, 0.8, 0, WHITE);
+    DrawCircleSector({ 0, 0 }, 0.5, 0, 360, 32, BLACK);
+    DrawTextEx(ASSET(JetBrainsMono),
+               multString.c_str(),
+               { -size.x / 2, -size.y / 2 },
+               0.8,
+               0,
+               WHITE);
     rlPopMatrix();
     BeginShaderMode(ASSET(trackCurveShader));
-
-
-
 }
 
 unsigned char Encore::Track::BeatToCharViaTickThing(
@@ -162,98 +189,102 @@ unsigned char Encore::Track::BeatToCharViaTickThing(
 }
 
 void Encore::Track::DrawNotes() {
-
     if (player.engine->chart->at(0).empty()) {
         return;
     }
 
-    for (int lane = 0 ; lane < player.engine->chart->Lanes.size(); lane++) {
+    for (int lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
         std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize(lane);
-        for (int curNote = NotePoolSize.second-1; curNote >= NotePoolSize.first; curNote--) {
+        for (int curNote = NotePoolSize.second - 1; curNote >= NotePoolSize.first; curNote
+             --) {
             auto *note = &player.engine->chart->at(lane).at(curNote);
             if (note->StartSeconds > GetViewEndTime()) {
                 continue;
             }
-            auto slots = GetSlotsForLane(player.engine->UsesNoteMasks() ? note->Lane : lane);
+            auto slots = GetSlotsForLane(player.engine->UsesNoteMasks()
+                ? note->Lane
+                : lane);
             for (int i = 0; i < 7; i++) {
                 if (slots[i]) {
                     auto slot = slots[i];
                     slot->DrawNote(note);
-                } else break;
+                } else
+                    break;
             }
         }
     }
-
 }
+
 void Encore::Track::DrawSmashers() {
     rlEnableDepthTest();
     glClear(GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < slots.size(); i++) {
         auto slot = slots.at(i).get();
-        slot->DrawSmasher(slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->HeldFrets[slot->index]);
+        slot->DrawSmasher(
+            slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->
+            HeldFrets[slot->index]);
     }
     rlDisableDepthTest();
 }
 
-void Encore::Track::DrawBeatlines()
-    {
-        if (!TheSongTime.Beatlines.empty()) {
-            if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
-                TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
-            }
-
-            int beatlinePoolMaxSize = NOTE_POOL_SIZE / 4;
-            size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
-                ? beatlinePoolMaxSize
-                : TheSongTime.Beatlines.size();
-            // because i have to do bounds checks myself
-            BeatlinePool = { TheSongTime.Beatlines.begin(), BeatlinePoolSize };
-
-            for (auto &beatline : BeatlinePool) {
-                float ScrollPos = GetNotePos3D(
-                    beatline.time
-                );
-                float Size = 0;
-                Color beatlineColor = WHITE;
-                switch (beatline.type) {
-                case Major: {
-                    beatlineColor = GRAY;
-                    Size = 0.05;
-                    break;
-                }
-                case Minor: {
-                    beatlineColor = DARKGRAY;
-                    Size = 0.01;
-                    break;
-                }
-                case Measure: {
-                    beatlineColor = WHITE;
-                    Size = 0.1;
-                    break;
-                }
-                }
-                // this sucks
-                static std::vector<Vector3> verts;
-                verts.resize(0);
-                int wideVerts = 10;
-                for (int i = 0; i <= wideVerts; i++) {
-                    float xPos = Remap(i, 0, wideVerts, -2.5, 2.5);
-                    verts.push_back({xPos, 0, ScrollPos-Size});
-                    verts.push_back({xPos, 0, ScrollPos+Size});
-                }
-                DrawTriangleStrip3D(verts.data(), verts.size(), beatlineColor);
-                continue;
-                DrawCube(
-                    { 0, 0, ScrollPos },
-                    5,
-                    Size,
-                    Size,
-                    beatlineColor
-                );
-            }
+void Encore::Track::DrawBeatlines() {
+    if (!TheSongTime.Beatlines.empty()) {
+        if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
+            TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
         }
+
+        int beatlinePoolMaxSize = NOTE_POOL_SIZE / 4;
+        size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
+            ? beatlinePoolMaxSize
+            : TheSongTime.Beatlines.size();
+        // because i have to do bounds checks myself
+        BeatlinePool = { TheSongTime.Beatlines.begin(), BeatlinePoolSize };
+
+        for (auto &beatline : BeatlinePool) {
+            float ScrollPos = GetNotePos3D(
+                beatline.time
+            );
+            float Size = 0;
+            Color beatlineColor = WHITE;
+            switch (beatline.type) {
+            case Major: {
+                beatlineColor = GRAY;
+                Size = 0.05;
+                break;
+            }
+            case Minor: {
+                beatlineColor = DARKGRAY;
+                Size = 0.01;
+                break;
+            }
+            case Measure: {
+                beatlineColor = WHITE;
+                Size = 0.1;
+                break;
+            }
+            }
+            // this sucks
+            static std::vector<Vector3> verts;
+            verts.resize(0);
+            int wideVerts = 10;
+            for (int i = 0; i <= wideVerts; i++) {
+                float xPos = Remap(i, 0, wideVerts, -2.5, 2.5);
+                verts.push_back({ xPos, 0, ScrollPos - Size });
+                verts.push_back({ xPos, 0, ScrollPos + Size });
+            }
+            DrawTriangleStrip3D(verts.data(), verts.size(), beatlineColor);
+            continue;
+            DrawCube(
+                { 0, 0, ScrollPos },
+                5,
+                Size,
+                Size,
+                beatlineColor
+            );
+        }
+    }
     rlDrawRenderBatchActive();
-    };
+};
 
 Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane) const {
     static TrackSlot *slotBuffer[7];
@@ -263,7 +294,6 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane) const {
         curIndex++;
     };
     if (player.engine->UsesNoteMasks()) {
-
         for (int i = 0; i < 5; i++) {
             if (lane & RhythmEngine::PlasticFrets[i]) {
                 append_slot(i);
@@ -284,6 +314,7 @@ void Encore::Track::AddSlot(TrackSlot *slot) {
     slot->index = slots.size();
     slots.emplace_back(slot);
 }
+
 void Encore::Track::Configure5Lane() {
     slots.clear();
     AddSlot(new GemTrackSlot(this, 2, 1, SLOT_GREEN));
@@ -293,6 +324,7 @@ void Encore::Track::Configure5Lane() {
     AddSlot(new GemTrackSlot(this, -2, 1, SLOT_ORANGE));
     AddSlot(new GemTrackSlot(this, 0, 5, SLOT_OPEN));
 }
+
 void Encore::Track::Configure4Lane() {
     slots.clear();
     AddSlot(new GemTrackSlot(this, 2, 1.25, SLOT_GREEN));
@@ -300,14 +332,15 @@ void Encore::Track::Configure4Lane() {
     AddSlot(new GemTrackSlot(this, -0.75, 1.25, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -2, 1.25, SLOT_BLUE));
 }
+
 void Encore::Track::ConfigureDrums() {
     slots.clear();
-    AddSlot(new GemTrackSlot(this, 0, 5, SLOT_KICK)); // TODO: make the kick slot a different type
+    AddSlot(new GemTrackSlot(this, 0, 5, SLOT_KICK));
+    // TODO: make the kick slot a different type
     AddSlot(new GemTrackSlot(this, 1.875, 1.25, SLOT_RED));
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -0.625, 1.25, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -1.875, 1.25, SLOT_GREEN));
-
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {

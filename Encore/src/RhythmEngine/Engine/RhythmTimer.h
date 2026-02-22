@@ -26,8 +26,6 @@ namespace Encore::RhythmEngine {
             Time = -1;
             Active = false;
         }
-
-    private:
         double Duration;
         double Time;
         bool Active;
