@@ -135,7 +135,7 @@ void EncoreDebug::StartReloadAssets() {
 void EncoreDebug::DrawAssetViewer() {
     ImGui::SetNextWindowSize({200, 300}, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Assets", &showAssets, 0)) {
-        ImGui::TextWrapped("Base Path: %s", TheAssets.getDirectory().c_str());
+        ImGui::TextWrapped("Base Path: %s", TheAssets.getDirectory().generic_string().c_str());
         if (ImGui::Button("Reload All")) {
             reloadQueued = true;
         }

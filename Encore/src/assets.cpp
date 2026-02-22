@@ -144,7 +144,11 @@ char *FileAsset::FetchRaw() {
 }
 
 void LegacyModelAsset::Finalize() {
-    model = LoadModel((TheAssets.getDirectory() / id).c_str());
+    model = LoadModel(
+        reinterpret_cast<const char *>(
+            (TheAssets.getDirectory() / id).generic_u8string().c_str()
+        )
+    );
     postFinalizeFunc(&model);
     state = LOADED;
 }
