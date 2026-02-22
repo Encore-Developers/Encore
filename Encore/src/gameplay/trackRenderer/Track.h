@@ -39,7 +39,7 @@ namespace Encore {
         );
 
         float NoteSpeed = 1;
-        const float BaseLength = 20;
+        float BaseLength = 20;
         float Length = 20;
         float FadeSize = 7;
 

@@ -59,7 +59,7 @@ endif()
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
-target_include_directories(Encore PRIVATE "include" "src")
+target_include_directories(Encore PRIVATE "include" "src" "include/rlImGui" "include/imgui")
 if(WIN32)
   if (CMAKE_SIZEOF_VOID_P EQUAL 4) 
     find_library(DISCORD_GAME_SDK NAMES discord_game_sdk PATHS "lib/discord-rpc/windows/x86/")

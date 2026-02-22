@@ -10,6 +10,18 @@
 #include "raymath.h"
 #include "rlgl.h"
 #include "gameplay/enctime.h"
+#include "imgui.h"
+
+
+void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
+    float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
+
+    ImGui::ColorEdit3(label, (float*)&floats, flags);
+
+    color->r = floats[0]*255;
+    color->g = floats[1]*255;
+    color->b = floats[2]*255;
+}
 
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
@@ -42,14 +54,36 @@ void Encore::Track::Draw() {
     EndShaderMode();
 
     EndMode3D();
+
+
+
+    if (ImGui::Begin("Track Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+
+        ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
+        ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
+        ImGui::DragFloat("Camera FOV", &camera.fovy);
+        ImGui::DragFloat("Track Length", &BaseLength, 0.1);
+        ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
+
+        ImGui::SeparatorText("Color Profile");
+        ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
+        ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
+        ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
+        ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
+        ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
+
+        ImGui::End();
+    }
 }
+
+
 
 void Encore::Track::Load() {
     camera = {
-        {0, 6.0f, -12.0f},
-        { 0.0f, 0.0f, 10.0f },
+        {0, 7.5f, -14.3f},
+        { 0.0f, 0.0f, 11.0f },
         { 0.0f, 1.0f, 0.0f },
-        40.0f,
+        35.0f,
     };
 }
 
@@ -159,10 +193,13 @@ void Encore::Track::DrawNotes() {
 
 }
 void Encore::Track::DrawSmashers() {
+    rlEnableDepthTest();
+    glClear(GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < slots.size(); i++) {
         auto slot = slots.at(i).get();
         slot->DrawSmasher(slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->HeldFrets[slot->index]);
     }
+    rlDisableDepthTest();
 }
 
 void Encore::Track::DrawBeatlines()
@@ -222,6 +259,7 @@ void Encore::Track::DrawBeatlines()
                 );
             }
         }
+    rlDrawRenderBatchActive();
     };
 
 Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane) const {
