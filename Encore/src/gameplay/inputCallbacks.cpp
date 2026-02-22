@@ -8,6 +8,7 @@
 #include "raylib.h"
 #include "settings/settings.h"
 #include "debug/EncoreDebug.h"
+#include "rlImGui.h"
 
 #include <cstring>
 
@@ -52,6 +53,7 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
     }
     default:;
     }
+    rlImGuiPushKeyEvent(key, scancode, action, mods);
 }
 
 void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {

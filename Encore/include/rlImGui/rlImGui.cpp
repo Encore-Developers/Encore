@@ -35,10 +35,12 @@
 #include "rlgl.h"
 
 #include "imgui.h"
+#include "GLFW/glfw3.h"
 
 #include <math.h>
 #include <limits>
 #include <cstdint>
+#include <vector>
 
 #ifndef NO_FONT_AWESOME
 #include "extras/FA6FreeSolidFontData.h"
@@ -812,6 +814,13 @@ void HandleGamepadStickEvent(ImGuiIO& io, GamepadAxis axis, ImGuiKey negKey, ImG
     io.AddKeyAnalogEvent(posKey, axisValue > deadZone, axisValue > deadZone ? axisValue : 0);
 }
 
+struct KeyEvent {
+    int key;
+    bool pressed;
+};
+
+std::vector<KeyEvent> keyEvents;
+
 bool ImGui_ImplRaylib_ProcessEvents(void)
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -842,19 +851,15 @@ bool ImGui_ImplRaylib_ProcessEvents(void)
         io.AddKeyEvent(ImGuiMod_Super, superDown);
     LastSuperPressed = superDown;
 
-    // walk the keymap and check for up and down events
-	for (int keyItr = 0; keyItr < MAX_RAYLIB_KEY; keyItr++)
+    // Encore change: rewire key events to get them from the glfw callback
+	for (auto event : keyEvents)
     {
-        const auto key = RaylibKeyMap[keyItr];
+        const auto imguiKey = RaylibKeyMap[event.key];
 
-        if (key == 0)
-            continue;
-
-        if (IsKeyReleased(keyItr))
-            io.AddKeyEvent(key, false);
-        else if(IsKeyPressed(keyItr))
-            io.AddKeyEvent(key, true);
+        io.AddKeyEvent(imguiKey, event.pressed);
     }
+
+    keyEvents.clear();
 
     if (io.WantCaptureKeyboard)
     {
@@ -936,4 +941,16 @@ bool ImGui_ImplRaylib_ProcessEvents(void)
     }
 
     return true;
+}
+
+
+
+// Encore specific
+void rlImGuiPushKeyEvent(int key, int scancode, int action, int mods) {
+    bool pressed = false;
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        pressed = true;
+    }
+
+    keyEvents.push_back({key, pressed});
 }
