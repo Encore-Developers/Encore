@@ -27,19 +27,18 @@ void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
 
-
-
     BeginMode3D(camera);
 
-    SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(trackCurveShader), ASSET(trackCurveShader).GetUniformLoc("curveFac"), &CurveFac, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(noteShader), ASSET(noteShader).GetUniformLoc("curveFac"), &CurveFac, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("fadeSize"), &FadeSize, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("trackLength"), &Length, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(ASSET(highwayScrollShader), ASSET(highwayScrollShader).GetUniformLoc("curveFac"), &CurveFac, SHADER_UNIFORM_FLOAT);
+    ASSET(trackCurveShader).SetUniform("trackLength", Length);
+    ASSET(trackCurveShader).SetUniform("fadeSize", FadeSize);
+    ASSET(trackCurveShader).SetUniform("curveFac", CurveFac);
+    ASSET(noteShader).SetUniform("trackLength", Length);
+    ASSET(noteShader).SetUniform("fadeSize", FadeSize);
+    ASSET(noteShader).SetUniform("curveFac", CurveFac);
+    ASSET(highwayScrollShader).SetUniform("trackLength", Length);
+    ASSET(highwayScrollShader).SetUniform("fadeSize", FadeSize);
+    ASSET(highwayScrollShader).SetUniform("curveFac", CurveFac);
+
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
 
@@ -87,13 +86,6 @@ void Encore::Track::Draw() {
         ImGui::Checkbox("Bot", &player.engine->stats->Bot);
         ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
         ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
-
-            ImGui::SeparatorText("Color Profile");
-            ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
-            ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
-            ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
-            ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
-            ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
         }
         ImGui::End();
     }
@@ -103,7 +95,7 @@ void Encore::Track::Draw() {
 
 void Encore::Track::Load() {
     camera = {
-        {0, 8.0f, -13.5f},
+        {0, 8.0f, -4.0f},
         { 0.0f, 0.0f, 15.0f },
         { 0.0f, 1.0f, 0.0f },
         40.0f,
