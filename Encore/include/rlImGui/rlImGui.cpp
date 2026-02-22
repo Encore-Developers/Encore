@@ -136,8 +136,8 @@ static void ImGuiNewFrame(float deltaTime)
     }
     else
     {
-        io.DisplaySize.x = float(GetScreenWidth());
-        io.DisplaySize.y = float(GetScreenHeight());
+        io.DisplaySize.x = float(GetRenderWidth());
+        io.DisplaySize.y = float(GetRenderHeight());
     }
 
 #if !defined(__APPLE__)
