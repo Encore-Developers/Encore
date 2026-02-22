@@ -51,9 +51,9 @@ void EncoreDebug::DrawPlayerManager() {
     if (ImGui::Begin("Player Manager", &showPlayerManager, 0)) {
         if (ImGui::BeginTabBar("Players")) {
             for (auto &player : ThePlayerManager.PlayerList) {
-                if (ImGui::BeginTabItem((player.Name + TextFormat("##%x", &player)).c_str())) {
+                if (ImGui::BeginTabItem((player.Name + TextFormat("###%x", &player)).c_str())) {
 
-
+                    ImGui::InputText("Username", &player.Name);
                     ImGui::SeparatorText("Color Profile");
                     ColorEdit("Green", &player.GetColorProfile()->colors[Encore::SLOT_GREEN], 0);
                     ColorEdit("Red", &player.GetColorProfile()->colors[Encore::SLOT_RED], 0);
@@ -63,12 +63,12 @@ void EncoreDebug::DrawPlayerManager() {
 
                     ImGui::SeparatorText(std::string("Player: " + player.Name).c_str());
                     ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
-                    float inputOffset = player.engine->stats->InputOffset;
+                    float inputOffset = player.InputCalibration;
                     ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
-                    player.engine->stats->InputOffset = inputOffset;
+                    player.InputCalibration = inputOffset;
                     ImGui::DragFloat("Player Track Length", &player.HighwayLength, 0.1);
                     ColorEdit("Player Color Profile", &player.AccentColor, 0);
-                    ImGui::Checkbox("Bot", &player.engine->stats->Bot);
+                    ImGui::Checkbox("Bot", &player.Bot);
                     ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
                     ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
                     ImGui::EndTabItem();
