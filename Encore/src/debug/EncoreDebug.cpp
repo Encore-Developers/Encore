@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "imgui.h"
+#include "misc/imgui_stdlib.h"
 
 bool EncoreDebug::showDebug = false;
 

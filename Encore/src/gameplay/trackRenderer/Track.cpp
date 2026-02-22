@@ -60,32 +60,47 @@ void Encore::Track::Draw() {
 
 
     if (EncoreDebug::showDebug) {
-        if (ImGui::Begin("Track Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::SetNextWindowSizeConstraints({400, 0.0f}, {FLT_MAX, FLT_MAX});
+        if (ImGui::Begin(std::string("Track Settings: " + player.Name).c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
 
-        ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
-        ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
-        ImGui::DragFloat("Camera FOV", &camera.fovy);
-        ImGui::DragFloat("Track Length", &BaseLength, 0.1);
-        ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
-        ImGui::DragFloat("Curve Factor", &CurveFac, 1);
+            if (ImGui::CollapsingHeader("Camera Settings")) {
+                EncoreDebug::Indent indent;
+                ImGui::DragFloat3("Camera Position", (float*)&camera.position, 0.1);
+                ImGui::DragFloat3("Camera Target", (float*)&camera.target, 0.1);
+                ImGui::DragFloat("Camera FOV", &camera.fovy);
+                ImGui::DragFloat("Track Length", &BaseLength, 0.1);
+                ImGui::DragFloat("Track Fade Size", &FadeSize, 0.1);
+                ImGui::DragFloat("Curve Factor", &CurveFac, 1);
+            }
 
-        ImGui::SeparatorText("Color Profile");
-        ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
-        ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
-        ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
-        ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
-        ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
 
-        ImGui::SeparatorText(std::string("Player: " + player.Name).c_str());
-        ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
-        float inputOffset = player.engine->stats->InputOffset;
-        ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
-        player.engine->stats->InputOffset = inputOffset;
-        ImGui::DragFloat("Player Track Length", &player.HighwayLength, 0.1);
-        ColorEdit("Player Color Profile", &player.AccentColor, 0);
-        ImGui::Checkbox("Bot", &player.engine->stats->Bot);
-        ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
-        ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
+
+
+            if (ImGui::CollapsingHeader("Color Profile")) {
+                EncoreDebug::Indent indent;
+
+                ColorEdit("Green", &player.GetColorProfile()->colors[SLOT_GREEN], 0);
+                ColorEdit("Red", &player.GetColorProfile()->colors[SLOT_RED], 0);
+                ColorEdit("Yellow", &player.GetColorProfile()->colors[SLOT_YELLOW], 0);
+                ColorEdit("Blue", &player.GetColorProfile()->colors[SLOT_BLUE], 0);
+                ColorEdit("Orange", &player.GetColorProfile()->colors[SLOT_ORANGE], 0);
+            }
+
+
+            if (ImGui::CollapsingHeader("Player Settings")) {
+                EncoreDebug::Indent indent;
+
+                ImGui::DragFloat("Note Speed", &player.NoteSpeed, 0.1);
+                float inputOffset = player.engine->stats->InputOffset;
+                ImGui::DragFloat("Input Calibration", &inputOffset, 0.001);
+                player.engine->stats->InputOffset = inputOffset;
+                ImGui::DragFloat("Track Length##player", &player.HighwayLength, 0.1);
+                ColorEdit("Accent Color", &player.AccentColor, 0);
+                ImGui::Checkbox("Bot", &player.engine->stats->Bot);
+                ImGui::Checkbox("Lefty Flip", &player.LeftyFlip);
+                ImGui::Checkbox("Brutal Mode", &player.BrutalMode);
+            }
+
         }
         ImGui::End();
     }
