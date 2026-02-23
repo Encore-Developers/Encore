@@ -19,21 +19,13 @@ void Encore::Track::Draw() {
 
     BeginMode3D(camera);
 
-    ASSET(trackCurveShader).SetUniform("trackLength", Length);
-    ASSET(trackCurveShader).SetUniform("fadeSize", FadeSize);
-    ASSET(trackCurveShader).SetUniform("curveFac", CurveFac);
-    ASSET(trackCurveShader).SetUniform("offset", Offset);
-    ASSET(trackCurveShader).SetUniform("scale", Scale);
-    ASSET(noteShader).SetUniform("trackLength", Length);
-    ASSET(noteShader).SetUniform("fadeSize", FadeSize);
-    ASSET(noteShader).SetUniform("curveFac", CurveFac);
-    ASSET(noteShader).SetUniform("offset", Offset);
-    ASSET(noteShader).SetUniform("scale", Scale);
-    ASSET(highwayScrollShader).SetUniform("trackLength", Length);
-    ASSET(highwayScrollShader).SetUniform("fadeSize", FadeSize);
-    ASSET(highwayScrollShader).SetUniform("curveFac", CurveFac);
-    ASSET(highwayScrollShader).SetUniform("offset", Offset);
-    ASSET(highwayScrollShader).SetUniform("scale", Scale);
+    for (auto shader : {ASSETPTR(trackCurveShader), ASSETPTR(noteShader), ASSETPTR(highwayScrollShader)}) {
+        shader->SetUniform("trackLength", Length);
+        shader->SetUniform("fadeSize", FadeSize);
+        shader->SetUniform("curveFac", CurveFac);
+        shader->SetUniform("offset", Offset);
+        shader->SetUniform("scale", Scale);
+    }
 
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();

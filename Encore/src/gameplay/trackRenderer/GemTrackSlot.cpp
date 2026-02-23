@@ -4,20 +4,7 @@
 #include "assets.h"
 #include "rlgl.h"
 
-// first is color to use, second is name for converted vec4
-#define COLOR_TO_VEC4(color, vec4out) \
-        Vector4 vec4out = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, \
-                               color.a / 255.0f };
 
-#define NOTE_COLOR(vec4) SetShaderValue(ASSET(noteShader),\
-                       ASSET(noteShader).GetUniformLoc("noteColor"),\
-                       &vec4,\
-                       SHADER_UNIFORM_VEC4);
-
-#define FRAME_COLOR(vec4) SetShaderValue(ASSET(noteShader),\
-ASSET(noteShader).GetUniformLoc("frameColor"),\
-&vec4,\
-SHADER_UNIFORM_VEC4);
 
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
@@ -27,16 +14,12 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
 
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
-    COLOR_TO_VEC4(color, vec4color)
     if (note->NoteType == 2) {
-        vec4color = { 0.25f, 0.25f, 0.25f, 1.0f };
-        COLOR_TO_VEC4(color, frameColor)
-        FRAME_COLOR(frameColor)
+        ASSET(noteShader).SetUniform("frameColor", color);
     } else {
-        Vector4 frameColor = { 1, 1, 1, 1 };
-        FRAME_COLOR(frameColor)
+        ASSET(noteShader).SetUniform("frameColor", WHITE);
     }
-    NOTE_COLOR(vec4color)
+    ASSET(noteShader).SetUniform("noteColor", color);
 
     if (note->LengthSeconds > 0) {
         DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);

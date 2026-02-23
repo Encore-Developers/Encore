@@ -195,6 +195,9 @@ void ShaderAsset::SetUniform(const std::string &uniformName, Color value) {
     };
     SetUniform(uniformName, &vec4, SHADER_UNIFORM_VEC4);
 }
+void ShaderAsset::SetUniform(const std::string &uniformName, Vector4 value) {
+    SetUniform(uniformName, &value, SHADER_UNIFORM_VEC4);
+}
 void ShaderAsset::SetUniform(
     const std::string &uniformName, void *value, ShaderUniformDataType type
 ) {
