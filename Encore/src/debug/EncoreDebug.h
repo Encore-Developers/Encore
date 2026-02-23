@@ -23,6 +23,7 @@ namespace EncoreDebug {
     void MenuBar();
     void DrawAssetViewer();
     void DrawPlayerManager();
+    void DrawSongList();
 
     void StartReloadAssets();
 }

@@ -855,6 +855,24 @@ bool ImGui_ImplRaylib_ProcessEvents(void)
 	for (auto event : keyEvents)
     {
         const auto imguiKey = RaylibKeyMap[event.key];
+	    switch (event.key) {
+	    case KEY_LEFT_CONTROL:
+	    case KEY_RIGHT_CONTROL:
+	        io.AddKeyEvent(ImGuiMod_Ctrl, event.pressed);
+	        break;
+	    case KEY_LEFT_SHIFT:
+	    case KEY_RIGHT_SHIFT:
+	        io.AddKeyEvent(ImGuiMod_Shift, event.pressed);
+	        break;
+	    case KEY_LEFT_ALT:
+	    case KEY_RIGHT_ALT:
+	        io.AddKeyEvent(ImGuiMod_Alt, event.pressed);
+	    case KEY_LEFT_SUPER:
+	    case KEY_RIGHT_SUPER:
+	        io.AddKeyEvent(ImGuiMod_Super, event.pressed);
+	    default:
+	        break;
+	    }
 
         io.AddKeyEvent(imguiKey, event.pressed);
     }

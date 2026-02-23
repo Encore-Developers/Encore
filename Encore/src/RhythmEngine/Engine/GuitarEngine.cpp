@@ -132,7 +132,7 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
         case InputChannel::LANE_5: {
             if (chart->HeldNotePointers.at(0)
                 && (chart->HeldNotePointers.at(0)->Lane & PlasticFrets[ICInt(channel)])) {
-                chart->HeldNotePointers.at(0) = nullptr;
+                chart->DropSustain(0);
             }
             stats->HeldFrets.at(ICInt(channel)) = false;
             break;
@@ -162,12 +162,12 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
         return CheckNextInput;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
 
-    if (chart->HeldNotePointers.at(0) &&
+    if (chart->IsHeldNotePresent(0) &&
         action == Action::PRESS &&
-        chart->HeldNotePointers.at(0)->Lane < PlasticFrets[ICInt(channel)] &&
+        !MaskMatch(chart->HeldNotePointers.at(0)->Lane, stats->HeldFretsArrayToMask()) &&
         !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)->LengthSeconds > CurrentNote.StartSeconds
             )) {
-        chart->HeldNotePointers.at(0) = nullptr;
+        chart->DropSustain(0);
     }
     // if an upper note is pressed when a sustain is active, unless the sustain goes on longer than the current note
 
@@ -244,5 +244,6 @@ void Encore::RhythmEngine::GuitarEngine::Overhit() {
         Timers["SAH"].ResetTimer();
         TraceLog(LOG_DEBUG, "SAH Disabled");
     }
+    chart->DropSustain(0);
     BaseEngine::Overhit(0);
 }

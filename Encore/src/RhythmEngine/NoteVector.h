@@ -90,6 +90,12 @@ namespace Encore::RhythmEngine {
             return HeldNotePointers.at(lane);
         }
 
+        void DropSustain(int lane) {
+            if (IsHeldNotePresent(lane)) {
+                HeldNotePointers.at(lane) = nullptr;
+            }
+        }
+
         /**
          * reset notes
          */
