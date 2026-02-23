@@ -126,6 +126,8 @@ void EncoreDebug::StartReloadAssets() {
         }
         if (asset->state == LOADED) {
             asset->Unload();
+        }
+        if (asset->state == UNLOADED) {
             asset->StartLoad();
         }
     }
@@ -145,7 +147,7 @@ void EncoreDebug::DrawAssetViewer() {
         if (ImGui::BeginTable("AssetList", 4, flags, ImGui::GetContentRegionAvail())) {
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Filename", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupColumn("State", ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableHeadersRow();
@@ -156,7 +158,7 @@ void EncoreDebug::DrawAssetViewer() {
                 ImGui::TableNextRow();
                 ImGui::PushID(i);
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text(TextFormat("%s (%x)", asset->id.c_str(), (size_t)asset));
+                ImGui::Text(std::filesystem::path(asset->id).filename().generic_string().c_str());
                 ImGui::TableSetColumnIndex(2);
                 ImGui::Text(typeid(*asset).name());
                 ImGui::TableSetColumnIndex(3);

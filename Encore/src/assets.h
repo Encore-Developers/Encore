@@ -34,6 +34,8 @@ public:
     std::atomic<AssetState> state = UNLOADED;
     std::string id;
     std::thread loadingThread;
+    /// Used for assets created by another and not stored in TheAssets (ShaderAsset)
+    Asset* parent;
 
     Asset(const std::string &id);
 
@@ -48,6 +50,10 @@ public:
     virtual void LoadImmediate();
     /// Checks if this asset is loaded. Only use in the render thread!
     void CheckForFetch();
+    void SetAssetParent(Asset* newParent);
+
+    /// Removes the asset from the internal list, hiding it from the debug Assets window
+    void DelistAsset();
 
     /// Unloads this asset. Only use in render thread!
     virtual void Unload() {
@@ -162,10 +168,12 @@ public:
         if (!fsPath.empty()) {
             fragmentCode = new FileAsset(fsPath);
             fragmentCode->addNullTerminator = true;
+            fragmentCode->SetAssetParent(this);
         }
         if (!vsPath.empty()) {
             vertexCode = new FileAsset(vsPath);
             vertexCode->addNullTerminator = true;
+            vertexCode->SetAssetParent(this);
         }
         this->postFinalizeFunc = postFinalizeFunc;
         for (auto uniform : uniforms) {

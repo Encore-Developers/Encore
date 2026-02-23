@@ -66,7 +66,11 @@ void Asset::CheckForFetch() {
     default: ;
     }
 }
-Asset::~Asset() {
+void Asset::SetAssetParent(Asset *newParent) {
+    parent = newParent;
+    DelistAsset();
+}
+void Asset::DelistAsset() {
     for (auto iter = TheAssets.assets.begin(); iter != TheAssets.assets.end(); ++iter) {
         auto asset = *iter;
         if (asset == this) {
@@ -74,7 +78,9 @@ Asset::~Asset() {
             break;
         }
     }
-
+}
+Asset::~Asset() {
+    DelistAsset();
 }
 Asset::Asset(const std::string &id) {
     this->id = id;
