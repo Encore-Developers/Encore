@@ -58,7 +58,9 @@ namespace Encore::RhythmEngine {
         NoteVector &at(const int i) { return this->Lanes.at(i); }
         std::vector<NoteVector> Lanes;
         std::vector<NoteVector::iterator> CurrentNoteIterators;
-        std::vector<EncNote *> HeldNotePointers;
+        // todo: please fix extended sustains, i really dont wanna do this right now
+        // idea: use array instead of singular note
+        std::vector<EncNote*> HeldNotePointers;
         std::vector<EncNote *> MissedNotePointers;
         double BaseScore = 0;
         /**
@@ -82,6 +84,10 @@ namespace Encore::RhythmEngine {
          */
         void SetCurrentNoteAsHeldNote(int lane) {
             HeldNotePointers.at(lane) = &*CurrentNoteIterators.at(lane);
+        }
+
+        bool IsHeldNotePresent(int lane) {
+            return HeldNotePointers.at(lane);
         }
 
         /**

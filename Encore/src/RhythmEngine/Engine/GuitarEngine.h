@@ -39,7 +39,6 @@ namespace Encore::RhythmEngine {
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
     public:
-        int GhostCount = 0;
         // std::unordered_map<std::string, RhythmTimer> Timers {
         //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
         // };

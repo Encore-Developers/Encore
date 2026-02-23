@@ -102,6 +102,7 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
     if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
+        GhostCount = 0;
         MissNote(Lane);
         Encore::EncoreLog(
             LOG_DEBUG, TextFormat("Missed note %01i:%01i", Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)))

@@ -18,20 +18,23 @@ bool showPlayerManager = false;
 
 std::string debugVersionHash = "";
 
-void ColorEdit(const char* label, Color* color, ImGuiColorEditFlags flags) {
-    float floats[3] = {color->r/255.0f, color->g/255.0f, color->b/255.0f};
+void ColorEdit(const char *label, Color *color, ImGuiColorEditFlags flags) {
+    float floats[3] = { color->r / 255.0f, color->g / 255.0f, color->b / 255.0f };
 
-    ImGui::ColorEdit3(label, (float*)&floats, flags);
+    ImGui::ColorEdit3(label, (float *)&floats, flags);
 
-    color->r = floats[0]*255;
-    color->g = floats[1]*255;
-    color->b = floats[2]*255;
+    color->r = floats[0] * 255;
+    color->g = floats[1] * 255;
+    color->b = floats[2] * 255;
 }
 
 void EncoreDebug::DrawDebug() {
     if (debugVersionHash.empty()) {
         debugVersionHash = TextFormat(
-            "Encore %s-%s:%s", ENCORE_VERSION, GIT_COMMIT_HASH, GIT_BRANCH
+            "Encore %s-%s:%s",
+            ENCORE_VERSION,
+            GIT_COMMIT_HASH,
+            GIT_BRANCH
         );
     }
     MenuBar();
@@ -82,22 +85,39 @@ void EncoreDebug::DrawPlayerManager() {
 
         if (ImGui::BeginTabBar("Players")) {
             for (auto &player : ThePlayerManager.PlayerList) {
-                if (ImGui::BeginTabItem((player.Name + TextFormat("###%x", &player)).c_str())) {
-
+                if (ImGui::BeginTabItem(
+                    (player.Name + TextFormat("###%x", &player)).c_str())) {
                     ImGui::InputText("Username", &player.Name);
                     ImGui::SeparatorText("Color Profile");
-                    ColorEdit("Green", &player.GetColorProfile()->colors[Encore::SLOT_GREEN], 0);
-                    ColorEdit("Red", &player.GetColorProfile()->colors[Encore::SLOT_RED], 0);
-                    ColorEdit("Yellow", &player.GetColorProfile()->colors[Encore::SLOT_YELLOW], 0);
-                    ColorEdit("Blue", &player.GetColorProfile()->colors[Encore::SLOT_BLUE], 0);
-                    ColorEdit("Orange", &player.GetColorProfile()->colors[Encore::SLOT_ORANGE], 0);
-                    ColorEdit("Open", &player.GetColorProfile()->colors[Encore::SLOT_OPEN], 0);
+                    ColorEdit("Green",
+                              &player.GetColorProfile()->colors[Encore::SLOT_GREEN],
+                              0);
+                    ColorEdit("Red",
+                              &player.GetColorProfile()->colors[Encore::SLOT_RED],
+                              0);
+                    ColorEdit("Yellow",
+                              &player.GetColorProfile()->colors[Encore::SLOT_YELLOW],
+                              0);
+                    ColorEdit("Blue",
+                              &player.GetColorProfile()->colors[Encore::SLOT_BLUE],
+                              0);
+                    ColorEdit("Orange",
+                              &player.GetColorProfile()->colors[Encore::SLOT_ORANGE],
+                              0);
+                    ColorEdit("Open",
+                              &player.GetColorProfile()->colors[Encore::SLOT_OPEN],
+                              0);
 
                     ImGui::SeparatorText(std::string("Player: " + player.Name).c_str());
                     ImGui::SliderFloat("Note Speed", &player.NoteSpeed, 0, 3);
                     ImGui::SliderFloat("Track Length", &player.HighwayLength, 0, 5);
                     int inputOffset = player.InputCalibration * 1000;
-                    ImGui::DragInt("Input Calibration", &inputOffset, 1, -1000, 1000, "%dms");
+                    ImGui::DragInt("Input Calibration",
+                                   &inputOffset,
+                                   1,
+                                   -1000,
+                                   1000,
+                                   "%dms");
                     player.InputCalibration = inputOffset / 1000.0;
                     ColorEdit("Accent Color", &player.AccentColor, 0);
                     ImGui::Checkbox("Bot", &player.Bot);
@@ -119,6 +139,7 @@ void EncoreDebug::DrawPlayerManager() {
     }
     ImGui::End();
 }
+
 void EncoreDebug::StartReloadAssets() {
     for (auto asset : TheAssets.assets) {
         if (asset->state == LOADING || asset->state == PREFINALIZED) {
@@ -135,14 +156,16 @@ void EncoreDebug::StartReloadAssets() {
 }
 
 void EncoreDebug::DrawAssetViewer() {
-    ImGui::SetNextWindowSize({200, 300}, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize({ 200, 300 }, ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Assets", &showAssets, 0)) {
-        ImGui::TextWrapped("Base Path: %s", TheAssets.getDirectory().generic_string().c_str());
+        ImGui::TextWrapped("Base Path: %s",
+                           TheAssets.getDirectory().generic_string().c_str());
         if (ImGui::Button("Reload All")) {
             reloadQueued = true;
         }
 
-        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+            ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
         auto actionsWidth = ImGui::CalcTextSize("Finalize").x;
         if (ImGui::BeginTable("AssetList", 4, flags, ImGui::GetContentRegionAvail())) {
             ImGui::TableSetupScrollFreeze(0, 1);
@@ -158,7 +181,8 @@ void EncoreDebug::DrawAssetViewer() {
                 ImGui::TableNextRow();
                 ImGui::PushID(i);
                 ImGui::TableSetColumnIndex(1);
-                ImGui::Text(std::filesystem::path(asset->id).filename().generic_string().c_str());
+                ImGui::Text(
+                    std::filesystem::path(asset->id).filename().generic_string().c_str());
                 ImGui::TableSetColumnIndex(2);
                 ImGui::Text(typeid(*asset).name());
                 ImGui::TableSetColumnIndex(3);
@@ -188,19 +212,17 @@ void EncoreDebug::DrawAssetViewer() {
             ImGui::PopFont();
             ImGui::EndTable();
         }
-
     }
     ImGui::End();
-
 }
 
 void Encore::Track::DrawTrackDebugWindow() {
     ImGui::SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
     if (ImGui::Begin(
-            std::string("Track Settings: " + player.Name).c_str(),
-            nullptr,
-            ImGuiWindowFlags_AlwaysAutoResize
-        )) {
+        std::string("Track Settings: " + player.Name).c_str(),
+        nullptr,
+        ImGuiWindowFlags_AlwaysAutoResize
+    )) {
         if (ImGui::CollapsingHeader("Camera Settings")) {
             ImGui::DragFloat3("Camera Position", (float *)&camera.position, 0.1);
             ImGui::DragFloat3("Camera Target", (float *)&camera.target, 0.1);
@@ -217,24 +239,52 @@ void Encore::Track::DrawTrackDebugWindow() {
             for (auto timer : player.engine->Timers) {
                 float countdown = Clamp(
                     (timer.second.Time + timer.second.Duration)
-                        - TheSongTime.GetElapsedTime(),
+                    - TheSongTime.GetElapsedTime(),
                     0,
                     timer.second.Duration
                 );
-                ImGui::ProgressBar(countdown / timer.second.Duration, {-FLT_MIN, 0}, TextFormat("%s: %4.4f", timer.first.c_str(), countdown));
+                ImGui::ProgressBar(countdown / timer.second.Duration,
+                                   { -FLT_MIN, 0 },
+                                   TextFormat("%s: %4.4f",
+                                              timer.first.c_str(),
+                                              countdown));
             };
             ImGui::SeparatorText("Stats");
             ImGui::Text(TextFormat("Combo: %i", player.engine->stats->Combo));
+            ImGui::Text(TextFormat("Ghost Count: %i", player.engine->GhostCount));
             ImGui::Text(TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
             ImGui::Text(
                 TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes)
             );
             ImGui::Text(TextFormat("Misses: %i", player.engine->stats->Misses));
-            ImGui::Text(TextFormat("Notes hit: %i (%.0f%)", player.engine->stats->NotesHit, (float)player.engine->stats->NotesHit/player.engine->stats->AttemptedNotes*100));
+            ImGui::Text(TextFormat("Notes hit: %i (%.0f%)",
+                                   player.engine->stats->NotesHit,
+                                   (float)player.engine->stats->NotesHit / player.engine->
+                                   stats->AttemptedNotes * 100));
             ImGui::Text(TextFormat("Score: %4.2f", player.engine->stats->Score));
             ImGui::Text(TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
             ImGui::Text(TextFormat("Stars: *%i", player.engine->stats->Stars));
-            ImGui::Text(TextFormat("Multiplier: %ix", player.engine->stats->multiplier()));
+            ImGui::Text(TextFormat("Multiplier: %ix",
+                                   player.engine->stats->multiplier()));
+        }
+        if (ImGui::CollapsingHeader("Chart Information")) {
+            if (ImGui::BeginTable("Note List", player.engine->chart->Lanes.size())) {
+                ImGui::TableSetupScrollFreeze(0, 1);
+                for (int lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
+                    ImGui::TableSetupColumn(TextFormat("##%i", lane),
+                                            ImGuiTableColumnFlags_WidthStretch);
+                }
+                ImGui::TableHeadersRow();
+                for (int lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
+                    ImGui::TableSetColumnIndex(lane);
+                    for (auto note : player.engine->chart->Lanes[lane]) {
+                        ImGui::TableNextRow();
+                        ImGui::Text(TextFormat("##%i", note.Lane));
+                    }
+                }
+
+                ImGui::EndTable();
+            }
         }
     }
     ImGui::End();
