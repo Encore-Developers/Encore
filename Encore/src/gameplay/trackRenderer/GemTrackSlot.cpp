@@ -95,14 +95,8 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         if (!note)
             continue;
         bool matches = false;
-        if (track->player.engine->UsesNoteMasks()) {
-            if (note->Lane & RhythmEngine::PlasticFrets[index]) {
-                matches = true;
-            }
-        } else {
-            if (note->Lane == index) {
-                matches = true;
-            }
+        if (note->Lane & RhythmEngine::PlasticFrets[index]) {
+            matches = true;
         }
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
