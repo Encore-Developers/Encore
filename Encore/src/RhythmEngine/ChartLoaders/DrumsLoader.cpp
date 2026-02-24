@@ -50,7 +50,12 @@ Encore::RhythmEngine::DrumsLoader::GetNoteType(const smf::MidiEvent &event) {
 }
 void Encore::RhythmEngine::DrumsLoader::CheckEvents(const smf::MidiEvent &event) {
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
-    ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
+    if (!chart.overdrive.empty()) {
+        if (CurrentOverdrive < chart.overdrive.size() - 1
+            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].EndTick <= event.tick)
+            CurrentOverdrive++;
+    }
+    // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 void Encore::RhythmEngine::DrumsLoader::GetChartEvents(smf::MidiEventList track) {
     track.linkNotePairs();
@@ -84,7 +89,7 @@ void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) 
     }
     chart.BaseScore += BASE_SCORE_NOTE_POINT;
     chart[lane].emplace_back(
-        event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[1]
+        event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[lane]
     );
     if (!chart.solos.empty()) {
         if (event.tick >= chart.solos[CurrentSolo].StartTick) {

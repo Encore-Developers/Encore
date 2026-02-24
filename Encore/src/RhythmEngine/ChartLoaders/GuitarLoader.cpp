@@ -105,7 +105,12 @@ Encore::RhythmEngine::GuitarLoader::GetNoteType(const smf::MidiEvent &event) {
 }
 void Encore::RhythmEngine::GuitarLoader::CheckEvents(const smf::MidiEvent &event) {
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
-    ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
+    if (!chart.overdrive.empty()) {
+        if (CurrentOverdrive < chart.overdrive.size() - 1
+            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].EndTick <= event.tick)
+            CurrentOverdrive++;
+    }
+    // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
     ITERATE_EVENT_BY_NOTE(trills, CurrentTrill, event)
     ITERATE_EVENT_BY_NOTE(rolls, CurrentRoll, event)
 }
@@ -190,9 +195,7 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
             if (chart[0].empty()) {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 CreateNote(event);
-                continue;
-            }
-            if (chart[0].back().StartTicks == event.tick) {
+            } else if (chart[0].back().StartTicks == event.tick) {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
                 chart[0].back().NoteType = 0;

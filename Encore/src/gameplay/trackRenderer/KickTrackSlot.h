@@ -12,10 +12,13 @@ namespace Encore {
     public:
         KickTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, colorSlot) {};
 
+        float animTimer = 1;
         virtual void DrawNote(RhythmEngine::EncNote *note);
         virtual void DrawSustainTail(double startTime, double endTime) override {};
         virtual void DrawSmasher(bool held);
-        virtual void AnimateHit() {};
+        virtual void AnimateHit() {
+            animTimer = 0;
+        };
     };
 }
 

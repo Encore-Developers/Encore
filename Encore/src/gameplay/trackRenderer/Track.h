@@ -27,6 +27,8 @@ namespace Encore {
 
         virtual void HandleEvent(Event *);
 
+        void ProcessAnimation();
+
         void AddSlot(TrackSlot* slot);
         void Configure5Lane();
         void Configure4Lane();
@@ -50,6 +52,10 @@ namespace Encore {
         float Offset = 0;
         float Scale = 1;
         float NoteHeight = 1;
+        float KickTimer = 0;
+
+        Camera3D AnimCamera;
+        Camera3D BaseCamera;
 
         Track(Player &player_)
             : player(player_) {
@@ -57,7 +63,7 @@ namespace Encore {
         ~Track();
         Player& player;
     protected:
-        Camera3D camera;
+
         std::vector<std::unique_ptr<TrackSlot>> slots;
         std::span<Beatline> BeatlinePool;
     };

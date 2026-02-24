@@ -26,6 +26,9 @@ void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
 void Encore::KickTrackSlot::DrawSmasher(bool held) {
     Color color = track->player.QueryColorProfile(colorSlot);
 
+
+
     DrawModelEx(ASSET(kickFrame), {xPos, 0, 0}, {0}, 0, {1,1,1.3f}, WHITE);
     DrawModelEx(ASSET(kickPiston), {xPos, 0, 0}, {0}, 0, {1,1,1.3f}, color);
 }
+

@@ -361,9 +361,9 @@ void Encore::Track::DrawTrackDebugWindow() {
         ImGuiWindowFlags_AlwaysAutoResize
     )) {
         if (CollapsingHeader("Camera Settings")) {
-            DragFloat3("Camera Position", (float *)&camera.position, 0.1);
-            DragFloat3("Camera Target", (float *)&camera.target, 0.1);
-            DragFloat("Camera FOV", &camera.fovy);
+            DragFloat3("Camera Position", (float *)&BaseCamera.position, 0.1);
+            DragFloat3("Camera Target", (float *)&BaseCamera.target, 0.1);
+            DragFloat("Camera FOV", &BaseCamera.fovy);
             DragFloat("Base Length", &BaseLength, 0.1);
             DragFloat("Track Fade Size", &FadeSize, 0.1);
             DragFloat("Curve Factor", &CurveFac, 1);

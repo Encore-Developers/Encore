@@ -38,7 +38,12 @@ void Encore::RhythmEngine::PadLoader::CheckModifiers(const smf::MidiEvent &event
 
 void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
-    ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
+    if (!chart.overdrive.empty()) {
+        if (CurrentOverdrive < chart.overdrive.size() - 1
+            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].EndTick <= event.tick)
+            CurrentOverdrive++;
+    }
+    // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 
 [[nodiscard]] int

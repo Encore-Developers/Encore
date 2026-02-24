@@ -15,12 +15,14 @@
 #include "OpenTrackSlot.h"
 #include "debug/EncoreDebug.h"
 #include "events/Event.h"
+#include "song/song.h"
 
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
 
-    BeginMode3D(camera);
+    ProcessAnimation();
+    BeginMode3D(AnimCamera);
 
     for (auto shader : {ASSETPTR(trackCurveShader), ASSETPTR(noteShader), ASSETPTR(highwayScrollShader)}) {
         shader->SetUniform("trackLength", Length);
@@ -40,7 +42,7 @@ void Encore::Track::Draw() {
     DrawSmashers();
 
     EndMode3D();
-    BeginMode3D(camera);
+    BeginMode3D(AnimCamera);
     rlDisableDepthTest();
     DrawNotes();
 
@@ -55,12 +57,13 @@ void Encore::Track::Draw() {
 
 
 void Encore::Track::Load() {
-    camera = {
+    BaseCamera = {
         { 0, 8.0f, -14.0f },
         { 0.0f, 0.0f, 15.0f },
         { 0.0f, 1.0f, 0.0f },
         40.0f,
     };
+    AnimCamera = BaseCamera;
     player.engine->AddSink(this);
 }
 
@@ -280,6 +283,9 @@ void Encore::Track::HandleEvent(Event *event) {
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;
         auto slots = GetSlotsForLane(note->Lane, true);
+        if (note->Lane == RhythmEngine::PlasticFrets[0] && player.Instrument == PlasticDrums) {
+            KickTimer = 1;
+        }
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
@@ -288,6 +294,22 @@ void Encore::Track::HandleEvent(Event *event) {
                 break;
         }
     }
+}
+
+
+inline double easeInQuadd(double x) {
+    return x * x;
+
+}
+
+void Encore::Track::ProcessAnimation() {
+    if (KickTimer > 0)
+        KickTimer -= GetFrameTime()*5;
+    else {
+        KickTimer = 0;
+    }
+
+    AnimCamera.position.y = BaseCamera.position.y - (easeInQuadd(KickTimer)*0.2);
 }
 
 void Encore::Track::AddSlot(TrackSlot *slot) {
