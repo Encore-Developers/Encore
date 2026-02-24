@@ -198,8 +198,9 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
                 chart[0].back().NoteType = 0;
                 if (!chart.trills.empty()) {
                     if (event.tick >= chart.trills[CurrentTrill].StartTick) {
-                        chart.rolls[CurrentRoll].lane +=
-                            PlasticFrets[GetEventLane(Difficulty, event)];
+                        //chart.rolls[CurrentRoll].lane +=
+                         //   PlasticFrets[GetEventLane(Difficulty, event)];
+                        //FIXME
                     }
                 }
                 if (chart[0].back().LengthTicks > 0) {
