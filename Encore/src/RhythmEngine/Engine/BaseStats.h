@@ -63,6 +63,8 @@ namespace Encore::RhythmEngine {
         bool Paused = false;
         bool Bot = false;
         double Health = 1.0;
+        double Accuracy = -1;
+        double LastHitAccuracy = -1;
         int Stars = 0;
         double StarThresholdValue = 0.0;
         StrumState strumState = StrumState::Default;

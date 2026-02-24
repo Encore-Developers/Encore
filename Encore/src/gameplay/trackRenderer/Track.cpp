@@ -11,6 +11,8 @@
 #include "rlgl.h"
 #include "gameplay/enctime.h"
 #include "imgui.h"
+#include "KickTrackSlot.h"
+#include "OpenTrackSlot.h"
 #include "debug/EncoreDebug.h"
 
 void Encore::Track::Draw() {
@@ -285,7 +287,7 @@ void Encore::Track::Configure5Lane() {
     AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -2, 1, SLOT_ORANGE));
-    AddSlot(new GemTrackSlot(this, 0, 5, SLOT_OPEN));
+    AddSlot(new OpenTrackSlot(this, 0, 1, SLOT_OPEN));
 }
 
 void Encore::Track::Configure4Lane() {
@@ -298,12 +300,12 @@ void Encore::Track::Configure4Lane() {
 
 void Encore::Track::ConfigureDrums() {
     slots.clear();
-    AddSlot(new GemTrackSlot(this, 0, 5, SLOT_KICK));
+    AddSlot(new KickTrackSlot(this, 0, 5, SLOT_KICK));
     // TODO: make the kick slot a different type
-    AddSlot(new GemTrackSlot(this, 1.875, 1.25, SLOT_RED));
-    AddSlot(new GemTrackSlot(this, 0.625, 1.25, SLOT_YELLOW));
-    AddSlot(new GemTrackSlot(this, -0.625, 1.25, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -1.875, 1.25, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1.875, 1.25, 0.75, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0.625, 1.25, 0.75, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -0.625, 1.25, 0.75, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -1.875, 1.25, 0.75, SLOT_GREEN));
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {

@@ -26,6 +26,14 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     }
 
     rlDrawRenderBatchActive();
+    if (colorSlot == SLOT_KICK) {
+        DrawModelEx(ASSET(kickNote), position, {0}, 0, {1, track->NoteHeight / 2.0f, 1}, WHITE);
+        return;
+    }
+    if (colorSlot == SLOT_OPEN) {
+        DrawModelEx(ASSET(openNote), position, {0}, 0, {1, track->NoteHeight, 1}, WHITE);
+        return;
+    }
 
     if (note->NoteType == 1 || note->NoteType == 2) {
         DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, track->NoteHeight, 1 }, WHITE);
@@ -71,8 +79,8 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         //color.g /= 3;
         //color.b /= 3;
     }
-    DrawModelEx(ASSET(smasherFrame), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3 }, WHITE);
-    DrawModelEx(ASSET(smasherPiston), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3 }, color);
+    DrawModelEx(ASSET(smasherFrame), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3f * length }, WHITE);
+    DrawModelEx(ASSET(smasherPiston), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3f * length }, color);
     // DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)

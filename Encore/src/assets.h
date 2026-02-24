@@ -411,9 +411,15 @@ public:
 
     NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
     NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");
+    NEWTEXASSET(kickNoteTex, "gameplay/track/kick.png");
+    NEWTEXASSET(openNoteTex, "gameplay/track/open.png");
 
     NEWTEXASSET(hopoMaskTex, "gameplay/track/hopo_mask.png");
     NEWTEXASSET(regularMaskTex, "gameplay/track/note_mask.png");
+    NEWTEXASSET(kickMaskTex, "gameplay/track/kick_mask.png");
+    NEWTEXASSET(openMaskTex, "gameplay/track/open_mask.png");
+
+
 
     NEWLEGACYMODELASSET(regularNote, "gameplay/track/note_normal.obj", [this](Model* model) {
         SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
@@ -433,6 +439,26 @@ public:
 
         model->materials[0].shader = noteShader;
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = hopoMaskTex;
+    });
+
+    NEWLEGACYMODELASSET(openNote, "gameplay/track/open.obj", [this](Model* model) {
+        SetTextureWrap(openNoteTex, TEXTURE_WRAP_CLAMP);
+        SetTextureWrap(openMaskTex, TEXTURE_WRAP_CLAMP);
+        model->materials[0].maps[0].texture = openNoteTex;
+        // const Texture2D mask = hopoMaskTex.Fetch();
+
+        model->materials[0].shader = noteShader;
+        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = openMaskTex;
+    });
+
+    NEWLEGACYMODELASSET(kickNote, "gameplay/track/kick_note.obj", [this](Model* model) {
+        SetTextureWrap(kickNoteTex, TEXTURE_WRAP_CLAMP);
+        SetTextureWrap(kickMaskTex, TEXTURE_WRAP_CLAMP);
+        model->materials[0].maps[0].texture = kickNoteTex;
+        // const Texture2D mask = hopoMaskTex.Fetch();
+
+        model->materials[0].shader = noteShader;
+        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = kickMaskTex;
     });
 
 
