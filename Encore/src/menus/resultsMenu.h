@@ -16,7 +16,7 @@ class resultsMenu : public OvershellMenu {
     Texture2D EmptyStar;
     Shader sdfShader;
     std::vector<std::string> diffList;
-    void drawPlayerResults(Player &player, Song song, int playerslot);
+    void drawPlayerResults(Player &player, int playerslot);
     void renderPlayerStars(
          Player &stats, float xPos, float yPos, float scale, bool left
     );

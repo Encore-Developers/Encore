@@ -12,6 +12,8 @@
 
 #include "gameplay/trackRenderer/Track.h"
 
+extern bool songPlaying;
+
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
     int CameraSelectionPerPlayer[4][4] {

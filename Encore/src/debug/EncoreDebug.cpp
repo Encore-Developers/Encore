@@ -8,6 +8,7 @@
 #include "settings/settings.h"
 #include "util/frame-manager.h"
 #include "gameplay/trackRenderer/Track.h"
+#include "menus/GameplayMenu.h"
 #include "menus/MenuManager.h"
 #include "song/audio.h"
 #include "song/song.h"
@@ -82,6 +83,7 @@ void EncoreDebug::MenuBar() {
     if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem("End Song")) {
         TheSongTime.Reset();
         TheAudioManager.unloadStreams();
+        songPlaying = false;
         TheSongTime.Beatlines.erase(
             TheSongTime.Beatlines.begin(),
             TheSongTime.Beatlines.end()
@@ -196,7 +198,6 @@ void EncoreDebug::DrawSongList() {
     static std::string filter;
     static std::vector<Song *> songs;
     static bool firstTime = true;
-    static Song* selectedSong;
 
     static auto UpdateList = [&] {
         songs.clear();
@@ -253,8 +254,20 @@ void EncoreDebug::DrawSongList() {
                 Text("%s", song->source.c_str());
 
                 TableSetColumnIndex(0);
-                if (ImGui::SmallButton("Play")) {
-
+                if (SmallButton("Play")) {
+                    if (!TheAudioManager.loadedStreams.empty()) {
+                        for (auto& stream : TheAudioManager.loadedStreams) {
+                            TheAudioManager.StopPlayback(stream.handle);
+                        }
+                        TheAudioManager.loadedStreams.clear();
+                    }
+                    TheSongList.curSong = song;
+                    if (!TheSongList.curSong->ini) {
+                        TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
+                    } else {
+                        TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
+                    }
+                    TheMenuManager.SwitchScreen(READY_UP);
                 }
 
                 PopID();

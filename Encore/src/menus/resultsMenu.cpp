@@ -80,7 +80,7 @@ void resultsMenu::Draw() {
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-        drawPlayerResults(ThePlayerManager.GetActivePlayer(i), *TheSongList.curSong, i);
+        drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
     }
     encOS::DrawTopOvershell(0.2f);
     GameMenu::DrawVersion();
@@ -183,7 +183,7 @@ void resultsMenu::Draw() {
     DrawOvershell();
 }
 
-void resultsMenu::drawPlayerResults(Player &player, Song song, int playerslot) {
+void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     auto& stats = player.engine->stats;

@@ -212,13 +212,8 @@ void SongSelectMenu::Draw() {
         TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
 
     // todo(3drosalia): clean this shit up after changing it
-    Song SongToDisplayInfo = TheSongList.curSong ? *TheSongList.curSong : Song();
-    if (TheSongList.curSong) {
-        if (TheSongList.curSong->ini)
-            TheSongList.curSong->LoadInfoINI(TheSongList.curSong->songInfoPath);
-        else
-            TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
-    }
+    static Song blankSong = Song();
+    Song *SongToDisplayInfo = TheSongList.curSong ? TheSongList.curSong : &blankSong;
 
     BeginDrawing();
     ClearBackground(DARKGRAY);
@@ -504,7 +499,7 @@ void SongSelectMenu::Draw() {
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
 
-    std::string titleText = SongToDisplayInfo.source.empty() ? "Custom" : SongToDisplayInfo.source;
+    std::string titleText = SongToDisplayInfo->source.empty() ? "Custom" : SongToDisplayInfo->source;
     float titleFontSize = u.hinpct(0.035f);
     float titleTextWidth = MeasureTextEx(assets.rubikBold, titleText.c_str(), titleFontSize, 0).x;
     float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth / 2.0f);
@@ -541,8 +536,8 @@ void SongSelectMenu::Draw() {
     float TextPlacementLR = u.LeftSide;
     GameMenu::mhDrawText(assets.redHatDisplayBlack, "MUSIC LIBRARY", { TextPlacementLR, TextPlacementTB }, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
 
-    std::string albumText = SongToDisplayInfo.album.empty() ? "No Album Listed" : SongToDisplayInfo.album;
-    std::string yearText = SongToDisplayInfo.releaseYear.empty() ? "Unknown Year" : SongToDisplayInfo.releaseYear;
+    std::string albumText = SongToDisplayInfo->album.empty() ? "No Album Listed" : SongToDisplayInfo->album;
+    std::string yearText = SongToDisplayInfo->releaseYear.empty() ? "Unknown Year" : SongToDisplayInfo->releaseYear;
     std::string albumDisplayText = albumText + " | " + yearText;
     float albumTextHeight = MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), u.hinpct(0.035f), 0).y;
     float albumTextWidth = MeasureTextEx(assets.rubikBold, albumDisplayText.c_str(), u.hinpct(0.035f), 0).x;
@@ -569,12 +564,12 @@ void SongSelectMenu::Draw() {
         float IconLeftPos = (float)(u.RightSide - AlbumHeight) + IconWidth * ResetToLeftPos;
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        int diffNumber = SongToDisplayInfo.parts[i]->diff;
-        if (SongToDisplayInfo.parts[i] && diffNumber == -1) TintColor = DARKGRAY;
+        int diffNumber = SongToDisplayInfo->parts[i]->diff;
+        if (SongToDisplayInfo->parts[i] && diffNumber == -1) TintColor = DARKGRAY;
         auto instIcon = assets.InstIcons[asdasd];
         DrawTexturePro(*instIcon, { 0, 0, (float)instIcon->width, (float)instIcon->height }, Placement, { 0, 0 }, 0, TintColor);
         DrawTexturePro(assets.BaseRingTexture, { 0, 0, (float)assets.BaseRingTexture.width, (float)assets.BaseRingTexture.height }, Placement, { 0, 0 }, 0, ColorBrightness(WHITE, 2));
-        if (SongToDisplayInfo.parts[i] && diffNumber > 0) {
+        if (SongToDisplayInfo->parts[i] && diffNumber > 0) {
             if (diffNumber > 6) {
                 diffNumber = 6;
             }

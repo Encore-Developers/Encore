@@ -102,10 +102,10 @@ void SongList::sortList(SortType sortType) {
 }
 
 void SongList::sortList(SortType sortType, int &selectedSong) {
-    Song curSong;
+    Song* curSong;
     bool hasCurrentSong = selectedSong >= 0 && selectedSong < songs.size();
     if (hasCurrentSong) {
-        curSong = songs[selectedSong];
+        curSong = &songs[selectedSong];
     }
     selectedSong = 0;
     switch (sortType) {
@@ -131,7 +131,7 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
     }
     if (hasCurrentSong) {
         for (size_t i = 0; i < songs.size(); i++) {
-            if (songs[i].artist == curSong.artist && songs[i].title == curSong.title) {
+            if (songs[i].artist == curSong->artist && songs[i].title == curSong->title) {
                 selectedSong = i;
                 break;
             }
