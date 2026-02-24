@@ -14,6 +14,7 @@
 #include "KickTrackSlot.h"
 #include "OpenTrackSlot.h"
 #include "debug/EncoreDebug.h"
+#include "events/Event.h"
 
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
@@ -60,6 +61,7 @@ void Encore::Track::Load() {
         { 0.0f, 1.0f, 0.0f },
         40.0f,
     };
+    player.engine->AddSink(this);
 }
 
 void Encore::Track::DrawSurface() {
@@ -251,14 +253,14 @@ void Encore::Track::DrawBeatlines() {
     rlDrawRenderBatchActive();
 };
 
-Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane) const {
+Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask) const {
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
     auto append_slot = [&](int index) {
         slotBuffer[curIndex] = slots[index].get();
         curIndex++;
     };
-    if (player.engine->UsesNoteMasks()) {
+    if (player.engine->UsesNoteMasks() || forceMask) {
         for (int i = 0; i < 5; i++) {
             if (lane & RhythmEngine::PlasticFrets[i]) {
                 append_slot(i);
@@ -273,6 +275,19 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane) const {
         slotBuffer[1] = nullptr;
     }
     return (TrackSlot **)&slotBuffer;
+}
+void Encore::Track::HandleEvent(Event *event) {
+    if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
+        auto *note = hitEvent->note;
+        auto slots = GetSlotsForLane(note->Lane, true);
+        for (int i = 0; i < 7; i++) {
+            if (slots[i]) {
+                auto slot = slots[i];
+                slot->AnimateHit();
+            } else
+                break;
+        }
+    }
 }
 
 void Encore::Track::AddSlot(TrackSlot *slot) {

@@ -16,6 +16,7 @@ namespace Encore {
         virtual void DrawNote(RhythmEngine::EncNote *note);
         virtual void DrawSustainTail(double startTime, double endTime);
         virtual void DrawSmasher(bool held) {};
+        virtual void AnimateHit() {};
     };
 
 }

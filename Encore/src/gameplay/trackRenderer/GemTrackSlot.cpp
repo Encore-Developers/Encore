@@ -4,7 +4,21 @@
 #include "assets.h"
 #include "rlgl.h"
 
+float easeOutBounce(float x) {
+    const float n1 = 7.5625;
+    const float d1 = 2.75;
 
+    if (x < 1 / d1) {
+        return n1 * x * x;
+    } else if (x < 2 / d1) {
+        return n1 * (x -= 1.5 / d1) * x + 0.75;
+    } else if (x < 2.5 / d1) {
+        return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    } else {
+        return n1 * (x -= 2.625 / d1) * x + 0.984375;
+    }
+
+}
 
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
@@ -76,8 +90,16 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         //color.g /= 3;
         //color.b /= 3;
     }
+
+    if (animTimer < 1) {
+        animTimer += GetFrameTime()*5;
+    } else {
+        animTimer = 1;
+    }
+    float bounce = (1 - easeOutBounce(animTimer))*0.2;
+
     DrawModelEx(ASSET(smasherFrame), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3f * length }, WHITE);
-    DrawModelEx(ASSET(smasherPiston), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3f * length }, color);
+    DrawModelEx(ASSET(smasherPiston), { xPos, 0.025f+bounce, 0-bounce*0.2f }, {0}, 0, { width, 1, 1.3f * length }, color);
     // DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)
@@ -92,4 +114,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
             break;
         }
     }
+}
+void Encore::GemTrackSlot::AnimateHit() {
+    animTimer = 0;
 }

@@ -14,7 +14,6 @@
 
 #include <thread>
 
-#include "gameplay/trackRenderer/GuitarTrack.h"
 
 bool StartLoading = true;
 bool FinishedLoading = false;

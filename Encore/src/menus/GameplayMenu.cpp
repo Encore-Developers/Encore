@@ -24,7 +24,6 @@
 
 #include <raylib.h>
 
-#include "gameplay/trackRenderer/GuitarTrack.h"
 #include "settings/keybinds.h"
 
 GameplayMenu::GameplayMenu() {

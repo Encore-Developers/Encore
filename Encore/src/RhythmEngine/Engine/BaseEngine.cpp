@@ -118,6 +118,9 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     Encore::EncoreLog(
             LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
         );
+
+    NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
+    FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
     if (PerfectHit(startTime)) stats->LastPerfectTime = stats->InputTime;

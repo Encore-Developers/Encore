@@ -8,6 +8,7 @@
 #include "RhythmTimer.h"
 #include "timingvalues.h"
 #include "RhythmEngine/NoteVector.h"
+#include "events/Event.h"
 
 #include <memory>
 #include <span>
@@ -21,7 +22,7 @@ namespace Encore::RhythmEngine {
         CheckNextInput = 2
     };
 
-    class BaseEngine {
+    class BaseEngine : public EventSource {
     public:
         BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats) {};
         virtual ~BaseEngine() {};

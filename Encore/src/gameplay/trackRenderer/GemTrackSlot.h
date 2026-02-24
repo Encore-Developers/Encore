@@ -9,9 +9,12 @@ namespace Encore {
         GemTrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot) : TrackSlot(track, xPos, width, length, colorSlot) {};
         GemTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {};
 
+        float animTimer = 1;
+
         virtual void DrawNote(RhythmEngine::EncNote *note);
         virtual void DrawSustainTail(double startTime, double endTime);
         virtual void DrawSmasher(bool held);
+        virtual void AnimateHit();
     };
 
 } // Encore

@@ -6,13 +6,14 @@
 #define ENCORE_BASETRACK_H
 #include "TrackSlot.h"
 #include "raylib.h"
+#include "events/Event.h"
 #include "gameplay/enctime.h"
 #include "users/player.h"
 
 namespace Encore {
     class TrackSlot;
 
-    class Track {
+    class Track : public EventSink {
     public:
         void DrawTrackDebugWindow();
         void Draw();
@@ -22,7 +23,9 @@ namespace Encore {
         void DrawBeatlines();
         void DrawSurface();
         void DrawOverdriveMeter();
-        TrackSlot **GetSlotsForLane(uint8_t lane) const;
+        TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
+
+        virtual void HandleEvent(Event *);
 
         void AddSlot(TrackSlot* slot);
         void Configure5Lane();
