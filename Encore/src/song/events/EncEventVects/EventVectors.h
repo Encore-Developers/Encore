@@ -64,12 +64,11 @@ struct ODEvents final : EncEventVect<odPhrase> {
             return;
         }
 
-        if (!(TickDuringCurrentEvent(tick))) {
+        if (!(this->TickDuringCurrentEvent(tick))) {
             return;
         }
         if (hit) {
             this->front().NotesHit++;
-            this->front().NoteCount++;
             Encore::EncoreLog(
                 LOG_DEBUG,
                 TextFormat(
@@ -80,7 +79,6 @@ struct ODEvents final : EncEventVect<odPhrase> {
             );
         }
         if (!hit && !this->front().missed) {
-            this->front().NoteCount++;
             this->front().missed = true;
             Encore::EncoreLog(
                 LOG_DEBUG,
@@ -113,19 +111,21 @@ struct ODEvents final : EncEventVect<odPhrase> {
             this->front().missed = true;
     }
 
-    /*
-    void RenderNotesAsOD(Note& note, const int curEvent) const {
-        if (!events.empty()) {
-            if (note.time >= events[curEvent].StartSec
-                && note.time < events[curEvent].EndSec) {
-                if (!note.miss && !events[curEvent].missed) {
-                    note.renderAsOD = true;
-                } else {
-                    note.renderAsOD = false;
-                }
+
+    bool RenderNotesAsOD(double time) const {
+        if (this->empty()) {
+            return false;
+        }
+
+        for (auto &event : *this) {
+            if ((time >= event.StartSec
+                && time < event.StartSec + event.EndSec) && !event.missed) {
+                return true;
             }
         }
-    }*/
+        return false;
+    }
+
     bool TickDuringCurrentEvent(int tick) override {
         if (tick >= this->front().StartTick
             && tick < this->front().StartTick + this->front().EndTick) {
@@ -149,14 +149,15 @@ struct ODEvents final : EncEventVect<odPhrase> {
         float valueToReturn = 0;
         // if we're at the end of the event
         // and the event can potentially have overdrive added
-        if (Perfect() && !this->front().missed) {
+        if (this->Perfect() && !this->front().missed) {
             // add overdrive
             valueToReturn = 0.25f;
             Encore::EncoreLog(LOG_DEBUG, "Perfect Overdrive phrase");
             Encore::EncoreLog(LOG_DEBUG, "Removing Overdrive phrase");
             // increment if possible, make sure that the last overdrive gets added
             this->erase(this->begin());
-        } if (this->front().missed) {
+        }
+        if (this->front().missed) {
             Encore::EncoreLog(LOG_DEBUG, "Removing Overdrive phrase");
             // increment if possible, make sure that the last overdrive gets added
             this->erase(this->begin());

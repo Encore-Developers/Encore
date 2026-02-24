@@ -17,7 +17,12 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     if (note->NoteType == 2) {
         ASSET(noteShader).SetUniform("frameColor", color);
     } else {
-        ASSET(noteShader).SetUniform("frameColor", WHITE);
+        if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+            color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+            ASSET(noteShader).SetUniform("frameColor", GOLD);
+        } else {
+            ASSET(noteShader).SetUniform("frameColor", WHITE);
+        }
     }
     ASSET(noteShader).SetUniform("noteColor", color);
 
@@ -26,14 +31,6 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     }
 
     rlDrawRenderBatchActive();
-    if (colorSlot == SLOT_KICK) {
-        DrawModelEx(ASSET(kickNote), position, {0}, 0, {1, track->NoteHeight / 2.0f, 1}, WHITE);
-        return;
-    }
-    if (colorSlot == SLOT_OPEN) {
-        DrawModelEx(ASSET(openNote), position, {0}, 0, {1, track->NoteHeight, 1}, WHITE);
-        return;
-    }
 
     if (note->NoteType == 1 || note->NoteType == 2) {
         DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, track->NoteHeight, 1 }, WHITE);

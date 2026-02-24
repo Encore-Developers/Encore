@@ -153,9 +153,9 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
             }
         }
     }
-    if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
-            chart.solos[CurrentSolo].NoteCount++;
+    if (!chart.overdrive.empty()) {
+        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick) {
+            chart.overdrive[CurrentOverdrive].NoteCount++;
         }
     }
 }

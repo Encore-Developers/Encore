@@ -91,6 +91,11 @@ void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) 
             chart.solos[CurrentSolo].NoteCount++;
         }
     }
+    if (!chart.overdrive.empty()) {
+        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick) {
+            chart.overdrive[CurrentOverdrive].NoteCount++;
+        }
+    }
 }
 
 void Encore::RhythmEngine::DrumsLoader::GetNoteModifiers(smf::MidiEventList track) {

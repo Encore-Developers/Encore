@@ -128,6 +128,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
 
 void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
     stats->MissNote();
+    chart->overdrive.MissCurrentEvent(chart->CurrentNoteIterators.at(lane)->StartTicks);
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
