@@ -36,6 +36,8 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
     TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
 }
 
+void
+
 void gamepadStateCallback(int joypadID, GLFWgamepadstate state) {
     //Encore::EncoreLog(
     //    LOG_DEBUG,

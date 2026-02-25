@@ -11,6 +11,8 @@
 
 #include <cassert>
 
+#include "SDL3/SDL.h"
+
 #include "settings/keybinds.h"
 #include "song/cacheload.h"
 #define assertm(exp, msg) assert((void(msg), exp))
@@ -253,6 +255,13 @@ int main(int argc, char *argv[]) {
     }
 
 
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
+        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        return 0;
+    }
+    Encore::EncoreLog(LOG_INFO, TextFormat("SDL Initialzed: revision %s", SDL_GetRevision()));
+
     if (TheGameSettings.Framerate > 0)
         Encore::EncoreLog(
             LOG_INFO, TextFormat("Target FPS: %d", TheGameSettings.Framerate)
@@ -265,6 +274,22 @@ int main(int argc, char *argv[]) {
     while (!WindowShouldClose()) {
         glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
+
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            Encore::EncoreLog(LOG_INFO, TextFormat("SDL event %i", event.type));
+            switch (event.type) {
+            case SDL_EVENT_GAMEPAD_ADDED:
+                SDL_OpenGamepad(event.gdevice.which);
+                break;
+            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+                Encore::EncoreLog(LOG_INFO, TextFormat("SDL button press %i", event.gbutton.button));
+                break;
+            case SDL_EVENT_QUIT:
+                return 0;
+            }
+        }
 
         if (GetRenderWidth() < minWidth) {
             if (GetRenderHeight() < minHeight)

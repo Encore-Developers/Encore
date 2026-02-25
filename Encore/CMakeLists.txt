@@ -41,9 +41,12 @@ if (NOT json_FOUND)
     FetchContent_MakeAvailable(json)
   endif()
 endif()
+
 option(JSON_Diagnostics "" ON)
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
+
+add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 # Add all subdirectories of src
 
 file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp" "include/*.c")
@@ -77,6 +80,8 @@ if(WIN32)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE
+          "-DGLFW_EXPOSE_NATIVE_WIN32")
 endif()
 if(UNIX AND NOT APPLE)
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -88,6 +93,10 @@ if(UNIX AND NOT APPLE)
     file(COPY "lib/bass/linux/x86_64/libbassopus.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE
+          "-DGLFW_EXPOSE_NATIVE_X11")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE
+          "-DGLFW_EXPOSE_NATIVE_WAYLAND")
 endif()
 if(APPLE)
   find_library(DISCORD_GAME_SDK NAMES discord_game_sdk PATHS "lib/discord-rpc/macos")
@@ -135,5 +144,5 @@ set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 
-target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK})
+target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3)
 
