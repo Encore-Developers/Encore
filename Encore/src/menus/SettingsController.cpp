@@ -338,7 +338,7 @@ void SettingsController::KeyboardInputCallback(int key, int scancode, int action
     }
 }
 
-void SettingsController::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+void SettingsController::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
     /*
     static GLFWgamepadstate prevState;
     static std::vector<float> debounceTimers(GLFW_GAMEPAD_AXIS_LAST + 1, 0.0f);

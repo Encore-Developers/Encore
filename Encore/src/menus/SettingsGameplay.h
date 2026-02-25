@@ -17,7 +17,7 @@ class SettingsGameplay : public OvershellMenu {
 public:
     void Draw();
     void KeyboardInputCallback(int key, int scancode, int action, int mods);
-    void ControllerInputCallback(int joypadID, GLFWgamepadstate state);
+    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     void Load();
     void Save();
 

@@ -65,7 +65,7 @@ public:
     void Draw();
     void Load();
     void KeyboardInputCallback(int key, int scancode, int action, int mods);
-    void ControllerInputCallback(int joypadID, GLFWgamepadstate state);
+    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     std::string SplashString;
     bool songsLoaded = false;
     bool streamsLoaded = false;

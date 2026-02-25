@@ -541,11 +541,11 @@ void SettingsAudioVideo::KeyboardInputCallback(int key, int scancode, int action
     }
 }
 
-void SettingsAudioVideo::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
-        Save();
-        TheMenuManager.SwitchScreen(SETTINGS);
-    }
+void SettingsAudioVideo::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    // if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
+    //    Save();
+    //    TheMenuManager.SwitchScreen(SETTINGS);
+    //}
 }
 
 void SettingsAudioVideo::Load() {

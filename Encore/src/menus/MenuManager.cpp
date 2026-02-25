@@ -85,7 +85,7 @@ void MenuManager::LoadMenu() {
         break;
     }
     case SONG_SELECT: {
-        glfwSetGamepadStateCallback(gamepadStateCallback);
+        // glfwSetGamepadStateCallback(gamepadStateCallback);
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         ActiveMenu = new SongSelectMenu;
         ActiveMenu->Load();
@@ -130,7 +130,7 @@ void MenuManager::LoadMenu() {
     default:;
     }
     glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-    glfwSetGamepadStateCallback(gamepadStateCallback);
+    // glfwSetGamepadStateCallback(gamepadStateCallback);
 }
 
 // calibration

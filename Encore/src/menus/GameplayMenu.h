@@ -36,7 +36,7 @@ public:
     void DrawTimerbox(Units &u, Assets &assets, float scoreY);
     void DrawGameplayStars(Units &u, Assets &assets, float scorePos, float starY);
     void KeyboardInputCallback(int key, int scancode, int action, int mods);
-    void ControllerInputCallback(int joypadID, GLFWgamepadstate state);
+    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     void Draw() override;
     void Load() override;
 };

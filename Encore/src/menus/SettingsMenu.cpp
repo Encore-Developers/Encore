@@ -214,7 +214,7 @@ void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int 
     }
 }
 
-void SettingsMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+void SettingsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
 }
 
 void SettingsMenu::Load() {

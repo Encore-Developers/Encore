@@ -5,11 +5,16 @@
 #ifndef INPUTCALLBACKS_H
 #define INPUTCALLBACKS_H
 #include "GLFW/glfw3.h"
+#include "RhythmEngine/REenums.h"
 
 // what to check when a key changes states (what was the change? was it pressed? or
 // released? what time? what window? were any modifiers pressed?)
 void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);
-void gamepadStateCallback(int joypadID, GLFWgamepadstate state);
+void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event);
+void PollSDL3ControllerInputs();
+
+
+
 /*
 static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
     for (int i = 0; i < 6; i++) {

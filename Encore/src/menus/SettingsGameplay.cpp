@@ -251,11 +251,11 @@ void SettingsGameplay::KeyboardInputCallback(int key, int scancode, int action, 
     }
 }
 
-void SettingsGameplay::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
-        Save();
-        TheMenuManager.SwitchScreen(SETTINGS);
-    }
+void SettingsGameplay::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    //if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
+    //    Save();
+    //    TheMenuManager.SwitchScreen(SETTINGS);
+    //}
 }
 
 void SettingsGameplay::Load() {

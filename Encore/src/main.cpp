@@ -11,6 +11,7 @@
 
 #include <cassert>
 
+#include "gameplay/inputCallbacks.h"
 #include "SDL3/SDL.h"
 
 #include "settings/keybinds.h"
@@ -276,20 +277,7 @@ int main(int argc, char *argv[]) {
         u.calcUnits();
 
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            Encore::EncoreLog(LOG_INFO, TextFormat("SDL event %i", event.type));
-            switch (event.type) {
-            case SDL_EVENT_GAMEPAD_ADDED:
-                SDL_OpenGamepad(event.gdevice.which);
-                break;
-            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-                Encore::EncoreLog(LOG_INFO, TextFormat("SDL button press %i", event.gbutton.button));
-                break;
-            case SDL_EVENT_QUIT:
-                return 0;
-            }
-        }
+        PollSDL3ControllerInputs();
 
         if (GetRenderWidth() < minWidth) {
             if (GetRenderHeight() < minHeight)

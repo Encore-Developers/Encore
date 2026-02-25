@@ -239,7 +239,7 @@ void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods
         }
     }
 }
-void MainMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
+void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
 
 void MainMenu::AttractScreen() {
     float SplashFontSize = u.hinpct(0.03f);

@@ -164,7 +164,7 @@ void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, in
             TheSongList.SongSelectOffset = TheSongList.listMenuEntries.size() - 10;
     }
 }
-void SongSelectMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {}
+void SongSelectMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units u = Units::getInstance();

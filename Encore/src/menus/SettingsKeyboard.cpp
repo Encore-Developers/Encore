@@ -170,11 +170,11 @@ void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, 
 
 }
 
-void SettingsKeyboard::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
-    if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
-        Save();
-        TheMenuManager.SwitchScreen(SETTINGS);
-    }
+void SettingsKeyboard::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    //if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
+    //    Save();
+    //    TheMenuManager.SwitchScreen(SETTINGS);
+    //}
 }
 
 void SettingsKeyboard::Load() {

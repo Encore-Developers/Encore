@@ -98,5 +98,12 @@ namespace Encore::RhythmEngine {
         RELEASE = 0,
         REPEAT = 2 // not needed but whatever
     };
+
+    class ControllerEvent {
+        public:
+        InputChannel channel;
+        Action action;
+        int slot;
+    };
 }
 #endif // REENUMS_H

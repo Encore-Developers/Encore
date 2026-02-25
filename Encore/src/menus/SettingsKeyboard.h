@@ -27,7 +27,7 @@ public:
     void Draw() override;
     static std::pair<std::string, int> getBindTypeAndIndex(size_t optionIndex);
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
-    void ControllerInputCallback(int joypadID, GLFWgamepadstate state) override;
+    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
     void Load();
     void Save();
 

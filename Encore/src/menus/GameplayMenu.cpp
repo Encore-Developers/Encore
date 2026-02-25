@@ -108,8 +108,17 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
         engine->ProcessInput(Channel, REaction);
 };
 
-void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state) {
+void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    Player &player = ThePlayerManager.GetActivePlayer(0);
+    Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
+    Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
+
+    engine->ProcessInput(
+            event.channel,
+            event.action
+        );
     // Encore::EncoreLog(LOG_DEBUG, "Controller inputted.");
+    /*
     Player &player = ThePlayerManager.GetActivePlayer(0);
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
@@ -123,7 +132,7 @@ void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state)
     } else if ((key == settingsMain.keybindOverdrive
                 || key == settingsMain.keybindOverdriveAlt)) {
         // inputHandler.handleInputs(player, -1, action);
-    } else */
+    } else
 
     Encore::RhythmEngine::Action REaction;
     Encore::RhythmEngine::InputChannel Channel =
@@ -175,7 +184,7 @@ void GameplayMenu::ControllerInputCallback(int joypadID, GLFWgamepadstate state)
 
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i",
     // lane));
-    /*
+
      * actually kinda important tbh this isnt supposed to be here
     if (TheMenuManager.currentScreen == SONG_SELECT) {
         if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP] == GLFW_PRESS) {
