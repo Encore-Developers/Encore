@@ -11,6 +11,7 @@ void Encore::EventSource::RemoveSink(EventSink *sink) {
     sinks.erase(sink);
     sink->sources.erase(this);
 }
+
 void Encore::EventSource::FireEvent(Event *event) {
     for (auto it = sinks.begin(); it != sinks.end(); ++it) {
         auto sink = *it;
@@ -25,9 +26,8 @@ Encore::EventSource::~EventSource() {
 }
 
 Encore::EventSink::~EventSink() {
-    sources.clear();
-    //for (auto it = sources.begin(); it != sources.end(); ++it) {
-    //    auto source = *it;
-    //    source->RemoveSink(this);
-    //}
+    for (auto it = sources.begin(); it != sources.end(); ++it) {
+        auto source = *it;
+        source->RemoveSink(this);
+    }
 }
