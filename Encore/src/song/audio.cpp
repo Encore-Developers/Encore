@@ -202,9 +202,10 @@ void Encore::AudioManager::BeginPlayback(unsigned int handle) {
 
 void Encore::AudioManager::StartEffect(AudioStream* stream) {
     BASS_DX8_FLANGER effect;
-    effect.fWetDryMix = 75;
+    effect.fWetDryMix = 100;
     BASS_FXSetParameters(BASS_FX_DX8_FLANGER, &effect);
-    stream->fxhandle = BASS_ChannelSetFX(stream->handle, BASS_FX_DX8_FLANGER, 0);
+    if (stream)
+        stream->fxhandle = BASS_ChannelSetFX(stream->handle, BASS_FX_DX8_FLANGER, 0);
     CHECK_BASS_ERROR2();
 }
 

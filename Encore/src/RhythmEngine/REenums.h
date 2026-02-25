@@ -101,7 +101,7 @@ namespace Encore::RhythmEngine {
 
     class ControllerEvent {
         public:
-        InputChannel channel;
+        InputChannel channel = InputChannel::INVALID;
         Action action;
         int slot;
     };

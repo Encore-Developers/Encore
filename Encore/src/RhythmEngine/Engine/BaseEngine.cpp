@@ -11,6 +11,8 @@
 #include <bit>
 #include <memory>
 
+#include "song/audio.h"
+
 bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
     double noteStartTime
 ) {
@@ -80,6 +82,11 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action
 bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action action) {
     if (channel == InputChannel::PAUSE && action == Action::PRESS) {
         TogglePause();
+        // TODO: make this work depending on player count and probably not in here
+        if (stats->Paused)
+            TheAudioManager.pauseStreams();
+        else
+            TheAudioManager.unpauseStreams();
         return true;
     }
     return false;

@@ -105,7 +105,7 @@ struct ODEvents final : EncEventVect<odPhrase> {
     }
 
     void MissCurrentEvent(int eventTime) {
-        if (!this->empty())
+        if (this->empty())
             return;
         if (TickDuringCurrentEvent(eventTime))
             this->front().missed = true;

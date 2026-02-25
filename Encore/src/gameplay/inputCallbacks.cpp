@@ -69,6 +69,9 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         switch (event->gbutton.button) {
+        default:
+            outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
+            break;
         case(SDL_GAMEPAD_BUTTON_SOUTH):
             outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
             break;
@@ -89,6 +92,13 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
             break;
         case(SDL_GAMEPAD_BUTTON_DPAD_DOWN):
             outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+            break;
+        case(SDL_GAMEPAD_BUTTON_START):
+            outevent.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            break;
+
+        case(SDL_GAMEPAD_BUTTON_BACK):
+            outevent.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
             break;
         }
         if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP)
@@ -113,10 +123,17 @@ void PollSDL3ControllerInputs() {
                               TextFormat("SDL gamepad name %s",
                                          SDL_GetGamepadNameForID(event.gdevice.which)));
             break;
+        case SDL_EVENT_GAMEPAD_REMOVED:
+            // TODO: device removal/saving gamepad pointer to player
+            Encore::EncoreLog(LOG_INFO,
+                              TextFormat("SDL gamepad name %s",
+                                         SDL_GetGamepadNameForID(event.gdevice.which)));
+            break;
             // case SDL_EVENT_QUIT:
             //    return 0;
         }
-        if (TheMenuManager.ActiveMenu)
+        if (TheMenuManager.ActiveMenu && (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)) {
             TheMenuManager.ActiveMenu->ControllerInputCallback(TranslateEvent(&event));
+        }
     }
 }
