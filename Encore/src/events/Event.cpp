@@ -25,8 +25,9 @@ Encore::EventSource::~EventSource() {
 }
 
 Encore::EventSink::~EventSink() {
-    for (auto it = sources.begin(); it != sources.end(); ++it) {
-        auto source = *it;
-        source->RemoveSink(this);
-    }
+    sources.clear();
+    //for (auto it = sources.begin(); it != sources.end(); ++it) {
+    //    auto source = *it;
+    //    source->RemoveSink(this);
+    //}
 }
