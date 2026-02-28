@@ -3,6 +3,7 @@
 //
 #include "inputCallbacks.h"
 
+#include "enctime.h"
 #include "menus/MenuManager.h"
 #include "util/enclog.h"
 #include "raylib.h"
@@ -14,6 +15,8 @@
 #include <cstring>
 
 #include "RhythmEngine/REenums.h"
+
+using namespace std::chrono_literals;
 
 void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s",
@@ -112,7 +115,17 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
     return outevent;
 }
 
-void PollSDL3ControllerInputs() {
+void PollQueuedInputs(ControllerPoller& poller) {
+    while (poller.readIndex < poller.writeIndex) {
+        auto event = poller.getEvent(poller.readIndex);
+        if (TheMenuManager.ActiveMenu) {
+            TheMenuManager.ActiveMenu->ControllerInputCallback(event);
+        }
+        poller.readIndex++;
+    }
+}
+
+void _PollQueuedInputs() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         // Encore::EncoreLog(LOG_INFO, TextFormat("SDL event %i", event.type));
@@ -135,5 +148,47 @@ void PollSDL3ControllerInputs() {
         if (TheMenuManager.ActiveMenu && (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)) {
             TheMenuManager.ActiveMenu->ControllerInputCallback(TranslateEvent(&event));
         }
+    }
+}
+void ControllerPoller::Run() {
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
+        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
+        return;
+    }
+    Encore::EncoreLog(LOG_INFO, TextFormat("SDL Initialzed: revision %s", SDL_GetRevision()));
+
+    while (active) {
+        auto start = std::chrono::high_resolution_clock::now();
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            // Encore::EncoreLog(LOG_INFO, TextFormat("SDL event %i", event.type));
+            switch (event.type) {
+            case SDL_EVENT_GAMEPAD_ADDED:
+                SDL_OpenGamepad(event.gdevice.which);
+                Encore::EncoreLog(LOG_INFO,
+                                  TextFormat("SDL gamepad name %s",
+                                             SDL_GetGamepadNameForID(event.gdevice.which)));
+                break;
+            case SDL_EVENT_GAMEPAD_REMOVED:
+                // TODO: device removal/saving gamepad pointer to player
+                Encore::EncoreLog(LOG_INFO,
+                                  TextFormat("SDL gamepad name %s",
+                                             SDL_GetGamepadNameForID(event.gdevice.which)));
+                break;
+                // case SDL_EVENT_QUIT:
+                //    return 0;
+            }
+            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
+                auto time = TheSongTime.GetElapsedTime();
+                auto encEvent = TranslateEvent(&event);
+                encEvent.timestamp = time;
+                getEvent(writeIndex) = encEvent;
+                writeIndex++;
+            }
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        auto span = 1ms - (end - start);
+        std::this_thread::sleep_for(span);
     }
 }

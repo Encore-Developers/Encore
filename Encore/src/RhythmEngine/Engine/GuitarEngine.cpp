@@ -65,6 +65,7 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
 
 
 void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
+    this->LastUpdateTime = CurrentTime;
     if (stats->Bot) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
             return;
@@ -98,7 +99,7 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
     InputChannel channel,
     Action action
 ) {
-    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG
+    stats->InputTime = LastUpdateTime; // todo: REPLACE WITH ACTUAL SONG
     // TIME
     // (IN SECONDS)
     if (action == Action::PRESS) {

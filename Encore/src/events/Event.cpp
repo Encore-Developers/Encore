@@ -13,21 +13,17 @@ void Encore::EventSource::RemoveSink(EventSink *sink) {
 }
 
 void Encore::EventSource::FireEvent(Event *event) {
-    for (auto it = sinks.begin(); it != sinks.end(); ++it) {
-        auto sink = *it;
+    for (auto sink : sinks) {
         sink->HandleEvent(event);
     }
 }
 Encore::EventSource::~EventSource() {
-    for (auto it = sinks.begin(); it != sinks.end(); ++it) {
-        auto sink = *it;
+    for (auto sink : sinks) {
         sink->sources.erase(this);
     }
 }
-
 Encore::EventSink::~EventSink() {
-    for (auto it = sources.begin(); it != sources.end(); ++it) {
-        auto source = *it;
-        source->RemoveSink(this);
+    for (auto source : sources) {
+        source->sinks.erase(this);
     }
 }

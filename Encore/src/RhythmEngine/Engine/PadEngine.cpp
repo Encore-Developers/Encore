@@ -15,7 +15,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
     InputChannel channel, Action action
 ) {
     // todo: hit notes (THIS IS PAD)
-    stats->InputTime = TheSongTime.GetElapsedTime();
+    stats->InputTime = LastUpdateTime;
     if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
         // activates overdrive
         if (stats->overdrive.Activate(stats->InputTime)) {
@@ -47,7 +47,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
 void Encore::RhythmEngine::PadEngine::SetStatsInputState(
     InputChannel channel, Action action
 ) {
-    stats->InputTime = TheSongTime.GetElapsedTime();
+    stats->InputTime = LastUpdateTime;
     if (action == Action::PRESS) {
         switch (channel) {
         case InputChannel::LANE_1:
@@ -120,6 +120,7 @@ void Encore::RhythmEngine::PadEngine::HitNote(int lane) {
 }
 
 void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
+    LastUpdateTime = CurrentTime;
     for (int Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())

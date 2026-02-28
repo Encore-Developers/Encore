@@ -113,6 +113,7 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
 
+    engine->UpdateOnFrame(event.timestamp);
     engine->ProcessInput(
             event.channel,
             event.action

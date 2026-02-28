@@ -218,17 +218,17 @@ void Encore::Track::DrawBeatlines() {
             Color beatlineColor = WHITE;
             switch (beatline.type) {
             case Major: {
-                beatlineColor = GRAY;
+                beatlineColor = {255, 255, 255, 220};
                 Size = 0.05;
                 break;
             }
             case Minor: {
-                beatlineColor = DARKGRAY;
+                beatlineColor = {255, 255, 255, 190};
                 Size = 0.01;
                 break;
             }
             case Measure: {
-                beatlineColor = WHITE;
+                beatlineColor = {255, 255, 255, 240};
                 Size = 0.1;
                 break;
             }
@@ -303,6 +303,7 @@ inline double easeInQuadd(double x) {
 }
 
 void Encore::Track::ProcessAnimation() {
+    AnimCamera = BaseCamera;
     if (KickTimer > 0)
         KickTimer -= GetFrameTime()*5;
     else {

@@ -32,9 +32,9 @@ namespace Encore {
 
     /// Can fire events
     class EventSource {
+    public:
         std::unordered_set<EventSink *> sinks;
 
-    public:
         void AddSink(EventSink *sink);
         void RemoveSink(EventSink *sink);
 

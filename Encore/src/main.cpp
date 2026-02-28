@@ -255,13 +255,8 @@ int main(int argc, char *argv[]) {
         TheMenuManager.currentScreen = MAIN_MENU;
     }
 
+    ControllerPoller poller;
 
-    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
-    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
-        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
-        return 0;
-    }
-    Encore::EncoreLog(LOG_INFO, TextFormat("SDL Initialzed: revision %s", SDL_GetRevision()));
 
     if (TheGameSettings.Framerate > 0)
         Encore::EncoreLog(
@@ -276,8 +271,7 @@ int main(int argc, char *argv[]) {
         glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
-
-        PollSDL3ControllerInputs();
+        PollQueuedInputs(poller);
 
         if (GetRenderWidth() < minWidth) {
             if (GetRenderHeight() < minHeight)
@@ -351,6 +345,7 @@ int main(int argc, char *argv[]) {
         }
         TheFrameManager.WaitForFrame();
     }
+    poller.active = false;
     CloseWindow();
     return 0;
 }

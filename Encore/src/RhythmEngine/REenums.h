@@ -101,9 +101,11 @@ namespace Encore::RhythmEngine {
 
     class ControllerEvent {
         public:
-        InputChannel channel = InputChannel::INVALID;
-        Action action;
-        int slot;
+        InputChannel channel : 8 = InputChannel::INVALID;
+        Action action : 8;
+        unsigned int axis : 8;
+        unsigned int slot : 8;
+        double timestamp;
     };
 }
 #endif // REENUMS_H

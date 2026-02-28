@@ -43,6 +43,7 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<BaseStats<5> > stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
+        double LastUpdateTime;
 
         std::pair<int, int> GetNotePoolSize(int lane);
 

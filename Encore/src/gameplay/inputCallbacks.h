@@ -7,13 +7,42 @@
 #include "GLFW/glfw3.h"
 #include "RhythmEngine/REenums.h"
 
+#include <thread>
+
 // what to check when a key changes states (what was the change? was it pressed? or
 // released? what time? what window? were any modifiers pressed?)
 void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);
 void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event);
-void PollSDL3ControllerInputs();
+
+#define MAX_EVENTS 2000
 
 
+/// Manages SDL and polls input on a seperate thread, timestampping input events using enctime
+class ControllerPoller {
+private:
+    void Run();
+public:
+    Encore::RhythmEngine::ControllerEvent eventQueue[MAX_EVENTS];
+    unsigned long writeIndex = 0;
+    unsigned long readIndex = 0;
+    std::thread pollThread;
+
+    bool active = true;
+
+    unsigned int loopIndex(unsigned int input) {
+        return input % MAX_EVENTS;
+    }
+
+    Encore::RhythmEngine::ControllerEvent& getEvent(unsigned int index) {
+        return eventQueue[loopIndex(index)];
+    }
+
+    ControllerPoller() {
+        pollThread = std::thread(&ControllerPoller::Run, this);
+    }
+};
+
+void PollQueuedInputs(ControllerPoller&);
 
 /*
 static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
