@@ -403,6 +403,7 @@ void Encore::Track::DrawTrackDebugWindow() {
             Text(TextFormat("Stars: *%i", player.engine->stats->Stars));
             Text(TextFormat("Multiplier: %ix",
                                    player.engine->stats->multiplier()));
+            Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
         }
         if (CollapsingHeader("Chart Information")) {
             if (BeginTable("Note List", player.engine->chart->Lanes.size())) {

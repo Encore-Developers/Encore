@@ -10,6 +10,8 @@ namespace Encore {
         GemTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {};
 
         float animTimer = 1;
+        Particle* hitFlare;
+        unsigned int hitFlareId;
 
         virtual void DrawNote(RhythmEngine::EncNote *note);
         virtual void DrawSustainTail(double startTime, double endTime);

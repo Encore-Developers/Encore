@@ -4,6 +4,8 @@
 #include "assets.h"
 #include "rlgl.h"
 
+#include <complex>
+
 float easeOutBounce(float x) {
     const float n1 = 7.5625;
     const float d1 = 2.75;
@@ -100,10 +102,14 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
 
     DrawModelEx(ASSET(smasherFrame), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3f * length }, WHITE);
     DrawModelEx(ASSET(smasherPiston), { xPos, 0.025f+bounce, 0-bounce*0.2f }, {0}, 0, { width, 1, 1.3f * length }, color);
+
     // DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)
             continue;
+        if (note->StartSeconds+note->LengthSeconds < TheSongTime.GetElapsedTime()) {
+            continue;
+        }
         bool matches = false;
         if (note->Lane & RhythmEngine::PlasticFrets[index]) {
             matches = true;
@@ -111,10 +117,23 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
                             note->StartSeconds + note->LengthSeconds);
+            if (hitFlare) {
+                if (hitFlare->id == hitFlareId) {
+                    hitFlare->time = (std::sin(TheSongTime.GetElapsedTime()*100)+1)*0.5*FLARE_LIFETIME*0.1+0.02;
+                    //hitFlare->time = 0;
+                }
+            }
             break;
         }
     }
 }
 void Encore::GemTrackSlot::AnimateHit() {
     animTimer = 0;
+    Particle part;
+    part.active = true;
+    part.type = FLARE;
+    part.position = {xPos, 0.05, 0};
+    part.color = track->player.QueryColorProfile(colorSlot);
+    hitFlare = track->particleSystem->SpawnParticle(part);
+    hitFlareId = hitFlare->id;
 }

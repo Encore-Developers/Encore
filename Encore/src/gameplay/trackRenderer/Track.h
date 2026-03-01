@@ -8,10 +8,12 @@
 #include "raylib.h"
 #include "events/Event.h"
 #include "gameplay/enctime.h"
+#include "particles/ParticleSystem.h"
 #include "users/player.h"
 
 namespace Encore {
     class TrackSlot;
+    class ParticleSystem;
 
     class Track : public EventSink {
     public:
@@ -56,6 +58,8 @@ namespace Encore {
 
         Camera3D AnimCamera;
         Camera3D BaseCamera;
+
+        std::unique_ptr<ParticleSystem> particleSystem;
 
         Track(Player &player_)
             : player(player_) {

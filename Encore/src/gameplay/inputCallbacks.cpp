@@ -162,7 +162,6 @@ void ControllerPoller::Run() {
         auto start = std::chrono::high_resolution_clock::now();
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            // Encore::EncoreLog(LOG_INFO, TextFormat("SDL event %i", event.type));
             switch (event.type) {
             case SDL_EVENT_GAMEPAD_ADDED:
                 SDL_OpenGamepad(event.gdevice.which);
@@ -176,8 +175,6 @@ void ControllerPoller::Run() {
                                   TextFormat("SDL gamepad name %s",
                                              SDL_GetGamepadNameForID(event.gdevice.which)));
                 break;
-                // case SDL_EVENT_QUIT:
-                //    return 0;
             }
             if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
                 auto time = TheSongTime.GetElapsedTime();

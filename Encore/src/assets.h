@@ -509,6 +509,9 @@ public:
             model->materials[0].shader = trackCurveShader;
         });
 
+    NEWTEXASSET(hitFlareTex, "gameplay/track/hit_flare.png");
+    NEWTEXASSET(hitFlareInnerTex, "gameplay/track/hit_flare_inner.png");
+
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);

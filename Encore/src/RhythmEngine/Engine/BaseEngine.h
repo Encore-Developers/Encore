@@ -44,6 +44,7 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<BaseStats<5> > stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
         double LastUpdateTime;
+        bool allowTimestampedInputs = true;
 
         std::pair<int, int> GetNotePoolSize(int lane);
 

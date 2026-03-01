@@ -131,6 +131,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     if (!chart->UpdateCurrentNote(lane))
         return;
     if (PerfectHit(startTime)) stats->LastPerfectTime = stats->InputTime;
+    stats->LastHitAccuracy = stats->InputTime - startTime;
     stats->HitNote(chordSize, PerfectHit(startTime));
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);

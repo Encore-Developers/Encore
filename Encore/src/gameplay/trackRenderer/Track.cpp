@@ -41,11 +41,13 @@ void Encore::Track::Draw() {
     DrawOverdriveMeter();
     DrawSmashers();
 
+
     EndMode3D();
     BeginMode3D(AnimCamera);
     rlDisableDepthTest();
     DrawNotes();
 
+    particleSystem->Render();
     EndShaderMode();
 
     EndMode3D();
@@ -65,6 +67,8 @@ void Encore::Track::Load() {
     };
     AnimCamera = BaseCamera;
     player.engine->AddSink(this);
+    particleSystem = std::unique_ptr<ParticleSystem>(new ParticleSystem);
+    particleSystem->track = this;
 }
 
 void Encore::Track::DrawSurface() {

@@ -40,6 +40,10 @@ public:
     ControllerPoller() {
         pollThread = std::thread(&ControllerPoller::Run, this);
     }
+
+    ~ControllerPoller() {
+        active = false;
+    }
 };
 
 void PollQueuedInputs(ControllerPoller&);

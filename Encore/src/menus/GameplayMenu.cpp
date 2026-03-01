@@ -113,7 +113,9 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
 
-    engine->UpdateOnFrame(event.timestamp);
+    if (engine->allowTimestampedInputs) {
+        engine->UpdateOnFrame(event.timestamp);
+    }
     engine->ProcessInput(
             event.channel,
             event.action
@@ -734,7 +736,7 @@ void GameplayMenu::Draw() {
                 );
                 GameMenu::mhDrawText(
                     assets.JetBrainsMono,
-                    "Perfect",
+                    TextFormat("Perfect (%.0fms)", player.engine->stats->LastHitAccuracy*1000),
                     { MiddleOfScreen + (NoteXWidth * 3.0f),
                       float(FakeStrikeline) - u.hinpct(0.1) },
                     u.hinpct(0.05),
