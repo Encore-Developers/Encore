@@ -22,6 +22,8 @@ class ControllerPoller {
 private:
     void Run();
 public:
+    static int controllerPollRate;
+
     Encore::RhythmEngine::ControllerEvent eventQueue[MAX_EVENTS];
     unsigned long writeIndex = 0;
     unsigned long readIndex = 0;

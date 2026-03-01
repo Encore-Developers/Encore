@@ -150,6 +150,9 @@ void _PollQueuedInputs() {
         }
     }
 }
+
+int ControllerPoller::controllerPollRate = 1000;
+
 void ControllerPoller::Run() {
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
     if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
@@ -185,7 +188,7 @@ void ControllerPoller::Run() {
             }
         }
         auto end = std::chrono::high_resolution_clock::now();
-        auto span = 1ms - (end - start);
+        auto span = std::chrono::milliseconds(1000/controllerPollRate) - (end - start);
         std::this_thread::sleep_for(span);
     }
 }

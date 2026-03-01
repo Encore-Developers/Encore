@@ -3,6 +3,7 @@
 #include "assets.h"
 #include "imgui.h"
 #include "raymath.h"
+#include "gameplay/inputCallbacks.h"
 #include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
 #include "settings/settings.h"
@@ -77,6 +78,7 @@ void EncoreDebug::MenuBar() {
         MenuItem("VSync", 0, &TheGameSettings.VerticalSync);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
+        SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
         EndMenu();
     }
 

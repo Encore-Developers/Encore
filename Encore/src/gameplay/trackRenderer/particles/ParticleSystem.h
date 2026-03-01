@@ -3,7 +3,7 @@
 #define ENCORE_PARTICLESYSTEM_H
 
 #define MAX_PARTICLES 300
-#define FLARE_LIFETIME 0.2f
+#define FLARE_LIFETIME 0.18f
 
 #include "raylib.h"
 #include "../Track.h"

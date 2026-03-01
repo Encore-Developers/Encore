@@ -32,6 +32,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     Color color = track->player.QueryColorProfile(colorSlot);
     if (note->NoteType == 2) {
         ASSET(noteShader).SetUniform("frameColor", color);
+        ASSET(noteShader).SetUniform("noteColor", Color {60, 60, 60, 255});
     } else {
         if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
@@ -39,8 +40,9 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
         } else {
             ASSET(noteShader).SetUniform("frameColor", WHITE);
         }
+        ASSET(noteShader).SetUniform("noteColor", color);
     }
-    ASSET(noteShader).SetUniform("noteColor", color);
+
 
     if (note->LengthSeconds > 0) {
         DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
