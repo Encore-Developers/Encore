@@ -90,6 +90,11 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
             chart.solos[CurrentSolo].NoteCount++;
         }
     }
+    if (!chart.overdrive.empty()) {
+        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick) {
+            chart.overdrive[CurrentOverdrive].NoteCount++;
+        }
+    }
 }
 
 void Encore::RhythmEngine::PadLoader::GetNotes(smf::MidiEventList track) {
