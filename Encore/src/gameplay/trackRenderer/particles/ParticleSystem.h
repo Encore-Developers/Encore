@@ -4,6 +4,7 @@
 
 #define MAX_PARTICLES 300
 #define FLARE_LIFETIME 0.18f
+#define SHOCKWAVE_LIFETIME 0.3f
 
 #include "raylib.h"
 #include "../Track.h"

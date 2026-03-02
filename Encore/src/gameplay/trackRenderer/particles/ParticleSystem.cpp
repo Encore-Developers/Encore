@@ -10,8 +10,8 @@ void Encore::Particle::Update(ParticleSystem* system) {
             active = false;
         }
         break;
-        case SHOCKWAVE:
-        if (time > FLARE_LIFETIME) {
+    case SHOCKWAVE:
+        if (time > SHOCKWAVE_LIFETIME) {
             active = false;
         }
         break;
@@ -33,8 +33,8 @@ void Encore::Particle::Render(ParticleSystem* system) {
             break;
         }
         case SHOCKWAVE: {
-            float lifetime = (FLARE_LIFETIME * 8)-time;
-            float frac = (lifetime/(FLARE_LIFETIME * 8));
+            float lifetime = SHOCKWAVE_LIFETIME-time;
+            float frac = (lifetime/SHOCKWAVE_LIFETIME);
             // color.a = (frac*frac)*color.a;
             Color white = {color.r, color.g, color.b, (unsigned char)((frac*frac)*color.a)};
             Rectangle source = { 0.0f, 0.0f, (float)ASSET(shockwaveTex).width, (float)ASSET(shockwaveTex).height };
