@@ -18,6 +18,8 @@
 
 #include <span>
 
+#include "SDL3/SDL_gamepad.h"
+
 // #include "libstud-uuid/uuid/uuid.hxx"
 
 class Band {
@@ -207,7 +209,8 @@ public:
 #undef SETTING_ACTION
     std::string playerJsonObjectName;
     int SongsPlayed;
-    int joypadID;
+    // todo: controller manager for assigning players to gamepads
+    SDL_Gamepad *joypadID;
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};

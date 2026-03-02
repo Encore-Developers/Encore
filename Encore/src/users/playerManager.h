@@ -32,7 +32,7 @@ public:
 
     void AddActivePlayer(int playerNum, int slot) {
         ActivePlayers.at(slot) = playerNum;
-        GetActivePlayer(slot).joypadID = slot;
+        // GetActivePlayer(slot).joypadID = slot;
         PlayersActive += 1;
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
     }
@@ -45,18 +45,18 @@ public:
 
     bool IsGamepadActive(int joystickID) {
         for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            if (GetActivePlayer(playesr).joypadID == joystickID) {
-                return true;
-            }
+            // if (GetActivePlayer(playesr).joypadID == joystickID) {
+            //     return true;
+            // }
         }
         return false;
     }
 
     Player &GetPlayerGamepad(int joystickID) {
         for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            if (GetActivePlayer(playesr).joypadID == joystickID) {
-                return GetActivePlayer(playesr);
-            }
+            // if (GetActivePlayer(playesr).joypadID == joystickID) {
+            //     return GetActivePlayer(playesr);
+            // }
         }
 
         // WE'RE GONNA CRASH
