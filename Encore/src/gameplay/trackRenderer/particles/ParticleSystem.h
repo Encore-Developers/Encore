@@ -15,7 +15,8 @@ namespace Encore {
 
     enum ParticleType {
         FLARE,
-        SMOKE
+        SMOKE,
+        SHOCKWAVE
     };
 
     class Particle {
@@ -27,6 +28,31 @@ namespace Encore {
         Vector3 position;
         Vector3 velocity;
         Color color;
+
+        Particle& pos(Vector3 _position) {
+            position = _position;
+            return *this;
+        }
+
+        Particle& vel(Vector3 _velocity) {
+            velocity = _velocity;
+            return *this;
+        }
+
+        Particle& col(Color _color) {
+            color = _color;
+            return *this;
+        }
+
+        Particle& setActive(bool _active) {
+            active = _active;
+            return *this;
+        }
+
+        Particle& setType(ParticleType _type) {
+            type = _type;
+            return *this;
+        }
 
         void Render(ParticleSystem*);
         void Update(ParticleSystem*);

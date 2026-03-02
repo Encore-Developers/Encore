@@ -19,7 +19,6 @@ float easeOutBounce(float x) {
     } else {
         return n1 * (x -= 2.625 / d1) * x + 0.984375;
     }
-
 }
 
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
@@ -27,12 +26,11 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     float finalWidth = 1;
     Vector3 position = { xPos, 0.0, pos };
 
-
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
     if (note->NoteType == 2) {
         ASSET(noteShader).SetUniform("frameColor", color);
-        ASSET(noteShader).SetUniform("noteColor", Color {60, 60, 60, 255});
+        ASSET(noteShader).SetUniform("noteColor", Color{ 60, 60, 60, 255 });
     } else {
         if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
@@ -43,7 +41,6 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
         ASSET(noteShader).SetUniform("noteColor", color);
     }
 
-
     if (note->LengthSeconds > 0) {
         DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
     }
@@ -51,11 +48,20 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     rlDrawRenderBatchActive();
 
     if (note->NoteType == 1 || note->NoteType == 2) {
-        DrawModelEx(ASSET(hopoNote), position,{ 0 }, 0,{ width, track->NoteHeight, 1 }, WHITE);
+        DrawModelEx(ASSET(hopoNote),
+                    position,
+                    { 0 },
+                    0,
+                    { width, track->NoteHeight, 1 },
+                    WHITE);
     } else {
-        DrawModelEx(ASSET(regularNote), position,{ 0 }, 0, { width, track->NoteHeight, 1 }, WHITE);
+        DrawModelEx(ASSET(regularNote),
+                    position,
+                    { 0 },
+                    0,
+                    { width, track->NoteHeight, 1 },
+                    WHITE);
     }
-
 
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
@@ -96,32 +102,52 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     }
 
     if (animTimer < 1) {
-        animTimer += GetFrameTime()*5;
+        animTimer += GetFrameTime() * 5;
     } else {
         animTimer = 1;
     }
-    float bounce = (1 - easeOutBounce(animTimer))*0.2;
+    float bounce = (1 - easeOutBounce(animTimer)) * 0.2;
 
-    DrawModelEx(ASSET(smasherFrame), { xPos, 0.025, 0 }, {0}, 0, { width, 1, 1.3f * length }, WHITE);
-    DrawModelEx(ASSET(smasherPiston), { xPos, 0.025f+bounce, 0-bounce*0.2f }, {0}, 0, { width, 1, 1.3f * length }, color);
-
+    DrawModelEx(ASSET(smasherFrame),
+                { xPos, 0.025, 0 },
+                { 0 },
+                0,
+                { width, 1, 1.3f * length },
+                WHITE);
+    DrawModelEx(ASSET(smasherPiston),
+                { xPos, 0.025f + bounce, 0 - bounce * 0.2f },
+                { 0 },
+                0,
+                { width, 1, 1.3f * length },
+                color);
     // DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
+    //for (auto note : track->player.engine->chart->PerfectNotePointers) {
+    //    if (!note) {
+    //        continue;
+    //    }
+    //    if (shockwaveParticle) {
+    //        if (shockwaveParticle->id == shockwaveId)
+    //            shockwaveParticle->color = GOLD;
+    //    }
+    //}
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)
             continue;
-        if (note->StartSeconds+note->LengthSeconds < TheSongTime.GetElapsedTime()) {
+        if (note->StartSeconds + note->LengthSeconds < TheSongTime.GetElapsedTime()) {
             continue;
         }
         bool matches = false;
         if (note->Lane & RhythmEngine::PlasticFrets[index]) {
             matches = true;
         }
+
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
                             note->StartSeconds + note->LengthSeconds);
             if (hitFlare) {
                 if (hitFlare->id == hitFlareId) {
-                    hitFlare->time = (std::sin(TheSongTime.GetElapsedTime()*100)+1)*0.5*FLARE_LIFETIME*0.1+0.02;
+                    hitFlare->time = (std::sin(TheSongTime.GetElapsedTime() * 100) + 1) *
+                        0.5 * FLARE_LIFETIME * 0.1 + 0.02;
                     //hitFlare->time = 0;
                 }
             }
@@ -129,13 +155,30 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         }
     }
 }
-void Encore::GemTrackSlot::AnimateHit() {
+
+void Encore::GemTrackSlot::AnimateHit(bool perfect) {
     animTimer = 0;
     Particle part;
     part.active = true;
     part.type = FLARE;
-    part.position = {xPos, 0.05, 0};
+    part.position = { xPos, 0.05, 0 };
     part.color = track->player.QueryColorProfile(colorSlot);
     hitFlare = track->particleSystem->SpawnParticle(part);
     hitFlareId = hitFlare->id;
+
+    Particle shockwave;
+    Color color = WHITE;
+    color.a = 85;
+
+    if (perfect) {
+        color = GOLD;
+        color.a = 170;
+    }
+
+    shockwave.setActive(true)
+             .setType(SHOCKWAVE)
+             .pos({ xPos, 0.05, 0 })
+             .col(color);
+    shockwaveParticle = track->particleSystem->SpawnParticle(shockwave);
+    shockwaveId = shockwaveParticle->id;
 }

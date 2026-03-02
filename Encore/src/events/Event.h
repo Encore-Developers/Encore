@@ -22,8 +22,9 @@ namespace Encore {
     class NoteHitEvent : public Event {
     public:
         RhythmEngine::EncNote* note;
-
+        bool perfect = false;
         NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
+        NoteHitEvent(RhythmEngine::EncNote* note, bool _perfect) : note(note), perfect(_perfect) {}
     };
 
     

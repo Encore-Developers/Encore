@@ -511,6 +511,7 @@ public:
 
     NEWTEXASSET(hitFlareTex, "gameplay/track/hit_flare.png");
     NEWTEXASSET(hitFlareInnerTex, "gameplay/track/hit_flare_inner.png");
+    NEWTEXASSET(shockwaveTex, "gameplay/track/shockwave.png");
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);

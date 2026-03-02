@@ -127,10 +127,14 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         );
 
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
+    if (PerfectHit(startTime)) {
+        stats->LastPerfectTime = stats->InputTime;
+        event.perfect = true;
+    }
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
-    if (PerfectHit(startTime)) stats->LastPerfectTime = stats->InputTime;
+
     stats->LastHitAccuracy = stats->InputTime - startTime;
     stats->HitNote(chordSize, PerfectHit(startTime));
     chart->overdrive.UpdateEventViaNote(true, startTick);

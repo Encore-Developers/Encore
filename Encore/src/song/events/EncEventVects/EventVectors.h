@@ -156,11 +156,13 @@ struct ODEvents final : EncEventVect<odPhrase> {
             Encore::EncoreLog(LOG_DEBUG, "Removing Overdrive phrase");
             // increment if possible, make sure that the last overdrive gets added
             this->erase(this->begin());
+            return valueToReturn;
         }
         if (this->front().missed) {
             Encore::EncoreLog(LOG_DEBUG, "Removing Overdrive phrase");
             // increment if possible, make sure that the last overdrive gets added
             this->erase(this->begin());
+            return valueToReturn;
         }
 
         return valueToReturn;

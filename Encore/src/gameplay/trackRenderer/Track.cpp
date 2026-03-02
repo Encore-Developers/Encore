@@ -293,7 +293,7 @@ void Encore::Track::HandleEvent(Event *event) {
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
-                slot->AnimateHit();
+                slot->AnimateHit(hitEvent->perfect);
             } else
                 break;
         }
