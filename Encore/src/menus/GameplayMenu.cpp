@@ -1314,9 +1314,9 @@ void GameplayMenu::Draw() {
         //         }
         //     }
         // }
-        bool maxmult = player.engine->stats->SixMultiplier
-            ? player.engine->stats->multNoOD() >= 5
-            : player.engine->stats->multNoOD() == 4;
+        bool maxmult = false;///player.engine->stats->SixMultiplier
+            //? player.engine->stats->multNoOD() >= 5
+            //: player.engine->stats->multNoOD() == 4;
         if (maxmult) {
             unsigned char streakFlash = BeatToCharViaTickThing(
                 TheSongTime.GetCurrentTick(),
