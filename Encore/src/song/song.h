@@ -201,7 +201,7 @@ public:
     std::string loadingPhrase = "";
     std::vector<std::string> charters{};
     std::string jsonHash = "";
-    int hopoThreshold = 170;
+    int hopoThreshold = -1;
     bool ini = false;
     smf::MidiFile midiFile;
     void LoadAudioINI(std::filesystem::path songPath);

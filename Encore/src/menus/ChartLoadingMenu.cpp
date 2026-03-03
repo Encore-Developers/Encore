@@ -47,6 +47,9 @@ void LoadCharts() {
             // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
                 TheSongList.curSong->midiFile[track].linkNotePairs();
+                if (TheSongList.curSong->hopoThreshold == -1) {
+                    TheSongList.curSong->hopoThreshold = (TheSongList.curSong->midiFile.getTicksPerQuarterNote() / 3) + 1;
+                }
                 Encore::EncoreLog(
                     LOG_DEBUG,
                     TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
