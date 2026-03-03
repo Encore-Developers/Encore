@@ -22,6 +22,9 @@ install_name_tool -add_rpath @executable_path out/Encore.app/Contents/MacOS/Enco
 # Delete the gitkeep file if it exists
 rm out/Encore.app/Contents/MacOS/.gitkeep
 
+# Apply an ad-hoc code signature
+codesign --force --deep -s - out/Encore.app
+
 # Copy out the Songs folder
 cp -r build_macos/Encore/Songs out/Songs
 

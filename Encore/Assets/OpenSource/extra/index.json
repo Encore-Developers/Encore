@@ -1,0 +1,1386 @@
+{
+	"type": "extra",
+	"sources": [
+		{
+			"ids": [ "custom", "customs" ],
+			"names": {
+				"en-US": "Custom Songs"
+			},
+			"icon": "custom",
+			"type": "custom"
+		},
+		{
+			"ids": [ "djhero", "djh" ],
+			"names": {
+				"en-US": "DJ Hero"
+			},
+			"icon": "djhero",
+			"type": "game"
+		},
+		{
+			"ids": [ "djherodlc", "djhdlc" ],
+			"names": {
+				"en-US": "DJ Hero DLC"
+			},
+			"icon": "djherodlc",
+			"type": "game"
+		},
+		{
+			"ids": [ "djhero2", "djh2" ],
+			"names": {
+				"en-US": "DJ Hero 2"
+			},
+			"icon": "djhero2",
+			"type": "game"
+		},
+		{
+			"ids": [ "djhero2dlc", "djh2dlc" ],
+			"names": {
+				"en-US": "DJ Hero 2 DLC"
+			},
+			"icon": "djhero2dlc",
+			"type": "game"
+		},
+		{
+			"ids": [ "bhds" ],
+			"names": {
+				"en-US": "Band Hero DS"
+			},
+			"icon": "bhds",
+			"type": "gh"
+		},
+		{
+			"ids": [ "bhdlc" ],
+			"names": {
+				"en-US": "Band Hero DLC"
+			},
+			"icon": "bhdlc",
+			"type": "gh"
+		},
+		{
+			"ids": [ "rbtp_vol_1"],
+			"names": {
+				"en-US": "Rock Band Track Pack Vol. 1"
+			},
+			"icon": "rbtp1",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbtp_vol_2"],
+			"names": {
+				"en-US": "Rock Band Track Pack Vol. 2"
+			},
+			"icon": "rbtp2",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbtp_classic_rock"],
+			"names": {
+				"en-US": "Rock Band Track Pack: Classic Rock"
+			},
+			"icon": "rbtpcr",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbtp_country_1"],
+			"names": {
+				"en-US": "Rock Band Country Track Pack"
+			},
+			"icon": "rbtpc",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbtp_country_2"],
+			"names": {
+				"en-US": "Rock Band Country Track Pack 2"
+			},
+			"icon": "rbtpc2",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbtp_metal"],
+			"names": {
+				"en-US": "Rock Band Metal Track Pack"
+			},
+			"icon": "rbtpm",
+			"type": "rb"
+		},
+		{
+			"ids": [ "pearljam" ],
+			"names": {
+				"en-US": "Pearl Jam: Rock Band"
+			},
+			"icon": "rbpj",
+			"type": "rb"
+		},
+		{
+			"ids": [ "rbvr" ],
+			"names": {
+				"en-US": "Rock Band VR"
+			},
+			"icon": "rbvr",
+			"type": "rb"
+		},
+		{
+			"ids": [ "311hero" ],
+			"names": {
+				"en-US": "311 Hero"
+			},
+			"icon": "311hero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "a2z" ],
+			"names": {
+				"en-US": "A-Z Pack"
+			},
+			"icon": "a2z",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ah1" ],
+			"names": {
+				"en-US": "Angevil Hero"
+			},
+			"icon": "ah",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ah2" ],
+			"names": {
+				"en-US": "Angevil Hero 2"
+			},
+			"icon": "ah",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ah3" ],
+			"names": {
+				"en-US": "Angevil Hero 3"
+			},
+			"icon": "ah",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ah4" ],
+			"names": {
+				"en-US": "Angevil Hero 4"
+			},
+			"icon": "ah",
+			"type": "custom"
+		},
+		{
+			"ids": [ "antihero" ],
+			"names": {
+				"en-US": "Anti Hero"
+			},
+			"icon": "antihero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ahbe" ],
+			"names": {
+				"en-US": "Anti Hero - Beach Episode"
+			},
+			"icon": "ahbe",
+			"type": "custom"
+		},
+		{
+			"ids": [ "antihero2" ],
+			"names": {
+				"en-US": "Anti Hero 2"
+			},
+			"icon": "antihero2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "a7xmegapack" ],
+			"names": {
+				"en-US": "Avenged Sevenfold Mega Pack"
+			},
+			"icon": "a7x",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bitcrusher" ],
+			"names": {
+				"en-US": "BITCRUSHER"
+			},
+			"icon": "bitcrusher",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bitcrusherdlc" ],
+			"names": {
+				"en-US": "BITCRUSHER DLC"
+			},
+			"icon": "bitcrusherdlc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "blackhole" ],
+			"names": {
+				"en-US": "Black Hole"
+			},
+			"icon": "blackhole",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bs" ],
+			"names": {
+				"en-US": "Blanket Statement"
+			},
+			"icon": "bstatement",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bleepbloops" ],
+			"names": {
+				"en-US": "Bleep Bloops"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bleepbloopuc" ],
+			"names": {
+				"en-US": "Bleep Bloop Undercharts"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "c3customs", "ugc_c3", "ccc" ],
+			"names": {
+				"en-US": "C3 Customs"
+			},
+			"icon": "c3customs",
+			"type": "custom"
+		},
+		{
+			"ids": [ "c3legacy" ],
+			"names": {
+				"en-US": "C3 Legacy"
+			},
+			"icon": "c3customs",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cth1" ],
+			"names": {
+				"en-US": "Carpal Tunnel Hero"
+			},
+			"icon": "cth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cth1r" ],
+			"names": {
+				"en-US": "Carpal Tunnel Hero 1: Remastered"
+			},
+			"icon": "cth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cth2" ],
+			"names": {
+				"en-US": "Carpal Tunnel Hero 2"
+			},
+			"icon": "cth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cth3" ],
+			"names": {
+				"en-US": "Carpal Tunnel Hero 3"
+			},
+			"icon": "cth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cth3dlc" ],
+			"names": {
+				"en-US": "Carpal Tunnel Hero 3 DLC"
+			},
+			"icon": "cth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "charts" ],
+			"names": {
+				"en-US": "CHARTS"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "charts2" ],
+			"names": {
+				"en-US": "CHARTS 2"
+			},
+			"icon": "charts2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "chelhero" ],
+			"names": {
+				"en-US": "Chel Hero"
+			},
+			"icon": "chelhero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cb" ],
+			"names": {
+				"en-US": "Circuit Breaker"
+			},
+			"icon": "cb",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ch" ],
+			"names": {
+				"en-US": "Clone Hero"
+			},
+			"icon": "clonehero",
+			"type": "game"
+		},
+		{
+			"ids": [ "codered" ],
+			"names": {
+				"en-US": "Code Red"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "comtpi" ],
+			"names": {
+				"en-US": "Community Track Pack I"
+			},
+			"icon": "comtpi",
+			"type": "custom"
+		},
+		{
+			"ids": [ "comtpii" ],
+			"names": {
+				"en-US": "Community Track Pack II"
+			},
+			"icon": "comtpii",
+			"type": "custom"
+		},
+		{
+			"ids": [ "comtpiii" ],
+			"names": {
+				"en-US": "Community Track Pack III"
+			},
+			"icon": "comtpiii",
+			"type": "custom"
+		},
+		{
+			"ids": [ "comtpiv" ],
+			"names": {
+				"en-US": "Community Track Pack IV"
+			},
+			"icon": "comtpiv",
+			"type": "custom"
+		},
+		{
+			"ids": [ "comtp45" ],
+			"names": {
+				"en-US": "Community Track Pack 4.5"
+			},
+			"icon": "comtp45",
+			"type": "custom"
+		},
+		{
+			"ids": [ "comtpv" ],
+			"names": {
+				"en-US": "Community Track Pack V"
+			},
+			"icon": "comtpv",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cowhero" ],
+			"names": {
+				"en-US": "Cow Hero"
+			},
+			"icon": "cowhero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cowherodlc1" ],
+			"names": {
+				"en-US": "Cow Hero DLC 1 - Bull Conqueror"
+			},
+			"icon": "cowherodlc1",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cowherodlc2" ],
+			"names": {
+				"en-US": "Cow Hero DLC 2 - Bovine Champion"
+			},
+			"icon": "cowherodlc2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cowherodlc3" ],
+			"names": {
+				"en-US": "Cow Hero DLC 3 - Cattle Guardian"
+			},
+			"icon": "cowherodlc3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "creativech" ],
+			"names": {
+				"en-US": "Creative Commons Hero"
+			},
+			"icon": "creativech",
+			"type": "custom"
+		},
+		{
+			"ids": [ "csc" ],
+			"names": {
+				"en-US": "Custom Songs Central"
+			},
+			"icon": "csc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "dcr" ],
+			"names": {
+				"en-US": "Delta's Chart Repository"
+			},
+			"icon": "dcr",
+			"type": "custom"
+		},
+		{
+			"ids": [ "digi" ],
+			"names": {
+				"en-US": "Digitizer"
+			},
+			"icon": "digitizer",
+			"type": "custom"
+		},
+		{
+			"ids": [ "dissonancehero" ],
+			"names": {
+				"en-US": "Dissonance Hero"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "djenthero" ],
+			"names": {
+				"en-US": "Djent Hero"
+			},
+			"icon": "djenth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "dhc" ],
+			"names": {
+				"en-US": "Djent Hero Collection"
+			},
+			"icon": "dhc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "djentherodlc" ],
+			"names": {
+				"en-US": "Djent Hero DLC"
+			},
+			"icon": "djenthdlc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "facelift" ],
+			"names": {
+				"en-US": "Facelift"
+			},
+			"icon": "facelift",
+			"type": "custom"
+		},
+		{
+			"ids": [ "tfoth" ],
+			"names": {
+				"en-US": "The Fall of Troy Hero"
+			},
+			"icon": "tfoth",
+			"type": "custom"
+		},
+		{
+			"ids": [ "fp" ],
+			"names": {
+				"en-US": "Focal Point"
+			},
+			"icon": "fp",
+			"type": "custom"
+		},
+		{
+			"ids": [ "fp2" ],
+			"names": {
+				"en-US": "Focal Point 2"
+			},
+			"icon": "fp2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "fp3" ],
+			"names": {
+				"en-US": "Focal Point 3"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "fof" ],
+			"names": {
+				"en-US": "Frets on Fire"
+			},
+			"icon": "fof",
+			"type": "game"
+		},
+		{
+			"ids": [ "fofix" ],
+			"names": {
+				"en-US": "Frets on Fire X"
+			},
+			"icon": "fofix",
+			"type": "game"
+		},
+		{
+			"ids": [ "eof" ],
+			"names": {
+				"en-US": "Editor on Fire"
+			},
+			"icon": "eof",
+			"type": "game"
+		},
+		{
+			"ids": [ "fuse" ],
+			"names": {
+				"en-US": "Fuse Box"
+			},
+			"icon": "fusebox",
+			"type": "custom"
+		},
+		{
+			"ids": [ "gd" ],
+			"names": {
+				"en-US": "GITADORA"
+			},
+			"icon": "gd",
+			"type": "custom"
+		},
+		{
+			"ids": [ "gf1" ],
+			"names": {
+				"en-US": "GuitarFreaks"
+			},
+			"icon": "generic",
+			"type": "game"
+		},
+		{
+			"ids": [ "gf2dm1" ],
+			"names": {
+				"en-US": "GuitarFreaks 2ndMIX & DrumMania"
+			},
+			"icon": "generic",
+			"type": "game"
+		},
+		{
+			"ids": [ "addygh" ],
+			"names": {
+				"en-US": "Guitar Hero II: Addy's Disc"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ghtorb3" ],
+			"names": {
+				"en-US": "Guitar Hero To Rock Band 3"
+			},
+			"icon": "ghtorb3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ghxsetlist" ],
+			"names": {
+				"en-US": "Guitar Hero X"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ghx2setlist" ],
+			"names": {
+				"en-US": "Guitar Hero X-II"
+			},
+			"icon": "ghx2setlist",
+			"type": "custom"
+		},
+		{
+			"ids": [ "praise" ],
+			"names": {
+				"en-US": "Guitar Praise"
+			},
+			"icon": "praise",
+			"type": "game"
+		},
+		{
+			"ids": [ "praisedlc" ],
+			"names": {
+				"en-US": "Guitar Praise DLC"
+			},
+			"icon": "praisedlc",
+			"type": "game"
+		},
+		{
+			"ids": [ "praiseexpansion" ],
+			"names": {
+				"en-US": "Guitar Praise: Expansion Pack 1"
+			},
+			"icon": "praiseexpansion",
+			"type": "game"
+		},
+		{
+			"ids": [ "stryper" ],
+			"names": {
+				"en-US": "Guitar Praise: Stryper"
+			},
+			"icon": "stryper",
+			"type": "game"
+		},
+		{
+			"ids": [ "guitarzero", "guitarzero132" ],
+			"names": {
+				"en-US": "Guitar Zero"
+			},
+			"icon": "guitarzero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "guitarzero2" ],
+			"names": {
+				"en-US": "Guitar Zero 2"
+			},
+			"icon": "guitarzero2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "guitarzerodlc" ],
+			"names": {
+				"en-US": "Guitar Zero 2 DLC"
+			},
+			"icon": "guitarzero2dlc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "harmonyhero" ],
+			"names": {
+				"en-US": "Harmony Hero"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "imetal" ],
+			"names": {
+				"en-US": "Instru-Metal"
+			},
+			"icon": "imetal",
+			"type": "custom"
+		},
+		{
+			"ids": [ "jrb" ],
+			"names": {
+				"en-US": "J-Rock Band"
+			},
+			"icon": "jrb",
+			"type": "custom"
+		},
+		{
+			"ids": [ "kh" ],
+			"names": {
+				"en-US": "Koreaboo Hero"
+			},
+			"icon": "kh",
+			"type": "custom"
+		},
+		{
+			"ids": [ "kh2" ],
+			"names": {
+				"en-US": "Koreaboo Hero 2"
+			},
+			"icon": "kh2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "kh3" ],
+			"names": {
+				"en-US": "Koreaboo Hero 3"
+			},
+			"icon": "kh3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "marathon" ],
+			"names": {
+				"en-US": "Marathon Hero"
+			},
+			"icon": "marathon",
+			"type": "custom"
+		},
+		{
+			"ids": [ "marathonhero2" ],
+			"names": {
+				"en-US": "Marathon Hero 2"
+			},
+			"icon": "marathonhero2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ma" ],
+			"names": {
+				"en-US": "Max Altitude"
+			},
+			"icon": "ma",
+			"type": "custom"
+		},
+		{
+			"ids": [ "meme" ],
+			"names": {
+				"en-US": "Meme Songs"
+			},
+			"icon": "meme",
+			"type": "custom"
+		},
+		{
+			"ids": [ "milohax" ],
+			"names": {
+				"en-US": "MiloHax Customs"
+			},
+			"icon": "milohax",
+			"type": "custom"
+		},
+		{
+			"ids": [ "miscellaneous" ],
+			"names": {
+				"en-US": "Miscellaneous Packs"
+			},
+			"icon": "miscellaneous",
+			"type": "custom"
+		},
+		{
+			"ids": [ "paradigm" ],
+			"names": {
+				"en-US": "Paradigm"
+			},
+			"icon": "paradigm",
+			"type": "custom"
+		},
+		{
+			"ids": [ "paramoremegapack" ],
+			"names": {
+				"en-US": "Paramore Mega Pack"
+			},
+			"icon": "paramore",
+			"type": "custom"
+		},
+		{
+			"ids": [ "phaseshift" ],
+			"names": {
+				"en-US": "Phase Shift"
+			},
+			"icon": "phaseshift",
+			"type": "game"
+		},
+		{
+			"ids": [ "psgp4" ],
+			"names": {
+				"en-US": "Phase Shift Guitar Project 4"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "psh" ],
+			"names": {
+				"en-US": "Plastic Shred Hero: Legends of Apahetic Charting"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "psh2" ],
+			"names": {
+				"en-US": "Plastic Shred Hero 2"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "pg" ],
+			"names": {
+				"en-US": "PowerGig: Rise of the SixString"
+			},
+			"icon": "pg",
+			"type": "game"
+		},
+		{
+			"ids": [ "pgdlc" ],
+			"names": {
+				"en-US": "PowerGig: Rise of the SixString DLC"
+			},
+			"icon": "pgdlc",
+			"type": "game"
+		},
+		{
+			"ids": [ "ph1" ],
+			"names": {
+				"en-US": "Puppetz Hero I"
+			},
+			"icon": "ph1",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ph2" ],
+			"names": {
+				"en-US": "Puppetz Hero II"
+			},
+			"icon": "ph2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ph3" ],
+			"names": {
+				"en-US": "Puppetz Hero III"
+			},
+			"icon": "ph3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ph4" ],
+			"names": {
+				"en-US": "Puppetz Hero IV"
+			},
+			"icon": "ph4",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ragequit" ],
+			"names": {
+				"en-US": "Rage Quit"
+			},
+			"icon": "ragequit",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ra" ],
+			"names": {
+				"en-US": "Redemption Arc"
+			},
+			"icon": "ra",
+			"type": "custom"
+		},
+		{
+			"ids": [ "revolved" ],
+			"names": {
+				"en-US": "REVOLVED"
+			},
+			"icon": "revolved",
+			"type": "custom"
+		},
+		{
+			"ids": [ "rr" ],
+			"names": {
+				"en-US": "Rock Revolution"
+			},
+			"icon": "rr",
+			"type": "game"
+		},
+		{
+			"ids": [ "rrdlc" ],
+			"names": {
+				"en-US": "Rock Revolution DLC"
+			},
+			"icon": "rrdlc",
+			"type": "game"
+		},
+		{
+			"ids": [ "scorespy" ],
+			"names": {
+				"en-US": "ScoreSpy"
+			},
+			"icon": "scorespy",
+			"type": "custom"
+		},
+		{
+			"ids": [ "s_hero" ],
+			"names": {
+				"en-US": "S Hero"
+			},
+			"icon": "s_hero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "solomedley" ],
+			"names": {
+				"en-US": "Solo Medleys"
+			},
+			"icon": "solomedley",
+			"type": "custom"
+		},
+		{
+			"ids": [ "finnish" ],
+			"names": {
+				"en-US": "Suomibiisit"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "se" ],
+			"names": {
+				"en-US": "Symphonic Effect"
+			},
+			"icon": "se",
+			"type": "custom"
+		},
+		{
+			"ids": [ "sxdisc" ],
+			"names": {
+				"en-US": "Symphony X Discography Setlist"
+			},
+			"icon": "sxdisc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "synergy" ],
+			"names": {
+				"en-US": "Synergy"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "vortex_hero" ],
+			"names": {
+				"en-US": "Vortex Hero"
+			},
+			"icon": "vortexhero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "wcc" ],
+			"names": {
+				"en-US": "World Charts Community"
+			},
+			"icon": "wcc",
+			"type": "custom"
+		},
+		{
+			"ids": [ "zancharted" ],
+			"names": {
+				"en-US": "Zancharted"
+			},
+			"icon": "zancharted",
+			"type": "custom"
+		},
+		{
+			"ids": [ "zerogravity" ],
+			"names": {
+				"en-US": "Zero Gravity"
+			},
+			"icon": "zerogravity",
+			"type": "custom"
+		},
+		{
+			"ids": [ "zgsb" ],
+			"names": {
+				"en-US": "Zero Gravity - Space Battle"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "3up" ],
+			"names": {
+				"en-US": "3-UP"
+			},
+			"icon": "3up",
+			"type": "charter"
+		},
+		{
+			"ids": [ "goulart" ],
+			"names": {
+				"en-US": "raphaelgoulart"
+			},
+			"icon": "goulart",
+			"type": "charter"
+		},
+		{
+			"ids": [ "ab" ],
+			"names": {
+				"en-US": "Aeon Bridge"
+			},
+			"icon": "ab",
+			"type": "custom"
+		},
+		{
+			"ids": [ "daijyoubs" ],
+			"names": {
+				"en-US": "DaiJyoubs"
+			},
+			"icon": "daijyoubs",
+			"type": "charter"
+		},
+		{
+			"ids": [ "hugh" ],
+			"names": {
+				"en-US": "Hugh"
+			},
+			"icon": "hugh",
+			"type": "charter"
+		},
+		{
+			"ids": [ "adagiodiscog" ],
+			"names": {
+				"en-US": "Adagio Discography"
+			},
+			"icon": "adagiodiscog",
+			"type": "custom"
+		},
+		{
+			"ids": [ "animehero" ],
+			"names": {
+				"en-US": "Anime Hero"
+			},
+			"icon": "animehero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "chu" ],
+			"names": {
+				"en-US": "CloneHeroUruguay"
+			},
+			"icon": "chu",
+			"type": "charter"
+		},
+		{
+			"ids": [ "chillhanger" ],
+			"names": {
+				"en-US": "Chill Hanger"
+			},
+			"icon": "chillhanger",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bgrb" ],
+			"names": {
+				"en-US": "Bee Gees: Rock Band"
+			},
+			"icon": "bgrb",
+			"type": "custom"
+		},
+		{
+			"ids": [
+				"mh_aren",
+				"mh_asriel",
+				"mh_dex",
+				"mh_fluffy",
+				"mh_ori",
+				"mh_sasquatch",
+				"mh_sickliff",
+				"mh_skittlecouch",
+				"mh_supra",
+				"mania"
+			],
+			"names": {
+				"en-US": "Mania Hero"
+			},
+			"icon": "maniahero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "casp" ],
+			"names": {
+				"en-US": "CASP"
+			},
+			"icon": "generic",
+			"type": "custom"
+		},
+		{
+			"ids": [ "a9" ],
+			"names": {
+				"en-US": "Asphalt 9: Legends"
+			},
+			"icon": "a9",
+			"type": "custom"
+		},
+		{
+			"ids": [ "aep" ],
+			"names": {
+				"en-US": "The Eternal Project"
+			},
+			"icon": "aep",
+			"type": "custom"
+		},
+		{
+			"ids": [ "vene" ],
+			"names": {
+				"en-US": "Venerabela"
+			},
+			"icon": "vene",
+			"type": "charter"
+		},
+		{
+			"ids": [ "venera1" ],
+			"names": {
+				"en-US": "Venera Hero 1"
+			},
+			"icon": "venera1",
+			"type": "custom"
+		},
+		{
+			"ids": [ "venera2" ],
+			"names": {
+				"en-US": "Venera Hero 2"
+			},
+			"icon": "venera2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "venera3" ],
+			"names": {
+				"en-US": "Venera Hero 3"
+			},
+			"icon": "venera3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "disgo" ],
+			"names": {
+				"en-US": "Disgorodraphy"
+			},
+			"icon": "gorod",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ohm" ],
+			"names": {
+				"en-US": "ΩHM"
+			},
+			"icon": "ohm",
+			"type": "custom"
+		},
+		{
+			"ids": [ "JRabes" ],
+			"names": {
+				"en-US": "JRabes"
+			},
+			"icon": "jrabes",
+			"type": "charter"
+		},
+		{
+			"ids": [ "djmax" ],
+			"names": {
+				"en-US": "DJMax"
+			},
+			"icon": "djmax",
+			"type": "custom"
+		},
+		{
+			"ids": [ "bodom" ],
+			"names": {
+				"en-US": "Bodom Hero"
+			},
+			"icon": "bodom",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ironhandhero" ],
+			"names": {
+				"en-US": "Iron Hand Hero"
+			},
+			"icon": "ironhandhero",
+			"type": "custom"
+		},
+		{
+			"ids": [ "cosmiclatte" ],
+			"names": {
+				"en-US": "Cosmic Latte"
+			},
+			"icon": "cosmiclatte",
+			"type": "charter"
+		},
+		{
+			"ids": [ "brick" ],
+			"names": {
+				"en-US": "Brick"
+			},
+			"icon": "brick",
+			"type": "custom"
+		},
+		{
+			"ids": [ "lisarb", "lisarb1" ],
+			"names": {
+				"en-US": "Lisarb 1",
+				"pt-BR": "Lisarb 1: A Lenda Brazuca"
+			},
+			"icon": "lisarb",
+			"type": "custom"
+		},
+		{
+			"ids": [ "lisarb2" ],
+			"names": {
+				"en-US": "Lisarb 2",
+				"pt-BR": "Lisarb 2: Mais do que Samba e Futebol"
+			},
+			"icon": "lisarb2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "lisarb3" ],
+			"names": {
+				"en-US": "Lisarb 3"
+			},
+			"icon": "lisarb3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "soi" ],
+			"names": {
+				"en-US": "Shadow of Intent Discography"
+			},
+			"icon": "soi",
+			"type": "custom"
+		},
+		{
+			"ids": [ "french" ],
+			"names": {
+				"en-US": "HexaNation"
+			},
+			"icon": "french",
+			"type": "custom"
+		},
+		{
+			"ids": [ "fretsmasher" ],
+			"names": {
+				"en-US": "Fret Smasher"
+			},
+			"icon": "fretsmasher",
+			"type": "game"
+		},
+		{
+			"ids": [ "singstarguitar" ],
+			"names": {
+				"en-US": "SingStar Guitar"
+			},
+			"icon": "singstarguitar",
+			"type": "game"
+		},
+		{
+			"ids": [ "popstarguitar" ],
+			"names": {
+				"en-US": "PopStar Guitar"
+			},
+			"icon": "popstarguitar",
+			"type": "game"
+		},
+		{
+			"ids": [ "deltaom3ga" ],
+			"names": {
+				"en-US": "DeltaOm3ga"
+			},
+			"icon": "deltaom3ga",
+			"type": "charter"
+		},
+		{
+			"ids": [ "paletagalleta" ],
+			"names": {
+				"en-US": "PaletaGalleta"
+			},
+			"icon": "paletagalleta",
+			"type": "charter"
+		},
+		{
+			"ids": [ "nirvanasp", "nirvana" ],
+			"names": {
+				"en-US": "Nirvana Discography"
+			},
+			"icon": "nirvana",
+			"type": "custom"
+		},
+		{
+			"ids": [ "ted", "redo" ],
+			"names": {
+				"en-US": "thardwardy"
+			},
+			"icon": "ted",
+			"type": "charter"
+		},
+		{
+			"ids": [ "santarockstar", "santarockstarhd", "santa" ],
+			"names": {
+				"en-US": "Santa Rockstar"
+			},
+			"icon": "santahd",
+			"type": "game"
+		},
+		{
+			"ids": [ "mickelraven" ],
+			"names": {
+				"en-US": "Mickelräven"
+			},
+			"icon": "mickelraven",
+			"type": "charter"
+		},
+		{
+			"ids": [ "chelhero2" ],
+			"names": {
+				"en-US": "Chel Hero 2"
+			},
+			"icon": "chelhero2",
+			"type": "custom"
+		},
+		{
+			"ids": [ "burnout3" ],
+			"names": {
+				"en-US": "Burnout 3: Takedown"
+			},
+			"icon": "burnout3",
+			"type": "custom"
+		},
+		{
+			"ids": [ "yoshibyl", "yoshiog" ],
+			"names": {
+				"en-US": "YoShibyl"
+			},
+			"icon": "yoshibyl",
+			"type": "custom"
+		},
+		{
+			"ids": [ "scu", "scufd" ],
+			"names": {
+				"en-US": "Small Charters United"
+			},
+			"icon": "scu",
+			"type": "custom"
+		},
+		{
+			"ids": [ "rv" ],
+			"names": {
+				"en-US": "RhythmVerse"
+			},
+			"icon": "rv",
+			"type": "custom"
+		}
+	]
+}

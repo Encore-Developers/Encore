@@ -1,0 +1,67 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+
+        "type": {
+            "type": "string",
+            "description": "The type of index.",
+            "enum": [
+                "base",
+                "extra"
+            ]
+        },
+
+        "sources": {
+            "type": "array",
+            "description": "The array containing all of the source information.",
+            "items": {
+
+                "type": "object",
+                "description": "A source",
+                "properties": {
+                    "ids": {
+                        "type": "array",
+                        "description": "An array of strings containing all of the possible IDs for the specific source.\n This is the same ID that shows up in `song.ini`'s `icon` tag, etc.\n All IDs should be unique, and must be all lowercase!\n The `$DEFAULT$` ID is reserved for the fallback source and is defined in `base/index.json`.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+
+                    "names": {
+                        "type": "object",
+                        "description": "An object of display names in different locales. en-US must be present (as that is the fallback).",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "properties": {
+                            "en-US": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "en-US"
+                        ]
+                    },
+
+                    "icon": {
+                        "description": "The name of the icon file. Omit the `.png`. Icons from `base` can be used in `extra`, but not vice-versa.",
+                        "type": "string"
+                    },
+
+                    "type": {
+                        "description": "The type of source.",
+                        "type": "string",
+                        "enum": ["custom", "game", "charter", "rb", "gh"]
+                    }
+                },
+
+                "required": [ "ids", "names" ,"icon" ,"type" ]
+            }
+        }
+    },
+    "required": [
+        "type",
+        "sources"
+    ]
+}

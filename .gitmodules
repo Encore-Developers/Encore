@@ -1,0 +1,3 @@
+[submodule "Encore/thirdparty/sdl"]
+	path = Encore/thirdparty/sdl
+	url = https://github.com/libsdl-org/SDL

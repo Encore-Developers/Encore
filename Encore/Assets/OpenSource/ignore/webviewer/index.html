@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>OpenSource Webviewer</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,400;0,600;0,700;1,900&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div class="background-header">
+		<div class="animation"></div>
+	</div>
+
+	<header>
+		<div class="logo">
+			<svg viewBox="0 0 68 30" xmlns="http://www.w3.org/2000/svg">
+				<g fill="currentColor">
+					<path d="m62.073 14.7007-.2721.4031c-1.8519 2.7422-5.7161 3.2175-8.1864 1.0106l-.2657-.237c-1.2482-1.1154-1.8634-2.6512-1.8476-4.1814-.0158-1.5314.5998-3.06716 1.8476-4.18255l.2657-.23706c2.4703-2.20685 6.3345-1.73157 8.1864 1.01061l.3613.53494h5.3378l-.8881-1.699c-.5441-1.03887-1.2308-1.93606-2.0189-2.68685-1.9577-1.86776-4.5465-2.83559-7.1498-2.83559-2.8675 0-5.7548 1.1723-7.8409 3.61072-.7443.86971-1.3054 1.84068-1.6829 2.86306-.1951-3.4863-3.0101-6.26381-6.5208-6.42983l-.9311-.04395h-8.5492v20.3256h4.8209l.0371-7.2242h2.5232l14.2736 15.2981v-6.3039l-8.8505-9.4808c1.1652-.4926 2.0876-1.3851 2.6207-2.4852-.0798 2.2897.6756 4.599 2.2586 6.4491 2.0865 2.4384 4.9738 3.6107 7.8409 3.6107 2.6029 0 5.1921-.9678 7.1498-2.8356.2535-.2409.4952-.4988.7262-.7704l2.1812 2.3407v-8.829h-8.227l2.8004 3.0051zm-21.9783-4.0349-.4.0212h-2.9374v-5.36197h2.8245l.6527.07811c.6468.07653 1.2336.35753 1.6893.77787.4556.41877.7794.97921.9066 1.61501 0 1.5271-1.2024 2.78728-2.736 2.86978z"/>
+					<path d="m16.7294 20.1926 7.9233-8.4895v10.2226h4.954v-21.9257l-12.8773 13.8012z"/>
+					<path d="m.5 7.76462 8.65545 9.27208v11.2714l1.05075-1.126v-16.0438l-3.14827-3.37368z"/>
+					<path d="m13.929 1.60089 2.5457 2.81714-3.1199 3.34974v16.04063l1.0512-1.126.0023-9.7917 10.3416-11.28981z"/>
+					<path d="m11.2573 26.0561 1.0496-1.1264v-16.03437l-1.0496 1.12447z"/>
+				</g>
+			</svg>
+		</div>
+		<div class="title">
+			Open<span>Source</span>
+		</div>
+		<div class="description">
+			List of current available sources<br>
+			If you want to contribute check the <b>repository</b> for guidelines
+		</div>
+	</header>
+
+	<div class="content">
+		<div class="stats" id="stats"></div>
+		<div class="types" id="types"></div>
+	</div>
+
+	<template id="source_template">
+		<div class="icon">
+			<img src="" alt="" />
+		</div>
+		<div class="info">
+			<div class="name"></div>
+			<div class="tags">
+			</div>
+		</div>
+	</template>
+
+	<template id="type_template">
+		<div class="type">
+			<div class="name"></div>
+			<div class="sources"></div>
+		</div>
+	</template>
+
+	<template id="stat_template">
+		<div class="stat">
+			<a href="">
+				<div class="counter">...</div>
+				<div class="name"></div>
+			</a>
+		</div>
+	</template>
+
+	<script src="script.js"></script>
+</body>
+</html>
