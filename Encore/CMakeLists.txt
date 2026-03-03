@@ -45,6 +45,7 @@ endif()
 option(JSON_Diagnostics "" ON)
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
+set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 # Add all subdirectories of src
