@@ -169,6 +169,9 @@ Encore::AudioManager::GetAudioStreamByInstrument(int instrument) {
 }
 
 double Encore::AudioManager::GetMusicTimePlayed() const {
+    if (loadedStreams.empty()) {
+        return 0.0;
+    }
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE)
@@ -177,6 +180,9 @@ double Encore::AudioManager::GetMusicTimePlayed() const {
 }
 
 double Encore::AudioManager::GetMusicTimeLength() const {
+    if (loadedStreams.empty()) {
+        return 0.0;
+    }
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE)

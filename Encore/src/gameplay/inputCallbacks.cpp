@@ -180,11 +180,13 @@ void ControllerPoller::Run() {
                 break;
             }
             if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
-                auto time = TheSongTime.GetElapsedTime();
-                auto encEvent = TranslateEvent(&event);
-                encEvent.timestamp = time;
-                getEvent(writeIndex) = encEvent;
-                writeIndex++;
+                if (TheMenuManager.currentScreen == GAMEPLAY) {
+                    auto time = TheSongTime.GetElapsedTime();
+                    auto encEvent = TranslateEvent(&event);
+                    encEvent.timestamp = time;
+                    getEvent(writeIndex) = encEvent;
+                    writeIndex++;
+                }
             }
         }
         auto end = std::chrono::high_resolution_clock::now();
