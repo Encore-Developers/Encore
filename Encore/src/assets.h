@@ -377,7 +377,7 @@ public:
     NEWSHADERASSET(sdfShader, "fonts/sdf.fs", "", {});
     NEWSHADERASSET(bgShader, "ui/wavy.fs", "", {"time"});
     NEWSHADERASSET(trackCurveShader,
-                   "gameplay/highway/highwayShader.fsh",
+                   "gameplay/track/fade.fsh",
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
                    "fadeSize",
@@ -386,7 +386,7 @@ public:
                    "scale"});
 
     NEWSHADERASSET_POSTFINALIZE(noteShader,
-                   "gameplay/track/noteShader.fsh",
+                   "gameplay/track/notes/noteShader.fsh",
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
                    "fadeSize",
@@ -400,7 +400,7 @@ public:
                    });
 
     NEWSHADERASSET(highwayScrollShader,
-                   "gameplay/track/highwayScroll.fsh",
+                   "gameplay/track/surface/trackScroll.fsh",
                    "gameplay/track/trackCurve.vsh",
                    {"trackLength",
                    "fadeSize",
@@ -409,19 +409,19 @@ public:
                    "offset",
                    "scale"});
 
-    NEWTEXASSET(regularNoteTex, "gameplay/track/note.png");
-    NEWTEXASSET(hopoNoteTex, "gameplay/track/note_hopo.png");
-    NEWTEXASSET(kickNoteTex, "gameplay/track/kick.png");
-    NEWTEXASSET(openNoteTex, "gameplay/track/open.png");
+    NEWTEXASSET(regularNoteTex, "gameplay/track/notes/normal/diffuse.png");
+    NEWTEXASSET(hopoNoteTex, "gameplay/track/notes/hopo/diffuse.png");
+    NEWTEXASSET(kickNoteTex, "gameplay/track/notes/kick/diffuse.png");
+    NEWTEXASSET(openNoteTex, "gameplay/track/notes/open/diffuse.png");
 
-    NEWTEXASSET(hopoMaskTex, "gameplay/track/hopo_mask.png");
-    NEWTEXASSET(regularMaskTex, "gameplay/track/note_mask.png");
-    NEWTEXASSET(kickMaskTex, "gameplay/track/kick_mask.png");
-    NEWTEXASSET(openMaskTex, "gameplay/track/open_mask.png");
+    NEWTEXASSET(regularMaskTex, "gameplay/track/notes/normal/color_mask.png");
+    NEWTEXASSET(hopoMaskTex, "gameplay/track/notes/hopo/color_mask.png");
+    NEWTEXASSET(kickMaskTex, "gameplay/track/notes/kick/color_mask.png");
+    NEWTEXASSET(openMaskTex, "gameplay/track/notes/open/color_mask.png");
 
 
 
-    NEWLEGACYMODELASSET(regularNote, "gameplay/track/note_normal.obj", [this](Model* model) {
+    NEWLEGACYMODELASSET(regularNote, "gameplay/track/notes/normal/model.obj", [this](Model* model) {
         SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
         SetTextureWrap(regularMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = regularNoteTex;
@@ -431,7 +431,7 @@ public:
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = regularMaskTex;
     });
 
-    NEWLEGACYMODELASSET(hopoNote, "gameplay/track/note_small.obj", [this](Model* model) {
+    NEWLEGACYMODELASSET(hopoNote, "gameplay/track/notes/hopo/model.obj", [this](Model* model) {
         SetTextureWrap(hopoNoteTex, TEXTURE_WRAP_CLAMP);
         SetTextureWrap(hopoMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = hopoNoteTex;
@@ -441,7 +441,7 @@ public:
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = hopoMaskTex;
     });
 
-    NEWLEGACYMODELASSET(openNote, "gameplay/track/open.obj", [this](Model* model) {
+    NEWLEGACYMODELASSET(openNote, "gameplay/track/notes/open/model.obj", [this](Model* model) {
         SetTextureWrap(openNoteTex, TEXTURE_WRAP_CLAMP);
         SetTextureWrap(openMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = openNoteTex;
@@ -451,7 +451,7 @@ public:
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = openMaskTex;
     });
 
-    NEWLEGACYMODELASSET(kickNote, "gameplay/track/kick_note.obj", [this](Model* model) {
+    NEWLEGACYMODELASSET(kickNote, "gameplay/track/notes/kick/model.obj", [this](Model* model) {
         SetTextureWrap(kickNoteTex, TEXTURE_WRAP_CLAMP);
         SetTextureWrap(kickMaskTex, TEXTURE_WRAP_CLAMP);
         model->materials[0].maps[0].texture = kickNoteTex;
@@ -462,13 +462,13 @@ public:
     });
 
 
-    NEWTEXASSET(smasherOffTex, "gameplay/track/smasher_off.png");
-    NEWTEXASSET(smasherOnTex, "gameplay/track/smasher_on.png");
-    NEWTEXASSET(smasherFrameTex, "gameplay/track/smasher_frame.png");
-    NEWTEXASSET(kickFrameTex, "gameplay/track/kick_frame.png");
-    NEWTEXASSET(trackRailsTex, "gameplay/track/rails.png");
+    NEWTEXASSET(smasherOffTex, "gameplay/track/smashers/normal/piston_off.png");
+    NEWTEXASSET(smasherOnTex, "gameplay/track/smashers/normal/piston_on.png");
+    NEWTEXASSET(smasherFrameTex, "gameplay/track/smashers/normal/frame.png");
+    NEWTEXASSET(kickFrameTex, "gameplay/track/smashers/kick/frame.png");
+    NEWTEXASSET(trackRailsTex, "gameplay/track/surface/rails.png");
 
-    NEWLEGACYMODELASSET(smasherPiston, "gameplay/track/smasher_piston.obj",
+    NEWLEGACYMODELASSET(smasherPiston, "gameplay/track/smashers/normal/piston.obj",
         [this](Model* model) {
             SetTextureWrap(smasherOffTex, TEXTURE_WRAP_CLAMP);
             SetTextureWrap(smasherOnTex, TEXTURE_WRAP_CLAMP);
@@ -476,42 +476,42 @@ public:
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(smasherFrame, "gameplay/track/smasher_frame.obj",
+    NEWLEGACYMODELASSET(smasherFrame, "gameplay/track/smashers/normal/frame.obj",
         [this](Model* model) {
             SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = smasherFrameTex;
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(trackSurface, "gameplay/track/track.obj",
+    NEWLEGACYMODELASSET(trackSurface, "gameplay/track/surface/track.obj",
         [this](Model* model) {
             SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = highwayTexture;
             model->materials[0].shader = highwayScrollShader;
         });
 
-    NEWLEGACYMODELASSET(rails, "gameplay/track/rails.obj",
+    NEWLEGACYMODELASSET(rails, "gameplay/track/surface/rails.obj",
         [this](Model* model) {
             SetTextureWrap(trackRailsTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = trackRailsTex;
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(kickFrame, "gameplay/track/kick_frame.obj",
+    NEWLEGACYMODELASSET(kickFrame, "gameplay/track/smashers/kick/frame.obj",
         [this](Model* model) {
             SetTextureWrap(kickFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = kickFrameTex;
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWLEGACYMODELASSET(kickPiston, "gameplay/track/kick_piston.obj",
+    NEWLEGACYMODELASSET(kickPiston, "gameplay/track/smashers/kick/piston.obj",
         [this](Model* model) {
             model->materials[0].shader = trackCurveShader;
         });
 
-    NEWTEXASSET(hitFlareTex, "gameplay/track/hit_flare.png");
-    NEWTEXASSET(hitFlareInnerTex, "gameplay/track/hit_flare_inner.png");
-    NEWTEXASSET(shockwaveTex, "gameplay/track/shockwave.png");
+    NEWTEXASSET(hitFlareTex, "gameplay/track/particles/hit_flare.png");
+    NEWTEXASSET(hitFlareInnerTex, "gameplay/track/particles/hit_flare_inner.png");
+    NEWTEXASSET(shockwaveTex, "gameplay/track/particles/shockwave.png");
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
