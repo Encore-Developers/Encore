@@ -96,7 +96,7 @@ Encore::RhythmEngine::GuitarLoader::GetNoteType(const smf::MidiEvent &event) {
         // ALSO THAT IF STATEMENT IS FUCKING UTTERLY USELESS
         // oh my god i might DIE what the FUCK
         if (chart[0].back().Lane != PlasticFrets[GetEventLane(Difficulty, event)]) {
-            if (chart[0].back().StartTicks + Threshold >= event.tick) {
+            if (chart[0].back().StartTicks + Threshold >= event.tick && !(PlasticFrets[GetEventLane(Difficulty, event)] & chart[0].back().Lane)) {
                 return 1;
             }
         }
