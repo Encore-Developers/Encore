@@ -22,7 +22,6 @@ void PlayerManager::LoadPlayerList() {
             Player newPlayer;
             newPlayer.playerJsonObjectName = jsonObject.key();
             newPlayer.Name = jsonObject.value().at("name").get<std::string>();
-            newPlayer.PlayerID = jsonObject.value().at("UUID").get<std::string>();
 
 #define SETTING_ACTION(type, name, key)                                                  \
 newPlayer.name = jsonObject.value().at(key).get<type>();
@@ -42,29 +41,7 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
                 newPlayer.AccentColor = { 255, 0, 255, 255 };
 
             TraceLog(LOG_INFO, ("Successfully loaded player " + newPlayer.Name).c_str());
-            if (newPlayer.PlayerID == "3" || newPlayer.PlayerID == "6"
-                || newPlayer.PlayerID == "1") {
-                // FOR GOOD MEASURE SO PEOPLE DONT HAVE TO ASK
-                Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-
-                remove(PlayerListSaveFile);
-            } else {
-                PlayerList.push_back(std::move(newPlayer));
-            }
+            PlayerList.push_back(std::move(newPlayer));
         };
     } catch (const std::exception &e) {
         Encore::EncoreLog(
@@ -95,7 +72,6 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
     if (!PlayerListJson.contains(player->playerJsonObjectName)) {
         PlayerListJson[player->playerJsonObjectName] = {
             { "name", player->Name },
-            { "UUID", player->PlayerID },
 #define SETTING_ACTION(type, name, key) { key, player->name },
             PLAYER_JSON_SETTINGS
 #undef SETTING_ACTION
@@ -106,7 +82,6 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
         };
     } else {
         PlayerListJson.at(player->playerJsonObjectName)["name"] = player->Name;
-        PlayerListJson.at(player->playerJsonObjectName)["UUID"] = player->PlayerID;
 
 #define SETTING_ACTION(type, name, key)                                                  \
     PlayerListJson.at(player->playerJsonObjectName)[key] = player->name;

@@ -9,8 +9,6 @@
 #include "settings/settings.h"
 #include "util/frame-manager.h"
 #include "gameplay/trackRenderer/Track.h"
-#include "menus/GameplayMenu.h"
-#include "menus/MenuManager.h"
 #include "song/audio.h"
 #include "song/song.h"
 #include "song/songlist.h"
@@ -57,7 +55,7 @@ void EncoreDebug::DrawDebug() {
     if (showPlayerManager) {
         DrawPlayerManager();
     }
-    if (showSongList && TheMenuManager.currentScreen != GAMEPLAY) {
+    if (showSongList) {
         DrawSongList();
     }
 }
@@ -68,7 +66,7 @@ void EncoreDebug::MenuBar() {
     if (BeginMenu("Windows")) {
         MenuItem("Assets", 0, &showAssets);
         MenuItem("Player Manager", 0, &showPlayerManager);
-        MenuItem("Song List", 0, &showSongList, TheMenuManager.currentScreen != GAMEPLAY);
+        MenuItem("Song List", 0, &showSongList);
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         EndMenu();
     }
@@ -80,37 +78,6 @@ void EncoreDebug::MenuBar() {
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
         SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
         EndMenu();
-    }
-
-    if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem("End Song")) {
-        TheSongTime.Reset();
-        TheAudioManager.unloadStreams();
-        songPlaying = false;
-        TheSongTime.Beatlines.erase(
-            TheSongTime.Beatlines.begin(),
-            TheSongTime.Beatlines.end()
-        );
-        TheSongTime.OverdriveTicks.erase(
-            TheSongTime.OverdriveTicks.begin(),
-            TheSongTime.OverdriveTicks.end()
-        );
-        TheSongTime.TimeSigChanges.erase(
-            TheSongTime.TimeSigChanges.begin(),
-            TheSongTime.TimeSigChanges.end()
-        );
-        TheSongTime.BPMChanges.erase(
-            TheSongTime.BPMChanges.begin(),
-            TheSongTime.BPMChanges.end()
-        );
-        TheSongTime.LastTick = 0;
-        TheSongTime.CurrentTick = 0;
-        TheSongTime.LastODTick = 0;
-        TheSongTime.CurrentODTick = 0;
-        TheSongTime.CurrentBPM = 0;
-        TheSongTime.CurrentODTickItr = 0;
-        TheSongTime.CurrentTimeSig = 0;
-        TheSongTime.CurrentBeatline = 0;
-        TheMenuManager.SwitchScreen(RESULTS);
     }
 
     auto avail = GetWindowWidth();
@@ -269,7 +236,6 @@ void EncoreDebug::DrawSongList() {
                     } else {
                         TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
                     }
-                    TheMenuManager.SwitchScreen(READY_UP);
                 }
 
                 PopID();

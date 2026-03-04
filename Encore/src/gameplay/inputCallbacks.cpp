@@ -4,7 +4,6 @@
 #include "inputCallbacks.h"
 
 #include "enctime.h"
-#include "menus/MenuManager.h"
 #include "util/enclog.h"
 #include "raylib.h"
 #include "settings/settings.h"
@@ -39,31 +38,12 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
         return;
     }
 
-    TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+    //TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
 }
 
 
 void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event) {
-    //Encore::EncoreLog(
-    //    LOG_DEBUG,
-    //    TextFormat(
-    //        "Gamepad %01i inputted on menu %s",
-    //        joypadID,
-    //        ToString(TheMenuManager.currentScreen)
-    //    )
-    //);
-    switch (TheMenuManager.currentScreen) {
-    // NOTE: when adding a new Menu
-    // derivative, you
-    // must put its enum value in Screens, and its
-    // assignment in this switch/case. You will also
-    // add its case to the `ActiveMenu->Draw();`
-    // cases.
-    default: {
-        // TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    }
+
 }
 
 Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
@@ -118,9 +98,9 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 void PollQueuedInputs(ControllerPoller& poller) {
     while (poller.readIndex < poller.writeIndex) {
         auto event = poller.getEvent(poller.readIndex);
-        if (TheMenuManager.ActiveMenu) {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(event);
-        }
+        //if (TheMenuManager.ActiveMenu) {
+        //    TheMenuManager.ActiveMenu->ControllerInputCallback(event);
+        //}
         poller.readIndex++;
     }
 }
@@ -145,9 +125,9 @@ void _PollQueuedInputs() {
             // case SDL_EVENT_QUIT:
             //    return 0;
         }
-        if (TheMenuManager.ActiveMenu && (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)) {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(TranslateEvent(&event));
-        }
+        //if (TheMenuManager.ActiveMenu && (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)) {
+            //TheMenuManager.ActiveMenu->ControllerInputCallback(TranslateEvent(&event));
+        //}
     }
 }
 
@@ -180,13 +160,11 @@ void ControllerPoller::Run() {
                 break;
             }
             if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
-                if (TheMenuManager.currentScreen == GAMEPLAY) {
-                    auto time = TheSongTime.GetElapsedTime();
-                    auto encEvent = TranslateEvent(&event);
-                    encEvent.timestamp = time;
-                    getEvent(writeIndex) = encEvent;
-                    writeIndex++;
-                }
+                auto time = TheSongTime.GetElapsedTime();
+                auto encEvent = TranslateEvent(&event);
+                encEvent.timestamp = time;
+                getEvent(writeIndex) = encEvent;
+                writeIndex++;
             }
         }
         auto end = std::chrono::high_resolution_clock::now();

@@ -1,7 +1,6 @@
 ﻿#define JSON_DIAGNOSTICS 1
 #include "song/songlist.h"
 #include "users/playerManager.h"
-#include "menus/menu.h"
 #include "util/discord.h"
 #include "util/enclog.h"
 #include "gameplay/enctime.h"
@@ -42,24 +41,13 @@
 #include "arguments.h"
 #include "assets.h"
 #include "song/audio.h"
-#include "gameplay/gameplayRenderer.h"
-
-#include "menus/uiUnits.h"
 
 #include "settings/settings.h"
-#include "menus/SettingsAudioVideo.h"
-#include "menus/SettingsController.h"
-#include "menus/SettingsCredits.h"
-#include "menus/SettingsGameplay.h"
-#include "menus/SettingsKeyboard.h"
 
-#include "menus/styles.h"
 #include "util/frame-manager.h"
 
-#include <menus/MenuManager.h>
 #include "debug/EncoreDebug.h"
 
-MenuManager TheMenuManager;
 // gameplayRenderer TheGameRenderer;
 SongList TheSongList;
 PlayerManager ThePlayerManager;
@@ -67,11 +55,6 @@ Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
 Encore::Keybinds TheGameKeybinds;
-Encore::SettingsGameplay TheGameplaySettings;
-Encore::SettingsAudioVideo TheAudioVideoSettings;
-Encore::SettingsController TheControllerSettings;
-Encore::SettingsKeyboard TheKeyboardSettings;
-Encore::SettingsCredits TheCredits;
 Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
@@ -175,7 +158,6 @@ int main(int argc, char *argv[]) {
     LocateDevAssets();
     TheGameRPC.Initialize();
     SetTraceLogCallback(Encore::EncoreLog);
-    Units u = Units::getInstance();
     commitHash.erase(7);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -205,6 +187,7 @@ int main(int argc, char *argv[]) {
                 ))
                 assets.setDirectory(std::filesystem::path(resourcePath) / "Assets");
             CFRelease(resourceURL);
+
         }
         // do the next step manually (settings/config handling)
         // "directory" is our executable directory here, hop up to the external dir
@@ -241,21 +224,16 @@ int main(int argc, char *argv[]) {
     TheFrameManager.InitFrameManager();
     ChangeDirectory(GetApplicationDirectory());
 
-    SETDEFAULTSTYLE();
-
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
     initialSet.StartLoad();
     TheAssets.AddRingsAndInstruments();
     mainMenuSet.StartLoad();
     AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).BlockUntilLoaded();
     SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
-    if (!CacheLoad::finished) {
-        TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
-    } else {
-        TheMenuManager.currentScreen = MAIN_MENU;
-    }
 
     ControllerPoller poller;
+
+    glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
 
 
     if (TheGameSettings.Framerate > 0)
@@ -269,7 +247,6 @@ int main(int argc, char *argv[]) {
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
         glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
-        u.calcUnits();
 
         PollQueuedInputs(poller);
 
@@ -314,11 +291,7 @@ int main(int argc, char *argv[]) {
             float bgTime = curTime / 5.0f;
             SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
             showLoading = false;
-            if (TheMenuManager.onNewMenu) {
-                TheMenuManager.LoadMenu();
-            }
             TheGameRPC.Update();
-            TheMenuManager.DrawMenu();
             if (loadingScreenFade > 0) {
                 DrawLoadingScreen(255*loadingScreenFade, 1);
                 float frameTime = GetFrameTime();

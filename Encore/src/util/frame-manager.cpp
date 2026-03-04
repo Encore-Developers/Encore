@@ -6,7 +6,6 @@
 
 #include "raylib.h"
 #include "settings/settings.h"
-#include "menus/MenuManager.h"
 
 void Encore::FrameManager::InitFrameManager() {
     previousTime = GetTime();
@@ -22,8 +21,8 @@ void Encore::FrameManager::WaitForFrame() {
         currentTime = GetTime();
         updateDrawTime = currentTime - previousTime;
         int Target = TheGameSettings.Framerate;
-        if (TheMenuManager.currentScreen != GAMEPLAY)
-            Target = menuFPS;
+        //if (TheMenuManager.currentScreen != GAMEPLAY)
+        //    Target = menuFPS;
 
         if (Target > 0) {
             waitTime = (1.0f / (float)Target) - updateDrawTime;

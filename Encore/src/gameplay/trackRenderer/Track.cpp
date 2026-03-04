@@ -16,6 +16,7 @@
 #include "debug/EncoreDebug.h"
 #include "events/Event.h"
 #include "song/song.h"
+#include "GL/gl.h"
 
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
