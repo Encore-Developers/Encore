@@ -24,7 +24,8 @@ void Encore::Track::Draw() {
     ProcessAnimation();
     BeginMode3D(AnimCamera);
 
-    for (auto shader : {ASSETPTR(trackCurveShader), ASSETPTR(noteShader), ASSETPTR(highwayScrollShader)}) {
+    for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
+                         ASSETPTR(highwayScrollShader) }) {
         shader->SetUniform("trackLength", Length);
         shader->SetUniform("fadeSize", FadeSize);
         shader->SetUniform("curveFac", CurveFac);
@@ -40,7 +41,6 @@ void Encore::Track::Draw() {
     DrawBeatlines();
     DrawOverdriveMeter();
     DrawSmashers();
-
 
     EndMode3D();
     BeginMode3D(AnimCamera);
@@ -71,6 +71,12 @@ void Encore::Track::Load() {
     particleSystem->track = this;
 }
 
+float easeInOutQuad(float x) {
+    return x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
+}
+
+
+
 void Encore::Track::DrawSurface() {
     float time = GetNotePos3D(0) / 22.5;
     SetShaderValue(ASSET(highwayScrollShader),
@@ -78,12 +84,36 @@ void Encore::Track::DrawSurface() {
                    &time,
                    SHADER_UNIFORM_FLOAT);
 
+    ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(highwayTexture);
     DrawModelEx(ASSET(trackSurface),
                 { 0 },
                 { 0 },
                 0,
                 { 1, 1, 1 },
                 ColorBrightness(player.AccentColor, -0.25));
+
+    OverdriveTimer = Lerp(OverdriveTimer, (int)player.engine->stats->overdrive.Active, GetFrameTime() * 8);
+    if (OverdriveTimer > 0.01) {
+        ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
+        DrawModelEx(ASSET(trackSurface),
+                    { 0 },
+                    { 0 },
+                    0,
+                    { 1, 1, 1 },
+                    ColorAlpha(GOLD, easeInOutQuad(OverdriveTimer)));
+    }
+
+    SpotlightTimer = Lerp(SpotlightTimer, (int)(player.engine->stats->multNoOD() >= 4) , GetFrameTime() * 3);
+    if (SpotlightTimer > 0.01){
+        ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(spotlightTex);
+        DrawModelEx(ASSET(trackSurface),
+                    { 0 },
+                    { 0 },
+                    0,
+                    { 1, 1, 1 },
+                    ColorAlpha(ColorBrightness(player.AccentColor, -0.25), easeInOutQuad(SpotlightTimer)));
+    }
+
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
     // static std::vector<Vector3> points;
     // points.clear();
@@ -222,17 +252,17 @@ void Encore::Track::DrawBeatlines() {
             Color beatlineColor = WHITE;
             switch (beatline.type) {
             case Major: {
-                beatlineColor = {255, 255, 255, 220};
+                beatlineColor = { 255, 255, 255, 220 };
                 Size = 0.05;
                 break;
             }
             case Minor: {
-                beatlineColor = {255, 255, 255, 190};
+                beatlineColor = { 255, 255, 255, 190 };
                 Size = 0.01;
                 break;
             }
             case Measure: {
-                beatlineColor = {255, 255, 255, 240};
+                beatlineColor = { 255, 255, 255, 240 };
                 Size = 0.1;
                 break;
             }
@@ -283,13 +313,16 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
     }
     return (TrackSlot **)&slotBuffer;
 }
+
+
 void Encore::Track::HandleEvent(Event *event) {
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;
         auto slots = GetSlotsForLane(note->Lane, true);
-        if (note->Lane == RhythmEngine::PlasticFrets[0] && player.Instrument == PlasticDrums) {
+        if (note->Lane == RhythmEngine::PlasticFrets[0] && player.Instrument ==
+            PlasticDrums) {
             KickTimer = 1;
-        }
+            }
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
@@ -303,18 +336,17 @@ void Encore::Track::HandleEvent(Event *event) {
 
 inline double easeInQuadd(double x) {
     return x * x;
-
 }
 
 void Encore::Track::ProcessAnimation() {
     AnimCamera = BaseCamera;
     if (KickTimer > 0)
-        KickTimer -= GetFrameTime()*5;
+        KickTimer -= GetFrameTime() * 5;
     else {
         KickTimer = 0;
     }
 
-    AnimCamera.position.y = BaseCamera.position.y - (easeInQuadd(KickTimer)*0.2);
+    AnimCamera.position.y = BaseCamera.position.y - (easeInQuadd(KickTimer) * 0.2);
 }
 
 void Encore::Track::AddSlot(TrackSlot *slot) {

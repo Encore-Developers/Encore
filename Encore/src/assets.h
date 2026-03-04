@@ -354,7 +354,6 @@ public:
     Texture2D songBackground;
 
     // Used as a default background for the menu
-    NEWTEXASSET(highwayTexture, "gameplay/highway/highway.png");
 
     NEWFONTASSET(redHatDisplayItalic, "fonts/RedHatDisplay-BlackItalic.ttf", 128);
     NEWFONTASSET(redHatDisplayBlack, "fonts/RedHatDisplay-Black.ttf", 128);
@@ -483,9 +482,13 @@ public:
             model->materials[0].shader = trackCurveShader;
         });
 
+
+    NEWTEXASSET(highwayTexture, "gameplay/track/surface/surface.png");
+    NEWTEXASSET(overdriveTex, "gameplay/track/surface/overdrive.png");
+    NEWTEXASSET(spotlightTex, "gameplay/track/surface/spotlight.png");
+
     NEWLEGACYMODELASSET(trackSurface, "gameplay/track/surface/track.obj",
         [this](Model* model) {
-            SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
             model->materials[0].maps[0].texture = highwayTexture;
             model->materials[0].shader = highwayScrollShader;
         });
@@ -512,6 +515,7 @@ public:
     NEWTEXASSET(hitFlareTex, "gameplay/track/particles/hit_flare.png");
     NEWTEXASSET(hitFlareInnerTex, "gameplay/track/particles/hit_flare_inner.png");
     NEWTEXASSET(shockwaveTex, "gameplay/track/particles/shockwave.png");
+
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);

@@ -55,6 +55,8 @@ namespace Encore {
         float Scale = 1;
         float NoteHeight = 1;
         float KickTimer = 0;
+        float SpotlightTimer = 0;
+        float OverdriveTimer = 0;
 
         Camera3D AnimCamera;
         Camera3D BaseCamera;
