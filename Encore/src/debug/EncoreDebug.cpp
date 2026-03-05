@@ -434,7 +434,6 @@ void Encore::Track::DrawTrackDebugWindow() {
             Text(TextFormat("Multiplier: %ix",
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
-            DragFloat("Audio C")
         }
         if (CollapsingHeader("Chart Information")) {
             if (BeginTable("Note List", player.engine->chart->Lanes.size())) {
