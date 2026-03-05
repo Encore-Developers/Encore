@@ -113,6 +113,34 @@ void EncoreDebug::MenuBar() {
         TheMenuManager.SwitchScreen(RESULTS);
     }
 
+    if (TheMenuManager.currentScreen == GAMEPLAY) {
+        float time = TheSongTime.GetElapsedTime();
+        SetNextItemWidth(GetWindowWidth()*0.4f);
+        if (SliderFloat("Time", &time, 0, TheSongTime.GetSongLength())) {
+            TheAudioManager.seekStreams(time);
+            for (auto index : ThePlayerManager.ActivePlayers) {
+                if (index == -1) {
+                    continue;
+                }
+                auto player = ThePlayerManager.PlayerList[index];
+                auto engine = player.engine.get();
+                for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+                    if (i >= engine->chart->Lanes.size()) {
+                        break;
+                    }
+                    for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
+                        if (iter->StartSeconds > time) {
+                            engine->chart->CurrentNoteIterators[i] = iter;
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+
     auto avail = GetWindowWidth();
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
 
@@ -406,6 +434,7 @@ void Encore::Track::DrawTrackDebugWindow() {
             Text(TextFormat("Multiplier: %ix",
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
+            DragFloat("Audio C")
         }
         if (CollapsingHeader("Chart Information")) {
             if (BeginTable("Note List", player.engine->chart->Lanes.size())) {
