@@ -22,11 +22,7 @@ void main()
     // vec2 push = vec2(fragTexCoord.x, fragTexCoord.y-time);
 	float maskColor = texture(maskTexture, fragTexCoord).r;
     vec4 baseColor;
-    if (maskColor > 0.5) {
-        baseColor = texture(texture0, fragTexCoord) * noteColor;
-    } else {
-        baseColor = texture(texture0, fragTexCoord) * frameColor;
-    }
+    baseColor = texture(texture0, fragTexCoord) * mix(frameColor, noteColor, maskColor);
 
     baseColor.a *= smoothstep(trackLength, trackLength-fadeSize, fragPosition.z);
     finalColor = baseColor;
