@@ -10,6 +10,8 @@
 
 #include "raygui.h"
 
+using namespace Encore;
+
 void SettingsKeyboard::Draw() {
     Units& u = Units::getInstance();
     Assets& assets = Assets::getInstance();

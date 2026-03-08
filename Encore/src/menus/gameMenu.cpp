@@ -229,10 +229,7 @@ void MainMenu::Load() {
     }
 }
 void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    if (ThePlayerManager.PlayersActive == 0) {
-        if (GLFW_KEY_ENTER == key) {
-            OvershellState[0] = OS_PLAYER_SELECTION;
-        }
+    if (ThePlayerManager.ActivePlayers.size() == 0) {
         if (GLFW_KEY_ESCAPE == key) {
             exit(0);
         }
@@ -288,7 +285,6 @@ void MainMenu::AttractScreen() {
         0,
         WHITE
     );
-    DrawOvershell();
 }
 void MainMenu::MainMenuScreen() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
@@ -364,7 +360,7 @@ void MainMenu::MainMenuScreen() {
         ChooseSplashText(directory);
     }
     if (!TheSongList.songs.empty()) {
-        if (ThePlayerManager.PlayersActive != 0) {
+        if (ThePlayerManager.ActivePlayers.size() != 0) {
             if (GuiButton(
                     { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
                     "Play"
@@ -416,8 +412,7 @@ void MainMenu::MainMenuScreen() {
             { u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, "Quit"
         )) {
         // goes back to attract
-        for (int p = 0; p < ThePlayerManager.PlayersActive; p++)
-            ThePlayerManager.RemoveActivePlayer(p);
+        ThePlayerManager.ActivePlayers.clear();
     }
     /*
     if (GuiButton(
@@ -569,7 +564,6 @@ void MainMenu::MainMenuScreen() {
         DrawTextEx(menuAss.rubikItalic, "", SongArtistBox, SongFontSize, 0, WHITE);
     }
     GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 }
 // this is really nasty shit as far as im concerned please dont think about it too much
 void MainMenu::Draw() {
@@ -603,7 +597,7 @@ void MainMenu::Draw() {
         GameMenu::DrawAlbumArtBackground(AlbumArtBackground);
 
 
-    if (ThePlayerManager.PlayersActive == 0) {
+    if (ThePlayerManager.ActivePlayers.size() == 0) {
         AttractScreen();
     } else {
         MainMenuScreen();

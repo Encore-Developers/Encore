@@ -10,6 +10,8 @@
 #include "uiUnits.h"
 #include "util/settings-text.h"
 
+using namespace Encore;
+
 static const std::vector<std::string> presets = {
     "Thumb", "Thumb & Index", "Index & Middle"
 };

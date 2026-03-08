@@ -118,11 +118,8 @@ void EncoreDebug::MenuBar() {
         SetNextItemWidth(GetWindowWidth()*0.4f);
         if (SliderFloat("Time", &time, 0, TheSongTime.GetSongLength())) {
             TheAudioManager.seekStreams(time);
-            for (auto index : ThePlayerManager.ActivePlayers) {
-                if (index == -1) {
-                    continue;
-                }
-                auto player = ThePlayerManager.SavedPlayers[index];
+            for (auto &slot : ThePlayerManager.ActivePlayers) {
+                auto &player = *slot.player;
                 auto engine = player.engine.get();
                 for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
                     if (i >= engine->chart->Lanes.size()) {

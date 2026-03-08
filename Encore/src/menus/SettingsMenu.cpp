@@ -15,6 +15,8 @@
 
 #include "util/settings-text.h"
 
+using namespace Encore;
+
 enum OptionsCategories {
     AUDIO_VISUAL,
     GAMEPLAY_SETTINGS,

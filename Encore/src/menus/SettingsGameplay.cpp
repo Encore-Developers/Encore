@@ -18,6 +18,7 @@
 #include "util/settings-text.h"
 
 bool ShowGameplaySettings = true;
+using namespace Encore;
 
 void SettingsGameplay::Draw() {
     if (!IsWindowReady()) {
@@ -123,10 +124,8 @@ void SettingsGameplay::Draw() {
         }
     }
 
-    encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.wpct(0.05f);

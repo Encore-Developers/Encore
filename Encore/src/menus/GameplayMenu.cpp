@@ -57,7 +57,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
             action
         )
     );*/
-    Player &player = ThePlayerManager.GetActivePlayer(0);
+    Player &player = *ThePlayerManager.ActivePlayers[0].player;
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
     // SettingsOld &settingsMain = SettingsOld::getInstance();
@@ -107,7 +107,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
 };
 
 void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    Player &player = ThePlayerManager.GetActivePlayer(0);
+    Player &player = *ThePlayerManager.ActivePlayers[0].player;
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
 
@@ -374,7 +374,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
     GameMenu::mhDrawText(
         assets.redHatMono,
         GameMenu::scoreCommaFormatter(
-            ThePlayerManager.GetActivePlayer(0).engine->stats->Score
+            ThePlayerManager.ActivePlayers[0].player->engine->stats->Score
         ),
         { u.RightSide - u.winpct(0.0145f), scoreY + u.hinpct(0.0025) },
         u.hinpct(0.05),
@@ -449,7 +449,7 @@ void GameplayMenu::DrawGameplayStars(
     float starY
 ) {
     // todo: redo for band
-    auto &player = ThePlayerManager.GetActivePlayer(0);
+    Player &player = *ThePlayerManager.ActivePlayers[0].player;
     int inst = player.ClassicMode ? player.Instrument - 5 : player.Instrument;
     int diff = player.Difficulty;
     double starPercent = player.engine->stats->StarThresholdValue;
@@ -612,8 +612,9 @@ void GameplayMenu::Draw() {
     int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     int flashInterval = (numer * 480) / denom;
 
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-        Player &player = ThePlayerManager.GetActivePlayer(i);
+    for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
+        auto& slot = ThePlayerManager.ActivePlayers[i];
+        Player &player = *slot.player;
         player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
         player.engine->UpdateStats(player.Instrument, player.Difficulty);
         tracks.at(i)->Draw();
@@ -623,9 +624,9 @@ void GameplayMenu::Draw() {
         constexpr int NoteHeight = 25;
 
         int mospos =
-            ((GetRenderWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
-                / (1 + ThePlayerManager.PlayersActive))
-            - ((ThePlayerManager.PlayersActive * NoteXWidth * 5) / 2);
+            ((GetRenderWidth() + (ThePlayerManager.ActivePlayers.size() * NoteXWidth * 5))
+                / (1 + ThePlayerManager.ActivePlayers.size()))
+            - ((ThePlayerManager.ActivePlayers.size() * NoteXWidth * 5) / 2);
         int MiddleOfScreen = mospos + (mospos * i); // height
         int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth;
         auto chart = player.engine->chart;
@@ -2087,13 +2088,13 @@ void GameplayMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
-    ASSET(trackSurface).Fetch();
-    ASSET(spotlightTex).Fetch();
-    ASSET(overdriveTex).Fetch();
+    ASSET(trackSurface).StartLoad();
+    ASSET(spotlightTex).StartLoad();
+    ASSET(overdriveTex).StartLoad();
     // i dont like the game stuttering when you active or get a streak
 
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-        Player &player = ThePlayerManager.GetActivePlayer(i);
+    for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
+        Player &player = *ThePlayerManager.ActivePlayers[i].player;
         tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
         switch (player.Instrument) {

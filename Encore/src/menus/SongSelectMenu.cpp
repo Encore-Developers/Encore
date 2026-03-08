@@ -644,5 +644,4 @@ void SongSelectMenu::Draw() {
         Unload();
         TheMenuManager.SwitchScreen(MAIN_MENU);
     }
-    DrawOvershell();
 }

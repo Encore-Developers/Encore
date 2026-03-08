@@ -56,4 +56,5 @@ void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) 
     }
 }
 
+void ReadyUpMenu::Draw() {}
 void ReadyUpMenu::Load() {}

@@ -119,7 +119,7 @@ void MenuManager::LoadMenu() {
         TheGameRPC.DiscordUpdatePresenceSong(
             "Playing a song",
             TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
-            ThePlayerManager.GetActivePlayer(0).Instrument,
+            ThePlayerManager.ActivePlayers[0].player->Instrument,
             ThePlayerManager.ActivePlayers.size()
         );
 

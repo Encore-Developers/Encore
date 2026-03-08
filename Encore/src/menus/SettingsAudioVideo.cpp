@@ -30,6 +30,8 @@ float avSoundEffectVolume = 0.0f;
 bool BackgroundBeatFlash = false;
 bool VerticalSync = false;
 
+using namespace Encore;
+
 void SettingsAudioVideo::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();

@@ -9,22 +9,18 @@
 #include "menu.h"
 
 namespace Encore {
-    class SettingsGameplay {
+    class SettingsGameplay : public Menu {
+    public:
+        void Draw();
+        void KeyboardInputCallback(int key, int scancode, int action, int mods);
+        void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
+        void Load();
+        void Save();
+
+    private:
+    bool Fullscreen = false;
     };
 }
 
-class SettingsGameplay : public Menu {
-public:
-    void Draw();
-    void KeyboardInputCallback(int key, int scancode, int action, int mods);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
-    void Load();
-    void Save();
-
-private:
-bool Fullscreen = false;
-};
-
-extern Encore::SettingsGameplay TheGameplaySettings;
 
 #endif // SETTINGS_GAMEPLAY_H
