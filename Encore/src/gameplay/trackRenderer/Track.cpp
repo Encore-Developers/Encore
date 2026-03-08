@@ -32,6 +32,7 @@ void Encore::Track::Draw() {
         shader->SetUniform("offset", Offset);
         shader->SetUniform("scale", Scale);
     }
+    ASSET(noteShader).SetUniform("specularLightPos", specularLightPos);
 
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
@@ -65,6 +66,7 @@ void Encore::Track::Load() {
         { 0.0f, 1.0f, 0.0f },
         40.0f,
     };
+    specularLightPos = {0, 15, -15};
     AnimCamera = BaseCamera;
     player.engine->AddSink(this);
     particleSystem = std::unique_ptr<ParticleSystem>(new ParticleSystem);

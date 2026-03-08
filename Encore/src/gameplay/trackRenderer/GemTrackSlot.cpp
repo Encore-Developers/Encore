@@ -102,8 +102,9 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     }
 
     if (animTimer < 1) {
-        animTimer += GetFrameTime() * 5;
-    } else {
+        animTimer += GetFrameTime() * 4;
+    }
+    if (animTimer > 1) {
         animTimer = 1;
     }
     float bounce = (1 - easeOutBounce(animTimer)) * 0.2;

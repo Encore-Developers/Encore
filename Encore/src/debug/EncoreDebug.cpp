@@ -122,7 +122,7 @@ void EncoreDebug::MenuBar() {
                 if (index == -1) {
                     continue;
                 }
-                auto player = ThePlayerManager.PlayerList[index];
+                auto player = ThePlayerManager.SavedPlayers[index];
                 auto engine = player.engine.get();
                 for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
                     if (i >= engine->chart->Lanes.size()) {
@@ -157,7 +157,7 @@ void EncoreDebug::DrawPlayerManager() {
         }
 
         if (BeginTabBar("Players")) {
-            for (auto &player : ThePlayerManager.PlayerList) {
+            for (auto &player : ThePlayerManager.SavedPlayers) {
                 if (BeginTabItem(
                     (player.Name + TextFormat("###%x", &player)).c_str())) {
                     InputText("Username", &player.Name);
@@ -400,6 +400,7 @@ void Encore::Track::DrawTrackDebugWindow() {
             DragFloat("Offset", &Offset, 0.01);
             DragFloat("Scale", &Scale, 0.01);
             DragFloat("Note Height", &NoteHeight, 0.01);
+            DragFloat3("Specular Light Position", (float *)&specularLightPos, 0.1);
         }
         if (CollapsingHeader("Engine State")) {
             SeparatorText("Timers");

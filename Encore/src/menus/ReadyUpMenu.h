@@ -4,9 +4,10 @@
 
 #ifndef READYUPMENU_H
 #define READYUPMENU_H
-#include "OvershellMenu.h"
 
-class ReadyUpMenu : public OvershellMenu {
+#include "menu.h"
+
+class ReadyUpMenu : public Menu {
 public:
     ReadyUpMenu() = default;
     ~ReadyUpMenu() override = default;

@@ -230,8 +230,6 @@ void SongSelectMenu::Draw() {
     BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f), u.hinpct(0.7f));
     GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
-    encOS::DrawTopOvershell(0.15f);
-
     GameMenu::DrawVersion();
     int AlbumX = u.RightSide - u.winpct(0.25f);
     int AlbumY = u.hpct(0.075f);

@@ -4,9 +4,9 @@
 
 #ifndef CHARTLOADINGMENU_H
 #define CHARTLOADINGMENU_H
-#include "OvershellMenu.h"
+#include "menu.h"
 
-class ChartLoadingMenu : public OvershellMenu {
+class ChartLoadingMenu : public Menu {
 public:
     ChartLoadingMenu() {};
     ~ChartLoadingMenu() {};

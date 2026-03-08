@@ -116,7 +116,6 @@ void SettingsController::Draw() {
     TraceLog(LOG_INFO, "Units=%p, Assets initialized, rubikBold=%p", &u, &assets.rubikBold);
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
-    encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();
 
@@ -275,7 +274,6 @@ void SettingsController::Draw() {
     }
 */
     GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 }
 
 std::pair<std::string, int> SettingsController::getBindTypeAndIndex(size_t optionIndex) {

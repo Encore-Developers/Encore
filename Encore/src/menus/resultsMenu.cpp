@@ -9,7 +9,6 @@
 #include "uiUnits.h"
 #include "song/audio.h"
 #include "users/playerManager.h"
-#include "OvershellHelper.h"
 #include "MenuManager.h"
 
 void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
@@ -60,9 +59,9 @@ void resultsMenu::Load() {
     // ThePlayerManager.BandStats->PerfectScore << std::endl; std::cout << "Band Note
     // Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
-    for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
-        Player &player = ThePlayerManager.GetActivePlayer(playerNum);
-        FinalScore += player.engine->stats->Score;
+    for (auto slot : ThePlayerManager.ActivePlayers) {
+        Player *player = slot.player;
+        FinalScore += player->engine->stats->Score;
         //   PlayerGameplayStats *&stats =
         //   ThePlayerManager.GetActivePlayer(playerNum).stats; std::cout << player.Name
         //   << " Score: " << stats->Score << std::endl; std::cout << player.Name << "
@@ -79,10 +78,9 @@ void resultsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-        drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
+    for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
+        drawPlayerResults(*ThePlayerManager.ActivePlayers[i].player, i);
     }
-    encOS::DrawTopOvershell(0.2f);
     GameMenu::DrawVersion();
     // Draw album cover to the left of track info
     float albumSize = u.hinpct(0.15f);
@@ -152,7 +150,7 @@ void resultsMenu::Draw() {
     // u.hinpct(0.05f), false);
     float ScoreFontSize = u.hinpct(0.075f);
     std::string ScoreText =
-    GameMenu::scoreCommaFormatter(ThePlayerManager.GetActivePlayer(0).engine->stats->Score).c_str();
+    GameMenu::scoreCommaFormatter(ThePlayerManager.ActivePlayers[0].player->engine->stats->Score).c_str();
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
@@ -165,11 +163,11 @@ void resultsMenu::Draw() {
 
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
         // delete ThePlayerManager.BandStats;
-        for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-            Player &player = ThePlayerManager.GetActivePlayer(i);
-            player.engine->stats.reset();
-            player.engine->chart.reset();
-            player.engine.reset();
+        for (auto slot : ThePlayerManager.ActivePlayers) {
+            Player *player = slot.player;
+            player->engine->stats.reset();
+            player->engine->chart.reset();
+            player->engine.reset();
         }
         //for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive; PlayersToReset++) {
         //    Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
@@ -180,7 +178,6 @@ void resultsMenu::Draw() {
         //}
         TheMenuManager.SwitchScreen(SONG_SELECT);
     }
-    DrawOvershell();
 }
 
 void resultsMenu::drawPlayerResults(Player &player, int playerslot) {

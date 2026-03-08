@@ -4,7 +4,10 @@
 //
 
 #include "player.h"
+#include "overshell/OvershellSlot.h"
 #include "util/discord.h"
+
+using namespace Encore;
 
 class PlayerManager {
 public:
@@ -15,60 +18,32 @@ public:
     // player stuff to
     // PlayerList
     void SavePlayerList();
-    void SaveSpecificPlayer(int slot, bool active);
     // BandGameplayStats *BandStats;
     std::filesystem::path PlayerListSaveFile;
-    std::vector<Player> PlayerList;
-    std::vector<int> ActivePlayers { -1, -1, -1, -1 };
-    int PlayersActive = 0;
-
-    Player &GetActivePlayer(int slot) {
-        return PlayerList.at(ActivePlayers.at(slot));
-    }
+    std::vector<Player> SavedPlayers;
+    std::vector<OvershellSlot> ActivePlayers;
 
     void SetPlayerListSaveFileLocation(std::filesystem::path file) {
         PlayerListSaveFile = file;
     }
 
-    void AddActivePlayer(int playerNum, int slot) {
-        ActivePlayers.at(slot) = playerNum;
-        // GetActivePlayer(slot).joypadID = slot;
-        PlayersActive += 1;
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
+    void AddActivePlayer(Player* player) {
+        ActivePlayers.emplace_back(player);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus", ActivePlayers.size());
     }
 
-    void RemoveActivePlayer(int slot) {
-        ActivePlayers.at(slot) = -1;
-        PlayersActive -= 1;
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
-    }
-
-    bool IsGamepadActive(int joystickID) {
-        for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            // if (GetActivePlayer(playesr).joypadID == joystickID) {
-            //     return true;
-            // }
+    void RemoveActivePlayer(Player* player) {
+        for (auto it = ActivePlayers.begin(); it != ActivePlayers.end(); ++it) {
+            if (it->player == player) {
+                ActivePlayers.erase(it);
+                break;
+            }
         }
-        return false;
-    }
-
-    Player &GetPlayerGamepad(int joystickID) {
-        for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            // if (GetActivePlayer(playesr).joypadID == joystickID) {
-            //     return GetActivePlayer(playesr);
-            // }
-        }
-
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus", ActivePlayers.size());
     }
 
     void CreatePlayer(const std::string &name);
-    void DeletePlayer(const Player &PlayerToDelete); // remove player, reload playerlist
+    void DeletePlayer(Player &PlayerToDelete); // remove player, reload playerlist
     void RenamePlayer(const Player &PlayerToRename); // rename player
 };
 

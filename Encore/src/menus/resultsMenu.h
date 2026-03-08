@@ -8,7 +8,7 @@
 #include "gameMenu.h"
 #include "menu.h"
 
-class resultsMenu : public OvershellMenu {
+class resultsMenu : public Menu {
     // ok assets go here
     // i forgot which assets i need.
     Texture2D GoldStar;

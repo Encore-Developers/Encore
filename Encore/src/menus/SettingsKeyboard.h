@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "OvershellMenu.h"
+
 #include "keybinds.h"
 #include "assets.h"
+#include "menu.h"
 #include "settings/settings.h"
 
 #ifndef SETTINGSKEYBOARD_H
@@ -17,7 +18,7 @@ namespace Encore {
     };
 }
 
-class SettingsKeyboard : public OvershellMenu {
+class SettingsKeyboard : public Menu {
 #define OPTION(type, value, default) type value = default;
         SETTINGSKEYBOARD_H;
 #undef OPTION

@@ -5,6 +5,7 @@
 #include <iostream>
 #include "player.h"
 
+#include "raylibops.h"
 #include "uuid.h"
 #include "song/scoring.h"
 #include "song/song.h"
@@ -278,6 +279,26 @@ Player::Player() {
     Online = false;
     ClassicMode = false;
 };
+
+nlohmann::json Player::ToJSON() {
+    nlohmann::json out;
+    out["name"] = Name;
+    out["accentColor"] = ColorToJson(AccentColor);
+#define SETTING_ACTION(type, name, key) out[key] = name;
+    PLAYER_JSON_SETTINGS
+#undef SETTING_ACTION
+    return out;
+}
+
+void Player::LoadJSON(nlohmann::json& json) {
+    Name = json["name"];
+    AccentColor = JsonToColor(json["accentColor"]);
+
+#define SETTING_ACTION(type, name, key) name = json[key];
+    PLAYER_JSON_SETTINGS
+#undef SETTING_ACTION
+}
+
 
 void Player::ResetGameplayStats() {
     /*

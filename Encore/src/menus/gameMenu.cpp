@@ -16,7 +16,6 @@
 #include <variant>
 
 #include "../menus/menu.h"
-#include "overshellRenderer.h"
 #include "uiUnits.h"
 #include "../song/songlist.h"
 #include "gameplay/gameplayRenderer.h"

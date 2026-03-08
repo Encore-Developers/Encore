@@ -12,7 +12,7 @@
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
-#include "OvershellMenu.h"
+
 #include "util/settings-text.h"
 
 bool ShowAudioVisualSettings = true;
@@ -42,7 +42,6 @@ void SettingsAudioVideo::Draw() {
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
 
-    encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();
 
@@ -529,8 +528,6 @@ void SettingsAudioVideo::Draw() {
         selectedIndex = 0;
     }
 
-    GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 }
 
 

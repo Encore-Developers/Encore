@@ -6,8 +6,9 @@
 #include "GLFW/glfw3.h"
 #include "song/songlist.h"
 #include "assets.h"
+#include "menu.h"
 #include "users/player.h"
-#include "OvershellMenu.h"
+
 
 enum TextAlign {
     LEFT,
@@ -47,7 +48,7 @@ namespace GameMenu {
     void DrawAlbumArtBackground(Texture2D song);
 }
 
-class MainMenu : public OvershellMenu {
+class MainMenu : public Menu {
     
     void ChooseSplashText(std::filesystem::path directory);
     void PickRandomMenuSong();

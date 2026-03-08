@@ -4,11 +4,13 @@
 
 #ifndef SONGSELECTMENU_H
 #define SONGSELECTMENU_H
-#include "OvershellMenu.h"
+
+#include "menu.h"
+
 #include <filesystem>
 #include <map>
 
-class SongSelectMenu : public OvershellMenu {
+class SongSelectMenu : public Menu {
 public:
     SongSelectMenu() = default;
     ~SongSelectMenu() override;

@@ -11,6 +11,7 @@
 
 #include "raylib.h"
 #include "timingvalues.h"
+#include "../../../out/_deps/json-src/include/nlohmann/json.hpp"
 #include "PadHandler/Controller.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
 #include "song/chart.h"
@@ -35,138 +36,6 @@ enum NoteHitType {
     STANDARD, // strums/ptaps
     ALTERNATIVE // hopos/ctaps/lifts
 };
-/*
-class PlayerGameplayStats {
-    /**
-     * @brief Statistics/statistics manager for individual players during gameplay
-     *
-public:
-    PlayerGameplayStats();
-
-    bool Quit;
-    bool FC;
-    bool Paused;
-    double LastPerfectTime = -2.0;
-    bool GoldStars() {
-        float starPercent = Score / BaseScore;
-        if (starPercent >= STAR_THRESHOLDS[Instrument][5])
-            return true;
-        return false;
-    };
-    bool Overdrive;
-    bool Mute;
-
-    double Score;
-    // extra scoring information
-    double SustainScore = 0;
-    double MultiplierScore = 0;
-    double OverdriveScore = 0;
-    double PerfectScore = 0;
-    double NoteScore = 0;
-
-    int Combo;
-    int MaxCombo;
-    int Overhits;
-    int Notes;
-    int NotesHit;
-    int GoodHit;
-    int PerfectHit;
-    int NotesMissed;
-    int PressedMask = 0;
-    double MultiplierEffectTime = 0.0;
-    bool Miss = false;
-    int ScoreToDisplay();
-
-    std::vector<float> drumSmasherRotations = { 0, 0, 0, 0 };
-    std::vector<float> drumSmasherHeights = { 0, 0, 0, 0 };
-
-    std::vector<std::pair<float, int> > HitwindowNoteHitOffset = {};
-
-    std::vector<float> fiveLaneSmasherRotation = { 0, 0, 0, 0, 0 };
-    std::vector<float> fiveLaneSmasherHeights = { 0, 0, 0, 0, 0 };
-
-    std::vector<bool> HeldFrets { false, false, false, false, false };
-    std::vector<bool> HeldFretsAlt { false, false, false, false, false };
-    std::vector<bool> OverhitFrets { false, false, false, false, false };
-    std::vector<bool> TapRegistered { false, false, false, false, false };
-    std::vector<bool> LiftRegistered { false, false, false, false, false };
-    double StartTime = 0.0;
-    double SongStartTime = 0.0;
-
-    std::vector<float> SustainScoreBuffer { 0.0, 0.0, 0.0, 0.0, 0.0 };
-    int curBPM = 0;
-    int curBeatLine = 0;
-    int curODPhrase = 0;
-    int curSolo = 0;
-    int curFill = 0;
-    int curNoteInt = 0;
-    int curSection = 0;
-    double LastTick = 0.0;
-
-    double lastAxesTime = 0.0;
-    std::vector<float> axesValues { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-    std::vector<int> buttonValues { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::vector<float> axesValues2 { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-    int pressedGamepadInput = -999;
-    int axisDirection = -1;
-    bool FAS = false;
-    double StrumNoFretTime = -1.0;
-    int strummedNote;
-    bool Overstrum = false;
-    bool DownStrum = false;
-    bool UpStrum = false;
-    bool extendedSustainActive = false;
-
-    bool overdriveHeld = false;
-    bool overdriveAltHeld = false;
-    bool overdriveHitAvailable = false;
-    bool overdriveLiftAvailable = false;
-    std::vector<bool> overdriveLanesHit { false, false, false, false, false };
-    double overdriveHitTime = 0.0;
-    std::vector<int> lastHitLifts { -1, -1, -1, -1, -1 };
-
-    std::vector<int> curNoteIdx = { 0, 0, 0, 0, 0 };
-
-    float Health = 0.75f;
-    // Chart CurPlayingChart;
-    bool Multiplayer = false;
-    float overdriveFill;
-    float overdriveActiveFill;
-    double overdriveActiveTime;
-    double overdriveActivateTime;
-
-    int Instrument;
-    int Difficulty;
-    int BaseScore;
-
-    void AddHealth();
-    void LoseHealth();
-    PlayerGameplayStats(int difficulty, int instrument);
-    void HitNote(bool perfect);
-    void HitDrumsNote(bool perfect, bool cymbal);
-    // void HitPlasticNote(Note note);
-    void MissNote();
-    void OverHit();
-
-    int maxMultForMeter();
-
-    int maxComboForMeter();
-
-    int Stars();
-    void MultiplierUVCalculation();
-
-    float uvOffsetX = 0;
-    float uvOffsetY = 0;
-
-    int multiplier();
-
-    int noODmultiplier();
-
-    bool IsBassOrVox();
-
-    float comboFillCalc();
-};
-*/
 #define PLAYER_JSON_SETTINGS                                                             \
     SETTING_ACTION(int, Difficulty, "diff")                                              \
     SETTING_ACTION(int, Instrument, "inst")                                              \
@@ -198,6 +67,9 @@ private:
     std::shared_ptr<Encore::ColorProfile> colorProfile;
 public:
     Player();
+    Player(nlohmann::json& json) : Player() {
+        LoadJSON(json);
+    }
 
     std::string Name; // display name
     std::string PlayerID; // UUID
@@ -207,7 +79,6 @@ public:
 #define SETTING_ACTION(type, name) type name;
     PLAYER_CONFIG_LIST;
 #undef SETTING_ACTION
-    std::string playerJsonObjectName;
     int SongsPlayed;
     // todo: controller manager for assigning players to gamepads
     SDL_Gamepad *joypadID;
@@ -217,6 +88,13 @@ public:
     Encore::Controller padState;
     std::shared_ptr <Encore::RhythmEngine::BaseEngine>
             engine = nullptr;
+
+    nlohmann::json ToJSON();
+    operator nlohmann::json() {
+        return ToJSON();
+    }
+
+    void LoadJSON(nlohmann::json&);
 
 
     void ResetGameplayStats();

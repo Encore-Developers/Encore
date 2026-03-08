@@ -7,7 +7,7 @@
 #include "menu.h"
 #include "settings/settings.h"
 #include "assets.h"
-#include "OvershellMenu.h"
+
 
 #ifndef SETTINGSCREDITS_H
 #define SETTINGSCREDITS_H
@@ -17,7 +17,7 @@ namespace Encore {
     };
 }
 
-class SettingsCredits : public OvershellMenu {
+class SettingsCredits : public Menu {
 #define OPTION(type, value, default) type value = default;
     SETTINGS_OPTIONS;
 #undef OPTION

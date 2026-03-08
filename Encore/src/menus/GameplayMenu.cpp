@@ -6,7 +6,6 @@
 
 #include "gameplay/GameplayInputHandler.h"
 #include "gameMenu.h"
-#include "overshellRenderer.h"
 #include "uiUnits.h"
 #include "song/audio.h"
 #include "song/songlist.h"
@@ -18,7 +17,6 @@
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
 #include "MenuManager.h"
-#include "OvershellHelper.h"
 #include "../settings/settings.h"
 #include "timingvalues.h"
 

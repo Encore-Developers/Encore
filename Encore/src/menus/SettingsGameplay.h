@@ -6,14 +6,14 @@
 #define SETTINGS_GAMEPLAY_H
 
 #include <GLFW/glfw3.h>
-#include "OvershellMenu.h"
+#include "menu.h"
 
 namespace Encore {
     class SettingsGameplay {
     };
 }
 
-class SettingsGameplay : public OvershellMenu {
+class SettingsGameplay : public Menu {
 public:
     void Draw();
     void KeyboardInputCallback(int key, int scancode, int action, int mods);

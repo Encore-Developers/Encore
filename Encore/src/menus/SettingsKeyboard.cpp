@@ -7,7 +7,7 @@
 #include "assets.h"
 #include "uiUnits.h"
 #include "util/settings-text.h"
-#include "OvershellMenu.h"
+
 #include "raygui.h"
 
 void SettingsKeyboard::Draw() {
@@ -15,9 +15,7 @@ void SettingsKeyboard::Draw() {
     Assets& assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
-    encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
-    GameMenu::DrawBottomOvershell();
 
     float SidebarLeft = u.LeftSide + u.winpct(0.70f);
     float SidebarWidth = u.wpct(0.235f);
@@ -117,8 +115,6 @@ void SettingsKeyboard::Draw() {
         selectedIndex = 0;
     }
 
-    GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 }
 
 std::pair<std::string, int> SettingsKeyboard::getBindTypeAndIndex(size_t optionIndex) {

@@ -57,6 +57,7 @@ namespace Encore {
         float KickTimer = 0;
         float SpotlightTimer = 0;
         float OverdriveTimer = 0;
+        Vector3 specularLightPos;
 
         Camera3D AnimCamera;
         Camera3D BaseCamera;

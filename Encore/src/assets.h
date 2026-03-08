@@ -184,6 +184,7 @@ public:
     void SetUniform(const std::string &uniformName, float value);
     void SetUniform(const std::string &uniformName, Color value);
     void SetUniform(const std::string &uniformName, Vector4 value);
+    void SetUniform(const std::string &uniformName, Vector3 value);
     void SetUniform(const std::string &uniformName, void* value, ShaderUniformDataType type);
 
     int GetUniformLoc(const std::string &uniformName) {
@@ -394,7 +395,8 @@ public:
                    "frameColor",
                    "curveFac",
                    "offset",
-                   "scale"}, [this](Shader* asset) {
+                   "scale",
+                   "specularLightPos"}, [this](Shader* asset) {
                        asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
                    });
 

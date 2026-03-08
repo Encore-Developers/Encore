@@ -43,56 +43,56 @@ void MenuManager::LoadMenu() {
         // add its case to the `ActiveMenu->Draw();`
         // cases.
     case MAIN_MENU: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new MainMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGS: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new SettingsMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSAUDIOVIDEO: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new SettingsAudioVideo;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSGAMEPLAY: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new SettingsGameplay;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSKEYBOARD: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new SettingsKeyboard;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSCONTROLLER: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new SettingsController;
         ActiveMenu->Load();
         break;
     }
     case RESULTS: {
-        TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new resultsMenu;
         ActiveMenu->Load();
         break;
     }
     case SONG_SELECT: {
         // glfwSetGamepadStateCallback(gamepadStateCallback);
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new SongSelectMenu;
         ActiveMenu->Load();
         break;
     }
     case READY_UP: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new ReadyUpMenu;
         ActiveMenu->Load();
         break;
@@ -103,14 +103,14 @@ void MenuManager::LoadMenu() {
         break;
     }
     case CACHE_LOADING_SCREEN: {
-        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new cacheLoadingScreen;
         ActiveMenu->Load();
         break;
     }
     case CHART_LOADING_SCREEN: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",
-            ThePlayerManager.PlayersActive);
+            ThePlayerManager.ActivePlayers.size());
         ActiveMenu = new ChartLoadingMenu;
         ActiveMenu->Load();
         break;
@@ -120,7 +120,7 @@ void MenuManager::LoadMenu() {
             "Playing a song",
             TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
             ThePlayerManager.GetActivePlayer(0).Instrument,
-            ThePlayerManager.PlayersActive
+            ThePlayerManager.ActivePlayers.size()
         );
 
         ActiveMenu = new GameplayMenu;

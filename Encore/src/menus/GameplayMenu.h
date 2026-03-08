@@ -3,7 +3,6 @@
 // Created by marie on 20/10/2024.
 //
 
-#include "OvershellMenu.h"
 #include "assets.h"
 #include "menu.h"
 #include "uiUnits.h"
@@ -15,20 +14,8 @@
 extern bool songPlaying;
 
 // technically this IS a menu, but realistically, is it?
-class GameplayMenu : public OvershellMenu {
-    int CameraSelectionPerPlayer[4][4] {
-        {0,0,0,0},
-        {1,0,0,0},
-        {2,1,0,0},
-        {3,2,1,0}
-    };
-    int CameraPosPerPlayer[4][4] {
-        {0,0,0,0},
-        {8,-8,0,0},
-        {4,0,-4,0},
-        {4,12,-12,-4}
-    };
-    std::array<std::shared_ptr<Encore::Track>, 4> tracks;
+class GameplayMenu : public Menu {
+    std::vector<std::shared_ptr<Encore::Track>> tracks;
 public:
     GameplayMenu();
     virtual ~GameplayMenu();

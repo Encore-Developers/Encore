@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "OvershellMenu.h"
+#include "menu.h"
 #include "keybinds.h"
 #include <string>
 #include <utility>
@@ -17,7 +17,7 @@ namespace Encore {
     };
 }
 
-class SettingsController : public OvershellMenu {
+class SettingsController : public Menu {
 public:
     SettingsController() = default;
     ~SettingsController() override = default;

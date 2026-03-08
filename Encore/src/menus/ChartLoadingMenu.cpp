@@ -29,10 +29,10 @@ void LoadCharts() {
     );
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
-    for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
-        Player &player = ThePlayerManager.GetActivePlayer(playerNum);
-        int diff = player.Difficulty;
-        int inst = player.Instrument;
+    for (OvershellSlot& slot : ThePlayerManager.ActivePlayers) {
+        Player *player = slot.player;
+        int diff = player->Difficulty;
+        int inst = player->Instrument;
 
         int track = TheSongList.curSong->parts[inst]->TrackInt;
         std::string trackName;
@@ -59,50 +59,46 @@ void LoadCharts() {
                 );
                 chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
 
-                player.engine =
+                player->engine =
                     std::make_shared<Encore::RhythmEngine::GuitarEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                         std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
                     );
-                player.engine->stats->Type = Encore::RhythmEngine::Guitar;
+                player->engine->stats->Type = Encore::RhythmEngine::Guitar;
 
             } else if (inst == PlasticDrums) {
                 TheSongList.curSong->midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::DrumsLoader chartLoader(diff);
                 chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
 
-                ThePlayerManager.GetActivePlayer(playerNum)
-                    .engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
+                player->engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                     std::make_shared<Encore::RhythmEngine::DrumsStats>(0)
                 );
-                ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
+                player->engine->stats->Type =
                     Encore::RhythmEngine::Drums;
             } else if (inst < PlasticDrums) {
                 TheSongList.curSong->midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::PadLoader chartLoader(diff);
                 chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
 
-                ThePlayerManager.GetActivePlayer(playerNum).engine =
+                player->engine =
                     std::make_shared<Encore::RhythmEngine::PadEngine>(
                         std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
                     std::make_shared<Encore::RhythmEngine::PadStats>(0)
                 );
-                ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
+                player->engine->stats->Type =
                     Encore::RhythmEngine::Pad;
                 // todo: make pad engine shit how did u forget
             }
             for (int i = 0; i
-                 < ThePlayerManager.GetActivePlayer(playerNum).engine->chart->Lanes.size(
+                 < player->engine->chart->Lanes.size(
                  );
                  i++) {
-                ThePlayerManager.GetActivePlayer(playerNum)
-                    .engine->chart->Lanes.at(i)
+                player->engine->chart->Lanes.at(i)
                     .shrink_to_fit();
-                ThePlayerManager.GetActivePlayer(playerNum)
-                    .engine->chart->CurrentNoteIterators.at(i) =
-                    ThePlayerManager.GetActivePlayer(playerNum)
-                        .engine->chart->Lanes.at(i)
+                player->engine->chart->CurrentNoteIterators.at(i) =
+                    player->engine->chart->Lanes.at(i)
                         .begin();
             }
 
@@ -151,7 +147,6 @@ void ChartLoadingMenu::Draw() {
 
     ClearBackground(BLACK);
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-    encOS::DrawTopOvershell(0.15f);
     DrawTextEx(
         assets.redHatDisplayBlack,
         "LOADING...  ",
@@ -176,8 +171,6 @@ void ChartLoadingMenu::Draw() {
         LIGHTGRAY
     );
 
-    GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 
     if (FinishedLoading) {
         // TheGameRenderer.LoadGameplayAssets();

@@ -22,6 +22,7 @@ out vec3 fragPosition;
 out vec2 fragTexCoord;
 out vec4 fragColor;
 out vec3 fragNormal;
+out vec3 objPos;
 
 // NOTE: Add here your custom variables
 
@@ -48,6 +49,7 @@ void main()
     vec4 PositionInObjectSpace = inverse(ModelViewMatrix) * PositionInViewSpace;
     gl_Position = mvp * PositionInObjectSpace;
     gl_Position /= vec4(gl_Position.w, gl_Position.w, gl_Position.w, 1);
+    //fragNormal = (ModelViewMatrix * vec4(fragNormal, 0.0)).xyz;
 
     gl_Position -= vec4(0, -1, 0, 0);
     gl_Position *= vec4(scale, scale, 1, 1);

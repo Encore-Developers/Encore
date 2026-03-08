@@ -51,6 +51,10 @@ void Song::PullInfoFromINI(INIReader &ini) {
 
     source = ini.GetString("song", "icon", "custom");
 
+    if (source == "custom") {
+        source = ini.GetString("song", "game_origin", "custom");
+    }
+
     releaseYear = ini.GetString("song", "year", "Unknown Year");
 
     hopoThreshold = ini.GetInteger("song", "hopo_frequency", 170);

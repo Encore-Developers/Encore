@@ -12,11 +12,9 @@
 #include "settingsOptionRenderer.h"
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
-#include "OvershellMenu.h"
 #include "imgui.h"
 #include "SDL3/SDL_dialog.h"
 #include "gameplay/inputCallbacks.h"
-#include "misc/imgui_stdlib.h"
 #include "util/settings-text.h"
 
 bool ShowGameplaySettings = true;
@@ -217,7 +215,6 @@ void SettingsGameplay::Draw() {
         DrawTextEx(assets.rubikBold, "Scan Songs", {boxLeft + u.winpct(0.01f), scanSongsTop + (scanButtonHeight - scanSongsTextSize.y) / 2}, EntryFontSize, 0, WHITE);
     }
     Rectangle scanButtonRect = {OptionLeft + OptionWidth - scanButtonWidth, scanSongsTop, scanButtonWidth, scanButtonHeight};
-
     if (CheckCollisionPointRec(mousePos, scanButtonRect)) {
         selectedIndex = 1;
         isHovering = true;

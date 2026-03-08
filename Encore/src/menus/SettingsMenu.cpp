@@ -12,7 +12,7 @@
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
 #include "assets.h"
-#include "OvershellMenu.h"
+
 #include "util/settings-text.h"
 
 enum OptionsCategories {
@@ -29,7 +29,6 @@ void SettingsMenu::Draw() {
     // SettingsOld &settingsMain = SettingsOld::getInstance();
     SongTime &enctime = TheSongTime;
     settingsOptionRenderer sor;
-    encOS::DrawTopOvershell(0.15f);
     if (TheSongList.curSong != nullptr)
         GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{50, 0, 0, 200});
@@ -119,8 +118,6 @@ void SettingsMenu::Draw() {
         currentY += lineSpacing;
     }
 
-    encOS::DrawTopOvershell(0.15f);
-
     DrawTextEx(assets.rubik, "Main Menu",
                {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
     GameMenu::mhDrawText(
@@ -205,7 +202,6 @@ void SettingsMenu::Draw() {
     Units::getInstance();
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();
-    DrawOvershell();
 }
 
 void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
