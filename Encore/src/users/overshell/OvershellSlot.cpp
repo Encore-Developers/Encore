@@ -3,3 +3,7 @@
 //
 
 #include "OvershellSlot.h"
+void Encore::OvershellSlot::DrawSlotTab(float overshellHeight) {}
+void Encore::OvershellSlot::ToggleOpen() {
+    open = !open;
+}

@@ -22,6 +22,9 @@ namespace Encore {
         operator Player*() const {
             return this->player;
         }
+
+        void DrawSlotTab(float overshellHeight);
+        void ToggleOpen();
     };
 }
 

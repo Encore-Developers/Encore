@@ -65,6 +65,10 @@ namespace Encore::RhythmEngine {
         STRUM_DOWN = 8,
         PAUSE = 9,
         OVERDRIVE = 10,
+        UI_ACCEPT = 11,
+        UI_CANCEL = 12,
+        UI_ALT1   = 13,
+        UI_ALT2   = 14,
         INVALID = -1
     };
     inline InputChannel IntIC(int lane) {
@@ -106,9 +110,9 @@ namespace Encore::RhythmEngine {
 
     class ControllerEvent {
         public:
-        InputChannel channel : 8 = InputChannel::INVALID;
-        Action action : 8;
-        unsigned int axis : 8;
+        InputChannel channel = InputChannel::INVALID;
+        Action action;
+        unsigned int axis;
         EncorePadID slot;
         double timestamp;
     };

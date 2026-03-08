@@ -20,7 +20,7 @@ namespace Encore {
         bool keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);
         bool gamepadStateCallback(RhythmEngine::ControllerEvent event);
 
-        bool hasSlotForPad(EncorePadID pad) const;
+        OvershellSlot *getSlotForPad(EncorePadID pad) const;
 
         void Draw();
     };

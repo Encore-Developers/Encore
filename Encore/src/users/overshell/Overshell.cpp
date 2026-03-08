@@ -14,18 +14,43 @@ using namespace Encore;
 bool Overshell::keyCallback(
     GLFWwindow *wind, int key, int scancode, int action, int mods
 ) {
-    return false;
-}
-bool Overshell::gamepadStateCallback(RhythmEngine::ControllerEvent event) {
-    return false;
-}
-bool Overshell::hasSlotForPad(EncorePadID pad) const {
-    for (auto slot : slots) {
-        if (slot.pad == pad) {
-            return true;
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_ENTER) {
+            RhythmEngine::ControllerEvent event;
+            event.action = RhythmEngine::Action::PRESS;
+            event.channel = RhythmEngine::InputChannel::PAUSE;
+            event.slot = -1;
+            return gamepadStateCallback(event);
         }
     }
     return false;
+}
+bool Overshell::gamepadStateCallback(RhythmEngine::ControllerEvent event) {
+    if (auto slot = getSlotForPad(event.slot)) {
+        if (event.action == RhythmEngine::Action::PRESS && event.channel == RhythmEngine::InputChannel::PAUSE) {
+            slot->ToggleOpen();
+            return true;
+        }
+        if (slot->open) {
+            // bla bla bla let the slot do slot things
+            return true;
+        }
+    } else {
+        if (event.action == RhythmEngine::Action::PRESS && event.channel == RhythmEngine::InputChannel::PAUSE) {
+            slots.push_back(OvershellSlot(nullptr));
+            return true;
+        }
+    }
+
+    return false;
+}
+OvershellSlot *Overshell::getSlotForPad(EncorePadID pad) const {
+    for (auto &slot : slots) {
+        if (slot.pad == pad) {
+            return &slot;
+        }
+    }
+    return nullptr;
 }
 void Overshell::Draw() {
     // TODO: find a way to do ease in and out on this slide anim
