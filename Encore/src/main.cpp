@@ -314,6 +314,7 @@ int main(int argc, char *argv[]) {
             }
             TheGameRPC.Update();
             TheMenuManager.DrawMenu();
+            ThePlayerManager.overshell.Draw();
             if (loadingScreenFade > 0) {
                 DrawLoadingScreen(255*loadingScreenFade, 1);
                 float frameTime = GetFrameTime();

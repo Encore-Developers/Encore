@@ -4,6 +4,8 @@
 
 class Menu {
 public:
+    bool showOvershell = true;
+
     Menu() {}
     virtual ~Menu() {}
 

@@ -80,8 +80,6 @@ public:
     PLAYER_CONFIG_LIST;
 #undef SETTING_ACTION
     int SongsPlayed;
-    // todo: controller manager for assigning players to gamepads
-    SDL_Gamepad *joypadID;
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};

@@ -5,7 +5,12 @@
 #ifndef REENUMS_H
 #define REENUMS_H
 #include <cstdint>
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_joystick.h"
 
+// Lets us easily change what this is in case SDL doesn't work out or we actually want to
+// use player indices
+typedef SDL_JoystickID EncorePadID;
 
 namespace Encore::RhythmEngine {
     constexpr uint8_t PlasticFrets[6] { // open			0		     0| technically not a
@@ -104,7 +109,7 @@ namespace Encore::RhythmEngine {
         InputChannel channel : 8 = InputChannel::INVALID;
         Action action : 8;
         unsigned int axis : 8;
-        unsigned int slot : 8;
+        EncorePadID slot;
         double timestamp;
     };
 }

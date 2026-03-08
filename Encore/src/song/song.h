@@ -207,6 +207,8 @@ public:
     void LoadAudioINI(std::filesystem::path songPath);
     float previewStartTime = 0.0f;
 
+    void InspectMIDI();
+
 
     void LoadAudioJSON(const nlohmann::json &jsonPath) {
         if (!stemsPath.empty())

@@ -79,6 +79,9 @@ void EncoreDebug::MenuBar() {
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
         SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
+        if (TheMenuManager.ActiveMenu) {
+            Checkbox("Show overshell on this menu", &TheMenuManager.ActiveMenu->showOvershell);
+        }
         EndMenu();
     }
 

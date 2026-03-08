@@ -16,6 +16,7 @@
 #include <cstring>
 
 #include "RhythmEngine/REenums.h"
+#include "users/playerManager.h"
 
 using namespace std::chrono_literals;
 
@@ -37,6 +38,10 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
 
     rlImGuiPushKeyEvent(key, scancode, action, mods);
     if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
+
+    if (ThePlayerManager.overshell.keyCallback(wind, key, scancode, action, mods)) {
         return;
     }
 
@@ -110,7 +115,7 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
         else if (event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
             outevent.action = Encore::RhythmEngine::Action::PRESS;
 
-        outevent.slot = SDL_GetGamepadPlayerIndexForID(event->gdevice.which);
+        outevent.slot = event->gdevice.which;
     }
 
     return outevent;
@@ -119,8 +124,10 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 void PollQueuedInputs(ControllerPoller& poller) {
     while (poller.readIndex < poller.writeIndex) {
         auto event = poller.getEvent(poller.readIndex);
-        if (TheMenuManager.ActiveMenu) {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(event);
+        if (!ThePlayerManager.overshell.gamepadStateCallback(event)) {
+            if (TheMenuManager.ActiveMenu) {
+                TheMenuManager.ActiveMenu->ControllerInputCallback(event);
+            }
         }
         poller.readIndex++;
     }

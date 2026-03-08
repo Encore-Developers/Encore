@@ -9,7 +9,11 @@
 namespace Encore {
     class OvershellSlot {
     public:
+        /// Will be null while a player is selecting their profile.
         Player* player;
+        EncorePadID pad;
+
+        bool open;
 
         OvershellSlot(Player* player) {
             this->player = player;

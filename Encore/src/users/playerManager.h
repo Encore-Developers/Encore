@@ -4,6 +4,7 @@
 //
 
 #include "player.h"
+#include "overshell/Overshell.h"
 #include "overshell/OvershellSlot.h"
 #include "util/discord.h"
 
@@ -22,6 +23,8 @@ public:
     std::filesystem::path PlayerListSaveFile;
     std::vector<Player> SavedPlayers;
     std::vector<OvershellSlot> ActivePlayers;
+
+    Overshell overshell = Overshell(ActivePlayers);
 
     void SetPlayerListSaveFileLocation(std::filesystem::path file) {
         PlayerListSaveFile = file;
