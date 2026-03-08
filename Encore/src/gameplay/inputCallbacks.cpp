@@ -152,6 +152,7 @@ void _PollQueuedInputs() {
 }
 
 int ControllerPoller::controllerPollRate = 1000;
+ControllerPoller* ControllerPoller::instance;
 
 void ControllerPoller::Run() {
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
@@ -189,6 +190,14 @@ void ControllerPoller::Run() {
                 }
             }
         }
+
+        requestMutex.lock();
+        for (auto &func : funcRequests) {
+            func();
+        }
+        funcRequests.clear();
+        requestMutex.unlock();
+
         auto end = std::chrono::high_resolution_clock::now();
         auto span = std::chrono::milliseconds(1000/controllerPollRate) - (end - start);
         std::this_thread::sleep_for(span);

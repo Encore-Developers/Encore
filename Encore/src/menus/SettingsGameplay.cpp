@@ -13,6 +13,10 @@
 #include "uiUnits.h"
 #include "gameplay/enctime.h"
 #include "OvershellMenu.h"
+#include "imgui.h"
+#include "SDL3/SDL_dialog.h"
+#include "gameplay/inputCallbacks.h"
+#include "misc/imgui_stdlib.h"
 #include "util/settings-text.h"
 
 bool ShowGameplaySettings = true;
@@ -213,6 +217,7 @@ void SettingsGameplay::Draw() {
         DrawTextEx(assets.rubikBold, "Scan Songs", {boxLeft + u.winpct(0.01f), scanSongsTop + (scanButtonHeight - scanSongsTextSize.y) / 2}, EntryFontSize, 0, WHITE);
     }
     Rectangle scanButtonRect = {OptionLeft + OptionWidth - scanButtonWidth, scanSongsTop, scanButtonWidth, scanButtonHeight};
+
     if (CheckCollisionPointRec(mousePos, scanButtonRect)) {
         selectedIndex = 1;
         isHovering = true;
@@ -236,6 +241,40 @@ void SettingsGameplay::Draw() {
             }
         }
     }
+
+    ImGui::SetNextWindowPos({scanButtonRect.x, scanButtonRect.y+scanButtonHeight}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({scanButtonWidth, scanButtonHeight*3});
+    if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        const std::filesystem::path* toDelete;
+        for (const auto& path : TheGameSettings.SongPaths) {
+            ImGui::PushID((void*)&path);
+            if (ImGui::Button("Remove")) {
+                toDelete = &path;
+            }
+            ImGui::SameLine();
+            ImGui::Text("%s", path.generic_string().c_str());
+            ImGui::PopID();
+        }
+        if (ImGui::Button("Add...")) {
+            // lambdas upon lambdas :smile:
+            ControllerPoller::instance->CallFuncOnSDLThread([] {SDL_ShowOpenFolderDialog([](void*, const char* const* filelist, int filter) {
+                if (filelist) {
+                    while (*filelist) {
+                        TheGameSettings.SongPaths.push_back(*filelist);
+                        filelist++;
+                    }
+                }
+            }, nullptr, nullptr, nullptr, false);});
+        }
+        // starting to really hate std::vector erase
+        for (auto it = TheGameSettings.SongPaths.begin(); it != TheGameSettings.SongPaths.end(); ++it) {
+            if (&*it == toDelete) {
+                TheGameSettings.SongPaths.erase(it);
+                break;
+            }
+        }
+    }
+    ImGui::End();
 
     if (!isHovering) {
         selectedIndex = 0;

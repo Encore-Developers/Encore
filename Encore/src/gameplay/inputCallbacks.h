@@ -7,7 +7,9 @@
 #include "GLFW/glfw3.h"
 #include "RhythmEngine/REenums.h"
 
+#include <functional>
 #include <thread>
+#include <vector>
 
 // what to check when a key changes states (what was the change? was it pressed? or
 // released? what time? what window? were any modifiers pressed?)
@@ -23,11 +25,15 @@ private:
     void Run();
 public:
     static int controllerPollRate;
+    static ControllerPoller* instance;
 
     Encore::RhythmEngine::ControllerEvent eventQueue[MAX_EVENTS];
     unsigned long writeIndex = 0;
     unsigned long readIndex = 0;
     std::thread pollThread;
+
+    std::vector<std::function<void()>> funcRequests;
+    std::mutex requestMutex;
 
     bool active = true;
 
@@ -41,6 +47,13 @@ public:
 
     ControllerPoller() {
         pollThread = std::thread(&ControllerPoller::Run, this);
+        instance = this;
+    }
+
+    void CallFuncOnSDLThread(const std::function<void()> &func) {
+        requestMutex.lock();
+        funcRequests.push_back(func);
+        requestMutex.unlock();
     }
 
     ~ControllerPoller() {
