@@ -10,6 +10,7 @@
 #include <functional>
 #include <thread>
 #include <vector>
+#include <mutex>
 
 // what to check when a key changes states (what was the change? was it pressed? or
 // released? what time? what window? were any modifiers pressed?)
