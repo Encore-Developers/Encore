@@ -11,6 +11,7 @@
 #include "debug/EncoreDebug.h"
 #include "rlImGui.h"
 #include "SDL3/SDL.h"
+#include <mutex>
 
 #include <cstring>
 
