@@ -161,33 +161,12 @@ void Encore::RhythmEngine::BaseEngine::UpdateStats(int instrument, int difficult
 
     inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
     stats->StarThresholdValue = stats->Score / chart->BaseScore;
-    if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][0]) {
-        stats->Stars = 0;
-        return;
-    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][1]) {
-        stats->Stars = 1;
-        return;
-    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][2]) {
-        stats->Stars = 2;
-        return;
-    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][3]) {
-        stats->Stars = 3;
-        return;
-    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][4]) {
-        stats->Stars = 4;
-        return;
-    } else if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][5]) {
-        stats->Stars = 5;
-        return;
-    } else if (stats->StarThresholdValue >= STAR_THRESHOLDS[inst][5]) {
-        stats->Stars = 5;
-        return;
-    } else {
-        stats->Stars = 5;
-        return;
+    for (int i = 0; i < 6 ; i++) {
+        if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][i]) {
+            stats->Stars = i;
+            return;
+        }
     }
-
-    //if (difficulty != 3 && stats->Stars > 4)
-    //    stats->Stars = 4;
+    stats->Stars = 5;
 
 }
