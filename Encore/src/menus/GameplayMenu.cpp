@@ -75,37 +75,35 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
                 || key == settingsMain.keybindOverdriveAlt)) {
         // inputHandler.handleInputs(player, -1, action);
     } else */
-
-    Encore::RhythmEngine::Action REaction;
-    Encore::RhythmEngine::InputChannel Channel =
-        Encore::RhythmEngine::InputChannel::INVALID;
+    Encore::RhythmEngine::ControllerEvent event;
     if (action == GLFW_PRESS) {
-        REaction = Encore::RhythmEngine::Action::PRESS;
+        event.action = Encore::RhythmEngine::Action::PRESS;
     } else if (action == GLFW_RELEASE) {
-        REaction = Encore::RhythmEngine::Action::RELEASE;
+        event.action = Encore::RhythmEngine::Action::RELEASE;
     }
     if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.
         overdriveBinds.second) {
-        Channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+        event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
     } else if (player.ClassicMode) {
         if (key == TheGameKeybinds.strumBinds.first) {
-            Channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+            event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
         } else if (key == TheGameKeybinds.strumBinds.second) {
-            Channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+            event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
         }
     }
     int DiffMax = (player.Difficulty == 3 || player.ClassicMode) ? 5 : 4;
     for (int i = 0; i < DiffMax; i++) {
         if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
             i]) {
-            Channel = Encore::RhythmEngine::IntIC(i);
+            event.channel = Encore::RhythmEngine::IntIC(i);
         }
     }
 
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i",
     // lane));
-    if (Channel != Encore::RhythmEngine::InputChannel::INVALID)
-        engine->ProcessInput(Channel, REaction);
+    event.timestamp = TheSongTime.GetElapsedTime();
+    if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
+        engine->ProcessInput(event);
 };
 
 void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
@@ -116,10 +114,7 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
     if (engine->allowTimestampedInputs) {
         engine->UpdateOnFrame(event.timestamp);
     }
-    engine->ProcessInput(
-            event.channel,
-            event.action
-        );
+    engine->ProcessInput(event);
     // Encore::EncoreLog(LOG_DEBUG, "Controller inputted.");
     /*
     Player &player = ThePlayerManager.GetActivePlayer(0);

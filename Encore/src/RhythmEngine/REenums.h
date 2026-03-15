@@ -50,7 +50,7 @@ namespace Encore::RhythmEngine {
                                         0b000000
     };
 
-    enum class InputChannel {
+    enum class InputChannel : int8_t {
         LANE_1 = 0,
         LANE_2 = 1,
         LANE_3 = 2,
@@ -60,6 +60,7 @@ namespace Encore::RhythmEngine {
         STRUM_DOWN = 8,
         PAUSE = 9,
         OVERDRIVE = 10,
+        WHAMMY = 11,
         INVALID = -1
     };
     inline InputChannel IntIC(int lane) {
@@ -93,7 +94,8 @@ namespace Encore::RhythmEngine {
 
         return 0;
     }
-    enum class Action {
+    enum class Action : int8_t {
+        INVALID = -1,
         PRESS = 1,
         RELEASE = 0,
         REPEAT = 2 // not needed but whatever
@@ -102,7 +104,7 @@ namespace Encore::RhythmEngine {
     class ControllerEvent {
         public:
         InputChannel channel : 8 = InputChannel::INVALID;
-        Action action : 8;
+        Action action : 8 = Action::INVALID;
         unsigned int axis : 8;
         unsigned int slot : 8;
         double timestamp;

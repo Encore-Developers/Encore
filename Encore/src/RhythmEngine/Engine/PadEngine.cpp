@@ -11,12 +11,10 @@
 #include "gameplay/enctime.h"
 #include "song/scoring.h"
 
-bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
-    InputChannel channel, Action action
-) {
+bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) {
     // todo: hit notes (THIS IS PAD)
     stats->InputTime = LastUpdateTime;
-    if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
+    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         // activates overdrive
         if (stats->overdrive.Activate(stats->InputTime)) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
@@ -29,7 +27,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
             return true;
         };
     }
-    if (channel == InputChannel::OVERDRIVE && action == Action::RELEASE) {
+    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::RELEASE) {
         if (stats->overdrive.UseOverdriveLift) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
@@ -44,35 +42,33 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(
     }
     return false;
 }
-void Encore::RhythmEngine::PadEngine::SetStatsInputState(
-    InputChannel channel, Action action
-) {
+void Encore::RhythmEngine::PadEngine::SetStatsInputState(ControllerEvent &event) {
     stats->InputTime = LastUpdateTime;
-    if (action == Action::PRESS) {
-        switch (channel) {
+    if (event.action == Action::PRESS) {
+        switch (event.channel) {
         case InputChannel::LANE_1:
         case InputChannel::LANE_2:
         case InputChannel::LANE_3:
         case InputChannel::LANE_4:
         case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(channel)) = true;
+            stats->HeldFrets.at(ICInt(event.channel)) = true;
             break;
         }
         default:
             break;
         }
     }
-    if (action == Action::RELEASE) {
-        switch (channel) {
+    if (event.action == Action::RELEASE) {
+        switch (event.channel) {
         case InputChannel::LANE_1:
         case InputChannel::LANE_2:
         case InputChannel::LANE_3:
         case InputChannel::LANE_4:
         case InputChannel::LANE_5: {
-            if (chart->HeldNotePointers.at(ICInt(channel))) {
-                chart->HeldNotePointers.at(ICInt(channel)) = nullptr;
+            if (chart->HeldNotePointers.at(ICInt(event.channel))) {
+                chart->HeldNotePointers.at(ICInt(event.channel)) = nullptr;
             }
-            stats->HeldFrets.at(ICInt(channel)) = false;
+            stats->HeldFrets.at(ICInt(event.channel)) = false;
             break;
         }
         default:
@@ -81,19 +77,17 @@ void Encore::RhythmEngine::PadEngine::SetStatsInputState(
     }
 }
 
-int Encore::RhythmEngine::PadEngine::RunHitStateCheck(
-    InputChannel channel, Action action
-) {
-    if (channel == InputChannel::OVERDRIVE)
+int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
+    if (event.channel == InputChannel::OVERDRIVE)
         return CheckNextInput;
-    if (channel == InputChannel::STRUM_UP || channel == InputChannel::STRUM_DOWN)
+    if (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN)
         return CheckNextInput;
-    int lane = ICInt(channel);
+    int lane = ICInt(event.channel);
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
         return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-    bool lift = action == Action::RELEASE && CurrentNote->NoteType == 1;
-    if (action == Action::PRESS || lift) {
+    bool lift = event.action == Action::RELEASE && CurrentNote->NoteType == 1;
+    if (event.action == Action::PRESS || lift) {
         if (EarlyStrike(CurrentNote->StartSeconds) && !lift) {
             if (stats->overdrive.ActivationTime + overdriveHitLeniency > stats->InputTime - stats->InputOffset )
                 return CheckNextInput;

@@ -40,25 +40,25 @@ bool Encore::RhythmEngine::BaseEngine::PerfectHit(
         }
     return false;
 }
-void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action action) {
-    if (channel == InputChannel::INVALID)
+void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
+    if (event.channel == InputChannel::INVALID)
         return;
 
-    if (PauseGame(channel, action)) {
+    if (PauseGame(event)) {
         return;
     }
     if (PlayerIsPaused())
         return;
-    if (ActivateOverdrive(channel, action)) {
+    if (ActivateOverdrive(event)) {
         return;
     }
-    SetStatsInputState(channel, action);
+    SetStatsInputState(event);
     // look its really stupid but like. cmon
-    if ((channel == InputChannel::STRUM_DOWN || channel == InputChannel::STRUM_UP)
-        && action == Action::RELEASE) {
+    if ((event.channel == InputChannel::STRUM_DOWN || event.channel == InputChannel::STRUM_UP)
+        && event.action == Action::RELEASE) {
         return;
     }
-    RunHitStateCheck(channel, action);
+    RunHitStateCheck(event);
 }
 // i dont think this is needed because it was technically already taken care of by
 // BaseChart
@@ -79,8 +79,8 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(InputChannel channel, Action
     return true;
 }*/
 
-bool Encore::RhythmEngine::BaseEngine::PauseGame(InputChannel channel, Action action) {
-    if (channel == InputChannel::PAUSE && action == Action::PRESS) {
+bool Encore::RhythmEngine::BaseEngine::PauseGame(ControllerEvent &event) {
+    if (event.channel == InputChannel::PAUSE && event.action == Action::PRESS) {
         TogglePause();
         // TODO: make this work depending on player count and probably not in here
         if (stats->Paused)

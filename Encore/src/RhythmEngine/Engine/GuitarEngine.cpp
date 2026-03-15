@@ -44,11 +44,9 @@ bool HittableAsStrum(int NoteType, bool FAS, double inputTime, double FASTime) {
     return false;
 }
 
-bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(
-    InputChannel channel,
-    Action action
+bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &event
 ) {
-    if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
+    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         int InstrumentNum =
             stats->Type == Guitar ? inst - 5 : inst;
         stats->overdrive.Activate(stats->InputTime);
@@ -74,13 +72,16 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
             HitNote(true);
         }
     }
-    if (chart->HeldNotePointers.at(0) != nullptr
-        && chart->HeldNotePointers.at(0)->StartSeconds
-        + chart->HeldNotePointers.at(0)->LengthSeconds
-        >= CurrentTime) {
+    auto heldNote = chart->HeldNotePointers.at(0);
+    if (heldNote != nullptr
+        && heldNote->StartSeconds + heldNote->LengthSeconds >= CurrentTime
+        && heldNote->StartSeconds <= CurrentTime) {
         double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
         stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick
             * stats->multiplier()) * std::popcount(chart->HeldNotePointers.at(0)->Lane));
+    }
+    if (heldNote && heldNote->StartSeconds + heldNote->LengthSeconds < CurrentTime) {
+        chart->DropSustain(0);
     }
     this->CheckMissedNotes(CurrentTime);
     stats->overdrive.Add(CurrentTime, chart);
@@ -96,20 +97,22 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
 }
 
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
-    InputChannel channel,
-    Action action
+ControllerEvent &event
 ) {
     stats->InputTime = LastUpdateTime; // todo: REPLACE WITH ACTUAL SONG
     // TIME
     // (IN SECONDS)
-    if (action == Action::PRESS) {
-        switch (channel) {
+    if (event.channel == InputChannel::WHAMMY) {
+
+    }
+    if (event.action == Action::PRESS) {
+        switch (event.channel) {
         case InputChannel::LANE_1:
         case InputChannel::LANE_2:
         case InputChannel::LANE_3:
         case InputChannel::LANE_4:
         case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(channel)) = true;
+            stats->HeldFrets.at(ICInt(event.channel)) = true;
             break;
         }
         case InputChannel::STRUM_UP: {
@@ -124,18 +127,21 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
             break;
         }
     }
-    if (action == Action::RELEASE) {
-        switch (channel) {
+    if (event.action == Action::RELEASE) {
+        switch (event.channel) {
         case InputChannel::LANE_1:
         case InputChannel::LANE_2:
         case InputChannel::LANE_3:
         case InputChannel::LANE_4:
         case InputChannel::LANE_5: {
-            if (chart->HeldNotePointers.at(0)
-                && (chart->HeldNotePointers.at(0)->Lane & PlasticFrets[ICInt(channel)])) {
-                chart->DropSustain(0);
+            if (chart->HeldNotePointers.at(0)) {
+                auto note = chart->HeldNotePointers.at(0);
+                if (note->Lane & PlasticFrets[ICInt(event.channel)] &&
+                    note->StartTicks+note->LengthTicks >= TheSongTime.CurrentTick + 240) {
+                    chart->DropSustain(0);
+                }
             }
-            stats->HeldFrets.at(ICInt(channel)) = false;
+            stats->HeldFrets.at(ICInt(event.channel)) = false;
             break;
         }
         case InputChannel::STRUM_UP:
@@ -154,9 +160,7 @@ bool Encore::RhythmEngine::GuitarEngine::CanNoteBeHit() {
     return true;
 }*/
 
-int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
-    InputChannel channel,
-    Action action
+int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     // GetCurrentNote(0);
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
@@ -164,19 +168,21 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
 
     if (chart->IsHeldNotePresent(0) &&
-        action == Action::PRESS &&
+        event.action == Action::PRESS &&
         !MaskMatch(chart->HeldNotePointers.at(0)->Lane, stats->HeldFretsArrayToMask()) &&
-        !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)->LengthSeconds > CurrentNote.StartSeconds
-            )) {
+        !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)->
+            LengthSeconds > CurrentNote.StartSeconds
+        ) &&
+        (!(chart->HeldNotePointers.at(0)->StartTicks + chart->HeldNotePointers.at(0)->LengthTicks < TheSongTime.CurrentTick + 1920))
+        ) {
         chart->DropSustain(0);
     }
     // if an upper note is pressed when a sustain is active, unless the sustain goes on longer than the current note
 
-
     // STRUM PATH
     bool StrumInput = (stats->strumState != StrumState::Default)
-        && action == Action::PRESS
-        && (channel == InputChannel::STRUM_UP || channel == InputChannel::STRUM_DOWN);
+        && event.action == Action::PRESS
+        && (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN);
     if (StrumInput) {
         // miss should be managed by current frame
         // overhit is managed here
@@ -211,7 +217,8 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(
     }
 
     // GHOSTING
-    if (action == Action::PRESS && channel <= InputChannel::LANE_5 && channel != InputChannel::INVALID) {
+    if (event.action == Action::PRESS && event.channel <= InputChannel::LANE_5 && event.channel !=
+        InputChannel::INVALID) {
         if (stats->HeldFretsArrayToMask() > CurrentNote.Lane) {
             GhostCount++;
         }
@@ -232,7 +239,8 @@ void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
     }
     if (chart->CurrentNoteIterators.at(0)->LengthTicks > 0) {
         if (chart->IsHeldNotePresent(0)) {
-            chart->HeldNotePointers.at(0)->Lane |= chart->CurrentNoteIterators.at(0)->Lane;
+            chart->HeldNotePointers.at(0)->Lane |= chart->CurrentNoteIterators.at(0)->
+                                                          Lane;
         } else {
             chart->SetCurrentNoteAsHeldNote(0);
         }
