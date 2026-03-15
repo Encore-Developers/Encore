@@ -54,7 +54,8 @@ OvershellSlot *Overshell::getSlotForPad(EncorePadID pad) const {
 }
 void Overshell::Draw() {
     // TODO: find a way to do ease in and out on this slide anim
-    animSlide = Lerp(animSlide, TheMenuManager.ActiveMenu && TheMenuManager.ActiveMenu->showOvershell ? 1 : 0, 1 - exp(-20*GetFrameTime()));
+    animSlide = TheMenuManager.ActiveMenu->showOvershell ? 1 : 0;
+    animSlide.Update(GetFrameTime());
 
 
     if (animSlide < 0.01) {
