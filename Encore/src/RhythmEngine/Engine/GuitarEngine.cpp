@@ -102,8 +102,8 @@ ControllerEvent &event
     stats->InputTime = LastUpdateTime; // todo: REPLACE WITH ACTUAL SONG
     // TIME
     // (IN SECONDS)
-    if (event.channel == InputChannel::WHAMMY) {
-
+    if (event.channel == InputChannel::WHAMMY && chart->IsHeldNotePresent(0)) {
+        whammy = float(event.axis)/255.0f;
     }
     if (event.action == Action::PRESS) {
         switch (event.channel) {

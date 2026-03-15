@@ -51,6 +51,7 @@ namespace Encore::RhythmEngine {
         double LastUpdateTime;
         bool allowTimestampedInputs = true;
 
+        float whammy = 0.0;
         std::pair<int, int> GetNotePoolSize(int lane);
 
         // bool GetCurrentNote(int lane);

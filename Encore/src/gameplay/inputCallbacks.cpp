@@ -112,7 +112,16 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 
         outevent.slot = SDL_GetGamepadPlayerIndexForID(event->gdevice.which);
     }
+    if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+        if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
+            outevent.channel = Encore::RhythmEngine::InputChannel::WHAMMY;
+            outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
+            outevent.slot = SDL_GetGamepadPlayerIndexForID(event->gdevice.which);
 
+            Encore::EncoreLog(LOG_INFO,
+                              TextFormat("SDL whammy value %01i", outevent.axis));
+        }
+    }
     return outevent;
 }
 
@@ -181,7 +190,7 @@ void ControllerPoller::Run() {
                                              SDL_GetGamepadNameForID(event.gdevice.which)));
                 break;
             }
-            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
+            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
                 if (TheMenuManager.currentScreen == GAMEPLAY) {
                     auto time = TheSongTime.GetElapsedTime();
                     auto encEvent = TranslateEvent(&event);
