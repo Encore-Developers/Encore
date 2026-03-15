@@ -42,7 +42,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     }
 
     if (note->LengthSeconds > 0) {
-        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, 0);
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
     }
 
     rlDrawRenderBatchActive();
@@ -66,14 +66,14 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
 
-void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, double width) {
+void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
     if (endTime <= startTime) {
         return;
     }
     float midPos = track->GetNotePos3D((endTime + startTime) / 2);
     float sustainLength = endTime - startTime;
     DrawCube({ xPos, 0.1, midPos },
-             0.2 + width,
+             0.2 + track->player.engine->whammy,
              0.1,
              sustainLength * track->GetZPerSecond(),
              track->player.QueryColorProfile(colorSlot));
@@ -141,10 +141,8 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         }
 
         if (matches) {
-
-            float width = track->player.engine->whammy;
             DrawSustainTail(TheSongTime.GetElapsedTime(),
-                            note->StartSeconds + note->LengthSeconds, width);
+                            note->StartSeconds + note->LengthSeconds);
             if (hitFlare) {
                 if (hitFlare->id == hitFlareId) {
                     hitFlare->time = (std::sin(TheSongTime.GetElapsedTime() * 100) + 1) *
