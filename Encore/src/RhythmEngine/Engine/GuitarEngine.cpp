@@ -173,7 +173,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)->
             LengthSeconds > CurrentNote.StartSeconds
         ) &&
-        (!(chart->HeldNotePointers.at(0)->StartTicks + chart->HeldNotePointers.at(0)->LengthTicks < TheSongTime.CurrentTick + 1920))
+        (!(chart->HeldNotePointers.at(0)->StartTicks + chart->HeldNotePointers.at(0)->LengthTicks < TheSongTime.CurrentTick + 240))
         ) {
         chart->DropSustain(0);
     }
