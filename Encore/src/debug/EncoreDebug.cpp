@@ -83,6 +83,9 @@ void EncoreDebug::MenuBar() {
             TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
         }
         DragInt("Video Calibration", &TheGameSettings.VideoOffset, 1, 0, 0, "%dms");
+        if (Button("Save Settings")) {
+            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
+        };
         EndMenu();
     }
 
