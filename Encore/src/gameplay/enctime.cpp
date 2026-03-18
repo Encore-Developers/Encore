@@ -1,6 +1,7 @@
 
 #include "enctime.h"
 
+#include "settings/settings.h"
 #include "song/songlist.h"
 #include "util/enclog.h"
 
@@ -290,7 +291,7 @@ double SongTime::GetElapsedTime() {
         return TheAudioManager.GetMusicTimeLength() + (GetTime() - lastTimeSample);
     }
     lastTimeSample = GetTime();
-    return audioTime - aCalib;
+    return audioTime - aCalib + TheGameSettings.VideoOffset/1000.0;
 };
 double SongTime::GetStartTime() {
     return 0;
