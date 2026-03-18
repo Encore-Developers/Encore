@@ -20,6 +20,7 @@
 void Encore::Track::Draw() {
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
+    player.engine->stats->InputOffset = player.InputCalibration;
 
     ProcessAnimation();
     BeginMode3D(AnimCamera);
