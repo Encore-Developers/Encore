@@ -70,13 +70,17 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
     if (endTime <= startTime) {
         return;
     }
+    Color color = track->player.QueryColorProfile(colorSlot);
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(startTime)) {
+        color = WHITE;
+    }
     float midPos = track->GetNotePos3D((endTime + startTime) / 2);
     float sustainLength = endTime - startTime;
     DrawCube({ xPos, 0.1, midPos },
              0.2 + track->player.engine->whammy,
              0.1,
              sustainLength * track->GetZPerSecond(),
-             track->player.QueryColorProfile(colorSlot));
+             color);
 }
 
 void Encore::GemTrackSlot::DrawSmasher(bool held) {
