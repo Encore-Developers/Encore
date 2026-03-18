@@ -258,7 +258,7 @@ void SettingsAudioVideo::Draw() {
     Rectangle vcSliderRect = {vcDecButtonRect.x + buttonWidth15, videoCalibrationTop, adjustedSliderWidth, buttonHeight};
     Rectangle vcIncButtonRect = {vcSliderRect.x + vcSliderRect.width, videoCalibrationTop, buttonWidth15Inc, buttonHeight};
     if (CheckCollisionPointRec(mousePos, vcDecButtonRect) || CheckCollisionPointRec(mousePos, vcSliderRect) || CheckCollisionPointRec(mousePos, vcIncButtonRect)) {
-        selectedIndex = 0;
+        selectedIndex = 1;
         isHovering = true;
         DrawRectangleLinesEx(videoCalibrationBoxRect, highlightBorderWidth, glowColor);
     }
@@ -291,7 +291,7 @@ void SettingsAudioVideo::Draw() {
     DrawTextEx(assets.rubikBold, "Volume", {boxLeft + u.winpct(0.01f), volumeTop + (EntryHeight - volTextSize.y) / 2}, EntryFontSize, 0, WHITE);
     Rectangle volumeButtonRect = {OptionLeft + OptionWidth - buttonWidth15Inc, volumeTop, buttonWidth15Inc, buttonHeight};
     if (CheckCollisionPointRec(mousePos, volumeButtonRect)) {
-        selectedIndex = 1;
+        selectedIndex = 2;
         isHovering = true;
         DrawRectangleLinesEx(volumeBoxRect, highlightBorderWidth, glowColor);
     }
@@ -323,7 +323,7 @@ void SettingsAudioVideo::Draw() {
         DrawTextEx(assets.rubikBold, "Main Output", {volumeBoxLeft + u.winpct(0.01f), mainVolTop + (EntryHeight - mainVolTextSize.y) / 2}, EntryFontSize, 0, WHITE);
         Rectangle mainVolSliderRect = {volumeOptionLeft + maxTextWidth + volumeShift, mainVolTop, adjustedVolumeSliderWidth, buttonHeight};
         if (CheckCollisionPointRec(mousePos, mainVolSliderRect)) {
-            selectedIndex = 2;
+            selectedIndex = 3;
             isHovering = true;
             DrawRectangleLinesEx(mainVolBoxRect, highlightBorderWidth, glowColor);
         }
@@ -348,7 +348,7 @@ void SettingsAudioVideo::Draw() {
         DrawTextEx(assets.rubikBold, "Active Instrument", {volumeBoxLeft + u.winpct(0.01f), activeVolTop + (EntryHeight - activeVolTextSize.y) / 2}, EntryFontSize, 0, WHITE);
         Rectangle activeVolSliderRect = {volumeOptionLeft + maxTextWidth + volumeShift, activeVolTop, adjustedVolumeSliderWidth, buttonHeight};
         if (CheckCollisionPointRec(mousePos, activeVolSliderRect)) {
-            selectedIndex = 3;
+            selectedIndex = 4;
             isHovering = true;
             DrawRectangleLinesEx(activeVolBoxRect, highlightBorderWidth, glowColor);
         }
@@ -373,7 +373,7 @@ void SettingsAudioVideo::Draw() {
         DrawTextEx(assets.rubikBold, "Inactive Instrument", {volumeBoxLeft + u.winpct(0.01f), inactiveVolTop + (EntryHeight - inactiveVolTextSize.y) / 2}, EntryFontSize, 0, WHITE);
         Rectangle inactiveVolSliderRect = {volumeOptionLeft + maxTextWidth + volumeShift, inactiveVolTop, adjustedVolumeSliderWidth, buttonHeight};
         if (CheckCollisionPointRec(mousePos, inactiveVolSliderRect)) {
-            selectedIndex = 4;
+            selectedIndex = 5;
             isHovering = true;
             DrawRectangleLinesEx(inactiveVolBoxRect, highlightBorderWidth, glowColor);
         }
@@ -398,7 +398,7 @@ void SettingsAudioVideo::Draw() {
         DrawTextEx(assets.rubikBold, "Mute Instrument", {volumeBoxLeft + u.winpct(0.01f), muteVolTop + (EntryHeight - muteVolTextSize.y) / 2}, EntryFontSize, 0, WHITE);
         Rectangle muteVolSliderRect = {volumeOptionLeft + maxTextWidth + volumeShift, muteVolTop, adjustedVolumeSliderWidth, buttonHeight};
         if (CheckCollisionPointRec(mousePos, muteVolSliderRect)) {
-            selectedIndex = 5;
+            selectedIndex = 6;
             isHovering = true;
             DrawRectangleLinesEx(muteVolBoxRect, highlightBorderWidth, glowColor);
         }
@@ -423,7 +423,7 @@ void SettingsAudioVideo::Draw() {
         DrawTextEx(assets.rubikBold, "Menu Music", {volumeBoxLeft + u.winpct(0.01f), menuVolTop + (EntryHeight - menuVolTextSize.y) / 2}, EntryFontSize, 0, WHITE);
         Rectangle menuVolSliderRect = {volumeOptionLeft + maxTextWidth + volumeShift, menuVolTop, adjustedVolumeSliderWidth, buttonHeight};
         if (CheckCollisionPointRec(mousePos, menuVolSliderRect)) {
-            selectedIndex = 6;
+            selectedIndex = 7;
             isHovering = true;
             DrawRectangleLinesEx(menuVolBoxRect, highlightBorderWidth, glowColor);
         }
@@ -448,7 +448,7 @@ void SettingsAudioVideo::Draw() {
         DrawTextEx(assets.rubikBold, "Sound Effects", {volumeBoxLeft + u.winpct(0.01f), sfxVolTop + (EntryHeight - sfxVolTextSize.y) / 2}, EntryFontSize, 0, WHITE);
         Rectangle sfxVolSliderRect = {volumeOptionLeft + maxTextWidth + volumeShift, sfxVolTop, adjustedVolumeSliderWidth, buttonHeight};
         if (CheckCollisionPointRec(mousePos, sfxVolSliderRect)) {
-            selectedIndex = 7;
+            selectedIndex = 8;
             isHovering = true;
             DrawRectangleLinesEx(sfxVolBoxRect, highlightBorderWidth, glowColor);
         }
@@ -478,7 +478,7 @@ void SettingsAudioVideo::Draw() {
     Rectangle offButtonRect1 = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, beatFlashTop, toggleButtonWidth, buttonHeight};
     Rectangle onButtonRect1 = {OptionLeft + OptionWidth - toggleButtonWidth - toggleOffset, beatFlashTop, toggleButtonWidth, buttonHeight};
     if (CheckCollisionPointRec(mousePos, offButtonRect1) || CheckCollisionPointRec(mousePos, onButtonRect1)) {
-        selectedIndex = 8;
+        selectedIndex = 9;
         isHovering = true;
         DrawRectangleLinesEx(beatFlashBoxRect, highlightBorderWidth, glowColor);
     }
@@ -512,7 +512,7 @@ void SettingsAudioVideo::Draw() {
     Rectangle frSliderRect = {frDecButtonRect.x + buttonWidth15, framerateTop, adjustedSliderWidth, buttonHeight};
     Rectangle frIncButtonRect = {frSliderRect.x + frSliderRect.width, framerateTop, buttonWidth15Inc, buttonHeight};
     if (CheckCollisionPointRec(mousePos, frDecButtonRect) || CheckCollisionPointRec(mousePos, frSliderRect) || CheckCollisionPointRec(mousePos, frIncButtonRect)) {
-        selectedIndex = 9;
+        selectedIndex = 10;
         isHovering = true;
         DrawRectangleLinesEx(framerateBoxRect, highlightBorderWidth, glowColor);
     }
@@ -548,7 +548,7 @@ void SettingsAudioVideo::Draw() {
     Rectangle offButtonRect2 = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, vsyncTop, toggleButtonWidth, buttonHeight};
     Rectangle onButtonRect2 = {OptionLeft + OptionWidth - toggleButtonWidth - toggleOffset, vsyncTop, toggleButtonWidth, buttonHeight};
     if (CheckCollisionPointRec(mousePos, offButtonRect2) || CheckCollisionPointRec(mousePos, onButtonRect2)) {
-        selectedIndex = 10;
+        selectedIndex = 11;
         isHovering = true;
         DrawRectangleLinesEx(vsyncBoxRect, highlightBorderWidth, glowColor);
     }
