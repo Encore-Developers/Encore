@@ -20,6 +20,7 @@ bool showVolumeSettings = false;
 
 // settings variables
 int AudioOffset = 0;
+int VideoOffset = 0;
 int Framerate = 0;
 float avMainVolume = 0.0f;
 float avActiveInstrumentVolume = 0.0f;
@@ -69,6 +70,11 @@ void SettingsAudioVideo::Draw() {
         {
             "Audio Calibration",
             "Increases the time between the audio \nplayback and note display to make notes\n line up with the audio.\nThe higher the number, the later the\naudio, and the closer to the screen will\nthe notes line up."
+        },
+        // Video Calibration
+        {
+            "Video Calibration",
+            "Adjusts the visuals of the notes as\nwell as the hit window. The higher the\nnumber, the later the video."
         },
         // Volume
         {
@@ -207,37 +213,73 @@ void SettingsAudioVideo::Draw() {
 
     // Audio Calibration
     int settingOffset = 0;
-    float calibrationTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
-    Rectangle calibrationBoxRect = {boxLeft - borderWidth, calibrationTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
-    DrawRectangle(boxLeft - borderWidth, calibrationTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
-    DrawRectangle(boxLeft, calibrationTop, boxWidth, EntryHeight, boxBackground);
-    Vector2 calibTextSize = MeasureTextEx(assets.rubikBold, "Audio Calibration", EntryFontSize, 0);
-    DrawTextEx(assets.rubikBold, "Audio Calibration", {boxLeft + u.winpct(0.01f), calibrationTop + (EntryHeight - calibTextSize.y) / 2}, EntryFontSize, 0, WHITE);
-    Rectangle decButtonRect = {OptionLeft + OptionWidth - sliderTotalWidth, calibrationTop, buttonWidth15, buttonHeight};
-    Rectangle sliderRect = {decButtonRect.x + buttonWidth15, calibrationTop, adjustedSliderWidth, buttonHeight};
-    Rectangle incButtonRect = {sliderRect.x + sliderRect.width, calibrationTop, buttonWidth15Inc, buttonHeight};
-    if (CheckCollisionPointRec(mousePos, decButtonRect) || CheckCollisionPointRec(mousePos, sliderRect) || CheckCollisionPointRec(mousePos, incButtonRect)) {
+    float audioCalibrationTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
+    Rectangle audioCalibrationBoxRect = {boxLeft - borderWidth, audioCalibrationTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
+    DrawRectangle(boxLeft - borderWidth, audioCalibrationTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
+    DrawRectangle(boxLeft, audioCalibrationTop, boxWidth, EntryHeight, boxBackground);
+    Vector2 audioCalibTextSize = MeasureTextEx(assets.rubikBold, "Audio Calibration", EntryFontSize, 0);
+    DrawTextEx(assets.rubikBold, "Audio Calibration", {boxLeft + u.winpct(0.01f), audioCalibrationTop + (EntryHeight - audioCalibTextSize.y) / 2}, EntryFontSize, 0, WHITE);
+    Rectangle acDecButtonRect = {OptionLeft + OptionWidth - sliderTotalWidth, audioCalibrationTop, buttonWidth15, buttonHeight};
+    Rectangle acSliderRect = {acDecButtonRect.x + buttonWidth15, audioCalibrationTop, adjustedSliderWidth, buttonHeight};
+    Rectangle acIncButtonRect = {acSliderRect.x + acSliderRect.width, audioCalibrationTop, buttonWidth15Inc, buttonHeight};
+    if (CheckCollisionPointRec(mousePos, acDecButtonRect) || CheckCollisionPointRec(mousePos, acSliderRect) || CheckCollisionPointRec(mousePos, acIncButtonRect)) {
         selectedIndex = 0;
         isHovering = true;
-        DrawRectangleLinesEx(calibrationBoxRect, highlightBorderWidth, glowColor);
+        DrawRectangleLinesEx(audioCalibrationBoxRect, highlightBorderWidth, glowColor);
     }
-    if (GuiButton(decButtonRect, "-5")) {
+    if (GuiButton(acDecButtonRect, "-5")) {
         AudioOffset -= 5;
         if (AudioOffset < -100) AudioOffset = -100;
     }
     float tempAudioOffset = static_cast<float>(AudioOffset);
-    ::GuiSlider(sliderRect, nullptr, nullptr, &tempAudioOffset, -100.0f, 400.0f);
+    ::GuiSlider(acSliderRect, nullptr, nullptr, &tempAudioOffset, -100.0f, 400.0f);
     AudioOffset = static_cast<int>(roundf(tempAudioOffset));
     if (AudioOffset < -100) AudioOffset = -100;
     if (AudioOffset > 400) AudioOffset = 400;
-    if (GuiButton(incButtonRect, "+5")) {
+    if (GuiButton(acIncButtonRect, "+5")) {
         AudioOffset += 5;
         if (AudioOffset > 400) AudioOffset = 400;
     }
-    std::string msText = std::to_string(AudioOffset) + " ms";
-    float msFontSize = u.hinpct(0.02f) + 10.0f;
-    Vector2 msTextSize = MeasureTextEx(assets.rubikBold, msText.c_str(), msFontSize, 0);
-    DrawTextEx(assets.rubikBold, msText.c_str(), {sliderRect.x + (sliderRect.width - msTextSize.x) / 2, sliderRect.y + (sliderRect.height - msTextSize.y) / 2}, msFontSize, 0, WHITE);
+    std::string acMsText = std::to_string(AudioOffset) + " ms";
+    float acMsFontSize = u.hinpct(0.02f) + 10.0f;
+    Vector2 acMsTextSize = MeasureTextEx(assets.rubikBold, acMsText.c_str(), acMsFontSize, 0);
+    DrawTextEx(assets.rubikBold, acMsText.c_str(), {acSliderRect.x + (acSliderRect.width - acMsTextSize.x) / 2, acSliderRect.y + (acSliderRect.height - acMsTextSize.y) / 2}, acMsFontSize, 0, WHITE);
+
+
+    // Video Calibration
+    settingOffset++;
+    float videoCalibrationTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
+    Rectangle videoCalibrationBoxRect = {boxLeft - borderWidth, videoCalibrationTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
+    DrawRectangle(boxLeft - borderWidth, videoCalibrationTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
+    DrawRectangle(boxLeft, videoCalibrationTop, boxWidth, EntryHeight, boxBackground);
+    Vector2 videoCalibTextSize = MeasureTextEx(assets.rubikBold, "Video Calibration", EntryFontSize, 0);
+    DrawTextEx(assets.rubikBold, "Video Calibration", {boxLeft + u.winpct(0.01f), videoCalibrationTop + (EntryHeight - videoCalibTextSize.y) / 2}, EntryFontSize, 0, WHITE);
+    Rectangle vcDecButtonRect = {OptionLeft + OptionWidth - sliderTotalWidth, videoCalibrationTop, buttonWidth15, buttonHeight};
+    Rectangle vcSliderRect = {vcDecButtonRect.x + buttonWidth15, videoCalibrationTop, adjustedSliderWidth, buttonHeight};
+    Rectangle vcIncButtonRect = {vcSliderRect.x + vcSliderRect.width, videoCalibrationTop, buttonWidth15Inc, buttonHeight};
+    if (CheckCollisionPointRec(mousePos, vcDecButtonRect) || CheckCollisionPointRec(mousePos, vcSliderRect) || CheckCollisionPointRec(mousePos, vcIncButtonRect)) {
+        selectedIndex = 0;
+        isHovering = true;
+        DrawRectangleLinesEx(videoCalibrationBoxRect, highlightBorderWidth, glowColor);
+    }
+    if (GuiButton(vcDecButtonRect, "-5")) {
+        VideoOffset -= 5;
+        if (VideoOffset < -100) VideoOffset = -100;
+    }
+    float tempVideoOffset = static_cast<float>(VideoOffset);
+    ::GuiSlider(vcSliderRect, nullptr, nullptr, &tempVideoOffset, -100.0f, 400.0f);
+    VideoOffset = static_cast<int>(roundf(tempVideoOffset));
+    if (VideoOffset < -100) VideoOffset = -100;
+    if (VideoOffset > 400) VideoOffset = 400;
+    if (GuiButton(vcIncButtonRect, "+5")) {
+        VideoOffset += 5;
+        if (VideoOffset > 400) VideoOffset = 400;
+    }
+    std::string vcMsText = std::to_string(VideoOffset) + " ms";
+    float vcMsFontSize = u.hinpct(0.02f) + 10.0f;
+    Vector2 vcMsTextSize = MeasureTextEx(assets.rubikBold, vcMsText.c_str(), vcMsFontSize, 0);
+    DrawTextEx(assets.rubikBold, vcMsText.c_str(), {vcSliderRect.x + (vcSliderRect.width - vcMsTextSize.x) / 2, vcSliderRect.y + (vcSliderRect.height - vcMsTextSize.y) / 2}, vcMsFontSize, 0, WHITE);
+
 
     // Volume
     settingOffset++;
@@ -552,6 +594,7 @@ void SettingsAudioVideo::Load() {
     TheGameSettings.LoadFromFile("settings.json");
 
     AudioOffset = TheGameSettings.AudioOffset;
+    VideoOffset = TheGameSettings.VideoOffset;
     Framerate = TheGameSettings.Framerate;
     avMainVolume = TheGameSettings.avMainVolume;
     avActiveInstrumentVolume = TheGameSettings.avActiveInstrumentVolume;
@@ -562,12 +605,13 @@ void SettingsAudioVideo::Load() {
     BackgroundBeatFlash = TheGameSettings.BackgroundBeatFlash;
     VerticalSync = TheGameSettings.VerticalSync;
 
-    TraceLog(LOG_INFO, "Loaded audio/video settings: AudioOffset=%d, Framerate=%d, avMainVolume=%.2f",
-             AudioOffset, Framerate, avMainVolume);
+    TraceLog(LOG_INFO, "Loaded audio/video settings: AudioOffset=%d, VideoOffset=%d, Framerate=%d, avMainVolume=%.2f",
+             AudioOffset, VideoOffset, Framerate, avMainVolume);
 }
 
 void SettingsAudioVideo::Save() {
     TheGameSettings.AudioOffset = AudioOffset;
+    TheGameSettings.VideoOffset = VideoOffset;
     TheGameSettings.Framerate = Framerate;
     TheGameSettings.avMainVolume = avMainVolume;
     TheGameSettings.avActiveInstrumentVolume = avActiveInstrumentVolume;
@@ -580,6 +624,6 @@ void SettingsAudioVideo::Save() {
 
     TheGameSettings.SaveToFile("settings.json");
 
-    TraceLog(LOG_INFO, "Saved audio/video settings: AudioOffset=%d, Framerate=%d, avMainVolume=%.2f",
-             AudioOffset, Framerate, avMainVolume);
+    TraceLog(LOG_INFO, "Saved audio/video settings: AudioOffset=%d, VideoOffset=%d, Framerate=%d, avMainVolume=%.2f",
+             AudioOffset, VideoOffset, Framerate, avMainVolume);
 }
