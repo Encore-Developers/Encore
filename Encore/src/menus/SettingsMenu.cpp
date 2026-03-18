@@ -63,7 +63,7 @@ void SettingsMenu::Draw() {
         // Audio / Visual
         {
             "Configure audio and video\nsettings",
-            "Configurable settings:\n- Audio calibration\n- Game volume\n- Background beat flash\n- Framerate\n- V-Sync\n"
+            "Configurable settings:\n- Audio calibration\n- Video calibration\n- Game volume\n- Background beat flash\n- Framerate\n- V-Sync\n"
         },
         // Gameplay
         {
