@@ -22,6 +22,7 @@ bool showDemoWindow = false;
 bool showAssets = false;
 bool showPlayerManager = false;
 bool showSongList = false;
+bool showQuickSettings = false;
 
 std::string debugVersionHash = "";
 
@@ -60,6 +61,10 @@ void EncoreDebug::DrawDebug() {
     if (showSongList && TheMenuManager.currentScreen != GAMEPLAY) {
         DrawSongList();
     }
+    if (showQuickSettings) {
+        DrawQuickSettings();
+    }
+    DrawSongScrubber();
 }
 
 
@@ -72,21 +77,8 @@ void EncoreDebug::MenuBar() {
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         EndMenu();
     }
-    if (BeginMenu(TextFormat("Framerate (%i FPS)###Framerate", GetFPS()))) {
-        Text("%i FPS", GetFPS());
-        MenuItem("Uncap Framerate", 0, &TheFrameManager.removeFPSLimit);
-        MenuItem("VSync", 0, &TheGameSettings.VerticalSync);
-        SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
-        SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
-        SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
-        if (DragInt("Audio Calibration", &TheGameSettings.AudioOffset, 1, 0, 0, "%dms")) {
-            TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
-        }
-        DragInt("Video Calibration", &TheGameSettings.VideoOffset, 1, 0, 0, "%dms");
-        if (Button("Save Settings")) {
-            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
-        };
-        EndMenu();
+    if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()), 0, &showQuickSettings)) {
+
     }
 
     if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem("End Song")) {
@@ -120,33 +112,6 @@ void EncoreDebug::MenuBar() {
         TheMenuManager.SwitchScreen(RESULTS);
     }
 
-    if (TheMenuManager.currentScreen == GAMEPLAY) {
-        float time = TheSongTime.GetElapsedTime();
-        SetNextItemWidth(GetWindowWidth()*0.4f);
-        if (SliderFloat("Time", &time, 0, TheSongTime.GetSongLength())) {
-            TheAudioManager.seekStreams(time);
-            for (auto index : ThePlayerManager.ActivePlayers) {
-                if (index == -1) {
-                    continue;
-                }
-                auto player = ThePlayerManager.PlayerList[index];
-                auto engine = player.engine.get();
-                for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
-                    if (i >= engine->chart->Lanes.size()) {
-                        break;
-                    }
-                    for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
-                        if (iter->StartSeconds > time) {
-                            engine->chart->CurrentNoteIterators[i] = iter;
-                            break;
-                        }
-                    }
-
-                }
-            }
-        }
-    }
-
 
     auto avail = GetWindowWidth();
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
@@ -155,6 +120,60 @@ void EncoreDebug::MenuBar() {
     Text(debugVersionHash.c_str());
 
     EndMainMenuBar();
+}
+
+void EncoreDebug::DrawQuickSettings() {
+    if (Begin("Quick Settings")) {
+        Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
+        Checkbox("VSync", &TheGameSettings.VerticalSync);
+        SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
+        SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
+        SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
+        if (DragInt("Audio Calibration", &TheGameSettings.AudioOffset, 1, 0, 0, "%dms")) {
+            TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
+        }
+        DragInt("Video Calibration", &TheGameSettings.VideoOffset, 1, 0, 0, "%dms");
+        if (Button("Save Settings")) {
+            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
+        }
+    }
+    End();
+}
+
+void EncoreDebug::DrawSongScrubber() {
+    if (TheMenuManager.currentScreen == GAMEPLAY) {
+        SetNextWindowPos({0, GetFrameHeight()+4}, ImGuiCond_Always);
+        SetNextWindowSize({ImGui::GetIO().DisplaySize.x, 0}, ImGuiCond_Always);
+        if (Begin("Song Scrubber", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+            float time = TheSongTime.GetElapsedTime();
+            SetNextItemWidth(GetContentRegionAvail().x);
+            if (SliderFloat("###Time", &time, 0, TheSongTime.GetSongLength())) {
+                TheAudioManager.seekStreams(time);
+                for (auto index : ThePlayerManager.ActivePlayers) {
+                    if (index == -1) {
+                        continue;
+                    }
+                    auto player = ThePlayerManager.PlayerList[index];
+                    auto engine = player.engine.get();
+                    for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+                        if (i >= engine->chart->Lanes.size()) {
+                            break;
+                        }
+                        for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
+                            if (iter->StartSeconds > time) {
+                                engine->chart->CurrentNoteIterators[i] = iter;
+                                break;
+                            }
+                        }
+
+                    }
+                }
+            }
+
+        }
+        End();
+    }
+
 }
 
 void EncoreDebug::DrawPlayerManager() {

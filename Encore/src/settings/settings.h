@@ -57,6 +57,7 @@ namespace Encore {
         Framerate,
         VerticalSync,
         AudioOffset,
+        VideoOffset,
         DiscordRichPresence,
         SongPaths,
         BackgroundBeatFlash
