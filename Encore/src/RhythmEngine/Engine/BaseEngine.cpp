@@ -5,6 +5,7 @@
 #include "BaseEngine.h"
 
 #include "gameplay/enctime.h"
+#include "settings/settings.h"
 #include "song/song.h"
 #include "users/player.h"
 
@@ -135,7 +136,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     if (!chart->UpdateCurrentNote(lane))
         return;
 
-    stats->LastHitAccuracy = stats->InputTime - startTime;
+    stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
     stats->HitNote(chordSize, PerfectHit(startTime));
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
@@ -169,4 +170,8 @@ void Encore::RhythmEngine::BaseEngine::UpdateStats(int instrument, int difficult
     }
     stats->Stars = 5;
 
+}
+void Encore::RhythmEngine::BaseEngine::UpdateCalibration(double playerInputOffset) {
+    // stats->InputOffset is in seconds, our settings values are in ms
+    stats->InputOffset = (playerInputOffset + TheGameSettings.VideoOffset)/1000.0; // TODO: this isn't the right way to calculate this
 }

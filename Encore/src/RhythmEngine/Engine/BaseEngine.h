@@ -64,6 +64,7 @@ namespace Encore::RhythmEngine {
         void Overhit(int lane);
         void UpdateStats(int instrument, int difficulty);
         virtual bool UsesNoteMasks() { return false; };
+        void UpdateCalibration(double playerInputOffset);
         int GhostCount;
 
     private:
