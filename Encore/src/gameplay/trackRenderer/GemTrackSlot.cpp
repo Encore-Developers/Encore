@@ -6,6 +6,8 @@
 
 #include <complex>
 
+#include "song/song.h"
+
 float easeOutBounce(float x) {
     const float n1 = 7.5625;
     const float d1 = 2.75;
@@ -48,12 +50,23 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     rlDrawRenderBatchActive();
 
     if (note->NoteType == 1 || note->NoteType == 2) {
-        DrawModelEx(ASSET(hopoNote),
-                    position,
-                    { 0 },
-                    0,
-                    { width, track->NoteHeight, 1 },
-                    WHITE);
+        //todo: cymbal lane
+        if (track->player.Instrument == PlasticDrums) {
+            position.z -= 0.175f;
+            DrawModelEx(ASSET(cymbalNote),
+                        position,
+                        { 0, 0, 1 },
+                        0,
+                        { width, (track->NoteHeight * width), width },
+                        WHITE);
+        } else {
+            DrawModelEx(ASSET(hopoNote),
+                        position,
+                        { 0 },
+                        0,
+                        { width, track->NoteHeight, 1 },
+                        WHITE);
+        }
     } else {
         DrawModelEx(ASSET(regularNote),
                     position,

@@ -412,11 +412,13 @@ public:
     NEWTEXASSET(hopoNoteTex, "gameplay/track/notes/hopo/diffuse.png");
     NEWTEXASSET(kickNoteTex, "gameplay/track/notes/kick/diffuse.png");
     NEWTEXASSET(openNoteTex, "gameplay/track/notes/open/diffuse.png");
+    NEWTEXASSET(cymbalNoteTex, "gameplay/track/notes/cymbal/diffuse.png");
 
     NEWTEXASSET(regularMaskTex, "gameplay/track/notes/normal/color_mask.png");
     NEWTEXASSET(hopoMaskTex, "gameplay/track/notes/hopo/color_mask.png");
     NEWTEXASSET(kickMaskTex, "gameplay/track/notes/kick/color_mask.png");
     NEWTEXASSET(openMaskTex, "gameplay/track/notes/open/color_mask.png");
+    NEWTEXASSET(cymbalMaskTex, "gameplay/track/notes/cymbal/color_mask.png");
 
 
 
@@ -460,6 +462,15 @@ public:
         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = kickMaskTex;
     });
 
+    NEWLEGACYMODELASSET(cymbalNote, "gameplay/track/notes/cymbal/model.obj", [this](Model* model) {
+        SetTextureWrap(cymbalNoteTex, TEXTURE_WRAP_CLAMP);
+        SetTextureWrap(cymbalMaskTex, TEXTURE_WRAP_CLAMP);
+        model->materials[0].maps[0].texture = cymbalNoteTex;
+        // const Texture2D mask = hopoMaskTex.Fetch();
+
+        model->materials[0].shader = noteShader;
+        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = cymbalMaskTex;
+    });
 
     NEWTEXASSET(smasherOffTex, "gameplay/track/smashers/normal/piston_off.png");
     NEWTEXASSET(smasherOnTex, "gameplay/track/smashers/normal/piston_on.png");
