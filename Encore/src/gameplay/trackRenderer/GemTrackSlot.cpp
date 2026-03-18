@@ -55,9 +55,9 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
             position.z -= 0.175f;
             DrawModelEx(ASSET(cymbalNote),
                         position,
-                        { 0, 0, 1 },
-                        0,
-                        { width, (track->NoteHeight * width * 1.1), width },
+                        { -1, 0, 0 },
+                        5,
+                        { width, (track->NoteHeight * width), width },
                         WHITE);
         } else {
             DrawModelEx(ASSET(hopoNote),
