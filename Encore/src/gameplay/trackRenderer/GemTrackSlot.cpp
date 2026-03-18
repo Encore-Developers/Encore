@@ -57,7 +57,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
                         position,
                         { 0, 0, 1 },
                         0,
-                        { width, (track->NoteHeight * width), width },
+                        { width, (track->NoteHeight * width * 1.1), width },
                         WHITE);
         } else {
             DrawModelEx(ASSET(hopoNote),
