@@ -357,11 +357,19 @@ void Encore::Track::AddSlot(TrackSlot *slot) {
 
 void Encore::Track::Configure5Lane() {
     slots.clear();
-    AddSlot(new GemTrackSlot(this, 2, 1, SLOT_GREEN));
-    AddSlot(new GemTrackSlot(this, 1, 1, SLOT_RED));
-    AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
-    AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -2, 1, SLOT_ORANGE));
+    if (player.LeftyFlip) {
+        AddSlot(new GemTrackSlot(this, -2, 1, SLOT_GREEN));
+        AddSlot(new GemTrackSlot(this, -1, 1, SLOT_RED));
+        AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
+        AddSlot(new GemTrackSlot(this, 1, 1, SLOT_BLUE));
+        AddSlot(new GemTrackSlot(this, 2, 1, SLOT_ORANGE));
+    } else {
+        AddSlot(new GemTrackSlot(this, 2, 1, SLOT_GREEN));
+        AddSlot(new GemTrackSlot(this, 1, 1, SLOT_RED));
+        AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
+        AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
+        AddSlot(new GemTrackSlot(this, -2, 1, SLOT_ORANGE));
+    }
     AddSlot(new OpenTrackSlot(this, 0, 1, SLOT_OPEN));
 }
 
@@ -376,7 +384,6 @@ void Encore::Track::Configure4Lane() {
 void Encore::Track::ConfigureDrums() {
     slots.clear();
     AddSlot(new KickTrackSlot(this, 0, 5, SLOT_KICK));
-    // TODO: make the kick slot a different type
     AddSlot(new GemTrackSlot(this, 1.875, 1.25, 0.75, SLOT_RED));
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, 0.75, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -0.625, 1.25, 0.75, SLOT_BLUE));
