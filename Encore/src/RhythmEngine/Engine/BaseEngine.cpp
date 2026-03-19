@@ -50,6 +50,7 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     }
     if (PlayerIsPaused())
         return;
+
     if (ActivateOverdrive(event)) {
         return;
     }

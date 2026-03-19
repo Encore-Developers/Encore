@@ -111,6 +111,9 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
 
+    if (event.timestamp >= engine->stopTime && engine->stopTime > 0.0)
+        return;
+
     if (engine->allowTimestampedInputs) {
         engine->UpdateOnFrame(event.timestamp);
     }
