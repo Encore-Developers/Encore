@@ -2088,11 +2088,14 @@ void GameplayMenu::Load() {
     ASSET(spotlightTex).Fetch();
     ASSET(overdriveTex).Fetch();
     // i dont like the game stuttering when you active or get a streak
+    float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
         tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
+        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer*i;
+        tracks.at(i)->ColumnRight = -1 + widthPerPlayer*(i+1);
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:

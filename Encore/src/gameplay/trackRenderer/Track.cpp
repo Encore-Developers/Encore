@@ -18,6 +18,9 @@
 #include "song/song.h"
 
 void Encore::Track::Draw() {
+
+    FitToColumn(ColumnLeft, ColumnRight);
+
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
     player.engine->UpdateCalibration(player.InputCalibration);
@@ -400,6 +403,19 @@ float Encore::Track::GetViewEndTime() const {
 
 float Encore::Track::GetZPerSecond() const {
     return NoteSpeed * BaseLength;
+}
+void Encore::Track::FitToColumn(float left, float right) {
+    float currentLeft = GetWorldToScreenEx({2.5, 0, 0}, BaseCamera, GetRenderWidth(), GetRenderHeight()).x;
+    float currentRight = GetWorldToScreenEx({-2.5, 0, 0}, BaseCamera, GetRenderWidth(), GetRenderHeight()).x;
+    currentLeft = Remap(currentLeft, 0, GetRenderWidth(), -1.0f, 1.0f);
+    currentRight = Remap(currentRight, 0, GetRenderWidth(), -1.0f, 1.0f);
+    float currentMidPos = (currentLeft + currentRight) / 2;
+    float midPos = (left + right) / 2;
+    float currentWidth = currentRight - currentLeft;
+    float targetWidth = right - left;
+    float scale = Clamp(targetWidth / currentWidth, 0.3, 1.0);
+    Offset = midPos - (currentMidPos);
+    Scale = scale;
 }
 
 Encore::Track::~Track() {

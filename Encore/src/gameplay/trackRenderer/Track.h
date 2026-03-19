@@ -39,6 +39,8 @@ namespace Encore {
         float GetViewEndTime() const;
         float GetZPerSecond() const;
 
+        void FitToColumn(float left, float right);
+
         unsigned char BeatToCharViaTickThing(
             int tick,
             int MinBrightness,
@@ -57,6 +59,10 @@ namespace Encore {
         float KickTimer = 0;
         float SpotlightTimer = 0;
         float OverdriveTimer = 0;
+
+        // The column of the screen that this track can occupy. Used for multiplayer positioning.
+        float ColumnLeft = -1;
+        float ColumnRight = 1;
 
         Camera3D AnimCamera;
         Camera3D BaseCamera;
