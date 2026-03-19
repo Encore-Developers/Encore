@@ -27,6 +27,7 @@ void LoadCharts() {
     TheSongTime.GenerateOverdriveTicks(
         TheSongList.curSong->midiFile, TheSongList.curSong->BeatTrackID
     );
+    TheSongTime.ParseSections(TheSongList.curSong->midiFile);
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {

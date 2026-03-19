@@ -140,36 +140,105 @@ void EncoreDebug::DrawQuickSettings() {
     End();
 }
 
+void DebugSeek(float time) {
+    TheAudioManager.seekStreams(time);
+    for (auto index : ThePlayerManager.ActivePlayers) {
+        if (index == -1) {
+            continue;
+        }
+        auto player = ThePlayerManager.PlayerList[index];
+        auto engine = player.engine.get();
+        for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+            if (i >= engine->chart->Lanes.size()) {
+                break;
+            }
+            for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
+                if (iter->StartSeconds > time) {
+                    engine->chart->CurrentNoteIterators[i] = iter;
+                    break;
+                }
+            }
+
+        }
+    }
+}
+
+struct TimelineTextSpacer {
+    float startPos;
+    float endPos;
+    int layer;
+};
+
 void EncoreDebug::DrawSongScrubber() {
     if (TheMenuManager.currentScreen == GAMEPLAY) {
         SetNextWindowPos({0, GetFrameHeight()+4}, ImGuiCond_Always);
         SetNextWindowSize({ImGui::GetIO().DisplaySize.x, 0}, ImGuiCond_Always);
         if (Begin("Song Scrubber", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+            PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
             float time = TheSongTime.GetElapsedTime();
-            SetNextItemWidth(GetContentRegionAvail().x);
-            if (SliderFloat("###Time", &time, 0, TheSongTime.GetSongLength())) {
-                TheAudioManager.seekStreams(time);
-                for (auto index : ThePlayerManager.ActivePlayers) {
-                    if (index == -1) {
-                        continue;
-                    }
-                    auto player = ThePlayerManager.PlayerList[index];
-                    auto engine = player.engine.get();
-                    for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
-                        if (i >= engine->chart->Lanes.size()) {
-                            break;
-                        }
-                        for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
-                            if (iter->StartSeconds > time) {
-                                engine->chart->CurrentNoteIterators[i] = iter;
-                                break;
-                            }
-                        }
+            auto size = GetContentRegionAvail();
+            size.y = 24;
+            auto pos = GetCursorScreenPos();
+            InvisibleButton("Song Scrubber Button", size);
+            auto GetTimeAtPos = [&](float x) {
+                return (x / size.x) * TheSongTime.GetSongLength();
+            };
+            auto TimeToPos = [&](double time) {
+                return (time / TheSongTime.GetSongLength()) * size.x;
+            };
+            auto GetMouseLocalPos = [&]() {
+                return GetMousePos().x - pos.x;
+            };
+            if (IsItemActive()) {
+                DebugSeek(GetTimeAtPos(GetMouseLocalPos()));
+            }
+            auto drawlist = GetWindowDrawList();
+            drawlist->AddRectFilled(pos, pos + size, ColorConvertFloat4ToU32(GetStyle().Colors[IsItemHovered() && !IsItemActive() ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg]));
+            drawlist->AddLine(pos + ImVec2(TimeToPos(time), 0), pos + ImVec2(TimeToPos(time), size.y), ColorConvertFloat4ToU32({1, 0, 1, 1}), 2);
 
+            static std::vector<TimelineTextSpacer> texts = {};
+            texts.clear();
+            auto occupied = [&](float x, int layer) {
+                if (layer < 0) {
+                    return true;
+                }
+                for (auto& spacer : texts) {
+                    if (x > spacer.startPos && x < spacer.endPos && spacer.layer == layer) {
+                        return true;
                     }
+                }
+                return false;
+            };
+            int layer = 0;
+            int maxlayer = 0;
+            for (int i = 0; i < TheSongTime.Sections.size(); i++) {
+                auto& section = TheSongTime.Sections[i];
+                float endTime = TheSongTime.GetSongLength();
+                if (i < TheSongTime.Sections.size() - 1) {
+                    endTime = TheSongTime.Sections[i+1].start;
+                }
+                float rectPos = TimeToPos(section.start);
+                float startPos = TimeToPos(section.start);
+                float textWide = MeasureText(section.name.c_str(), GetFontSize());
+                if (startPos+textWide > size.x) {
+                    startPos = size.x-textWide;
+                }
+                drawlist->AddRectFilled(pos + ImVec2(rectPos, 0), pos + ImVec2(TimeToPos(endTime), size.y), ColorConvertFloat4ToU32(i % 2 == 0 ? ImVec4 {1, 1, 1, 0.2} : ImVec4 {1, 1, 1, 0.1}));
+                drawlist->AddLine(pos + ImVec2(rectPos, 0), pos + ImVec2(rectPos, size.y), ColorConvertFloat4ToU32({1, 1, 1, 0.9}));
+                layer = 0;
+                while (occupied(startPos, layer)) {
+                    layer++;
+                }
+                float textY = pos.y + size.y + layer * GetFontSize();
+                drawlist->AddText(ImVec2(startPos+pos.x, textY), 0xffffffff, section.name.c_str());
+                texts.push_back({startPos, startPos+textWide, layer});
+                if (layer > maxlayer) {
+                    maxlayer = layer;
                 }
             }
 
+            Dummy(ImVec2{0, GetFontSize()*(maxlayer+1)});
+            PopStyleVar();
         }
         End();
     }

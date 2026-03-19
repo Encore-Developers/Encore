@@ -10,6 +10,8 @@
 #include <cmath>
 #include "song/audio.h"
 
+#include <regex>
+
 SongTime TheSongTime;
 
 void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
@@ -115,6 +117,31 @@ void SongTime::UpdateOverdriveTick() {
 
         double deltaMappedToPercentage = timeDelta / timeBetweenTicks;
         CurrentODTick = CurrentODTickItr + deltaMappedToPercentage;
+    }
+}
+void SongTime::ParseSections(smf::MidiFile midiFile) {
+    Sections.clear();
+    for (int track = 0; track < midiFile.getTrackCount(); track++) {
+        SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
+        TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
+        if (songPart == Events) {
+            auto &trackObj = midiFile[track];
+            for (int i = 0; i < trackObj.getSize(); i++) {
+                auto &event = trackObj[i];
+                std::string evt_string;
+                evt_string.reserve(event.getSize());
+                for (int k = 3; k < event.getSize(); k++) {
+                    evt_string += event[k];
+                }
+                // I'm sorry.
+                const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
+                std::smatch match;
+                std::regex_match(evt_string, match, practiceRegex);
+                if (match[4].matched) {
+                    Sections.push_back({match[4], event.seconds});
+                }
+            }
+        }
     }
 }
 

@@ -47,6 +47,12 @@ struct Beatline {
     int tick;
     int type = Major;
 };
+
+struct Section {
+    std::string name;
+    double start;
+};
+
 class SongTime {
 private:
     double aCalib = 0.0;
@@ -68,9 +74,12 @@ public:
     std::vector<Beatline> Beatlines {};
     int CurrentBeatline;
 
+    std::vector<Section> Sections {};
+
     SongTime() = default;
     void GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID);
     void UpdateOverdriveTick();
+    void ParseSections(smf::MidiFile);
     double LastTick = 0;
     double CurrentTick = 0;
     double LastODTick = 0;

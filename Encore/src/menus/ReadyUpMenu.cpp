@@ -10,51 +10,8 @@
 #include "uiUnits.h"
 #include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
-
-void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-}
-
-void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-}
-
-SongParts GetSongPart(smf::MidiEventList track) {
-    for (int events = 0; events < track.getSize(); events++) {
-        std::string trackName;
-        if (!track[events].isMeta())
-            continue;
-        if ((int)track[events][1] == 3) {
-            for (int k = 3; k < track[events].getSize(); k++) {
-                trackName += track[events][k];
-            }
-            if (TheSongList.curSong->ini)
-                return partFromStringINI(trackName);
-            return partFromString(trackName);
-        }
-    }
-    return Invalid;
-}
-
-std::vector<std::vector<int>> pDiffRangeNotes = {
-    { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
-};
-
-void IsPartValid(smf::MidiEventList &track, SongParts songPart, int trackNumber) {
-    if (songPart == Invalid || songPart == PitchedVocals || songPart == BeatLines) {
-        return;
-    }
-    for (int diff = 0; diff < 4; diff++) {
-        for (int i = 0; i < track.getSize(); i++) {
-            if (track[i].isNoteOn() && !track[i].isMeta()
-                && track[i][1] >= pDiffRangeNotes[diff][0]
-                && track[i][1] <= pDiffRangeNotes[diff][1]) {
-                TheSongList.curSong->parts[songPart]->ValidDiffs.at(diff) = true;
-                TheSongList.curSong->parts[songPart]->TrackInt = trackNumber;
-                TheSongList.curSong->parts[songPart]->Valid = true;
-                break;
-            }
-        }
-    }
-}
+void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
+void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
 void ReadyUpMenu::Draw() {
     Assets &assets = Assets::getInstance();
@@ -66,11 +23,7 @@ void ReadyUpMenu::Draw() {
     float AlbumArtRight = u.winpct(0.15f);
     float AlbumArtBottom = u.winpct(0.15f);
     DrawRectangle(
-        0,
-        0,
-        (int)GetRenderWidth(),
-        (int)GetRenderHeight(),
-        GetColor(0x00000080)
+        0, 0, (int)GetRenderWidth(), (int)GetRenderHeight(), GetColor(0x00000080)
     );
 
     encOS::DrawTopOvershell(0.2f);
@@ -92,11 +45,11 @@ void ReadyUpMenu::Draw() {
     );
     DrawTexturePro(
         TheSongList.curSong->albumArt,
-        Rectangle{ 0,
-                   0,
-                   (float)TheSongList.curSong->albumArt.width,
-                   (float)TheSongList.curSong->albumArt.width },
-        Rectangle{ u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
+        Rectangle { 0,
+                    0,
+                    (float)TheSongList.curSong->albumArt.width,
+                    (float)TheSongList.curSong->albumArt.width },
+        Rectangle { u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
         { 0, 0 },
         0,
         WHITE
@@ -144,8 +97,8 @@ void ReadyUpMenu::Draw() {
             smf::MidiFile midiFile;
             midiFile.read(TheSongList.curSong->midiPath.string());
             for (int track = 0; track < midiFile.getTrackCount(); track++) {
-                SongParts songPart = GetSongPart(midiFile[track]);
-                IsPartValid(midiFile[track], songPart, track);
+                SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
+                TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
                 if (songPart == BeatLines) {
                     TheSongList.curSong->BeatTrackID = track;
                 }
@@ -154,11 +107,12 @@ void ReadyUpMenu::Draw() {
                 }
             }
 
+
             if (!player.ReadiedUpBefore
                 || !TheSongList.curSong->parts[player.Instrument]->Valid) {
                 player.ReadyUpMenuState = Player::INSTRUMENT;
             } else if (!TheSongList.curSong->parts[player.Instrument]
-                ->ValidDiffs[player.Difficulty]) {
+                            ->ValidDiffs[player.Difficulty]) {
                 player.ReadyUpMenuState = Player::DIFFICULTY;
             } else if (player.ReadiedUpBefore) {
                 player.ReadyUpMenuState = Player::PREVIEW;
@@ -166,7 +120,7 @@ void ReadyUpMenu::Draw() {
             TheSongList.curSong->midiParsed = true;
         } else if (TheSongList.curSong->midiParsed) {
             float LeftOfMenu = u.wpct(0.025);
-            float xPosOfMenu = LeftOfMenu + ((playerInt) * u.winpct(0.25f));
+            float xPosOfMenu = LeftOfMenu + ((playerInt)*u.winpct(0.25f));
             switch (player.ReadyUpMenuState) {
             case Player::INSTRUMENT: {
                 if (GuiButton({ 0, 0, 60, 60 }, "<")) {
@@ -196,23 +150,23 @@ void ReadyUpMenu::Draw() {
                         BUTTON,
                         BASE_COLOR_NORMAL,
                         PartsToDisplay[i] == player.Instrument
-                        ? ColorToInt(ColorBrightness(player.AccentColor, -0.25))
-                        : 0x181827FF
+                            ? ColorToInt(ColorBrightness(player.AccentColor, -0.25))
+                            : 0x181827FF
                     );
                     GuiSetStyle(
                         BUTTON,
                         TEXT_COLOR_NORMAL,
-                        ColorToInt(Color{ 255, 255, 255, 255 })
+                        ColorToInt(Color { 255, 255, 255, 255 })
                     );
                     GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
                     if (GuiButton(
-                        { xPosOfMenu,
-                          BottomOvershell - u.hinpct(0.05f)
-                          - (u.hinpct(0.05f) * (float)i),
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        TextFormat("  %s", songPartsList[PartsToDisplay[i]].c_str())
-                    )) {
+                            { xPosOfMenu,
+                              BottomOvershell - u.hinpct(0.05f)
+                                  - (u.hinpct(0.05f) * (float)i),
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            TextFormat("  %s", songPartsList[PartsToDisplay[i]].c_str())
+                        )) {
                         player.instSelected = true;
                         player.Instrument = PartsToDisplay[i];
                         int isBassOrVocal = 0;
@@ -237,13 +191,13 @@ void ReadyUpMenu::Draw() {
                     GameMenu::mhDrawText(
                         assets.rubik,
                         (std::to_string(
-                                TheSongList.curSong->parts[PartsToDisplay[i]]->diff + 1
-                            )
-                            + "/7")
-                        .c_str(),
+                             TheSongList.curSong->parts[PartsToDisplay[i]]->diff + 1
+                         )
+                         + "/7")
+                            .c_str(),
                         { xPosOfMenu + u.winpct(0.165f),
                           BottomOvershell - u.hinpct(0.04f)
-                          - (u.hinpct(0.05f) * (float)i) },
+                              - (u.hinpct(0.05f) * (float)i) },
                         u.hinpct(0.03f),
                         WHITE,
                         assets.sdfShader,
@@ -255,19 +209,19 @@ void ReadyUpMenu::Draw() {
                     GuiSetStyle(
                         BUTTON,
                         TEXT_COLOR_NORMAL,
-                        ColorToInt(Color{ 255, 255, 255, 255 })
+                        ColorToInt(Color { 255, 255, 255, 255 })
                     );
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
                     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
                     if (GuiButton(
-                        { xPosOfMenu,
-                          BottomOvershell,
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        "Done"
-                    )) {
+                            { xPosOfMenu,
+                              BottomOvershell,
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            "Done"
+                        )) {
                         if (TheSongList.curSong->parts[player.Instrument]
-                            ->ValidDiffs[player.Difficulty]) {
+                                ->ValidDiffs[player.Difficulty]) {
                             player.ReadyUpMenuState = Player::DIFFICULTY;
                         } else {
                             player.ReadyUpMenuState = Player::PREVIEW;
@@ -293,19 +247,19 @@ void ReadyUpMenu::Draw() {
                                 BUTTON,
                                 BASE_COLOR_NORMAL,
                                 chart->diff == player.Difficulty && player.diffSelected
-                                ? ColorToInt(
-                                    ColorBrightness(player.AccentColor, -0.25)
-                                )
-                                : 0x181827FF
+                                    ? ColorToInt(
+                                          ColorBrightness(player.AccentColor, -0.25)
+                                      )
+                                    : 0x181827FF
                             );
                             if (GuiButton(
-                                { xPosOfMenu,
-                                  BottomOvershell - u.hinpct(0.05f)
-                                  - (u.hinpct(0.05f) * i),
-                                  u.winpct(0.2f),
-                                  u.hinpct(0.05f) },
-                                diffList[i].c_str()
-                            )) {
+                                    { xPosOfMenu,
+                                      BottomOvershell - u.hinpct(0.05f)
+                                          - (u.hinpct(0.05f) * chart->diff),
+                                      u.winpct(0.2f),
+                                      u.hinpct(0.05f) },
+                                    diffList[i].c_str()
+                                )) {
                                 player.Difficulty = i;
                                 player.diffSelected = true;
                             }
@@ -313,7 +267,7 @@ void ReadyUpMenu::Draw() {
                             GuiButton(
                                 { xPosOfMenu,
                                   BottomOvershell - u.hinpct(0.05f)
-                                  - (u.hinpct(0.05f) * i),
+                                      - (u.hinpct(0.05f) * chart->diff),
                                   u.winpct(0.2f),
                                   u.hinpct(0.05f) },
                                 ""
@@ -321,10 +275,10 @@ void ReadyUpMenu::Draw() {
                             DrawRectangle(
                                 xPosOfMenu + 2,
                                 BottomOvershell + 2 - u.hinpct(0.05f)
-                                - (u.hinpct(0.05f) * i),
+                                    - (u.hinpct(0.05f) * chart->diff),
                                 u.winpct(0.2f) - 4,
                                 u.hinpct(0.05f) - 4,
-                                Color{ 0, 0, 0, 128 }
+                                Color { 0, 0, 0, 128 }
                             );
                         }
                         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
@@ -332,17 +286,17 @@ void ReadyUpMenu::Draw() {
                             GuiSetStyle(
                                 BUTTON,
                                 TEXT_COLOR_NORMAL,
-                                ColorToInt(Color{ 255, 255, 255, 255 })
+                                ColorToInt(Color { 255, 255, 255, 255 })
                             );
                             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
                             GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
                             if (GuiButton(
-                                { xPosOfMenu,
-                                  BottomOvershell - u.hinpct(0.25f),
-                                  u.winpct(0.2f),
-                                  u.hinpct(0.05f) },
-                                "Done"
-                            )) {
+                                    { xPosOfMenu,
+                                      BottomOvershell - u.hinpct(0.25f),
+                                      u.winpct(0.2f),
+                                      u.hinpct(0.05f) },
+                                    "Done"
+                                )) {
                                 player.ReadyUpMenuState = Player::PREVIEW;
                                 player.ReadiedUpBefore = true;
                             }
@@ -356,8 +310,7 @@ void ReadyUpMenu::Draw() {
                         }
                         if (GuiButton({ 0, 0, 60, 60 }, "<")) {
                             if (player.ReadiedUpBefore
-                                || !TheSongList.curSong->parts[player.Instrument]->
-                                Valid) {
+                                || !TheSongList.curSong->parts[player.Instrument]->Valid) {
                                 player.ReadyUpMenuState = Player::INSTRUMENT;
                                 player.instSelected = false;
                                 player.diffSelected = false;
@@ -374,12 +327,12 @@ void ReadyUpMenu::Draw() {
             case Player::PREVIEW: {
                 {
                     if (GuiButton(
-                        { xPosOfMenu,
-                          BottomOvershell - u.hinpct(0.05f),
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        ""
-                    )) {
+                            { xPosOfMenu,
+                              BottomOvershell - u.hinpct(0.05f),
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            ""
+                        )) {
                         player.ReadyUpMenuState = Player::DIFFICULTY;
                     }
                     GameMenu::mhDrawText(
@@ -395,25 +348,25 @@ void ReadyUpMenu::Draw() {
                         assets.rubikBold,
                         diffList[player.Difficulty].c_str(),
                         { xPosOfMenu + u.winpct(0.19f)
-                          - MeasureTextEx(
-                              assets.rubikBold,
-                              diffList[player.Difficulty].c_str(),
-                              u.hinpct(0.03f),
-                              0
-                          )
-                          .x,
+                              - MeasureTextEx(
+                                    assets.rubikBold,
+                                    diffList[player.Difficulty].c_str(),
+                                    u.hinpct(0.03f),
+                                    0
+                              )
+                                    .x,
                           BottomOvershell - u.hinpct(0.04f) },
                         u.hinpct(0.03f),
                         0,
                         WHITE
                     );
                     if (GuiButton(
-                        { xPosOfMenu,
-                          BottomOvershell - u.hinpct(0.10f),
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        ""
-                    )) {
+                            { xPosOfMenu,
+                              BottomOvershell - u.hinpct(0.10f),
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            ""
+                        )) {
                         player.ReadyUpMenuState = Player::INSTRUMENT;
                     }
                     GameMenu::mhDrawText(
@@ -429,13 +382,13 @@ void ReadyUpMenu::Draw() {
                         assets.rubikBold,
                         songPartsList[player.Instrument].c_str(),
                         { xPosOfMenu + u.winpct(0.19f)
-                          - MeasureTextEx(
-                              assets.rubikBold,
-                              songPartsList[player.Instrument].c_str(),
-                              u.hinpct(0.03f),
-                              0
-                          )
-                          .x,
+                              - MeasureTextEx(
+                                    assets.rubikBold,
+                                    songPartsList[player.Instrument].c_str(),
+                                    u.hinpct(0.03f),
+                                    0
+                              )
+                                    .x,
                           BottomOvershell - u.hinpct(0.09f) },
                         u.hinpct(0.03f),
                         0,
@@ -444,17 +397,17 @@ void ReadyUpMenu::Draw() {
                     GuiSetStyle(
                         BUTTON,
                         TEXT_COLOR_NORMAL,
-                        ColorToInt(Color{ 255, 255, 255, 255 })
+                        ColorToInt(Color { 255, 255, 255, 255 })
                     );
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x1D754AFF);
                     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x2AA86BFF);
                     if (GuiButton(
-                        { xPosOfMenu,
-                          BottomOvershell,
-                          u.winpct(0.2f),
-                          u.hinpct(0.05f) },
-                        "Ready Up!"
-                    )) {
+                            { xPosOfMenu,
+                              BottomOvershell,
+                              u.winpct(0.2f),
+                              u.hinpct(0.05f) },
+                            "Ready Up!"
+                        )) {
                         player.ReadyUpMenuState = Player::PREVIEW;
                         // TheGameRenderer.highwayInAnimation = false;
                         // TheGameRenderer.songStartTime = GetTime();
@@ -468,8 +421,7 @@ void ReadyUpMenu::Draw() {
                     GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
                     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
                 }
-            }
-            break;
+            } break;
             }
         }
 
@@ -481,5 +433,4 @@ void ReadyUpMenu::Draw() {
     DrawOvershell();
 }
 
-void ReadyUpMenu::Load() {
-}
+void ReadyUpMenu::Load() {}
