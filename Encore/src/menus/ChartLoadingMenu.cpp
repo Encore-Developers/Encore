@@ -90,6 +90,8 @@ void LoadCharts() {
                 );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Pad;
+                if (diff < 3)
+                    ThePlayerManager.GetActivePlayer(playerNum).engine->chart->Lanes.resize(4);
                 // todo: make pad engine shit how did u forget
             }
             for (int i = 0; i
