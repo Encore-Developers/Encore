@@ -111,11 +111,11 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
     Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
     Encore::RhythmEngine::BaseStats<5> *stats = engine->stats.get();
 
-    if (event.timestamp >= engine->stopTime && engine->stopTime > 0.0)
-        return;
+
 
     if (engine->allowTimestampedInputs) {
-        engine->UpdateOnFrame(event.timestamp);
+        if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
+            engine->UpdateOnFrame(event.timestamp);
     }
     engine->ProcessInput(event);
     // Encore::EncoreLog(LOG_DEBUG, "Controller inputted.");
@@ -573,8 +573,6 @@ void GameplayMenu::Draw() {
         Color{ 255, 255, 255, BackgroundColor }
     );
 
-
-
     if (TheSongTime.GetElapsedTime() > TheSongList.curSong->end - 1) {
         // TODO: endgame
         TheSongTime.Reset();
@@ -614,8 +612,11 @@ void GameplayMenu::Draw() {
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
-        player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
+
+        if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !player.engine->practice)
+            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
         player.engine->UpdateStats(player.Instrument, player.Difficulty);
+
         tracks.at(i)->Draw();
         int TopOfScreen = GetRenderHeight(); // width
         int FakeStrikeline = (TopOfScreen / 5) * 4;
@@ -734,7 +735,8 @@ void GameplayMenu::Draw() {
                 );
                 GameMenu::mhDrawText(
                     assets.JetBrainsMono,
-                    TextFormat("Perfect (%.0fms)", player.engine->stats->LastHitAccuracy*1000),
+                    TextFormat("Perfect (%.0fms)",
+                               player.engine->stats->LastHitAccuracy * 1000),
                     { MiddleOfScreen + (NoteXWidth * 3.0f),
                       float(FakeStrikeline) - u.hinpct(0.1) },
                     u.hinpct(0.05),
@@ -1312,9 +1314,9 @@ void GameplayMenu::Draw() {
         //         }
         //     }
         // }
-        bool maxmult = false;///player.engine->stats->SixMultiplier
-            //? player.engine->stats->multNoOD() >= 5
-            //: player.engine->stats->multNoOD() == 4;
+        bool maxmult = false; ///player.engine->stats->SixMultiplier
+        //? player.engine->stats->multNoOD() >= 5
+        //: player.engine->stats->multNoOD() == 4;
         if (maxmult) {
             unsigned char streakFlash = BeatToCharViaTickThing(
                 TheSongTime.GetCurrentTick(),
@@ -2097,8 +2099,8 @@ void GameplayMenu::Load() {
         Player &player = ThePlayerManager.GetActivePlayer(i);
         tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
-        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer*i;
-        tracks.at(i)->ColumnRight = -1 + widthPerPlayer*(i+1);
+        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * i;
+        tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (i + 1);
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:

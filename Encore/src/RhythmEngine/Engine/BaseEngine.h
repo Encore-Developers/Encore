@@ -52,11 +52,14 @@ namespace Encore::RhythmEngine {
         bool allowTimestampedInputs = true;
 
         float whammy = 0.0;
-        double stopTime = 0.0;
+        bool practice = false;
+        double pStartTime = 0.0;
+        double pStopTime = 0.0;
         std::pair<int, int> GetNotePoolSize(int lane);
 
         // bool GetCurrentNote(int lane);
         // virtual bool CanNoteBeHit();
+        bool IsWithinPracticeSection(double time);
         virtual void UpdateOnFrame(double CurrentTime) {
         };
         void CheckMissedNotes(int Lane, double SongTime);

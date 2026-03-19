@@ -23,6 +23,7 @@ bool showAssets = false;
 bool showPlayerManager = false;
 bool showSongList = false;
 bool showQuickSettings = false;
+bool showPractice = false;
 
 std::string debugVersionHash = "";
 
@@ -64,9 +65,11 @@ void EncoreDebug::DrawDebug() {
     if (showQuickSettings) {
         DrawQuickSettings();
     }
+    if (showPractice) {
+        DrawPracticeSectionSelector();
+    }
     DrawSongScrubber();
 }
-
 
 void EncoreDebug::MenuBar() {
     BeginMainMenuBar();
@@ -111,8 +114,9 @@ void EncoreDebug::MenuBar() {
         TheSongTime.CurrentBeatline = 0;
         TheMenuManager.SwitchScreen(RESULTS);
     }
-
-
+    if (TheMenuManager.currentScreen == GAMEPLAY) {
+        MenuItem("Practice", 0, &showPractice);
+    }
     auto avail = GetWindowWidth();
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
 
@@ -121,6 +125,7 @@ void EncoreDebug::MenuBar() {
 
     EndMainMenuBar();
 }
+
 
 void EncoreDebug::DrawQuickSettings() {
     if (Begin("Quick Settings")) {
@@ -140,8 +145,8 @@ void EncoreDebug::DrawQuickSettings() {
     End();
 }
 
-void DebugSeek(float time) {
-    TheAudioManager.seekStreams(time);
+void DebugSeek(float time, float audioTime) {
+    TheAudioManager.seekStreams(audioTime);
     for (auto index : ThePlayerManager.ActivePlayers) {
         if (index == -1) {
             continue;
@@ -160,6 +165,74 @@ void DebugSeek(float time) {
             }
 
         }
+    }
+}
+
+
+void EncoreDebug::DrawPracticeSectionSelector() {
+
+    if (TheMenuManager.currentScreen == GAMEPLAY) {
+        if (Begin("Practice Section Selector")) {
+            for (int sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
+                Text(TheSongTime.Sections.at(sectionInt).name.c_str());
+                SameLine();
+                float buttWidth = CalcTextSize(" whole").x;
+                SetCursorPosX(GetWindowWidth() - (buttWidth * 3));
+                PushID(sectionInt);
+                if (Button("whole")) {
+                    double startTime;
+                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
+                        if (playerInt == -1) {
+                            continue;
+                        }
+                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                        double endTime = 0.0;
+                        startTime = TheSongTime.Sections.at(sectionInt).start;
+                        if (sectionInt == TheSongTime.Sections.size() - 1)
+                            endTime = TheSongTime.GetSongLength();
+                        else
+                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
+                        player.engine->pStartTime = startTime;
+                        player.engine->pStopTime = endTime;
+                        player.engine->practice = true;
+                    }
+                    DebugSeek(startTime, startTime - 2);
+                }
+                SameLine();
+                if (Button("start")) {
+                    double startTime;
+                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
+                        if (playerInt == -1) {
+                            continue;
+                        }
+                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                        startTime = TheSongTime.Sections.at(sectionInt).start;
+                        player.engine->pStartTime = startTime;
+                        player.engine->pStopTime = TheSongTime.GetSongLength();
+                        player.engine->practice = true;
+                    }
+                    DebugSeek(startTime, startTime - 2);
+                }
+                SameLine();
+                if (Button("end")) {
+                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
+                        if (playerInt == -1) {
+                            continue;
+                        }
+                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                        double endTime = 0.0;
+                        if (sectionInt == TheSongTime.Sections.size() - 1)
+                            endTime = TheSongTime.GetSongLength();
+                        else
+                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
+                        player.engine->pStopTime = endTime;
+                        player.engine->practice = true;
+                    }
+                }
+                PopID();
+            }
+        }
+        End();
     }
 }
 
@@ -190,7 +263,7 @@ void EncoreDebug::DrawSongScrubber() {
                 return GetMousePos().x - pos.x;
             };
             if (IsItemActive()) {
-                DebugSeek(GetTimeAtPos(GetMouseLocalPos()));
+                DebugSeek(GetTimeAtPos(GetMouseLocalPos()), GetTimeAtPos(GetMouseLocalPos()));
             }
             auto drawlist = GetWindowDrawList();
             drawlist->AddRectFilled(pos, pos + size, ColorConvertFloat4ToU32(GetStyle().Colors[IsItemHovered() && !IsItemActive() ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg]));

@@ -60,7 +60,8 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
         && event.action == Action::RELEASE) {
         return;
     }
-    RunHitStateCheck(event);
+    if (IsWithinPracticeSection(event.timestamp) || !practice)
+        RunHitStateCheck(event);
 }
 // i dont think this is needed because it was technically already taken care of by
 // BaseChart
@@ -105,6 +106,11 @@ std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) 
 
     return std::pair<int, int> {NotePoolStart, NotePoolEnd};
 }
+
+bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) {
+    return practice && time < pStopTime && time >= pStartTime;
+}
+
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTime) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;

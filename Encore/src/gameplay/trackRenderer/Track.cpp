@@ -209,6 +209,14 @@ void Encore::Track::DrawNotes() {
             if (note->StartSeconds > GetViewEndTime()) {
                 continue;
             }
+            if (player.engine->practice) {
+                if (note->StartSeconds >= player.engine->pStopTime) {
+                    continue;
+                }
+                if (note->StartSeconds < player.engine->pStartTime) {
+                    continue;
+                }
+            }
             auto slots = GetSlotsForLane(player.engine->UsesNoteMasks()
                 ? note->Lane
                 : lane);
