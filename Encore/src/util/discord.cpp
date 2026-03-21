@@ -43,6 +43,8 @@ Encore::Discord::~Discord() {
     Initialized = false;
 }
 void Encore::Discord::Update() {
+    if (!Initialized)
+        return;
     core->RunCallbacks();
 }
 

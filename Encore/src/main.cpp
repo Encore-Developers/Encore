@@ -320,8 +320,7 @@ int main(int argc, char *argv[]) {
             if (TheMenuManager.onNewMenu) {
                 TheMenuManager.LoadMenu();
             }
-            if (discordOff != "false")
-                TheGameRPC.Update();
+            TheGameRPC.Update();
             TheMenuManager.DrawMenu();
             if (loadingScreenFade > 0) {
                 DrawLoadingScreen(255*loadingScreenFade, 1);
