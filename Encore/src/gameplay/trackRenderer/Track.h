@@ -63,6 +63,7 @@ namespace Encore {
         // The column of the screen that this track can occupy. Used for multiplayer positioning.
         float ColumnLeft = -1;
         float ColumnRight = 1;
+        bool ColumnFitting = true;
 
         Camera3D AnimCamera;
         Camera3D BaseCamera;

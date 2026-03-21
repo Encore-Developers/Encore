@@ -19,7 +19,9 @@
 
 void Encore::Track::Draw() {
 
-    FitToColumn(ColumnLeft, ColumnRight);
+    if (ColumnFitting) {
+        FitToColumn(ColumnLeft, ColumnRight);
+    }
 
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
     Length = BaseLength * player.HighwayLength;
@@ -131,24 +133,6 @@ void Encore::Track::DrawSurface() {
 
 void Encore::Track::DrawOverdriveMeter() {
 
-    // static std::vector<Vector3> points;
-    // points.clear();
-    //
-    // for (int i = 0; i <= 10; i++) {
-    //     auto x = Remap(i, 0, 10, -2.5, 2.5);
-    //     points.push_back({ x, 0, -1.0 });
-    //     points.push_back({ x, 0, -0.5 });
-    // }
-    //
-    // DrawTriangleStrip3D(points.data(), points.size(), BLACK);
-    //
-    // points.clear();
-    // for (int i = 0; i <= 10; i++) {
-    //     auto x = Remap(i, 0, 10, -2.5, 2.5);
-    //     x = Lerp(x, 2.5, 1 - player.engine->stats->overdrive.Fill);
-    //     points.push_back({ x, 0, -1.0 });
-    //     points.push_back({ x, 0, -0.5 });
-    // }
 
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
@@ -163,7 +147,7 @@ void Encore::Track::DrawOverdriveMeter() {
     ASSET(overdriveShader).SetUniform("FillColor", OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillPct", 1.0f-player.engine->stats->overdrive.Fill);
     ASSET(overdriveShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, 0.75));
-    DrawModelEx(ASSET(overdriveMeter), { 0, 0, -1.0 }, { 0 }, 0, { 0.95, 0.8, 0.95 }, player.AccentColor);
+    DrawModelEx(ASSET(overdriveMeter), { 0, -0.1, -0.85 }, { 1, 0, 0 }, 60, { 0.95, 0.8, 0.95 }, player.AccentColor);
 
     return;
 

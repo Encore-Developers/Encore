@@ -565,14 +565,15 @@ void Encore::Track::DrawTrackDebugWindow() {
             DragFloat("Base Length", &BaseLength, 0.1);
             DragFloat("Track Fade Size", &FadeSize, 0.1);
             DragFloat("Curve Factor", &CurveFac, 1);
-            BeginDisabled();
-            Text("Overridden by multiplayer scaling");
-            DragFloat("Offset", &Offset, 0.01);
-            DragFloat("Scale", &Scale, 0.01);
-            EndDisabled();
+            Checkbox("Column Fitting", &ColumnFitting);
+            if (!ColumnFitting) {
+                DragFloat("Offset", &Offset, 0.01);
+                DragFloat("Scale", &Scale, 0.01);
+            } else {
+                DragFloat("Column Left", &ColumnLeft, 0.01);
+                DragFloat("Column Right", &ColumnRight, 0.01);
+            }
             DragFloat("Note Height", &NoteHeight, 0.01);
-            DragFloat("Column Left", &ColumnLeft, 0.01);
-            DragFloat("Column Right", &ColumnRight, 0.01);
         }
         if (CollapsingHeader("Engine State")) {
             SeparatorText("Timers");
