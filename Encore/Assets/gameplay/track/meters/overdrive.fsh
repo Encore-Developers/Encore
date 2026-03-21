@@ -4,6 +4,7 @@ in vec2 fragTexCoord;
 in vec4 fragColor;
 
 uniform vec4 FillColor;
+uniform vec4 BaseColor;
 uniform sampler2D FillTexture;
 uniform sampler2D texture0;
 uniform lowp float FillPct;
@@ -11,7 +12,7 @@ uniform lowp float FillPct;
 out vec4 finalColor;
 
 void main() {
-    vec4 textureColor = texture(texture0, fragTexCoord);
+    vec4 textureColor = texture(texture0, fragTexCoord) * BaseColor;
 
     // should this spot be colored if overdrive fills here?
     float maskOn = texture(FillTexture, fragTexCoord).a;

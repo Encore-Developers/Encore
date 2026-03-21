@@ -554,35 +554,36 @@ public:
     NEWTEXASSET(overdriveMeterMask, "gameplay/track/meters/overdrive_fill.png");
 
     NEWSHADERASSET_POSTFINALIZE(overdriveShader,
-                            "gameplay/track/meters/overdrive.fsh",
-                            "gameplay/track/trackCurve.vsh",
-                            {"FillColor",
-                            "FillTexture",
-                            "FillPct",
-                            "curveFac",
-                            "trackLength",
-                            "fadeSize",
-                            "offset",
-                            "scale"},
+                                "gameplay/track/meters/overdrive.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {"FillColor",
+                                "BaseColor",
+                                "FillTexture",
+                                "FillPct",
+                                "curveFac",
+                                "trackLength",
+                                "fadeSize",
+                                "offset",
+                                "scale"},
 
-                            [this](Shader* asset) {
+                                [this](Shader* asset) {
                                 asset->locs[SHADER_LOC_MAP_EMISSION] =
                                 overdriveShader.GetUniformLoc("FillTexture");
-                            });
+                                });
 
     NEWLEGACYMODELASSET(overdriveMeter,
                         "gameplay/track/meters/overdrive_meter.obj",
                         [this](Model* model) {
-                            SetTextureWrap(overdriveMeterTex, TEXTURE_WRAP_CLAMP);
-                            SetTextureWrap(overdriveMeterMask, TEXTURE_WRAP_CLAMP);
-                            model->materials[0].maps[0].texture = overdriveMeterTex;
+                        SetTextureWrap(overdriveMeterTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(overdriveMeterMask, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = overdriveMeterTex;
                         // const Texture2D mask = regularMaskTex.Fetch();
 
-                            model->materials[0].shader = overdriveShader;
-                            model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
-                            overdriveMeterMask;
-                            // SetShaderValueTexture(overdriveShader, overdriveShader.GetUniformLoc("FillTexture"), overdriveMeterMask);
-    });
+                        model->materials[0].shader = overdriveShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        overdriveMeterMask;
+                        // SetShaderValueTexture(overdriveShader, overdriveShader.GetUniformLoc("FillTexture"), overdriveMeterMask);
+                        });
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);

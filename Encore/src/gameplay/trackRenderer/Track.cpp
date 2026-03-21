@@ -162,7 +162,8 @@ void Encore::Track::DrawOverdriveMeter() {
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillColor", OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillPct", 1.0f-player.engine->stats->overdrive.Fill);
-    DrawModelEx(ASSET(overdriveMeter), { 0, 0, -1.0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
+    ASSET(overdriveShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, 0.75));
+    DrawModelEx(ASSET(overdriveMeter), { 0, 0, -1.0 }, { 0 }, 0, { 0.95, 0.95, 0.95 }, player.AccentColor);
 
     return;
 
