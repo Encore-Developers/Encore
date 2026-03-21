@@ -331,8 +331,7 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(hopoNoteTex),
                          ASSETPTR(hopoNote),
                          ASSETPTR(hopoMaskTex),
-                         ASSETPTR(regularMaskTex),
-    ASSETPTR(overdriveMeterMask)
+                         ASSETPTR(regularMaskTex)
 };
 
 AssetSet gameplaySet = {

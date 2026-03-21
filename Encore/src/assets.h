@@ -566,8 +566,8 @@ public:
                             "scale"},
 
                             [this](Shader* asset) {
-                                asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.
-                                GetUniformLoc("FillTexture");
+                                asset->locs[SHADER_LOC_MAP_EMISSION] =
+                                overdriveShader.GetUniformLoc("FillTexture");
                             });
 
     NEWLEGACYMODELASSET(overdriveMeter,
