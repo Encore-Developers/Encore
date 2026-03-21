@@ -173,7 +173,11 @@ ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
     LocateDevAssets();
-    TheGameRPC.Initialize();
+
+    ArgumentList::InitArguments(argc, argv);
+
+    std::string discordOff = ArgumentList::GetArgValue("discord");
+    TheGameRPC.Initialize(discordOff);
     SetTraceLogCallback(Encore::EncoreLog);
     Units u = Units::getInstance();
     commitHash.erase(7);
@@ -184,7 +188,6 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 
     bool windowToggle = true;
-    ArgumentList::InitArguments(argc, argv);
 
     std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
     std::string vSyncOn = ArgumentList::GetArgValue("vsync");
@@ -317,7 +320,8 @@ int main(int argc, char *argv[]) {
             if (TheMenuManager.onNewMenu) {
                 TheMenuManager.LoadMenu();
             }
-            TheGameRPC.Update();
+            if (discordOff != "false")
+                TheGameRPC.Update();
             TheMenuManager.DrawMenu();
             if (loadingScreenFade > 0) {
                 DrawLoadingScreen(255*loadingScreenFade, 1);

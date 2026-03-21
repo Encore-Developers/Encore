@@ -8,30 +8,33 @@
 #include <ctime>
 #include <iostream>
 #include <chrono>
+
 discord::Core* core{};
 
-void Encore::Discord::Initialize() {
-    auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
-    if (!core) {
-        std::cout << "Failed to instantiate discord core! (err " << static_cast<int>(result)
-                  << ")\n";
-        Initialized = false;
-        return;
+void Encore::Discord::Initialize(std::string discordBoot) {
+    if (discordBoot != "false") {
+        auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
+        if (!core) {
+            std::cout << "Failed to instantiate discord core! (err " << static_cast<int>(result)
+                      << ")\n";
+            Initialized = false;
+            return;
+        }
+        const auto p0 = std::chrono::system_clock::now();
+        startTime = std::chrono::duration_cast<std::chrono::seconds>(p0.time_since_epoch()).count();
+        /*
+        try {
+            discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
+            //DiscordEventHandlers Handlers {};
+            // Discord_Initialize("1216298119457804379", &Handlers, 1, nullptr);
+        }
+        catch (const std::exception& e) {
+            Initialized = false;
+        //     return;
+        }
+        */
+        Initialized = true;
     }
-    const auto p0 = std::chrono::system_clock::now();
-    startTime = std::chrono::duration_cast<std::chrono::seconds>(p0.time_since_epoch()).count();
-    /*
-    try {
-        discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
-        //DiscordEventHandlers Handlers {};
-        // Discord_Initialize("1216298119457804379", &Handlers, 1, nullptr);
-    }
-    catch (const std::exception& e) {
-        Initialized = false;
-    //     return;
-    }
-    */
-    Initialized = true;
 }
 
 Encore::Discord::~Discord() {
