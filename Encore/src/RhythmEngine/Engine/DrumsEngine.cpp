@@ -60,9 +60,8 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
     if (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN)
         return CheckNextInput;
     int lane = ICInt(event.channel);
-    // auto &chartLane = chart->at(lane);
-    // if (chartLane.empty())
-    //     return CheckNextInput;
+    if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
+        return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
     // auto curNoteItr = chartLane.begin();
     // while (curNoteItr->StartSeconds + goodBackend
