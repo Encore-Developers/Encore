@@ -18,7 +18,7 @@ void main() {
     float maskOn = texture(FillTexture, fragTexCoord).a;
 
     // should this spot be filled because of overdrive?
-    float overdriveFill=step(FillPct,1.0-fragTexCoord.x);
+    float overdriveFill = smoothstep(FillPct-0.005, FillPct+0.005, 1.0-fragTexCoord.x);
 
     finalColor = mix(textureColor, FillColor, maskOn*overdriveFill);
     // if (maskOn > 0.0) {
