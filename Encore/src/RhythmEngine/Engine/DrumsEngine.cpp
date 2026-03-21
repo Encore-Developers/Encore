@@ -76,10 +76,15 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
     // bool lift = false; //action == Action::RELEASE && CurrentNote.NoteType == 1;
     if (event.action == Action::PRESS) {
         if (EarlyStrike(CurrentNote->StartSeconds)) {
+            if (Timers["debounce"].CanBeUsedUp(stats->InputTime)) {
+                Timers["debounce"].ResetTimer();
+                return CheckNextInput;
+            }
             Overhit(lane);
             return OverhitNote;
         };
         if (InHitwindow(CurrentNote->StartSeconds)) {
+            Timers["debounce"].ActivateTimer(stats->InputTime);
             HitNote(lane);
             return HitState::HitNote;
         };
