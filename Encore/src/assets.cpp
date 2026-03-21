@@ -66,10 +66,12 @@ void Asset::CheckForFetch() {
     default: ;
     }
 }
+
 void Asset::SetAssetParent(Asset *newParent) {
     parent = newParent;
     DelistAsset();
 }
+
 void Asset::DelistAsset() {
     for (auto iter = TheAssets.assets.begin(); iter != TheAssets.assets.end(); ++iter) {
         auto asset = *iter;
@@ -79,13 +81,16 @@ void Asset::DelistAsset() {
         }
     }
 }
+
 Asset::~Asset() {
     DelistAsset();
 }
+
 Asset::Asset(const std::string &id) {
     this->id = id;
     TheAssets.assets.push_back(this);
 }
+
 void Asset::StartLoad() {
     if (state == UNLOADED) {
         state = LOADING;
@@ -182,9 +187,11 @@ void ShaderAsset::Finalize() {
     for (auto &uniform : uniformPositions) {
         uniform.second = GetShaderLocation(shader, uniform.first.c_str());
     }
-    if (postFinalizeFunc) postFinalizeFunc(&shader);
+    if (postFinalizeFunc)
+        postFinalizeFunc(&shader);
     state = LOADED;
 }
+
 void ShaderAsset::SetUniform(const std::string &uniformName, float value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_FLOAT);
 }
@@ -195,11 +202,15 @@ void ShaderAsset::SetUniform(const std::string &uniformName, Color value) {
     };
     SetUniform(uniformName, &vec4, SHADER_UNIFORM_VEC4);
 }
+
 void ShaderAsset::SetUniform(const std::string &uniformName, Vector4 value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_VEC4);
 }
+
 void ShaderAsset::SetUniform(
-    const std::string &uniformName, void *value, ShaderUniformDataType type
+    const std::string &uniformName,
+    void *value,
+    ShaderUniformDataType type
 ) {
     CheckForFetch();
     SetShaderValue(shader, GetUniformLoc(uniformName), value, type);
@@ -320,7 +331,32 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(hopoNoteTex),
                          ASSETPTR(hopoNote),
                          ASSETPTR(hopoMaskTex),
-                         ASSETPTR(regularMaskTex)
+                         ASSETPTR(regularMaskTex),
+    ASSETPTR(overdriveMeterMask)
+};
+
+AssetSet gameplaySet = {
+    ASSETPTR(trackSurface),
+    ASSETPTR(spotlightTex),
+    ASSETPTR(overdriveTex),
+    ASSETPTR(trackCurveShader),
+    ASSETPTR(noteShader),
+    ASSETPTR(highwayScrollShader),
+    ASSETPTR(regularNote),
+    ASSETPTR(hopoNote),
+    ASSETPTR(openNote),
+    ASSETPTR(kickNote),
+    ASSETPTR(cymbalNote),
+    ASSETPTR(smasherPiston),
+    ASSETPTR(smasherFrame),
+    ASSETPTR(trackSurface),
+    ASSETPTR(rails),
+    ASSETPTR(kickFrame),
+    ASSETPTR(kickPiston),
+    ASSETPTR(hitFlareTex),
+    ASSETPTR(shockwaveTex),
+    ASSETPTR(hitFlareInnerTex),
+    ASSETPTR(overdriveShader)
 };
 
 

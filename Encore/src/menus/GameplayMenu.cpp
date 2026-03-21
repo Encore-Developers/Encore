@@ -2089,9 +2089,7 @@ void GameplayMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
-    ASSET(trackSurface).Fetch();
-    ASSET(spotlightTex).Fetch();
-    ASSET(overdriveTex).Fetch();
+
     // i dont like the game stuttering when you active or get a streak
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
 

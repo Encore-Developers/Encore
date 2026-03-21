@@ -146,6 +146,7 @@ void ChartLoadingMenu::Load() {
     LoadCharts();
     // std::thread ChartLoader(LoadCharts);
     // ChartLoader.detach();
+    gameplaySet.StartLoad();
 }
 
 void ChartLoadingMenu::Draw() {

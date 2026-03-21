@@ -124,6 +124,7 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
         );
         }
 }
+
 void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
     if (chordSize == 0) chordSize = 1;

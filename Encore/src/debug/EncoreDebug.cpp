@@ -192,7 +192,7 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                             endTime = TheSongTime.GetSongLength();
                         else
                             endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player.engine->pStartTime = startTime;
+                        player.engine->pStartTime = startTime - 0.1;
                         player.engine->pStopTime = endTime;
                         player.engine->practice = true;
                     }
@@ -207,7 +207,7 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                         }
                         auto &player = ThePlayerManager.PlayerList.at(playerInt);
                         startTime = TheSongTime.Sections.at(sectionInt).start;
-                        player.engine->pStartTime = startTime;
+                        player.engine->pStartTime = startTime - 0.1;
                         player.engine->pStopTime = TheSongTime.GetSongLength();
                         player.engine->practice = true;
                     }

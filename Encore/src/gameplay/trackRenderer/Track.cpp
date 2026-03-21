@@ -29,7 +29,7 @@ void Encore::Track::Draw() {
     BeginMode3D(AnimCamera);
 
     for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                         ASSETPTR(highwayScrollShader) }) {
+                         ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader) }) {
         shader->SetUniform("trackLength", Length);
         shader->SetUniform("fadeSize", FadeSize);
         shader->SetUniform("curveFac", CurveFac);
@@ -130,24 +130,25 @@ void Encore::Track::DrawSurface() {
 }
 
 void Encore::Track::DrawOverdriveMeter() {
-    static std::vector<Vector3> points;
-    points.clear();
 
-    for (int i = 0; i <= 10; i++) {
-        auto x = Remap(i, 0, 10, -2.5, 2.5);
-        points.push_back({ x, 0, -1.0 });
-        points.push_back({ x, 0, -0.5 });
-    }
-
-    DrawTriangleStrip3D(points.data(), points.size(), BLACK);
-
-    points.clear();
-    for (int i = 0; i <= 10; i++) {
-        auto x = Remap(i, 0, 10, -2.5, 2.5);
-        x = Lerp(x, 2.5, 1 - player.engine->stats->overdrive.Fill);
-        points.push_back({ x, 0, -1.0 });
-        points.push_back({ x, 0, -0.5 });
-    }
+    // static std::vector<Vector3> points;
+    // points.clear();
+    //
+    // for (int i = 0; i <= 10; i++) {
+    //     auto x = Remap(i, 0, 10, -2.5, 2.5);
+    //     points.push_back({ x, 0, -1.0 });
+    //     points.push_back({ x, 0, -0.5 });
+    // }
+    //
+    // DrawTriangleStrip3D(points.data(), points.size(), BLACK);
+    //
+    // points.clear();
+    // for (int i = 0; i <= 10; i++) {
+    //     auto x = Remap(i, 0, 10, -2.5, 2.5);
+    //     x = Lerp(x, 2.5, 1 - player.engine->stats->overdrive.Fill);
+    //     points.push_back({ x, 0, -1.0 });
+    //     points.push_back({ x, 0, -0.5 });
+    // }
 
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
@@ -158,7 +159,11 @@ void Encore::Track::DrawOverdriveMeter() {
     float Percentage = float(streakFlash) / 255.0f;
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
-    DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
+    // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
+    ASSET(overdriveShader).SetUniform("FillColor", OverdriveBarColor);
+    ASSET(overdriveShader).SetUniform("FillPct", 1.0f-player.engine->stats->overdrive.Fill);
+    DrawModelEx(ASSET(overdriveMeter), { 0, 0, -1.0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
+
     return;
 
     BeginShaderMode(ASSET(sdfShader));
