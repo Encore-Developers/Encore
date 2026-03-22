@@ -644,6 +644,9 @@ public:
                             model->materials[0].maps[MATERIAL_MAP_SPECULAR].texture = fcindtex1;
                             model->materials[0].maps[MATERIAL_MAP_NORMAL].texture = fcindtex2;
                         });
+
+    NEWLEGACYMODELASSET(multiplierFrame, "gameplay/track/multiplier/multiplier_frame.obj",
+                        [this](Model* model) {});
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);

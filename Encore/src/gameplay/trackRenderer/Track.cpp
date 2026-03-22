@@ -178,12 +178,12 @@ void Encore::Track::DrawOverdriveMeter() {
 }
 
 void Encore::Track::DrawMultiplier() {
-    Vector3 position = {0,-0.1, -1.125};
-    Vector3 scale = {1,1, 1};
+    Vector3 position = {0,-0.1, -1.25};
+    Vector3 scale = {1.1, 1.1, 1.1};
     ASSET(indicatorRingShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.3));
     ASSET(indicatorRingShader).SetUniform("FCColor", GOLD);
     ASSET(indicatorRingShader).SetUniform("time", GetTime());
-    ASSET(multiplierFillShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.7));
+    ASSET(multiplierFillShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.85));
     int MaxMult = player.engine->stats->SixMultiplier ? 6 : 4;
     if (player.engine->stats->multNoOD() == MaxMult) {
         ASSET(multiplierFillShader).SetUniform("MultiplierColor", SKYBLUE);
@@ -201,6 +201,7 @@ void Encore::Track::DrawMultiplier() {
 
     DrawModelEx(ASSET(multiplierFill), position, { 0 }, 0, scale, WHITE);
     DrawModelEx(ASSET(indicatorRing), position, { 0 }, 0, scale, WHITE);
+    DrawModelEx(ASSET(multiplierFrame), position, { 0 }, 0, scale, ColorBrightness(player.AccentColor, -0.7));
 
 }
 

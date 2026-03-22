@@ -1536,13 +1536,13 @@ void GameplayMenu::Draw() {
     float scoreY = u.hpct(0.15f);
     float starY = scoreY + u.hinpct(0.065f);
     // Draw Stars
-    DrawGameplayStars(u, assets, scorePos, starY);
+    // DrawGameplayStars(u, assets, scorePos, starY);
 
     // Draw Timerbox
-    DrawTimerbox(u, assets, scoreY);
+    // DrawTimerbox(u, assets, scoreY);
 
     // Score Drawing
-    DrawScorebox(u, assets, scoreY);
+    // DrawScorebox(u, assets, scoreY);
 
     float SongNameWidth = MeasureTextEx(
             assets.rubikBoldItalic,
@@ -1864,8 +1864,8 @@ void GameplayMenu::Draw() {
         DrawOvershell();
     // }
     */
-    GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
-    GameMenu::DrawVersion();
+    // GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
+    // GameMenu::DrawVersion();
     /*
     if (!ThePlayerManager.BandStats->Multiplayer
         && ThePlayerManager.GetActivePlayer(0).stats->Health <= 0) {
