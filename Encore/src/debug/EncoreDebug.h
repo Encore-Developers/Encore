@@ -18,6 +18,7 @@ namespace EncoreDebug {
 
     extern bool showDebug;
     extern bool reloadQueued;
+    extern bool reloadFonts;
 
     void DrawDebug();
     void MenuBar();

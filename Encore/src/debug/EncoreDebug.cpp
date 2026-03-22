@@ -17,6 +17,7 @@
 
 bool EncoreDebug::showDebug = false;
 bool EncoreDebug::reloadQueued = false;
+bool EncoreDebug::reloadFonts = false;
 
 bool showDemoWindow = false;
 bool showAssets = false;
@@ -478,6 +479,11 @@ void EncoreDebug::DrawSongList() {
 
 void EncoreDebug::StartReloadAssets() {
     for (auto asset : TheAssets.assets) {
+        if (dynamic_cast<FontAsset*>(asset)) {
+            if (!reloadFonts) {
+                continue;
+            }
+        }
         if (asset->state == LOADING || asset->state == PREFINALIZED) {
             asset->CheckForFetch();
         }
@@ -499,6 +505,8 @@ void EncoreDebug::DrawAssetViewer() {
         if (Button("Reload All")) {
             reloadQueued = true;
         }
+        SameLine();
+        Checkbox("Reload Fonts", &reloadFonts);
 
         const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
