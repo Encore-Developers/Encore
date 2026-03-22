@@ -69,6 +69,15 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
             return;
         EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(0);
+        if (CurrentNote->StartSeconds - goodBackend < LastUpdateTime){
+            for (int g = 0; g < 5; g++) {
+                if (CurrentNote->Lane & PlasticFrets[g]) {
+                    stats->HeldFrets.at(g) = true;
+                } else {
+                    stats->HeldFrets.at(g) = false;
+                }
+            }
+        }
         if (CurrentNote->StartSeconds <= CurrentTime) {
             HitNote(true);
         }
