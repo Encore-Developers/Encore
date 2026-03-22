@@ -647,6 +647,31 @@ public:
 
     NEWLEGACYMODELASSET(multiplierFrame, "gameplay/track/multiplier/multiplier_frame.obj",
                         [this](Model* model) {});
+
+    NEWSHADERASSET_POSTFINALIZE(multNumShader,
+                                "gameplay/track/multiplier/multnumber.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {
+                                    // fs
+                                    "uvOffsetX",
+                                    "uvOffsetY",
+                                    // vs
+                                    "curveFac",
+                                    "trackLength",
+                                    "fadeSize",
+                                    "offset",
+                                    "scale"
+                                },
+                                [this](Shader* shader) {
+                                });
+
+    NEWTEXASSET(multNumTex, "gameplay/track/multiplier/mult_number.png");
+    NEWLEGACYMODELASSET(multNumPlane, "gameplay/track/multiplier/mult_number_plane.obj",
+                        [this](Model* model) {
+                            SetTextureWrap(multNumTex, TEXTURE_WRAP_REPEAT);
+                            model->materials[0].shader = multNumShader;
+                            model->materials[0].maps[0].texture = multNumTex;
+                        });
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);

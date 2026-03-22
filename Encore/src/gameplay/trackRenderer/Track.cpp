@@ -177,6 +177,43 @@ void Encore::Track::DrawOverdriveMeter() {
     BeginShaderMode(ASSET(trackCurveShader));
 }
 
+std::array<float, 2> MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
+    std::array<float, 2> result;
+
+    // this is really old code and i dont know how to. fix this. this sucks.
+    // i actually really hate this jesus fucking christ
+    // im so sorry anyone who reads this. i cannot pay your medical bills afterwards
+    if (sixmult) {
+        if (combo < 10) {
+            result.at(0) = 0;
+            result.at(1) = 0 + (overdrive ? 0.5f : 0);
+        } else if (combo < 20) {
+            result.at(0) = 0.25f;
+            result.at(1) = 0 + (overdrive ? 0.5f : 0);
+        } else if (combo < 30) {
+            result.at(0) = 0.5f;
+            result.at(1) = 0 + (overdrive ? 0.5f : 0);
+        } else if (combo < 40) {
+            result.at(0) = 0.75f;
+            result.at(1) = 0 + (overdrive ? 0.5f : 0);
+        } else if (combo < 50) {
+            result.at(0) = 0;
+            result.at(1) = 0.25f + (overdrive ? 0.5f : 0);
+        } else if (combo >= 50) {
+            result.at(0) = 0.25f;
+            result.at(1) = 0.25f + (overdrive ? 0.5f : 0);
+        }
+    } else {
+        int asdf = combo % 10;
+        result.at(0) = asdf * 0.25f;
+        result.at(1) = 0 + (overdrive ? 0.5 : 0);
+        if (result.at(0) > 0.75f)
+            result.at(0) = 0.75f;
+
+        return result;
+    };
+}
+
 void Encore::Track::DrawMultiplier() {
     Vector3 position = {0,-0.1, -1.25};
     Vector3 scale = {1.1, 1.1, 1.1};
@@ -197,12 +234,14 @@ void Encore::Track::DrawMultiplier() {
     } else {
         ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
     }
+    std::array<float, 2> numberXYOffset = MultiplierUVCalculation(player.engine->stats->SixMultiplier, player.engine->stats->Combo, player.engine->stats->overdrive.Active);
 
-
+    ASSET(multNumShader).SetUniform("uvOffsetX", numberXYOffset.at(0));
+    ASSET(multNumShader).SetUniform("uvOffsetY", numberXYOffset.at(1));
     DrawModelEx(ASSET(multiplierFill), position, { 0 }, 0, scale, WHITE);
     DrawModelEx(ASSET(indicatorRing), position, { 0 }, 0, scale, WHITE);
     DrawModelEx(ASSET(multiplierFrame), position, { 0 }, 0, scale, ColorBrightness(player.AccentColor, -0.7));
-
+    DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 
 unsigned char Encore::Track::BeatToCharViaTickThing(
