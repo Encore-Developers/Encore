@@ -216,7 +216,8 @@ void Encore::AudioManager::StartEffect(AudioStream* stream) {
 }
 
 void Encore::AudioManager::StopEffect(AudioStream* stream) {
-    BASS_ChannelRemoveFX(stream->handle, stream->fxhandle);
+    if (stream)
+        BASS_ChannelRemoveFX(stream->handle, stream->fxhandle);
     CHECK_BASS_ERROR2();
 }
 
