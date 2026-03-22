@@ -119,6 +119,17 @@ namespace Encore::RhythmEngine {
             }
             return Multiplier;
         };
+        float ComboFillCalc() {
+            if (Combo == 0) {
+                return 0;
+            }
+            int MaxMultCombo = SixMultiplier ? 50 : 30;
+            int ComboMod = Combo % 10;
+            if (Combo >= MaxMultCombo || ComboMod == 0) {
+                return 1.0f;
+            }
+            return (static_cast<float>(ComboMod) / 10.0f);
+        }
         std::array<bool, LaneCount> HeldFrets = {};
     };
 

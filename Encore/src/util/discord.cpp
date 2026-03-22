@@ -41,6 +41,8 @@ Encore::Discord::~Discord() {
     if (!Initialized)
         return;
     Initialized = false;
+    core->ActivityManager().ClearActivity([](discord::Result result){ });
+    core = nullptr;
 }
 void Encore::Discord::Update() {
     if (!Initialized)
@@ -95,7 +97,6 @@ void Encore::Discord::DiscordUpdatePresenceSong(
     else {
         activity.SetState("In a band");
     }
-
     activity.SetName("encore");
     activity.GetAssets().SetLargeImage("encore");
     activity.GetAssets().SetSmallImage(AssetNames[instrument].c_str());

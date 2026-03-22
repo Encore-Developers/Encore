@@ -31,13 +31,19 @@ void Encore::Track::Draw() {
     BeginMode3D(AnimCamera);
 
     for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                         ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader) }) {
+                         ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader), ASSETPTR(multiplierFillShader), ASSETPTR(indicatorRingShader) }) {
         shader->SetUniform("trackLength", Length);
         shader->SetUniform("fadeSize", FadeSize);
         shader->SetUniform("curveFac", CurveFac);
         shader->SetUniform("offset", Offset);
         shader->SetUniform("scale", Scale);
     }
+    ASSET(multiplierFillShader).SetUniform("curveFac", 10000000000.0f);
+    ASSET(indicatorRingShader).SetUniform("curveFac", 10000000000.0f);
+
+    ASSET(indicatorRingShader).SetUniform("tex1", ASSET(fcindtex1));
+    ASSET(indicatorRingShader).SetUniform("tex2", ASSET(fcindtex2));
+    ASSET(indicatorRingShader).SetUniform("baseTex", ASSET(fcindtex3));
 
     BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
@@ -46,6 +52,7 @@ void Encore::Track::Draw() {
 
     DrawBeatlines();
     DrawOverdriveMeter();
+    DrawMultiplier();
     DrawSmashers();
 
     EndMode3D();
@@ -168,6 +175,33 @@ void Encore::Track::DrawOverdriveMeter() {
                WHITE);
     rlPopMatrix();
     BeginShaderMode(ASSET(trackCurveShader));
+}
+
+void Encore::Track::DrawMultiplier() {
+    Vector3 position = {0,-0.1, -1.125};
+    Vector3 scale = {1,1, 1};
+    ASSET(indicatorRingShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.3));
+    ASSET(indicatorRingShader).SetUniform("FCColor", GOLD);
+    ASSET(indicatorRingShader).SetUniform("time", GetTime());
+    ASSET(multiplierFillShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.7));
+    int MaxMult = player.engine->stats->SixMultiplier ? 6 : 4;
+    if (player.engine->stats->multNoOD() == MaxMult) {
+        ASSET(multiplierFillShader).SetUniform("MultiplierColor", SKYBLUE);
+    } else {
+        ASSET(multiplierFillShader).SetUniform("MultiplierColor", RAYWHITE);
+    }
+    ASSET(multiplierFillShader).SetUniform("FillPercentage", player.engine->stats->ComboFillCalc());
+
+    if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0) {
+        ASSET(indicatorRingShader).SetUniform("isFC", 1.0f);
+    } else {
+        ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
+    }
+
+
+    DrawModelEx(ASSET(multiplierFill), position, { 0 }, 0, scale, WHITE);
+    DrawModelEx(ASSET(indicatorRing), position, { 0 }, 0, scale, WHITE);
+
 }
 
 unsigned char Encore::Track::BeatToCharViaTickThing(

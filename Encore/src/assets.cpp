@@ -207,6 +207,11 @@ void ShaderAsset::SetUniform(const std::string &uniformName, Vector4 value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_VEC4);
 }
 
+void ShaderAsset::SetUniform(const std::string &uniformName, Texture2D value) {
+    CheckForFetch();
+    SetShaderValueTexture(shader, GetUniformLoc(uniformName), value);
+}
+
 void ShaderAsset::SetUniform(
     const std::string &uniformName,
     void *value,
@@ -331,31 +336,35 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(hopoNoteTex),
                          ASSETPTR(hopoNote),
                          ASSETPTR(hopoMaskTex),
-                         ASSETPTR(regularMaskTex)
+                         ASSETPTR(regularMaskTex),
+                         ASSETPTR(fcindtex1),
+                         ASSETPTR(fcindtex2),
+                         ASSETPTR(fcindtex3)
 };
 
-AssetSet gameplaySet = {
-    ASSETPTR(trackSurface),
-    ASSETPTR(spotlightTex),
-    ASSETPTR(overdriveTex),
-    ASSETPTR(trackCurveShader),
-    ASSETPTR(noteShader),
-    ASSETPTR(highwayScrollShader),
-    ASSETPTR(regularNote),
-    ASSETPTR(hopoNote),
-    ASSETPTR(openNote),
-    ASSETPTR(kickNote),
-    ASSETPTR(cymbalNote),
-    ASSETPTR(smasherPiston),
-    ASSETPTR(smasherFrame),
-    ASSETPTR(trackSurface),
-    ASSETPTR(rails),
-    ASSETPTR(kickFrame),
-    ASSETPTR(kickPiston),
-    ASSETPTR(hitFlareTex),
-    ASSETPTR(shockwaveTex),
-    ASSETPTR(hitFlareInnerTex),
-    ASSETPTR(overdriveShader)
+AssetSet gameplaySet = { ASSETPTR(trackSurface),
+                         ASSETPTR(spotlightTex),
+                         ASSETPTR(overdriveTex),
+                         ASSETPTR(trackCurveShader),
+                         ASSETPTR(noteShader),
+                         ASSETPTR(highwayScrollShader),
+                         ASSETPTR(regularNote),
+                         ASSETPTR(hopoNote),
+                         ASSETPTR(openNote),
+                         ASSETPTR(kickNote),
+                         ASSETPTR(cymbalNote),
+                         ASSETPTR(smasherPiston),
+                         ASSETPTR(smasherFrame),
+                         ASSETPTR(trackSurface),
+                         ASSETPTR(rails),
+                         ASSETPTR(kickFrame),
+                         ASSETPTR(kickPiston),
+                         ASSETPTR(hitFlareTex),
+                         ASSETPTR(shockwaveTex),
+                         ASSETPTR(hitFlareInnerTex),
+                         ASSETPTR(overdriveShader),
+                         ASSETPTR(indicatorRingShader),
+                         ASSETPTR(indicatorRing)
 };
 
 

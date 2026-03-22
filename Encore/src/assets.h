@@ -182,6 +182,7 @@ public:
     void SetUniform(const std::string &uniformName, float value);
     void SetUniform(const std::string &uniformName, Color value);
     void SetUniform(const std::string &uniformName, Vector4 value);
+    void SetUniform(const std::string &uniformName, Texture2D value);
     void SetUniform(const std::string &uniformName,
                     void *value,
                     ShaderUniformDataType type);
@@ -585,6 +586,62 @@ public:
                         // SetShaderValueTexture(overdriveShader, overdriveShader.GetUniformLoc("FillTexture"), overdriveMeterMask);
                         });
 
+    NEWSHADERASSET(multiplierFillShader,
+                                "gameplay/track/multiplier/MultiplierFill.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {
+                                    "BaseColor",
+                                    "MultiplierColor",
+                                    "FillPercentage",
+                                    "curveFac",
+                                    "trackLength",
+                                    "fadeSize",
+                                    "offset",
+                                    "scale"
+                                });
+    NEWLEGACYMODELASSET(multiplierFill,
+                        "gameplay/track/multiplier/multiplier_fill.obj",
+                        [this](Model* model) {
+
+                        model->materials[0].shader = multiplierFillShader;
+                        });
+
+    NEWTEXASSET(fcindtex1, "gameplay/track/multiplier/od-shine.png");
+    NEWTEXASSET(fcindtex2, "gameplay/track/multiplier/od-shine2.png");
+    NEWTEXASSET(fcindtex3, "gameplay/track/multiplier/od-shine3.png");
+    NEWSHADERASSET_POSTFINALIZE(indicatorRingShader,
+                                "gameplay/track/multiplier/fc_ind.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {
+                                    // fs
+                                    "BaseColor",
+                                    "tex1",
+                                    "tex2",
+                                    "baseTex",
+                                    "time",
+                                    "FCColor",
+                                    "isFC",
+                                    // vs
+                                    "curveFac",
+                                    "trackLength",
+                                    "fadeSize",
+                                    "offset",
+                                    "scale"
+                                },
+                                [this](Shader* shader) {
+
+                                });
+
+    NEWLEGACYMODELASSET(indicatorRing, "gameplay/track/multiplier/indicator_ring.obj",
+                        [this](Model* model) {
+                            SetTextureWrap(fcindtex1, TEXTURE_WRAP_REPEAT);
+                            SetTextureWrap(fcindtex2, TEXTURE_WRAP_REPEAT);
+                            SetTextureWrap(fcindtex3, TEXTURE_WRAP_REPEAT);
+                            // indicatorRingShader.SetUniform("tex1", fcindtex1);
+                            // indicatorRingShader.SetUniform("tex2", fcindtex2);
+                            // indicatorRingShader.SetUniform("baseTex", fcindtex3);
+                            model->materials[0].shader = indicatorRingShader;
+                        });
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);
