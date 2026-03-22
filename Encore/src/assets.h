@@ -182,6 +182,8 @@ public:
     void SetUniform(const std::string &uniformName, float value);
     void SetUniform(const std::string &uniformName, Color value);
     void SetUniform(const std::string &uniformName, Vector4 value);
+    void SetUniform(const std::string &uniformName, Vector2 value);
+    void SetUniform(const std::string &uniformName, Vector3 value);
     void SetUniform(const std::string &uniformName, Texture2D value);
     void SetUniform(const std::string &uniformName,
                     void *value,
@@ -653,8 +655,7 @@ public:
                                 "gameplay/track/trackCurve.vsh",
                                 {
                                     // fs
-                                    "uvOffsetX",
-                                    "uvOffsetY",
+                                    "uvOffset",
                                     // vs
                                     "curveFac",
                                     "trackLength",

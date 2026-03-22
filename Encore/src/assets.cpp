@@ -207,6 +207,14 @@ void ShaderAsset::SetUniform(const std::string &uniformName, Vector4 value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_VEC4);
 }
 
+void ShaderAsset::SetUniform(const std::string &uniformName, Vector2 value) {
+    SetUniform(uniformName, &value, SHADER_UNIFORM_VEC2);
+}
+
+void ShaderAsset::SetUniform(const std::string &uniformName, Vector3 value) {
+    SetUniform(uniformName, &value, SHADER_UNIFORM_VEC3);
+}
+
 void ShaderAsset::SetUniform(const std::string &uniformName, Texture2D value) {
     CheckForFetch();
     SetShaderValueTexture(shader, GetUniformLoc(uniformName), value);
