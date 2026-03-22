@@ -20,21 +20,21 @@ void main() {
     vec2 topPush = vec2(fragTexCoord.x+(time/6), fragTexCoord.y);
 
     if (isFC > 0) {
-        finalColor = clamp(
-			(
-				(
-					(texture2D(texture2, middlePush)) * 2
-				) +
-				(
-					(texture2D(texture1, topPush)) * 2
-				) +
-				(
-					(texture2D(texture0, basePush)) / 4
-				)
-			) * 5.0f,
-			FCColor * 1.5f,
-			vec4(1.0f, 1.0f, 1.0f, 1.0f)
-		);
+        float proc = ((
+            (texture(texture2, middlePush)) * 2
+        ) +
+        (
+            (texture(texture1, topPush)) * 2
+        ) +
+        (
+            (texture(texture0, basePush)) / 3
+        )).r;
+        float midPoint = 0.5;
+        proc = clamp(proc, 0.0, 1.0)/1.2;
+        float firstStep = clamp(smoothstep(0.0, midPoint, proc), 0, 1);
+        float secondStep = clamp(smoothstep(midPoint, 1.0, proc), 0, 1);
+        finalColor = mix(FCColor*0.7, FCColor, firstStep);
+        finalColor = mix(finalColor, mix(FCColor, vec4(1.0, 1.0, 1.0, 1.0), 0.93), secondStep);
 		//finalColor = (texture(texture2, middlePush) * 2) + (texture(texture1, topPush) * 2) + (texture(texture0, basePush) / 4);
         finalColor.a = 1.0f;
     }
