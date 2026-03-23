@@ -5,6 +5,8 @@
 #include "assets.h"
 #include <filesystem>
 #include "raygui.h"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyC.h"
 #include "util/enclog.h"
 
 #include <fstream>
@@ -35,7 +37,8 @@ Assets &Assets::getInstance() {
 
 void Asset::CheckForFetch() {
     switch (state) {
-    case UNLOADED:
+    case UNLOADED: {
+        ZoneScopedN("Asset Main Thread Load")
         Load();
         Encore::EncoreLog(LOG_WARNING,
                           TextFormat(
@@ -46,17 +49,20 @@ void Asset::CheckForFetch() {
             Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
             Finalize();
         }
-        break;
-    case LOADING:
-        Encore::EncoreLog(LOG_WARNING,
-                          TextFormat(
-                              "Asset %s was fetched while it is being loaded. Blocking until it is loaded...",
-                              id.c_str()));
-        while (state == LOADING) {
-        } // spin spin spin
-        if (state == PREFINALIZED) {
-            Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
-            Finalize();
+    }
+    break;
+    case LOADING: {
+            ZoneScopedN("Asset Finalize Waiting")
+            Encore::EncoreLog(LOG_WARNING,
+                             TextFormat(
+                                 "Asset %s was fetched while it is being loaded. Blocking until it is loaded...",
+                                 id.c_str()));
+            while (state == LOADING) {
+            } // spin spin spin
+            if (state == PREFINALIZED) {
+                Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+                Finalize();
+            }
         }
         break;
     case PREFINALIZED:
@@ -92,9 +98,10 @@ Asset::Asset(const std::string &id) {
 }
 
 void Asset::StartLoad() {
+    ZoneScoped;
     if (state == UNLOADED) {
         state = LOADING;
-        loadingThread = std::thread([this]() { this->Load(); });
+        loadingThread = std::thread([this]() { TracyCSetThreadName(TextFormat("Asset Load Thread: %s", id.c_str())); this->Load(); });
         loadingThread.detach();
         //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
     }

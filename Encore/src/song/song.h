@@ -16,6 +16,7 @@
 #include <atomic>
 #include "picosha2.h"
 #include "inih/INIReader.h"
+#include "tracy/Tracy.hpp"
 #include "util/enclog.h"
 
 #include <array>
@@ -435,6 +436,7 @@ public:
     }
 
     void LoadAlbumArt() {
+        ZoneScoped;
         Image albumImage = LoadImage(albumArtPath.c_str());
         if (albumImage.height > 512) {
             ImageResize(&albumImage, 512, 512);
@@ -443,10 +445,13 @@ public:
         GenTextureMipmaps(&albumArt);
         SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
 
-        ImageBlurGaussian(&albumImage, 10);
-        albumArtBlur = LoadTextureFromImage(albumImage);
-        GenTextureMipmaps(&albumArtBlur);
-        SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
+        {
+            ZoneScopedN("Album Art Blurring");
+            ImageBlurGaussian(&albumImage, 10);
+            albumArtBlur = LoadTextureFromImage(albumImage);
+            GenTextureMipmaps(&albumArtBlur);
+            SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
+        }
         UnloadImage(albumImage);
     };
 };

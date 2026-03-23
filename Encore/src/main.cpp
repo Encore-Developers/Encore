@@ -8,6 +8,7 @@
 #include "rlImGui.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "tracy/Tracy.hpp"
 
 #include <cassert>
 
@@ -271,6 +272,7 @@ int main(int argc, char *argv[]) {
     }
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
+        ZoneScopedN("Main Loop")
         glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
@@ -349,8 +351,11 @@ int main(int argc, char *argv[]) {
         if (imGuiFontLoaded) {
             ImGui::PopFont();
         }
-        rlImGuiEnd();
-        EndDrawing();
+        {
+            ZoneScopedN("End Drawing")
+            rlImGuiEnd();
+            EndDrawing();
+        }
 
         if (EncoreDebug::reloadQueued) {
             EncoreDebug::StartReloadAssets();
@@ -358,6 +363,7 @@ int main(int argc, char *argv[]) {
             loadingScreenFade = 1.0f;
         }
         TheFrameManager.WaitForFrame();
+        FrameMark;
     }
     poller.active = false;
     CloseWindow();

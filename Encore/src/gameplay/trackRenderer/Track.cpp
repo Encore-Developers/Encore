@@ -16,9 +16,10 @@
 #include "debug/EncoreDebug.h"
 #include "events/Event.h"
 #include "song/song.h"
+#include "tracy/Tracy.hpp"
 
 void Encore::Track::Draw() {
-
+    ZoneScopedN("Track Draw")
     if (ColumnFitting) {
         FitToColumn(ColumnLeft, ColumnRight);
     }
@@ -95,6 +96,7 @@ float easeInOutQuad(float x) {
 
 
 void Encore::Track::DrawSurface() {
+    ZoneScoped;
     float time = GetNotePos3D(0) / 22.5;
     SetShaderValue(ASSET(highwayScrollShader),
                    ASSET(highwayScrollShader).GetUniformLoc("time"),
@@ -143,7 +145,7 @@ void Encore::Track::DrawSurface() {
 }
 
 void Encore::Track::DrawOverdriveMeter() {
-
+    ZoneScoped;
 
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
@@ -202,6 +204,7 @@ Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
 }
 
 void Encore::Track::DrawMultiplier() {
+    ZoneScoped;
     Vector3 position = {0,-0.1, -1.25};
     Vector3 scale = {1.1, 1.1, 1.1};
     ASSET(indicatorRingShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.3));
@@ -256,6 +259,7 @@ unsigned char Encore::Track::BeatToCharViaTickThing(
 }
 
 void Encore::Track::DrawNotes() {
+    ZoneScoped;
     if (player.engine->chart->at(0).empty()) {
         return;
     }
@@ -291,6 +295,7 @@ void Encore::Track::DrawNotes() {
 }
 
 void Encore::Track::DrawSmashers() {
+    ZoneScoped;
     rlEnableDepthTest();
     glClear(GL_DEPTH_BUFFER_BIT);
     for (int i = 0; i < slots.size(); i++) {
@@ -303,6 +308,7 @@ void Encore::Track::DrawSmashers() {
 }
 
 void Encore::Track::DrawBeatlines() {
+    ZoneScoped;
     if (!TheSongTime.Beatlines.empty()) {
         if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
             TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());

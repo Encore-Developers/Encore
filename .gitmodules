@@ -1,3 +1,6 @@
 [submodule "Encore/thirdparty/sdl"]
 	path = Encore/thirdparty/sdl
 	url = https://github.com/libsdl-org/SDL
+[submodule "Encore/thirdparty/tracy"]
+	path = Encore/thirdparty/tracy
+	url = https://github.com/wolfpld/tracy.git

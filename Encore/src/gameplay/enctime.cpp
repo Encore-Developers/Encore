@@ -15,6 +15,7 @@
 SongTime TheSongTime;
 
 void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
+    ZoneScoped;
     midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[0];
     track.linkEventPairs();
@@ -61,6 +62,7 @@ bool equalTicks(const OverdriveTick &a, const OverdriveTick &b) {
 }
 
 void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
+    ZoneScoped;
     midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[TrackID];
     track.linkEventPairs();
@@ -120,6 +122,7 @@ void SongTime::UpdateOverdriveTick() {
     }
 }
 void SongTime::ParseSections(smf::MidiFile midiFile) {
+    ZoneScoped;
     Sections.clear();
     for (int track = 0; track < midiFile.getTrackCount(); track++) {
         SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
@@ -133,12 +136,15 @@ void SongTime::ParseSections(smf::MidiFile midiFile) {
                 for (int k = 3; k < event.getSize(); k++) {
                     evt_string += event[k];
                 }
-                // I'm sorry.
-                const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
-                std::smatch match;
-                std::regex_match(evt_string, match, practiceRegex);
-                if (match[4].matched) {
-                    Sections.push_back({match[4], event.seconds});
+                {
+                    ZoneScopedN("Regex");
+                    // I'm sorry.
+                    const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
+                    std::smatch match;
+                    std::regex_match(evt_string, match, practiceRegex);
+                    if (match[4].matched) {
+                        Sections.push_back({match[4], event.seconds});
+                    }
                 }
             }
         }

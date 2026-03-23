@@ -16,6 +16,8 @@
 #include <cstring>
 
 #include "RhythmEngine/REenums.h"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyC.h"
 
 using namespace std::chrono_literals;
 
@@ -143,6 +145,7 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 }
 
 void PollQueuedInputs(ControllerPoller& poller) {
+    ZoneScoped;
     while (poller.readIndex < poller.writeIndex) {
         auto event = poller.getEvent(poller.readIndex);
         if (TheMenuManager.ActiveMenu) {
@@ -182,6 +185,7 @@ int ControllerPoller::controllerPollRate = 1000;
 ControllerPoller* ControllerPoller::instance;
 
 void ControllerPoller::Run() {
+    TracyCSetThreadName("Controller Poll Thread")
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
     if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
@@ -190,6 +194,7 @@ void ControllerPoller::Run() {
     Encore::EncoreLog(LOG_INFO, TextFormat("SDL Initialzed: revision %s", SDL_GetRevision()));
 
     while (active) {
+        ZoneScopedN("Controller Poll Thread")
         auto start = std::chrono::high_resolution_clock::now();
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
