@@ -72,16 +72,28 @@ void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
             OverdriveTicks.emplace_back(track[i].seconds, track[i].tick);
         }
     }
+
+    // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
+    if (OverdriveTicks.size() == 0) {
+        int overdriveTickCount = floor(midiFile.getFileDurationInTicks() / 480);
+        for (int i = 0; i < overdriveTickCount; i++) {
+            OverdriveTicks.emplace_back(midiFile.getTimeInSeconds(480 * i), 480 * i);
+        }
+    }
 };
 
 void SongTime::UpdateOverdriveTick() {
     // this is the overdrive code right here
     // std::cout << std::endl;
     double CurrentTime = GetElapsedTime();
+    if (OverdriveTicks.size() == 0)
+        return;
     while (CurrentODTickItr < OverdriveTicks.size() - 1) {
         // if the next tick's time is greater than the current time, stop
         // otherwise, just increase lmfao
         // std::cout << std::endl;
+
+
         const auto &NextTick = OverdriveTicks.at(CurrentODTickItr + 1);
         // Encore::EncoreLog(LOG_DEBUG, TextFormat("Next tick time: %4.4f",
         // NextTick.time)); Encore::EncoreLog(LOG_DEBUG, TextFormat("Current time: %4.4f",

@@ -378,6 +378,7 @@ public:
                 }
             }
         }
+        if (endTick == 0) endTick = midiFile.getFileDurationInTicks();
     }
 
     // Coda BRE {};
