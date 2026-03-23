@@ -186,11 +186,11 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect) {
 
     Particle shockwave;
     Color color = WHITE;
-    color.a = 85;
+    color.a = 32;
 
     if (perfect) {
         color = GOLD;
-        color.a = 170;
+        color.a = 196;
     }
 
     shockwave.setActive(true)
