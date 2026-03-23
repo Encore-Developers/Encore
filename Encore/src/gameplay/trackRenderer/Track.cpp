@@ -31,7 +31,9 @@ void Encore::Track::Draw() {
     BeginMode3D(AnimCamera);
 
     for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                         ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader), ASSETPTR(multiplierFillShader), ASSETPTR(indicatorRingShader) }) {
+                         ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
+                         ASSETPTR(multiplierFillShader), ASSETPTR(indicatorRingShader),
+                         ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader)}) {
         shader->SetUniform("trackLength", Length);
         shader->SetUniform("fadeSize", FadeSize);
         shader->SetUniform("curveFac", CurveFac);
@@ -40,6 +42,8 @@ void Encore::Track::Draw() {
     }
     ASSET(multiplierFillShader).SetUniform("curveFac", 10000000000.0f);
     ASSET(indicatorRingShader).SetUniform("curveFac", 10000000000.0f);
+    ASSET(multNumShader).SetUniform("curveFac", 10000000000.0f);
+    ASSET(multiplierFrameShader).SetUniform("curveFac", 10000000000.0f);
 
     ASSET(indicatorRingShader).SetUniform("tex1", ASSET(fcindtex1));
     ASSET(indicatorRingShader).SetUniform("tex2", ASSET(fcindtex2));
@@ -205,11 +209,13 @@ void Encore::Track::DrawMultiplier() {
     ASSET(indicatorRingShader).SetUniform("time", GetTime());
     ASSET(multiplierFillShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.85));
     int MaxMult = player.engine->stats->SixMultiplier ? 6 : 4;
+    Color fillColor;
     if (player.engine->stats->multNoOD() == MaxMult) {
-        ASSET(multiplierFillShader).SetUniform("MultiplierColor", SKYBLUE);
+        fillColor = SKYBLUE;
     } else {
-        ASSET(multiplierFillShader).SetUniform("MultiplierColor", RAYWHITE);
+        fillColor = RAYWHITE;
     }
+    ASSET(multiplierFillShader).SetUniform("MultiplierColor", fillColor);
     float fill = player.engine->stats->ComboFillCalc();
     if (fill <= 0.0f) {
         fill = -0.2;

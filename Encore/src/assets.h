@@ -647,8 +647,17 @@ public:
                             model->materials[0].maps[MATERIAL_MAP_NORMAL].texture = fcindtex2;
                         });
 
+    NEWSHADERASSET(
+        multiplierFrameShader,
+        "",
+        "gameplay/track/trackCurve.vsh",
+        { "curveFac", "trackLength", "fadeSize", "offset", "scale" }
+    );
+
     NEWLEGACYMODELASSET(multiplierFrame, "gameplay/track/multiplier/multiplier_frame.obj",
-                        [this](Model* model) {});
+                        [this](Model* model) {
+                            model->materials[0].shader = multiplierFrameShader;
+                        });
 
     NEWSHADERASSET_POSTFINALIZE(multNumShader,
                                 "gameplay/track/multiplier/multnumber.fsh",
