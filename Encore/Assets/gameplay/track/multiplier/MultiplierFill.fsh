@@ -15,4 +15,5 @@ void main()
     vec4 fillColor = MultiplierColor;
     float frac = 1 - FillPercentage;
     FragColor = mix(BaseColor, fillColor, smoothstep(frac-0.005, frac+0.005, fragTexCoord.x));
+    FragColor = mix(FragColor, vec4(0, 0, 0, 1), smoothstep(0.6, 1.8, 1-fragTexCoord.y));
 }
