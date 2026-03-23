@@ -349,6 +349,19 @@ void EncoreDebug::DrawPlayerManager() {
                     ColorEdit("Open",
                               &player.GetColorProfile()->colors[Encore::SLOT_OPEN],
                               0);
+                    SeparatorText("Drums Colors");
+                    ColorEdit("Kick",
+                              &player.GetColorProfile()->colors[Encore::SLOT_KICK],
+                              0);
+                    ColorEdit("Yellow Cymbal",
+                              &player.GetColorProfile()->colors[Encore::SLOT_HIHAT],
+                              0);
+                    ColorEdit("Blue Cymbal",
+                              &player.GetColorProfile()->colors[Encore::SLOT_RIDE],
+                              0);
+                    ColorEdit("Green Cymbal",
+                              &player.GetColorProfile()->colors[Encore::SLOT_CRASH],
+                              0);
 
                     SeparatorText(std::string("Player: " + player.Name).c_str());
                     SliderFloat("Note Speed", &player.NoteSpeed, 0, 3);
