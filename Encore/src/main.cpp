@@ -293,9 +293,6 @@ int main(int argc, char *argv[]) {
             rlImGuiSetup(true);
             ImGui::GetCurrentContext()->FontSizeBase = 20;
             ImGui::GetStyle().FontSizeBase = 20;
-            auto io = ImGui::GetIO();
-            imGuiFont = io.Fonts->AddFontFromMemoryTTF(ASSET(JetBrainsMono).RawData(), ASSET(JetBrainsMono).RawDataSize());
-            io.FontDefault = imGuiFont;
             SetImGuiTheme();
             imGuiLoaded = true;
         }
@@ -306,7 +303,19 @@ int main(int argc, char *argv[]) {
         } else {
             GuiUnlock();
         }
-        ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
+        static bool imGuiFontLoaded = false;
+
+        if (!imGuiFontLoaded && ASSET(JetBrainsMono).state == LOADED) {
+            auto io = ImGui::GetIO();
+            imGuiFont = io.Fonts->AddFontFromMemoryTTF(ASSET(JetBrainsMono).RawData(), ASSET(JetBrainsMono).RawDataSize());
+            io.FontDefault = imGuiFont;
+            imGuiFontLoaded = true;
+        }
+
+        if (imGuiFontLoaded) {
+            ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
+        }
+
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
         static float loadingScreenFade = 1.0f;
@@ -337,7 +346,9 @@ int main(int argc, char *argv[]) {
             EncoreDebug::DrawDebug();
         }
 
-        ImGui::PopFont();
+        if (imGuiFontLoaded) {
+            ImGui::PopFont();
+        }
         rlImGuiEnd();
         EndDrawing();
 

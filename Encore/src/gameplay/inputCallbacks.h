@@ -59,6 +59,7 @@ public:
 
     ~ControllerPoller() {
         active = false;
+        pollThread.join();
     }
 };
 

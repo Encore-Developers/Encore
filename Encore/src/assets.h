@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-enum AssetState {
+enum AssetState : uint8_t {
     UNLOADED,
     LOADING,
     PREFINALIZED,
@@ -31,7 +31,7 @@ protected:
 
     //Asset(Asset& other) {}
 public:
-    std::atomic<AssetState> state = UNLOADED;
+    AssetState state = UNLOADED;
     std::string id;
     std::thread loadingThread;
     /// Used for assets created by another and not stored in TheAssets (ShaderAsset)
@@ -66,7 +66,7 @@ public:
 
     Asset(Asset &&other) noexcept
         : id(std::move(other.id)),
-          state(state.load()),
+          state(state),
           loadingThread() {
     }
 
