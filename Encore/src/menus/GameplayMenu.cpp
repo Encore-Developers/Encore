@@ -98,6 +98,9 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
             event.channel = Encore::RhythmEngine::IntIC(i);
         }
     }
+    if (key == KEY_ESCAPE && action == GLFW_PRESS) {
+        event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+    }
 
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key lane %01i",
     // lane));

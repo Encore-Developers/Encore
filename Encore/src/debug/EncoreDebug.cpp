@@ -26,6 +26,9 @@ bool showSongList = false;
 bool showQuickSettings = false;
 bool showPractice = false;
 
+bool paused = false;
+std::string pauseText = "Pause";
+
 std::string debugVersionHash = "";
 
 using namespace ImGui;
@@ -117,6 +120,24 @@ void EncoreDebug::MenuBar() {
     }
     if (TheMenuManager.currentScreen == GAMEPLAY) {
         MenuItem("Practice", 0, &showPractice);
+    }
+
+    if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem(pauseText.c_str())) {
+        paused = !paused;
+        for (auto index : ThePlayerManager.ActivePlayers) {
+            if (index == -1)
+                continue;
+            auto player = ThePlayerManager.PlayerList[index];
+            player.engine->stats->Paused = paused;
+        }
+        if (paused) {
+            pauseText = "Play";
+            TheAudioManager.pauseStreams();
+        }
+        else{
+            pauseText = "Pause";
+            TheAudioManager.unpauseStreams();
+        }
     }
     auto avail = GetWindowWidth();
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
