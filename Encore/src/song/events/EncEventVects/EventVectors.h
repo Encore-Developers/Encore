@@ -143,6 +143,9 @@ struct ODEvents final : EncEventVect<odPhrase> {
 
     // run CheckOverdrive instead of CheckEvents
     float CheckOverdrive(double sec) {
+        if (this->size() <= 0) {
+            return 0;
+        }
         if (CurrentEvent > this->size() - 1)
             return 0;
 
