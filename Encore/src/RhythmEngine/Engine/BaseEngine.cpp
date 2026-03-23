@@ -163,10 +163,12 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     EncoreLog(LOG_DEBUG, "Overhit note");
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
-        if (earliestNoteTime == 0.0)
-            earliestNoteTime = chart->at(i).front().StartSeconds;
-        if (earliestNoteTime > chart->at(i).front().StartSeconds) {
-            earliestNoteTime = chart->at(i).front().StartSeconds;
+        if (!chart->at(i).empty()) {
+            if (earliestNoteTime == 0.0)
+                earliestNoteTime = chart->at(i).front().StartSeconds;
+            if (earliestNoteTime > chart->at(i).front().StartSeconds) {
+                earliestNoteTime = chart->at(i).front().StartSeconds;
+            }
         }
     }
     if (stats->InputTime < earliestNoteTime)
