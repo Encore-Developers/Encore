@@ -235,7 +235,7 @@ void Encore::Track::DrawMultiplier() {
     ASSET(multNumShader).SetUniform("uvOffset", numberUV);
     DrawModelEx(ASSET(multiplierFill), position, { 0 }, 0, scale, WHITE);
     DrawModelEx(ASSET(indicatorRing), position, { 0 }, 0, scale, WHITE);
-    DrawModelEx(ASSET(multiplierFrame), position, { 0 }, 0, scale, ColorBrightness(player.AccentColor, -0.7));
+    DrawModelEx(ASSET(multiplierFrame), position, { 0 }, 0, scale, ColorBrightness(player.AccentColor, -0.5));
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 

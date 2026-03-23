@@ -161,6 +161,16 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
 
 void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     EncoreLog(LOG_DEBUG, "Overhit note");
+    double earliestNoteTime = 0.0;
+    for (int i = 0; i < chart->Lanes.size(); i++) {
+        if (earliestNoteTime == 0.0)
+            earliestNoteTime = chart->at(i).front().StartSeconds;
+        if (earliestNoteTime > chart->at(i).front().StartSeconds) {
+            earliestNoteTime = chart->at(i).front().StartSeconds;
+        }
+    }
+    if (stats->InputTime < earliestNoteTime)
+        return;
     stats->Overhit();
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
