@@ -107,14 +107,8 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
 
     if (held) {
         ASSET(smasherPiston).Fetch().materials[0].maps[0].texture = ASSET(smasherOnTex);
-        //color.r /= 1.25;
-        //color.g /= 1.25;
-        //color.b /= 1.25;
     } else {
         ASSET(smasherPiston).Fetch().materials[0].maps[0].texture = ASSET(smasherOffTex);
-        //color.r /= 3;
-        //color.g /= 3;
-        //color.b /= 3;
     }
 
     if (animTimer < 1) {
@@ -122,6 +116,13 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     } else {
         animTimer = 1;
     }
+
+    if (overhitTimer > 0) {
+        overhitTimer -= GetFrameTime() * 1.8;
+    } else {
+        overhitTimer = 0;
+    }
+
     float bounce = (1 - easeOutBounce(animTimer)) * 0.2;
 
     DrawModelEx(ASSET(smasherFrame),
@@ -135,7 +136,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
                 { 0 },
                 0,
                 { width, 1, 1.3f * length },
-                color);
+                ColorLerp(color, {50, 50, 50, 255}, overhitTimer));
     // DrawCube({ xPos, 0.025, 0 }, width, 0.05, 1, color);
     //for (auto note : track->player.engine->chart->PerfectNotePointers) {
     //    if (!note) {
@@ -174,6 +175,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
 
 void Encore::GemTrackSlot::AnimateHit(bool perfect) {
     animTimer = 0;
+    overhitTimer = 0;
     Particle part;
     part.active = true;
     part.type = FLARE;
@@ -197,4 +199,8 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect) {
              .col(color);
     shockwaveParticle = track->particleSystem->SpawnParticle(shockwave);
     shockwaveId = shockwaveParticle->id;
+}
+void Encore::GemTrackSlot::AnimateOverhit() {
+    animTimer = 0.25;
+    overhitTimer = 1;
 }

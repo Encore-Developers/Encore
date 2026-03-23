@@ -4,7 +4,6 @@
 
 #include "GameplayMenu.h"
 
-#include "gameplay/GameplayInputHandler.h"
 #include "gameMenu.h"
 #include "overshellRenderer.h"
 #include "uiUnits.h"
@@ -15,7 +14,7 @@
 #include "gameplay/enctime.h"
 #include "styles.h"
 #include "easing/easing.h"
-#include "gameplay/gameplayRenderer.h"
+
 #include "users/playerManager.h"
 #include "MenuManager.h"
 #include "OvershellHelper.h"

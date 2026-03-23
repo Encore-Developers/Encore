@@ -11,7 +11,7 @@
 #include "raygui.h"
 #include "settings/settings.h"
 #include "uiUnits.h"
-#include "gameplay/gameplayRenderer.h"
+
 #include "song/audio.h"
 #include "song/songlist.h"
 #include "assets.h"

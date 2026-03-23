@@ -19,7 +19,7 @@
 #include "overshellRenderer.h"
 #include "uiUnits.h"
 #include "../song/songlist.h"
-#include "gameplay/gameplayRenderer.h"
+
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH

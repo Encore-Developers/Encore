@@ -27,6 +27,12 @@ namespace Encore {
         NoteHitEvent(RhythmEngine::EncNote* note, bool _perfect) : note(note), perfect(_perfect) {}
     };
 
+    class OverhitEvent : public Event {
+    public:
+        int lane;
+        OverhitEvent(int lane) : lane(lane) {}
+    };
+
     
 
     class EventSink;
@@ -40,6 +46,13 @@ namespace Encore {
         void RemoveSink(EventSink *sink);
 
         void FireEvent(Event *);
+
+        // Shorthand to hold the event temporarily on the stack
+        template<typename T>
+        void FireEventTemp(T ev) {
+            T event = ev;
+            FireEvent(&event);
+        }
 
 
         ~EventSource();

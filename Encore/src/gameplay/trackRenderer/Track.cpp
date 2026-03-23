@@ -402,6 +402,25 @@ void Encore::Track::HandleEvent(Event *event) {
                 break;
         }
     }
+    if (auto overhitEvent = event->GetTyped<OverhitEvent>()) {
+        if (player.engine->UsesNoteMasks()) {
+            for (auto& slot : slots) {
+                if (slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->
+            HeldFrets[slot->index]) {
+                    slot->AnimateOverhit();
+                }
+            }
+        } else {
+            auto slots = GetSlotsForLane(overhitEvent->lane);
+            for (int i = 0; i < 7; i++) {
+                if (slots[i]) {
+                    auto slot = slots[i];
+                    slot->AnimateOverhit();
+                } else
+                    break;
+            }
+        }
+    }
 }
 
 

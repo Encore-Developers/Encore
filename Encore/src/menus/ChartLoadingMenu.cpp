@@ -9,7 +9,6 @@
 #include "uiUnits.h"
 #include "RhythmEngine/engines.h"
 #include "gameplay/enctime.h"
-#include "gameplay/gameplayRenderer.h"
 #include "users/playerManager.h"
 
 #include <thread>

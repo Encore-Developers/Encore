@@ -95,7 +95,7 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(ControllerEvent &event) {
     return false;
 }
 
-std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) {
+std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) const {
     int NotePoolStart =
             std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
     int NotePoolEnd = NOTE_POOL_SIZE
@@ -107,7 +107,7 @@ std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) 
     return std::pair<int, int> {NotePoolStart, NotePoolEnd};
 }
 
-bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) {
+bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) const {
     return practice && time < pStopTime && time >= pStartTime;
 }
 
@@ -173,6 +173,7 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     }
     if (stats->InputTime < earliestNoteTime)
         return;
+    FireEventTemp(OverhitEvent(lane));
     stats->Overhit();
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
