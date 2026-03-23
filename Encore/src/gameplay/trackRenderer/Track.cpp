@@ -210,7 +210,14 @@ void Encore::Track::DrawMultiplier() {
     } else {
         ASSET(multiplierFillShader).SetUniform("MultiplierColor", RAYWHITE);
     }
-    ASSET(multiplierFillShader).SetUniform("FillPercentage", player.engine->stats->ComboFillCalc());
+    float fill = player.engine->stats->ComboFillCalc();
+    if (fill <= 0.0f) {
+        fill = -0.2;
+    }
+    if (fill >= 1.0f) {
+        fill = 1.2f;
+    }
+    ASSET(multiplierFillShader).SetUniform("FillPercentage", fill);
 
     if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0) {
         ASSET(indicatorRingShader).SetUniform("isFC", 1.0f);

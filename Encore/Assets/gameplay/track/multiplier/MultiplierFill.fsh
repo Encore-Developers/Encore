@@ -13,9 +13,7 @@ void main()
 {
     // vec4 EmptyColor = vec4(0.3,0.0,0.3,1.0);
     vec4 fillColor = MultiplierColor;
-    if (fragTexCoord.x < FillPercentage) {
-        FragColor = vec4(fillColor.x, fillColor.y, fillColor.z, 1.0);
-    } else {
-        FragColor = vec4(BaseColor.x, BaseColor.y, BaseColor.z, 1.0);
-    }
+    float frac = 1 - FillPercentage;
+    FragColor = mix(BaseColor, fillColor, smoothstep(frac-0.005, frac+0.005, fragTexCoord.x));
+    FragColor = vec4(fragTexCoord.x, fragTexCoord.y, 0.0, 1.0);
 }
