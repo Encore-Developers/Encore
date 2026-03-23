@@ -78,8 +78,10 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
                 }
             }
         }
-        if (CurrentNote->StartSeconds <= CurrentTime) {
+        while (chart->CurrentNoteIterators.at(0)->StartSeconds <= CurrentTime) {
             HitNote(true);
+            if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
+                break;
         }
     }
     auto heldNote = chart->HeldNotePointers.at(0);
