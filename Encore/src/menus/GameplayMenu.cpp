@@ -575,8 +575,8 @@ void GameplayMenu::Draw() {
         GetRenderHeight(),
         Color{ 255, 255, 255, BackgroundColor }
     );
-
-    if (TheSongTime.GetElapsedTime() > TheSongList.curSong->end - 1) {
+    double EndTime = TheSongList.curSong->end == 0.0 ? TheSongTime.GetSongLength() : TheSongList.curSong->end;
+    if (TheSongTime.GetElapsedTime() > EndTime - 1) {
         // TODO: endgame
         TheSongTime.Reset();
         TheAudioManager.unloadStreams();
