@@ -330,6 +330,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     Clear();
     Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
     std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
+    songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
     for (int i = 0; i < cachedSongCount; i++) {
         ZoneScopedN("Song")
