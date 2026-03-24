@@ -60,8 +60,10 @@ void resultsMenu::Load() {
     // ThePlayerManager.BandStats->PerfectScore << std::endl; std::cout << "Band Note
     // Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
-    for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
-        Player &player = ThePlayerManager.GetActivePlayer(playerNum);
+    for (int playerInt = 0; playerInt < 4; playerInt++) {
+        if (ThePlayerManager.ActivePlayers[playerInt] == -1)
+            continue;
+        Player &player = ThePlayerManager.GetActivePlayer(playerInt);
         FinalScore += player.engine->stats->Score;
         //   PlayerGameplayStats *&stats =
         //   ThePlayerManager.GetActivePlayer(playerNum).stats; std::cout << player.Name
