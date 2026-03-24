@@ -495,11 +495,7 @@ void EncoreDebug::DrawSongList() {
                         TheAudioManager.loadedStreams.clear();
                     }
                     TheSongList.curSong = song;
-                    if (!TheSongList.curSong->ini) {
-                        TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
-                    } else {
-                        TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-                    }
+                    TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
                     TheMenuManager.SwitchScreen(READY_UP);
                 }
 

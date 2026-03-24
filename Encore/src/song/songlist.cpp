@@ -157,7 +157,6 @@ void SongList::WriteCache() {
         SongCache << song.albumArtPath;
         SongCache << song.songInfoPath.string();
         SongCache << song.midiPath.string();
-        SongCache << song.ini;
         std::ifstream songInfo(song.songInfoPath);
         std::ostringstream sstr;
         sstr << songInfo.rdbuf();
@@ -182,25 +181,12 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
 
     directoryCount++;
 
-    std::filesystem::path infoPath = folder / "info.json";
+    auto infoPath = folder / "song.ini";
     if (std::filesystem::exists(infoPath)) {
         Song song;
-        song.songInfoPath = folder / "info.json";
-        song.songDir = folder.string();
-        for (auto &file : std::filesystem::directory_iterator(folder)) {
-            if (file.path().stem() == "cover") {
-                song.albumArtPath = file.path().string();
-                break;
-            }
-        }
-        song.LoadSongJSON(song.songInfoPath);
-        songs.push_back(std::move(song));
-    } else if (std::filesystem::exists(folder / "song.ini")) {
-        Song song;
-        song.songInfoPath = folder / "song.ini";
+        song.songInfoPath = infoPath;
         song.songDir = folder.string();
         song.LoadSongIni(folder);
-        song.ini = true;
         songs.push_back(std::move(song));
     } else {
         // If this folder doesn't have song.ini or song.json, this must be a organizational folder; continue scanning.
@@ -349,20 +335,12 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> midiPath;
         song.midiPath = midiPath;
 
-        SongCacheIn >> song.ini;
-        if (song.ini) {
+        {
             ZoneScopedN("INI Parse")
             std::string iniData;
             SongCacheIn >> iniData;
             INIReader reader(iniData.c_str(), iniData.length());
             song.PullInfoFromINI(reader);
-        } else {
-            std::string jsonData;
-            SongCacheIn >> jsonData;
-            json infoData = json::parse(jsonData.c_str());
-
-            song.LoadInfoJSON(infoData);
-            song.LoadAudioJSON(infoData);
         }
 
         // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));

@@ -203,9 +203,8 @@ public:
     std::vector<std::string> charters{};
     std::string jsonHash = "";
     int hopoThreshold = -1;
-    bool ini = false;
     smf::MidiFile midiFile;
-    void LoadAudioINI(std::filesystem::path songPath);
+    void LoadAudioINI(const std::filesystem::path& songPath);
     float previewStartTime = 0.0f;
 
     SongParts GetSongPart(smf::MidiEventList track) {
@@ -217,9 +216,7 @@ public:
                 for (int k = 3; k < track[events].getSize(); k++) {
                     trackName += track[events][k];
                 }
-                if (ini)
-                    return partFromStringINI(trackName);
-                return partFromString(trackName);
+                return partFromStringINI(trackName);
             }
         }
         return Invalid;
@@ -252,56 +249,12 @@ public:
     }
 
 
-    void LoadAudioJSON(const nlohmann::json &jsonPath) {
-        if (!stemsPath.empty())
-            stemsPath.clear();
-
-        for (auto & [key, val] : jsonPath.at("stems").items()) {
-            stemsPath.emplace_back(
-                (songInfoPath.parent_path() / val).string(),
-                midiNameToEnum[key]);
-        }
-    }
-
     void LoadInfoINI(std::filesystem::path iniPath);
     void PullInfoFromINI(INIReader &ini);
 
-    void LoadInfoJSON(const nlohmann::json &infoData) {
-
-        if (!charters.empty())
-            charters.clear();
-
-        title = infoData.value<std::string>("title", "Unknown song");
-        artist = infoData.value<std::string>("artist", "Unknown artist");
-        album = infoData.value<std::string>("album", "Unknown album");
-        source = infoData.value<std::string>("source", "Unknown source");
-        length = infoData.value<int>("length", 0);
-        releaseYear = infoData.value("release_year", "");
-        loadingPhrase = infoData.value<std::string>("loading_phrase", "");
-        midiPath =
-            (std::filesystem::path(songDir) /
-                infoData.value<std::string>("midi", "")).string();
-
-        try {
-            std::string charter = infoData.value<std::string>("charters", "Unknown chart author");
-            charters.push_back(charter);
-        } catch (const std::exception &e) {
-            charters.push_back("Unknown chart author");
-        }
-    }
-
-    void LoadSongIni(std::filesystem::path songPath);
+    void LoadSongIni(const std::filesystem::path& songPath);
 
     using json = nlohmann::json;
-
-    void LoadSongJSON(std::filesystem::path jsonPath) {
-        std::ifstream infoFile(jsonPath);
-        json infoData = json::parse(infoFile);
-        infoFile.close();
-
-        LoadInfoJSON(infoData);
-        LoadAudioJSON(infoData);
-    }
 
     void parseBeatLines(smf::MidiFile &midiFile, int trkidx) {
         int MaxTick = midiFile[trkidx].last().tick;
@@ -393,10 +346,7 @@ public:
                             trackName += midiFile[track][events][k];
                         }
                         SongParts songPart;
-                        if (ini) {
-                            songPart = partFromStringINI(trackName);
-                        } else
-                            songPart = partFromString(trackName);
+                        songPart = partFromStringINI(trackName);
                         if (songPart > PlasticDrums && songPart <= PlasticGuitar) {
                             int codaNote = 120; // i dont wanna bother with checking all
                             // five lanes
