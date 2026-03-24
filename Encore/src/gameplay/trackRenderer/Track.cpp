@@ -330,30 +330,31 @@ void Encore::Track::DrawBeatlines() {
             switch (beatline.type) {
             case Major: {
                 beatlineColor = { 255, 255, 255, 220 };
-                Size = 0.05;
+                Size = 0.5;
                 break;
             }
             case Minor: {
                 beatlineColor = { 255, 255, 255, 190 };
-                Size = 0.01;
+                Size = 0.2;
                 break;
             }
             case Measure: {
                 beatlineColor = { 255, 255, 255, 240 };
-                Size = 0.1;
+                Size = 0.75;
                 break;
             }
             }
-            // this sucks
-            static std::vector<Vector3> verts;
-            verts.resize(0);
-            int wideVerts = 10;
-            for (int i = 0; i <= wideVerts; i++) {
-                float xPos = Remap(i, 0, wideVerts, -2.5, 2.5);
-                verts.push_back({ xPos, 0, ScrollPos - Size });
-                verts.push_back({ xPos, 0, ScrollPos + Size });
-            }
-            DrawTriangleStrip3D(verts.data(), verts.size(), beatlineColor);
+            DrawModelEx(ASSET(beatline), { 0, 0, ScrollPos}, {0}, 0, {1,1,Size}, beatlineColor);
+            // // this sucks
+            // static std::vector<Vector3> verts;
+            // verts.resize(0);
+            // int wideVerts = 10;
+            // for (int i = 0; i <= wideVerts; i++) {
+            //     float xPos = Remap(i, 0, wideVerts, -2.5, 2.5);
+            //     verts.push_back({ xPos, 0, ScrollPos - Size });
+            //     verts.push_back({ xPos, 0, ScrollPos + Size });
+            // }
+            // DrawTriangleStrip3D(verts.data(), verts.size(), beatlineColor);
             continue;
             DrawCube(
                 { 0, 0, ScrollPos },

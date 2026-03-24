@@ -682,6 +682,15 @@ public:
                             model->materials[0].shader = multNumShader;
                             model->materials[0].maps[0].texture = multNumTex;
                         });
+
+    NEWTEXASSET(beatlineTex, "gameplay/track/beatlines/beatline.png");
+    NEWLEGACYMODELASSET(beatline, "gameplay/track/beatlines/beatline.obj",
+                        [this](Model* model) {
+                            SetTextureWrap(beatlineTex, TEXTURE_WRAP_CLAMP);
+                            model->materials[0].shader = trackCurveShader;
+                            model->materials[0].maps[0].texture = beatlineTex;
+                        });
+
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);
