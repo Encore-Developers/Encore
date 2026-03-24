@@ -151,7 +151,7 @@ void SongTime::ParseSections(smf::MidiFile midiFile) {
                 {
                     ZoneScopedN("Regex");
                     // I'm sorry.
-                    const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
+                    static const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
                     std::smatch match;
                     std::regex_match(evt_string, match, practiceRegex);
                     if (match[4].matched) {

@@ -288,6 +288,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
 }
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
+    ZoneScoped;
     encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
     if (!SongCacheIn) {
         Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");
@@ -331,6 +332,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
     MaxChartsToLoad = cachedSongCount;
     for (int i = 0; i < cachedSongCount; i++) {
+        ZoneScopedN("Song")
         CurrentChartNumber = i + 1;
         Song song;
 
@@ -348,6 +350,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
 
         SongCacheIn >> song.ini;
         if (song.ini) {
+            ZoneScopedN("INI Parse")
             std::string iniData;
             SongCacheIn >> iniData;
             INIReader reader(iniData.c_str(), iniData.length());
@@ -363,11 +366,14 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
 
         // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
 
-        if (!std::filesystem::exists(song.songDir)) {
-            continue;
+        {
+            ZoneScopedN("Vector insert");
+            if (!std::filesystem::exists(song.songDir)) {
+                continue;
+            }
+            loadedSongs.insert(song.songDir);
+            this->songs.emplace_back(song);
         }
-        loadedSongs.insert(song.songDir);
-        this->songs.emplace_back(song);
 
     }
 

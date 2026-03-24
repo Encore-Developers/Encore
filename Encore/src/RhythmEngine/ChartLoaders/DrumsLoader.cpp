@@ -121,7 +121,7 @@ void Encore::RhythmEngine::DrumsLoader::GetNoteModifiers(smf::MidiEventList trac
             //    eventName.append(std::to_string(event[i+3]));
             //}
 
-            const std::regex drumsMixRegex("\\[?mix (\\d) drums(\\d)(d|(dnoflip)|(easy)|(easynokick))?\\]?$");
+            static const std::regex drumsMixRegex("\\[?mix (\\d) drums(\\d)(d|(dnoflip)|(easy)|(easynokick))?\\]?$");
             std::smatch drumsMix;
             std::regex_match(eventName, drumsMix, drumsMixRegex);
             if (drumsMix[3] == 'd' && drumsMix[1] == '3') {

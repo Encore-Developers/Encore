@@ -223,15 +223,21 @@ void ControllerPoller::Run() {
             }
         }
 
-        requestMutex.lock();
-        for (auto &func : funcRequests) {
-            func();
+        {
+            ZoneScopedN("Enqueue Events")
+            requestMutex.lock();
+            for (auto &func : funcRequests) {
+                func();
+            }
+            funcRequests.clear();
+            requestMutex.unlock();
         }
-        funcRequests.clear();
-        requestMutex.unlock();
 
         auto end = std::chrono::high_resolution_clock::now();
         auto span = std::chrono::milliseconds(1000/controllerPollRate) - (end - start);
-        std::this_thread::sleep_for(span);
+        {
+            ZoneScopedN("Sleep")
+            std::this_thread::sleep_for(span);
+        }
     }
 }
