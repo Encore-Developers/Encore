@@ -25,6 +25,7 @@ resultsMenu::resultsMenu() {}
 int FinalScore = 0;
 
 void resultsMenu::Load() {
+    FinalScore = 0;
     std::filesystem::path assetsdir = GetApplicationDirectory();
     assetsdir /= "Assets";
     /*
