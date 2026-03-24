@@ -163,11 +163,11 @@ void SongList::WriteCache() {
         SongCache << sstr.str();
 
 
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
     }
 
     SongCache.close();
@@ -189,7 +189,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
         song.LoadSongIni(folder);
         songs.push_back(std::move(song));
     } else {
-        // If this folder doesn't have song.ini or song.json, this must be a organizational folder; continue scanning.
+        // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
             ScanFolder(entry.path());
         };
