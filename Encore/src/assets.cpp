@@ -379,7 +379,10 @@ AssetSet gameplaySet = { ASSETPTR(trackSurface),
                          ASSETPTR(hitFlareInnerTex),
                          ASSETPTR(overdriveShader),
                          ASSETPTR(indicatorRingShader),
-                         ASSETPTR(indicatorRing)
+                         ASSETPTR(indicatorRing),
+                         ASSETPTR(liftNote),
+                         ASSETPTR(liftNoteTex),
+                         ASSETPTR(liftMaskTex)
 };
 
 

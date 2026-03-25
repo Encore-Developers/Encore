@@ -419,12 +419,14 @@ public:
     NEWTEXASSET(kickNoteTex, "gameplay/track/notes/kick/diffuse.png");
     NEWTEXASSET(openNoteTex, "gameplay/track/notes/open/diffuse.png");
     NEWTEXASSET(cymbalNoteTex, "gameplay/track/notes/cymbal/diffuse.png");
+    NEWTEXASSET(liftNoteTex, "gameplay/track/notes/lift/diffuse.png");
 
     NEWTEXASSET(regularMaskTex, "gameplay/track/notes/normal/color_mask.png");
     NEWTEXASSET(hopoMaskTex, "gameplay/track/notes/hopo/color_mask.png");
     NEWTEXASSET(kickMaskTex, "gameplay/track/notes/kick/color_mask.png");
     NEWTEXASSET(openMaskTex, "gameplay/track/notes/open/color_mask.png");
     NEWTEXASSET(cymbalMaskTex, "gameplay/track/notes/cymbal/color_mask.png");
+    NEWTEXASSET(liftMaskTex, "gameplay/track/notes/lift/color_mask.png");
 
 
     NEWLEGACYMODELASSET(regularNote,
@@ -490,6 +492,19 @@ public:
                         model->materials[0].shader = noteShader;
                         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
                         cymbalMaskTex;
+                        });
+
+    NEWLEGACYMODELASSET(liftNote,
+                        "gameplay/track/notes/lift/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(liftNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(liftNoteTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = liftNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
+
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        liftMaskTex;
                         });
 
     NEWTEXASSET(smasherOffTex, "gameplay/track/smashers/normal/piston_off.png");
