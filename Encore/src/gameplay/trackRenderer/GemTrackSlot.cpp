@@ -180,14 +180,14 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     }
 }
 
-void Encore::GemTrackSlot::AnimateHit(bool perfect) {
+void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
     animTimer = 0;
     overhitTimer = 0;
     Particle part;
     part.active = true;
     part.type = FLARE;
     part.position = { xPos, 0.05, 0 };
-    part.color = track->player.QueryColorProfile(colorSlot);
+    part.color = colorg;
     hitFlare = track->particleSystem->SpawnParticle(part);
     hitFlareId = hitFlare->id;
 

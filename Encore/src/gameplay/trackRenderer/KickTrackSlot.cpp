@@ -56,12 +56,12 @@ void Encore::KickTrackSlot::DrawSmasher(bool held) {
     DrawModelEx(ASSET(kickPiston), {xPos, 0, 0}, {0}, 0, {1,1+(bounce),1.3f - (bounce*0.1f)}, color);
 }
 
-void Encore::KickTrackSlot::AnimateHit(bool perfect) {
+void Encore::KickTrackSlot::AnimateHit(bool perfect, Color color) {
     animTimer = 0;
     Particle part;
     part.active = true;
     part.type = FLARE;
     part.position = { xPos, 0.05, 0 };
-    part.color = track->player.QueryColorProfile(colorSlot);
+    part.color = color;
     //track->particleSystem->SpawnParticle(part);
 }

@@ -388,7 +388,7 @@ void Encore::Track::HandleEvent(Event *event) {
             for (int i = 0; i < 7; i++) {
                 if (allSlots[i]) {
                     auto slot = allSlots[i];
-                    slot->AnimateHit(hitEvent->perfect);
+                    slot->AnimateHit(hitEvent->perfect, PURPLE);
                 } else
                     break;
             }
@@ -396,7 +396,7 @@ void Encore::Track::HandleEvent(Event *event) {
             for (int i = 0; i < 7; i++) {
                 if (slots[i]) {
                     auto slot = slots[i];
-                    slot->AnimateHit(hitEvent->perfect);
+                    slot->AnimateHit(hitEvent->perfect, player.QueryColorProfile(slot->colorSlot));
                 } else
                     break;
             }
