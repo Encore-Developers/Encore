@@ -160,6 +160,16 @@ void EncoreDebug::DrawQuickSettings() {
             TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
         }
         DragInt("Video Calibration", &TheGameSettings.VideoOffset, 1, 0, 0, "%dms");
+
+        Text("Audio Settings");
+        SliderFloat("Main Volume", &TheGameSettings.avMainVolume, 0.0, 1.0);
+        if (CollapsingHeader("Advanced")) {
+            SliderFloat("Active Inst Volume", &TheGameSettings.avActiveInstrumentVolume, 0.0, 1.0);
+            SliderFloat("Inactive Inst Volume", &TheGameSettings.avInactiveInstrumentVolume, 0.0, 1.0);
+            SliderFloat("Track Mute Volume", &TheGameSettings.avMuteVolume, 0.0, 1.0);
+            SliderFloat("SFX Volume", &TheGameSettings.avSoundEffectVolume, 0.0, 1.0);
+            SliderFloat("Menu Music Volume", &TheGameSettings.avMenuMusicVolume, 0.0, 1.0);
+        }
         if (Button("Save Settings")) {
             TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
         }
