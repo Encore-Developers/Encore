@@ -136,6 +136,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
     }
     if (lengthTicks > 0) {
         chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
+        lengthTicks -= 1;
     }
     if (!OpenMarker.empty()) {
         if (OpenMarker.front().first <= event.tick) {
