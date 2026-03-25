@@ -345,24 +345,6 @@ void Encore::Track::DrawBeatlines() {
             }
             }
             DrawModelEx(ASSET(beatline), { 0, 0, ScrollPos}, {0}, 0, {1,1,Size}, beatlineColor);
-            // // this sucks
-            // static std::vector<Vector3> verts;
-            // verts.resize(0);
-            // int wideVerts = 10;
-            // for (int i = 0; i <= wideVerts; i++) {
-            //     float xPos = Remap(i, 0, wideVerts, -2.5, 2.5);
-            //     verts.push_back({ xPos, 0, ScrollPos - Size });
-            //     verts.push_back({ xPos, 0, ScrollPos + Size });
-            // }
-            // DrawTriangleStrip3D(verts.data(), verts.size(), beatlineColor);
-            continue;
-            DrawCube(
-                { 0, 0, ScrollPos },
-                5,
-                Size,
-                Size,
-                beatlineColor
-            );
         }
     }
     rlDrawRenderBatchActive();
@@ -401,12 +383,23 @@ void Encore::Track::HandleEvent(Event *event) {
             PlasticDrums) {
             KickTimer = 1;
             }
-        for (int i = 0; i < 7; i++) {
-            if (slots[i]) {
-                auto slot = slots[i];
-                slot->AnimateHit(hitEvent->perfect);
-            } else
-                break;
+        if (note->Lane == 0) {
+            auto allSlots = GetSlotsForLane(31, true);
+            for (int i = 0; i < 7; i++) {
+                if (allSlots[i]) {
+                    auto slot = allSlots[i];
+                    slot->AnimateHit(hitEvent->perfect);
+                } else
+                    break;
+            }
+        } else {
+            for (int i = 0; i < 7; i++) {
+                if (slots[i]) {
+                    auto slot = slots[i];
+                    slot->AnimateHit(hitEvent->perfect);
+                } else
+                    break;
+            }
         }
     }
     if (auto overhitEvent = event->GetTyped<OverhitEvent>()) {
