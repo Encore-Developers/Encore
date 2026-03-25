@@ -99,22 +99,6 @@ inline PartIcon iconFromString(const std::string &str) {
     }
 }
 
-inline std::unordered_map<std::string, SongParts> midiNameToEnum = {
-    { "PART DRUMS", SongParts::PartDrums },
-    { "PART BASS", SongParts::PartBass },
-    { "PART GUITAR", SongParts::PartGuitar },
-    { "PART VOCALS", SongParts::PartVocals },
-    { "PART KEYS", SongParts::PartKeys },
-    { "PLASTIC DRUMS", SongParts::PlasticDrums },
-    { "PLASTIC BASS", SongParts::PlasticBass },
-    { "PLASTIC GUITAR", SongParts::PlasticGuitar },
-    { "PLASTIC VOCALS", SongParts::PlasticVocals },
-    { "PLASTIC KEYS", SongParts::PlasticKeys },
-    { "PITCHED VOCALS", SongParts::Invalid },
-    { "BEAT", SongParts::BeatLines },
-    { "EVENTS", SongParts::Events }
-};
-
 inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
     { "PAD DRUMS", SongParts::PartDrums }, { "PAD BASS", SongParts::PartBass },
     { "PAD GUITAR", SongParts::PartGuitar }, { "PAD VOCALS", SongParts::PartVocals },
@@ -138,15 +122,6 @@ inline std::vector<int> PlasticToPadEnumConverter = { PartDrums, PartBass, PartG
                                                       PartVocals, PartKeys, PartDrums,
                                                       PartBass, PartGuitar, PartVocals,
                                                       PartKeys, PartVocals, Invalid };
-
-inline SongParts partFromString(const std::string &str) {
-    auto it = midiNameToEnum.find(str);
-    if (it != midiNameToEnum.end()) {
-        return it->second;
-    } else {
-        return SongParts::Invalid;
-    }
-}
 
 inline SongParts partFromStringINI(const std::string &str) {
     auto it = midiNameToEnumINI.find(str);
