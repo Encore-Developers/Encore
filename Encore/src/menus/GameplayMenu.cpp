@@ -549,7 +549,7 @@ void GameplayMenu::Draw() {
     TheSongTime.UpdateTick();
     TheSongTime.UpdateOverdriveTick();
     //    OvershellRenderer osr;
-    double curTime = GetTime();
+    // double curTime = GetTime();
 
     // IMAGE BACKGROUNDS??????
     ClearBackground(BLACK);
@@ -656,6 +656,7 @@ void GameplayMenu::Draw() {
         }
     }
     TheAudioManager.UpdateAudioStreamVolumes();
+
     float scorePos = u.RightSide - u.hinpct(0.01f);
     float scoreY = u.hpct(0.15f);
     float starY = scoreY + u.hinpct(0.065f);
@@ -704,8 +705,8 @@ void GameplayMenu::Draw() {
     float SongNameBackgroundWidth =
         SongNameWidth >= SongArtistWidth ? SongNameWidth : SongArtistWidth;
     float SongBackgroundWidth = SongNameBackgroundWidth;
-    if (curTime > TheSongTime.GetStartTime() + 7.5
-        && curTime < TheSongTime.GetStartTime() + 7.5 + SongNameDuration) {
+    if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5
+        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.5 + SongNameDuration) {
         double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 7.5);
         SongNameAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
@@ -725,11 +726,11 @@ void GameplayMenu::Draw() {
             35,
             -SongNameWidth
         );
-    } else if (curTime > TheSongTime.GetStartTime() + 7.5 + SongNameDuration)
+    } else if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5 + SongNameDuration)
         SongNameAlpha = 0;
 
-    if (curTime > TheSongTime.GetStartTime() + 7.75
-        && curTime < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
+    if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.75
+        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
         double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 7.75);
         SongArtistAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
@@ -751,8 +752,8 @@ void GameplayMenu::Draw() {
             -SongArtistWidth
         );
     }
-    if (curTime > TheSongTime.GetStartTime() + 8
-        && curTime < TheSongTime.GetStartTime() + 8 + SongNameDuration) {
+    if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 8
+        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 8 + SongNameDuration) {
         double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 8);
         SongExtrasAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
@@ -783,7 +784,7 @@ void GameplayMenu::Draw() {
             -SongExtrasWidth
         );
     }
-    if (curTime < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
+    if (TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
         DrawRectangleGradientH(
             0,
             u.hpct(0.19f),
