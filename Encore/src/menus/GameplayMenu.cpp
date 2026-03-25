@@ -705,9 +705,13 @@ void GameplayMenu::Draw() {
     float SongNameBackgroundWidth =
         SongNameWidth >= SongArtistWidth ? SongNameWidth : SongArtistWidth;
     float SongBackgroundWidth = SongNameBackgroundWidth;
+
+    // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
+    // there's better ways. forgive me for I have sinned
+
     if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5
         && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.5 + SongNameDuration) {
-        double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 7.5);
+        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime() + 7.5);
         SongNameAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
                 getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
@@ -731,7 +735,7 @@ void GameplayMenu::Draw() {
 
     if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.75
         && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
-        double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 7.75);
+        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime() + 7.75);
         SongArtistAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
                 getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
@@ -752,9 +756,11 @@ void GameplayMenu::Draw() {
             -SongArtistWidth
         );
     }
+
+
     if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 8
         && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 8 + SongNameDuration) {
-        double timeSinceStart = GetTime() - (TheSongTime.GetStartTime() + 8);
+        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime() + 8);
         SongExtrasAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
                 getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
