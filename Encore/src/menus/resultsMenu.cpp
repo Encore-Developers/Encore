@@ -212,7 +212,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
 
     Color bottomColorForStatus = backgroundColor;
-    bool rendAsFC = stats->AttemptedNotes == stats->NotesHit && !player.Bot;
+    bool rendAsFC = stats->AttemptedNotes == stats->NotesHit && !player.Bot && stats->Overhits == 0;
     if (player.Bot) {
         bottomColorForStatus = ColorContrast(ColorBrightness(SKYBLUE, -0.5f), -0.25f);
     }
