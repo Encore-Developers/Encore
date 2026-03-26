@@ -6,9 +6,6 @@
 #define ENCCHARTEVENT_H
 #include <string>
 #include <cstdint>
-#include <cstdint>
-#include <cstdint>
-#include <cstdint>
 
 struct EncNoteEvent {
     double StartSec = 0.0;
