@@ -5,6 +5,8 @@
 #ifndef ENCNOTE_H
 #define ENCNOTE_H
 #include <cstdint>
+#include <string>
+#include <vector>
 
 namespace Encore::RhythmEngine {
     class EncNote {
@@ -16,6 +18,19 @@ namespace Encore::RhythmEngine {
         int NoteType = 0;
         uint8_t Lane = 0;
         bool NotePassed = false;
+    };
+
+    // for lyric display
+    struct EncLyric {
+        double StartSec = 0;
+        std::string Lyric;
+        bool talkie = false;
+    };
+
+    struct EncLyricPhrase {
+        std::vector<EncLyric> lyrics;
+        double StartSec = 0;
+        double EndSec = 0;
     };
 }
 
