@@ -26,6 +26,8 @@ namespace Encore {
         void DrawSurface();
         void DrawOverdriveMeter();
         void DrawMultiplier();
+
+        void DrawPerfect();
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
 
         virtual void HandleEvent(Event *);
@@ -60,7 +62,7 @@ namespace Encore {
         float KickTimer = 0;
         float SpotlightTimer = 0;
         float OverdriveTimer = 0;
-
+        float PerfectTimer = 0;
         // The column of the screen that this track can occupy. Used for multiplayer positioning.
         float ColumnLeft = -1;
         float ColumnRight = 1;

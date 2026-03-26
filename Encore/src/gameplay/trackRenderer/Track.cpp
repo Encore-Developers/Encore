@@ -15,6 +15,7 @@
 #include "OpenTrackSlot.h"
 #include "debug/EncoreDebug.h"
 #include "events/Event.h"
+#include "menus/gameMenu.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
 
@@ -57,6 +58,12 @@ void Encore::Track::Draw() {
 
     DrawBeatlines();
     DrawOverdriveMeter();
+    EndMode3D();
+
+    // this is really fucking stupid. bad fix.
+    DrawPerfect();
+
+    BeginMode3D(AnimCamera);
     DrawMultiplier();
     DrawSmashers();
 
@@ -69,6 +76,7 @@ void Encore::Track::Draw() {
     EndShaderMode();
 
     EndMode3D();
+
 
     if (EncoreDebug::showDebug) {
         DrawTrackDebugWindow();
@@ -242,6 +250,43 @@ void Encore::Track::DrawMultiplier() {
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 
+float easeOutBack(float x) {
+    float c1 = 1.70158;
+    float c3 = c1 + 1;
+
+    return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
+}
+
+void Encore::Track::DrawPerfect() {
+    if (PerfectTimer > 0)
+        PerfectTimer -= GetFrameTime() * 2;
+    else {
+        PerfectTimer = 0;
+    }
+    float doByThis = easeOutBack(PerfectTimer);
+    Units &u = Units::getInstance();
+    Vector3 WorldMultiplierPosition = {0,-0.1, -1.3};
+    float FontSize = u.hinpct(0.025f);
+    float Offset = u.hinpct(0.04f);
+    float TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
+    float TextHeight = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).y;
+    Vector2 ScreenMultiplierPosition = GetWorldToScreen(WorldMultiplierPosition, AnimCamera);
+    Color trnsprtGold = {GOLD.r, GOLD.g, GOLD.b, 0};
+    float subtractStuff = (TextWidth + Offset) * doByThis;
+    float xPos = ScreenMultiplierPosition.x - subtractStuff;
+    Rectangle pos = {xPos, ScreenMultiplierPosition.y - (TextHeight/2), subtractStuff, (TextHeight)};
+    DrawRectangleGradientEx(pos, trnsprtGold, trnsprtGold, GOLD, GOLD);
+    GameMenu::mhDrawText(
+        ASSET(rubikBold),
+        "PERFECT",
+        {pos.x, pos.y},
+        FontSize,
+        {255, 255, 255, (unsigned char)(255.0f * (PerfectTimer * 2))},
+        ASSET(sdfShader),
+        LEFT
+    );
+}
+
 unsigned char Encore::Track::BeatToCharViaTickThing(
     int tick,
     int MinBrightness,
@@ -379,6 +424,9 @@ void Encore::Track::HandleEvent(Event *event) {
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;
         auto slots = GetSlotsForLane(note->Lane, true);
+        if (hitEvent->perfect == true) {
+            PerfectTimer = 1;
+        }
         if (note->Lane == RhythmEngine::PlasticFrets[0] && player.Instrument ==
             PlasticDrums) {
             KickTimer = 1;
