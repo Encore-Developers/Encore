@@ -1,4 +1,9 @@
 {
   "$schema": "../schema/overshell_state.json",
-  "provider": "json"
+  "provider": "json",
+  "entries": [],
+  "back_action": {
+    "action": "goto_state",
+    "state": "main"
+  }
 }

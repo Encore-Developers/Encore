@@ -1,15 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "/schema/overshell_state",
+  "$id": "/Encore/Assets/overshell/schema/overshell_state.json",
   "title": "Overshell State",
   "type": "object",
   "properties": {
     "provider": {
       "description": "The provider for this state that will fill out entries",
-      "enum": ["json", "controllerProfiles", "playerProfiles"]
+      "enum": ["json", "controllers", "players"]
+    },
+    "back_action": {
+      "$ref": "overshell_action.json"
     }
   },
-  "required": ["provider"],
+  "required": ["provider", "back_action"],
   "allOf": [
     {
       "if": {
@@ -20,6 +23,11 @@
         }
       },
       "then": {
+        "properties": {
+          "entries": {
+            "type": "array"
+          }
+        },
         "required": ["entries"]
       }
     }

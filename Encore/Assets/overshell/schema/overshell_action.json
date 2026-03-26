@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/Encore/Assets/overshell/schema/overshell_action.json",
+  "title": "Overshell Action",
+  "type": "object",
+  "properties": {
+    "action": {
+      "enum": ["goto_state", "close_overshell"]
+    }
+  },
+  "required": ["action"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "action": {
+            "const": "goto_state"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "description": "The state in overshell/states/*.json"
+          }
+        },
+        "required": ["state"]
+      }
+    }
+  ]
+}
