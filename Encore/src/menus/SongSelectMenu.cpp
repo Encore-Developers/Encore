@@ -11,7 +11,7 @@
 #include "raygui.h"
 #include "settings/settings.h"
 #include "uiUnits.h"
-#include "gameplay/gameplayRenderer.h"
+
 #include "song/audio.h"
 #include "song/songlist.h"
 #include "assets.h"
@@ -588,11 +588,7 @@ void SongSelectMenu::Draw() {
     if (GuiButton(Rectangle{ u.LeftSide, GetRenderHeight() - u.hpct(0.1475f), u.winpct(0.2f), u.hinpct(0.05f) }, "Play Song")) {
         if (TheSongList.curSong) {
             Unload();
-            if (!TheSongList.curSong->ini) {
-                TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
-            } else {
-                TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-            }
+            TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
             TheMenuManager.SwitchScreen(READY_UP);
         }
     }

@@ -17,11 +17,17 @@
 
 bool EncoreDebug::showDebug = false;
 bool EncoreDebug::reloadQueued = false;
+bool EncoreDebug::reloadFonts = false;
 
 bool showDemoWindow = false;
 bool showAssets = false;
 bool showPlayerManager = false;
 bool showSongList = false;
+bool showQuickSettings = false;
+bool showPractice = false;
+
+bool paused = false;
+std::string pauseText = "Pause";
 
 std::string debugVersionHash = "";
 
@@ -38,6 +44,7 @@ void ColorEdit(const char *label, Color *color, ImGuiColorEditFlags flags) {
 }
 
 void EncoreDebug::DrawDebug() {
+    ZoneScoped;
     if (debugVersionHash.empty()) {
         debugVersionHash = TextFormat(
             "Encore %s-%s:%s",
@@ -60,10 +67,17 @@ void EncoreDebug::DrawDebug() {
     if (showSongList && TheMenuManager.currentScreen != GAMEPLAY) {
         DrawSongList();
     }
+    if (showQuickSettings) {
+        DrawQuickSettings();
+    }
+    if (showPractice) {
+        DrawPracticeSectionSelector();
+    }
+    DrawSongScrubber();
 }
 
-
 void EncoreDebug::MenuBar() {
+    ZoneScoped;
     BeginMainMenuBar();
     if (BeginMenu("Windows")) {
         MenuItem("Assets", 0, &showAssets);
@@ -72,17 +86,8 @@ void EncoreDebug::MenuBar() {
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         EndMenu();
     }
-    if (BeginMenu(TextFormat("Framerate (%i FPS)###Framerate", GetFPS()))) {
-        Text("%i FPS", GetFPS());
-        MenuItem("Uncap Framerate", 0, &TheFrameManager.removeFPSLimit);
-        MenuItem("VSync", 0, &TheGameSettings.VerticalSync);
-        SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
-        SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
-        SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
-        if (TheMenuManager.ActiveMenu) {
-            Checkbox("Show overshell on this menu", &TheMenuManager.ActiveMenu->showOvershell);
-        }
-        EndMenu();
+    if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()), 0, &showQuickSettings)) {
+
     }
 
     if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem("End Song")) {
@@ -115,32 +120,27 @@ void EncoreDebug::MenuBar() {
         TheSongTime.CurrentBeatline = 0;
         TheMenuManager.SwitchScreen(RESULTS);
     }
-
     if (TheMenuManager.currentScreen == GAMEPLAY) {
-        float time = TheSongTime.GetElapsedTime();
-        SetNextItemWidth(GetWindowWidth()*0.4f);
-        if (SliderFloat("Time", &time, 0, TheSongTime.GetSongLength())) {
-            TheAudioManager.seekStreams(time);
-            for (auto &slot : ThePlayerManager.ActivePlayers) {
-                auto &player = *slot.player;
-                auto engine = player.engine.get();
-                for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
-                    if (i >= engine->chart->Lanes.size()) {
-                        break;
-                    }
-                    for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
-                        if (iter->StartSeconds > time) {
-                            engine->chart->CurrentNoteIterators[i] = iter;
-                            break;
-                        }
-                    }
-
-                }
-            }
-        }
+        MenuItem("Practice", 0, &showPractice);
     }
 
-
+    if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem(pauseText.c_str())) {
+        paused = !paused;
+        for (auto index : ThePlayerManager.ActivePlayers) {
+            if (index == -1)
+                continue;
+            auto player = ThePlayerManager.PlayerList[index];
+            player.engine->stats->Paused = paused;
+        }
+        if (paused) {
+            pauseText = "Play";
+            TheAudioManager.pauseStreams();
+        }
+        else{
+            pauseText = "Pause";
+            TheAudioManager.unpauseStreams();
+        }
+    }
     auto avail = GetWindowWidth();
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
 
@@ -150,14 +150,219 @@ void EncoreDebug::MenuBar() {
     EndMainMenuBar();
 }
 
+
+void EncoreDebug::DrawQuickSettings() {
+    ZoneScoped;
+    if (Begin("Quick Settings")) {
+        Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
+        Checkbox("VSync", &TheGameSettings.VerticalSync);
+        SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
+        SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
+        SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
+        if (DragInt("Audio Calibration", &TheGameSettings.AudioOffset, 1, 0, 0, "%dms")) {
+            TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
+        }
+        DragInt("Video Calibration", &TheGameSettings.VideoOffset, 1, 0, 0, "%dms");
+
+        Text("Audio Settings");
+        SliderFloat("Main Volume", &TheGameSettings.avMainVolume, 0.0, 1.0);
+        if (CollapsingHeader("Advanced")) {
+            SliderFloat("Active Inst Volume", &TheGameSettings.avActiveInstrumentVolume, 0.0, 1.0);
+            SliderFloat("Inactive Inst Volume", &TheGameSettings.avInactiveInstrumentVolume, 0.0, 1.0);
+            SliderFloat("Track Mute Volume", &TheGameSettings.avMuteVolume, 0.0, 1.0);
+            SliderFloat("SFX Volume", &TheGameSettings.avSoundEffectVolume, 0.0, 1.0);
+            SliderFloat("Menu Music Volume", &TheGameSettings.avMenuMusicVolume, 0.0, 1.0);
+        }
+        if (Button("Save Settings")) {
+            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
+        }
+    }
+    End();
+}
+
+void DebugSeek(float time, float audioTime) {
+    TheAudioManager.seekStreams(audioTime);
+    for (auto index : ThePlayerManager.ActivePlayers) {
+        if (index == -1) {
+            continue;
+        }
+        auto player = ThePlayerManager.PlayerList[index];
+        auto engine = player.engine.get();
+        for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+            if (i >= engine->chart->Lanes.size()) {
+                break;
+            }
+            for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
+                if (iter->StartSeconds > time) {
+                    engine->chart->CurrentNoteIterators[i] = iter;
+                    break;
+                }
+            }
+
+        }
+    }
+}
+
+
+void EncoreDebug::DrawPracticeSectionSelector() {
+    ZoneScoped;
+    if (TheMenuManager.currentScreen == GAMEPLAY) {
+        if (Begin("Practice Section Selector")) {
+            for (int sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
+                Text(TheSongTime.Sections.at(sectionInt).name.c_str());
+                SameLine();
+                float buttWidth = CalcTextSize(" whole").x;
+                SetCursorPosX(GetWindowWidth() - (buttWidth * 3));
+                PushID(sectionInt);
+                if (Button("whole")) {
+                    double startTime;
+                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
+                        if (playerInt == -1) {
+                            continue;
+                        }
+                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                        double endTime = 0.0;
+                        startTime = TheSongTime.Sections.at(sectionInt).start;
+                        if (sectionInt == TheSongTime.Sections.size() - 1)
+                            endTime = TheSongTime.GetSongLength();
+                        else
+                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
+                        player.engine->pStartTime = startTime - 0.1;
+                        player.engine->pStopTime = endTime;
+                        player.engine->practice = true;
+                    }
+                    DebugSeek(startTime, startTime - 2);
+                }
+                SameLine();
+                if (Button("start")) {
+                    double startTime;
+                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
+                        if (playerInt == -1) {
+                            continue;
+                        }
+                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                        startTime = TheSongTime.Sections.at(sectionInt).start;
+                        player.engine->pStartTime = startTime - 0.1;
+                        player.engine->pStopTime = TheSongTime.GetSongLength();
+                        player.engine->practice = true;
+                    }
+                    DebugSeek(startTime, startTime - 2);
+                }
+                SameLine();
+                if (Button("end")) {
+                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
+                        if (playerInt == -1) {
+                            continue;
+                        }
+                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                        double endTime = 0.0;
+                        if (sectionInt == TheSongTime.Sections.size() - 1)
+                            endTime = TheSongTime.GetSongLength();
+                        else
+                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
+                        player.engine->pStopTime = endTime;
+                        player.engine->practice = true;
+                    }
+                }
+                PopID();
+            }
+        }
+        End();
+    }
+}
+
+struct TimelineTextSpacer {
+    float startPos;
+    float endPos;
+    int layer;
+};
+
+void EncoreDebug::DrawSongScrubber() {
+    ZoneScoped;
+    if (TheMenuManager.currentScreen == GAMEPLAY) {
+        SetNextWindowPos({0, GetFrameHeight()+4}, ImGuiCond_Always);
+        SetNextWindowSize({ImGui::GetIO().DisplaySize.x, 0}, ImGuiCond_Always);
+        if (Begin("Song Scrubber", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+            PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+            float time = TheSongTime.GetElapsedTime();
+            auto size = GetContentRegionAvail();
+            size.y = 24;
+            auto pos = GetCursorScreenPos();
+            InvisibleButton("Song Scrubber Button", size);
+            auto GetTimeAtPos = [&](float x) {
+                return (x / size.x) * TheSongTime.GetSongLength();
+            };
+            auto TimeToPos = [&](double time) {
+                return (time / TheSongTime.GetSongLength()) * size.x;
+            };
+            auto GetMouseLocalPos = [&]() {
+                return GetMousePos().x - pos.x;
+            };
+            if (IsItemActive()) {
+                DebugSeek(GetTimeAtPos(GetMouseLocalPos()), GetTimeAtPos(GetMouseLocalPos()));
+            }
+            auto drawlist = GetWindowDrawList();
+            drawlist->AddRectFilled(pos, pos + size, ColorConvertFloat4ToU32(GetStyle().Colors[IsItemHovered() && !IsItemActive() ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg]));
+            drawlist->AddLine(pos + ImVec2(TimeToPos(time), 0), pos + ImVec2(TimeToPos(time), size.y), ColorConvertFloat4ToU32({1, 0, 1, 1}), 2);
+
+            static std::vector<TimelineTextSpacer> texts = {};
+            texts.clear();
+            auto occupied = [&](float x, int layer) {
+                if (layer < 0) {
+                    return true;
+                }
+                for (auto& spacer : texts) {
+                    if (x > spacer.startPos && x < spacer.endPos && spacer.layer == layer) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            int layer = 0;
+            int maxlayer = 0;
+            for (int i = 0; i < TheSongTime.Sections.size(); i++) {
+                auto& section = TheSongTime.Sections[i];
+                float endTime = TheSongTime.GetSongLength();
+                if (i < TheSongTime.Sections.size() - 1) {
+                    endTime = TheSongTime.Sections[i+1].start;
+                }
+                float rectPos = TimeToPos(section.start);
+                float startPos = TimeToPos(section.start);
+                float textWide = MeasureText(section.name.c_str(), GetFontSize());
+                if (startPos+textWide > size.x) {
+                    startPos = size.x-textWide;
+                }
+                drawlist->AddRectFilled(pos + ImVec2(rectPos, 0), pos + ImVec2(TimeToPos(endTime), size.y), ColorConvertFloat4ToU32(i % 2 == 0 ? ImVec4 {1, 1, 1, 0.2} : ImVec4 {1, 1, 1, 0.1}));
+                drawlist->AddLine(pos + ImVec2(rectPos, 0), pos + ImVec2(rectPos, size.y), ColorConvertFloat4ToU32({1, 1, 1, 0.9}));
+                layer = 0;
+                while (occupied(startPos, layer)) {
+                    layer++;
+                }
+                float textY = pos.y + size.y + layer * GetFontSize();
+                drawlist->AddText(ImVec2(startPos+pos.x, textY), 0xffffffff, section.name.c_str());
+                texts.push_back({startPos, startPos+textWide, layer});
+                if (layer > maxlayer) {
+                    maxlayer = layer;
+                }
+            }
+
+            Dummy(ImVec2{0, GetFontSize()*(maxlayer+1)});
+            PopStyleVar();
+        }
+        End();
+    }
+
+}
+
 void EncoreDebug::DrawPlayerManager() {
+    ZoneScoped;
     if (Begin("Player Manager", &showPlayerManager, 0)) {
         if (Button("Save All")) {
             ThePlayerManager.SavePlayerList();
         }
 
         if (BeginTabBar("Players")) {
-            for (auto &player : ThePlayerManager.SavedPlayers) {
+            for (auto &player : ThePlayerManager.PlayerList) {
                 if (BeginTabItem(
                     (player.Name + TextFormat("###%x", &player)).c_str())) {
                     InputText("Username", &player.Name);
@@ -179,6 +384,19 @@ void EncoreDebug::DrawPlayerManager() {
                               0);
                     ColorEdit("Open",
                               &player.GetColorProfile()->colors[Encore::SLOT_OPEN],
+                              0);
+                    SeparatorText("Drums Colors");
+                    ColorEdit("Kick",
+                              &player.GetColorProfile()->colors[Encore::SLOT_KICK],
+                              0);
+                    ColorEdit("Yellow Cymbal",
+                              &player.GetColorProfile()->colors[Encore::SLOT_HIHAT],
+                              0);
+                    ColorEdit("Blue Cymbal",
+                              &player.GetColorProfile()->colors[Encore::SLOT_RIDE],
+                              0);
+                    ColorEdit("Green Cymbal",
+                              &player.GetColorProfile()->colors[Encore::SLOT_CRASH],
                               0);
 
                     SeparatorText(std::string("Player: " + player.Name).c_str());
@@ -225,6 +443,7 @@ std::string tolowerStr(std::string &in) {
 }
 
 void EncoreDebug::DrawSongList() {
+    ZoneScoped;
     static std::string filter;
     static std::vector<Song *> songs;
     static bool firstTime = true;
@@ -292,11 +511,7 @@ void EncoreDebug::DrawSongList() {
                         TheAudioManager.loadedStreams.clear();
                     }
                     TheSongList.curSong = song;
-                    if (!TheSongList.curSong->ini) {
-                        TheSongList.curSong->LoadSongJSON(TheSongList.curSong->songInfoPath);
-                    } else {
-                        TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-                    }
+                    TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
                     TheMenuManager.SwitchScreen(READY_UP);
                 }
 
@@ -310,6 +525,11 @@ void EncoreDebug::DrawSongList() {
 
 void EncoreDebug::StartReloadAssets() {
     for (auto asset : TheAssets.assets) {
+        if (dynamic_cast<FontAsset*>(asset)) {
+            if (!reloadFonts) {
+                continue;
+            }
+        }
         if (asset->state == LOADING || asset->state == PREFINALIZED) {
             asset->CheckForFetch();
         }
@@ -324,6 +544,7 @@ void EncoreDebug::StartReloadAssets() {
 }
 
 void EncoreDebug::DrawAssetViewer() {
+    ZoneScoped;
     SetNextWindowSize({ 200, 300 }, ImGuiCond_FirstUseEver);
     if (Begin("Assets", &showAssets, 0)) {
         TextWrapped("Base Path: %s",
@@ -331,6 +552,8 @@ void EncoreDebug::DrawAssetViewer() {
         if (Button("Reload All")) {
             reloadQueued = true;
         }
+        SameLine();
+        Checkbox("Reload Fonts", &reloadFonts);
 
         const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
@@ -384,6 +607,7 @@ void EncoreDebug::DrawAssetViewer() {
 }
 
 void Encore::Track::DrawTrackDebugWindow() {
+    ZoneScoped;
     SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
     if (Begin(
         std::string("Track Settings: " + player.Name).c_str(),
@@ -397,10 +621,15 @@ void Encore::Track::DrawTrackDebugWindow() {
             DragFloat("Base Length", &BaseLength, 0.1);
             DragFloat("Track Fade Size", &FadeSize, 0.1);
             DragFloat("Curve Factor", &CurveFac, 1);
-            DragFloat("Offset", &Offset, 0.01);
-            DragFloat("Scale", &Scale, 0.01);
+            Checkbox("Column Fitting", &ColumnFitting);
+            if (!ColumnFitting) {
+                DragFloat("Offset", &Offset, 0.01);
+                DragFloat("Scale", &Scale, 0.01);
+            } else {
+                DragFloat("Column Left", &ColumnLeft, 0.01);
+                DragFloat("Column Right", &ColumnRight, 0.01);
+            }
             DragFloat("Note Height", &NoteHeight, 0.01);
-            DragFloat3("Specular Light Position", (float *)&specularLightPos, 0.1);
         }
         if (CollapsingHeader("Engine State")) {
             SeparatorText("Timers");

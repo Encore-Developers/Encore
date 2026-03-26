@@ -4,7 +4,10 @@
 
 #include "DrumsLoader.h"
 
+#include <regex>
+
 #include "song/scoring.h"
+#include "util/discord.h"
 // i hate sysex
 
 void Encore::RhythmEngine::DrumsLoader::CheckToms(const smf::MidiEvent &event) {
@@ -65,6 +68,7 @@ void Encore::RhythmEngine::DrumsLoader::GetChartEvents(smf::MidiEventList track)
         ATTEMPT_TO_ADD_CHART_EVENT(103, solos, event);
         ATTEMPT_TO_ADD_CHART_EVENT(127, trills, event);
         ATTEMPT_TO_ADD_CHART_EVENT(126, rolls, event);
+
     }
 }
 void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) {
@@ -108,6 +112,26 @@ void Encore::RhythmEngine::DrumsLoader::GetNoteModifiers(smf::MidiEventList trac
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         CheckToms(event);
+        if (event.isMeta() && event[1] == 1) {
+            std::string eventName;
+            for (int k = 3; k < event.getSize(); k++) {
+                eventName += event[k];
+            }
+            //for (int i = 0; i < event[2]; i++) {
+            //    eventName.append(std::to_string(event[i+3]));
+            //}
+
+            static const std::regex drumsMixRegex("\\[?mix (\\d) drums(\\d)(d|(dnoflip)|(easy)|(easynokick))?\\]?$");
+            std::smatch drumsMix;
+            std::regex_match(eventName, drumsMix, drumsMixRegex);
+            if (drumsMix[3] == 'd' && drumsMix[1] == '3') {
+                DiscoFlip.emplace(event.tick, 0);
+                // do a disco flip
+            } else if (drumsMix[3].matched == false && drumsMix[1] == '3') {
+                if (!DiscoFlip.empty())
+                    DiscoFlip.back().second = event.tick;
+            }
+        }
         // can have events for things like overdrive here
         // ugh
         // can i just have notes work for now

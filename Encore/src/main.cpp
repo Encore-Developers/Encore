@@ -8,6 +8,7 @@
 #include "rlImGui.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "tracy/Tracy.hpp"
 
 #include <cassert>
 
@@ -42,7 +43,7 @@
 #include "arguments.h"
 #include "assets.h"
 #include "song/audio.h"
-#include "gameplay/gameplayRenderer.h"
+
 
 #include "menus/uiUnits.h"
 
@@ -150,7 +151,7 @@ void SetImGuiTheme() {
 
 void LocateDevAssets() {
     auto execPath = std::filesystem::path(GetApplicationDirectory());
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 5; i++) {
         execPath /= "..";
         execPath = std::filesystem::canonical(execPath);
         //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
@@ -168,7 +169,11 @@ ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
     LocateDevAssets();
-    TheGameRPC.Initialize();
+
+    ArgumentList::InitArguments(argc, argv);
+
+    std::string discordOff = ArgumentList::GetArgValue("discord");
+    TheGameRPC.Initialize(discordOff);
     SetTraceLogCallback(Encore::EncoreLog);
     Units u = Units::getInstance();
     commitHash.erase(7);
@@ -179,7 +184,6 @@ int main(int argc, char *argv[]) {
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 
     bool windowToggle = true;
-    ArgumentList::InitArguments(argc, argv);
 
     std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
     std::string vSyncOn = ArgumentList::GetArgValue("vsync");
@@ -263,6 +267,7 @@ int main(int argc, char *argv[]) {
     }
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
+        ZoneScopedN("Main Loop")
         glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
@@ -285,9 +290,6 @@ int main(int argc, char *argv[]) {
             rlImGuiSetup(true);
             ImGui::GetCurrentContext()->FontSizeBase = 20;
             ImGui::GetStyle().FontSizeBase = 20;
-            auto io = ImGui::GetIO();
-            imGuiFont = io.Fonts->AddFontFromMemoryTTF(ASSET(JetBrainsMono).RawData(), ASSET(JetBrainsMono).RawDataSize());
-            io.FontDefault = imGuiFont;
             SetImGuiTheme();
             imGuiLoaded = true;
         }
@@ -298,7 +300,19 @@ int main(int argc, char *argv[]) {
         } else {
             GuiUnlock();
         }
-        ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
+        static bool imGuiFontLoaded = false;
+
+        if (!imGuiFontLoaded && ASSET(JetBrainsMono).state == LOADED) {
+            auto io = ImGui::GetIO();
+            imGuiFont = io.Fonts->AddFontFromMemoryTTF(ASSET(JetBrainsMono).RawData(), ASSET(JetBrainsMono).RawDataSize());
+            io.FontDefault = imGuiFont;
+            imGuiFontLoaded = true;
+        }
+
+        if (imGuiFontLoaded) {
+            ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
+        }
+
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
         static float loadingScreenFade = 1.0f;
@@ -330,9 +344,14 @@ int main(int argc, char *argv[]) {
             EncoreDebug::DrawDebug();
         }
 
-        ImGui::PopFont();
-        rlImGuiEnd();
-        EndDrawing();
+        if (imGuiFontLoaded) {
+            ImGui::PopFont();
+        }
+        {
+            ZoneScopedN("End Drawing")
+            rlImGuiEnd();
+            EndDrawing();
+        }
 
         if (EncoreDebug::reloadQueued) {
             EncoreDebug::StartReloadAssets();
@@ -340,6 +359,7 @@ int main(int argc, char *argv[]) {
             loadingScreenFade = 1.0f;
         }
         TheFrameManager.WaitForFrame();
+        FrameMark;
     }
     poller.active = false;
     CloseWindow();

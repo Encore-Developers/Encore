@@ -6,7 +6,7 @@
 #define NOTEVECTOR_H
 #include "REenums.h"
 #include "Notes/EncNote.h"
-#include "song/events/EncEventVects/EventVectors.h"
+#include "RhythmEngine/events/EncEventVects/EventVectors.h"
 
 #include <array>
 #include <memory>

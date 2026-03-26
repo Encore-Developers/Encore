@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "settings/settings.h"
 #include "menus/MenuManager.h"
+#include "tracy/Tracy.hpp"
 
 void Encore::FrameManager::InitFrameManager() {
     previousTime = GetTime();
@@ -18,6 +19,7 @@ void Encore::FrameManager::InitFrameManager() {
     menuFPS = GetMonitorRefreshRate(GetCurrentMonitor()) / 2;
 }
 void Encore::FrameManager::WaitForFrame() {
+    ZoneScoped;
     if (!removeFPSLimit) {
         currentTime = GetTime();
         updateDrawTime = currentTime - previousTime;

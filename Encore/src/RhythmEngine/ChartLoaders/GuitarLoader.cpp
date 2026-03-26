@@ -45,7 +45,9 @@ void Encore::RhythmEngine::GuitarLoader::SysExTap(const smf::MidiEvent &event) {
 void Encore::RhythmEngine::GuitarLoader::SysExOpen(const smf::MidiEvent &event) {
     if (IsSysExOpen(event)) {
         if (IsSEXOn(event)) {
-            OpenMarker.emplace(event.tick);
+            OpenMarker.emplace(event.tick, 0);
+        } else if (IsSEXOff(event)) {
+            OpenMarker.back().second = event.tick;
         }
     }
 }
@@ -127,12 +129,19 @@ void Encore::RhythmEngine::GuitarLoader::GetChartEvents(smf::MidiEventList track
 void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event) {
     int lengthTicks = event.getLinkedEvent()->tick - event.tick;
     double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
+    int lane = PlasticFrets[GetEventLane(Difficulty, event)];
     if (event.getLinkedEvent()->tick - event.tick < 170) {
         lengthTicks = 0;
         lengthSec = 0;
     }
     if (lengthTicks > 0) {
         chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
+        lengthTicks -= 1;
+    }
+    if (!OpenMarker.empty()) {
+        if (OpenMarker.front().first <= event.tick) {
+            lane = 0;
+        }
     }
     chart[0].emplace_back(
         event.tick,
@@ -140,7 +149,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         event.seconds,
         lengthSec,
         GetNoteType(event),
-        PlasticFrets[GetEventLane(Difficulty, event)]
+        lane
     );
     if (!chart.solos.empty()) {
         if (event.tick >= chart.solos[CurrentSolo].StartTick) {
@@ -182,6 +191,7 @@ void Encore::RhythmEngine::GuitarLoader::CheckModifiers(const smf::MidiEvent &ev
     ITERATE_MODIFIER_BY_NOTE(ForceHopoOn, event)
     ITERATE_MODIFIER_BY_NOTE(ForceHopoOff, event)
     ITERATE_MODIFIER_BY_NOTE(TapMarker, event)
+    ITERATE_MODIFIER_BY_NOTE(OpenMarker, event)
 }
 
 void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
@@ -214,6 +224,7 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
                         chart[0].back().NoteType = 1;
                     }
                 }
+
             } else {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 CreateNote(event);

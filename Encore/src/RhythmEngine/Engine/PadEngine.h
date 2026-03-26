@@ -9,19 +9,19 @@
 
 namespace Encore::RhythmEngine {
     class PadEngine : public BaseEngine {
-        bool ActivateOverdrive(InputChannel channel, Action action) override;
+        bool ActivateOverdrive(ControllerEvent &event) override;
 
         /*
          *
          *
          */
-        int RunHitStateCheck(InputChannel channel, Action action) override;
+        int RunHitStateCheck(ControllerEvent &event) override;
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
         void HitNote(int lane);
     public:
         void UpdateOnFrame(double CurrentTime) override;
-        void SetStatsInputState(InputChannel channel, Action action) override;
+        void SetStatsInputState(ControllerEvent &event) override;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<PadStats> stats;
         PadEngine(auto _chart, auto _stats)

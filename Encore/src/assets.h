@@ -12,14 +12,14 @@
 #include <unordered_map>
 #include <vector>
 
-enum AssetState {
+enum AssetState : uint8_t {
     UNLOADED,
     LOADING,
     PREFINALIZED,
     LOADED
 };
 
-const char* AssetStateName(AssetState state);
+const char *AssetStateName(AssetState state);
 
 class Asset {
 protected:
@@ -31,11 +31,11 @@ protected:
 
     //Asset(Asset& other) {}
 public:
-    std::atomic<AssetState> state = UNLOADED;
+    AssetState state = UNLOADED;
     std::string id;
     std::thread loadingThread;
     /// Used for assets created by another and not stored in TheAssets (ShaderAsset)
-    Asset* parent;
+    Asset *parent;
 
     Asset(const std::string &id);
 
@@ -50,7 +50,7 @@ public:
     virtual void LoadImmediate();
     /// Checks if this asset is loaded. Only use in the render thread!
     void CheckForFetch();
-    void SetAssetParent(Asset* newParent);
+    void SetAssetParent(Asset *newParent);
 
     /// Removes the asset from the internal list, hiding it from the debug Assets window
     void DelistAsset();
@@ -66,7 +66,7 @@ public:
 
     Asset(Asset &&other) noexcept
         : id(std::move(other.id)),
-          state(state.load()),
+          state(state),
           loadingThread() {
     }
 
@@ -74,7 +74,6 @@ public:
 };
 
 class FileAsset : public Asset {
-
 protected:
     size_t fileSize;
     void LoadFile();
@@ -112,8 +111,7 @@ public:
     }
 
     FileAsset(FileAsset &&other) noexcept
-        :
-          fileSize(other.fileSize),
+        : fileSize(other.fileSize),
           fileBuffer(other.fileBuffer) {
     }
 };
@@ -184,8 +182,12 @@ public:
     void SetUniform(const std::string &uniformName, float value);
     void SetUniform(const std::string &uniformName, Color value);
     void SetUniform(const std::string &uniformName, Vector4 value);
+    void SetUniform(const std::string &uniformName, Vector2 value);
     void SetUniform(const std::string &uniformName, Vector3 value);
-    void SetUniform(const std::string &uniformName, void* value, ShaderUniformDataType type);
+    void SetUniform(const std::string &uniformName, Texture2D value);
+    void SetUniform(const std::string &uniformName,
+                    void *value,
+                    ShaderUniformDataType type);
 
     int GetUniformLoc(const std::string &uniformName) {
         if (!uniformPositions.contains(uniformName)) {
@@ -281,7 +283,7 @@ public:
         return Fetch();
     }
 
-    char* RawData() {
+    char *RawData() {
         CheckForFetch();
         return fileBuffer;
     }
@@ -310,10 +312,11 @@ public:
 
 class Assets {
 private:
-    std::filesystem::path directory = std::filesystem::path(GetPrevDirectoryPath(GetApplicationDirectory())) / "Assets";
+    std::filesystem::path directory = std::filesystem::path(
+        GetPrevDirectoryPath(GetApplicationDirectory())) / "Assets";
 
 public:
-    std::vector<Asset*> assets; // Stored for debugging
+    std::vector<Asset *> assets; // Stored for debugging
     Assets() {
     }
 
@@ -386,19 +389,20 @@ public:
                    "scale"});
 
     NEWSHADERASSET_POSTFINALIZE(noteShader,
-                   "gameplay/track/notes/noteShader.fsh",
-                   "gameplay/track/trackCurve.vsh",
-                   {"trackLength",
-                   "fadeSize",
-                   "maskTexture",
-                   "noteColor",
-                   "frameColor",
-                   "curveFac",
-                   "offset",
-                   "scale",
-                   "specularLightPos"}, [this](Shader* asset) {
-                       asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.GetUniformLoc("maskTexture");
-                   });
+                                "gameplay/track/notes/noteShader.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {"trackLength",
+                                "fadeSize",
+                                "maskTexture",
+                                "noteColor",
+                                "frameColor",
+                                "curveFac",
+                                "offset",
+                                "scale"},
+                                [this](Shader* asset) {
+                                asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.
+                                GetUniformLoc("maskTexture");
+                                });
 
     NEWSHADERASSET(highwayScrollShader,
                    "gameplay/track/surface/trackScroll.fsh",
@@ -414,54 +418,94 @@ public:
     NEWTEXASSET(hopoNoteTex, "gameplay/track/notes/hopo/diffuse.png");
     NEWTEXASSET(kickNoteTex, "gameplay/track/notes/kick/diffuse.png");
     NEWTEXASSET(openNoteTex, "gameplay/track/notes/open/diffuse.png");
+    NEWTEXASSET(cymbalNoteTex, "gameplay/track/notes/cymbal/diffuse.png");
+    NEWTEXASSET(liftNoteTex, "gameplay/track/notes/lift/diffuse.png");
 
     NEWTEXASSET(regularMaskTex, "gameplay/track/notes/normal/color_mask.png");
     NEWTEXASSET(hopoMaskTex, "gameplay/track/notes/hopo/color_mask.png");
     NEWTEXASSET(kickMaskTex, "gameplay/track/notes/kick/color_mask.png");
     NEWTEXASSET(openMaskTex, "gameplay/track/notes/open/color_mask.png");
+    NEWTEXASSET(cymbalMaskTex, "gameplay/track/notes/cymbal/color_mask.png");
+    NEWTEXASSET(liftMaskTex, "gameplay/track/notes/lift/color_mask.png");
 
 
+    NEWLEGACYMODELASSET(regularNote,
+                        "gameplay/track/notes/normal/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(regularMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = regularNoteTex;
+                        // const Texture2D mask = regularMaskTex.Fetch();
 
-    NEWLEGACYMODELASSET(regularNote, "gameplay/track/notes/normal/model.obj", [this](Model* model) {
-        SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
-        SetTextureWrap(regularMaskTex, TEXTURE_WRAP_CLAMP);
-        model->materials[0].maps[0].texture = regularNoteTex;
-        // const Texture2D mask = regularMaskTex.Fetch();
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        regularMaskTex;
+                        });
 
-        model->materials[0].shader = noteShader;
-        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = regularMaskTex;
-    });
+    NEWLEGACYMODELASSET(hopoNote,
+                        "gameplay/track/notes/hopo/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(hopoNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(hopoMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = hopoNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
 
-    NEWLEGACYMODELASSET(hopoNote, "gameplay/track/notes/hopo/model.obj", [this](Model* model) {
-        SetTextureWrap(hopoNoteTex, TEXTURE_WRAP_CLAMP);
-        SetTextureWrap(hopoMaskTex, TEXTURE_WRAP_CLAMP);
-        model->materials[0].maps[0].texture = hopoNoteTex;
-        // const Texture2D mask = hopoMaskTex.Fetch();
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        hopoMaskTex;
+                        });
 
-        model->materials[0].shader = noteShader;
-        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = hopoMaskTex;
-    });
+    NEWLEGACYMODELASSET(openNote,
+                        "gameplay/track/notes/open/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(openNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(openMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = openNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
 
-    NEWLEGACYMODELASSET(openNote, "gameplay/track/notes/open/model.obj", [this](Model* model) {
-        SetTextureWrap(openNoteTex, TEXTURE_WRAP_CLAMP);
-        SetTextureWrap(openMaskTex, TEXTURE_WRAP_CLAMP);
-        model->materials[0].maps[0].texture = openNoteTex;
-        // const Texture2D mask = hopoMaskTex.Fetch();
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        openMaskTex;
+                        });
 
-        model->materials[0].shader = noteShader;
-        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = openMaskTex;
-    });
+    NEWLEGACYMODELASSET(kickNote,
+                        "gameplay/track/notes/kick/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(kickNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(kickMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = kickNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
 
-    NEWLEGACYMODELASSET(kickNote, "gameplay/track/notes/kick/model.obj", [this](Model* model) {
-        SetTextureWrap(kickNoteTex, TEXTURE_WRAP_CLAMP);
-        SetTextureWrap(kickMaskTex, TEXTURE_WRAP_CLAMP);
-        model->materials[0].maps[0].texture = kickNoteTex;
-        // const Texture2D mask = hopoMaskTex.Fetch();
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        kickMaskTex;
+                        });
 
-        model->materials[0].shader = noteShader;
-        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture = kickMaskTex;
-    });
+    NEWLEGACYMODELASSET(cymbalNote,
+                        "gameplay/track/notes/cymbal/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(cymbalNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(cymbalMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = cymbalNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
 
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        cymbalMaskTex;
+                        });
+
+    NEWLEGACYMODELASSET(liftNote,
+                        "gameplay/track/notes/lift/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(liftNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(liftNoteTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = liftNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
+
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        liftMaskTex;
+                        });
 
     NEWTEXASSET(smasherOffTex, "gameplay/track/smashers/normal/piston_off.png");
     NEWTEXASSET(smasherOnTex, "gameplay/track/smashers/normal/piston_on.png");
@@ -469,55 +513,198 @@ public:
     NEWTEXASSET(kickFrameTex, "gameplay/track/smashers/kick/frame.png");
     NEWTEXASSET(trackRailsTex, "gameplay/track/surface/rails.png");
 
-    NEWLEGACYMODELASSET(smasherPiston, "gameplay/track/smashers/normal/piston.obj",
-        [this](Model* model) {
-            SetTextureWrap(smasherOffTex, TEXTURE_WRAP_CLAMP);
-            SetTextureWrap(smasherOnTex, TEXTURE_WRAP_CLAMP);
-            model->materials[0].maps[0].texture = smasherOffTex;
-            model->materials[0].shader = trackCurveShader;
-        });
+    NEWLEGACYMODELASSET(smasherPiston,
+                        "gameplay/track/smashers/normal/piston.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(smasherOffTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(smasherOnTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = smasherOffTex;
+                        model->materials[0].shader = trackCurveShader;
+                        });
 
-    NEWLEGACYMODELASSET(smasherFrame, "gameplay/track/smashers/normal/frame.obj",
-        [this](Model* model) {
-            SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
-            model->materials[0].maps[0].texture = smasherFrameTex;
-            model->materials[0].shader = trackCurveShader;
-        });
+    NEWLEGACYMODELASSET(smasherFrame,
+                        "gameplay/track/smashers/normal/frame.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(smasherFrameTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = smasherFrameTex;
+                        model->materials[0].shader = trackCurveShader;
+                        });
 
 
     NEWTEXASSET(highwayTexture, "gameplay/track/surface/surface.png");
     NEWTEXASSET(overdriveTex, "gameplay/track/surface/overdrive.png");
     NEWTEXASSET(spotlightTex, "gameplay/track/surface/spotlight.png");
 
-    NEWLEGACYMODELASSET(trackSurface, "gameplay/track/surface/track.obj",
-        [this](Model* model) {
-            model->materials[0].maps[0].texture = highwayTexture;
-            model->materials[0].shader = highwayScrollShader;
-        });
+    NEWLEGACYMODELASSET(trackSurface,
+                        "gameplay/track/surface/track.obj",
+                        [this](Model* model) {
+                        model->materials[0].maps[0].texture = highwayTexture;
+                        model->materials[0].shader = highwayScrollShader;
+                        });
 
-    NEWLEGACYMODELASSET(rails, "gameplay/track/surface/rails.obj",
-        [this](Model* model) {
-            SetTextureWrap(trackRailsTex, TEXTURE_WRAP_CLAMP);
-            model->materials[0].maps[0].texture = trackRailsTex;
-            model->materials[0].shader = trackCurveShader;
-        });
+    NEWLEGACYMODELASSET(rails,
+                        "gameplay/track/surface/rails.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(trackRailsTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = trackRailsTex;
+                        model->materials[0].shader = trackCurveShader;
+                        });
 
-    NEWLEGACYMODELASSET(kickFrame, "gameplay/track/smashers/kick/frame.obj",
-        [this](Model* model) {
-            SetTextureWrap(kickFrameTex, TEXTURE_WRAP_CLAMP);
-            model->materials[0].maps[0].texture = kickFrameTex;
-            model->materials[0].shader = trackCurveShader;
-        });
+    NEWLEGACYMODELASSET(kickFrame,
+                        "gameplay/track/smashers/kick/frame.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(kickFrameTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = kickFrameTex;
+                        model->materials[0].shader = trackCurveShader;
+                        });
 
-    NEWLEGACYMODELASSET(kickPiston, "gameplay/track/smashers/kick/piston.obj",
-        [this](Model* model) {
-            model->materials[0].shader = trackCurveShader;
-        });
+    NEWLEGACYMODELASSET(kickPiston,
+                        "gameplay/track/smashers/kick/piston.obj",
+                        [this](Model* model) {
+                        model->materials[0].shader = trackCurveShader;
+                        });
 
     NEWTEXASSET(hitFlareTex, "gameplay/track/particles/hit_flare.png");
     NEWTEXASSET(hitFlareInnerTex, "gameplay/track/particles/hit_flare_inner.png");
     NEWTEXASSET(shockwaveTex, "gameplay/track/particles/shockwave.png");
 
+    NEWTEXASSET(overdriveMeterTex, "gameplay/track/meters/overdrive_base.png");
+    NEWTEXASSET(overdriveMeterMask, "gameplay/track/meters/overdrive_fill.png");
+
+    NEWSHADERASSET_POSTFINALIZE(overdriveShader,
+                                "gameplay/track/meters/overdrive.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {"FillColor",
+                                "BaseColor",
+                                "FillTexture",
+                                "FillPct",
+                                "curveFac",
+                                "trackLength",
+                                "fadeSize",
+                                "offset",
+                                "scale"},
+
+                                [this](Shader* asset) {
+                                asset->locs[SHADER_LOC_MAP_EMISSION] =
+                                overdriveShader.GetUniformLoc("FillTexture");
+                                });
+
+    NEWLEGACYMODELASSET(overdriveMeter,
+                        "gameplay/track/meters/overdrive_meter.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(overdriveMeterTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(overdriveMeterMask, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = overdriveMeterTex;
+                        // const Texture2D mask = regularMaskTex.Fetch();
+
+                        model->materials[0].shader = overdriveShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        overdriveMeterMask;
+                        // SetShaderValueTexture(overdriveShader, overdriveShader.GetUniformLoc("FillTexture"), overdriveMeterMask);
+                        });
+
+    NEWSHADERASSET(multiplierFillShader,
+                                "gameplay/track/multiplier/MultiplierFill.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {
+                                    "BaseColor",
+                                    "MultiplierColor",
+                                    "FillPercentage",
+                                    "curveFac",
+                                    "trackLength",
+                                    "fadeSize",
+                                    "offset",
+                                    "scale"
+                                });
+    NEWLEGACYMODELASSET(multiplierFill,
+                        "gameplay/track/multiplier/multiplier_fill.obj",
+                        [this](Model* model) {
+
+                        model->materials[0].shader = multiplierFillShader;
+                        });
+
+    NEWTEXASSET(fcindtex1, "gameplay/track/multiplier/od-shine.png");
+    NEWTEXASSET(fcindtex2, "gameplay/track/multiplier/od-shine2.png");
+    NEWTEXASSET(fcindtex3, "gameplay/track/multiplier/od-shine3.png");
+    NEWSHADERASSET_POSTFINALIZE(indicatorRingShader,
+                                "gameplay/track/multiplier/fc_ind.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {
+                                    // fs
+                                    "BaseColor",
+                                    "tex1",
+                                    "tex2",
+                                    "baseTex",
+                                    "time",
+                                    "FCColor",
+                                    "isFC",
+                                    // vs
+                                    "curveFac",
+                                    "trackLength",
+                                    "fadeSize",
+                                    "offset",
+                                    "scale"
+                                },
+                                [this](Shader* shader) {
+                                });
+
+    NEWLEGACYMODELASSET(indicatorRing, "gameplay/track/multiplier/indicator_ring.obj",
+                        [this](Model* model) {
+                            SetTextureWrap(fcindtex1, TEXTURE_WRAP_REPEAT);
+                            SetTextureWrap(fcindtex2, TEXTURE_WRAP_REPEAT);
+                            SetTextureWrap(fcindtex3, TEXTURE_WRAP_REPEAT);
+                            // indicatorRingShader.SetUniform("tex1", fcindtex1);
+                            // indicatorRingShader.SetUniform("tex2", fcindtex2);
+                            // indicatorRingShader.SetUniform("baseTex", fcindtex3);
+                            model->materials[0].shader = indicatorRingShader;
+                            model->materials[0].maps[0].texture = fcindtex3;
+                            model->materials[0].maps[MATERIAL_MAP_SPECULAR].texture = fcindtex1;
+                            model->materials[0].maps[MATERIAL_MAP_NORMAL].texture = fcindtex2;
+                        });
+
+    NEWSHADERASSET(
+        multiplierFrameShader,
+        "",
+        "gameplay/track/trackCurve.vsh",
+        { "curveFac", "trackLength", "fadeSize", "offset", "scale" }
+    );
+
+    NEWLEGACYMODELASSET(multiplierFrame, "gameplay/track/multiplier/multiplier_frame.obj",
+                        [this](Model* model) {
+                            model->materials[0].shader = multiplierFrameShader;
+                        });
+
+    NEWSHADERASSET_POSTFINALIZE(multNumShader,
+                                "gameplay/track/multiplier/multnumber.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {
+                                    // fs
+                                    "uvOffset",
+                                    // vs
+                                    "curveFac",
+                                    "trackLength",
+                                    "fadeSize",
+                                    "offset",
+                                    "scale"
+                                },
+                                [this](Shader* shader) {
+                                });
+
+    NEWTEXASSET(multNumTex, "gameplay/track/multiplier/mult_number.png");
+    NEWLEGACYMODELASSET(multNumPlane, "gameplay/track/multiplier/mult_number_plane.obj",
+                        [this](Model* model) {
+                            SetTextureWrap(multNumTex, TEXTURE_WRAP_REPEAT);
+                            model->materials[0].shader = multNumShader;
+                            model->materials[0].maps[0].texture = multNumTex;
+                        });
+
+    NEWTEXASSET(beatlineTex, "gameplay/track/beatlines/beatline.png");
+    NEWLEGACYMODELASSET(beatline, "gameplay/track/beatlines/beatline.obj",
+                        [this](Model* model) {
+                            SetTextureWrap(beatlineTex, TEXTURE_WRAP_CLAMP);
+                            model->materials[0].shader = trackCurveShader;
+                            model->materials[0].maps[0].texture = beatlineTex;
+                        });
 
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
@@ -604,3 +791,4 @@ public:
 
 extern AssetSet initialSet;
 extern AssetSet mainMenuSet;
+extern AssetSet gameplaySet;

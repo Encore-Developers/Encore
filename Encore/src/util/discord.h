@@ -16,7 +16,7 @@ namespace Encore {
         int64_t startTime;
     public:
         bool Initialized = false;
-        void Initialize();
+        void Initialize(std::string discordBoot);
         ~Discord();
         void DiscordUpdatePresence(
             const std::string &title, const std::string &details, int players

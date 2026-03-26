@@ -18,12 +18,16 @@ namespace EncoreDebug {
 
     extern bool showDebug;
     extern bool reloadQueued;
+    extern bool reloadFonts;
 
     void DrawDebug();
     void MenuBar();
     void DrawAssetViewer();
     void DrawPlayerManager();
     void DrawSongList();
+    void DrawQuickSettings();
+    void DrawSongScrubber();
+    void DrawPracticeSectionSelector();
 
     void StartReloadAssets();
 }

@@ -15,7 +15,6 @@
 #include <unordered_map>
 
 namespace Encore::RhythmEngine {
-
     enum HitState {
         HitNote = 0,
         OverhitNote = 1,
@@ -24,13 +23,19 @@ namespace Encore::RhythmEngine {
 
     class BaseEngine : public EventSource {
     public:
-        BaseEngine(auto _chart, auto _stats) : chart(_chart), stats(_stats) {};
-        virtual ~BaseEngine() {};
-        virtual void SetStatsInputState(InputChannel channel, Action action) {};
+        BaseEngine(auto _chart, auto _stats)
+            : chart(_chart), stats(_stats) {
+        };
+
+        virtual ~BaseEngine() {
+        };
+
+        virtual void SetStatsInputState(ControllerEvent &event) {
+        };
         bool EarlyStrike(double noteStartTime);
         bool InHitwindow(double noteStartTime);
         bool PerfectHit(double noteStartTime);
-        void ProcessInput(InputChannel channel, Action action);
+        void ProcessInput(ControllerEvent &event);
         /*
          * Before hitting the note,
          * check to see if note can be hit with the current information
@@ -41,17 +46,21 @@ namespace Encore::RhythmEngine {
 
         int inst = 0;
         std::shared_ptr<BaseChart> chart;
-        std::shared_ptr<BaseStats<5> > stats;
+        std::shared_ptr<BaseStats<5>> stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
         double LastUpdateTime;
         bool allowTimestampedInputs = true;
 
-        std::pair<int, int> GetNotePoolSize(int lane);
+        float whammy = 0.0;
+        bool practice = false;
+        double pStartTime = 0.0;
+        double pStopTime = 0.0;
+        std::pair<int, int> GetNotePoolSize(int lane) const;
 
         // bool GetCurrentNote(int lane);
         // virtual bool CanNoteBeHit();
+        bool IsWithinPracticeSection(double time) const;
         virtual void UpdateOnFrame(double CurrentTime) {
-
         };
         void CheckMissedNotes(int Lane, double SongTime);
         void HitNote(int lane);
@@ -59,15 +68,17 @@ namespace Encore::RhythmEngine {
         void Overhit(int lane);
         void UpdateStats(int instrument, int difficulty);
         virtual bool UsesNoteMasks() { return false; };
+        void UpdateCalibration(double playerInputOffset);
         int GhostCount;
+
     private:
         virtual bool PlayerIsPaused() = 0;
         virtual void TogglePause() = 0;
 
-        virtual int RunHitStateCheck(InputChannel channel, Action action) = 0;
-        virtual bool ActivateOverdrive(InputChannel channel, Action action) = 0;
+        virtual int RunHitStateCheck(ControllerEvent &event) = 0;
+        virtual bool ActivateOverdrive(ControllerEvent &event) = 0;
 
-        bool PauseGame(InputChannel channel, Action action);
+        bool PauseGame(ControllerEvent &event);
     };
 }
 

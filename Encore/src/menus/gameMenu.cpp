@@ -18,7 +18,7 @@
 #include "../menus/menu.h"
 #include "uiUnits.h"
 #include "../song/songlist.h"
-#include "gameplay/gameplayRenderer.h"
+
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH
@@ -202,10 +202,7 @@ void MainMenu::PickRandomMenuSong() {
             AlbumArtBackground = menuAss.highwayTexture;
         };
 
-        if (TheSongList.curSong->ini)
-            TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
-        // else
-            // TheSongList.curSong->LoadAudioJSON(TheSongList.curSong->songInfoPath);
+        TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
         TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
         streamsLoaded = true;
         for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {

@@ -21,6 +21,7 @@
 #include "song/audio.h"
 #include "users/playerManager.h"
 #include "util/discord.h"
+#include "tracy/Tracy.hpp"
 
 #include <cstddef>
 
@@ -147,6 +148,7 @@ float inputFeedbackAlpha = 1.0f;
 // end calibration
 
 void MenuManager::DrawMenu() {
+    ZoneScoped;
     switch (TheMenuManager.currentScreen) {
         case CALIBRATION: {
             // SettingsOld &settingsMain = SettingsOld::getInstance();

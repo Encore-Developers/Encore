@@ -16,6 +16,7 @@
 #include <atomic>
 #include "picosha2.h"
 #include "inih/INIReader.h"
+#include "tracy/Tracy.hpp"
 #include "util/enclog.h"
 
 #include <array>
@@ -98,22 +99,6 @@ inline PartIcon iconFromString(const std::string &str) {
     }
 }
 
-inline std::unordered_map<std::string, SongParts> midiNameToEnum = {
-    { "PART DRUMS", SongParts::PartDrums },
-    { "PART BASS", SongParts::PartBass },
-    { "PART GUITAR", SongParts::PartGuitar },
-    { "PART VOCALS", SongParts::PartVocals },
-    { "PART KEYS", SongParts::PartKeys },
-    { "PLASTIC DRUMS", SongParts::PlasticDrums },
-    { "PLASTIC BASS", SongParts::PlasticBass },
-    { "PLASTIC GUITAR", SongParts::PlasticGuitar },
-    { "PLASTIC VOCALS", SongParts::PlasticVocals },
-    { "PLASTIC KEYS", SongParts::PlasticKeys },
-    { "PITCHED VOCALS", SongParts::Invalid },
-    { "BEAT", SongParts::BeatLines },
-    { "EVENTS", SongParts::Events }
-};
-
 inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
     { "PAD DRUMS", SongParts::PartDrums }, { "PAD BASS", SongParts::PartBass },
     { "PAD GUITAR", SongParts::PartGuitar }, { "PAD VOCALS", SongParts::PartVocals },
@@ -137,15 +122,6 @@ inline std::vector<int> PlasticToPadEnumConverter = { PartDrums, PartBass, PartG
                                                       PartVocals, PartKeys, PartDrums,
                                                       PartBass, PartGuitar, PartVocals,
                                                       PartKeys, PartVocals, Invalid };
-
-inline SongParts partFromString(const std::string &str) {
-    auto it = midiNameToEnum.find(str);
-    if (it != midiNameToEnum.end()) {
-        return it->second;
-    } else {
-        return SongParts::Invalid;
-    }
-}
 
 inline SongParts partFromStringINI(const std::string &str) {
     auto it = midiNameToEnumINI.find(str);
@@ -202,64 +178,58 @@ public:
     std::vector<std::string> charters{};
     std::string jsonHash = "";
     int hopoThreshold = -1;
-    bool ini = false;
     smf::MidiFile midiFile;
-    void LoadAudioINI(std::filesystem::path songPath);
+    void LoadAudioINI(const std::filesystem::path& songPath);
     float previewStartTime = 0.0f;
 
-    void InspectMIDI();
+    SongParts GetSongPart(smf::MidiEventList track) {
+        for (int events = 0; events < track.getSize(); events++) {
+            std::string trackName;
+            if (!track[events].isMeta())
+                continue;
+            if ((int)track[events][1] == 3) {
+                for (int k = 3; k < track[events].getSize(); k++) {
+                    trackName += track[events][k];
+                }
+                return partFromStringINI(trackName);
+            }
+        }
+        return Invalid;
+    }
 
+    std::vector<std::vector<int> > pDiffRangeNotes = {
+        { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
+    };
 
-    void LoadAudioJSON(const nlohmann::json &jsonPath) {
-        if (!stemsPath.empty())
-            stemsPath.clear();
+    void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) {
+        if (songPart == Invalid || songPart == PitchedVocals || songPart == BeatLines) {
+            return;
+        }
+        for (int diff = 0; diff < 4; diff++) {
+            bool StopSearching = false;
 
-        for (auto & [key, val] : jsonPath.at("stems").items()) {
-            stemsPath.emplace_back(
-                (songInfoPath.parent_path() / val).string(),
-                midiNameToEnum[key]);
+            for (int i = 0; i < track.getSize(); i++) {
+                if (track[i].isNoteOn() && !track[i].isMeta()
+                    && track[i][1] >= pDiffRangeNotes[diff][0]
+                    && track[i][1] <= pDiffRangeNotes[diff][1] && !StopSearching) {
+                    parts[songPart]->ValidDiffs.at(diff) = true;
+                    parts[songPart]->TrackInt = trackNumber;
+                    parts[songPart]->Valid = true;
+                    StopSearching = true;
+                    }
+                if (StopSearching)
+                    break;
+            }
         }
     }
+
 
     void LoadInfoINI(std::filesystem::path iniPath);
     void PullInfoFromINI(INIReader &ini);
 
-    void LoadInfoJSON(const nlohmann::json &infoData) {
-
-        if (!charters.empty())
-            charters.clear();
-
-        title = infoData.value<std::string>("title", "Unknown song");
-        artist = infoData.value<std::string>("artist", "Unknown artist");
-        album = infoData.value<std::string>("album", "Unknown album");
-        source = infoData.value<std::string>("source", "Unknown source");
-        length = infoData.value<int>("length", 0);
-        releaseYear = infoData.value("release_year", "");
-        loadingPhrase = infoData.value<std::string>("loading_phrase", "");
-        midiPath =
-            (std::filesystem::path(songDir) /
-                infoData.value<std::string>("midi", "")).string();
-
-        try {
-            std::string charter = infoData.value<std::string>("charters", "Unknown chart author");
-            charters.push_back(charter);
-        } catch (const std::exception &e) {
-            charters.push_back("Unknown chart author");
-        }
-    }
-
-    void LoadSongIni(std::filesystem::path songPath);
+    void LoadSongIni(const std::filesystem::path& songPath);
 
     using json = nlohmann::json;
-
-    void LoadSongJSON(std::filesystem::path jsonPath) {
-        std::ifstream infoFile(jsonPath);
-        json infoData = json::parse(infoFile);
-        infoFile.close();
-
-        LoadInfoJSON(infoData);
-        LoadAudioJSON(infoData);
-    }
 
     void parseBeatLines(smf::MidiFile &midiFile, int trkidx) {
         int MaxTick = midiFile[trkidx].last().tick;
@@ -336,6 +306,7 @@ public:
                 }
             }
         }
+        if (endTick == 0) endTick = midiFile.getFileDurationInTicks();
     }
 
     // Coda BRE {};
@@ -350,10 +321,7 @@ public:
                             trackName += midiFile[track][events][k];
                         }
                         SongParts songPart;
-                        if (ini) {
-                            songPart = partFromStringINI(trackName);
-                        } else
-                            songPart = partFromString(trackName);
+                        songPart = partFromStringINI(trackName);
                         if (songPart > PlasticDrums && songPart <= PlasticGuitar) {
                             int codaNote = 120; // i dont wanna bother with checking all
                             // five lanes
@@ -394,6 +362,7 @@ public:
     }
 
     void LoadAlbumArt() {
+        ZoneScoped;
         Image albumImage = LoadImage(albumArtPath.c_str());
         if (albumImage.height > 512) {
             ImageResize(&albumImage, 512, 512);
@@ -402,12 +371,17 @@ public:
         GenTextureMipmaps(&albumArt);
         SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
 
-        ImageBlurGaussian(&albumImage, 10);
-        albumArtBlur = LoadTextureFromImage(albumImage);
-        GenTextureMipmaps(&albumArtBlur);
-        SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
+        {
+            ZoneScopedN("Album Art Blurring");
+            ImageBlurGaussian(&albumImage, 10);
+            albumArtBlur = LoadTextureFromImage(albumImage);
+            GenTextureMipmaps(&albumArtBlur);
+            SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
+        }
         UnloadImage(albumImage);
     };
 };
+
+
 
 #endif // ENCORE_SONG_H

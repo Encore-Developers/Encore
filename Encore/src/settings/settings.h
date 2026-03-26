@@ -21,6 +21,7 @@
     OPTION(float, avMenuMusicVolume, 0.15f)                                              \
     OPTION(bool, Fullscreen, false)                                                      \
     OPTION(int, AudioOffset, 0)                                                          \
+    OPTION(int, VideoOffset, 0)                                                          \
     OPTION(bool, DiscordRichPresence, true)                                              \
     OPTION(int, Framerate, 60)                                                           \
     OPTION(bool, VerticalSync, true)                                                     \
@@ -56,6 +57,7 @@ namespace Encore {
         Framerate,
         VerticalSync,
         AudioOffset,
+        VideoOffset,
         DiscordRichPresence,
         SongPaths,
         BackgroundBeatFlash

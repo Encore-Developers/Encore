@@ -8,6 +8,8 @@
 
 #include <vector>
 
+#include "RhythmEngine/Notes/EncNote.h"
+
 struct BPM {
     BPM(double _time, int _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
     double time;
@@ -47,6 +49,12 @@ struct Beatline {
     int tick;
     int type = Major;
 };
+
+struct Section {
+    std::string name;
+    double start;
+};
+
 class SongTime {
 private:
     double aCalib = 0.0;
@@ -68,9 +76,15 @@ public:
     std::vector<Beatline> Beatlines {};
     int CurrentBeatline;
 
+    std::vector<Section> Sections {};
+    std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
+
+    
+
     SongTime() = default;
     void GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID);
     void UpdateOverdriveTick();
+    void ParseSections(smf::MidiFile);
     double LastTick = 0;
     double CurrentTick = 0;
     double LastODTick = 0;

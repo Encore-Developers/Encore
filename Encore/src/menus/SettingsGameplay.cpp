@@ -241,7 +241,7 @@ void SettingsGameplay::Draw() {
     ImGui::SetNextWindowPos({scanButtonRect.x, scanButtonRect.y+scanButtonHeight}, ImGuiCond_Always);
     ImGui::SetNextWindowSize({scanButtonWidth, scanButtonHeight*3});
     if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-        const std::filesystem::path* toDelete;
+        const std::filesystem::path* toDelete = nullptr;
         for (const auto& path : TheGameSettings.SongPaths) {
             ImGui::PushID((void*)&path);
             if (ImGui::Button("Remove")) {

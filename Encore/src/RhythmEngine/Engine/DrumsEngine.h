@@ -9,23 +9,25 @@
 
 namespace Encore::RhythmEngine {
     class DrumsEngine : public BaseEngine {
-        bool ActivateOverdrive(InputChannel channel, Action action) override;
+        bool ActivateOverdrive(ControllerEvent &event) override;
 
         /*
          *
          *
          */
-        int RunHitStateCheck(InputChannel channel, Action action) override;
+        int RunHitStateCheck(ControllerEvent &event) override;
         bool PlayerIsPaused() override { return stats->Paused; };
         void TogglePause() override { stats->Paused = !stats->Paused; };
 
     public:
         void UpdateOnFrame(double CurrentTime) override;
-        void SetStatsInputState(InputChannel channel, Action action) override;
+        void SetStatsInputState(ControllerEvent &event) override;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<DrumsStats> stats;
         DrumsEngine(auto _chart, auto _stats)
-            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {};
+            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {
+            Timers = { {"debounce", RhythmTimer(0.01)} };
+        };
         ~DrumsEngine() override {};
     };
 };

@@ -9,7 +9,7 @@
 #include "uiUnits.h"
 #include "RhythmEngine/engines.h"
 #include "gameplay/enctime.h"
-#include "gameplay/gameplayRenderer.h"
+#include "tracy/Tracy.hpp"
 #include "users/playerManager.h"
 
 #include <thread>
@@ -19,14 +19,19 @@ bool StartLoading = true;
 bool FinishedLoading = false;
 
 void LoadCharts() {
-    TheSongList.curSong->midiFile.read(TheSongList.curSong->midiPath.string());
-    TheSongList.curSong->midiFile.doTimeAnalysis();
-    TheSongTime.BeatmapFromMidiTrack(
-        TheSongList.curSong->midiFile, TheSongList.curSong->endTick
-    );
-    TheSongTime.GenerateOverdriveTicks(
-        TheSongList.curSong->midiFile, TheSongList.curSong->BeatTrackID
-    );
+    ZoneScoped;
+    {
+        ZoneScopedN("MIDI Read")
+        TheSongList.curSong->midiFile.read(TheSongList.curSong->midiPath.string());
+        TheSongList.curSong->midiFile.doTimeAnalysis();
+        TheSongTime.BeatmapFromMidiTrack(
+            TheSongList.curSong->midiFile, TheSongList.curSong->endTick
+        );
+        TheSongTime.GenerateOverdriveTicks(
+            TheSongList.curSong->midiFile, TheSongList.curSong->BeatTrackID
+        );
+        TheSongTime.ParseSections(TheSongList.curSong->midiFile);
+    }
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     for (OvershellSlot& slot : ThePlayerManager.ActivePlayers) {
@@ -89,6 +94,8 @@ void LoadCharts() {
                 );
                 player->engine->stats->Type =
                     Encore::RhythmEngine::Pad;
+                if (diff < 3)
+                    player->engine->chart->Lanes.resize(4);
                 // todo: make pad engine shit how did u forget
             }
             for (int i = 0; i
@@ -128,6 +135,7 @@ void LoadCharts() {
  * @brief Load chart, create new player
  */
 void ChartLoadingMenu::Load() {
+    ZoneScoped;
     // for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
     //    ThePlayerManager.GetActivePlayer(playerNum).stats = new PlayerGameplayStats(
     //        ThePlayerManager.GetActivePlayer(playerNum).Difficulty,
@@ -139,6 +147,7 @@ void ChartLoadingMenu::Load() {
     LoadCharts();
     // std::thread ChartLoader(LoadCharts);
     // ChartLoader.detach();
+    gameplaySet.StartLoad();
 }
 
 void ChartLoadingMenu::Draw() {

@@ -36,6 +36,7 @@
 
 #include "imgui.h"
 #include "GLFW/glfw3.h"
+#include "tracy/Tracy.hpp"
 
 #include <math.h>
 #include <limits>
@@ -508,6 +509,7 @@ void rlImGuiBeginDelta(float deltaTime)
 
 void rlImGuiEnd(void)
 {
+    ZoneScoped;
     ImGui::SetCurrentContext(GlobalContext);
     ImGui::Render();
     ImGui_ImplRaylib_RenderDrawData(ImGui::GetDrawData());

@@ -48,6 +48,12 @@ option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
+
+
+option ( TRACY_ENABLE " " ON )
+option ( TRACY_ON_DEMAND " " ON )
+add_subdirectory(thirdparty/tracy EXCLUDE_FROM_ALL)
+
 # Add all subdirectories of src
 
 file(GLOB_RECURSE SRC_FILES "src/*.cpp" "include/*.cpp" "include/*.c")
@@ -145,5 +151,5 @@ set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 
-target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3)
+target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3 Tracy::TracyClient)
 

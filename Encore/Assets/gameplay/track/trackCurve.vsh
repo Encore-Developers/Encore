@@ -44,7 +44,7 @@ void main()
     fragColor = vertexColor;
     fragNormal = normalize(vec3(matNormal*vec4(vertexNormal, 1.0)));
     PositionInWorldSpace.y = PositionInWorldSpace.y + (-xPow) / (curveFac);
-    PositionInWorldSpace.x = PositionInWorldSpace.x + (-(yPow)) / (curveFac * 2);
+    // PositionInWorldSpace.x = PositionInWorldSpace.x + (-(yPow)) / (curveFac * 2);
     PositionInViewSpace = matView * PositionInWorldSpace;
     vec4 PositionInObjectSpace = inverse(ModelViewMatrix) * PositionInViewSpace;
     gl_Position = mvp * PositionInObjectSpace;

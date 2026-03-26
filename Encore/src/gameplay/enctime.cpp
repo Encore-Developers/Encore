@@ -1,6 +1,7 @@
 
 #include "enctime.h"
 
+#include "settings/settings.h"
 #include "song/songlist.h"
 #include "util/enclog.h"
 
@@ -9,9 +10,12 @@
 #include <cmath>
 #include "song/audio.h"
 
+#include <regex>
+
 SongTime TheSongTime;
 
 void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
+    ZoneScoped;
     midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[0];
     track.linkEventPairs();
@@ -58,6 +62,7 @@ bool equalTicks(const OverdriveTick &a, const OverdriveTick &b) {
 }
 
 void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
+    ZoneScoped;
     midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[TrackID];
     track.linkEventPairs();
@@ -67,16 +72,28 @@ void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
             OverdriveTicks.emplace_back(track[i].seconds, track[i].tick);
         }
     }
+
+    // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
+    if (OverdriveTicks.size() == 0) {
+        int overdriveTickCount = floor(midiFile.getFileDurationInTicks() / 480);
+        for (int i = 0; i < overdriveTickCount; i++) {
+            OverdriveTicks.emplace_back(midiFile.getTimeInSeconds(480 * i), 480 * i);
+        }
+    }
 };
 
 void SongTime::UpdateOverdriveTick() {
     // this is the overdrive code right here
     // std::cout << std::endl;
     double CurrentTime = GetElapsedTime();
+    if (OverdriveTicks.size() == 0)
+        return;
     while (CurrentODTickItr < OverdriveTicks.size() - 1) {
         // if the next tick's time is greater than the current time, stop
         // otherwise, just increase lmfao
         // std::cout << std::endl;
+
+
         const auto &NextTick = OverdriveTicks.at(CurrentODTickItr + 1);
         // Encore::EncoreLog(LOG_DEBUG, TextFormat("Next tick time: %4.4f",
         // NextTick.time)); Encore::EncoreLog(LOG_DEBUG, TextFormat("Current time: %4.4f",
@@ -114,6 +131,35 @@ void SongTime::UpdateOverdriveTick() {
 
         double deltaMappedToPercentage = timeDelta / timeBetweenTicks;
         CurrentODTick = CurrentODTickItr + deltaMappedToPercentage;
+    }
+}
+void SongTime::ParseSections(smf::MidiFile midiFile) {
+    ZoneScoped;
+    Sections.clear();
+    for (int track = 0; track < midiFile.getTrackCount(); track++) {
+        SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
+        TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
+        if (songPart == Events) {
+            auto &trackObj = midiFile[track];
+            for (int i = 0; i < trackObj.getSize(); i++) {
+                auto &event = trackObj[i];
+                std::string evt_string;
+                evt_string.reserve(event.getSize());
+                for (int k = 3; k < event.getSize(); k++) {
+                    evt_string += event[k];
+                }
+                {
+                    ZoneScopedN("Regex");
+                    // I'm sorry.
+                    static const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
+                    std::smatch match;
+                    std::regex_match(evt_string, match, practiceRegex);
+                    if (match[4].matched) {
+                        Sections.push_back({match[4], event.seconds});
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -290,7 +336,7 @@ double SongTime::GetElapsedTime() {
         return TheAudioManager.GetMusicTimeLength() + (GetTime() - lastTimeSample);
     }
     lastTimeSample = GetTime();
-    return audioTime - aCalib;
+    return audioTime - aCalib + TheGameSettings.VideoOffset/1000.0;
 };
 double SongTime::GetStartTime() {
     return 0;

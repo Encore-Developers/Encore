@@ -25,6 +25,7 @@ namespace Encore {
         void DrawBeatlines();
         void DrawSurface();
         void DrawOverdriveMeter();
+        void DrawMultiplier();
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
 
         virtual void HandleEvent(Event *);
@@ -38,6 +39,8 @@ namespace Encore {
         float GetNotePos3D(double noteTime);
         float GetViewEndTime() const;
         float GetZPerSecond() const;
+
+        void FitToColumn(float left, float right);
 
         unsigned char BeatToCharViaTickThing(
             int tick,
@@ -58,6 +61,11 @@ namespace Encore {
         float SpotlightTimer = 0;
         float OverdriveTimer = 0;
         Vector3 specularLightPos;
+
+        // The column of the screen that this track can occupy. Used for multiplayer positioning.
+        float ColumnLeft = -1;
+        float ColumnRight = 1;
+        bool ColumnFitting = true;
 
         Camera3D AnimCamera;
         Camera3D BaseCamera;

@@ -84,7 +84,7 @@ void Song::PullInfoFromINI(INIReader &ini) {
     parts[PartVocals]->diff = ini.GetInteger("song", "diff_vocals_pad", -1);
 }
 
-void Song::LoadSongIni(std::filesystem::path songPath) {
+void Song::LoadSongIni(const std::filesystem::path& songPath) {
     for (const auto &entry : std::filesystem::directory_iterator(songPath)) {
         if (entry.is_regular_file()) {
             std::string base_filename = entry.path().string().substr(
@@ -105,7 +105,7 @@ void Song::LoadSongIni(std::filesystem::path songPath) {
     LoadAudioINI(songPath);
 }
 
-void Song::LoadAudioINI(std::filesystem::path songPath) {
+void Song::LoadAudioINI(const std::filesystem::path& songPath) {
     for (const auto &entry : std::filesystem::directory_iterator(songPath)) {
         if (entry.is_regular_file()) {
             std::string base_filename = entry.path().string().substr(

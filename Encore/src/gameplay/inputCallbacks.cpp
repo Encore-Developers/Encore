@@ -17,6 +17,8 @@
 
 #include "RhythmEngine/REenums.h"
 #include "users/playerManager.h"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyC.h"
 
 using namespace std::chrono_literals;
 
@@ -117,11 +119,21 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 
         outevent.slot = event->gdevice.which;
     }
+    if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+        if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
+            outevent.channel = Encore::RhythmEngine::InputChannel::WHAMMY;
+            outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
+            outevent.slot = SDL_GetGamepadPlayerIndexForID(event->gdevice.which);
 
+            Encore::EncoreLog(LOG_INFO,
+                              TextFormat("SDL whammy value %01i", outevent.axis));
+        }
+    }
     return outevent;
 }
 
 void PollQueuedInputs(ControllerPoller& poller) {
+    ZoneScoped;
     while (poller.readIndex < poller.writeIndex) {
         auto event = poller.getEvent(poller.readIndex);
         if (!ThePlayerManager.overshell.gamepadStateCallback(event)) {
@@ -163,6 +175,7 @@ int ControllerPoller::controllerPollRate = 1000;
 ControllerPoller* ControllerPoller::instance;
 
 void ControllerPoller::Run() {
+    TracyCSetThreadName("Controller Poll Thread")
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
     if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
@@ -171,6 +184,7 @@ void ControllerPoller::Run() {
     Encore::EncoreLog(LOG_INFO, TextFormat("SDL Initialzed: revision %s", SDL_GetRevision()));
 
     while (active) {
+        ZoneScopedN("Controller Poll Thread")
         auto start = std::chrono::high_resolution_clock::now();
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -188,7 +202,7 @@ void ControllerPoller::Run() {
                                              SDL_GetGamepadNameForID(event.gdevice.which)));
                 break;
             }
-            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP) {
+            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
                 if (TheMenuManager.currentScreen == GAMEPLAY) {
                     auto time = TheSongTime.GetElapsedTime();
                     auto encEvent = TranslateEvent(&event);
@@ -199,15 +213,21 @@ void ControllerPoller::Run() {
             }
         }
 
-        requestMutex.lock();
-        for (auto &func : funcRequests) {
-            func();
+        {
+            ZoneScopedN("Enqueue Events")
+            requestMutex.lock();
+            for (auto &func : funcRequests) {
+                func();
+            }
+            funcRequests.clear();
+            requestMutex.unlock();
         }
-        funcRequests.clear();
-        requestMutex.unlock();
 
         auto end = std::chrono::high_resolution_clock::now();
         auto span = std::chrono::milliseconds(1000/controllerPollRate) - (end - start);
-        std::this_thread::sleep_for(span);
+        {
+            ZoneScopedN("Sleep")
+            std::this_thread::sleep_for(span);
+        }
     }
 }

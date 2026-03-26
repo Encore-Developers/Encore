@@ -2,6 +2,7 @@
 #include "bass/bass.h"
 #include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
+#include "tracy/Tracy.hpp"
 
 #ifdef WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -60,6 +61,7 @@ bool Encore::AudioManager::Init() {
 }
 
 void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int> > &paths) {
+    ZoneScoped;
     int streams = 0;
     for (auto &path : paths) {
         HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
@@ -216,7 +218,8 @@ void Encore::AudioManager::StartEffect(AudioStream* stream) {
 }
 
 void Encore::AudioManager::StopEffect(AudioStream* stream) {
-    BASS_ChannelRemoveFX(stream->handle, stream->fxhandle);
+    if (stream)
+        BASS_ChannelRemoveFX(stream->handle, stream->fxhandle);
     CHECK_BASS_ERROR2();
 }
 

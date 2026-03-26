@@ -157,18 +157,17 @@ void SongList::WriteCache() {
         SongCache << song.albumArtPath;
         SongCache << song.songInfoPath.string();
         SongCache << song.midiPath.string();
-        SongCache << song.ini;
         std::ifstream songInfo(song.songInfoPath);
         std::ostringstream sstr;
         sstr << songInfo.rdbuf();
         SongCache << sstr.str();
 
 
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
-        Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
+        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
     }
 
     SongCache.close();
@@ -182,28 +181,15 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
 
     directoryCount++;
 
-    std::filesystem::path infoPath = folder / "info.json";
+    auto infoPath = folder / "song.ini";
     if (std::filesystem::exists(infoPath)) {
         Song song;
-        song.songInfoPath = folder / "info.json";
-        song.songDir = folder.string();
-        for (auto &file : std::filesystem::directory_iterator(folder)) {
-            if (file.path().stem() == "cover") {
-                song.albumArtPath = file.path().string();
-                break;
-            }
-        }
-        song.LoadSongJSON(song.songInfoPath);
-        songs.push_back(std::move(song));
-    } else if (std::filesystem::exists(folder / "song.ini")) {
-        Song song;
-        song.songInfoPath = folder / "song.ini";
+        song.songInfoPath = infoPath;
         song.songDir = folder.string();
         song.LoadSongIni(folder);
-        song.ini = true;
         songs.push_back(std::move(song));
     } else {
-        // If this folder doesn't have song.ini or song.json, this must be a organizational folder; continue scanning.
+        // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
             ScanFolder(entry.path());
         };
@@ -288,6 +274,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
 }
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
+    ZoneScoped;
     encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
     if (!SongCacheIn) {
         Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");
@@ -329,8 +316,10 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     Clear();
     Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
     std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
+    songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
     for (int i = 0; i < cachedSongCount; i++) {
+        ZoneScopedN("Song")
         CurrentChartNumber = i + 1;
         Song song;
 
@@ -346,28 +335,24 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> midiPath;
         song.midiPath = midiPath;
 
-        SongCacheIn >> song.ini;
-        if (song.ini) {
+        {
+            ZoneScopedN("INI Parse")
             std::string iniData;
             SongCacheIn >> iniData;
             INIReader reader(iniData.c_str(), iniData.length());
             song.PullInfoFromINI(reader);
-        } else {
-            std::string jsonData;
-            SongCacheIn >> jsonData;
-            json infoData = json::parse(jsonData.c_str());
-
-            song.LoadInfoJSON(infoData);
-            song.LoadAudioJSON(infoData);
         }
 
         // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
 
-        if (!std::filesystem::exists(song.songDir)) {
-            continue;
+        {
+            ZoneScopedN("Vector insert");
+            if (!std::filesystem::exists(song.songDir)) {
+                continue;
+            }
+            loadedSongs.insert(song.songDir);
+            this->songs.emplace_back(song);
         }
-        loadedSongs.insert(song.songDir);
-        this->songs.emplace_back(song);
 
     }
 

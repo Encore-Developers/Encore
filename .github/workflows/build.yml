@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
-name: Indev - Build Windows x86, Windows x64, Linux, macOS
+name: Indev - Windows x64, Linux, macOS
 on:
   workflow_dispatch:
   pull_request:
@@ -41,32 +41,7 @@ jobs:
         name: Encore_Win_x64-Indev
         path: ${{github.workspace}}/build_x64/Encore/Release/*
 
-  build-windows-x86:
-    runs-on: windows-latest
 
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-    
-    - name: Configure CMake x86
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/build_x86 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A Win32
-
-    - name: Build x86
-      # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build_x86 --config ${{env.BUILD_TYPE}}
-
-    - name: Move Assets/Songs folders and bass.dll x86
-      working-directory: ${{github.workspace}}/build_x86/Encore
-      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll ; move discord_game_sdk.dll Release/discord_game_sdk.dll
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Encore_Win_x86-Indev
-        path: ${{github.workspace}}/build_x86/Encore/Release/*
-        
   build-linux:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.

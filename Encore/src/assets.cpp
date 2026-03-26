@@ -5,6 +5,8 @@
 #include "assets.h"
 #include <filesystem>
 #include "raygui.h"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyC.h"
 #include "util/enclog.h"
 
 #include <fstream>
@@ -35,7 +37,8 @@ Assets &Assets::getInstance() {
 
 void Asset::CheckForFetch() {
     switch (state) {
-    case UNLOADED:
+    case UNLOADED: {
+        ZoneScopedN("Asset Main Thread Load")
         Load();
         Encore::EncoreLog(LOG_WARNING,
                           TextFormat(
@@ -46,17 +49,20 @@ void Asset::CheckForFetch() {
             Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
             Finalize();
         }
-        break;
-    case LOADING:
-        Encore::EncoreLog(LOG_WARNING,
-                          TextFormat(
-                              "Asset %s was fetched while it is being loaded. Blocking until it is loaded...",
-                              id.c_str()));
-        while (state == LOADING) {
-        } // spin spin spin
-        if (state == PREFINALIZED) {
-            Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
-            Finalize();
+    }
+    break;
+    case LOADING: {
+            ZoneScopedN("Asset Finalize Waiting")
+            Encore::EncoreLog(LOG_WARNING,
+                             TextFormat(
+                                 "Asset %s was fetched while it is being loaded. Blocking until it is loaded...",
+                                 id.c_str()));
+            while (state == LOADING) {
+            } // spin spin spin
+            if (state == PREFINALIZED) {
+                Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+                Finalize();
+            }
         }
         break;
     case PREFINALIZED:
@@ -66,10 +72,12 @@ void Asset::CheckForFetch() {
     default: ;
     }
 }
+
 void Asset::SetAssetParent(Asset *newParent) {
     parent = newParent;
     DelistAsset();
 }
+
 void Asset::DelistAsset() {
     for (auto iter = TheAssets.assets.begin(); iter != TheAssets.assets.end(); ++iter) {
         auto asset = *iter;
@@ -79,17 +87,21 @@ void Asset::DelistAsset() {
         }
     }
 }
+
 Asset::~Asset() {
     DelistAsset();
 }
+
 Asset::Asset(const std::string &id) {
     this->id = id;
     TheAssets.assets.push_back(this);
 }
+
 void Asset::StartLoad() {
+    ZoneScoped;
     if (state == UNLOADED) {
         state = LOADING;
-        loadingThread = std::thread([this]() { this->Load(); });
+        loadingThread = std::thread([this]() { TracyCSetThreadName(TextFormat("Asset Load Thread: %s", id.c_str())); this->Load(); });
         loadingThread.detach();
         //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
     }
@@ -182,9 +194,11 @@ void ShaderAsset::Finalize() {
     for (auto &uniform : uniformPositions) {
         uniform.second = GetShaderLocation(shader, uniform.first.c_str());
     }
-    if (postFinalizeFunc) postFinalizeFunc(&shader);
+    if (postFinalizeFunc)
+        postFinalizeFunc(&shader);
     state = LOADED;
 }
+
 void ShaderAsset::SetUniform(const std::string &uniformName, float value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_FLOAT);
 }
@@ -195,14 +209,28 @@ void ShaderAsset::SetUniform(const std::string &uniformName, Color value) {
     };
     SetUniform(uniformName, &vec4, SHADER_UNIFORM_VEC4);
 }
+
 void ShaderAsset::SetUniform(const std::string &uniformName, Vector4 value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_VEC4);
 }
+
+void ShaderAsset::SetUniform(const std::string &uniformName, Vector2 value) {
+    SetUniform(uniformName, &value, SHADER_UNIFORM_VEC2);
+}
+
 void ShaderAsset::SetUniform(const std::string &uniformName, Vector3 value) {
     SetUniform(uniformName, &value, SHADER_UNIFORM_VEC3);
 }
+
+void ShaderAsset::SetUniform(const std::string &uniformName, Texture2D value) {
+    CheckForFetch();
+    SetShaderValueTexture(shader, GetUniformLoc(uniformName), value);
+}
+
 void ShaderAsset::SetUniform(
-    const std::string &uniformName, void *value, ShaderUniformDataType type
+    const std::string &uniformName,
+    void *value,
+    ShaderUniformDataType type
 ) {
     CheckForFetch();
     SetShaderValue(shader, GetUniformLoc(uniformName), value, type);
@@ -323,7 +351,38 @@ AssetSet mainMenuSet = { ASSETPTR(redHatDisplayItalic),
                          ASSETPTR(hopoNoteTex),
                          ASSETPTR(hopoNote),
                          ASSETPTR(hopoMaskTex),
-                         ASSETPTR(regularMaskTex)
+                         ASSETPTR(regularMaskTex),
+                         ASSETPTR(fcindtex1),
+                         ASSETPTR(fcindtex2),
+                         ASSETPTR(fcindtex3)
+};
+
+AssetSet gameplaySet = { ASSETPTR(trackSurface),
+                         ASSETPTR(spotlightTex),
+                         ASSETPTR(overdriveTex),
+                         ASSETPTR(trackCurveShader),
+                         ASSETPTR(noteShader),
+                         ASSETPTR(highwayScrollShader),
+                         ASSETPTR(regularNote),
+                         ASSETPTR(hopoNote),
+                         ASSETPTR(openNote),
+                         ASSETPTR(kickNote),
+                         ASSETPTR(cymbalNote),
+                         ASSETPTR(smasherPiston),
+                         ASSETPTR(smasherFrame),
+                         ASSETPTR(trackSurface),
+                         ASSETPTR(rails),
+                         ASSETPTR(kickFrame),
+                         ASSETPTR(kickPiston),
+                         ASSETPTR(hitFlareTex),
+                         ASSETPTR(shockwaveTex),
+                         ASSETPTR(hitFlareInnerTex),
+                         ASSETPTR(overdriveShader),
+                         ASSETPTR(indicatorRingShader),
+                         ASSETPTR(indicatorRing),
+                         ASSETPTR(liftNote),
+                         ASSETPTR(liftNoteTex),
+                         ASSETPTR(liftMaskTex)
 };
 
 

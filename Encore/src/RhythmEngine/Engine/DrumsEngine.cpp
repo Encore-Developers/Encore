@@ -11,10 +11,9 @@
 #include "gameplay/enctime.h"
 
 bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
-    InputChannel channel,
-    Action action
+ControllerEvent &event
 ) {
-    if (channel == InputChannel::OVERDRIVE && action == Action::PRESS) {
+    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         stats->overdrive.Activate(stats->InputTime); // time
         return true;
     }
@@ -22,33 +21,32 @@ bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
 }
 
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
-    InputChannel channel,
-    Action action
+ControllerEvent &event
 ) {
     stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG
     // TIME (IN SECONDS)
-    if (action == Action::PRESS) {
-        switch (channel) {
+    if (event.action == Action::PRESS) {
+        switch (event.channel) {
         case InputChannel::LANE_1:
         case InputChannel::LANE_2:
         case InputChannel::LANE_3:
         case InputChannel::LANE_4:
         case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(channel)) = true;
+            stats->HeldFrets.at(ICInt(event.channel)) = true;
             break;
         }
         default:
             break;
         }
     }
-    if (action == Action::RELEASE) {
-        switch (channel) {
+    if (event.action == Action::RELEASE) {
+        switch (event.channel) {
         case InputChannel::LANE_1:
         case InputChannel::LANE_2:
         case InputChannel::LANE_3:
         case InputChannel::LANE_4:
         case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(channel)) = false;
+            stats->HeldFrets.at(ICInt(event.channel)) = false;
             break;
         }
         default:
@@ -57,16 +55,13 @@ void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
     }
 }
 
-int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
-    InputChannel channel,
-    Action action
+int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
 ) {
-    if (channel == InputChannel::STRUM_UP || channel == InputChannel::STRUM_DOWN)
+    if (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN)
         return CheckNextInput;
-    int lane = ICInt(channel);
-    // auto &chartLane = chart->at(lane);
-    // if (chartLane.empty())
-    //     return CheckNextInput;
+    int lane = ICInt(event.channel);
+    if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
+        return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
     // auto curNoteItr = chartLane.begin();
     // while (curNoteItr->StartSeconds + goodBackend
@@ -78,12 +73,17 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(
     // }
     // EncNote &CurrentNote = *curNoteItr;
     // bool lift = false; //action == Action::RELEASE && CurrentNote.NoteType == 1;
-    if (action == Action::PRESS) {
+    if (event.action == Action::PRESS) {
         if (EarlyStrike(CurrentNote->StartSeconds)) {
+            if (Timers["debounce"].CanBeUsedUp(stats->InputTime)) {
+                Timers["debounce"].ResetTimer();
+                return CheckNextInput;
+            }
             Overhit(lane);
             return OverhitNote;
         };
         if (InHitwindow(CurrentNote->StartSeconds)) {
+            Timers["debounce"].ActivateTimer(stats->InputTime);
             HitNote(lane);
             return HitState::HitNote;
         };
