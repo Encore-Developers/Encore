@@ -132,9 +132,7 @@ SongParts GetSongPart(Song* song, smf::MidiEventList track) {
             for (int k = 3; k < track[events].getSize(); k++) {
                 trackName += track[events][k];
             }
-            if (song->ini)
-                return partFromStringINI(trackName);
-            return partFromString(trackName);
+            return partFromStringINI(trackName);
         }
     }
     return Invalid;
@@ -162,23 +160,6 @@ void IsPartValid(Song* song, smf::MidiEventList track, SongParts songPart, int t
                 }
             if (StopSearching)
                 break;
-        }
-    }
-}
-
-void Song::InspectMIDI() {
-    if (!midiParsed) {
-        smf::MidiFile midiFile;
-        midiFile.read(midiPath.string());
-        for (int track = 0; track < midiFile.getTrackCount(); track++) {
-            SongParts songPart = GetSongPart(this, midiFile[track]);
-            IsPartValid(this, midiFile[track], songPart, track);
-            if (songPart == BeatLines) {
-                BeatTrackID = track;
-            }
-            if (songPart == Events) {
-                getStartEnd(midiFile, track, midiFile[track]);
-            }
         }
     }
 }

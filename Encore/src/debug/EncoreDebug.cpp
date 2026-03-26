@@ -126,11 +126,8 @@ void EncoreDebug::MenuBar() {
 
     if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem(pauseText.c_str())) {
         paused = !paused;
-        for (auto index : ThePlayerManager.ActivePlayers) {
-            if (index == -1)
-                continue;
-            auto player = ThePlayerManager.PlayerList[index];
-            player.engine->stats->Paused = paused;
+        for (auto &slot : ThePlayerManager.ActivePlayers) {
+            slot.player->engine->stats->Paused = paused;
         }
         if (paused) {
             pauseText = "Play";
@@ -182,11 +179,8 @@ void EncoreDebug::DrawQuickSettings() {
 
 void DebugSeek(float time, float audioTime) {
     TheAudioManager.seekStreams(audioTime);
-    for (auto index : ThePlayerManager.ActivePlayers) {
-        if (index == -1) {
-            continue;
-        }
-        auto player = ThePlayerManager.PlayerList[index];
+    for (auto& slot : ThePlayerManager.ActivePlayers) {
+        auto &player = *slot;
         auto engine = player.engine.get();
         for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
             if (i >= engine->chart->Lanes.size()) {
@@ -216,11 +210,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 PushID(sectionInt);
                 if (Button("whole")) {
                     double startTime;
-                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
-                        if (playerInt == -1) {
-                            continue;
-                        }
-                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                    for (auto &slot : ThePlayerManager.ActivePlayers) {
+                        auto &player = *slot;
                         double endTime = 0.0;
                         startTime = TheSongTime.Sections.at(sectionInt).start;
                         if (sectionInt == TheSongTime.Sections.size() - 1)
@@ -236,11 +227,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 SameLine();
                 if (Button("start")) {
                     double startTime;
-                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
-                        if (playerInt == -1) {
-                            continue;
-                        }
-                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                    for (auto &slot : ThePlayerManager.ActivePlayers) {
+                        auto &player = *slot;
                         startTime = TheSongTime.Sections.at(sectionInt).start;
                         player.engine->pStartTime = startTime - 0.1;
                         player.engine->pStopTime = TheSongTime.GetSongLength();
@@ -250,11 +238,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 }
                 SameLine();
                 if (Button("end")) {
-                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
-                        if (playerInt == -1) {
-                            continue;
-                        }
-                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                    for (auto &slot : ThePlayerManager.ActivePlayers) {
+                        auto &player = *slot;
                         double endTime = 0.0;
                         if (sectionInt == TheSongTime.Sections.size() - 1)
                             endTime = TheSongTime.GetSongLength();
@@ -362,7 +347,7 @@ void EncoreDebug::DrawPlayerManager() {
         }
 
         if (BeginTabBar("Players")) {
-            for (auto &player : ThePlayerManager.PlayerList) {
+            for (auto &player : ThePlayerManager.SavedPlayers) {
                 if (BeginTabItem(
                     (player.Name + TextFormat("###%x", &player)).c_str())) {
                     InputText("Username", &player.Name);
