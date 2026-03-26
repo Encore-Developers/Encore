@@ -44,6 +44,7 @@ void ColorEdit(const char *label, Color *color, ImGuiColorEditFlags flags) {
 }
 
 void EncoreDebug::DrawDebug() {
+    ZoneScoped;
     if (debugVersionHash.empty()) {
         debugVersionHash = TextFormat(
             "Encore %s-%s:%s",
@@ -76,6 +77,7 @@ void EncoreDebug::DrawDebug() {
 }
 
 void EncoreDebug::MenuBar() {
+    ZoneScoped;
     BeginMainMenuBar();
     if (BeginMenu("Windows")) {
         MenuItem("Assets", 0, &showAssets);
@@ -150,6 +152,7 @@ void EncoreDebug::MenuBar() {
 
 
 void EncoreDebug::DrawQuickSettings() {
+    ZoneScoped;
     if (Begin("Quick Settings")) {
         Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
         Checkbox("VSync", &TheGameSettings.VerticalSync);
@@ -202,7 +205,7 @@ void DebugSeek(float time, float audioTime) {
 
 
 void EncoreDebug::DrawPracticeSectionSelector() {
-
+    ZoneScoped;
     if (TheMenuManager.currentScreen == GAMEPLAY) {
         if (Begin("Practice Section Selector")) {
             for (int sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
@@ -275,6 +278,7 @@ struct TimelineTextSpacer {
 };
 
 void EncoreDebug::DrawSongScrubber() {
+    ZoneScoped;
     if (TheMenuManager.currentScreen == GAMEPLAY) {
         SetNextWindowPos({0, GetFrameHeight()+4}, ImGuiCond_Always);
         SetNextWindowSize({ImGui::GetIO().DisplaySize.x, 0}, ImGuiCond_Always);
@@ -351,6 +355,7 @@ void EncoreDebug::DrawSongScrubber() {
 }
 
 void EncoreDebug::DrawPlayerManager() {
+    ZoneScoped;
     if (Begin("Player Manager", &showPlayerManager, 0)) {
         if (Button("Save All")) {
             ThePlayerManager.SavePlayerList();
@@ -438,6 +443,7 @@ std::string tolowerStr(std::string &in) {
 }
 
 void EncoreDebug::DrawSongList() {
+    ZoneScoped;
     static std::string filter;
     static std::vector<Song *> songs;
     static bool firstTime = true;
@@ -538,6 +544,7 @@ void EncoreDebug::StartReloadAssets() {
 }
 
 void EncoreDebug::DrawAssetViewer() {
+    ZoneScoped;
     SetNextWindowSize({ 200, 300 }, ImGuiCond_FirstUseEver);
     if (Begin("Assets", &showAssets, 0)) {
         TextWrapped("Base Path: %s",
@@ -600,6 +607,7 @@ void EncoreDebug::DrawAssetViewer() {
 }
 
 void Encore::Track::DrawTrackDebugWindow() {
+    ZoneScoped;
     SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
     if (Begin(
         std::string("Track Settings: " + player.Name).c_str(),
