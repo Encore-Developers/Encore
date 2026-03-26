@@ -19,9 +19,11 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
         if (stats->overdrive.Activate(stats->InputTime)) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-                if (InHitwindow(CurrentNote->StartSeconds)) {
-                    this->HitNote(lane);
-                };
+                if (CurrentNote) {
+                    if (InHitwindow(CurrentNote->StartSeconds)) {
+                        this->HitNote(lane);
+                    };
+                }
             }
             return true;
         };
@@ -30,11 +32,13 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
         if (stats->overdrive.UseOverdriveLift) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-                if (InHitwindow(CurrentNote->StartSeconds) && CurrentNote->NoteType ==
-                    1) {
-                    Timers["LOP"].ActivateTimer(stats->InputTime);
-                    this->HitNote(lane);
-                };
+                if (CurrentNote) {
+                    if (InHitwindow(CurrentNote->StartSeconds) && CurrentNote->NoteType ==
+                        1) {
+                        Timers["LOP"].ActivateTimer(stats->InputTime);
+                        this->HitNote(lane);
+                        };
+                }
             }
             stats->overdrive.UseOverdriveLift = false;
             return true;
