@@ -58,12 +58,15 @@ void Encore::Track::Draw() {
 
     DrawBeatlines();
     DrawOverdriveMeter();
-    EndMode3D();
+    // EndMode3D();
 
     // this is really fucking stupid. bad fix.
-    DrawPerfect();
 
-    BeginMode3D(AnimCamera);
+    // EndShaderMode();
+    // DrawPerfect();
+    // BeginShaderMode(ASSET(trackCurveShader));
+
+    // BeginMode3D(AnimCamera);
     DrawMultiplier();
     DrawSmashers();
 
