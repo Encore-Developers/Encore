@@ -18,8 +18,8 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
         // activates overdrive
         if (stats->overdrive.Activate(stats->InputTime)) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
-                EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-                if (CurrentNote) {
+                if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()){
+                    EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
                     if (InHitwindow(CurrentNote->StartSeconds)) {
                         this->HitNote(lane);
                     };
@@ -31,8 +31,8 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::RELEASE) {
         if (stats->overdrive.UseOverdriveLift) {
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
-                EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-                if (CurrentNote) {
+                if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()) {
+                    EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
                     if (InHitwindow(CurrentNote->StartSeconds) && CurrentNote->NoteType ==
                         1) {
                         Timers["LOP"].ActivateTimer(stats->InputTime);
