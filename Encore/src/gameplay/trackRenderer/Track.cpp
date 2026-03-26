@@ -58,15 +58,13 @@ void Encore::Track::Draw() {
 
     DrawBeatlines();
     DrawOverdriveMeter();
-    // EndMode3D();
+    EndMode3D();
 
     // this is really fucking stupid. bad fix.
 
-    // EndShaderMode();
-    // DrawPerfect();
-    // BeginShaderMode(ASSET(trackCurveShader));
+    DrawPerfect();
 
-    // BeginMode3D(AnimCamera);
+    BeginMode3D(AnimCamera);
     DrawMultiplier();
     DrawSmashers();
 
@@ -260,31 +258,60 @@ float easeOutBack(float x) {
     return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
 }
 
+float easeOutQuart(float x) {
+    return 1 - pow(1 - x, 4);
+}
+
+float easeInQuart(float x) {
+    return x * x * x * x;
+}
+
 void Encore::Track::DrawPerfect() {
+    Units &u = Units::getInstance();
+
     if (PerfectTimer > 0)
-        PerfectTimer -= GetFrameTime() * 2;
+        PerfectTimer -= GetFrameTime() * 4;
     else {
         PerfectTimer = 0;
     }
-    float doByThis = easeOutBack(PerfectTimer);
-    Units &u = Units::getInstance();
+    //
+    Vector2 pos = {};
     Vector3 WorldMultiplierPosition = {0,-0.1, -1.3};
+    unsigned char alpha = 255;
     float FontSize = u.hinpct(0.025f);
-    float Offset = u.hinpct(0.04f);
     float TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
     float TextHeight = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).y;
+    float POffset = u.hinpct(0.05f);
+    // perfect in
+    float move = 0;
+    if (PerfectTimer > 1) {
+        move = 1 - easeInQuart(PerfectTimer - 1);
+        FontSize = u.hinpct(0.025f * move);
+        TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
+        TextHeight = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).y;
+        alpha = (unsigned char)(255.0 * move);
+    } else {
+        move = easeOutQuart(PerfectTimer);
+        float alphaF = 255.0 * (easeInQuart(PerfectTimer) * 1.5);
+        if (alphaF > 255) {
+            alpha = 255;
+        } else {
+            alpha = (unsigned char)(alphaF);
+        }
+
+    }
+
     Vector2 ScreenMultiplierPosition = GetWorldToScreen(WorldMultiplierPosition, AnimCamera);
-    Color trnsprtGold = {GOLD.r, GOLD.g, GOLD.b, 0};
-    float subtractStuff = (TextWidth + Offset) * doByThis;
-    float xPos = ScreenMultiplierPosition.x - subtractStuff;
-    Rectangle pos = {xPos, ScreenMultiplierPosition.y - (TextHeight/2), subtractStuff, (TextHeight)};
-    DrawRectangleGradientEx(pos, trnsprtGold, trnsprtGold, GOLD, GOLD);
+    float subtractStuff = (TextWidth) * move;
+    float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset;
+    pos = {xPos, ScreenMultiplierPosition.y - (TextHeight/2)};
+
     GameMenu::mhDrawText(
         ASSET(rubikBold),
         "PERFECT",
-        {pos.x, pos.y},
+        pos,
         FontSize,
-        {255, 255, 255, (unsigned char)(255.0f * (PerfectTimer * 2))},
+        {GOLD.r, GOLD.g, GOLD.b, alpha},
         ASSET(sdfShader),
         LEFT
     );
@@ -428,7 +455,7 @@ void Encore::Track::HandleEvent(Event *event) {
         auto *note = hitEvent->note;
         auto slots = GetSlotsForLane(note->Lane, true);
         if (hitEvent->perfect == true) {
-            PerfectTimer = 1;
+            PerfectTimer = 2;
         }
         if (note->Lane == RhythmEngine::PlasticFrets[0] && player.Instrument ==
             PlasticDrums) {
