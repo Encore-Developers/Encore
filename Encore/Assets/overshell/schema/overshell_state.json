@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/schema/overshell_state",
+  "title": "Overshell State",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "description": "The provider for this state that will fill out entries",
+      "enum": ["json", "controllerProfiles", "playerProfiles"]
+    }
+  },
+  "required": ["provider"],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "provider": {
+            "const": "json"
+          }
+        }
+      },
+      "then": {
+        "required": ["entries"]
+      }
+    }
+  ]
+}

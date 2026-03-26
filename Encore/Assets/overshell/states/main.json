@@ -1,0 +1,4 @@
+{
+  "$schema": "../schema/overshell_state.json",
+  "provider": "json"
+}
