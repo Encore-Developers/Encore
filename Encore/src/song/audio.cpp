@@ -78,7 +78,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int> >
             }
             float rate = 0;
             BASS_ChannelGetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, &rate);
-            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*TheSongTime.songSpeed);
+            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*songSpeed);
             streams++;
         } else {
             CHECK_BASS_ERROR2();
@@ -123,6 +123,7 @@ void Encore::AudioManager::restartStreams() const {
     }
 }
 void Encore::AudioManager::seekStreams(double time) const {
+    time *= songSpeed;
     if (!loadedStreams.empty()) {
         BASS_ChannelPause(loadedStreams[0].handle);
         for (auto &stream : loadedStreams) {
@@ -175,7 +176,7 @@ double Encore::AudioManager::GetMusicTimePlayed() const {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetPosition(loadedStreams[0].handle, BASS_POS_BYTE)
-    );
+    ) / songSpeed;
     CHECK_BASS_ERROR2();
 }
 
@@ -186,7 +187,7 @@ double Encore::AudioManager::GetMusicTimeLength() const {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE)
-    ) / TheSongTime.songSpeed;
+    ) / songSpeed;
     CHECK_BASS_ERROR2();
 }
 

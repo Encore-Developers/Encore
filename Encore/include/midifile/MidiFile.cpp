@@ -14,7 +14,7 @@
 
 #include "MidiFile.h"
 #include "Binasc.h"
-#include "gameplay/enctime.h"
+#include "song/audio.h"
 
 #include <string>
 #include <vector>
@@ -2706,7 +2706,7 @@ void MidiFile::buildTimeMap(void) {
 	int i;
 	int tpq = getTicksPerQuarterNote();
 	double defaultTempo = 120.0;
-	double secondsPerTick = 60.0 / (defaultTempo * tpq) / TheSongTime.songSpeed;
+	double secondsPerTick = 60.0 / (defaultTempo * tpq) / TheAudioManager.songSpeed;
 
 	double lastsec = 0.0;
 	double cursec = 0.0;
@@ -2731,7 +2731,7 @@ void MidiFile::buildTimeMap(void) {
 
 		// update the tempo if needed:
 		if (getEvent(0,i).isTempo()) {
-			secondsPerTick = getEvent(0,i).getTempoSPT(getTicksPerQuarterNote()) / TheSongTime.songSpeed;
+			secondsPerTick = getEvent(0,i).getTempoSPT(getTicksPerQuarterNote()) / TheAudioManager.songSpeed;
 		}
 	}
 

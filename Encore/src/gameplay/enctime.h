@@ -78,8 +78,6 @@ public:
     std::vector<Section> Sections {};
     std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
 
-    float songSpeed = 1.0;
-
     SongTime() = default;
     void GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID);
     void UpdateOverdriveTick();

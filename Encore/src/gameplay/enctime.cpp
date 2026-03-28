@@ -22,7 +22,7 @@ void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
     for (int i = 0; i < track.getSize(); i++) {
         if (track[i].isTempo()) {
             BPMChanges.emplace_back(
-                track[i].seconds, track[i].getTempoBPM()*TheSongTime.songSpeed, track[i].tick
+                track[i].seconds, track[i].getTempoBPM()*TheAudioManager.songSpeed, track[i].tick
             );
             // std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
             //           << events[i].getTempoBPM() << std::endl;
@@ -331,7 +331,7 @@ bool SongTime::Running() {
 }
 
 double SongTime::GetElapsedTime() {
-    double audioTime = TheAudioManager.GetMusicTimePlayed() / songSpeed;
+    double audioTime = TheAudioManager.GetMusicTimePlayed();
     if (audioTime >= TheAudioManager.GetMusicTimeLength()) {
         return TheAudioManager.GetMusicTimeLength() + (GetTime() - lastTimeSample);
     }

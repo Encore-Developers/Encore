@@ -17,6 +17,8 @@ namespace Encore {
         };
         std::vector<AudioStream> loadedStreams; // Loaded audio streams
 
+        float songSpeed = 1.0;
+
         // Initialize the audio manager
         static bool Init();
 
