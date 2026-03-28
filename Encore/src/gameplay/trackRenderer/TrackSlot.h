@@ -19,6 +19,7 @@ namespace Encore {
         int index = 0;
 
         float overhitTimer = 0.0;
+        bool openHitAnim = false;
 
         virtual void DrawNote(RhythmEngine::EncNote *note) = 0;
         virtual void DrawSustainTail(double startTime, double endTime) = 0;

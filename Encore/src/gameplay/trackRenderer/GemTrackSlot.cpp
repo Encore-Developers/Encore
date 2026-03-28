@@ -104,12 +104,6 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
 }
 
 void Encore::GemTrackSlot::DrawSmasher(bool held) {
-    // HACK: don't render open and kick smasher
-    // REMOVE THIS LATER!
-    if (colorSlot == SLOT_OPEN || colorSlot == SLOT_KICK) {
-        return;
-    }
-
     Color color = track->player.QueryColorProfile(colorSlot);
 
     if (held) {

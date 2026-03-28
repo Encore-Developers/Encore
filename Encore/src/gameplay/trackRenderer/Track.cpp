@@ -464,23 +464,23 @@ void Encore::Track::HandleEvent(Event *event) {
             PlasticDrums) {
             KickTimer = 1;
             }
-        if (note->Lane == 0) {
-            auto allSlots = GetSlotsForLane(31, true);
-            for (int i = 0; i < 7; i++) {
-                if (allSlots[i]) {
-                    auto slot = allSlots[i];
-                    slot->AnimateHit(hitEvent->perfect, PURPLE);
-                } else
+        for (int i = 0; i < 7; i++) {
+            if (slots[i]) {
+                auto slot = slots[i];
+                if (slot->openHitAnim) {
+                    auto allSlots = GetSlotsForLane(31, true);
+                    for (int i = 0; i < 7; i++) {
+                        if (allSlots[i]) {
+                            auto slot = allSlots[i];
+                            slot->AnimateHit(hitEvent->perfect, PURPLE);
+                        } else
+                            break;
+                    }
                     break;
-            }
-        } else {
-            for (int i = 0; i < 7; i++) {
-                if (slots[i]) {
-                    auto slot = slots[i];
-                    slot->AnimateHit(hitEvent->perfect, player.QueryColorProfile(slot->colorSlot));
-                } else
-                    break;
-            }
+                }
+                slot->AnimateHit(hitEvent->perfect, player.QueryColorProfile(slot->colorSlot));
+            } else
+                break;
         }
     }
     if (auto overhitEvent = event->GetTyped<OverhitEvent>()) {
@@ -527,28 +527,32 @@ void Encore::Track::AddSlot(TrackSlot *slot) {
 
 void Encore::Track::Configure5Lane() {
     slots.clear();
-    if (player.LeftyFlip) {
-        AddSlot(new GemTrackSlot(this, -2, 1, SLOT_GREEN));
-        AddSlot(new GemTrackSlot(this, -1, 1, SLOT_RED));
-        AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
-        AddSlot(new GemTrackSlot(this, 1, 1, SLOT_BLUE));
-        AddSlot(new GemTrackSlot(this, 2, 1, SLOT_ORANGE));
-    } else {
-        AddSlot(new GemTrackSlot(this, 2, 1, SLOT_GREEN));
-        AddSlot(new GemTrackSlot(this, 1, 1, SLOT_RED));
-        AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
-        AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
-        AddSlot(new GemTrackSlot(this, -2, 1, SLOT_ORANGE));
-    }
-    AddSlot(new OpenTrackSlot(this, 0, 1, SLOT_OPEN));
+    float xMult = player.LeftyFlip ? -1 : 1;
+    AddSlot(new GemTrackSlot(this, 2*xMult, 1, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1*xMult, 1, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0*xMult, 1, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1*xMult, 1, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2*xMult, 1, SLOT_ORANGE));
+    AddSlot(new OpenTrackSlot(this, 0*xMult, 1, SLOT_OPEN));
+}
+
+void Encore::Track::Configure5LaneGemOpen() {
+    slots.clear();
+    float xMult = player.LeftyFlip ? -1 : 1;
+    AddSlot(new GemTrackSlot(this, 1.25*xMult, 5.0/6.0, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 0.4166*xMult, 5.0/6.0, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, -0.41666*xMult, 5.0/6.0, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1.25*xMult, 5.0/6.0, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2.083*xMult, 5.0/6.0, SLOT_ORANGE));
+    AddSlot(new GemTrackSlot(this, 2.083*xMult, 5.0/6.0, SLOT_OPEN));
 }
 
 void Encore::Track::Configure4Lane() {
     slots.clear();
-    AddSlot(new GemTrackSlot(this, 2, 1.25, SLOT_GREEN));
-    AddSlot(new GemTrackSlot(this, 0.75, 1.25, SLOT_RED));
-    AddSlot(new GemTrackSlot(this, -0.75, 1.25, SLOT_YELLOW));
-    AddSlot(new GemTrackSlot(this, -2, 1.25, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, 1.875, 1.25, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 0.625, 1.25, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, -0.625, 1.25, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1.875, 1.25, SLOT_BLUE));
 }
 
 void Encore::Track::ConfigureDrums() {
@@ -558,6 +562,15 @@ void Encore::Track::ConfigureDrums() {
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, 0.75, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -0.625, 1.25, 0.75, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -1.875, 1.25, 0.75, SLOT_GREEN));
+}
+
+void Encore::Track::ConfigureDrumsGemKick() {
+    slots.clear();
+    AddSlot(new GemTrackSlot(this, 2, 1, SLOT_KICK));
+    AddSlot(new GemTrackSlot(this, 1, 1, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2, 1, SLOT_GREEN));
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {

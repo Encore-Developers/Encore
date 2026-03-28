@@ -11,7 +11,9 @@ namespace Encore {
 
     class OpenTrackSlot : public TrackSlot {
     public:
-        OpenTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {};
+        OpenTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {
+            openHitAnim = true;
+        };
 
         virtual void DrawNote(RhythmEngine::EncNote *note);
         virtual void DrawSustainTail(double startTime, double endTime);

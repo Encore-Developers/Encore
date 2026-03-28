@@ -20,17 +20,28 @@ bool FinishedLoading = false;
 
 void LoadCharts() {
     ZoneScoped;
+    auto &midiFile = TheSongList.curSong->midiFile;
     {
         ZoneScopedN("MIDI Read")
-        TheSongList.curSong->midiFile.read(TheSongList.curSong->midiPath.string());
-        TheSongList.curSong->midiFile.doTimeAnalysis();
+        midiFile.read(TheSongList.curSong->midiPath.string());
+        midiFile.doTimeAnalysis();
         TheSongTime.BeatmapFromMidiTrack(
-            TheSongList.curSong->midiFile, TheSongList.curSong->endTick
+            midiFile, TheSongList.curSong->endTick
         );
         TheSongTime.GenerateOverdriveTicks(
-            TheSongList.curSong->midiFile, TheSongList.curSong->BeatTrackID
+            midiFile, TheSongList.curSong->BeatTrackID
         );
-        TheSongTime.ParseSections(TheSongList.curSong->midiFile);
+        TheSongTime.ParseSections(midiFile);
+        for (int track = 0; track < midiFile.getTrackCount(); track++) {
+            SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
+            TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
+            if (songPart == BeatLines) {
+                TheSongList.curSong->BeatTrackID = track;
+            }
+            if (songPart == Events) {
+                TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
+            }
+        }
     }
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
@@ -52,9 +63,9 @@ void LoadCharts() {
             // LoadingState = NOTE_PARSING;
             // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
-                TheSongList.curSong->midiFile[track].linkNotePairs();
+                midiFile[track].linkNotePairs();
                 if (TheSongList.curSong->hopoThreshold == -1) {
-                    TheSongList.curSong->hopoThreshold = (TheSongList.curSong->midiFile.getTicksPerQuarterNote() / 3) + 1;
+                    TheSongList.curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
                 }
                 Encore::EncoreLog(
                     LOG_DEBUG,
@@ -63,7 +74,7 @@ void LoadCharts() {
                 Encore::RhythmEngine::GuitarLoader chartLoader(
                     diff, TheSongList.curSong->hopoThreshold
                 );
-                chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
+                chartLoader.LoadChart(midiFile[track]);
 
                 player.engine =
                     std::make_shared<Encore::RhythmEngine::GuitarEngine>(
@@ -73,9 +84,9 @@ void LoadCharts() {
                 player.engine->stats->Type = Encore::RhythmEngine::Guitar;
 
             } else if (inst == PlasticDrums) {
-                TheSongList.curSong->midiFile[track].linkNotePairs();
+                midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::DrumsLoader chartLoader(diff);
-                chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
+                chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum)
                     .engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
@@ -85,9 +96,9 @@ void LoadCharts() {
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Drums;
             } else if (inst < PlasticDrums) {
-                TheSongList.curSong->midiFile[track].linkNotePairs();
+                midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::PadLoader chartLoader(diff);
-                chartLoader.LoadChart(TheSongList.curSong->midiFile[track]);
+                chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
                     std::make_shared<Encore::RhythmEngine::PadEngine>(
@@ -129,7 +140,7 @@ void LoadCharts() {
         //}
     }
 
-    TheSongList.curSong->getCodas(TheSongList.curSong->midiFile);
+    TheSongList.curSong->getCodas(midiFile);
 
     // LoadingState = READY;
 

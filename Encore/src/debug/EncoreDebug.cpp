@@ -631,6 +631,22 @@ void Encore::Track::DrawTrackDebugWindow() {
                 DragFloat("Column Right", &ColumnRight, 0.01);
             }
             DragFloat("Note Height", &NoteHeight, 0.01);
+
+            if (Button("Configure 5 Lane")) {
+                Configure5Lane();
+            }
+            if (Button("Configure 5 Lane (Gem Open)")) {
+                Configure5LaneGemOpen();
+            }
+            if (Button("Configure 4 Lane")) {
+                Configure4Lane();
+            }
+            if (Button("Configure Drums")) {
+                ConfigureDrums();
+            }
+            if (Button("Configure Drums (Gem Kick)")) {
+                ConfigureDrumsGemKick();
+            }
         }
         if (CollapsingHeader("Engine State")) {
             SeparatorText("Timers");
