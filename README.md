@@ -15,7 +15,7 @@ Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Rayl
 ### Nightly releases
 
 Current nightly build:    
-- [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64-Indev.zip)
+- [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x64-Indev.zip)
 - [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64-Indev.zip)
 - [macOS](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_macOS-Indev.zip)
   
