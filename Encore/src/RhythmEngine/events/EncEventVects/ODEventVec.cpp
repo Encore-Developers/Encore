@@ -92,8 +92,7 @@ bool Encore::RhythmEngine::ODEvents::TickDuringCurrentEvent(int tick) {
     return false;
 }
 
-bool Encore::RhythmEngine::ODEvents::Perfec
-t() {
+bool Encore::RhythmEngine::ODEvents::Perfect() {
     if (CurrentEvent >= this->size())
         return false;
     if (CurrentEvent < this->size()) {
