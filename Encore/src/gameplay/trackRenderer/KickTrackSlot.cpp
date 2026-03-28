@@ -60,8 +60,10 @@ void Encore::KickTrackSlot::AnimateHit(bool perfect, Color color) {
     animTimer = 0;
     Particle part;
     part.active = true;
-    part.type = FLARE;
-    part.position = { xPos, 0.05, 0 };
+    part.type = KICKFLARE;
+    part.position = { xPos, 0.15, 0.39 };
     part.color = color;
-    //track->particleSystem->SpawnParticle(part);
+    track->particleSystem->SpawnParticle(part);
+    part.position = { xPos, 0.15, -0.39 };
+    track->particleSystem->SpawnParticle(part);
 }

@@ -518,6 +518,7 @@ void Encore::Track::ProcessAnimation() {
     }
 
     AnimCamera.position.y = BaseCamera.position.y - (easeInQuadd(KickTimer) * 0.2);
+    AnimCamera.target.y = BaseCamera.target.y - (easeInQuadd(KickTimer) * 0.1);
 }
 
 void Encore::Track::AddSlot(TrackSlot *slot) {

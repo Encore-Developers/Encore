@@ -17,7 +17,8 @@ namespace Encore {
     enum ParticleType {
         FLARE,
         SMOKE,
-        SHOCKWAVE
+        SHOCKWAVE,
+        KICKFLARE
     };
 
     class Particle {

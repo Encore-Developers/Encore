@@ -571,6 +571,11 @@ public:
     NEWTEXASSET(overdriveMeterTex, "gameplay/track/meters/overdrive_base.png");
     NEWTEXASSET(overdriveMeterMask, "gameplay/track/meters/overdrive_fill.png");
 
+    NEWTEXASSET(kickFlareTex, "gameplay/track/particles/kick_flare.png");
+    NEWTEXASSET(kickFlareInnerTex, "gameplay/track/particles/kick_flare_inner.png");
+
+    NEWLEGACYMODELASSET(kickFlareModel, "gameplay/track/particles/kick_flare.obj", [this](Model* model) {model->materials[0].shader = trackCurveShader;});
+
     NEWSHADERASSET_POSTFINALIZE(overdriveShader,
                                 "gameplay/track/meters/overdrive.fsh",
                                 "gameplay/track/trackCurve.vsh",

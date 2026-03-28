@@ -6,6 +6,7 @@ void Encore::Particle::Update(ParticleSystem* system) {
     time += GetFrameTime();
     switch (type) {
     case FLARE:
+    case KICKFLARE:
         if (time > FLARE_LIFETIME) {
             active = false;
         }
@@ -30,6 +31,24 @@ void Encore::Particle::Render(ParticleSystem* system) {
             DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorLerp(color, white, 0));
             DrawBillboardRec(system->billboardCamera, ASSET(hitFlareInnerTex), source, position, {size*0.7f, size}, ColorLerp(color, white, 0.9));
             EndBlendMode();
+            break;
+        }
+        case KICKFLARE: {
+            float lifetime = FLARE_LIFETIME-time;
+            float frac = (lifetime/FLARE_LIFETIME);
+            color.a = (frac*frac)*255;
+            Color white = {255, 255, 255, color.a};
+            Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
+            float size = 2.4-time*0.5;
+            BeginBlendMode(BlendMode::BLEND_ADDITIVE);
+            //DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorLerp(color, white, 0));
+            //DrawBillboardRec(system->billboardCamera, ASSET(hitFlareInnerTex), source, position, {size*0.7f, size}, ColorLerp(color, white, 0.9));
+            ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareTex);
+            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0));
+            ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareInnerTex);
+            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0.9));
+            EndBlendMode();
+            break;
             break;
         }
         case SHOCKWAVE: {
