@@ -116,6 +116,7 @@ void Asset::LoadImmediate() {
 }
 
 void FileAsset::LoadFile() {
+    ZoneScoped
     std::ifstream file(GetPath(), std::ios::binary | std::ios::ate);
     fileSize = file.tellg();
     int realFileSize = fileSize;
@@ -248,6 +249,7 @@ void ShaderAsset::Unload() {
 }
 
 void TextureAsset::Load() {
+    ZoneScoped
     LoadFile();
     image = LoadImageFromMemory(
         reinterpret_cast<const char *>(GetPath().extension().generic_u8string().c_str()),
@@ -260,6 +262,7 @@ void TextureAsset::Load() {
 }
 
 void TextureAsset::Finalize() {
+    ZoneScoped
     tex = LoadTextureFromImage(image);
     if (filter) {
         GenTextureMipmaps(&tex);
@@ -275,32 +278,33 @@ void TextureAsset::Unload() {
 }
 
 void FontAsset::Load() {
-    auto start = std::chrono::high_resolution_clock::now();
+    ZoneScoped
     LoadFile();
     font = {};
     font.baseSize = fontSize;
     font.glyphCount = 250;
     font.glyphPadding = 4;
-    font.glyphs = LoadFontData((const unsigned char *)fileBuffer,
-                               fileSize,
-                               fontSize,
-                               nullptr,
-                               250,
-                               FONT_SDF);
-    atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+    {
+        ZoneScopedN("LoadFontData")
+        font.glyphs = LoadFontData((const unsigned char *)fileBuffer,
+                                   fileSize,
+                                   fontSize,
+                                   nullptr,
+                                   250,
+                                   FONT_SDF);
+    }
+    {
+        ZoneScopedN("GenImageFontAtlas")
+        atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+    }
     for (int i = 0; i < font.glyphCount; i++) {
+        ZoneScopedN("Glyph Split")
         UnloadImage(font.glyphs[i].image);
         font.glyphs[i].image = ImageFromImage(atlas, font.recs[i]);
     }
     if (!keepBuffer) {
         FreeFileBuffer();
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    Encore::EncoreLog(LOG_INFO,
-                      TextFormat("Generated font data for %s in %i microseconds.",
-                                 id.c_str(),
-                                 (std::chrono::duration_cast<std::chrono::microseconds>(
-                                     end - start).count())));
     state = PREFINALIZED;
 }
 

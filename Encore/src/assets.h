@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "menus/uiUnits.h"
+#include "tracy/Tracy.hpp"
 #include "util/enclog.h"
 
 #include <cassert>
@@ -743,6 +744,7 @@ public:
     }
 
     void StartLoad() {
+        ZoneScoped
         for (int i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (asset->state == UNLOADED) {
@@ -752,6 +754,7 @@ public:
     }
 
     bool PollLoaded(bool doFinalize = false) {
+        ZoneScoped
         bool loaded = true;
         for (int i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
@@ -784,12 +787,23 @@ public:
     }
 
     void BlockUntilLoaded() {
+        ZoneScoped
         while (!PollLoaded()) {
         }
         for (int i = 0; i < assets.size(); i++) {
             // This finalizes any assets that need it
             // We're blocking anyways so why not
             assets[i]->CheckForFetch();
+        }
+    }
+
+    void LoadImmediate() {
+        ZoneScoped
+        for (int i = 0; i < assets.size(); i++) {
+            assets[i]->LoadImmediate();
+            if (assets[i]->state == PREFINALIZED) {
+                assets[i]->CheckForFetch();
+            }
         }
     }
 };

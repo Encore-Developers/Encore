@@ -50,7 +50,7 @@ set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 
 
-option ( TRACY_ENABLE " " ON )
+option ( TRACY_ENABLE " " OFF )
 option ( TRACY_ON_DEMAND " " ON )
 add_subdirectory(thirdparty/tracy EXCLUDE_FROM_ALL)
 
