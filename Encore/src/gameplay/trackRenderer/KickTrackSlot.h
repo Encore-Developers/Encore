@@ -17,6 +17,7 @@ namespace Encore {
         virtual void DrawSustainTail(double startTime, double endTime) override {};
         virtual void DrawSmasher(bool held);
         virtual void AnimateHit(bool perfect, Color color);
+        virtual void AnimateOverhit();
     };
 }
 

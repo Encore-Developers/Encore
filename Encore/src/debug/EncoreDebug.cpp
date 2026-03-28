@@ -43,6 +43,10 @@ void ColorEdit(const char *label, Color *color, ImGuiColorEditFlags flags) {
     color->b = floats[2] * 255;
 }
 
+ImVec4 ImGuiColor(Color color) {
+    return { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
+}
+
 void EncoreDebug::DrawDebug() {
     ZoneScoped;
     if (debugVersionHash.empty()) {
@@ -632,21 +636,7 @@ void Encore::Track::DrawTrackDebugWindow() {
             }
             DragFloat("Note Height", &NoteHeight, 0.01);
 
-            if (Button("Configure 5 Lane")) {
-                Configure5Lane();
-            }
-            if (Button("Configure 5 Lane (Gem Open)")) {
-                Configure5LaneGemOpen();
-            }
-            if (Button("Configure 4 Lane")) {
-                Configure4Lane();
-            }
-            if (Button("Configure Drums")) {
-                ConfigureDrums();
-            }
-            if (Button("Configure Drums (Gem Kick)")) {
-                ConfigureDrumsGemKick();
-            }
+
         }
         if (CollapsingHeader("Engine State")) {
             SeparatorText("Timers");
@@ -682,23 +672,35 @@ void Encore::Track::DrawTrackDebugWindow() {
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
         }
-        if (CollapsingHeader("Chart Information")) {
-            if (BeginTable("Note List", player.engine->chart->Lanes.size())) {
-                TableSetupScrollFreeze(0, 1);
-                for (int lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
-                    TableSetupColumn(TextFormat("##%i", lane),
-                                            ImGuiTableColumnFlags_WidthStretch);
+        if (CollapsingHeader("Track Slots")) {
+            if (Button("Configure 5 Lane")) {
+                Configure5Lane();
+            }
+            if (Button("Configure 5 Lane (Gem Open)")) {
+                Configure5LaneGemOpen();
+            }
+            if (Button("Configure 5 Lane (Kick Open)")) {
+                Configure5LaneKickOpen();
+            }
+            if (Button("Configure 4 Lane")) {
+                Configure4Lane();
+            }
+            if (Button("Configure Drums")) {
+                ConfigureDrums();
+            }
+            if (Button("Configure Drums (Gem Kick)")) {
+                ConfigureDrumsGemKick();
+            }
+            for (auto& slot : slots) {
+                Separator();
+                PushID(slot->index);
+                if (ColorButton("Hit", ImGuiColor(player.QueryColorProfile(slot->colorSlot)))) {
+                    slot->AnimateHit(false, player.QueryColorProfile(slot->colorSlot));
                 }
-                TableHeadersRow();
-                for (int lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
-                    TableSetColumnIndex(lane);
-                    for (auto note : player.engine->chart->Lanes[lane]) {
-                        TableNextRow();
-                        Text(TextFormat("##%i", note.Lane));
-                    }
-                }
-
-                EndTable();
+                DragFloat("X Position", &slot->xPos, 0.01);
+                DragFloat("Width", &slot->width, 0.01);
+                DragFloat("Length", &slot->length, 0.01);
+                PopID();
             }
         }
     }

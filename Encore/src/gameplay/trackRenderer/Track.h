@@ -36,6 +36,7 @@ namespace Encore {
 
         void AddSlot(TrackSlot* slot);
         void Configure5Lane();
+        void Configure5LaneKickOpen();
         void Configure5LaneGemOpen();
         void Configure4Lane();
         void ConfigureDrums();

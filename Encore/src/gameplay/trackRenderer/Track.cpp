@@ -432,6 +432,9 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
     auto append_slot = [&](int index) {
+        if (index >= slots.size()) {
+            return;
+        }
         slotBuffer[curIndex] = slots[index].get();
         curIndex++;
     };
@@ -534,7 +537,18 @@ void Encore::Track::Configure5Lane() {
     AddSlot(new GemTrackSlot(this, 0*xMult, 1, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -1*xMult, 1, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -2*xMult, 1, SLOT_ORANGE));
-    AddSlot(new OpenTrackSlot(this, 0*xMult, 1, SLOT_OPEN));
+    AddSlot(new OpenTrackSlot(this, 0*xMult, 5, SLOT_OPEN));
+}
+
+void Encore::Track::Configure5LaneKickOpen() {
+    slots.clear();
+    float xMult = player.LeftyFlip ? -1 : 1;
+    AddSlot(new GemTrackSlot(this, 2*xMult, 1, 0.75, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1*xMult, 1, 0.75, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0*xMult, 1, 0.75, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1*xMult, 1, 0.75, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2*xMult, 1, 0.75, SLOT_ORANGE));
+    AddSlot(new KickTrackSlot(this, 0*xMult, 5, SLOT_OPEN));
 }
 
 void Encore::Track::Configure5LaneGemOpen() {

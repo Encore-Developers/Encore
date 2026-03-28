@@ -10,7 +10,7 @@ namespace Encore {
         GemTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {};
 
         float animTimer = 1;
-        Particle* hitFlare;
+        Particle* hitFlare = nullptr;
         Particle* shockwaveParticle;
         unsigned int hitFlareId;
         unsigned int shockwaveId;

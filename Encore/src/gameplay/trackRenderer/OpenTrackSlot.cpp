@@ -13,7 +13,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     ASSET(noteShader).SetUniform("frameColor", WHITE);
     ASSET(noteShader).SetUniform("noteColor", color);
 
-    DrawModelEx(ASSET(openNote), position, {0}, 0, {1, track->NoteHeight, 1}, WHITE);
+    DrawModelEx(ASSET(openNote), position, {0}, 0, {width/5.0f, track->NoteHeight, 1}, WHITE);
 }
 
 void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime) {

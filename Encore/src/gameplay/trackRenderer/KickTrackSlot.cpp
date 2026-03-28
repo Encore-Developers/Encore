@@ -37,7 +37,7 @@ void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
 
     rlDrawRenderBatchActive();
 
-    DrawModelEx(ASSET(kickNote), position, {0}, 0, {1, track->NoteHeight / 2.0f, 1}, WHITE);
+    DrawModelEx(ASSET(kickNote), position, {0}, 0, {width/5.0f, track->NoteHeight / 2.0f, 1}, WHITE);
 }
 
 void Encore::KickTrackSlot::DrawSmasher(bool held) {
@@ -48,16 +48,24 @@ void Encore::KickTrackSlot::DrawSmasher(bool held) {
     } else {
         animTimer = 1;
     }
+
+    if (overhitTimer > 0) {
+        overhitTimer -= GetFrameTime() * 1.8;
+    } else {
+        overhitTimer = 0;
+    }
+
     float bounce = (1 - easeOutBounceKick(animTimer)) * 0.9;
 
 
 
-    DrawModelEx(ASSET(kickFrame), {xPos, 0, 0}, {0}, 0, {1,1+(bounce),1.3f - (bounce*0.1f)}, WHITE);
-    DrawModelEx(ASSET(kickPiston), {xPos, 0, 0}, {0}, 0, {1,1+(bounce),1.3f - (bounce*0.1f)}, color);
+    DrawModelEx(ASSET(kickFrame), {xPos, 0, 0}, {0}, 0, {width/5.0f,1+(bounce),1.3f - (bounce*0.1f)}, ColorLerp(WHITE, {50, 50, 50, 255}, overhitTimer*0.2f));
+    DrawModelEx(ASSET(kickPiston), {xPos, 0, 0}, {0}, 0, {width/5.0f,1+(bounce),1.3f - (bounce*0.1f)}, ColorLerp(color, {50, 50, 50, 255}, overhitTimer));
 }
 
 void Encore::KickTrackSlot::AnimateHit(bool perfect, Color color) {
     animTimer = 0;
+    overhitTimer = 0;
     Particle part;
     part.active = true;
     part.type = KICKFLARE;
@@ -66,4 +74,8 @@ void Encore::KickTrackSlot::AnimateHit(bool perfect, Color color) {
     track->particleSystem->SpawnParticle(part);
     part.position = { xPos, 0.15, -0.39 };
     track->particleSystem->SpawnParticle(part);
+}
+void Encore::KickTrackSlot::AnimateOverhit() {
+    animTimer = 0.25;
+    overhitTimer = 1;
 }
