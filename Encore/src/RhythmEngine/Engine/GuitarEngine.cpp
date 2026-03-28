@@ -179,6 +179,9 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         return CheckNextInput;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
 
+    // second note:
+
+    // what the fuck is this. i cannot read this
     if (chart->IsHeldNotePresent(0) &&
         event.action == Action::PRESS &&
         !MaskMatch(chart->HeldNotePointers.at(0)->Lane, stats->HeldFretsArrayToMask()) &&

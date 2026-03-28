@@ -58,18 +58,21 @@ void Encore::Track::Draw() {
 
     DrawBeatlines();
     DrawOverdriveMeter();
+    EndShaderMode();
     EndMode3D();
 
     // this is really fucking stupid. bad fix.
-
     DrawPerfect();
 
     BeginMode3D(AnimCamera);
+    BeginShaderMode(ASSET(trackCurveShader));
     DrawMultiplier();
     DrawSmashers();
 
+    EndShaderMode();
     EndMode3D();
     BeginMode3D(AnimCamera);
+    BeginShaderMode(ASSET(trackCurveShader));
     rlDisableDepthTest();
     DrawNotes();
 
@@ -270,7 +273,7 @@ void Encore::Track::DrawPerfect() {
     Units &u = Units::getInstance();
 
     if (PerfectTimer > 0)
-        PerfectTimer -= GetFrameTime() * 4;
+        PerfectTimer -= GetFrameTime() * 5;
     else {
         PerfectTimer = 0;
     }
@@ -286,7 +289,7 @@ void Encore::Track::DrawPerfect() {
     float move = 0;
     if (PerfectTimer > 1) {
         move = 1 - easeInQuart(PerfectTimer - 1);
-        FontSize = u.hinpct(0.025f * move);
+        FontSize = (FontSize * 0.75f) + ((FontSize * 0.25) * move);
         TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
         TextHeight = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).y;
         alpha = (unsigned char)(255.0 * move);
@@ -302,8 +305,8 @@ void Encore::Track::DrawPerfect() {
     }
 
     Vector2 ScreenMultiplierPosition = GetWorldToScreen(WorldMultiplierPosition, AnimCamera);
-    float subtractStuff = (TextWidth) * move;
-    float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset;
+    float subtractStuff = (TextWidth * 0.25) * move;
+    float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth * 0.75);
     pos = {xPos, ScreenMultiplierPosition.y - (TextHeight/2)};
 
     GameMenu::mhDrawText(
