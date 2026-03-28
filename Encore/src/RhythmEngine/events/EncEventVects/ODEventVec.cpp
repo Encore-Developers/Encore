@@ -60,6 +60,9 @@ void Encore::RhythmEngine::ODEvents::CheckEvents(int tick) {
 void Encore::RhythmEngine::ODEvents::MissCurrentEvent(int eventTime) {
     if (this->empty())
         return;
+    if (CurrentEvent >= this->size())
+        return;
+
     if (TickDuringCurrentEvent(eventTime))
         this->at(CurrentEvent).missed = true;
 }
@@ -79,6 +82,9 @@ bool Encore::RhythmEngine::ODEvents::RenderNotesAsOD(double time) const {
 }
 
 bool Encore::RhythmEngine::ODEvents::TickDuringCurrentEvent(int tick) {
+    if (CurrentEvent >= this->size())
+        return false;
+
     if (tick >= this->at(CurrentEvent).StartTick
         && tick < this->at(CurrentEvent).StartTick + this->at(CurrentEvent).EndTick) {
         return true;
@@ -86,7 +92,10 @@ bool Encore::RhythmEngine::ODEvents::TickDuringCurrentEvent(int tick) {
     return false;
 }
 
-bool Encore::RhythmEngine::ODEvents::Perfect() {
+bool Encore::RhythmEngine::ODEvents::Perfec
+t() {
+    if (CurrentEvent >= this->size())
+        return false;
     if (CurrentEvent < this->size()) {
         return this->at(CurrentEvent).NotesHit == this->at(CurrentEvent).NoteCount;
     }
