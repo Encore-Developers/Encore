@@ -2,14 +2,9 @@
 #include "bass/bass.h"
 #include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
+#include "gameplay/enctime.h"
 #include "tracy/Tracy.hpp"
 
-#ifdef WIN32
-#define GLFW_EXPOSE_NATIVE_WIN32
-#elif __linux__
-#include <X11/Xlib.h>
-#define GLFW_EXPOSE_NATIVE_X11
-#endif
 
 #include "GLFW/glfw3native.h"
 #include <vector>
@@ -81,6 +76,9 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int> >
                     BASS_ChannelFlags(streamHandle, 0, BASS_SAMPLE_LOOP); // remove the
                                                                           // LOOP flag
             }
+            float rate = 0;
+            BASS_ChannelGetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, &rate);
+            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*TheSongTime.songSpeed);
             streams++;
         } else {
             CHECK_BASS_ERROR2();
@@ -188,7 +186,7 @@ double Encore::AudioManager::GetMusicTimeLength() const {
     return BASS_ChannelBytes2Seconds(
         loadedStreams[0].handle,
         BASS_ChannelGetLength(loadedStreams[0].handle, BASS_POS_BYTE)
-    );
+    ) / TheSongTime.songSpeed;
     CHECK_BASS_ERROR2();
 }
 

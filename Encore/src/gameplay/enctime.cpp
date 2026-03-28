@@ -16,13 +16,13 @@ SongTime TheSongTime;
 
 void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
     ZoneScoped;
-    midiFile.doTimeAnalysis();
+    //midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[0];
     track.linkEventPairs();
     for (int i = 0; i < track.getSize(); i++) {
         if (track[i].isTempo()) {
             BPMChanges.emplace_back(
-                track[i].seconds, track[i].getTempoBPM(), track[i].tick
+                track[i].seconds, track[i].getTempoBPM()*TheSongTime.songSpeed, track[i].tick
             );
             // std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
             //           << events[i].getTempoBPM() << std::endl;
@@ -63,7 +63,7 @@ bool equalTicks(const OverdriveTick &a, const OverdriveTick &b) {
 
 void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
     ZoneScoped;
-    midiFile.doTimeAnalysis();
+    //midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midiFile[TrackID];
     track.linkEventPairs();
     // 12 and 13 are the beats
@@ -331,7 +331,7 @@ bool SongTime::Running() {
 }
 
 double SongTime::GetElapsedTime() {
-    double audioTime = TheAudioManager.GetMusicTimePlayed();
+    double audioTime = TheAudioManager.GetMusicTimePlayed() / songSpeed;
     if (audioTime >= TheAudioManager.GetMusicTimeLength()) {
         return TheAudioManager.GetMusicTimeLength() + (GetTime() - lastTimeSample);
     }
