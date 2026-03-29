@@ -244,7 +244,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 
 void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
     GhostCount = 0;
-    if (chart->CurrentNoteIterators.at(0)->NoteType == 1 && !strumInput) {
+    if ((chart->CurrentNoteIterators.at(0)->NoteType == 1 || chart->CurrentNoteIterators.at(0)->NoteType == 2) && !strumInput) {
         Timers["SAH"].ActivateTimer(stats->InputTime);
         EncoreLog(LOG_DEBUG, "SAH Enabled");
     }
