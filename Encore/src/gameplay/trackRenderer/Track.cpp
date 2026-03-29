@@ -556,11 +556,11 @@ void Encore::Track::Configure5LaneGemOpen() {
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 1.25*xMult, 5.0/6.0, SLOT_GREEN));
-    AddSlot(new GemTrackSlot(this, 0.4166*xMult, 5.0/6.0, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0.41666*xMult, 5.0/6.0, SLOT_RED));
     AddSlot(new GemTrackSlot(this, -0.41666*xMult, 5.0/6.0, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -1.25*xMult, 5.0/6.0, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -2.083*xMult, 5.0/6.0, SLOT_ORANGE));
-    AddSlot(new GemTrackSlot(this, 2.083*xMult, 5.0/6.0, SLOT_OPEN));
+    AddSlot(new GemTrackSlot(this, -2.08333*xMult, 5.0/6.0, SLOT_ORANGE));
+    AddSlot(new GemTrackSlot(this, 2.08333*xMult, 5.0/6.0, SLOT_OPEN));
 }
 
 void Encore::Track::Configure4Lane() {

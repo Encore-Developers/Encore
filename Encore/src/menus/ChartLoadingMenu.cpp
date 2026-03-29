@@ -72,7 +72,7 @@ void LoadCharts() {
                     TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
                 );
                 Encore::RhythmEngine::GuitarLoader chartLoader(
-                    diff, TheSongList.curSong->hopoThreshold
+                    diff, TheSongList.curSong->hopoThreshold, &midiFile
                 );
                 chartLoader.LoadChart(midiFile[track]);
 
@@ -85,7 +85,7 @@ void LoadCharts() {
 
             } else if (inst == PlasticDrums) {
                 midiFile[track].linkNotePairs();
-                Encore::RhythmEngine::DrumsLoader chartLoader(diff);
+                Encore::RhythmEngine::DrumsLoader chartLoader(diff, &midiFile);
                 chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum)
@@ -97,7 +97,7 @@ void LoadCharts() {
                     Encore::RhythmEngine::Drums;
             } else if (inst < PlasticDrums) {
                 midiFile[track].linkNotePairs();
-                Encore::RhythmEngine::PadLoader chartLoader(diff);
+                Encore::RhythmEngine::PadLoader chartLoader(diff, &midiFile);
                 chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =

@@ -30,8 +30,8 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        GuitarLoader(int diff_, int thresh_)
-            : BaseLoader(Difficulty = diff_, Threshold = thresh_) {
+        GuitarLoader(int diff_, int thresh_, smf::MidiFile* midiFile_)
+            : BaseLoader(diff_, thresh_, midiFile_)  {
             chart.Lanes.resize(1);
         }
     };

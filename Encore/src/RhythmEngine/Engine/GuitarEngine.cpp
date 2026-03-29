@@ -69,7 +69,7 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
             return;
         EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(0);
-        if (CurrentNote->StartSeconds - goodBackend < LastUpdateTime){
+        if (CurrentNote->StartSeconds - goodBackend < LastUpdateTime) {
             for (int g = 0; g < 5; g++) {
                 if (CurrentNote->Lane & PlasticFrets[g]) {
                     stats->HeldFrets.at(g) = true;
@@ -109,13 +109,13 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
 }
 
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
-ControllerEvent &event
+    ControllerEvent &event
 ) {
     stats->InputTime = LastUpdateTime; // todo: REPLACE WITH ACTUAL SONG
     // TIME
     // (IN SECONDS)
     if (event.channel == InputChannel::WHAMMY && chart->IsHeldNotePresent(0)) {
-        whammy = float(event.axis)/255.0f;
+        whammy = float(event.axis) / 255.0f;
     }
     if (event.action == Action::PRESS) {
         switch (event.channel) {
@@ -149,7 +149,8 @@ ControllerEvent &event
             if (chart->HeldNotePointers.at(0)) {
                 auto note = chart->HeldNotePointers.at(0);
                 if (note->Lane & PlasticFrets[ICInt(event.channel)] &&
-                    note->StartTicks+note->LengthTicks >= TheSongTime.CurrentTick + 240) {
+                    note->StartTicks + note->LengthTicks >= TheSongTime.CurrentTick +
+                    240) {
                     chart->DropSustain(0);
                 }
             }
@@ -179,25 +180,44 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         return CheckNextInput;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
 
-    // second note:
+    bool extSus = false;
+    if (chart->IsHeldNotePresent(0)) {
+        if (chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.
+            at(0)->LengthSeconds > CurrentNote.StartSeconds) {
+                extSus = true;
+            };
 
-    // what the fuck is this. i cannot read this
-    if (chart->IsHeldNotePresent(0) &&
-        event.action == Action::PRESS &&
-        !MaskMatch(chart->HeldNotePointers.at(0)->Lane, stats->HeldFretsArrayToMask()) &&
-        !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)->
-            LengthSeconds > CurrentNote.StartSeconds
-        ) &&
-        (!(chart->HeldNotePointers.at(0)->StartTicks + chart->HeldNotePointers.at(0)->LengthTicks < TheSongTime.CurrentTick + 240))
+        // second note:
+        // what the fuck is this. i cannot read this
+        if (event.action == Action::PRESS &&
+
+            // if the frets dont match
+            !MaskMatch(chart->HeldNotePointers.at(0)->Lane,
+                       stats->HeldFretsArrayToMask()) &&
+
+            // is not an extended sustain
+            !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)
+                ->
+                LengthSeconds > CurrentNote.StartSeconds
+            ) &&
+
+            // is before the end of the sustain
+            (!(chart->HeldNotePointers.at(0)->StartTicks + chart->HeldNotePointers.at(0)->
+                LengthTicks < TheSongTime.CurrentTick + 240))
         ) {
-        chart->DropSustain(0);
+            chart->DropSustain(0);
+        }
     }
+    uint8_t pMask = stats->HeldFretsArrayToMask();
     // if an upper note is pressed when a sustain is active, unless the sustain goes on longer than the current note
-
+    if (extSus) {
+        pMask &= ~chart->HeldNotePointers.at(0)->Lane;
+    }
     // STRUM PATH
     bool StrumInput = (stats->strumState != StrumState::Default)
         && event.action == Action::PRESS
-        && (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN);
+        && (event.channel == InputChannel::STRUM_UP || event.channel ==
+            InputChannel::STRUM_DOWN);
     if (StrumInput) {
         // miss should be managed by current frame
         // overhit is managed here
@@ -212,7 +232,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         }
         // if frets match, continue and try to hit
         if (InHitwindow(CurrentNote.StartSeconds)) {
-            if (!MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())) {
+            if (!MaskMatch(CurrentNote.Lane, pMask)) {
                 Timers["FAS"].ActivateTimer(stats->InputTime);
                 EncoreLog(LOG_DEBUG, "FAS Enabled");
                 return CheckNextInput;
@@ -223,7 +243,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     // really couldve just put it up there LMFAO
     bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
 
-    if (MaskMatch(CurrentNote.Lane, stats->HeldFretsArrayToMask())
+    if (MaskMatch(CurrentNote.Lane, pMask)
         && InHitwindow(CurrentNote.StartSeconds)
         && (HittableAsHopo(CurrentNote.NoteType, stats->Combo, GhostCount)
             || HittableAsTap(CurrentNote.NoteType) || strum)) {
@@ -232,7 +252,8 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     }
 
     // GHOSTING
-    if (event.action == Action::PRESS && event.channel <= InputChannel::LANE_5 && event.channel !=
+    if (event.action == Action::PRESS && event.channel <= InputChannel::LANE_5 && event.
+        channel !=
         InputChannel::INVALID) {
         if (stats->HeldFretsArrayToMask() > CurrentNote.Lane) {
             GhostCount++;
@@ -244,7 +265,8 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 
 void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
     GhostCount = 0;
-    if ((chart->CurrentNoteIterators.at(0)->NoteType == 1 || chart->CurrentNoteIterators.at(0)->NoteType == 2) && !strumInput) {
+    if ((chart->CurrentNoteIterators.at(0)->NoteType == 1 || chart->CurrentNoteIterators.
+        at(0)->NoteType == 2) && !strumInput) {
         Timers["SAH"].ActivateTimer(stats->InputTime);
         EncoreLog(LOG_DEBUG, "SAH Enabled");
     }

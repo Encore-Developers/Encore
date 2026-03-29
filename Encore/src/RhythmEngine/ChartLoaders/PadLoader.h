@@ -21,7 +21,7 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        PadLoader(int diff_);
+        PadLoader(int diff_, smf::MidiFile *midiFile_);
     };
 }
 
