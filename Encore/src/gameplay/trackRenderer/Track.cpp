@@ -308,6 +308,7 @@ void Encore::Track::DrawPerfect() {
     float subtractStuff = (TextWidth * 0.25) * move;
     float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth * 0.75);
     pos = {xPos, ScreenMultiplierPosition.y - (TextHeight/2)};
+    pos.x += Offset * GetRenderWidth() * 0.5;
 
     GameMenu::mhDrawText(
         ASSET(rubikBold),
