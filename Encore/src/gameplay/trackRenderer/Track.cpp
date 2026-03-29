@@ -359,9 +359,7 @@ void Encore::Track::DrawNotes() {
                     continue;
                 }
             }
-            auto slots = GetSlotsForLane(player.engine->UsesNoteMasks()
-                ? note->Lane
-                : lane);
+            auto slots = GetSlotsForNote(*note);
             for (int i = 0; i < 7; i++) {
                 if (slots[i]) {
                     auto slot = slots[i];
@@ -429,6 +427,33 @@ void Encore::Track::DrawBeatlines() {
     rlDrawRenderBatchActive();
 };
 
+Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote& note) const {
+    static TrackSlot *slotBuffer[7];
+    int curIndex = 0;
+    auto append_slot = [&](int index) {
+        if (index >= slots.size()) {
+            return;
+        }
+        slotBuffer[curIndex] = slots[index].get();
+        curIndex++;
+    };
+    auto lane = note.Lane;
+    for (int i = 0; i < 5; i++) {
+        if (lane & RhythmEngine::PlasticFrets[i]) {
+            if (player.Instrument == PlasticDrums && note.NoteType == 1) {
+                append_slot(i+3);
+            } else {
+                append_slot(i);
+            }
+        }
+    }
+    if (lane == 0) {
+        append_slot(5);
+    }
+    slotBuffer[curIndex] = nullptr;
+    return (TrackSlot **)&slotBuffer;
+}
+
 Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask) const {
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
@@ -460,7 +485,7 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
 void Encore::Track::HandleEvent(Event *event) {
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;
-        auto slots = GetSlotsForLane(note->Lane, true);
+        auto slots = GetSlotsForNote(*note);
         if (hitEvent->perfect == true) {
             PerfectTimer = 2;
         }
@@ -578,6 +603,10 @@ void Encore::Track::ConfigureDrums() {
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, 0.75, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -0.625, 1.25, 0.75, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -1.875, 1.25, 0.75, SLOT_GREEN));
+
+    AddSlot(new GemTrackSlot(this, 0.625, 1.25, 0.75, SLOT_HIHAT, slots[2].get()));
+    AddSlot(new GemTrackSlot(this, -0.625, 1.25, 0.75, SLOT_RIDE, slots[3].get()));
+    AddSlot(new GemTrackSlot(this, -1.875, 1.25, 0.75, SLOT_CRASH, slots[4].get()));
 }
 
 void Encore::Track::ConfigureDrumsGemKick() {

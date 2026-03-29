@@ -6,7 +6,7 @@ namespace Encore {
 
     class GemTrackSlot : public TrackSlot {
     public:
-        GemTrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot) : TrackSlot(track, xPos, width, length, colorSlot) {};
+        GemTrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot, TrackSlot* parent = nullptr) : TrackSlot(track, xPos, width, length, colorSlot, parent) {};
         GemTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {};
 
         float animTimer = 1;

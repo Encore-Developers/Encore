@@ -20,6 +20,7 @@ namespace Encore {
 
         float overhitTimer = 0.0;
         bool openHitAnim = false;
+        TrackSlot* parentSlot = nullptr;
 
         virtual void DrawNote(RhythmEngine::EncNote *note) = 0;
         virtual void DrawSustainTail(double startTime, double endTime) = 0;
@@ -28,7 +29,7 @@ namespace Encore {
         virtual void AnimateOverhit() {}
 
         TrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : xPos(xPos), width(width), length(1), colorSlot(colorSlot), track(track) {};
-        TrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot) : xPos(xPos), width(width), length(length), colorSlot(colorSlot), track(track) {};
+        TrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot, TrackSlot* parent = nullptr) : xPos(xPos), width(width), length(length), colorSlot(colorSlot), track(track), parentSlot(parent) {};
     };
 
 } // Encore

@@ -104,6 +104,9 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime) {
 }
 
 void Encore::GemTrackSlot::DrawSmasher(bool held) {
+    if (parentSlot) {
+        return;
+    }
     Color color = track->player.QueryColorProfile(colorSlot);
 
     if (held) {
@@ -175,6 +178,10 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
 }
 
 void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
+    if (parentSlot) {
+        parentSlot->AnimateHit(perfect, colorg);
+        return;
+    }
     animTimer = 0;
     overhitTimer = 0;
     Particle part;
@@ -202,6 +209,9 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
     shockwaveId = shockwaveParticle->id;
 }
 void Encore::GemTrackSlot::AnimateOverhit() {
+    if (parentSlot) {
+        parentSlot->AnimateOverhit();
+    }
     animTimer = 0.25;
     overhitTimer = 1;
 }
