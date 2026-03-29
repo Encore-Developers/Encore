@@ -616,6 +616,10 @@ void Encore::Track::ConfigureDrumsGemKick() {
     AddSlot(new GemTrackSlot(this, 0, 1, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -1, 1, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -2, 1, SLOT_GREEN));
+
+    AddSlot(new GemTrackSlot(this, 0, 1, 1, SLOT_YELLOW, slots[2].get()));
+    AddSlot(new GemTrackSlot(this, -1, 1, 1, SLOT_BLUE, slots[3].get()));
+    AddSlot(new GemTrackSlot(this, -2, 1, 1, SLOT_GREEN, slots[4].get()));
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {
