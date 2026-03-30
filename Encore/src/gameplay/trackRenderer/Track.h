@@ -41,6 +41,8 @@ namespace Encore {
         void Configure5LaneGemOpen();
         void Configure4Lane();
         void ConfigureDrums();
+        void ConfigurePSDrums();
+        void ConfigureFuckYoyDrums();
         void ConfigureDrumsGemKick();
         float GetNotePos3D(double noteTime);
         float GetViewEndTime() const;

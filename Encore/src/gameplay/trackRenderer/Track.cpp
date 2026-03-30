@@ -609,6 +609,30 @@ void Encore::Track::ConfigureDrums() {
     AddSlot(new GemTrackSlot(this, -1.875, 1.25, 0.75, SLOT_CRASH, slots[4].get()));
 }
 
+void Encore::Track::ConfigurePSDrums() {
+    slots.clear();
+    AddSlot(new KickTrackSlot(this, 0, 5, SLOT_KICK));
+    AddSlot(new GemTrackSlot(this, 2.25, 0.5, 0.75, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0.75, 0.5, 0.75, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -0.75, 0.5, 0.75, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2.25, 0.5, 0.75, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1.5, 1.0, 0.75, SLOT_HIHAT));
+    AddSlot(new GemTrackSlot(this, 0.0, 1.0, 0.75, SLOT_RIDE));
+    AddSlot(new GemTrackSlot(this, -1.5, 1.0, 0.75, SLOT_CRASH));
+}
+
+void Encore::Track::ConfigureFuckYoyDrums() {
+    slots.clear();
+    AddSlot(new GemTrackSlot(this, 0.3125, 0.625, 0.75, SLOT_KICK));
+    AddSlot(new GemTrackSlot(this, 2.18, 0.625, 0.75, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0.9375, 0.625, 0.75, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -0.9375, 0.625, 0.75, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2.18, 0.625, 0.75, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1.5625, 0.625, 0.75, SLOT_HIHAT));
+    AddSlot(new GemTrackSlot(this, -0.3125, 0.625, 0.75, SLOT_RIDE));
+    AddSlot(new GemTrackSlot(this, -1.5625, 0.625, 0.75, SLOT_CRASH));
+}
+
 void Encore::Track::ConfigureDrumsGemKick() {
     slots.clear();
     AddSlot(new GemTrackSlot(this, 2, 1, SLOT_KICK));
