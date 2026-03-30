@@ -63,9 +63,14 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         case '*':
         case '#':
         case '^': lyric.pop_back(); talkie = true; break;
-
-            // I fucking hate anyone who doesnt speak English. Change your ways. C++ is a colonist.
-        // case '§': lyric.pop_back(); lyric += "‿"; break;;
+        }
+        for (int i = 0; i < lyric.size()-1; i++) {
+            static const char* sectionSym = "§";
+            if (lyric[i] == sectionSym[0] && lyric[i+1] == sectionSym[1]) {
+                lyric.erase(lyric.begin()+i);
+                lyric.erase(lyric.begin()+i);
+                i--;
+            }
         }
         if (lyric.back() == '=' || lyric.back() == '-') {
             lyric.pop_back();
