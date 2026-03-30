@@ -63,6 +63,10 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
         return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
+
+    bool IsCymbal = CurrentNote->NoteType == 1;
+
+
     // auto curNoteItr = chartLane.begin();
     // while (curNoteItr->StartSeconds + goodBackend
     //        < TheSongTime.GetElapsedTime() - stats->InputOffset) {

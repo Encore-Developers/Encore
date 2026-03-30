@@ -52,12 +52,12 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     if (note->NoteType == 1 || note->NoteType == 2) {
         //todo: cymbal lane
         if (track->player.Instrument == PlasticDrums) {
-            position.z -= 0.175f;
+            position.z -= 0.1f;
             DrawModelEx(ASSET(cymbalNote),
                         position,
                         { -1, 0, 0 },
-                        5,
-                        { width, (track->NoteHeight * width), width },
+                        10,
+                        { width, (track->NoteHeight * width), width * 0.75f },
                         WHITE);
         } else if (track->player.Instrument < PlasticDrums) {
             DrawModelEx(ASSET(liftNote),

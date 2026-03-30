@@ -688,6 +688,12 @@ void Encore::Track::DrawTrackDebugWindow() {
             if (Button("Configure Drums")) {
                 ConfigureDrums();
             }
+            if (Button("Configure 7 Lane Drums")) {
+                ConfigurePSDrums();
+            }
+            if (Button("Configure Fuck You Drums")) {
+                ConfigureFuckYoyDrums();
+            }
             if (Button("Configure Drums (Gem Kick)")) {
                 ConfigureDrumsGemKick();
             }
