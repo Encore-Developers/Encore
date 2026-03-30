@@ -40,10 +40,10 @@ void LoadCharts() {
             if (songPart == BeatLines) {
                 TheSongList.curSong->BeatTrackID = track;
             }
-            if (songPart == Events) {
+            else if (songPart == Events) {
                 TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
             }
-            if (songPart == PitchedVocals) {
+            else if (songPart == PitchedVocals) {
                 Encore::RhythmEngine::LyricLoader lyricLoader(&midiFile, track);
                 lyricLoader.LoadLyrics();
                 TheSongTime.Lyrics = lyricLoader.lyrics;

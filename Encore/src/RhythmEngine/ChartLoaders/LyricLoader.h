@@ -12,7 +12,6 @@ namespace Encore::RhythmEngine {
         smf::MidiFile *midiFile;
         int trackIdx;
 
-
         void GetPhrases(smf::MidiEventList *midiEventList);
         void IteratePhrases(int tick);
         void GetNotes(smf::MidiEventList *midiEventList);
@@ -22,6 +21,11 @@ namespace Encore::RhythmEngine {
         LyricLoader(smf::MidiFile *midiFile_, int trackIdx_)
             : midiFile(midiFile_), trackIdx(trackIdx_) {
         };
+
+        ~LyricLoader() {
+            midiFile = nullptr;
+        }
+
     };
 }
 

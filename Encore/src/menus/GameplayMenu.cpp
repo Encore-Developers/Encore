@@ -131,7 +131,7 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
     // if (player.Bot)
     //    return;
     // if the key action is NOT repeat (release is 0, press is 1)
-    /*if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
+    if (key == settingsMain.keybindPause && action == GLFW_PRESS) {
         // ManagePausedGame(inputHandler, player);
     } else if ((key == settingsMain.keybindOverdrive
                 || key == settingsMain.keybindOverdriveAlt)) {
@@ -597,6 +597,10 @@ void GameplayMenu::Draw() {
             TheSongTime.BPMChanges.begin(),
             TheSongTime.BPMChanges.end()
         );
+        TheSongTime.Lyrics.erase(
+            TheSongTime.Lyrics.begin(),
+            TheSongTime.Lyrics.end()
+        );
         TheSongTime.LastTick = 0;
         TheSongTime.CurrentTick = 0;
         TheSongTime.LastODTick = 0;
@@ -605,6 +609,7 @@ void GameplayMenu::Draw() {
         TheSongTime.CurrentODTickItr = 0;
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
+        TheSongTime.CurrentLyricPhrase = 0;
         TheMenuManager.SwitchScreen(RESULTS);
         return;
     }
@@ -612,6 +617,34 @@ void GameplayMenu::Draw() {
     int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     int flashInterval = (numer * 480) / denom;
+
+    if (!TheSongTime.Lyrics.empty()) {
+        float FontSize = u.hinpct(0.05);
+        float LyricLeft = 0;
+        std::string playedText = "";
+        std::string unplayedText = "";
+        Color lyricColor = WHITE;
+        auto font = ASSETPTR(rubik);
+        for (const auto& lyric : TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).lyrics) {
+            if (lyric.StartSec < TheSongTime.GetElapsedTime()) {
+                playedText += lyric.Lyric;
+            } else {
+                unplayedText += lyric.Lyric;
+            }
+            if (lyric.talkie)
+                font = ASSETPTR(rubikItalic);
+        }
+        GameMenu::mhDrawText(*font, playedText, {LyricLeft + u.hinpct(0.01), u.hinpct(0.02)}, FontSize, MAGENTA, ASSET(sdfShader), LEFT);
+        LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
+        GameMenu::mhDrawText(*font, unplayedText, {LyricLeft + u.hinpct(0.01), u.hinpct(0.02)}, FontSize, WHITE, ASSET(sdfShader), LEFT);
+
+        if (TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).EndSec < TheSongTime.GetElapsedTime()) {
+            if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
+                TheSongTime.CurrentLyricPhrase++;
+            }
+        }
+    }
+
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
@@ -905,7 +938,7 @@ void GameplayMenu::Draw() {
             // TheGameRenderer.highwayInAnimation = false;
             // TheGameRenderer.highwayInEndAnim = false;
             // TheGameRenderer.songPlaying = false;
-            /*
+
             for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive;
                  playerNum++) {
                 ThePlayerManager.GetActivePlayer(playerNum).stats->CurPlayingChart.resetNotes();
@@ -950,7 +983,7 @@ void GameplayMenu::Draw() {
                 assets.rubikItalic, TheSongList.curSong->artist.c_str(), SongFontSize, 0
             )
                 .x;
-        /*
+
         if (!ThePlayerManager.BandStats->Multiplayer) {
             const char *instDiffText = TextFormat(
                 "%s %s",
@@ -1025,7 +1058,7 @@ void GameplayMenu::Draw() {
     //				{5, GetRenderHeight() - u.hinpct(0.05f)}, u.hinpct(0.04), 0,
     //				SKYBLUE);
     // if (!TheGameRenderer.bot)
-    /*
+
     GuiProgressBar(
         Rectangle { 0,
                     (float)GetRenderHeight() - u.hinpct(0.005f),

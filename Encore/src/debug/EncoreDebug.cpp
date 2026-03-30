@@ -114,6 +114,10 @@ void EncoreDebug::MenuBar() {
             TheSongTime.BPMChanges.begin(),
             TheSongTime.BPMChanges.end()
         );
+        TheSongTime.Lyrics.erase(
+            TheSongTime.Lyrics.begin(),
+            TheSongTime.Lyrics.end()
+        );
         TheSongTime.LastTick = 0;
         TheSongTime.CurrentTick = 0;
         TheSongTime.LastODTick = 0;
@@ -122,6 +126,7 @@ void EncoreDebug::MenuBar() {
         TheSongTime.CurrentODTickItr = 0;
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
+        TheSongTime.CurrentLyricPhrase = 0;
         TheMenuManager.SwitchScreen(RESULTS);
     }
     if (TheMenuManager.currentScreen == GAMEPLAY) {

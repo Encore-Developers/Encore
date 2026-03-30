@@ -76,6 +76,7 @@ public:
     int CurrentBeatline;
 
     std::vector<Section> Sections {};
+    int CurrentLyricPhrase = 0;
     std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
 
     SongTime() = default;

@@ -6,6 +6,7 @@
 
 void Encore::RhythmEngine::LyricLoader::LoadLyrics() {
     if (midiFile) {
+        midiFile->doTimeAnalysis();
         GetPhrases(&midiFile->operator[](trackIdx));
         GetNotes(&midiFile->operator[](trackIdx));
     }
@@ -44,7 +45,7 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         if (!midiEventList->operator[](eventInt).isMeta())
             continue;
         smf::MidiEvent &event = midiEventList->operator[](eventInt);
-        if (event[1] != 1)
+        if (!(event[1] == 1 || event[1] == 5))
             continue;
         IteratePhrases(event.tick);
         std::string lyric = "";
@@ -62,6 +63,9 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         case '*':
         case '#':
         case '^': lyric.pop_back(); talkie = true; break;
+
+            // I fucking hate anyone who doesnt speak English. Change your ways. C++ is a colonist.
+        // case '§': lyric.pop_back(); lyric += "‿"; break;;
         }
         if (lyric.back() == '=' || lyric.back() == '-') {
             lyric.pop_back();
