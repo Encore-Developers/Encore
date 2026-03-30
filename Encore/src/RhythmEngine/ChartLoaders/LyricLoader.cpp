@@ -51,8 +51,22 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         std::string lyric = "";
 
         bool talkie = false;
+        bool discard = false;
+        auto &currentPhrase = lyrics.at(CurrentPhrase);
         for (int k = 3; k < event.getSize(); k++) {
             lyric += event[k];
+            if (event[k] == '+') {
+                discard = true;
+                if (!currentPhrase.lyrics.empty()) {
+                    if (currentPhrase.lyrics.back().Lyric.back() == ' ') {
+                        currentPhrase.lyrics.back().Lyric.pop_back();
+                    }
+                }
+                break;
+            }
+        }
+        if (discard) {
+            continue;
         }
         if (lyric.front() == '[')
             continue;
@@ -71,10 +85,6 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
                 lyric.erase(lyric.begin()+i);
                 i--;
             }
-            if (lyric[i] == '+') {
-                lyric.erase(lyric.begin()+i);
-                i--;
-            }
         }
         if (lyric.back() == '=' || lyric.back() == '-') {
             lyric.pop_back();
@@ -82,7 +92,7 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
             lyric.push_back(' ');
         }
         EncoreLog(LOG_DEBUG, lyric.c_str());
-        lyrics.at(CurrentPhrase).lyrics.emplace_back(event.seconds, lyric, talkie);
+        currentPhrase.lyrics.emplace_back(event.seconds, lyric, talkie);
     }
 };
 
