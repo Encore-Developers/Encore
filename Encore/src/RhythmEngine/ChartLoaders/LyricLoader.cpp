@@ -71,6 +71,10 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
                 lyric.erase(lyric.begin()+i);
                 i--;
             }
+            if (lyric[i] == '+') {
+                lyric.erase(lyric.begin()+i);
+                i--;
+            }
         }
         if (lyric.back() == '=' || lyric.back() == '-') {
             lyric.pop_back();
