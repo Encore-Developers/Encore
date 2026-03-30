@@ -225,7 +225,7 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
                     }
                 }
                 if (chart[0].back().LengthTicks > 0) {
-                    chart.BaseScore += (chart[0].back().LengthTicks / 480) * (SUSTAIN_POINTS_PER_BEAT * BASE_SCORE_NOTE_MULT);
+                    chart.BaseScore += (chart[0].back().LengthTicks / 480.0f) * (SUSTAIN_POINTS_PER_BEAT * BASE_SCORE_NOTE_MULT);
                 }
                 if (!ForceHopoOn.empty()) {
                     if (ForceHopoOn.front().first <= event.tick) {

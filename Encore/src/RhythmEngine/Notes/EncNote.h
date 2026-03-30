@@ -29,6 +29,8 @@ namespace Encore::RhythmEngine {
 
     struct EncLyricPhrase {
         std::vector<EncLyric> lyrics;
+        int StartTick = 0;
+        int EndTick = 0;
         double StartSec = 0;
         double EndSec = 0;
     };

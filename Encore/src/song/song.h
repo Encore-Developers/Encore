@@ -104,7 +104,7 @@ inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
     { "PAD GUITAR", SongParts::PartGuitar }, { "PAD VOCALS", SongParts::PartVocals },
     { "PAD KEYS", SongParts::PartKeys }, { "PART DRUMS", SongParts::PlasticDrums },
     { "PART BASS", SongParts::PlasticBass }, { "PART GUITAR", SongParts::PlasticGuitar },
-    { "PART VOCALS", SongParts::Invalid }, { "PART KEYS", SongParts::PlasticKeys },
+    { "PART VOCALS", SongParts::PitchedVocals }, { "PART KEYS", SongParts::PlasticKeys },
     { "PLASTIC VOCALS", SongParts::Invalid }, { "BEAT", SongParts::BeatLines },
     { "EVENTS", SongParts::Events }
 };

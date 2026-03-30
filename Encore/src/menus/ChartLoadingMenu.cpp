@@ -14,6 +14,8 @@
 
 #include <thread>
 
+#include "RhythmEngine/ChartLoaders/LyricLoader.h"
+
 
 bool StartLoading = true;
 bool FinishedLoading = false;
@@ -40,6 +42,11 @@ void LoadCharts() {
             }
             if (songPart == Events) {
                 TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
+            }
+            if (songPart == PitchedVocals) {
+                Encore::RhythmEngine::LyricLoader lyricLoader(&midiFile, track);
+                lyricLoader.LoadLyrics();
+                TheSongTime.Lyrics = lyricLoader.lyrics;
             }
         }
     }
