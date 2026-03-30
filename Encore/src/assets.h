@@ -712,6 +712,9 @@ public:
                             model->materials[0].maps[0].texture = beatlineTex;
                         });
 
+    NEWTEXASSET(mainLyricBar, "gameplay/ui/main_lyric_bar.png");
+    NEWTEXASSET(secLyricBar, "gameplay/ui/secondary_lyric_bar.png");
+
     void DrawTextRHDI(const char *text, float x, float y, float fontSize, Color color) {
         DrawTextEx(redHatDisplayItalic, text, { x, y }, fontSize, 0, color);
         BeginShaderMode(sdfShader);

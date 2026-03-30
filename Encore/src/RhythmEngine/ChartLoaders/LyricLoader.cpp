@@ -51,25 +51,22 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         std::string lyric = "";
 
         bool talkie = false;
-        bool discard = false;
         auto &currentPhrase = lyrics.at(CurrentPhrase);
         for (int k = 3; k < event.getSize(); k++) {
             lyric += event[k];
-            if (event[k] == '+') {
-                discard = true;
-                if (!currentPhrase.lyrics.empty()) {
-                    if (currentPhrase.lyrics.back().Lyric.back() == ' ') {
-                        currentPhrase.lyrics.back().Lyric.pop_back();
-                    }
-                }
-                break;
-            }
         }
-        if (discard) {
+
+        if (lyric == "+-") {
+            if (!currentPhrase.lyrics.empty()) {
+                if (currentPhrase.lyrics.back().Lyric.back() == ' ') {
+                    currentPhrase.lyrics.back().Lyric.pop_back();
+                }
+            }
             continue;
         }
         if (lyric.front() == '[')
             continue;
+
         switch (lyric.back()) {
         case '%':
         case '+':
@@ -86,8 +83,10 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
                 i--;
             }
         }
-        if (lyric.back() == '=' || lyric.back() == '-') {
+        if (lyric.back() == '-') {
             lyric.pop_back();
+        } else if (lyric.back() == '=') {
+            lyric.back() = '-';
         } else {
             lyric.push_back(' ');
         }

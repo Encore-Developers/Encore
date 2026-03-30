@@ -619,24 +619,52 @@ void GameplayMenu::Draw() {
     int flashInterval = (numer * 480) / denom;
 
     if (!TheSongTime.Lyrics.empty()) {
-        float FontSize = u.hinpct(0.05);
+        ZoneScopedN("Lyrics Display")
+        float baselineVox = u.hpct(0.0025f) + u.hinpct(0.05f);
+        float voxHeight = u.hinpct(0.06f);
+        float FontSize = u.hinpct(0.0425f);
+        float padding = (voxHeight - FontSize) / 2;
+        // god forbid i have a proper ui library
         float LyricLeft = 0;
         std::string playedText = "";
         std::string unplayedText = "";
         Color lyricColor = WHITE;
-        auto font = ASSETPTR(rubik);
+        auto font = ASSETPTR(rubikBold);
         for (const auto& lyric : TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).lyrics) {
             if (lyric.StartSec < TheSongTime.GetElapsedTime()) {
                 playedText += lyric.Lyric;
             } else {
                 unplayedText += lyric.Lyric;
             }
-            if (lyric.talkie)
-                font = ASSETPTR(rubikItalic);
+            // also this needs to be fixed (talkies dont display properly)
+            //if (lyric.talkie)
+            //    font = ASSETPTR(rubikBoldItalic);
         }
-        GameMenu::mhDrawText(*font, playedText, {LyricLeft + u.hinpct(0.01), u.hinpct(0.02)}, FontSize, MAGENTA, ASSET(sdfShader), LEFT);
+        // before i even CONSIDER going further with things like animations or fade or ANYTHING. this should be put somewhere but here.
+        Rectangle imageRec {0, 0, float(ASSET(mainLyricBar).width), float(ASSET(mainLyricBar).height)};
+        Rectangle dest {0, baselineVox, float(GetScreenWidth()), voxHeight};
+        LyricLeft += (GetScreenWidth() / 2) - (MeasureTextEx(*font, (playedText + unplayedText).c_str(), FontSize, 0).x / 2);
+        DrawTexturePro(ASSET(mainLyricBar), imageRec, dest, {0, 0}, 0, WHITE);
+        GameMenu::mhDrawText(*font, playedText, {LyricLeft, baselineVox + padding}, FontSize, {119,183,255,255}, ASSET(sdfShader), LEFT);
         LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
-        GameMenu::mhDrawText(*font, unplayedText, {LyricLeft + u.hinpct(0.01), u.hinpct(0.02)}, FontSize, WHITE, ASSET(sdfShader), LEFT);
+        GameMenu::mhDrawText(*font, unplayedText, {LyricLeft, baselineVox + padding}, FontSize, WHITE, ASSET(sdfShader), LEFT);
+
+        if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
+            float topBelow = baselineVox + voxHeight;
+            float SecFontSize = FontSize * 0.75f;
+            float SecVoxSize = voxHeight * 0.75f;
+            float secPadding = (SecVoxSize - SecFontSize) / 2;
+            std::string lyricStr = "";
+            font = ASSETPTR(rubik);
+            for (const auto& lyric : TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase+1).lyrics) {
+                lyricStr += lyric.Lyric;
+            }
+            imageRec = {0, 0, float(ASSET(secLyricBar).width), float(ASSET(secLyricBar).height)};
+            dest = {0, topBelow, float(GetScreenWidth()), SecVoxSize};
+            LyricLeft = (GetScreenWidth() / 2) - (MeasureTextEx(*font, (lyricStr).c_str(), SecFontSize, 0).x / 2);
+            DrawTexturePro(ASSET(secLyricBar), imageRec, dest, {0, 0}, 0, WHITE);
+            GameMenu::mhDrawText(*font, lyricStr, {LyricLeft, topBelow + secPadding}, SecFontSize, LIGHTGRAY, ASSET(sdfShader), LEFT);
+        }
 
         if (TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).EndSec < TheSongTime.GetElapsedTime()) {
             if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
