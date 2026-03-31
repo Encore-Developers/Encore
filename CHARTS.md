@@ -1,85 +1,28 @@
 # Encore Chart Format
 To work in Encore, a chart requires the following:
-- Properly formatted `info.json`
-- At least 1 `backing.ogg`
+- Properly formatted `song.ini`
+- At least 1 `song.ogg`, or multiple stems
 - At least 1 valid instrument track in `<name>.mid`
 
 Details about these files and the format will be noted below.
 
-## info.json
-A fully fleshed out `info.json` file will look similar to the following:
-```json
-{   
-	"title": "Through the Fire and Flames",    
-	"artist": "DragonForce",    
-	"preview_start_time": 41727,    
-	"release_year": "2006",    
-	"source": "rb3dlc",    
-	"album": "Inhuman Rampage",    
-	"loading_phrase": "Woah it's an encore in here!",    
-	"genres": [    
-		"Power Metal"    
-	],    
-	"charters": [
-		"Harmonix",
-		"TheGuitarHeroNerd",
-		"Gwarb"
-	],
-	"length": 449,
-	"icon_drums": "Drum",
-	"icon_bass": "Bass",
-	"icon_guitar": "Guitar",
-	"icon_vocals": "Vocals",
-	"diff": {
-		"drums": -1,
-		"bass": 5,
-		"guitar": 6,
-		"vocals": 4,
-		"plastic_drums": -1,
-		"plastic_bass": 5,
-		"plastic_guitar": 6,
-		"pitched_vocals": 4
-	},
-	"midi": "notes.mid",
-	"art": "cover.png",
-	"stems": {
-		"drums": [
-			"drums_1.ogg",
-			"drums_2.ogg",
-			"drums_3.ogg"
-		],
-		"bass": "bass.ogg",
-		"lead": "lead.ogg",
-		"vocals": "vocals.ogg",
-		"backing": [
-			"backing.ogg",
-			"keys.ogg"
-		]
-	}
-}
-```
-
-The minimum fields required are
-- `"title"`
-- `"artist"`
-- `"diff"` and child fields, like `"drums"`, `"bass"`, `"guitar"`, and/or `"vocals"`
-- `"stems"` and at least its child field, `"backing"`
-- `"midi"`
-- `"sid"` or `"icon_drums"`
-- `"sib"` or `"icon_bass"`
-- `"sig"` or `"icon_guitar"`
-- `"siv"` or `"icon_vocals"`
-
-Because the info.json file uses JSON, it is very much noted that you should always follow JSON syntax. JSON and its various syntactial quirks will not be covered here, but the most notable issue is that capitalization is parsed, and any incorrect capitalization can render a field useless. 
-
-Unlike other song formats, the midi file does not have to be named `notes.mid`, as long as its name is properly noted under the `"midi"` field.
-
 ## notes.mid
 
-This is formatted extremely closely to a regular CH/RB chart that utilizes a `notes.mid`, although any plastic/5-fret/Pro/Classic chart should be in a track named `PLASTIC_<inst>`. All `PART_<inst>` tracks should be formatted for Encore pad gameplay.
+This is a regular CH/RB midi file. Any 5-fret/Classic chart should be in a track named `PART_<inst>`. All `PAD_<inst>` tracks should be formatted for Encore pad gameplay.
 
-*Note, `<inst>` is a placeholder for the instrument being charted. All acceptable instrument track names at this time are `PART_DRUMS`, `PART_BASS`, `PART_GUITAR`,`PART_VOCALS`, `PLASTIC_DRUMS`, `PLASTIC_BASS`, and `PLASTIC_GUITAR`.*
+*Note, `<inst>` is a placeholder for the instrument being charted. All acceptable instrument track names at this time are*
 
+| Instrument  | Plastic      | Pad         |
+|-------------|--------------|-------------|
+| Guitar/Lead | `PART_GUITAR` | `PAD_GUITAR` |
+| Bass/Groove | `PART_BASS`  | `PAD_BASS`  |
+| Vocals*     | `PART_VOCALS` | `PAD_VOCALS` |
+| Keys        | `PART_KEYS`  | `PAD_KEYS`  |
+| Drums**     | `PART_DRUMS`  | `PAD_KEYS`   |  
+*Only supports lyrics display at the moment  
+**Only supports 4 lane/Pro drums
+
+## Pad Specifics
 Refer to the chart below for the different difficulties and pitch information.
 
 ### Tap Lanes
@@ -104,9 +47,14 @@ Refer to the chart below for the different difficulties and pitch information.
 |:-|:-:|
 |All Diffs|116 G#7|
 
+
+
 ### Solos
 
-Solos are marked per instrument at pitch 101 (F6), between Expert's lift and tap pitches.
+|Difficulty|  Lane  |
+|:-|:------:|
+|All Diffs| 101 F6 |
+(between Expert's lift and tap pitches)
 
 ## `EVENTS` and `BEAT`
 Every `notes.mid` needs an `EVENTS` track and a `BEAT` track.
@@ -119,6 +67,8 @@ Every `notes.mid` needs an `EVENTS` track and a `BEAT` track.
 - A `[music_start]` event tells the game where the first beatline should appear. 
 - A `[music_end]` event tells the game where to stop displaying beatlines. 
 - An `[end]` event should be placed at the very end of the chart MIDI, or where the game should cut to the Results screen.
+
+`EVENTS` is also useful for creating practice sections. Refer to the [RBN documentation](http://docs.c3universe.com/rbndocs/index.php?title=Practice_Sections) for more practice section information.
 
 ## Audio
 As Encore uses BASS and BASSOPUS, you can use WAV/AIFF/MP3/MP2/MP1/OGG/OPUS files for music. **OGG and OPUS are highly recommended.**
