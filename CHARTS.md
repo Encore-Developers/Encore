@@ -60,7 +60,7 @@ Refer to the chart below for the different difficulties and pitch information.
 Every `notes.mid` needs an `EVENTS` track and a `BEAT` track.
 
 ### Beat
-`BEAT` is a mapping of each beat line to be displayed in Encore. On pitch 12 is any major beats, like the first beat of the measure. Even though you can technically use any other pitch, it is highly suggested to use pitch 13 for any other minor beat. Typically, the templates distributed will already do this for you.
+`BEAT` changes how Overdrive drains. Do not touch it unless you're dealing with special tempo changes. Usually your template (if used) will do this for you. Measure start is on pitch 12 and every other beat is on pitch 13.
 
 ### Events
 `EVENTS` has three required text events. 

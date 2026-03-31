@@ -29,7 +29,8 @@ Extract the .zip file that you downloaded, either Nightly or Stable, and extract
 Extract songs into the `/Songs` folder in your Encore folder.
 Please check [CHARTS.md](https://github.com/Encore-Developers/Encore/blob/main/CHARTS.md) for more song information.
 
-Supported types: song.ini (midi charts, no .chart (yet)), info.json
+Encore supports all songs with a song.ini and notes.mid. (no .chart!!!!!)  
+.chart should be abolished. Convert using Onyx.
 
 ### Contributing
 
@@ -46,8 +47,6 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 
 [raygui](https://github.com/raysan5/raygui)
 
-[RapidJSON](https://github.com/Tencent/rapidjson)
-
 [midifile](https://github.com/craigsapp/midifile)
 
 [nicolausYes/easing-functions](https://github.com/nicolausYes/easing-functions)
@@ -60,4 +59,6 @@ Crown icon from [Font Awesome](https://fontawesome.com/) (icon source: [crown](h
 
 [mariusbancila/stduuid](https://github.com/mariusbancila/stduuid)
 
-[ThePhD/Sol3 (Lua C++ interop)](https://github.com/ThePhD/sol2)
+[SDL](https://github.com/libsdl-org/SDL/releases)
+
+[tracy](https://github.com/wolfpld/tracy)
