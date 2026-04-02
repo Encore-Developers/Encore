@@ -10,9 +10,17 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
     Vector3 position = { xPos, 0.0, pos };
     Color color = track->player.QueryColorProfile(colorSlot);
-    ASSET(noteShader).SetUniform("frameColor", WHITE);
-    ASSET(noteShader).SetUniform("noteColor", color);
 
+    if (note->NoteType == 0) {
+        ASSET(noteShader).SetUniform("noteColor", color);
+        ASSET(noteShader).SetUniform("frameColor", WHITE);
+    } else {
+        ASSET(noteShader).SetUniform("noteColor", WHITE);
+        ASSET(noteShader).SetUniform("frameColor", color);
+    }
+    if (note->LengthSeconds > 0) {
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
+    }
     DrawModelEx(ASSET(openNote), position, {0}, 0, {width/5.0f, track->NoteHeight, 1}, WHITE);
 }
 
