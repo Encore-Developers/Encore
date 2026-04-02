@@ -32,10 +32,11 @@ SongSelectMenu::~SongSelectMenu() {
 }
 
 void SongSelectMenu::Load() {
-    if (!IsAudioDeviceReady()) {
-        InitAudioDevice();
-        TraceLog(LOG_INFO, "Initialized audio device");
-    }
+    // oh brother, this guy STINKS!
+    //if (!IsAudioDeviceReady()) {
+    //    InitAudioDevice();
+    //    TraceLog(LOG_INFO, "Initialized audio device");
+    //}
     previewStartTime = 0.0;
     phaseStartTime = 0.0;
     currentPreviewVolume = 0.0f;
