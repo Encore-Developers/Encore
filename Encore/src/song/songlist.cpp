@@ -212,6 +212,8 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
 
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
+    sortList(SortType::Title);
+    curSong = nullptr;
 }
 
 std::string GetLengthHeader(int length) {
