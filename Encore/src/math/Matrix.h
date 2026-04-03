@@ -18,4 +18,12 @@ public:
     //  0   0   0   1
 
     static const Matrix IDENTITY;
+
+    Vector4& operator[](int index) {
+        [[unlikely]] if (index < 0 || index > 4) {
+            // TODO: this should log
+            return x;
+        }
+        return ((Vector4*)this)[index];
+    }
 };

@@ -3,6 +3,7 @@
 // Vector/matrix math based on raylib
 
 #include <cmath>
+#include <cstdint>
 #include "imgui.h"
 
 inline float Lerp(float a, float b, float x) {
@@ -156,8 +157,20 @@ public:
         return *this;
     }
 
+    float Dot(const Vector4& rhs) const {
+        return x*rhs.x + y*rhs.y + z*rhs.z + w*rhs.w;
+    }
+
     operator Vector3() const {
         return {x, y, z};
+    }
+
+    float& operator[](int index) {
+        [[unlikely]] if (index < 0 || index > 4) {
+            // TODO: this should log
+            return x;
+        }
+        return ((float*)this)[index];
     }
 };
 
