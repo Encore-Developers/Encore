@@ -4,3 +4,6 @@
 [submodule "Encore/thirdparty/tracy"]
 	path = Encore/thirdparty/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "Encore/thirdparty/sdl_shadercross"]
+	path = Encore/thirdparty/sdl_shadercross
+	url = https://github.com/libsdl-org/SDL_shadercross.git
