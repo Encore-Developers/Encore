@@ -3,6 +3,8 @@
 #include "imgui/backends/imgui_impl_sdlgpu3.h"
 #include "imgui/backends/imgui_impl_sdl3.h"
 #include "SDL3/SDL.h"
+#include "math/Matrix.h"
+#include "math/Vector.h"
 #include "tracy/Tracy.hpp"
 
 int main(int argc, char *argv[]) {
@@ -31,7 +33,6 @@ int main(int argc, char *argv[]) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
     io.Fonts->AddFontDefaultVector();

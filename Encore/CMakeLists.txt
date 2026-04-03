@@ -10,23 +10,6 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Dependencies
-set(RAYLIB_VERSION 5.5)
-find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
-if (NOT raylib_FOUND) # If there's none, fetch and build raylib
-  include(FetchContent)
-  FetchContent_Declare(
-    raylib
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-          URL https://github.com/Encore-Developers/raylib-Source/archive/refs/heads/master.zip
-  )
-  FetchContent_GetProperties(raylib)
-  if (NOT raylib_POPULATED) # Have we downloaded raylib yet?
-    set(FETCHCONTENT_QUIET NO)
-    FetchContent_MakeAvailable(raylib)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-  endif()
-endif()
 
 find_package(json QUIET)
 if (NOT json_FOUND)
@@ -44,7 +27,6 @@ endif()
 
 option(JSON_Diagnostics "" ON)
 
-option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
@@ -151,5 +133,5 @@ set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 
-target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3 Tracy::TracyClient)
+target_link_libraries(Encore nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3 Tracy::TracyClient)
 
