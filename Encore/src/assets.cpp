@@ -3,6 +3,10 @@
 //
 
 #include "assets.h"
+
+#include "graphicsState.h"
+#include "stb_image.h"
+
 #include <filesystem>
 #include "SDL3/SDL_log.h"
 #include "tracy/Tracy.hpp"
@@ -28,6 +32,12 @@ const char *AssetStateName(AssetState state) {
         return "LOADED";
     }
     return "INVALID";
+}
+void Asset::AddToFinalizeQueue() {
+    TheAssets.finalizeQueueMutex.lock();
+    TheAssets.finalizeQueue.push_back(this);
+    TheAssets.finalizeQueueMutex.unlock();
+    state = PREFINALIZED;
 }
 
 Assets &Assets::getInstance() {
@@ -126,6 +136,66 @@ size_t FileAsset::GetFileSize() {
 char *FileAsset::FetchRaw() {
     CheckForFetch();
     return fileBuffer;
+}
+
+void TextureAsset::Load() {
+    ZoneScoped
+    LoadFile();
+    int channelsInFile = 0;
+    data = (Pixel*)stbi_load_from_memory((stbi_uc*) fileBuffer, fileSize, &width, &height, &channelsInFile, 4);
+    FreeFileBuffer();
+
+    SDL_GPUTransferBufferCreateInfo createInfo = {
+        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        (unsigned int)(width*height*sizeof(Pixel)),
+        0
+    };
+    transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &createInfo);
+    Pixel* buf = (Pixel*)SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, false);
+    memcpy(buf, data, width * height * sizeof(Pixel));
+    SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
+
+
+    AddToFinalizeQueue();
+}
+
+void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
+    ZoneScoped
+    SDL_GPUTextureCreateInfo createInfo = {
+        SDL_GPU_TEXTURETYPE_2D,
+        SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        SDL_GPU_TEXTUREUSAGE_SAMPLER,
+        (unsigned int)width,
+        (unsigned int)height,
+        1,
+        1,
+        SDL_GPU_SAMPLECOUNT_1,
+        0
+    };
+    texture = SDL_CreateGPUTexture(TheGPU, &createInfo);
+    SDL_GPUTextureTransferInfo transferInfo = {
+        transferBuffer,
+        0,
+        (unsigned int)width,
+        (unsigned int)height
+    };
+    SDL_GPUTextureRegion region = {
+        texture,
+        0,
+        0,
+        0,
+        0,
+        0,
+        (unsigned int)width,
+        (unsigned int)height,
+        1
+    };
+    SDL_UploadToGPUTexture(copyPass, &transferInfo, &region, false);
+    state = LOADED;
+}
+
+void TextureAsset::Unload() {
+
 }
 
 void Assets::AddRingsAndInstruments() {

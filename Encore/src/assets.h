@@ -1,7 +1,11 @@
 #pragma once
 
+#include "SDL3/SDL_gpu.h"
+
 #include <cassert>
 #include <atomic>
+#include <deque>
+#include <mutex>
 #include <filesystem>
 #include <functional>
 #include <map>
@@ -23,8 +27,9 @@ protected:
     virtual void Load() {
     }
 
-    virtual void Finalize() {
-    }
+    void AddToFinalizeQueue();
+
+    SDL_GPUTransferBuffer* transferBuffer = nullptr;
 
     //Asset(Asset& other) {}
 public:
@@ -55,9 +60,11 @@ public:
     virtual void Unload() {
     }
 
+    virtual void Finalize(SDL_GPUCopyPass* copyPass) {
+    }
     /// Call when you're polling the asset's for when it's loaded.
     bool CanFetch() const {
-        return state == LOADED || state == PREFINALIZED;
+        return state == LOADED;
     }
 
     ~Asset();
@@ -106,12 +113,36 @@ public:
     }
 };
 
+typedef struct Pixel {
+    uint8_t r, g, b, a;
+} Pixel;
+
+class TextureAsset : public FileAsset {
+    virtual void Load();
+
+public:
+    int width = 0;
+    int height = 0;
+    Pixel* data;
+    SDL_GPUTexture* texture;
+
+    TextureAsset(const std::string &id)
+        : FileAsset(id) {
+    }
+    virtual void Finalize(SDL_GPUCopyPass* copyPass);
+
+    TextureAsset() {
+    }
+
+    virtual void Unload();
+};
 
 
 #define ASSET(varname) TheAssets.varname
 #define ASSETPTR(varname) &TheAssets.varname
 
-
+#define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
+#define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path)
 
 
 class Assets {
@@ -120,8 +151,13 @@ private:
 
 public:
     std::vector<Asset *> assets; // Stored for debugging
+    std::deque<Asset *> finalizeQueue;
+    std::mutex finalizeQueueMutex;
     Assets() {
     }
+
+
+    NEWTEXASSET(faviconTex, "encore_favicon.png");
 
     void AddRingsAndInstruments();
 

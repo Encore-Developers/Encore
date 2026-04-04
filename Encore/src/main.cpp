@@ -5,6 +5,12 @@
 #include "SDL3/SDL.h"
 #include "math/glm.h"
 #include "tracy/Tracy.hpp"
+#include "graphicsState.h"
+#include "assets.h"
+#include <deque>
+
+SDL_GPUDevice * TheGPU;
+SDL_Window* TheWindow;
 
 int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
@@ -14,17 +20,20 @@ int main(int argc, char *argv[]) {
     }
 
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE);
+    TheWindow = window;
 
     if (window == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
         return 1;
     }
 
-    auto gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL, false, nullptr);
+    auto gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL, true, nullptr);
     if (gpu == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create GPU: %s\n", SDL_GetError());
         return 1;
     }
+
+    TheGPU = gpu;
 
     SDL_ClaimWindowForGPUDevice(gpu, window);
     SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
@@ -74,11 +83,38 @@ int main(int argc, char *argv[]) {
 
         ImGui::ShowDemoWindow();
 
+        if (ImGui::Begin("Test")) {
+            if (ImGui::Button("Load Image")) {
+                ASSET(faviconTex).StartLoad();
+            }
+            if (ASSET(faviconTex).CanFetch()) {
+                ImGui::Image((ImTextureRef)ASSET(faviconTex).texture, {(float)ASSET(faviconTex).width, (float)ASSET(faviconTex).height});
+            }
+        }
+        ImGui::End();
+
+
         ImGui::Render();
         auto cmdbuf = SDL_AcquireGPUCommandBuffer(gpu);
         if (cmdbuf == nullptr) {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create command buffer: %s\n", SDL_GetError());
             return 1;
+        }
+
+        if (!TheAssets.finalizeQueue.empty()) {
+            static std::deque<Asset*> pulled;
+            pulled.clear();
+            TheAssets.finalizeQueueMutex.lock();
+            for (auto asset : TheAssets.finalizeQueue) {
+                pulled.push_back(asset);
+            }
+            TheAssets.finalizeQueue.clear();
+            TheAssets.finalizeQueueMutex.unlock();
+            auto copyPass = SDL_BeginGPUCopyPass(cmdbuf);
+            for (auto asset : pulled) {
+                asset->Finalize(copyPass);
+            }
+            SDL_EndGPUCopyPass(copyPass);
         }
 
         SDL_GPUTexture* swapchainTexture;
