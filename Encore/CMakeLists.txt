@@ -34,6 +34,7 @@ if (NOT WIN32)
   set(SDLSHADERCROSS_DXC OFF)
 endif()
 add_subdirectory(thirdparty/sdl_shadercross EXCLUDE_FROM_ALL)
+add_subdirectory(thirdparty/glm EXCLUDE_FROM_ALL)
 
 
 option ( TRACY_ENABLE " " ON )
@@ -138,5 +139,5 @@ set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 
-target_link_libraries(Encore nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3 Tracy::TracyClient SDL3_shadercross::SDL3_shadercross)
+target_link_libraries(Encore nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3 Tracy::TracyClient SDL3_shadercross::SDL3_shadercross glm::glm)
 

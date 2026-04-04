@@ -3,8 +3,7 @@
 #include "imgui/backends/imgui_impl_sdlgpu3.h"
 #include "imgui/backends/imgui_impl_sdl3.h"
 #include "SDL3/SDL.h"
-#include "math/Matrix.h"
-#include "math/Vector.h"
+#include "math/glm.h"
 #include "tracy/Tracy.hpp"
 
 int main(int argc, char *argv[]) {
@@ -74,13 +73,6 @@ int main(int argc, char *argv[]) {
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
-
-        if (ImGui::Begin("Test")) {
-            ImGui::Text("Hello World!");
-        }
-        ImGui::End();
-
-
 
         ImGui::Render();
         auto cmdbuf = SDL_AcquireGPUCommandBuffer(gpu);
