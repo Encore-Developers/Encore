@@ -5,7 +5,7 @@
 
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_OSX_ARCHITECTURES x86_64)
+set(CMAKE_OSX_ARCHITECTURES x86_64 arm64)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -33,6 +33,8 @@ add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 if (NOT WIN32)
   set(SDLSHADERCROSS_DXC OFF)
 endif()
+add_subdirectory(thirdparty/spirv-cross)
+set(SDLSHADERCROSS_SPIRVCROSS_SHARED oFF)
 add_subdirectory(thirdparty/sdl_shadercross EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/glm EXCLUDE_FROM_ALL)
 

@@ -10,3 +10,6 @@
 [submodule "Encore/thirdparty/glm"]
 	path = Encore/thirdparty/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Encore/thirdparty/spirv-cross"]
+	path = Encore/thirdparty/spirv-cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git

@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE);
+    auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
 
     while (ASSET(faviconTex).state != PREFINALIZED) {}
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    auto gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL, true, "vulkan");
+    auto gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL, true, nullptr);
     if (gpu == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create GPU: %s\n", SDL_GetError());
         return 1;
