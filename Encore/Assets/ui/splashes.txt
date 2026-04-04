@@ -16,7 +16,6 @@ Powered by Unreal Engine!
 Also try YARG!
 Also try Rock Band 3 Deluxe!
 Also try Clone Hero!
-Also try GHWT:DE!
 Powered by Unity!
 Powered by Scratch!
 Powered by Assets assets;!
