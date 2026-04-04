@@ -9,6 +9,7 @@
 
 #include <filesystem>
 #include "SDL3/SDL_log.h"
+#include "SDL3_shadercross/SDL_shadercross.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
 
@@ -216,6 +217,39 @@ void TextureAsset::Unload() {
     SDL_ReleaseGPUTexture(TheGPU, texture);
     texture = nullptr;
     state = UNLOADED;
+}
+void ShaderAsset::Load() {
+    LoadFile();
+
+    size_t size = 0;
+    SDL_ShaderCross_HLSL_Info hlslInfo = {
+        .source = fileBuffer,
+        .entrypoint = "main",
+        .include_dir = nullptr,
+        .defines = nullptr,
+        .shader_stage = stage,
+        .props = 0
+    };
+    const uint8_t *spirv =
+        (const uint8_t *)SDL_ShaderCross_CompileSPIRVFromHLSL(&hlslInfo, &size);
+
+    SDL_ShaderCross_SPIRV_Info spirvInfo = {
+        .bytecode = spirv,
+        .bytecode_size = size,
+        .entrypoint = "main",
+        .shader_stage = stage,
+        .props = 0
+
+    };
+    auto resourceInfo = SDL_ShaderCross_ReflectGraphicsSPIRV(spirv, size, 0);
+    shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, 0);
+    state = LOADED;
+    FreeFileBuffer();
+    SDL_free((void*)spirv);
+    SDL_free(resourceInfo);
+}
+void ShaderAsset::Unload() {
+    SDL_ReleaseGPUShader(TheGPU, shader);
 }
 
 void Assets::AddRingsAndInstruments() {

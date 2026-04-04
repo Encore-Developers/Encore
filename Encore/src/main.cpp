@@ -32,6 +32,8 @@ int main(int argc, char *argv[]) {
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
     ASSET(faviconTex).StartLoad();
+    ASSET(testVert).StartLoad();
+    ASSET(testFrag).StartLoad();
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
         return 1;

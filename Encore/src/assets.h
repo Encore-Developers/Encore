@@ -2,6 +2,7 @@
 
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_gpu.h"
+#include "SDL3_shadercross/SDL_shadercross.h"
 
 #include <cassert>
 #include <atomic>
@@ -143,12 +144,29 @@ public:
 };
 
 
+class ShaderAsset : public FileAsset {
+    virtual void Load();
+
+public:
+    SDL_ShaderCross_ShaderStage stage;
+    SDL_GPUShader* shader;
+
+    ShaderAsset(const std::string &id, SDL_ShaderCross_ShaderStage stage) : FileAsset(id), stage(stage) {}
+
+    ShaderAsset() {}
+
+    virtual void Unload();
+};
+
 #define ASSET(varname) TheAssets.varname
 #define ASSETPTR(varname) &TheAssets.varname
 
 #define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
 #define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path)
 #define NEWTEXASSET_KEEPRAW(varname, path) TextureAsset varname = TextureAsset(path, true)
+#define FRAG SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT
+#define VERT SDL_SHADERCROSS_SHADERSTAGE_VERTEX
+#define NEWSHADERASSET(varname, path, stage) ShaderAsset varname = ShaderAsset(path, stage)
 
 
 class Assets {
@@ -164,6 +182,8 @@ public:
 
 
     NEWTEXASSET_KEEPRAW(faviconTex, "encore_favicon-NEW.png");
+    NEWSHADERASSET(testVert, "testshaders/test.vert.hlsl", VERT);
+    NEWSHADERASSET(testFrag, "testshaders/test.frag.hlsl", FRAG);
 
     void AddRingsAndInstruments();
 
