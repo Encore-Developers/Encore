@@ -145,25 +145,22 @@ void TextureAsset::Load() {
     data = (Pixel*)stbi_load_from_memory((stbi_uc*) fileBuffer, fileSize, &width, &height, &channelsInFile, 4);
     FreeFileBuffer();
 
+    // Allow textures to be loaded even when the GPU is not initialized yet, while still preferring to copy to the
+    // transfer buffer on the asset thread.
+    if (TheGPU) {
+        CopyToTransferBuffer();
+    }
+
     AddToFinalizeQueue();
 }
 
 void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
     ZoneScoped
 
-    SDL_GPUTransferBufferCreateInfo transferCreateInfo = {
-        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        (unsigned int)(width*height*sizeof(Pixel)),
-        0
-    };
-    transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &transferCreateInfo);
-    Pixel* buf = (Pixel*)SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, false);
-    memcpy(buf, data, width * height * sizeof(Pixel));
-    SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
-    if (!keepRawData) {
-        stbi_image_free(data);
-        data = nullptr;
+    if (!transferBuffer) {
+        CopyToTransferBuffer();
     }
+
     SDL_GPUTextureCreateInfo createInfo = {
         SDL_GPU_TEXTURETYPE_2D,
         SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -197,6 +194,22 @@ void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
     SDL_ReleaseGPUTransferBuffer(TheGPU, transferBuffer);
     transferBuffer = nullptr;
     state = LOADED;
+}
+
+void TextureAsset::CopyToTransferBuffer() {
+    SDL_GPUTransferBufferCreateInfo transferCreateInfo = {
+        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        (unsigned int)(width*height*sizeof(Pixel)),
+        0
+    };
+    transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &transferCreateInfo);
+    Pixel* buf = (Pixel*)SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, false);
+    memcpy(buf, data, width * height * sizeof(Pixel));
+    SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
+    if (!keepRawData) {
+        stbi_image_free(data);
+        data = nullptr;
+    }
 }
 
 void TextureAsset::Unload() {

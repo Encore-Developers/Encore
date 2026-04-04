@@ -9,8 +9,8 @@
 #include "assets.h"
 #include <deque>
 
-SDL_GPUDevice * TheGPU;
-SDL_Window* TheWindow;
+SDL_GPUDevice* TheGPU = nullptr;
+SDL_Window* TheWindow = nullptr;
 
 void LocateDevAssets() {
     auto execPath = std::filesystem::path(SDL_GetBasePath());

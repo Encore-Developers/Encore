@@ -121,6 +121,8 @@ typedef struct Pixel {
 class TextureAsset : public FileAsset {
     virtual void Load();
 
+    void CopyToTransferBuffer();
+
 public:
     int width = 0;
     int height = 0;
