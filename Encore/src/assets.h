@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_gpu.h"
 
 #include <cassert>
@@ -125,9 +126,11 @@ public:
     int height = 0;
     Pixel* data;
     SDL_GPUTexture* texture;
+    bool keepRawData = false;
+    int mips = 1;
 
-    TextureAsset(const std::string &id)
-        : FileAsset(id) {
+    TextureAsset(const std::string &id, bool keepRawData = false, int mips = 1)
+        : FileAsset(id), keepRawData(keepRawData), mips(mips) {
     }
     virtual void Finalize(SDL_GPUCopyPass* copyPass);
 
@@ -143,11 +146,12 @@ public:
 
 #define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
 #define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path)
+#define NEWTEXASSET_KEEPRAW(varname, path) TextureAsset varname = TextureAsset(path, true)
 
 
 class Assets {
 private:
-    std::filesystem::path directory = "Assets";
+    std::filesystem::path directory = SDL_GetBasePath() / std::filesystem::path("Assets");
 
 public:
     std::vector<Asset *> assets; // Stored for debugging
@@ -157,7 +161,7 @@ public:
     }
 
 
-    NEWTEXASSET(faviconTex, "encore_favicon.png");
+    NEWTEXASSET_KEEPRAW(faviconTex, "encore_favicon-NEW.png");
 
     void AddRingsAndInstruments();
 

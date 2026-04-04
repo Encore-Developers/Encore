@@ -12,8 +12,26 @@
 SDL_GPUDevice * TheGPU;
 SDL_Window* TheWindow;
 
+void LocateDevAssets() {
+    auto execPath = std::filesystem::path(SDL_GetBasePath());
+    for (int i = 0; i < 5; i++) {
+        execPath /= "..";
+        execPath = std::filesystem::canonical(execPath);
+        //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
+        if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
+            execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
+            SDL_Log("Found dev directory: %s", execPath.c_str());
+            TheAssets.setDirectory(execPath);
+            break;
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
+    LocateDevAssets();
+    SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
+    ASSET(faviconTex).StartLoad();
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
         return 1;
@@ -22,12 +40,18 @@ int main(int argc, char *argv[]) {
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE);
     TheWindow = window;
 
+    while (ASSET(faviconTex).state != PREFINALIZED) {}
+    auto icon = SDL_CreateSurfaceFrom(ASSET(faviconTex).width, ASSET(faviconTex).height, SDL_PIXELFORMAT_RGBA32, ASSET(faviconTex).data, ASSET(faviconTex).width*sizeof(Pixel));
+    if (!SDL_SetWindowIcon(window, icon)) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could set icon: %s\n", SDL_GetError());
+    }
+
     if (window == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create window: %s\n", SDL_GetError());
         return 1;
     }
 
-    auto gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL, true, nullptr);
+    auto gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL, true, "vulkan");
     if (gpu == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create GPU: %s\n", SDL_GetError());
         return 1;
@@ -35,8 +59,11 @@ int main(int argc, char *argv[]) {
 
     TheGPU = gpu;
 
+
     SDL_ClaimWindowForGPUDevice(gpu, window);
     SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
+    SDL_SetGPUAllowedFramesInFlight(TheGPU, 1);
+
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

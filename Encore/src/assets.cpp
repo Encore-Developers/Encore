@@ -145,22 +145,25 @@ void TextureAsset::Load() {
     data = (Pixel*)stbi_load_from_memory((stbi_uc*) fileBuffer, fileSize, &width, &height, &channelsInFile, 4);
     FreeFileBuffer();
 
-    SDL_GPUTransferBufferCreateInfo createInfo = {
-        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        (unsigned int)(width*height*sizeof(Pixel)),
-        0
-    };
-    transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &createInfo);
-    Pixel* buf = (Pixel*)SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, false);
-    memcpy(buf, data, width * height * sizeof(Pixel));
-    SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
-
-
     AddToFinalizeQueue();
 }
 
 void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
     ZoneScoped
+
+    SDL_GPUTransferBufferCreateInfo transferCreateInfo = {
+        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        (unsigned int)(width*height*sizeof(Pixel)),
+        0
+    };
+    transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &transferCreateInfo);
+    Pixel* buf = (Pixel*)SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, false);
+    memcpy(buf, data, width * height * sizeof(Pixel));
+    SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
+    if (!keepRawData) {
+        stbi_image_free(data);
+        data = nullptr;
+    }
     SDL_GPUTextureCreateInfo createInfo = {
         SDL_GPU_TEXTURETYPE_2D,
         SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -191,11 +194,15 @@ void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
         1
     };
     SDL_UploadToGPUTexture(copyPass, &transferInfo, &region, false);
+    SDL_ReleaseGPUTransferBuffer(TheGPU, transferBuffer);
+    transferBuffer = nullptr;
     state = LOADED;
 }
 
 void TextureAsset::Unload() {
-
+    SDL_ReleaseGPUTexture(TheGPU, texture);
+    texture = nullptr;
+    state = UNLOADED;
 }
 
 void Assets::AddRingsAndInstruments() {
