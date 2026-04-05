@@ -282,6 +282,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
     ZoneScoped;
+    Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Loading cache from %s", cachePath().generic_u8string().c_str()));
     encore::bin_ifstream_native SongCacheIn(cachePath(), std::ios::binary);
     if (!SongCacheIn) {
         Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");

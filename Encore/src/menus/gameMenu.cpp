@@ -185,7 +185,7 @@ void MainMenu::ChooseSplashText(std::filesystem::path directory) {
 }
 
 void MainMenu::PickRandomMenuSong() {
-    if (std::filesystem::exists("songCache.encr") && TheSongList.songs.size() > 0) {
+    if (TheSongList.songs.size() > 0) {
         AlbumArtBackground = menuAss.highwayTexture;
 
         try {
