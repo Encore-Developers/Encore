@@ -32,8 +32,6 @@ int main(int argc, char *argv[]) {
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
     ASSET(faviconTex).StartLoad();
-    ASSET(testVert).StartLoad();
-    ASSET(testFrag).StartLoad();
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
         return 1;
@@ -66,6 +64,8 @@ int main(int argc, char *argv[]) {
     SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
     SDL_SetGPUAllowedFramesInFlight(TheGPU, 1);
 
+    ASSET(testVert).StartLoad();
+    ASSET(testFrag).StartLoad();
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();

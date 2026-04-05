@@ -30,10 +30,19 @@ option(JSON_Diagnostics "" ON)
 set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
-if (NOT WIN32)
-  set(SDLSHADERCROSS_DXC ON)
+set(SDLSHADERCROSS_DXC ON)
+
+if (NOT APPLE)
+  # Use sdl_shadercross' download script
+  set(SDLSHADERCROSS_VENDORED OFF)
+  include(thirdparty/sdl_shadercross/build-scripts/download-prebuilt-DirectXShaderCompiler.cmake)
+else()
+  # Allows DXC to compile correctly
+  # There are no pre-built binaries for macOS, lmao
+  include(thirdparty/sdl_shadercross/external/DirectXShaderCompiler/cmake/caches/PredefinedParams.cmake)
+  set(SDLSHADERCROSS_VENDORED ON)
 endif()
-add_subdirectory(thirdparty/spirv-cross)
+#add_subdirectory(thirdparty/spirv-cross)
 set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF)
 add_subdirectory(thirdparty/sdl_shadercross EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/glm EXCLUDE_FROM_ALL)
@@ -88,6 +97,7 @@ if(UNIX AND NOT APPLE)
     file(COPY "lib/bass/linux/x86_64/libbass.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/linux/x86_64")
     file(COPY "lib/bass/linux/x86_64/libbassopus.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/linux/lib/libdxcompiler.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
   target_compile_definitions(${PROJECT_NAME} PRIVATE
