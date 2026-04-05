@@ -219,6 +219,7 @@ void TextureAsset::Unload() {
     state = UNLOADED;
 }
 void ShaderAsset::Load() {
+    ZoneScopedN("Shader Compile")
     LoadFile();
 
     size_t size = 0;
@@ -232,6 +233,11 @@ void ShaderAsset::Load() {
     };
     const uint8_t *spirv =
         (const uint8_t *)SDL_ShaderCross_CompileSPIRVFromHLSL(&hlslInfo, &size);
+
+    if (spirv == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to compile shader: %s", SDL_GetError());
+        return;
+    }
 
     SDL_ShaderCross_SPIRV_Info spirvInfo = {
         .bytecode = spirv,

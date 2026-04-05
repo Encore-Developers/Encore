@@ -27,6 +27,11 @@ void LocateDevAssets() {
     }
 }
 
+struct TringleUniform {
+    float time;
+    float colorMult;
+};
+
 int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
@@ -91,6 +96,28 @@ int main(int argc, char *argv[]) {
     ImGui_ImplSDLGPU3_Init(&init_info);
 
     bool shouldClose = false;
+
+    AssetSet{ASSETPTR(testVert), ASSETPTR(testFrag)}.BlockUntilLoaded();
+    SDL_GPUColorTargetDescription colorTargetDescription = {
+        .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, window)
+    };
+
+    SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+        .vertex_shader = ASSET(testVert),
+        .fragment_shader = ASSET(testFrag),
+        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+        .target_info = {
+            .color_target_descriptions = &colorTargetDescription,
+            .num_color_targets = 1
+        }
+    };
+    pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+    auto testPipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo);
+    if (testPipeline == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline: %s\n", SDL_GetError());
+        return -1;
+    }
+
 
     while (!shouldClose) {
         ZoneScopedN("Main Loop")
@@ -158,6 +185,7 @@ int main(int argc, char *argv[]) {
 
         SDL_GPUColorTargetInfo colorTargetInfo = {};
         colorTargetInfo.texture = swapchainTexture;
+        colorTargetInfo.resolve_texture = swapchainTexture;
         colorTargetInfo.clear_color = (SDL_FColor){0.3f, 0.4f, 0.5f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
@@ -165,6 +193,17 @@ int main(int argc, char *argv[]) {
         {
             ZoneScopedN("Build Render Pass")
             auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
+            SDL_BindGPUGraphicsPipeline(renderPass, testPipeline);
+            TringleUniform u = {
+                SDL_GetTicks()/1000.0f,
+                1
+            };
+            SDL_PushGPUVertexUniformData(cmdbuf, 0, &u, sizeof(u));
+            SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
+            u.time += 2;
+            u.colorMult = 0.4;
+            SDL_PushGPUVertexUniformData(cmdbuf, 0, &u, sizeof(u));
+            SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
             SDL_EndGPURenderPass(renderPass);
         }
 

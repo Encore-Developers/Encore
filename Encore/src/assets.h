@@ -151,9 +151,15 @@ public:
     SDL_ShaderCross_ShaderStage stage;
     SDL_GPUShader* shader;
 
-    ShaderAsset(const std::string &id, SDL_ShaderCross_ShaderStage stage) : FileAsset(id), stage(stage) {}
+    ShaderAsset(const std::string &id, SDL_ShaderCross_ShaderStage stage) : FileAsset(id), stage(stage) {
+        addNullTerminator = true;
+    }
 
     ShaderAsset() {}
+
+    operator SDL_GPUShader*() {
+        return shader;
+    }
 
     virtual void Unload();
 };
@@ -225,15 +231,12 @@ public:
         }
     }
 
-    bool PollLoaded(bool doFinalize = false) {
+    bool PollLoaded() {
         bool loaded = true;
         for (long unsigned int i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (!asset->CanFetch()) {
                 loaded = false;
-            }
-            if (doFinalize && asset->state == PREFINALIZED) {
-                asset->CheckForFetch();
             }
         }
         return loaded;
@@ -259,11 +262,7 @@ public:
 
     void BlockUntilLoaded() {
         while (!PollLoaded()) {
-        }
-        for (long unsigned int i = 0; i < assets.size(); i++) {
-            // This finalizes any assets that need it
-            // We're blocking anyways so why not
-            assets[i]->CheckForFetch();
+            usleep(1);
         }
     }
 };
