@@ -83,6 +83,8 @@ public:
     int badSongCount = 0;
     Song *curSong = nullptr;
 
+    std::filesystem::path cachePath();
+
     void Clear();
 
     // for when you dont have a song selected
@@ -103,3 +105,4 @@ public:
 };
 
 extern SongList TheSongList;
+extern std::filesystem::path prefsPath;

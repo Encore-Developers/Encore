@@ -1,4 +1,6 @@
 #include "songlist.h"
+
+#include "SDL3/SDL_filesystem.h"
 #include "util/enclog.h"
 
 #include <set>
@@ -9,6 +11,9 @@
 #include "util/binary.h"
 
 using json = nlohmann::json;
+std::filesystem::path SongList::cachePath() {
+    return prefsPath / std::filesystem::path("songCache.encr");
+}
 // sorting
 void SongList::Clear() {
     listMenuEntries.clear();
@@ -141,11 +146,11 @@ void SongList::sortList(SortType sortType, int &selectedSong) {
 }
 
 void SongList::WriteCache() {
-    std::filesystem::remove("songCache.encr");
+    std::filesystem::remove(cachePath());
 
     // Native-endian order used for best performance, since the cache is not a portable
     // file
-    encore::bin_ofstream_native SongCache("songCache.encr", std::ios::binary);
+    encore::bin_ofstream_native SongCache(cachePath(), std::ios::binary);
 
     // Casts used to explicitly indicate type
     SongCache << (uint32_t)SONG_CACHE_HEADER;
@@ -277,7 +282,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
     ZoneScoped;
-    encore::bin_ifstream_native SongCacheIn("songCache.encr", std::ios::binary);
+    encore::bin_ifstream_native SongCacheIn(cachePath(), std::ios::binary);
     if (!SongCacheIn) {
         Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");
         SongCacheIn.close();

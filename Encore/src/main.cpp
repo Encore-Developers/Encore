@@ -76,6 +76,7 @@ Encore::SettingsCredits TheCredits;
 Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
+std::filesystem::path prefsPath;
 
 // OvershellRenderer overshellRenderer;
 
@@ -198,7 +199,10 @@ int main(int argc, char *argv[]) {
     int vsyncArg = 1;
 
     std::filesystem::path executablePath(GetApplicationDirectory());
-    std::filesystem::path directory = executablePath.parent_path();
+    // Bump only for completely breaking changes to player/settings format
+    // Do not bump for cache format changes
+    prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
+    std::filesystem::path directory = prefsPath;
 #ifdef __APPLE__
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (bundle != NULL) {
