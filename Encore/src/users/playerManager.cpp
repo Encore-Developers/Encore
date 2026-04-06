@@ -123,6 +123,18 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
 
     Encore::WriteJsonFile(PlayerListSaveFile, PlayerListJson);
 }
+Player *PlayerManager::GetPlayerForJoystick(SDL_JoystickID id) {
+    for (int i = 0; i < ActivePlayers.size(); i++) {
+        auto player = ActivePlayers[i];
+        if (player == -1) {
+            continue;
+        }
+        if (GetActivePlayer(player).joypadID == id) {
+            return &GetActivePlayer(player);
+        }
+    }
+    return nullptr;
+}
 
 void PlayerManager::CreatePlayer(const std::string &name) {
     Player newPlayer;

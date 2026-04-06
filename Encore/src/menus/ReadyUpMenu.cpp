@@ -170,10 +170,6 @@ void ReadyUpMenu::Draw() {
                         player.instSelected = true;
                         player.Instrument = PartsToDisplay[i];
                         int isBassOrVocal = 0;
-                        if (player.Instrument > PartVocals)
-                            player.ClassicMode = true;
-                        else
-                            player.ClassicMode = false;
                         if (player.Instrument == PartBass
                             || player.Instrument == PartVocals
                             || player.Instrument == PlasticBass) {

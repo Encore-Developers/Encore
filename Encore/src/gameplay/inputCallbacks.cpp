@@ -16,8 +16,11 @@
 #include <cstring>
 
 #include "RhythmEngine/REenums.h"
+#include "menus/OvershellMenu.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
+#include "users/player.h"
+#include "users/playerManager.h"
 
 using namespace std::chrono_literals;
 
@@ -42,6 +45,11 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
         return;
     }
 
+    if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu)) {
+        if (OvershellKeyboardInputCallback(menu, key, scancode, action, mods)) {
+            return;
+        }
+    }
     TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
 }
 
@@ -72,44 +80,20 @@ void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event) {
 Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
     Encore::RhythmEngine::ControllerEvent outevent = {};
 
+    Player* player = ThePlayerManager.GetPlayerForJoystick(event->gbutton.which);
+    ControllerBindingType bindingType = GUITAR;
+    if (player) {
+        bindingType = player->bindingType;
+    }
+
+    // uncomment ( ctrl + / ) and comment the guitar code to have working pad
+
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-        switch (event->gbutton.button) {
-        default:
-            outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
-            break;
-            // uncomment ( ctrl + / ) and comment the guitar code to have working pad
-        // case (SDL_GAMEPAD_BUTTON_DPAD_LEFT):
-        //         outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
-        //         break;
-        // case (SDL_GAMEPAD_BUTTON_DPAD_UP):
-        //     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
-        //     break;
-        // case (SDL_GAMEPAD_BUTTON_WEST):
-        //     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
-        //     break;
-        // case (SDL_GAMEPAD_BUTTON_NORTH):
-        //     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
-        //     break;
-        // case (SDL_GAMEPAD_BUTTON_EAST):
-        //     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
-        //     break;
+        outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
 
-        case(SDL_GAMEPAD_BUTTON_SOUTH):
-            outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
-            break;
-        case(SDL_GAMEPAD_BUTTON_EAST):
-            outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
-            break;
-        case(SDL_GAMEPAD_BUTTON_NORTH):
-            outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
-            break;
-        case(SDL_GAMEPAD_BUTTON_WEST):
-            outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
-            break;
-        case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
-            outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
-            break;
+        // Generic inputs
+        switch (event->gbutton.button) {
         case(SDL_GAMEPAD_BUTTON_DPAD_UP):
             outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
             break;
@@ -119,23 +103,86 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
         case(SDL_GAMEPAD_BUTTON_START):
             outevent.channel = Encore::RhythmEngine::InputChannel::PAUSE;
             break;
-
         case(SDL_GAMEPAD_BUTTON_BACK):
             outevent.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
             break;
         }
+
+        switch (bindingType) {
+        case GUITAR: {
+            switch (event->gbutton.button) {
+            case(SDL_GAMEPAD_BUTTON_SOUTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                break;
+            case(SDL_GAMEPAD_BUTTON_EAST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                break;
+            case(SDL_GAMEPAD_BUTTON_NORTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                break;
+            case(SDL_GAMEPAD_BUTTON_WEST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                break;
+            case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                break;
+            }
+            break;
+        }
+        case DRUMS: {
+            switch (event->gbutton.button) {
+            case(SDL_GAMEPAD_BUTTON_SOUTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                break;
+            case(SDL_GAMEPAD_BUTTON_EAST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                break;
+            case(SDL_GAMEPAD_BUTTON_NORTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                break;
+            case(SDL_GAMEPAD_BUTTON_WEST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                break;
+            case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                break;
+            }
+            break;
+        }
+        case PAD: {
+            switch (event->gbutton.button) {
+            case (SDL_GAMEPAD_BUTTON_DPAD_LEFT):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                break;
+            case (SDL_GAMEPAD_BUTTON_DPAD_UP):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                break;
+            case (SDL_GAMEPAD_BUTTON_WEST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                break;
+            case (SDL_GAMEPAD_BUTTON_NORTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                break;
+            case (SDL_GAMEPAD_BUTTON_EAST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                break;
+            }
+            break;
+        }
+        }
+
         if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP)
             outevent.action = Encore::RhythmEngine::Action::RELEASE;
         else if (event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
             outevent.action = Encore::RhythmEngine::Action::PRESS;
 
-        outevent.slot = SDL_GetGamepadPlayerIndexForID(event->gdevice.which);
+        outevent.slot = event->gdevice.which;
     }
     if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
         if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
             outevent.channel = Encore::RhythmEngine::InputChannel::WHAMMY;
             outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
-            outevent.slot = SDL_GetGamepadPlayerIndexForID(event->gdevice.which);
+            outevent.slot = event->gdevice.which;
 
             Encore::EncoreLog(LOG_INFO,
                               TextFormat("SDL whammy value %01i", outevent.axis));
@@ -149,6 +196,12 @@ void PollQueuedInputs(ControllerPoller& poller) {
     while (poller.readIndex < poller.writeIndex) {
         auto event = poller.getEvent(poller.readIndex);
         if (TheMenuManager.ActiveMenu) {
+            if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu)) {
+                if (OvershellControllerInputCallback(menu, event)) {
+                    poller.readIndex++;
+                    continue;
+                }
+            }
             TheMenuManager.ActiveMenu->ControllerInputCallback(event);
         }
         poller.readIndex++;
@@ -213,13 +266,15 @@ void ControllerPoller::Run() {
                 break;
             }
             if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+                auto time = TheSongTime.GetElapsedTime();
+                auto encEvent = TranslateEvent(&event);
                 if (TheMenuManager.currentScreen == GAMEPLAY) {
-                    auto time = TheSongTime.GetElapsedTime();
-                    auto encEvent = TranslateEvent(&event);
                     encEvent.timestamp = time;
-                    getEvent(writeIndex) = encEvent;
-                    writeIndex++;
+                } else {
+                    encEvent.timestamp = 0;
                 }
+                getEvent(writeIndex) = encEvent;
+                writeIndex++;
             }
         }
 

@@ -22,6 +22,8 @@ public:
     std::vector<int> ActivePlayers { -1, -1, -1, -1 };
     int PlayersActive = 0;
 
+    Player* GetPlayerForJoystick(SDL_JoystickID id);
+
     Player &GetActivePlayer(int slot) {
         return PlayerList.at(ActivePlayers.at(slot));
     }

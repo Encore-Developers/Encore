@@ -4,6 +4,8 @@
 
 #ifndef REENUMS_H
 #define REENUMS_H
+#include "SDL3/SDL_joystick.h"
+
 #include <cstdint>
 
 
@@ -106,7 +108,7 @@ namespace Encore::RhythmEngine {
         InputChannel channel : 8 = InputChannel::INVALID;
         Action action : 8 = Action::INVALID;
         unsigned int axis : 8;
-        unsigned int slot : 8;
+        SDL_JoystickID slot;
         double timestamp;
     };
 }

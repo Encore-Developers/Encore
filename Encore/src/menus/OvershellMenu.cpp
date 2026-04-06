@@ -8,6 +8,31 @@
 #include "raylib.h"
 
 using namespace encOS;
+using namespace Encore::RhythmEngine;
+
+bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, int action, int mods) {
+    for (int i = 0; i < 4; i++) {
+        if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT && key == KEY_ENTER) {
+            ThePlayerManager.GetActivePlayer(i).joypadID = -1;
+            menu->OvershellState[i] = OS_OPTIONS;
+            return true;
+        }
+    }
+    return false;
+}
+bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event) {
+    if (event.channel == InputChannel::WHAMMY || event.channel == InputChannel::INVALID) {
+        return false;
+    }
+    for (int i = 0; i < 4; i++) {
+        if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
+            ThePlayerManager.GetActivePlayer(i).joypadID = event.slot;
+            menu->OvershellState[i] = OS_OPTIONS;
+            return true;
+        }
+    }
+    return false;
+}
 
 void OvershellMenu::DrawOvershell() {
     Assets &assets = Assets::getInstance();
@@ -36,6 +61,17 @@ void OvershellMenu::DrawOvershell() {
             (unit.wpct(0.125) + (unit.winpct(0.25) * i)) - unit.winpct(0.1);
         float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25) * i));
         float HalfWidth = OvershellCenterLoc - OvershellLeftLoc;
+        Color headerUsernameColor;
+        if (playerManager.ActivePlayers.at(i) != -1) {
+            if (playerManager.GetActivePlayer(i).Bot)
+                headerUsernameColor = SKYBLUE;
+            else {
+                if (playerManager.GetActivePlayer(i).BrutalMode)
+                    headerUsernameColor = RED;
+                else
+                    headerUsernameColor = WHITE;
+            }
+        }
         switch (OvershellState[i]) {
         case CREATION: {
             static char name[32] = { 0 };
@@ -107,18 +143,10 @@ void OvershellMenu::DrawOvershell() {
             break;
         }
         case OS_OPTIONS: {
-            Color headerUsernameColor;
-            if (playerManager.GetActivePlayer(i).Bot)
-                headerUsernameColor = SKYBLUE;
-            else {
-                if (playerManager.GetActivePlayer(i).BrutalMode)
-                    headerUsernameColor = RED;
-                else
-                    headerUsernameColor = WHITE;
-            }
+
             if (DrawOvershellRectangleHeader(
                     OvershellLeftLoc,
-                    OvershellTopLoc - (ButtonHeight * 7),
+                    OvershellTopLoc - (ButtonHeight * 8),
                     unit.winpct(0.2f),
                     unit.winpct(0.05f),
                     playerManager.GetActivePlayer(i).Name,
@@ -132,7 +160,7 @@ void OvershellMenu::DrawOvershell() {
             if (!BNSetting) {
                 if (OvershellButton(
                         i,
-                        6,
+                        7,
                         TextFormat(
                             "Breakneck Speed - %4.2fx",
                             playerManager.GetActivePlayer(i).NoteSpeed
@@ -145,7 +173,7 @@ void OvershellMenu::DrawOvershell() {
             if (BNSetting) {
                 if (OvershellSlider(
                         i,
-                        6,
+                        7,
                         TextFormat(
                             "Breakneck Speed - %4.2fx",
                             playerManager.GetActivePlayer(i).NoteSpeed
@@ -159,8 +187,26 @@ void OvershellMenu::DrawOvershell() {
                     continue;
                 };
             }
-            if (OvershellButton(i, 5, "Instrument Type")) {
+            const char* typeString;
+            switch (playerManager.GetActivePlayer(i).bindingType) {
+            case GUITAR:
+                typeString = "Guitar";
+                break;
+            case DRUMS:
+                typeString = "Drums";
+                break;
+            case PAD:
+                typeString = "Pad";
+                break;
+            default:
+                typeString = "Unknown";
+            }
+            if (OvershellButton(i, 6, TextFormat("Instrument Type: %s", typeString))) {
                 OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
+                break;
+            }
+            if (OvershellButton(i, 5, "Assign Controller")) {
+                OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
                 break;
             }
             playerManager.GetActivePlayer(i).BrutalMode =
@@ -182,6 +228,23 @@ void OvershellMenu::DrawOvershell() {
                 OvershellState[i] = OS_ATTRACT;
                 CancelButtonActivation = true;
             }
+            break;
+        }
+        case OS_CONTROLLER_ASSIGNMENT: {
+            DrawOvershellRectangleHeader(
+               OvershellLeftLoc,
+               OvershellTopLoc - (ButtonHeight * 3),
+               unit.winpct(0.2f),
+               unit.winpct(0.05f),
+               playerManager.GetActivePlayer(i).Name,
+               playerManager.GetActivePlayer(i).AccentColor,
+               headerUsernameColor
+            );
+            DrawRectangle(OvershellLeftLoc,
+                    unit.hpct(1.0f) - (ButtonHeight * 3),
+                    unit.winpct(0.2f),
+                    (ButtonHeight * 3), ColorBrightness({ 128, 0, 255, 255 }, -0.8));
+            OvershellText(i, 2, "Press a button on any controller or press ENTER.");
             break;
         }
         case OS_ATTRACT: {
@@ -254,7 +317,7 @@ void OvershellMenu::DrawOvershell() {
                 playerManager.GetActivePlayer(i).Bot ? SKYBLUE : WHITE;
             DrawOvershellRectangleHeader(
                 OvershellLeftLoc,
-                OvershellTopLoc - (ButtonHeight * 3),
+                OvershellTopLoc - (ButtonHeight * 4),
                 unit.winpct(0.2f),
                 unit.winpct(0.05f),
                 playerManager.GetActivePlayer(i).Name,
@@ -262,13 +325,18 @@ void OvershellMenu::DrawOvershell() {
                 headerUsernameColor
             );
 
-            playerManager.GetActivePlayer(i).ClassicMode = OvershellCheckbox(
-                i, 1, "Classic", playerManager.GetActivePlayer(i).ClassicMode
-            );
-
-            playerManager.GetActivePlayer(i).ProDrums = OvershellCheckbox(
-                i, 2, "Pro Drums", playerManager.GetActivePlayer(i).ProDrums
-            );
+            if (OvershellButton(i, 3, "Guitar")) {
+                playerManager.GetActivePlayer(i).bindingType = GUITAR;
+                OvershellState[i] = OS_OPTIONS;
+            }
+            if (OvershellButton(i, 2, "Drums")) {
+                playerManager.GetActivePlayer(i).bindingType = DRUMS;
+                OvershellState[i] = OS_OPTIONS;
+            }
+            if (OvershellButton(i, 1, "Pad")) {
+                playerManager.GetActivePlayer(i).bindingType = PAD;
+                OvershellState[i] = OS_OPTIONS;
+            }
 
             if (OvershellButton(i, 0, "Back")) {
                 OvershellState[i] = OS_OPTIONS;

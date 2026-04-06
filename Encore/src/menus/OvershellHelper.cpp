@@ -114,6 +114,24 @@ bool encOS::OvershellButton(int slot, int x, std::string string) {
     SETDEFAULTSTYLE();
 }
 
+void encOS::OvershellText(int slot, int x, std::string string) {
+    Units &u = Units::getInstance();
+    float OvershellLeftLoc = (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
+    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_TOP);
+    GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_WORD);
+    GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, u.hinpct(0.03f));
+    GuiLabel(
+        { OvershellLeftLoc,
+          u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
+          u.winpct(0.2f),
+          u.winpct(0.07f) },
+        string.c_str()
+    );
+    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_CENTER);
+    GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_NONE);
+    SETDEFAULTSTYLE();
+}
+
 bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialVal) {
     Units &unit = Units::getInstance();
     float OvershellLeftLoc =

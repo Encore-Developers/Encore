@@ -4,6 +4,7 @@
 
 namespace encOS {
     bool OvershellButton(int slot, int x, std::string string);
+    void OvershellText(int slot, int x, std::string string);
 
     bool OvershellSlider(
         int slot, int x, std::string string, float *value, float step, float min, float max

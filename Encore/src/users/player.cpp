@@ -259,7 +259,6 @@ Player::Player() {
 
     InputCalibration = 0;
     NoteSpeed = 1;
-    ProDrums = false;
     HighwayLength = 1;
     BrutalMode = false;
     // gen stuff, move to own function (thanks https://github.com/mariusbancila/stduuid)
@@ -271,12 +270,10 @@ Player::Player() {
     uuids::uuid_random_generator gen { generator };
     uuids::uuid const id = gen();
 
-    joypadID = nullptr;
     PlayerID = uuids::to_string(id);
     SongsPlayed = 0;
     LeftyFlip = false;
     Online = false;
-    ClassicMode = false;
 };
 
 void Player::ResetGameplayStats() {

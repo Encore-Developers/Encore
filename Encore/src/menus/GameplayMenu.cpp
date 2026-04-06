@@ -33,51 +33,66 @@ GameplayMenu::~GameplayMenu() {
 }
 
 void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    Player &player = ThePlayerManager.GetActivePlayer(0);
-    Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
+    for (auto track : tracks) {
+        if (!track) {
+            continue;
+        }
+        Player &player = track->player;
+        if (player.joypadID != -1 && player.joypadID != -2) {
+            continue;
+        }
+        Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
-    if (action == 2)
-        return;
-    Encore::RhythmEngine::ControllerEvent event;
-    if (action == GLFW_PRESS) {
-        event.action = Encore::RhythmEngine::Action::PRESS;
-    } else if (action == GLFW_RELEASE) {
-        event.action = Encore::RhythmEngine::Action::RELEASE;
-    }
-    if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.
-        overdriveBinds.second) {
-        event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
-    } else if (player.ClassicMode) {
+        if (action == 2)
+            return;
+        Encore::RhythmEngine::ControllerEvent event;
+        if (action == GLFW_PRESS) {
+            event.action = Encore::RhythmEngine::Action::PRESS;
+        } else if (action == GLFW_RELEASE) {
+            event.action = Encore::RhythmEngine::Action::RELEASE;
+        }
+        if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.
+            overdriveBinds.second) {
+            event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+            }
         if (key == TheGameKeybinds.strumBinds.first) {
             event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
         } else if (key == TheGameKeybinds.strumBinds.second) {
             event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
         }
-    }
-    int DiffMax = (player.Difficulty == 3 || player.ClassicMode) ? 5 : 4;
-    for (int i = 0; i < DiffMax; i++) {
-        if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
-            i]) {
-            event.channel = Encore::RhythmEngine::IntIC(i);
+        int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
+        for (int i = 0; i < DiffMax; i++) {
+            if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
+                i]) {
+                event.channel = Encore::RhythmEngine::IntIC(i);
+                }
         }
+        if (key == KEY_ESCAPE && action == GLFW_PRESS) {
+            event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+        }
+        event.timestamp = TheSongTime.GetElapsedTime();
+        if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
+            engine->ProcessInput(event);
     }
-    if (key == KEY_ESCAPE && action == GLFW_PRESS) {
-        event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
-    }
-    event.timestamp = TheSongTime.GetElapsedTime();
-    if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
-        engine->ProcessInput(event);
 };
 
 void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    Player &player = ThePlayerManager.GetActivePlayer(0);
-    Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
+    for (auto track : tracks) {
+        if (!track) {
+            continue;
+        }
+        Player &player = track->player;
+        if (player.joypadID != -2 && player.joypadID != event.slot) {
+            continue;
+        }
+        Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
-    if (engine->allowTimestampedInputs) {
-        if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
-            engine->UpdateOnFrame(event.timestamp);
+        if (engine->allowTimestampedInputs) {
+            if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
+                engine->UpdateOnFrame(event.timestamp);
+        }
+        engine->ProcessInput(event);
     }
-    engine->ProcessInput(event);
 };
 
 void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
@@ -178,7 +193,7 @@ void GameplayMenu::DrawGameplayStars(
 ) {
     // todo: redo for band
     auto &player = ThePlayerManager.GetActivePlayer(0);
-    int inst = player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+    int inst = player.Instrument % 5;
     int diff = player.Difficulty;
     double starPercent = player.engine->stats->StarThresholdValue;
     int starsVal = player.engine->stats->Stars;
@@ -420,14 +435,14 @@ void GameplayMenu::Draw() {
 
         if (player.engine.get()->stats.get()->AudioMuted) {
             int InstrumentNum =
-                player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+                player.Instrument % 5;
             if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum) == nullptr)
                 break;
             TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
                 TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume;
         } else {
             int InstrumentNum =
-                player.ClassicMode ? player.Instrument - 5 : player.Instrument;
+                player.Instrument % 5;
             if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum) == nullptr)
                 break;
             TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =

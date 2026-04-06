@@ -9,6 +9,7 @@ enum OSState {
     OS_OPTIONS, // Player settings
     OS_INSTRUMENT_SELECTIONS, // Choosing instrument type
                               // (maybe do a submenu like ReadyUpState?)
+    OS_CONTROLLER_ASSIGNMENT,
     CREATION, // Creating a profile
     OS_READY_UP, // Readying up
 
@@ -51,3 +52,6 @@ public:
     bool onNewMenu;
     bool BNSetting = false;
 };
+
+bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, int action, int mods);
+bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::RhythmEngine::ControllerEvent event);
