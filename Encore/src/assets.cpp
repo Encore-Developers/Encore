@@ -94,16 +94,15 @@ void Asset::LoadImmediate() {
 }
 
 void FileAsset::LoadFile() {
-    std::ifstream file(GetPath(), std::ios::binary | std::ios::ate);
-    fileSize = file.tellg();
+    auto file = GetStream(std::ios::binary | std::ios::ate);
+    fileSize = file->tellg();
     int realFileSize = fileSize;
     if (addNullTerminator)
         fileSize++;
-    file.seekg(0, std::ios::beg);
+    file->seekg(0, std::ios::beg);
 
     fileBuffer = (char *)malloc(fileSize);
-    file.read(fileBuffer, realFileSize);
-    file.close();
+    file->read(fileBuffer, realFileSize);
     if (addNullTerminator)
         fileBuffer[fileSize - 1] = '\0';
 }
@@ -256,6 +255,141 @@ void ShaderAsset::Load() {
 }
 void ShaderAsset::Unload() {
     SDL_ReleaseGPUShader(TheGPU, shader);
+}
+void MeshAsset::Load() {
+    ZoneScopedN("Mesh Load")
+    std::vector<Vector3> positions;
+    std::vector<Vector2> uvs;
+    auto stream = GetStream(std::ios::in);
+
+
+    for ( std::string line; std::getline(*stream, line);) {
+        std::istringstream lineStream(line);
+        std::string type;
+        lineStream >> type;
+        //std::cout << "type: " << type << std::endl;
+
+        if (type == "v") {
+            Vector3 pos;
+            lineStream >> pos.x >> pos.y >> pos.z;
+            positions.push_back(pos);
+        }
+        if (type == "vt") {
+            Vector2 uv;
+            lineStream >> uv.x >> uv.y;
+            uvs.push_back(uv);
+        }
+        if (type == "f") {
+            std::vector<Vector3> thisPositions;
+            std::vector<int> indices;
+            while (!lineStream.eof()) {
+                std::string indexEntry;
+                lineStream >> indexEntry;
+                std::string positionIndexStr;
+                std::string uvIndexStr;
+                int i;
+                for (i = 0; indexEntry[i] != '/'; i++) {
+                    positionIndexStr += indexEntry[i];
+                }
+                i++;
+                for (; indexEntry[i] != '/'; i++) {
+                    uvIndexStr += indexEntry[i];
+                }
+                int positionIndex = std::stoi(positionIndexStr)-1;
+                int uvIndex = std::stoi(uvIndexStr)-1;
+
+                // This doesn't reuse vertices when faces share them with equivalent UVs.
+                // TODO: Merge vertices if they share a position and UV
+                // Maybe as a post-processing step?
+                MeshVertex vert;
+                vert.position = positions[positionIndex];
+                vert.uv = uvs[uvIndex];
+                indices.push_back(vertices.size());
+                vertices.push_back(vert);
+            }
+            for (int i = 1; i < indices.size()-1; i++) {
+                Face face;
+                face.indices[0] = indices[0];
+                face.indices[1] = indices[i];
+                face.indices[2] = indices[i+1];
+                faces.push_back(face);
+            }
+        }
+    }
+
+    if (TheGPU) {
+        CopyToTransferBuffer();
+    }
+
+    AddToFinalizeQueue();
+}
+void MeshAsset::Finalize(SDL_GPUCopyPass *copyPass) {
+    if (!transferBuffer) {
+        CopyToTransferBuffer();
+    }
+
+    SDL_GPUTransferBufferLocation vertLoc = {
+        transferBuffer,
+        0
+    };
+    SDL_GPUBufferRegion vertDest = {
+        vertexBuffer,
+        0,
+        vertexBufferSize
+    };
+    SDL_GPUTransferBufferLocation indexLoc = {
+        transferBuffer,
+        vertexBufferSize
+    };
+    SDL_GPUBufferRegion indexDest = {
+        indexBuffer,
+        0,
+        indexBufferSize
+    };
+    SDL_UploadToGPUBuffer(copyPass, &vertLoc, &vertDest, false);
+    SDL_UploadToGPUBuffer(copyPass, &indexLoc, &indexDest, false);
+
+    SDL_ReleaseGPUTransferBuffer(TheGPU, transferBuffer);
+    transferBuffer = nullptr;
+
+    state = LOADED;
+}
+void MeshAsset::CopyToTransferBuffer() {
+    SDL_GPUTransferBufferCreateInfo createInfo = {
+        SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        (unsigned int)(sizeof(MeshVertex) * vertices.size() + sizeof(Face) * faces.size()),
+        0
+    };
+    transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &createInfo);
+    auto data = SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, false);
+    memcpy(data, vertices.data(), sizeof(MeshVertex) * vertices.size());
+    memcpy((char*)data + sizeof(MeshVertex) * vertices.size(), faces.data(), sizeof(Face) * faces.size());
+    SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
+    vertexBufferSize = sizeof(MeshVertex) * vertices.size();
+    indexBufferSize = sizeof(Face) * faces.size();
+    numVertices = vertices.size();
+    numFaces = faces.size();
+    vertices.clear();
+    faces.clear();
+    vertices.shrink_to_fit();
+    faces.shrink_to_fit();
+
+    SDL_GPUBufferCreateInfo vertCreateInfo = {
+        SDL_GPU_BUFFERUSAGE_VERTEX,
+        vertexBufferSize,
+        0
+    };
+    vertexBuffer = SDL_CreateGPUBuffer(TheGPU, &vertCreateInfo);
+
+    SDL_GPUBufferCreateInfo indexCreateInfo = {
+        SDL_GPU_BUFFERUSAGE_INDEX,
+        indexBufferSize,
+        0
+    };
+    indexBuffer = SDL_CreateGPUBuffer(TheGPU, &indexCreateInfo);
+}
+void MeshAsset::Unload() {
+
 }
 
 void Assets::AddRingsAndInstruments() {

@@ -7,6 +7,8 @@
 #include "tracy/Tracy.hpp"
 #include "graphicsState.h"
 #include "assets.h"
+#include "math/camera.h"
+
 #include <deque>
 
 SDL_GPUDevice* TheGPU = nullptr;
@@ -36,7 +38,10 @@ int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
     ASSET(faviconTex).StartLoad();
+    ASSET(testMesh).StartLoad();
+    ASSET(testMeshTex).StartLoad();
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
         return 1;
@@ -102,14 +107,40 @@ int main(int argc, char *argv[]) {
         .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, window)
     };
 
+    SDL_GPUVertexBufferDescription bufDesc = {
+        .slot = 0,
+        .pitch = sizeof(MeshVertex),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+        .instance_step_rate = 0,
+    };
+    SDL_GPUVertexAttribute attributes[] = {
+        {
+            .location = 0,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+            .offset = 0
+        },
+        {
+            .location = 1,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+            .offset = 0
+        }
+    };
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .vertex_shader = ASSET(testVert),
         .fragment_shader = ASSET(testFrag),
+        .vertex_input_state = {
+            .vertex_buffer_descriptions = &bufDesc,
+            .num_vertex_buffers = 1,
+            .vertex_attributes = attributes,
+            .num_vertex_attributes = 2,
+        },
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .target_info = {
             .color_target_descriptions = &colorTargetDescription,
             .num_color_targets = 1
-        }
+        },
     };
     pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
     auto testPipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo);
@@ -117,6 +148,22 @@ int main(int argc, char *argv[]) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline: %s\n", SDL_GetError());
         return -1;
     }
+
+    Camera cam = {
+        { 0, 8.0f, -14.0f },
+        { 0.0f, 0.0f, 15.0f },
+        { 0.0f, 1.0f, 0.0f },
+        40.0f,
+    };
+
+    SDL_GPUSamplerCreateInfo samplerCreate = {
+        .min_filter = SDL_GPU_FILTER_LINEAR,
+        .mag_filter = SDL_GPU_FILTER_LINEAR,
+        .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+        .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE
+    };
+    auto sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
 
 
     while (!shouldClose) {
@@ -140,12 +187,9 @@ int main(int argc, char *argv[]) {
         ImGui::ShowDemoWindow();
 
         if (ImGui::Begin("Test")) {
-            if (ImGui::Button("Load Image")) {
-                ASSET(faviconTex).StartLoad();
-            }
-            if (ASSET(faviconTex).CanFetch()) {
-                ImGui::Image((ImTextureRef)ASSET(faviconTex).texture, {(float)ASSET(faviconTex).width, (float)ASSET(faviconTex).height});
-            }
+            ImGui::DragFloat3("Camera Position", &cam.position[0], 0.01f);
+            ImGui::DragFloat3("Camera Target", &cam.target[0], 0.01f);
+            ImGui::DragFloat("FOV", &cam.fovy, 0.01f);
         }
         ImGui::End();
 
@@ -189,21 +233,20 @@ int main(int argc, char *argv[]) {
         colorTargetInfo.clear_color = (SDL_FColor){0.3f, 0.4f, 0.5f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
-
-        {
+        static AssetSet meshStuff = {ASSETPTR(testMesh), ASSETPTR(testMeshTex)};
+        if (meshStuff.PollLoaded()) {
             ZoneScopedN("Build Render Pass")
             auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
             SDL_BindGPUGraphicsPipeline(renderPass, testPipeline);
-            TringleUniform u = {
-                SDL_GetTicks()/1000.0f,
-                1
-            };
-            SDL_PushGPUVertexUniformData(cmdbuf, 0, &u, sizeof(u));
-            SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
-            u.time += 2;
-            u.colorMult = 0.4;
-            SDL_PushGPUVertexUniformData(cmdbuf, 0, &u, sizeof(u));
-            SDL_DrawGPUPrimitives(renderPass, 3, 1, 0, 0);
+            SDL_GPUBufferBinding vertBind = { .buffer = ASSET(testMesh).vertexBuffer, .offset = 0 };
+            SDL_GPUBufferBinding indexBind = { .buffer = ASSET(testMesh).indexBuffer, .offset = 0 };
+            SDL_BindGPUVertexBuffers(renderPass, 0, &vertBind, 1);
+            SDL_BindGPUIndexBuffer(renderPass, &indexBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+            SDL_GPUTextureSamplerBinding samplerBinding = {ASSET(testMeshTex), sampler};
+            SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
+            Matrix viewMat = cam.getMatrix();
+            SDL_PushGPUVertexUniformData(cmdbuf, 0, &viewMat, sizeof(viewMat));
+            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, 1, 0, 0, 0);
             SDL_EndGPURenderPass(renderPass);
         }
 

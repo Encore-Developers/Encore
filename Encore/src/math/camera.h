@@ -8,4 +8,6 @@ public:
     Vector3 target;
     Vector3 up;
     float fovy;
+
+    Matrix getMatrix();
 };

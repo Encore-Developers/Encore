@@ -3,17 +3,20 @@
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_gpu.h"
 #include "SDL3_shadercross/SDL_shadercross.h"
+#include "math/glm.h"
 
 #include <cassert>
 #include <atomic>
 #include <deque>
 #include <mutex>
 #include <filesystem>
+#include <fstream>
 #include <functional>
 #include <map>
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <iostream>
 
 enum AssetState : uint8_t {
     UNLOADED,
@@ -97,6 +100,9 @@ public:
     std::filesystem::path GetPath() {
         return GetBaseDirectory() / id;
     }
+    std::unique_ptr<std::istream> GetStream(std::ios::openmode mode) {
+        return std::make_unique<std::ifstream>(GetPath(), mode);
+    }
 
     size_t GetFileSize();
     char *FetchRaw();
@@ -141,6 +147,10 @@ public:
     }
 
     virtual void Unload();
+
+    operator SDL_GPUTexture*() {
+        return texture;
+    }
 };
 
 
@@ -164,6 +174,40 @@ public:
     virtual void Unload();
 };
 
+struct MeshVertex {
+    Vector3 position;
+    Vector2 uv;
+};
+
+struct Face {
+    unsigned int indices[3];
+};
+
+class MeshAsset : public FileAsset {
+    virtual void Load();
+    virtual void Finalize(SDL_GPUCopyPass *copyPass);
+
+    void CopyToTransferBuffer();
+public:
+
+    unsigned int vertexBufferSize;
+    SDL_GPUBuffer* vertexBuffer;
+    unsigned int indexBufferSize;
+    SDL_GPUBuffer* indexBuffer;
+
+    unsigned int numVertices;
+    unsigned int numFaces;
+
+    std::vector<MeshVertex> vertices;
+    std::vector<Face> faces;
+
+    MeshAsset(const std::string &id) : FileAsset(id) {}
+
+    MeshAsset() {}
+
+    virtual void Unload();
+};
+
 #define ASSET(varname) TheAssets.varname
 #define ASSETPTR(varname) &TheAssets.varname
 
@@ -173,6 +217,7 @@ public:
 #define FRAG SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT
 #define VERT SDL_SHADERCROSS_SHADERSTAGE_VERTEX
 #define NEWSHADERASSET(varname, path, stage) ShaderAsset varname = ShaderAsset(path, stage)
+#define NEWMESHASSET(varname, path) MeshAsset varname = MeshAsset(path)
 
 
 class Assets {
@@ -190,6 +235,9 @@ public:
     NEWTEXASSET_KEEPRAW(faviconTex, "encore_favicon-NEW.png");
     NEWSHADERASSET(testVert, "testshaders/test.vert.hlsl", VERT);
     NEWSHADERASSET(testFrag, "testshaders/test.frag.hlsl", FRAG);
+
+    NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");
+    NEWTEXASSET(testMeshTex, "gameplay/track/notes/normal/diffuse.png");
 
     void AddRingsAndInstruments();
 

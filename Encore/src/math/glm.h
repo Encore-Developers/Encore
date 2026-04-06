@@ -1,5 +1,6 @@
 // Standard set of includes for using glm
 // Prefer to include this file when working with glm types instead of the individual ones
+#define GLM_FORCE_LEFT_HANDED
 
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
