@@ -1,6 +1,7 @@
 cbuffer UniformBlock : register(b0, space1)
 {
-    float4x4 MatrixTransform : packoffset(c0);
+    float4x4 MatrixTransform;
+	float2 uvOffset;
 };
 
 struct Input
@@ -20,6 +21,6 @@ Output main(Input input)
 {
 	Output output;
     output.Position = mul(MatrixTransform, input.Position);
-	output.TexCoord = input.TexCoord;
+	output.TexCoord = input.TexCoord + uvOffset;
     return output;
 }

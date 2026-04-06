@@ -29,16 +29,16 @@ void LocateDevAssets() {
     }
 }
 
-struct TringleUniform {
-    float time;
-    float colorMult;
+struct UBO {
+    Matrix viewMat;
+    Vector2 uvOffset;
 };
 
 int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
-    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    //SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
     ASSET(faviconTex).StartLoad();
     ASSET(testMesh).StartLoad();
     ASSET(testMeshTex).StartLoad();
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
             .location = 1,
             .buffer_slot = 0,
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-            .offset = 0
+            .offset = sizeof(Vector3)
         }
     };
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
@@ -137,6 +137,10 @@ int main(int argc, char *argv[]) {
             .num_vertex_attributes = 2,
         },
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+        .rasterizer_state = {
+            .cull_mode = SDL_GPU_CULLMODE_BACK,
+            .front_face = SDL_GPU_FRONTFACE_CLOCKWISE
+        },
         .target_info = {
             .color_target_descriptions = &colorTargetDescription,
             .num_color_targets = 1
@@ -185,11 +189,13 @@ int main(int argc, char *argv[]) {
         ImGui::NewFrame();
 
         ImGui::ShowDemoWindow();
+        static Vector2 uvOffset = {0, 0};
 
         if (ImGui::Begin("Test")) {
             ImGui::DragFloat3("Camera Position", &cam.position[0], 0.01f);
             ImGui::DragFloat3("Camera Target", &cam.target[0], 0.01f);
             ImGui::DragFloat("FOV", &cam.fovy, 0.01f);
+            ImGui::DragFloat2("UV Offset", &uvOffset[0], 0.01f);
         }
         ImGui::End();
 
@@ -200,6 +206,7 @@ int main(int argc, char *argv[]) {
             SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create command buffer: %s\n", SDL_GetError());
             return 1;
         }
+
 
         if (!TheAssets.finalizeQueue.empty()) {
             static std::deque<Asset*> pulled;
@@ -244,8 +251,11 @@ int main(int argc, char *argv[]) {
             SDL_BindGPUIndexBuffer(renderPass, &indexBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             SDL_GPUTextureSamplerBinding samplerBinding = {ASSET(testMeshTex), sampler};
             SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
-            Matrix viewMat = cam.getMatrix();
-            SDL_PushGPUVertexUniformData(cmdbuf, 0, &viewMat, sizeof(viewMat));
+            UBO uniform {
+                cam.getMatrix(),
+                uvOffset
+            };
+            SDL_PushGPUVertexUniformData(cmdbuf, 0, &uniform, sizeof(uniform));
             SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, 1, 0, 0, 0);
             SDL_EndGPURenderPass(renderPass);
         }

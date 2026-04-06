@@ -277,6 +277,7 @@ void MeshAsset::Load() {
         if (type == "vt") {
             Vector2 uv;
             lineStream >> uv.x >> uv.y;
+            uv.y = 1 - uv.y;
             uvs.push_back(uv);
         }
         if (type == "f") {
@@ -292,7 +293,7 @@ void MeshAsset::Load() {
                     positionIndexStr += indexEntry[i];
                 }
                 i++;
-                for (; indexEntry[i] != '/'; i++) {
+                for (; i < indexEntry.size() && indexEntry[i] != '/'; i++) {
                     uvIndexStr += indexEntry[i];
                 }
                 int positionIndex = std::stoi(positionIndexStr)-1;
