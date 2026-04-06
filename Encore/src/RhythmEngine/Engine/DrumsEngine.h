@@ -20,6 +20,7 @@ namespace Encore::RhythmEngine {
         void TogglePause() override { stats->Paused = !stats->Paused; };
 
     public:
+        void HitNote(int lane);
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(ControllerEvent &event) override;
         std::shared_ptr<BaseChart> chart;

@@ -17,6 +17,8 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         // activates overdrive
         if (stats->overdrive.Activate(stats->InputTime)) {
+            HighwayBounceEvent HBevent(2.0f, 2.5f);
+            FireEvent(&HBevent);
             for (int lane = 0; lane < chart->Lanes.size(); lane++) {
                 if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()){
                     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);

@@ -49,9 +49,11 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &even
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         int InstrumentNum =
             stats->Type == Guitar ? inst - 5 : inst;
-        stats->overdrive.Activate(stats->InputTime);
-        if (stats->overdrive.Active)
+        if (stats->overdrive.Activate(stats->InputTime)) {
+            HighwayBounceEvent HBevent;
+            FireEvent(&HBevent);
             TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
+        }
         EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
         return true;
     }

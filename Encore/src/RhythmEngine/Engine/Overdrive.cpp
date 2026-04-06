@@ -27,7 +27,7 @@ void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
     }
 }
 bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
-    if (Fill < 0.25)
+    if (Fill < 0.25 || Active)
         return false;
     Active = true;
     UseOverdriveLift = true;

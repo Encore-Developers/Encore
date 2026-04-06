@@ -95,6 +95,14 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
     return CheckNextInput;
 }
 
+void Encore::RhythmEngine::DrumsEngine::HitNote(int lane) {
+    if (lane == 0) {
+        HighwayBounceEvent event;
+        FireEvent(&event);
+    }
+    BaseEngine::HitNote(lane);
+}
+
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
     for (int Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {

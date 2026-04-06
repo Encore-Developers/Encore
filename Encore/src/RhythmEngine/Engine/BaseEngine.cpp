@@ -143,7 +143,6 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
-
     stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
     stats->HitNote(chordSize, PerfectHit(startTime));
     chart->overdrive.UpdateEventViaNote(true, startTick);

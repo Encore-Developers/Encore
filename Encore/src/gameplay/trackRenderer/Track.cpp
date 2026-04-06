@@ -483,16 +483,16 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
 
 
 void Encore::Track::HandleEvent(Event *event) {
+    if (auto bounceEvent = event->GetTyped<HighwayBounceEvent>()) {
+        KickTimer = bounceEvent->timer;
+        KickSpeedMult = bounceEvent->mult;
+    }
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;
         auto slots = GetSlotsForNote(*note);
         if (hitEvent->perfect == true) {
             PerfectTimer = 2;
         }
-        if (note->Lane == RhythmEngine::PlasticFrets[0] && player.Instrument ==
-            PlasticDrums) {
-            KickTimer = 1;
-            }
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
@@ -541,7 +541,7 @@ inline double easeInQuadd(double x) {
 void Encore::Track::ProcessAnimation() {
     AnimCamera = BaseCamera;
     if (KickTimer > 0)
-        KickTimer -= GetFrameTime() * 5;
+        KickTimer -= GetFrameTime() * KickSpeedMult;
     else {
         KickTimer = 0;
     }

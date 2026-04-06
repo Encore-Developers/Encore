@@ -11,8 +11,6 @@ namespace Encore::RhythmEngine {
     public:
         int Type = 0;
         explicit GuitarStats(int BaseScore) : BaseStats<5>(BaseScore) {}
-        double FretAfterStrumTime = -1;
-        bool FretAfterStrum = false;
         [[nodiscard]] uint8_t HeldFretsArrayToMask() const;
     };
 }

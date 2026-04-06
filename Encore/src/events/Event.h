@@ -33,6 +33,15 @@ namespace Encore {
         OverhitEvent(int lane) : lane(lane) {}
     };
 
+    class HighwayBounceEvent : public Event {
+    public:
+        float timer = 1.0f;
+        float mult = 5.0f;
+        HighwayBounceEvent() {}
+        HighwayBounceEvent(float _mult) : mult(_mult) {}
+        HighwayBounceEvent(float _timer, float _mult) : timer(_timer), mult(_mult) {}
+    };
+
     
 
     class EventSink;
