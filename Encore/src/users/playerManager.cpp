@@ -129,8 +129,8 @@ Player *PlayerManager::GetPlayerForJoystick(SDL_JoystickID id) {
         if (player == -1) {
             continue;
         }
-        if (GetActivePlayer(player).joypadID == id) {
-            return &GetActivePlayer(player);
+        if (GetActivePlayer(i).joypadID == id) {
+            return &GetActivePlayer(i);
         }
     }
     return nullptr;
