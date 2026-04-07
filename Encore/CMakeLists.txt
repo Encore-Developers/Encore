@@ -49,6 +49,7 @@ set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 
+string(TIMESTAMP BUILDDATE UTC)
 
 option ( TRACY_ENABLE " " OFF )
 option ( TRACY_ON_DEMAND " " ON )
@@ -138,6 +139,8 @@ execute_process(
         OUTPUT_VARIABLE GIT_COMMIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
 
@@ -146,6 +149,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+        "-DBUILDDATE=\"${BUILDDATE}\"")
 
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 

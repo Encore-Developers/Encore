@@ -11,6 +11,11 @@
 
 discord::Core* core{};
 
+std::string discordCommitHash = GIT_COMMIT_HASH;
+std::string discordVersion = ENCORE_VERSION;
+std::string discordgitBranch = GIT_BRANCH;
+std::string discordBuildDate = BUILDDATE;
+
 void Encore::Discord::Initialize(std::string discordBoot) {
     if (discordBoot != "false") {
         auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
@@ -62,6 +67,8 @@ void Encore::Discord::DiscordUpdatePresence(const std::string &title, const std:
         activity.SetState("In a band");
     }
     activity.SetDetails((details).c_str());
+    discordCommitHash.resize(6);
+    activity.GetAssets().SetLargeText((discordVersion + "-" + discordgitBranch + ":" + discordCommitHash + " " + discordBuildDate).c_str());
     activity.SetName("encore");
     activity.GetAssets().SetLargeImage("encore");
     activity.SetType(discord::ActivityType::Playing);
@@ -99,6 +106,9 @@ void Encore::Discord::DiscordUpdatePresenceSong(
     }
     activity.SetName("encore");
     activity.GetAssets().SetLargeImage("encore");
+    // "%s-%s:%s", menuVersion.c_str(), gitBranch.c_str(), menuCommitHash.c_str()3.
+    discordCommitHash.resize(6);
+    activity.GetAssets().SetLargeText((discordVersion + "-" + discordgitBranch + ":" + discordCommitHash + " " + discordBuildDate).c_str());
     activity.GetAssets().SetSmallImage(AssetNames[instrument].c_str());
     activity.GetAssets().SetSmallText(PartNames[instrument].c_str());
     activity.SetType(discord::ActivityType::Playing);
