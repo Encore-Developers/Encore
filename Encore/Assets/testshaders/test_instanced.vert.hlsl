@@ -11,16 +11,20 @@ struct Input
     uint VertexIndex : SV_VertexID;
 };
 
+struct InstanceInput {
+    float2 Position : INPUT2;
+};
+
 struct Output
 {
     float2 TexCoord : OUTPUT0;
     float4 Position : SV_Position;
 };
 
-Output main(Input input)
+Output main(Input input, InstanceInput instance)
 {
 	Output output;
-    output.Position = mul(MatrixTransform, float4(input.Position, 1.0));
+    output.Position = mul(MatrixTransform, float4(input.Position + float3(instance.Position.x, 0, instance.Position.y), 1.0));
 	output.TexCoord = input.TexCoord + uvOffset;
     return output;
 }

@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
-    //SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
     ASSET(faviconTex).StartLoad();
     ASSET(testMesh).StartLoad();
     ASSET(testMeshTex).StartLoad();
