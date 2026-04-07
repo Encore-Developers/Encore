@@ -42,6 +42,9 @@ enum ControllerBindingType {
     PAD,
     DRUMS
 };
+namespace Encore::RhythmEngine {
+    class BaseEngine;
+}
 
 #define PLAYER_JSON_SETTINGS                                                             \
     SETTING_ACTION(int, Difficulty, "diff")                                              \

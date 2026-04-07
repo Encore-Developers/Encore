@@ -222,11 +222,11 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
 }
 
 std::string GetLengthHeader(int length) {
-    if (length < 60) return "< 1:00";
-    if (length < 120) return "1:00-2:00";
-    if (length < 180) return "2:00-3:00";
-    if (length < 240) return "3:00-4:00";
-    if (length < 300) return "4:00-5:00";
+    if (length < 60000) return "< 1:00";
+    if (length < 120000) return "1:00-2:00";
+    if (length < 180000) return "2:00-3:00";
+    if (length < 240000) return "3:00-4:00";
+    if (length < 300000) return "4:00-5:00";
     return "5:00+";
 }
 

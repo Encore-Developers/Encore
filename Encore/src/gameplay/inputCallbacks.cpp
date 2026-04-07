@@ -17,6 +17,7 @@
 
 #include "RhythmEngine/REenums.h"
 #include "menus/OvershellMenu.h"
+#include "song/song.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
 #include "users/player.h"
@@ -88,7 +89,6 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 
     // uncomment ( ctrl + / ) and comment the guitar code to have working pad
 
-
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
 
@@ -150,22 +150,37 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
             break;
         }
         case PAD: {
-            switch (event->gbutton.button) {
-            case (SDL_GAMEPAD_BUTTON_DPAD_LEFT):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
-                break;
-            case (SDL_GAMEPAD_BUTTON_DPAD_UP):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
-                break;
-            case (SDL_GAMEPAD_BUTTON_WEST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
-                break;
-            case (SDL_GAMEPAD_BUTTON_NORTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
-                break;
-            case (SDL_GAMEPAD_BUTTON_EAST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
-                break;
+            if (player->Instrument > PartVocals) {
+                switch (event->gbutton.button) {
+                case (SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                    break;
+                case (SDL_GAMEPAD_BUTTON_SOUTH):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                    break;
+                case (SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                    break;
+                }
+            }
+            else {
+                switch (event->gbutton.button) {
+                case (SDL_GAMEPAD_BUTTON_DPAD_LEFT):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                    break;
+                case (SDL_GAMEPAD_BUTTON_DPAD_UP):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                    break;
+                case (SDL_GAMEPAD_BUTTON_WEST):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                    break;
+                case (SDL_GAMEPAD_BUTTON_NORTH):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                    break;
+                case (SDL_GAMEPAD_BUTTON_EAST):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                    break;
+                }
             }
             break;
         }
@@ -186,6 +201,28 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 
             Encore::EncoreLog(LOG_INFO,
                               TextFormat("SDL whammy value %01i", outevent.axis));
+        }
+        if (bindingType == PAD && player->Instrument > PartVocals) {
+            if (event->gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) {
+                if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2) {
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                    outevent.action = Encore::RhythmEngine::Action::PRESS;
+                } else {
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                    outevent.action = Encore::RhythmEngine::Action::RELEASE;
+
+                }
+            }
+            else if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
+                if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2) {
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                    outevent.action = Encore::RhythmEngine::Action::PRESS;
+                } else {
+                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                    outevent.action = Encore::RhythmEngine::Action::RELEASE;
+                }
+            }
+            outevent.slot = event->gdevice.which;
         }
     }
     return outevent;

@@ -48,8 +48,9 @@ namespace Encore::RhythmEngine {
         void Overhit();
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<GuitarStats> stats;
-        GuitarEngine(auto _chart, auto _stats)
-            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {
+        Player* player;
+        GuitarEngine(auto _chart, auto _stats, Player* _player)
+            : BaseEngine(_chart, _stats, _player), chart(_chart), stats(_stats), player(_player) {
             Timers = { { "FAS", RhythmTimer(0.125) }, { "SAH", RhythmTimer(goodBackend + goodFrontend) } };
         };
         ~GuitarEngine() override {};

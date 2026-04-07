@@ -25,8 +25,9 @@ namespace Encore::RhythmEngine {
         void SetStatsInputState(ControllerEvent &event) override;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<DrumsStats> stats;
-        DrumsEngine(auto _chart, auto _stats)
-            : BaseEngine(_chart, _stats), chart(_chart), stats(_stats) {
+        Player* player;
+        DrumsEngine(auto _chart, auto _stats, Player* _player)
+            : BaseEngine(_chart, _stats, _player), chart(_chart), stats(_stats), player(_player) {
             Timers = { {"debounce", RhythmTimer(0.01)} };
         };
         ~DrumsEngine() override {};

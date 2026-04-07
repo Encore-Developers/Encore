@@ -86,7 +86,7 @@ void LoadCharts() {
                 player.engine =
                     std::make_shared<Encore::RhythmEngine::GuitarEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
-                        std::make_shared<Encore::RhythmEngine::GuitarStats>(0)
+                        std::make_shared<Encore::RhythmEngine::GuitarStats>(0), &player
                     );
                 player.engine->stats->Type = Encore::RhythmEngine::Guitar;
 
@@ -98,7 +98,8 @@ void LoadCharts() {
                 ThePlayerManager.GetActivePlayer(playerNum)
                     .engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
-                    std::make_shared<Encore::RhythmEngine::DrumsStats>(0)
+                    std::make_shared<Encore::RhythmEngine::DrumsStats>(0),
+                    &player
                 );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Drums;
@@ -110,7 +111,8 @@ void LoadCharts() {
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
                     std::make_shared<Encore::RhythmEngine::PadEngine>(
                         std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
-                    std::make_shared<Encore::RhythmEngine::PadStats>(0)
+                    std::make_shared<Encore::RhythmEngine::PadStats>(0),
+                    &player
                 );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Pad;

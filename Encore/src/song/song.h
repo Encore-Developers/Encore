@@ -206,19 +206,15 @@ public:
             return;
         }
         for (int diff = 0; diff < 4; diff++) {
-            bool StopSearching = false;
-
             for (int i = 0; i < track.getSize(); i++) {
                 if (track[i].isNoteOn() && !track[i].isMeta()
                     && track[i][1] >= pDiffRangeNotes[diff][0]
-                    && track[i][1] <= pDiffRangeNotes[diff][1] && !StopSearching) {
+                    && track[i][1] <= pDiffRangeNotes[diff][1]) {
                     parts[songPart]->ValidDiffs.at(diff) = true;
                     parts[songPart]->TrackInt = trackNumber;
                     parts[songPart]->Valid = true;
-                    StopSearching = true;
-                    }
-                if (StopSearching)
                     break;
+                    }
             }
         }
     }

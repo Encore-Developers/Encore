@@ -218,8 +218,8 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     // STRUM PATH
     bool StrumInput = (stats->strumState != StrumState::Default)
         && event.action == Action::PRESS
-        && (event.channel == InputChannel::STRUM_UP || event.channel ==
-            InputChannel::STRUM_DOWN);
+        && ((event.channel == InputChannel::STRUM_UP || event.channel ==
+            InputChannel::STRUM_DOWN));
     if (StrumInput) {
         // miss should be managed by current frame
         // overhit is managed here
@@ -248,7 +248,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     if (MaskMatch(CurrentNote.Lane, pMask)
         && InHitwindow(CurrentNote.StartSeconds)
         && (HittableAsHopo(CurrentNote.NoteType, stats->Combo, GhostCount)
-            || HittableAsTap(CurrentNote.NoteType) || strum)) {
+            || HittableAsTap(CurrentNote.NoteType) || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);
         return HitState::HitNote;
     }

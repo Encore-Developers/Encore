@@ -251,7 +251,7 @@ void ReadyUpMenu::Draw() {
                             if (GuiButton(
                                     { xPosOfMenu,
                                       BottomOvershell - u.hinpct(0.05f)
-                                          - (u.hinpct(0.05f) * chart->diff),
+                                          - (u.hinpct(0.05f) * i),
                                       u.winpct(0.2f),
                                       u.hinpct(0.05f) },
                                     diffList[i].c_str()

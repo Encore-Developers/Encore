@@ -14,6 +14,10 @@
 #include <span>
 #include <unordered_map>
 
+#include "users/player.h"
+
+class Player;
+
 namespace Encore::RhythmEngine {
     enum HitState {
         HitNote = 0,
@@ -23,8 +27,8 @@ namespace Encore::RhythmEngine {
 
     class BaseEngine : public EventSource {
     public:
-        BaseEngine(auto _chart, auto _stats)
-            : chart(_chart), stats(_stats) {
+        BaseEngine(auto _chart, auto _stats, Player* _player)
+            : chart(_chart), stats(_stats), player(_player) {
         };
 
         virtual ~BaseEngine() {
@@ -51,6 +55,7 @@ namespace Encore::RhythmEngine {
         double LastUpdateTime;
         bool allowTimestampedInputs = true;
 
+        Player* player;
         float whammy = 0.0;
         bool practice = false;
         double pStartTime = 0.0;

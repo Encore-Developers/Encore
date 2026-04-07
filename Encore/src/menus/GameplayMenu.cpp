@@ -55,10 +55,12 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
             overdriveBinds.second) {
             event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
             }
-        if (key == TheGameKeybinds.strumBinds.first) {
-            event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
-        } else if (key == TheGameKeybinds.strumBinds.second) {
-            event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+        if (player.bindingType != PAD) {
+            if (key == TheGameKeybinds.strumBinds.first) {
+                event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+            } else if (key == TheGameKeybinds.strumBinds.second) {
+                event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+            }
         }
         int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
         for (int i = 0; i < DiffMax; i++) {
