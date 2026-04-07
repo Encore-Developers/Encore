@@ -78,6 +78,8 @@ void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event) {
     }
 }
 
+std::unordered_map<SDL_JoystickID, std::pair<bool, bool>> ControllerTriggerState;
+
 Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
     Encore::RhythmEngine::ControllerEvent outevent = {};
 
@@ -203,25 +205,32 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
                               TextFormat("SDL whammy value %01i", outevent.axis));
         }
         if (bindingType == PAD && player->Instrument > PartVocals) {
+            if (ControllerTriggerState.find(event->gaxis.which) == ControllerTriggerState.end()) {
+                ControllerTriggerState.insert({event->gaxis.axis, {false, false}});
+            }
             if (event->gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) {
-                if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2) {
+                if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2 && !ControllerTriggerState[event->gaxis.which].first) {
+                    ControllerTriggerState[event->gaxis.which].first = true;
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
                     outevent.action = Encore::RhythmEngine::Action::PRESS;
-                } else {
+                } else if (ControllerTriggerState[event->gaxis.which].first){
+                    ControllerTriggerState[event->gaxis.which].first = false;
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
                     outevent.action = Encore::RhythmEngine::Action::RELEASE;
-
                 }
             }
             else if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
-                if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2) {
+                if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2 && !ControllerTriggerState[event->gaxis.which].second) {
+                    ControllerTriggerState[event->gaxis.which].second = true;
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
                     outevent.action = Encore::RhythmEngine::Action::PRESS;
-                } else {
+                } else if (ControllerTriggerState[event->gaxis.which].second) {
+                    ControllerTriggerState[event->gaxis.which].second = false;
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
                     outevent.action = Encore::RhythmEngine::Action::RELEASE;
                 }
             }
+
             outevent.slot = event->gdevice.which;
         }
     }
