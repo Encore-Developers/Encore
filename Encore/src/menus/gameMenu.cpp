@@ -15,6 +15,7 @@
 
 #include <variant>
 
+#include "imgui.h"
 #include "../menus/menu.h"
 #include "overshellRenderer.h"
 #include "uiUnits.h"
@@ -238,6 +239,32 @@ void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods
 }
 void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
 
+std::string version = ENCORE_VERSION;
+std::string branch = GIT_BRANCH;
+std::string build = GIT_COMMIT_HASH;
+
+void DrawWarning(Vector2 pos, Vector2 size) {
+    std::string WindowName = "encore " + version + "-" + branch + ":" + build;
+    ImGui::SetNextWindowPos({pos.x, pos.y}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({size.x, size.y});
+    if (ImGui::Begin(WindowName.c_str(), 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        ImGui::PushTextWrapPos();
+        ImGui::Text("WARNING!");
+        ImGui::Text("This is an in-development build of Encore.");
+        ImGui::Text("How the game is presented to you RIGHT NOW is not representative of the game's final state.");
+        ImGui::NewLine();
+        ImGui::Text("Press F3 to access the debug menu.");
+        ImGui::Text("This unlocks half of the available utilities and toys Encore currently has to offer.");
+        ImGui::NewLine();
+        ImGui::Text("NOTES:");
+        ImGui::Text("A very basic, shitty DualShock mode is availible in the Profile menus below.");
+        ImGui::Text("If using a controller of ANY type (drums, gamepad, guitar) PLEASE use Assign Controller in the Profile menu.");
+        ImGui::Text("If you come across any crashes, please consult the Encore GitHub linked in the bottom right corner of the screen.");
+        ImGui::PopTextWrapPos();
+    }
+    ImGui::End();
+}
+
 void MainMenu::AttractScreen() {
     float SplashFontSize = u.hinpct(0.03f);
     float SplashHeight =
@@ -287,6 +314,8 @@ void MainMenu::AttractScreen() {
         WHITE
     );
     DrawOvershell();
+
+    DrawWarning({0, 32}, {500, 500});
 }
 void MainMenu::MainMenuScreen() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
@@ -568,6 +597,8 @@ void MainMenu::MainMenuScreen() {
     }
     GameMenu::DrawBottomOvershell();
     DrawOvershell();
+
+    DrawWarning({GetRenderWidth() - 500.0f, u.hpct(0.2f)}, {500, 500});
 }
 // this is really nasty shit as far as im concerned please dont think about it too much
 void MainMenu::Draw() {
