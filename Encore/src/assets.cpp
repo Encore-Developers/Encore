@@ -243,6 +243,9 @@ void ShaderAsset::Load() {
 
     };
     auto resourceInfo = SDL_ShaderCross_ReflectGraphicsSPIRV(spirv, size, 0);
+    if (stage == SDL_SHADERCROSS_SHADERSTAGE_VERTEX) {
+        GenerateVertexInputState(resourceInfo);
+    }
     BlockUntilGPUReady();
     shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, 0);
     state = LOADED;
@@ -250,6 +253,81 @@ void ShaderAsset::Load() {
     SDL_free((void*)spirv);
     SDL_free(resourceInfo);
 }
+
+// Only use vertex attribute types with this macro in vector sizes of 2 or 4.
+// In fact, these ones are rather buggy. Avoid them!
+#define ONLY_2_OR_4(type) (SDL_GPUVertexElementFormat)(type-1)
+
+
+const SDL_GPUVertexElementFormat SHADERCROSS_TYPE_TO_SDL[] = {
+    SDL_GPU_VERTEXELEMENTFORMAT_INVALID, //SDL_SHADERCROSS_IOVAR_TYPE_UNKNOWN
+    ONLY_2_OR_4(SDL_GPU_VERTEXELEMENTFORMAT_BYTE2), //SDL_SHADERCROSS_IOVAR_TYPE_INT8
+    ONLY_2_OR_4(SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2), //SDL_SHADERCROSS_IOVAR_TYPE_UINT8
+    ONLY_2_OR_4(SDL_GPU_VERTEXELEMENTFORMAT_SHORT2), //SDL_SHADERCROSS_IOVAR_TYPE_INT16
+    ONLY_2_OR_4(SDL_GPU_VERTEXELEMENTFORMAT_USHORT2), //SDL_SHADERCROSS_IOVAR_TYPE_UINT16
+    SDL_GPU_VERTEXELEMENTFORMAT_INT, //SDL_SHADERCROSS_IOVAR_TYPE_INT32
+    SDL_GPU_VERTEXELEMENTFORMAT_UINT, //SDL_SHADERCROSS_IOVAR_TYPE_UINT32
+    SDL_GPU_VERTEXELEMENTFORMAT_INT2, //SDL_SHADERCROSS_IOVAR_TYPE_INT64
+    SDL_GPU_VERTEXELEMENTFORMAT_UINT2, //SDL_SHADERCROSS_IOVAR_TYPE_UINT64
+    ONLY_2_OR_4(SDL_GPU_VERTEXELEMENTFORMAT_HALF2), //SDL_SHADERCROSS_IOVAR_TYPE_FLOAT16
+    SDL_GPU_VERTEXELEMENTFORMAT_FLOAT, //SDL_SHADERCROSS_IOVAR_TYPE_FLOAT32
+    SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2 //SDL_SHADERCROSS_IOVAR_TYPE_FLOAT64
+};
+
+const unsigned int SHADERCROSS_TYPE_TO_SIZE[] = {
+    0, //SDL_SHADERCROSS_IOVAR_TYPE_UNKNOWN
+    1, //SDL_SHADERCROSS_IOVAR_TYPE_INT8
+    1, //SDL_SHADERCROSS_IOVAR_TYPE_UINT8
+    2, //SDL_SHADERCROSS_IOVAR_TYPE_INT16
+    2, //SDL_SHADERCROSS_IOVAR_TYPE_UINT16
+    4, //SDL_SHADERCROSS_IOVAR_TYPE_INT32
+    4, //SDL_SHADERCROSS_IOVAR_TYPE_UINT32
+    8, //SDL_SHADERCROSS_IOVAR_TYPE_INT64
+    8, //SDL_SHADERCROSS_IOVAR_TYPE_UINT64
+    2, //SDL_SHADERCROSS_IOVAR_TYPE_FLOAT16
+    4, //SDL_SHADERCROSS_IOVAR_TYPE_FLOAT32
+    8  //SDL_SHADERCROSS_IOVAR_TYPE_FLOAT64
+};
+
+void ShaderAsset::GenerateVertexInputState(SDL_ShaderCross_GraphicsShaderMetadata* metadata) {
+    unsigned int curOffset = 0;
+    SDL_GPUVertexBufferDescription curDesc = {
+        .slot = 0,
+        .pitch = 0,
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+        .instance_step_rate = 0
+    };
+    for (int i = 0; i < metadata->num_inputs; i++) {
+        auto& input = metadata->inputs[i];
+        if (std::string(input.name).starts_with("in.var.INSTANCEINPUT")) {
+            // Split the buffer
+            if (curDesc.input_rate == SDL_GPU_VERTEXINPUTRATE_VERTEX) {
+                // Reset to fill a new buffer
+                bufferDescriptions.push_back(curDesc);
+                curDesc.input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE;
+                curDesc.slot += 1;
+                curDesc.pitch = 0;
+                curOffset = 0;
+            }
+        }
+        SDL_GPUVertexAttribute attribute = {};
+        attribute.format = (SDL_GPUVertexElementFormat)(SHADERCROSS_TYPE_TO_SDL[input.vector_type]+input.vector_size-1);
+        attribute.buffer_slot = curDesc.slot;
+        attribute.location = input.location;
+        attribute.offset = curOffset;
+        curOffset += input.vector_size*SHADERCROSS_TYPE_TO_SIZE[input.vector_type];
+        curDesc.pitch = curOffset;
+        vertexAttributes.push_back(attribute);
+    }
+    bufferDescriptions.push_back(curDesc);
+    vertexInputState = {
+        .vertex_buffer_descriptions = bufferDescriptions.data(),
+        .num_vertex_buffers = (unsigned int)bufferDescriptions.size(),
+        .vertex_attributes = vertexAttributes.data(),
+        .num_vertex_attributes = (unsigned int)vertexAttributes.size(),
+    };
+}
+
 void ShaderAsset::Unload() {
     SDL_ReleaseGPUShader(TheGPU, shader);
 }

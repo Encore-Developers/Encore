@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
-    //SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
     ASSET(faviconTex).StartLoad();
     ASSET(testMesh).StartLoad();
     ASSET(testMeshTex).StartLoad();
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    TheFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_1);
+    TheFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_8);
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
 
@@ -130,57 +130,10 @@ int main(int argc, char *argv[]) {
     SDL_GPUColorTargetDescription colorTargetDescription = {
         .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, window)
     };
-
-    SDL_GPUVertexBufferDescription bufDesc[] = {
-        {
-            .slot = 0,
-            .pitch = sizeof(MeshVertex),
-            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-            .instance_step_rate = 0,
-        },
-        {
-            .slot = 1,
-            .pitch = sizeof(GemInstance),
-            .input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE,
-            .instance_step_rate = 0
-        }
-    };
-    SDL_GPUVertexAttribute attributes[] = {
-        {
-            .location = 0,
-            .buffer_slot = 0,
-            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-            .offset = 0
-        },
-        {
-            .location = 1,
-            .buffer_slot = 0,
-            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-            .offset = sizeof(Vector3)
-        },
-        {
-            .location = 2,
-            .buffer_slot = 1,
-            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-            .offset = offsetof(GemInstance, position)
-        },
-        {
-            .location = 3,
-            .buffer_slot = 1,
-            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-            .offset = offsetof(GemInstance, scale)
-        },
-
-    };
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .vertex_shader = ASSET(testVert),
         .fragment_shader = ASSET(testFrag),
-        .vertex_input_state = {
-            .vertex_buffer_descriptions = bufDesc,
-            .num_vertex_buffers = 2,
-            .vertex_attributes = attributes,
-            .num_vertex_attributes = 4,
-        },
+        .vertex_input_state = ASSET(testVert).vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .rasterizer_state = {
             .cull_mode = SDL_GPU_CULLMODE_BACK,

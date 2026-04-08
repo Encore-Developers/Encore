@@ -12,8 +12,8 @@ struct Input
 };
 
 struct InstanceInput {
-    float2 Position : INPUT2;
-	float2 Scale : INPUT3;
+    float2 Position : INSTANCEINPUT2;
+	float2 Scale : INSTANCEINPUT3;
 };
 
 struct Output
@@ -25,7 +25,7 @@ struct Output
 Output main(Input input, InstanceInput instance)
 {
 	Output output;
-    output.Position = mul(MatrixTransform, float4(input.Position + float3(instance.Position.x, 0, instance.Position.y), 1.0));
+    output.Position = mul(MatrixTransform, float4((input.Position * float3(instance.Scale.x, instance.Scale.y, 1)) + float3(instance.Position.x, 0, instance.Position.y), 1.0));
 	output.TexCoord = input.TexCoord + uvOffset;
     return output;
 }

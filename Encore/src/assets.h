@@ -158,10 +158,14 @@ public:
 
 class ShaderAsset : public FileAsset {
     virtual void Load();
+    void GenerateVertexInputState(SDL_ShaderCross_GraphicsShaderMetadata* metadata);
 
+    std::vector<SDL_GPUVertexBufferDescription> bufferDescriptions;
+    std::vector<SDL_GPUVertexAttribute> vertexAttributes;
 public:
     SDL_ShaderCross_ShaderStage stage;
     SDL_GPUShader* shader;
+    SDL_GPUVertexInputState vertexInputState = {};
 
     ShaderAsset(const std::string &id, SDL_ShaderCross_ShaderStage stage) : FileAsset(id), stage(stage) {
         addNullTerminator = true;

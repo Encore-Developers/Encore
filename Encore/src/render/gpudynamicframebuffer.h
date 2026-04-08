@@ -2,8 +2,9 @@
 #include "graphicsState.h"
 #include "SDL3/SDL_gpu.h"
 #include "SDL3/SDL_render.h"
-
+/// An object that automatically manages target textures for rendering MSAA.
 class GPUDynamicFramebuffer {
+    void Resize(unsigned int width, unsigned int height);
 public:
     SDL_GPUTexture *colorTexture = nullptr;
     SDL_GPUTexture *depthTexture = nullptr;
@@ -15,7 +16,7 @@ public:
 
     GPUDynamicFramebuffer(SDL_GPUSampleCount sampleCount) : sampleCount(sampleCount) {}
 
-    void Resize(unsigned int width, unsigned int height);
+    /// Call every frame right after obtaining the swapchain texture.
     void Update(unsigned int width, unsigned int height);
 
     void SetSampleCount(SDL_GPUSampleCount sampleCount);

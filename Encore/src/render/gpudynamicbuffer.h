@@ -4,6 +4,8 @@
 
 #include <vector>
 
+/// Helper to populate and auto-resize a vertex buffer.
+/// Used for instancing.
 template <typename T>
 class GPUDynamicBuffer {
     SDL_GPUBuffer* buffer = nullptr;

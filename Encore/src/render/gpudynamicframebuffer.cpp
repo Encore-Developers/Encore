@@ -37,16 +37,18 @@ void GPUDynamicFramebuffer::Resize(unsigned int width, unsigned int height) {
         .sample_count = sampleCount
     };
     depthTexture = SDL_CreateGPUTexture(TheGPU, &depthCreateInfo);
-    SDL_GPUTextureCreateInfo resolveCreateInfo = {
-        .type = SDL_GPU_TEXTURETYPE_2D,
-        .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, TheWindow),
-        .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
-        .width = width,
-        .height = height,
-        .layer_count_or_depth = 1,
-        .num_levels = 1,
-    };
-    resolveTexture = SDL_CreateGPUTexture(TheGPU, &resolveCreateInfo);
+    if (sampleCount != SDL_GPU_SAMPLECOUNT_1) {
+        SDL_GPUTextureCreateInfo resolveCreateInfo = {
+            .type = SDL_GPU_TEXTURETYPE_2D,
+            .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, TheWindow),
+            .usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
+            .width = width,
+            .height = height,
+            .layer_count_or_depth = 1,
+            .num_levels = 1,
+        };
+        resolveTexture = SDL_CreateGPUTexture(TheGPU, &resolveCreateInfo);
+    }
 }
 void GPUDynamicFramebuffer::Update(unsigned int width, unsigned int height) {
     if (width != this->width || height != this->height || forceDirty) {
