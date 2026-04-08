@@ -58,6 +58,8 @@ public:
     void CheckForFetch();
     void SetAssetParent(Asset *newParent);
 
+    void BlockUntilLoaded();
+
     /// Removes the asset from the internal list, hiding it from the debug Assets window
     void DelistAsset();
 

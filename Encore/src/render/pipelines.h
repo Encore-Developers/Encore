@@ -5,8 +5,14 @@ class PipelineManager {
     static void ClearPipeline(SDL_GPUGraphicsPipeline** pipelinePtr);
 public:
     bool pipelinesLoaded = false;
-    SDL_GPUGraphicsPipeline* testPipeline = nullptr;
+    SDL_GPUGraphicsPipeline* notePipeline = nullptr;
 
     void CompileAll();
     void CompileThreaded();
+    void BlockUntilLoaded();
 };
+
+
+extern PipelineManager ThePipelineManager;
+
+#define PIPELINE(pipeline) ThePipelineManager.pipeline

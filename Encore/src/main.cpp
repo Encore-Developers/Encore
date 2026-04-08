@@ -11,6 +11,7 @@
 #include "math/camera.h"
 #include "render/gpudynamicbuffer.h"
 #include "render/gpudynamicframebuffer.h"
+#include "render/pipelines.h"
 
 #include <deque>
 
@@ -18,6 +19,7 @@ SDL_GPUDevice* TheGPU = nullptr;
 bool TheGPUReady = false;
 SDL_Window* TheWindow = nullptr;
 GPUDynamicFramebuffer* TheFramebuffer = nullptr;
+PipelineManager ThePipelineManager;
 
 void BlockUntilGPUReady() {
     while (!TheGPUReady) {
@@ -62,9 +64,10 @@ int main(int argc, char *argv[]) {
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
-    ASSET(faviconTex).StartLoad();
-    ASSET(testMesh).StartLoad();
-    ASSET(testMeshTex).StartLoad();
+
+    for (auto asset : TheAssets.assets) {
+        asset->StartLoad();
+    }
 
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
         return 1;
@@ -98,9 +101,7 @@ int main(int argc, char *argv[]) {
     SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_MAILBOX);
     SDL_SetGPUAllowedFramesInFlight(TheGPU, 2);
 
-    ASSET(testVert).StartLoad();
-    ASSET(testFrag).StartLoad();
-
+    PIPELINE(CompileThreaded());
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -126,41 +127,6 @@ int main(int argc, char *argv[]) {
 
     bool shouldClose = false;
 
-    AssetSet{ASSETPTR(testVert), ASSETPTR(testFrag)}.BlockUntilLoaded();
-    SDL_GPUColorTargetDescription colorTargetDescription = {
-        .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, window)
-    };
-    SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-        .vertex_shader = ASSET(testVert),
-        .fragment_shader = ASSET(testFrag),
-        .vertex_input_state = ASSET(testVert).vertexInputState,
-        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-        .rasterizer_state = {
-            .cull_mode = SDL_GPU_CULLMODE_BACK,
-            .front_face = SDL_GPU_FRONTFACE_CLOCKWISE
-        },
-        .depth_stencil_state = {
-            .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
-            .compare_mask = 0xff,
-            .write_mask = 0xff,
-            .enable_depth_test = true,
-            .enable_depth_write = true,
-        },
-        .target_info = {
-            .color_target_descriptions = &colorTargetDescription,
-            .num_color_targets = 1,
-            .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
-            .has_depth_stencil_target = true
-        },
-    };
-    pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-    pipelineCreateInfo.multisample_state.sample_count = TheFramebuffer->sampleCount;
-    pipelineCreateInfo.multisample_state.enable_alpha_to_coverage = true;
-    auto testPipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo);
-    if (testPipeline == nullptr) {
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline: %s\n", SDL_GetError());
-        return -1;
-    }
 
     Camera cam = {
         { 0, 8.0f, -14.0f },
@@ -284,7 +250,7 @@ int main(int argc, char *argv[]) {
         if (meshStuff.PollLoaded()) {
             ZoneScopedN("Build Render Pass")
             auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
-            SDL_BindGPUGraphicsPipeline(renderPass, testPipeline);
+            SDL_BindGPUGraphicsPipeline(renderPass, PIPELINE(notePipeline));
             SDL_GPUBufferBinding vertBind[] = {
                 { .buffer = ASSET(testMesh).vertexBuffer, .offset = 0 },
                 gemInstances.GetBinding()

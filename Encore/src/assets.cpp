@@ -57,6 +57,11 @@ void Asset::SetAssetParent(Asset *newParent) {
     parent = newParent;
     DelistAsset();
 }
+void Asset::BlockUntilLoaded() {
+    while (state == LOADED) {
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+    }
+}
 
 void Asset::DelistAsset() {
     for (auto iter = TheAssets.assets.begin(); iter != TheAssets.assets.end(); ++iter) {
