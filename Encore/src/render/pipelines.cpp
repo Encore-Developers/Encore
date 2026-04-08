@@ -13,12 +13,12 @@ void PipelineManager::ClearPipeline(SDL_GPUGraphicsPipeline **pipelinePtr) {
     }
 }
 
-#define CREATEPIPELINE(pipeline) pipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo); \
+#define CREATEPIPELINE(pipeline) ClearPipeline(&pipeline); \
+    pipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo); \
     if (!pipeline) {SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline %s: %s\n", SDL_GetError(), #pipeline); return;}
 
 void PipelineManager::CompileAll() {
     pipelinesLoaded = false;
-    ClearPipeline(&notePipeline);
     BlockUntilGPUReady();
 
     // Generic state values used in multiple pipelines
@@ -50,11 +50,11 @@ void PipelineManager::CompileAll() {
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 
-    AssetSet{ASSETPTR(testVert), ASSETPTR(testFrag)}.BlockUntilLoaded();
+    AssetSet{ASSETPTR(noteVert), ASSETPTR(noteFrag)}.BlockUntilLoaded();
     pipelineCreateInfo = {
-        .vertex_shader = ASSET(testVert),
-        .fragment_shader = ASSET(testFrag),
-        .vertex_input_state = ASSET(testVert).vertexInputState,
+        .vertex_shader = ASSET(noteVert),
+        .fragment_shader = ASSET(noteFrag),
+        .vertex_input_state = ASSET(noteVert).vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .rasterizer_state = genericRasterizerState,
         .multisample_state = genericMultisampleState,

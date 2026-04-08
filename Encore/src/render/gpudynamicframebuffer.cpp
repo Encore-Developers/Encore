@@ -1,5 +1,7 @@
 #include "gpudynamicframebuffer.h"
 
+#include "pipelines.h"
+
 void GPUDynamicFramebuffer::Resize(unsigned int width, unsigned int height) {
     this->width = width;
     this->height = height;
@@ -56,6 +58,10 @@ void GPUDynamicFramebuffer::Update(unsigned int width, unsigned int height) {
     }
 }
 void GPUDynamicFramebuffer::SetSampleCount(SDL_GPUSampleCount sampleCount) {
+    if (sampleCount == this->sampleCount) {
+        return;
+    }
     this->sampleCount = sampleCount;
     forceDirty = true;
+    PIPELINE(CompileAll());
 }

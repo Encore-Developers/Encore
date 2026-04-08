@@ -176,6 +176,9 @@ int main(int argc, char *argv[]) {
             ImGui::DragFloat2("UV Offset", &uvOffset[0], 0.01f);
             ImGui::Checkbox("Randomize Gem Instances Every Frame", &randomizeInstances);
             ImGui::DragInt("Instance Count", &instanceCount);
+            static bool antialiasing = true;
+            ImGui::Checkbox("Antialiasing", &antialiasing);
+            TheFramebuffer->SetSampleCount(antialiasing ? SDL_GPU_SAMPLECOUNT_8 : SDL_GPU_SAMPLECOUNT_1);
         }
         ImGui::End();
 

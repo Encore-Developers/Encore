@@ -243,8 +243,8 @@ public:
 
 
     NEWTEXASSET_KEEPRAW(faviconTex, "encore_favicon-NEW.png");
-    NEWSHADERASSET(testVert, "testshaders/test_instanced.vert.hlsl", VERT);
-    NEWSHADERASSET(testFrag, "testshaders/test.frag.hlsl", FRAG);
+    NEWSHADERASSET(noteVert, "testshaders/test_instanced.vert.hlsl", VERT);
+    NEWSHADERASSET(noteFrag, "testshaders/test.frag.hlsl", FRAG);
 
     NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");
     NEWTEXASSET(testMeshTex, "gameplay/track/notes/normal/diffuse.png");
