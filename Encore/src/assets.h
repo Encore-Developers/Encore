@@ -138,6 +138,8 @@ public:
     bool keepRawData = false;
     int mips = 1;
 
+    bool rawDataLoaded = false;
+
     TextureAsset(const std::string &id, bool keepRawData = false, int mips = 1)
         : FileAsset(id), keepRawData(keepRawData), mips(mips) {
     }
@@ -201,7 +203,9 @@ public:
     std::vector<MeshVertex> vertices;
     std::vector<Face> faces;
 
-    MeshAsset(const std::string &id) : FileAsset(id) {}
+    MeshAsset(const std::string &id) : FileAsset(id) {
+        addNullTerminator = true;
+    }
 
     MeshAsset() {}
 
@@ -233,7 +237,7 @@ public:
 
 
     NEWTEXASSET_KEEPRAW(faviconTex, "encore_favicon-NEW.png");
-    NEWSHADERASSET(testVert, "testshaders/test.vert.hlsl", VERT);
+    NEWSHADERASSET(testVert, "testshaders/test_instanced.vert.hlsl", VERT);
     NEWSHADERASSET(testFrag, "testshaders/test.frag.hlsl", FRAG);
 
     NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");

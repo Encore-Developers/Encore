@@ -7,12 +7,23 @@
 #include "tracy/Tracy.hpp"
 #include "graphicsState.h"
 #include "assets.h"
+#include "glm/gtc/random.hpp"
 #include "math/camera.h"
+#include "render/gpudynamicbuffer.h"
+#include "render/gpudynamicframebuffer.h"
 
 #include <deque>
 
 SDL_GPUDevice* TheGPU = nullptr;
+bool TheGPUReady = false;
 SDL_Window* TheWindow = nullptr;
+GPUDynamicFramebuffer* TheFramebuffer = nullptr;
+
+void BlockUntilGPUReady() {
+    while (!TheGPUReady) {
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+    }
+}
 
 void LocateDevAssets() {
     auto execPath = std::filesystem::path(SDL_GetBasePath());
@@ -33,12 +44,24 @@ struct UBO {
     Matrix viewMat;
     Vector2 uvOffset;
 };
+struct GemInstance {
+    Vector2 position;
+    Vector2 scale;
+
+    // uint8_t frameR;
+    // uint8_t frameG;
+    // uint8_t frameB;
+    //
+    // uint8_t noteR;
+    // uint8_t noteG;
+    // uint8_t noteB;
+};
 
 int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
-    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    //SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
     ASSET(faviconTex).StartLoad();
     ASSET(testMesh).StartLoad();
     ASSET(testMeshTex).StartLoad();
@@ -47,10 +70,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    TheFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_1);
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
 
-    while (ASSET(faviconTex).state != PREFINALIZED) {}
+    while (!ASSET(faviconTex).rawDataLoaded) {}
     auto icon = SDL_CreateSurfaceFrom(ASSET(faviconTex).width, ASSET(faviconTex).height, SDL_PIXELFORMAT_RGBA32, ASSET(faviconTex).data, ASSET(faviconTex).width*sizeof(Pixel));
     if (!SDL_SetWindowIcon(window, icon)) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could set icon: %s\n", SDL_GetError());
@@ -68,11 +92,11 @@ int main(int argc, char *argv[]) {
     }
 
     TheGPU = gpu;
-
+    TheGPUReady = true;
 
     SDL_ClaimWindowForGPUDevice(gpu, window);
-    SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
-    SDL_SetGPUAllowedFramesInFlight(TheGPU, 1);
+    SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_MAILBOX);
+    SDL_SetGPUAllowedFramesInFlight(TheGPU, 2);
 
     ASSET(testVert).StartLoad();
     ASSET(testFrag).StartLoad();
@@ -107,11 +131,19 @@ int main(int argc, char *argv[]) {
         .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, window)
     };
 
-    SDL_GPUVertexBufferDescription bufDesc = {
-        .slot = 0,
-        .pitch = sizeof(MeshVertex),
-        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-        .instance_step_rate = 0,
+    SDL_GPUVertexBufferDescription bufDesc[] = {
+        {
+            .slot = 0,
+            .pitch = sizeof(MeshVertex),
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+        },
+        {
+            .slot = 1,
+            .pitch = sizeof(GemInstance),
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE,
+            .instance_step_rate = 0
+        }
     };
     SDL_GPUVertexAttribute attributes[] = {
         {
@@ -125,28 +157,52 @@ int main(int argc, char *argv[]) {
             .buffer_slot = 0,
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
             .offset = sizeof(Vector3)
-        }
+        },
+        {
+            .location = 2,
+            .buffer_slot = 1,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+            .offset = offsetof(GemInstance, position)
+        },
+        {
+            .location = 3,
+            .buffer_slot = 1,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+            .offset = offsetof(GemInstance, scale)
+        },
+
     };
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .vertex_shader = ASSET(testVert),
         .fragment_shader = ASSET(testFrag),
         .vertex_input_state = {
-            .vertex_buffer_descriptions = &bufDesc,
-            .num_vertex_buffers = 1,
+            .vertex_buffer_descriptions = bufDesc,
+            .num_vertex_buffers = 2,
             .vertex_attributes = attributes,
-            .num_vertex_attributes = 2,
+            .num_vertex_attributes = 4,
         },
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .rasterizer_state = {
             .cull_mode = SDL_GPU_CULLMODE_BACK,
             .front_face = SDL_GPU_FRONTFACE_CLOCKWISE
         },
+        .depth_stencil_state = {
+            .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+            .compare_mask = 0xff,
+            .write_mask = 0xff,
+            .enable_depth_test = true,
+            .enable_depth_write = true,
+        },
         .target_info = {
             .color_target_descriptions = &colorTargetDescription,
-            .num_color_targets = 1
+            .num_color_targets = 1,
+            .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+            .has_depth_stencil_target = true
         },
     };
     pipelineCreateInfo.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
+    pipelineCreateInfo.multisample_state.sample_count = TheFramebuffer->sampleCount;
+    pipelineCreateInfo.multisample_state.enable_alpha_to_coverage = true;
     auto testPipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo);
     if (testPipeline == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline: %s\n", SDL_GetError());
@@ -169,6 +225,7 @@ int main(int argc, char *argv[]) {
     };
     auto sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
 
+    GPUDynamicBuffer<GemInstance> gemInstances(100, SDL_GPU_BUFFERUSAGE_VERTEX, true);
 
     while (!shouldClose) {
         ZoneScopedN("Main Loop")
@@ -190,15 +247,31 @@ int main(int argc, char *argv[]) {
 
         ImGui::ShowDemoWindow();
         static Vector2 uvOffset = {0, 0};
+        static bool randomizeInstances = true;
+        static int instanceCount = 30;
 
         if (ImGui::Begin("Test")) {
             ImGui::DragFloat3("Camera Position", &cam.position[0], 0.01f);
             ImGui::DragFloat3("Camera Target", &cam.target[0], 0.01f);
             ImGui::DragFloat("FOV", &cam.fovy, 0.01f);
             ImGui::DragFloat2("UV Offset", &uvOffset[0], 0.01f);
+            ImGui::Checkbox("Randomize Gem Instances Every Frame", &randomizeInstances);
+            ImGui::DragInt("Instance Count", &instanceCount);
         }
         ImGui::End();
 
+        if (randomizeInstances) {
+            ZoneScopedN("Generate Gem Instances")
+            gemInstances.Reset();
+            for (int i = 0; i < instanceCount; i++) {
+                GemInstance instance {
+                    {i % 5 - 2, (1-(float)i/instanceCount)*150.0f},
+                    {1, 1}
+                };
+
+                gemInstances.Push(instance);
+            }
+        }
 
         ImGui::Render();
         auto cmdbuf = SDL_AcquireGPUCommandBuffer(gpu);
@@ -208,6 +281,11 @@ int main(int argc, char *argv[]) {
         }
 
 
+        auto copyPass = SDL_BeginGPUCopyPass(cmdbuf);
+        if (randomizeInstances) {
+            ZoneScopedN("Upload Gem Instances")
+            gemInstances.UploadData(copyPass);
+        }
         if (!TheAssets.finalizeQueue.empty()) {
             static std::deque<Asset*> pulled;
             pulled.clear();
@@ -217,37 +295,49 @@ int main(int argc, char *argv[]) {
             }
             TheAssets.finalizeQueue.clear();
             TheAssets.finalizeQueueMutex.unlock();
-            auto copyPass = SDL_BeginGPUCopyPass(cmdbuf);
             for (auto asset : pulled) {
                 asset->Finalize(copyPass);
             }
-            SDL_EndGPUCopyPass(copyPass);
         }
+        SDL_EndGPUCopyPass(copyPass);
 
         SDL_GPUTexture* swapchainTexture;
         {
+            unsigned int width;
+            unsigned int height;
             ZoneScopedN("Acquire Swapchain")
-            if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdbuf, window, &swapchainTexture, NULL, NULL)) {
+            if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdbuf, window, &swapchainTexture, &width, &height)) {
                 SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create swapchain texture: %s\n", SDL_GetError());
                 return 1;
             }
+            TheFramebuffer->Update(width, height);
         }
 
 
         SDL_GPUColorTargetInfo colorTargetInfo = {};
-        colorTargetInfo.texture = swapchainTexture;
-        colorTargetInfo.resolve_texture = swapchainTexture;
+        colorTargetInfo.texture = TheFramebuffer->colorTexture;
+        colorTargetInfo.resolve_texture = TheFramebuffer->resolveTexture;
         colorTargetInfo.clear_color = (SDL_FColor){0.3f, 0.4f, 0.5f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-        colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
+        colorTargetInfo.store_op = TheFramebuffer->GetStoreOp();
+        colorTargetInfo.cycle = true;
+        SDL_GPUDepthStencilTargetInfo depthTargetInfo = {};
+        depthTargetInfo.texture = TheFramebuffer->depthTexture;
+        depthTargetInfo.clear_depth = 1;
+        depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+        depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
+        depthTargetInfo.cycle = true;
         static AssetSet meshStuff = {ASSETPTR(testMesh), ASSETPTR(testMeshTex)};
         if (meshStuff.PollLoaded()) {
             ZoneScopedN("Build Render Pass")
-            auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
+            auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
             SDL_BindGPUGraphicsPipeline(renderPass, testPipeline);
-            SDL_GPUBufferBinding vertBind = { .buffer = ASSET(testMesh).vertexBuffer, .offset = 0 };
+            SDL_GPUBufferBinding vertBind[] = {
+                { .buffer = ASSET(testMesh).vertexBuffer, .offset = 0 },
+                gemInstances.GetBinding()
+            };
             SDL_GPUBufferBinding indexBind = { .buffer = ASSET(testMesh).indexBuffer, .offset = 0 };
-            SDL_BindGPUVertexBuffers(renderPass, 0, &vertBind, 1);
+            SDL_BindGPUVertexBuffers(renderPass, 0, vertBind, 2);
             SDL_BindGPUIndexBuffer(renderPass, &indexBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
             SDL_GPUTextureSamplerBinding samplerBinding = {ASSET(testMeshTex), sampler};
             SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
@@ -256,8 +346,37 @@ int main(int argc, char *argv[]) {
                 uvOffset
             };
             SDL_PushGPUVertexUniformData(cmdbuf, 0, &uniform, sizeof(uniform));
-            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, 1, 0, 0, 0);
+            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, gemInstances.Size(), 0, 0, 0);
             SDL_EndGPURenderPass(renderPass);
+        }
+
+        {
+            ZoneScopedN("Blit Framebuffer")
+            SDL_GPUBlitInfo blitInfo = {
+                .source = {
+                    .texture = TheFramebuffer->GetBlitSource(),
+                    .mip_level = 0,
+                    .layer_or_depth_plane = 0,
+                    .x = 0,
+                    .y = 0,
+                    .w = TheFramebuffer->width,
+                    .h = TheFramebuffer->height,
+                },
+                .destination = {
+                    .texture = swapchainTexture,
+                    .mip_level = 0,
+                    .layer_or_depth_plane = 0,
+                    .x = 0,
+                    .y = 0,
+                    .w = TheFramebuffer->width,
+                    .h = TheFramebuffer->height,
+                },
+                .load_op = SDL_GPU_LOADOP_DONT_CARE,
+                .flip_mode = SDL_FLIP_NONE,
+                .filter = SDL_GPU_FILTER_NEAREST,
+                .cycle = false
+            };
+            SDL_BlitGPUTexture(cmdbuf, &blitInfo);
         }
 
         {

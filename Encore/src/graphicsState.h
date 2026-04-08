@@ -5,4 +5,7 @@
 // If you have a better idea please let me know
 
 extern SDL_GPUDevice* TheGPU;
+extern bool TheGPUReady;
 extern SDL_Window* TheWindow;
+
+void BlockUntilGPUReady();

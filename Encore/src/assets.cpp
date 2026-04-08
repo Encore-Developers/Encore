@@ -6,6 +6,7 @@
 
 #include "graphicsState.h"
 #include "stb_image.h"
+#include "tiny_obj_loader.h"
 
 #include <filesystem>
 #include "SDL3/SDL_log.h"
@@ -145,21 +146,16 @@ void TextureAsset::Load() {
     data = (Pixel*)stbi_load_from_memory((stbi_uc*) fileBuffer, fileSize, &width, &height, &channelsInFile, 4);
     FreeFileBuffer();
 
-    // Allow textures to be loaded even when the GPU is not initialized yet, while still preferring to copy to the
-    // transfer buffer on the asset thread.
-    if (TheGPU) {
-        CopyToTransferBuffer();
-    }
+    rawDataLoaded = true;
+
+    BlockUntilGPUReady();
+    CopyToTransferBuffer();
 
     AddToFinalizeQueue();
 }
 
 void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
     ZoneScoped
-
-    if (!transferBuffer) {
-        CopyToTransferBuffer();
-    }
 
     SDL_GPUTextureCreateInfo createInfo = {
         SDL_GPU_TEXTURETYPE_2D,
@@ -247,6 +243,7 @@ void ShaderAsset::Load() {
 
     };
     auto resourceInfo = SDL_ShaderCross_ReflectGraphicsSPIRV(spirv, size, 0);
+    BlockUntilGPUReady();
     shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, 0);
     state = LOADED;
     FreeFileBuffer();
@@ -258,76 +255,67 @@ void ShaderAsset::Unload() {
 }
 void MeshAsset::Load() {
     ZoneScopedN("Mesh Load")
-    std::vector<Vector3> positions;
-    std::vector<Vector2> uvs;
-    auto stream = GetStream(std::ios::in);
+    LoadFile();
+    std::string contents(fileBuffer);
+    FreeFileBuffer();
 
+    tinyobj::ObjReader reader;
+    tinyobj::ObjReaderConfig config;
+    config.triangulate = true;
+    reader.ParseFromString(contents, "", config);
 
-    for ( std::string line; std::getline(*stream, line);) {
-        std::istringstream lineStream(line);
-        std::string type;
-        lineStream >> type;
-        //std::cout << "type: " << type << std::endl;
+    auto& attrib = reader.GetAttrib();
+    auto& shapes = reader.GetShapes();
 
-        if (type == "v") {
-            Vector3 pos;
-            lineStream >> pos.x >> pos.y >> pos.z;
-            positions.push_back(pos);
-        }
-        if (type == "vt") {
-            Vector2 uv;
-            lineStream >> uv.x >> uv.y;
-            uv.y = 1 - uv.y;
-            uvs.push_back(uv);
-        }
-        if (type == "f") {
-            std::vector<Vector3> thisPositions;
-            std::vector<int> indices;
-            while (!lineStream.eof()) {
-                std::string indexEntry;
-                lineStream >> indexEntry;
-                std::string positionIndexStr;
-                std::string uvIndexStr;
-                int i;
-                for (i = 0; indexEntry[i] != '/'; i++) {
-                    positionIndexStr += indexEntry[i];
+    for (auto& shape: shapes) {
+        auto& mesh = shape.mesh;
+        auto& points = shape.points;
+
+        int indexOffset = 0;
+
+        for (int i = 0; i < shape.mesh.num_face_vertices.size(); i++) {
+            int faceVerts = shape.mesh.num_face_vertices[i];
+
+            static std::vector<unsigned int> indices;
+            indices.reserve(3);
+            indices.clear();
+
+            for (int j = 0; j < faceVerts; j++) {
+                auto idx = shape.mesh.indices[indexOffset + j];
+
+                auto vx = attrib.vertices[3*idx.vertex_index+0];
+                auto vy = attrib.vertices[3*idx.vertex_index+1];
+                auto vz = attrib.vertices[3*idx.vertex_index+2];
+
+                float tx = 0;
+                float ty = 0;
+
+                if (idx.texcoord_index >= 0) {
+                    tx = attrib.texcoords[2*idx.texcoord_index+0];
+                    ty = attrib.texcoords[2*idx.texcoord_index+1];
                 }
-                i++;
-                for (; i < indexEntry.size() && indexEntry[i] != '/'; i++) {
-                    uvIndexStr += indexEntry[i];
-                }
-                int positionIndex = std::stoi(positionIndexStr)-1;
-                int uvIndex = std::stoi(uvIndexStr)-1;
 
-                // This doesn't reuse vertices when faces share them with equivalent UVs.
-                // TODO: Merge vertices if they share a position and UV
-                // Maybe as a post-processing step?
-                MeshVertex vert;
-                vert.position = positions[positionIndex];
-                vert.uv = uvs[uvIndex];
                 indices.push_back(vertices.size());
+                MeshVertex vert {
+                    {vx, vy, vz},
+                    {tx, 1-ty}
+                };
                 vertices.push_back(vert);
             }
-            for (int i = 1; i < indices.size()-1; i++) {
-                Face face;
-                face.indices[0] = indices[0];
-                face.indices[1] = indices[i];
-                face.indices[2] = indices[i+1];
-                faces.push_back(face);
-            }
+            faces.push_back(Face {indices[0], indices[1], indices[2]});
+            indexOffset += faceVerts;
         }
     }
 
-    if (TheGPU) {
-        CopyToTransferBuffer();
-    }
+    numVertices = vertices.size();
+    numFaces = faces.size();
+
+    BlockUntilGPUReady();
+    CopyToTransferBuffer();
 
     AddToFinalizeQueue();
 }
 void MeshAsset::Finalize(SDL_GPUCopyPass *copyPass) {
-    if (!transferBuffer) {
-        CopyToTransferBuffer();
-    }
 
     SDL_GPUTransferBufferLocation vertLoc = {
         transferBuffer,

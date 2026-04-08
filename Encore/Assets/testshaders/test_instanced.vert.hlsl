@@ -13,6 +13,7 @@ struct Input
 
 struct InstanceInput {
     float2 Position : INPUT2;
+	float2 Scale : INPUT3;
 };
 
 struct Output
