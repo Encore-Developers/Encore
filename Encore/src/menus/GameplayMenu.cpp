@@ -56,22 +56,25 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
             overdriveBinds.second) {
             event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
             }
-        if (player.bindingType != PAD) {
-            if (key == TheGameKeybinds.strumBinds.first) {
-                event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
-            } else if (key == TheGameKeybinds.strumBinds.second) {
-                event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
-            }
-        }
-        int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
-        for (int i = 0; i < DiffMax; i++) {
-            if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
-                i]) {
-                event.channel = Encore::RhythmEngine::IntIC(i);
+        if (!player.Bot) {
+            if (player.bindingType != PAD) {
+                if (key == TheGameKeybinds.strumBinds.first) {
+                    event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+                } else if (key == TheGameKeybinds.strumBinds.second) {
+                    event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
                 }
-        }
-        if (key == KEY_ESCAPE && action == GLFW_PRESS) {
-            event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            }
+            int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
+
+            for (int i = 0; i < DiffMax; i++) {
+                if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
+                    i]) {
+                    event.channel = Encore::RhythmEngine::IntIC(i);
+                    }
+            }
+            if (key == KEY_ESCAPE && action == GLFW_PRESS) {
+                event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            }
         }
         event.timestamp = TheSongTime.GetElapsedTime();
         if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
@@ -88,6 +91,9 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
         if (player.joypadID != -2 && player.joypadID != event.slot) {
             continue;
         }
+        if (player.Bot)
+            continue;
+
         Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
         if (engine->allowTimestampedInputs) {
