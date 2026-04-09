@@ -20,7 +20,7 @@
 #include "overshellRenderer.h"
 #include "uiUnits.h"
 #include "../song/songlist.h"
-
+#include "SDL3/SDL_misc.h"
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH
@@ -247,19 +247,34 @@ void DrawWarning(Vector2 pos, Vector2 size) {
     std::string WindowName = "encore " + version + "-" + branch + ":" + build;
     ImGui::SetNextWindowPos({pos.x, pos.y}, ImGuiCond_Always);
     ImGui::SetNextWindowSize({size.x, size.y});
-    if (ImGui::Begin(WindowName.c_str(), 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+    if (ImGui::Begin(WindowName.c_str(), 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
         ImGui::PushTextWrapPos();
         ImGui::TextColored({1, 0, 0, 1}, "%s", "WARNING!");
         ImGui::Text("This is an in-development build of Encore.");
-        ImGui::Text("How the game is presented to you RIGHT NOW is not representative of the game's final state.");
+        //ImGui::Text("How the game is presented to you RIGHT NOW is not representative of the game's final state.");
+        ImGui::Text("This version is a release of the old codebase to have *something* out there while we work on a rewrite.");
         ImGui::NewLine();
         ImGui::TextColored({1, 1, 0, 1}, "%s", "Press F3 to access the debug menu.");
         ImGui::Text("This unlocks half of the available utilities and toys Encore currently has to offer.");
         ImGui::NewLine();
         ImGui::Text("NOTES:");
-        ImGui::BulletText("A very basic, shitty DualShock mode is available\nin the Profile menus below.");
-        ImGui::BulletText("If using a controller of ANY type (drums, gamepad,\nguitar) PLEASE use Assign Controller in the\nProfile menu.");
-        ImGui::BulletText("If you come across any crashes or bugs, please\nconsult the Encore GitHub linked in the\nbottom right corner of the screen.");
+        static auto bulletText = [](const char* text) {
+            ImGui::Bullet();
+            ImGui::Text(text);
+        };
+        bulletText("A very basic, shitty DualShock mode is available\nin the Overshell below.");
+        bulletText("Some devices (like Santroller instruments) might not be detected as the correct instrument. Use the Instrument Type option in the Overshell to change it.");
+        bulletText("Song paths can be set in Settings > Gameplay. Encore supports CH/PS (.ini) song folders with a notes.mid file.");
+        bulletText(".CHART FILES ARE NOT SUPPORTED!");
+        bulletText("If you come across any crashes or bugs:");
+        ImGui::Indent();
+        if (ImGui::TextLink("Encore Github Repo")) {
+            SDL_OpenURL("https://github.com/Encore-Developers/Encore");
+        }
+        if (ImGui::TextLink("Encore Discord")) {
+            SDL_OpenURL("https://discord.gg/GhkgVUAC9v");
+        }
+        ImGui::Unindent();
         ImGui::NewLine();
         ImGui::Text("Have fun!");
         ImGui::PopTextWrapPos();
@@ -317,7 +332,7 @@ void MainMenu::AttractScreen() {
     );
     DrawOvershell();
 
-    DrawWarning({0, 32}, {500, 500});
+    DrawWarning({0, 32}, {500, 650});
 }
 void MainMenu::GotoSongSelect() {
     TheAudioManager.unloadStreams();
@@ -601,7 +616,7 @@ void MainMenu::MainMenuScreen() {
     GameMenu::DrawBottomOvershell();
     DrawOvershell();
 
-    DrawWarning({GetRenderWidth() - 500.0f, u.hpct(0.2f)}, {500, 500});
+    DrawWarning({GetRenderWidth() - 520.0f, u.hpct(0.2f)}, {500, 650});
 }
 // this is really nasty shit as far as im concerned please dont think about it too much
 void MainMenu::Draw() {
