@@ -72,12 +72,21 @@ bool encOS::DrawOvershellRectangleHeader(
     float height,
     std::string username,
     Color accentColor,
-    Color usernameColor
+    Color usernameColor,
+    bool drawBG
 ) {
     Assets &assets = Assets::getInstance();
-    Units &unit = Units::getInstance();
+    Units &u = Units::getInstance();
     Rectangle RectPos = { x, y, width, height * 2 };
+    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
+    GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0);
     bool toReturn = GuiButton({ x, y, width, height }, "");
+    SETDEFAULTSTYLE();
     // float Inset = unit.winpct(0.001f);
     // float InsetDouble = Inset * 2;
     // DrawRectangleRounded(
@@ -87,6 +96,9 @@ bool encOS::DrawOvershellRectangleHeader(
     BeginScissorMode(x, y, width + 2, height);
     DrawRectangleRounded(RectPos, 0.40f, 8, ColorBrightness(accentColor, -0.5f));
     EndScissorMode();
+    if (drawBG) {
+        DrawRectangleRec({x, y+height, width, GetRenderHeight()-y}, {0x18, 0x18, 0x27, 0xFF});
+    }
 
     float centerPos = x + (width / 2);
     GameMenu::mhDrawText(
@@ -104,6 +116,9 @@ bool encOS::DrawOvershellRectangleHeader(
 bool encOS::OvershellButton(int slot, int x, std::string string) {
     Units &u = Units::getInstance();
     float OvershellLeftLoc = (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
     bool selected = GuiButton(
         { OvershellLeftLoc,
           u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
@@ -140,24 +155,28 @@ void encOS::OvershellText(int slot, int x, std::string string) {
 }
 
 bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialVal) {
-    Units &unit = Units::getInstance();
+    Units &u = Units::getInstance();
     float OvershellLeftLoc =
-        (unit.wpct(0.125) + (unit.winpct(0.25) * slot)) - unit.winpct(0.1);
-    float height = unit.winpct(0.03f);
-    float widthNoHeight = unit.winpct(0.2f);
+        (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
+    float height = u.winpct(0.03f);
+    float widthNoHeight = u.winpct(0.2f);
     Rectangle bounds = { OvershellLeftLoc + height,
-                         unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
-                         unit.winpct(0.2f) - height - height,
+                         u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
+                         u.winpct(0.2f) - height - height,
                          height };
     Rectangle confirmBounds = { OvershellLeftLoc + widthNoHeight - height,
-                                unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+                                u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
                                 height,
                                 height };
     Assets &assets = Assets::getInstance();
 
+    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
+
     if (GuiButton(
             { OvershellLeftLoc,
-              unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+              u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
               widthNoHeight,
               height },
             string.c_str()
@@ -165,8 +184,10 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
         initialVal = !initialVal;
     }
 
+    SETDEFAULTSTYLE();
+
     if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
-        DrawRectangle(OvershellLeftLoc, unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)), unit.winpct(0.2f), unit.winpct(0.03f), {255, 0, 255, 80});
+        DrawRectangle(OvershellLeftLoc, u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)), u.winpct(0.2f), u.winpct(0.03f), {255, 0, 255, 80});
         if (OvershellInputState::currentState->selectPressed) {
             initialVal = !initialVal;
         }
@@ -180,17 +201,20 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
 bool encOS::OvershellSlider(
     int slot, int x, std::string string, float *value, float step, float min, float max
 ) {
-    Units &unit = Units::getInstance();
+    Units &u = Units::getInstance();
+    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
     float OvershellLeftLoc =
-        (unit.wpct(0.125) + (unit.winpct(0.25) * slot)) - unit.winpct(0.1);
-    float height = unit.winpct(0.03f);
-    float widthNoHeight = unit.winpct(0.2f) - height;
+        (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
+    float height = u.winpct(0.03f);
+    float widthNoHeight = u.winpct(0.2f) - height;
     Rectangle bounds = { OvershellLeftLoc + height,
-                         unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
-                         unit.winpct(0.2f) - height - height,
+                         u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
+                         u.winpct(0.2f) - height - height,
                          height };
     Rectangle confirmBounds = { OvershellLeftLoc + widthNoHeight,
-                                unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+                                u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
                                 height,
                                 height };
     Assets &assets = Assets::getInstance();
@@ -198,12 +222,14 @@ bool encOS::OvershellSlider(
     GuiSlider(bounds, "", "", value, min, max);
     GuiButton(
         { OvershellLeftLoc,
-          unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
+          u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
           height,
           height },
         TextFormat("%1.1f", *value)
     );
     *value = (round(*value / step) * step);
+
+    SETDEFAULTSTYLE();
 
     if (OvershellInputState::currentState) {
         OvershellInputState::currentState->blockNav = true;

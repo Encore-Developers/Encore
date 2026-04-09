@@ -214,7 +214,8 @@ void OvershellMenu::DrawOvershell() {
                 unit.winpct(0.05f),
                 "Select a player",
                 Color { 255, 0, 255, 255 },
-                WHITE
+                WHITE,
+                false
             );
             if (OvershellButton(i, 1, "New Profile")) {
                 OvershellState[i] = CREATION;

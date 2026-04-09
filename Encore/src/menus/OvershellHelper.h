@@ -118,7 +118,8 @@ namespace encOS {
         float height,
         std::string username,
         Color accentColor,
-        Color usernameColor
+        Color usernameColor,
+        bool drawBG = true
     );
 
     bool OvershellCheckbox(int slot, int x, std::string string, bool initialVal);
