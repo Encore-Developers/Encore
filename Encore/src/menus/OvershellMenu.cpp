@@ -370,7 +370,9 @@ void OvershellMenu::DrawOvershell() {
                 };
             } else { // no active players
                 // if its the first slot, keyboard can join ALWAYS
-                if (IsGamepadAvailable(i) || i == 0) {
+                int joysticks;
+                SDL_GetJoysticks(&joysticks);
+                    if (i <= joysticks || i == 0) {
                     if (DrawOvershellRectangleHeader(
                             OvershellLeftLoc,
                             OvershellTopLoc + unit.winpct(0.01f),
