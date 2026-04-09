@@ -27,6 +27,7 @@
 #include "tracy/Tracy.hpp"
 
 GameplayMenu::GameplayMenu() {
+    hasOvershell = false;
 }
 
 GameplayMenu::~GameplayMenu() {

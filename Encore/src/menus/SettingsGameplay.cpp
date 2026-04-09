@@ -18,6 +18,7 @@
 #include "gameplay/inputCallbacks.h"
 #include "misc/imgui_stdlib.h"
 #include "util/settings-text.h"
+#include "OvershellHelper.h"
 
 bool ShowGameplaySettings = true;
 

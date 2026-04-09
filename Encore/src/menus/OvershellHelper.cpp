@@ -104,7 +104,7 @@ bool encOS::DrawOvershellRectangleHeader(
 bool encOS::OvershellButton(int slot, int x, std::string string) {
     Units &u = Units::getInstance();
     float OvershellLeftLoc = (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
-    return GuiButton(
+    bool selected = GuiButton(
         { OvershellLeftLoc,
           u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
           u.winpct(0.2f),
@@ -112,11 +112,19 @@ bool encOS::OvershellButton(int slot, int x, std::string string) {
         string.c_str()
     );
     SETDEFAULTSTYLE();
+    if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
+        DrawRectangle(OvershellLeftLoc, u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)), u.winpct(0.2f), u.winpct(0.03f), {255, 0, 255, 80});
+        if (OvershellInputState::currentState->selectPressed) {
+            selected = true;
+        }
+    }
+    return selected;
 }
 
 void encOS::OvershellText(int slot, int x, std::string string) {
     Units &u = Units::getInstance();
     float OvershellLeftLoc = (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
+    SETDEFAULTSTYLE();
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_TOP);
     GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_WORD);
     GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, u.hinpct(0.03f));
@@ -129,7 +137,6 @@ void encOS::OvershellText(int slot, int x, std::string string) {
     );
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_CENTER);
     GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_NONE);
-    SETDEFAULTSTYLE();
 }
 
 bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialVal) {
@@ -142,7 +149,7 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
                          unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
                          unit.winpct(0.2f) - height - height,
                          height };
-    Rectangle confirmBounds = { OvershellLeftLoc + widthNoHeight,
+    Rectangle confirmBounds = { OvershellLeftLoc + widthNoHeight - height,
                                 unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)),
                                 height,
                                 height };
@@ -156,6 +163,13 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
             string.c_str()
         )) {
         initialVal = !initialVal;
+    }
+
+    if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
+        DrawRectangle(OvershellLeftLoc, unit.hpct(1.0f) - (unit.winpct(0.03f) * (x + 1)), unit.winpct(0.2f), unit.winpct(0.03f), {255, 0, 255, 80});
+        if (OvershellInputState::currentState->selectPressed) {
+            initialVal = !initialVal;
+        }
     }
 
     DrawRectanglePro(confirmBounds, { 0 }, 0, initialVal ? GREEN : RED);
@@ -190,6 +204,19 @@ bool encOS::OvershellSlider(
         TextFormat("%1.1f", *value)
     );
     *value = (round(*value / step) * step);
+
+    if (OvershellInputState::currentState) {
+        OvershellInputState::currentState->blockNav = true;
+        if (OvershellInputState::currentState->upPressed) {
+            *value += step;
+        }
+        if (OvershellInputState::currentState->downPressed) {
+            *value -= step;
+        }
+        if (OvershellInputState::currentState->selectPressed || OvershellInputState::currentState->backPressed) {
+            return true;
+        }
+    }
 
     if (GuiButton(confirmBounds, "<")) {
         return true;

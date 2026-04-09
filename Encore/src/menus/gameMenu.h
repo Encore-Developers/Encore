@@ -52,6 +52,7 @@ class MainMenu : public OvershellMenu {
     void ChooseSplashText(std::filesystem::path directory);
     void PickRandomMenuSong();
     void AttractScreen();
+    void GotoSongSelect();
     void MainMenuScreen();
 public:
     // MainMenu() {};

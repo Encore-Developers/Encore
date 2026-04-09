@@ -9,6 +9,7 @@
 #include "raygui.h"
 #include "uiUnits.h"
 #include "util/settings-text.h"
+#include "OvershellHelper.h"
 
 static const std::vector<std::string> presets = {
     "Thumb", "Thumb & Index", "Index & Middle"

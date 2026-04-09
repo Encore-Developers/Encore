@@ -14,6 +14,7 @@
 #include "gameplay/enctime.h"
 #include "OvershellMenu.h"
 #include "util/settings-text.h"
+#include "OvershellHelper.h"
 
 bool ShowAudioVisualSettings = true;
 bool showVolumeSettings = false;

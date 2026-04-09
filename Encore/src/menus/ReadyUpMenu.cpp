@@ -4,6 +4,7 @@
 
 #include "ReadyUpMenu.h"
 
+#include "OvershellHelper.h"
 #include "MenuManager.h"
 #include "gameMenu.h"
 #include "raygui.h"

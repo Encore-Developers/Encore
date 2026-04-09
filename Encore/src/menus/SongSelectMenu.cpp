@@ -11,6 +11,7 @@
 #include "raygui.h"
 #include "settings/settings.h"
 #include "uiUnits.h"
+#include "OvershellHelper.h"
 
 #include "song/audio.h"
 #include "song/songlist.h"

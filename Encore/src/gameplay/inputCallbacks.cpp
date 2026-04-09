@@ -88,8 +88,10 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
     if (player) {
         bindingType = player->bindingType;
     }
+    if (TheMenuManager.currentScreen != GAMEPLAY) {
+        bindingType = GUITAR;
+    }
 
-    // uncomment ( ctrl + / ) and comment the guitar code to have working pad
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
@@ -97,9 +99,11 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
         // Generic inputs
         switch (event->gbutton.button) {
         case(SDL_GAMEPAD_BUTTON_DPAD_UP):
+        case(SDL_GAMEPAD_BUTTON_DPAD_RIGHT):
             outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
             break;
         case(SDL_GAMEPAD_BUTTON_DPAD_DOWN):
+        case(SDL_GAMEPAD_BUTTON_DPAD_LEFT):
             outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
             break;
         case(SDL_GAMEPAD_BUTTON_START):
@@ -200,9 +204,6 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
             outevent.channel = Encore::RhythmEngine::InputChannel::WHAMMY;
             outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
             outevent.slot = event->gdevice.which;
-
-            Encore::EncoreLog(LOG_INFO,
-                              TextFormat("SDL whammy value %01i", outevent.axis));
         }
         if (bindingType == PAD && player->Instrument > PartVocals) {
             if (ControllerTriggerState.find(event->gaxis.which) == ControllerTriggerState.end()) {
@@ -243,7 +244,7 @@ void PollQueuedInputs(ControllerPoller& poller) {
         auto event = poller.getEvent(poller.readIndex);
         if (TheMenuManager.ActiveMenu) {
             if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu)) {
-                if (OvershellControllerInputCallback(menu, event)) {
+                if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
                     poller.readIndex++;
                     continue;
                 }

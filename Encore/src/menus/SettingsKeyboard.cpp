@@ -9,6 +9,7 @@
 #include "util/settings-text.h"
 #include "OvershellMenu.h"
 #include "raygui.h"
+#include "OvershellHelper.h"
 
 void SettingsKeyboard::Draw() {
     Units& u = Units::getInstance();

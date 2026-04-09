@@ -319,6 +319,18 @@ void MainMenu::AttractScreen() {
 
     DrawWarning({0, 32}, {500, 500});
 }
+void MainMenu::GotoSongSelect() {
+    TheAudioManager.unloadStreams();
+    streamsLoaded = false;
+    streamsPaused = false;
+    for (Song &songi : TheSongList.songs) {
+        songi.titleScrollTime = GetTime();
+        songi.titleTextWidth = menuAss.MeasureTextRubik(songi.title.c_str(), 24);
+        songi.artistScrollTime = GetTime();
+        songi.artistTextWidth = menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
+    }
+    TheMenuManager.SwitchScreen(SONG_SELECT);
+}
 void MainMenu::MainMenuScreen() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     float SplashFontSize = u.hinpct(0.03f);
@@ -398,18 +410,7 @@ void MainMenu::MainMenuScreen() {
                     { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
                     "Play"
                 )) {
-                TheAudioManager.unloadStreams();
-                streamsLoaded = false;
-                streamsPaused = false;
-                for (Song &songi : TheSongList.songs) {
-                    songi.titleScrollTime = GetTime();
-                    songi.titleTextWidth =
-                        menuAss.MeasureTextRubik(songi.title.c_str(), 24);
-                    songi.artistScrollTime = GetTime();
-                    songi.artistTextWidth =
-                        menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
-                }
-                TheMenuManager.SwitchScreen(SONG_SELECT);
+                GotoSongSelect();
             }
         } else {
             GuiButton(

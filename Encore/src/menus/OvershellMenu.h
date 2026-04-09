@@ -1,7 +1,6 @@
 #pragma once
 
 #include "menu.h"
-#include "OvershellHelper.h"
 
 enum OSState {
     OS_ATTRACT, // No player/Join
@@ -52,6 +51,7 @@ public:
     bool CancelButtonActivation;
     bool onNewMenu;
     bool BNSetting = false;
+    bool hasOvershell = true;
 };
 
 bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, int action, int mods);

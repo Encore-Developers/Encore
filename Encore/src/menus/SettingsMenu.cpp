@@ -14,6 +14,7 @@
 #include "assets.h"
 #include "OvershellMenu.h"
 #include "util/settings-text.h"
+#include "OvershellHelper.h"
 
 enum OptionsCategories {
     AUDIO_VISUAL,

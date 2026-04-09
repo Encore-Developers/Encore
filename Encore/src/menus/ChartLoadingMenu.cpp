@@ -11,6 +11,7 @@
 #include "gameplay/enctime.h"
 #include "tracy/Tracy.hpp"
 #include "users/playerManager.h"
+#include "OvershellHelper.h"
 
 #include <thread>
 

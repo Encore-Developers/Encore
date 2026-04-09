@@ -33,12 +33,20 @@ void DetectControllerType(Player& player) {
         player.bindingType = PAD;
     }
 }
+
+OvershellInputState encOS::inputStates[] = {0, 1, 2, 3};
+OvershellInputState* OvershellInputState::currentState = nullptr;
+
 bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event) {
     if (event.channel == InputChannel::WHAMMY || event.channel == InputChannel::INVALID) {
         return false;
     }
+    if (event.action == Action::RELEASE) {
+        return false;
+    }
     bool controllerSignedIn = false;
     for (int i = 0; i < 4; i++) {
+        bool thisSlotIsController = false;
         auto playerId = ThePlayerManager.ActivePlayers[i];
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
             auto &player = ThePlayerManager.GetActivePlayer(i);
@@ -51,13 +59,32 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
             auto &player = ThePlayerManager.GetActivePlayer(i);
             if (player.joypadID == event.slot) {
                 controllerSignedIn = true;
+                thisSlotIsController = true;
             }
         }
         if (menu->ControllersToAssign[i] == event.slot) {
             controllerSignedIn = true;
+            thisSlotIsController = true;
         }
+        if (thisSlotIsController) {
+            if (event.channel == InputChannel::PAUSE) {
+                switch (menu->OvershellState[i]) {
+                case OS_ATTRACT:
+                    menu->OvershellState[i] = OS_OPTIONS;
+                    return true;
+                case OS_OPTIONS:
+                    menu->OvershellState[i] = OS_ATTRACT;
+                    return true;
+                }
+            }
+            if (menu->OvershellState[i] != OS_ATTRACT) {
+                inputStates[i].ControllerInput(event);
+                return true;
+            }
+        }
+
     }
-    if (event.channel == InputChannel::PAUSE && !controllerSignedIn) {
+    if ((event.channel == InputChannel::PAUSE || event.channel == InputChannel::LANE_1) && !controllerSignedIn) {
         for (int i = 0; i < 4; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1 && menu->ControllersToAssign[i] == 0) {
                 menu->ControllersToAssign[i] = event.slot;
@@ -84,12 +111,15 @@ void OvershellMenu::DrawOvershell() {
         (float)GetRenderHeight(),
         ColorBrightness(GetColor(0x181827FF), -0.5f)
     );
+    GuiSetFont(ASSET(rubik));
     int ButtonHeight = unit.winpct(0.03f);
     PlayerManager &playerManager = ThePlayerManager;
     float LeftMin = unit.wpct(0.1);
     float LeftMax = unit.wpct(0.9);
     for (int i = 0; i < 4; i++) {
         bool EmptySlot = true;
+        OvershellInputState& input = inputStates[i];
+        input.Begin(this);
 
         float OvershellTopLoc = unit.hpct(1.0f) - unit.winpct(0.05f);
         float OvershellLeftLoc =
@@ -115,15 +145,18 @@ void OvershellMenu::DrawOvershell() {
                                         unit.winpct(0.2f),
                                         unit.winpct(0.03f) };
             GuiTextBox(textBoxPosition, name, 32, true);
+            input.SetLength(2);
             if (OvershellButton(i, 1, "Confirm")) {
                 playerManager.CreatePlayer(name);
                 playerManager.AddActivePlayer(playerManager.PlayerList.size() - 1, i);
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
+                *name = 0;
                 continue;
             }
             if (OvershellButton(i, 0, "Cancel")) {
-                OvershellState[i] = CREATION;
+                OvershellState[i] = OS_ATTRACT;
+                *name = 0;
                 continue;
             }
             break;
@@ -131,22 +164,7 @@ void OvershellMenu::DrawOvershell() {
         case OS_PLAYER_SELECTION: {
             // for selecting players
             float InfoLoc = (playerManager.PlayerList.size() + 2);
-            DrawOvershellRectangleHeader(
-                OvershellLeftLoc,
-                OvershellTopLoc - (ButtonHeight * InfoLoc),
-                unit.winpct(0.2f),
-                unit.winpct(0.05f),
-                "Select a player",
-                Color { 255, 0, 255, 255 },
-                WHITE
-            );
-            if (GuiButton(
-                    { OvershellLeftLoc,
-                      unit.hpct(1.0f) - (unit.winpct(0.03f)),
-                      unit.winpct(0.2f),
-                      unit.winpct(0.03f) },
-                    "Cancel"
-                )) {
+            if (OvershellButton(i, 0, "Cancel")) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
                 ControllersToAssign[i] = 0;
@@ -160,25 +178,45 @@ void OvershellMenu::DrawOvershell() {
                 Color { 255, 0, 0, 128 }
             );
             EndBlendMode();
+            int pos = 0;
             if (!playerManager.PlayerList.empty()) {
                 for (int x = 0; x < playerManager.PlayerList.size(); x++) {
-                    if (playerManager.ActivePlayers[i] == -1) {
-                        if (OvershellButton(
-                                i, x + 1, playerManager.PlayerList[x].Name.c_str()
-                            )) {
-                            playerManager.AddActivePlayer(x, i);
-                            if (ControllersToAssign[i] != 0) {
-                                playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
-                                DetectControllerType(playerManager.GetActivePlayer(i));
-                                ControllersToAssign[i] = 0;
-                            }
-                            CancelButtonActivation = true;
-                            OvershellState[i] = OS_ATTRACT;
+                    bool playerAlreadyLoggedIn = false;
+                    for (int s = 0; s < playerManager.ActivePlayers.size(); s++) {
+                        if (playerManager.ActivePlayers[s] == x) {
+                            playerAlreadyLoggedIn = true;
+                            break;
                         }
                     }
+                    if (playerAlreadyLoggedIn) {
+                        continue;
+                    }
+                    if (OvershellButton(
+                                i, pos + 2, playerManager.PlayerList[x].Name.c_str()
+                            )) {
+                        playerManager.AddActivePlayer(x, i);
+                        if (ControllersToAssign[i] != 0) {
+                            playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
+                            DetectControllerType(playerManager.GetActivePlayer(i));
+                            ControllersToAssign[i] = 0;
+                        }
+                        CancelButtonActivation = true;
+                        OvershellState[i] = OS_ATTRACT;
+                            }
+                    pos++;
                 }
             }
-            if (OvershellButton(i, playerManager.PlayerList.size() + 1, "New Profile")) {
+            input.SetLength(pos + 2);
+            DrawOvershellRectangleHeader(
+                OvershellLeftLoc,
+                OvershellTopLoc - (ButtonHeight * (pos+2)),
+                unit.winpct(0.2f),
+                unit.winpct(0.05f),
+                "Select a player",
+                Color { 255, 0, 255, 255 },
+                WHITE
+            );
+            if (OvershellButton(i, 1, "New Profile")) {
                 OvershellState[i] = CREATION;
             }
             break;
@@ -198,6 +236,7 @@ void OvershellMenu::DrawOvershell() {
                 CancelButtonActivation = true;
                 continue;
             }
+            input.SetLength(8);
             if (!BNSetting) {
                 if (OvershellButton(
                         i,
@@ -208,26 +247,24 @@ void OvershellMenu::DrawOvershell() {
                         )
                     )) {
                     BNSetting = true;
-                    continue;
                 }
-            }
-            if (BNSetting) {
+            } else {
                 if (OvershellSlider(
-                        i,
-                        7,
-                        TextFormat(
-                            "Breakneck Speed - %4.2fx",
-                            playerManager.GetActivePlayer(i).NoteSpeed
-                        ),
-                        &playerManager.GetActivePlayer(i).NoteSpeed,
-                        0.25,
-                        0.25,
-                        3
-                    )) {
+                    i,
+                    7,
+                    TextFormat(
+                        "Breakneck Speed - %4.2fx",
+                        playerManager.GetActivePlayer(i).NoteSpeed
+                    ),
+                    &playerManager.GetActivePlayer(i).NoteSpeed,
+                    0.25,
+                    0.25,
+                    3
+                )) {
                     BNSetting = false;
-                    continue;
                 };
             }
+
             const char* typeString;
             switch (playerManager.GetActivePlayer(i).bindingType) {
             case GUITAR:
@@ -244,7 +281,6 @@ void OvershellMenu::DrawOvershell() {
             }
             if (OvershellButton(i, 6, TextFormat("Instrument Type: %s", typeString))) {
                 OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
-                break;
             }
             auto padId = playerManager.GetActivePlayer(i).joypadID;
             const char* padName = "Unknown";
@@ -278,7 +314,7 @@ void OvershellMenu::DrawOvershell() {
                 CancelButtonActivation = true;
                 continue;
             }
-            if (OvershellButton(i, 0, "Cancel")) {
+            if (OvershellButton(i, 0, "Cancel") || input.backPressed) {
                 playerManager.SaveSpecificPlayer(i, true);
                 OvershellState[i] = OS_ATTRACT;
                 CancelButtonActivation = true;
@@ -303,6 +339,7 @@ void OvershellMenu::DrawOvershell() {
             break;
         }
         case OS_ATTRACT: {
+            input.menuLength = 0;
             if (playerManager.ActivePlayers[i] != -1) {
                 // player active
                 DrawBeacon(
@@ -338,7 +375,7 @@ void OvershellMenu::DrawOvershell() {
                             OvershellTopLoc + unit.winpct(0.01f),
                             unit.winpct(0.2f),
                             unit.winpct(0.04f),
-                            "JOIN",
+                            "PRESS START",
                             LIGHTGRAY,
                             RAYWHITE
                         )) {
@@ -379,6 +416,7 @@ void OvershellMenu::DrawOvershell() {
                 playerManager.GetActivePlayer(i).AccentColor,
                 headerUsernameColor
             );
+            input.SetLength(4);
 
             if (OvershellButton(i, 3, "Guitar")) {
                 playerManager.GetActivePlayer(i).bindingType = GUITAR;
@@ -395,10 +433,10 @@ void OvershellMenu::DrawOvershell() {
 
             if (OvershellButton(i, 0, "Back")) {
                 OvershellState[i] = OS_OPTIONS;
-                continue;
             }
             break;
         }
         }
+        input.Reset();
     }
 }
