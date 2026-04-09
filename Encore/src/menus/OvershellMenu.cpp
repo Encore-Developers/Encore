@@ -20,27 +20,50 @@ bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, 
     }
     return false;
 }
+void DetectControllerType(Player& player) {
+    auto type = SDL_GetJoystickType(SDL_GetJoystickFromID(player.joypadID));
+    switch (type) {
+    case SDL_JOYSTICK_TYPE_GUITAR:
+        player.bindingType = GUITAR;
+        break;
+    case SDL_JOYSTICK_TYPE_DRUM_KIT:
+        player.bindingType = DRUMS;
+        break;
+    default:
+        player.bindingType = PAD;
+    }
+}
 bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event) {
     if (event.channel == InputChannel::WHAMMY || event.channel == InputChannel::INVALID) {
         return false;
     }
+    bool controllerSignedIn = false;
     for (int i = 0; i < 4; i++) {
+        auto playerId = ThePlayerManager.ActivePlayers[i];
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
             auto &player = ThePlayerManager.GetActivePlayer(i);
             player.joypadID = event.slot;
-            auto type = SDL_GetJoystickType(SDL_GetJoystickFromID(event.slot));
-            switch (type) {
-            case SDL_JOYSTICK_TYPE_GUITAR:
-                player.bindingType = GUITAR;
-                break;
-            case SDL_JOYSTICK_TYPE_DRUM_KIT:
-                player.bindingType = DRUMS;
-                break;
-            default:
-                player.bindingType = PAD;
-            }
+            DetectControllerType(player);
             menu->OvershellState[i] = OS_OPTIONS;
             return true;
+        }
+        if (playerId != -1) {
+            auto &player = ThePlayerManager.GetActivePlayer(i);
+            if (player.joypadID == event.slot) {
+                controllerSignedIn = true;
+            }
+        }
+        if (menu->ControllersToAssign[i] == event.slot) {
+            controllerSignedIn = true;
+        }
+    }
+    if (event.channel == InputChannel::PAUSE && !controllerSignedIn) {
+        for (int i = 0; i < 4; i++) {
+            if (ThePlayerManager.ActivePlayers[i] == -1 && menu->ControllersToAssign[i] == 0) {
+                menu->ControllersToAssign[i] = event.slot;
+                menu->OvershellState[i] = OS_PLAYER_SELECTION;
+                return true;
+            }
         }
     }
     return false;
@@ -126,6 +149,7 @@ void OvershellMenu::DrawOvershell() {
                 )) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
+                ControllersToAssign[i] = 0;
             }
             BeginBlendMode(BLEND_MULTIPLIED);
             DrawRectangleRec(
@@ -143,6 +167,11 @@ void OvershellMenu::DrawOvershell() {
                                 i, x + 1, playerManager.PlayerList[x].Name.c_str()
                             )) {
                             playerManager.AddActivePlayer(x, i);
+                            if (ControllersToAssign[i] != 0) {
+                                playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
+                                DetectControllerType(playerManager.GetActivePlayer(i));
+                                ControllersToAssign[i] = 0;
+                            }
                             CancelButtonActivation = true;
                             OvershellState[i] = OS_ATTRACT;
                         }
@@ -217,10 +246,24 @@ void OvershellMenu::DrawOvershell() {
                 OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
                 break;
             }
-            if (OvershellButton(i, 5, "Assign Controller")) {
+            auto padId = playerManager.GetActivePlayer(i).joypadID;
+            const char* padName = "Unknown";
+            if (padId == -2) {
+                padName = "All";
+            }
+            if (padId == -1) {
+                padName = "Keyboard";
+            }
+            if (SDL_GetJoystickFromID(padId)) {
+                padName = SDL_GetJoystickNameForID(padId);
+            }
+            GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.018f));
+            if (OvershellButton(i, 5, TextFormat("Controller: %s", padName))) {
                 OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
                 break;
             }
+            GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.03f));
+
             playerManager.GetActivePlayer(i).BrutalMode =
                 OvershellCheckbox(i, 4, "Brutal Mode", playerManager.GetActivePlayer(i).BrutalMode);
             playerManager.GetActivePlayer(i).Bot =

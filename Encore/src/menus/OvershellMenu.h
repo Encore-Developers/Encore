@@ -41,6 +41,7 @@ public:
     OvershellMenu() {}
     virtual ~OvershellMenu() {}
 
+    SDL_JoystickID ControllersToAssign[4] = {0, 0, 0, 0};
     int OvershellState[4] { OS_ATTRACT, OS_ATTRACT, OS_ATTRACT, OS_ATTRACT };
     int AvailableControllers = 0;
     virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) = 0;
