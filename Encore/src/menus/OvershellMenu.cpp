@@ -26,7 +26,19 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
     }
     for (int i = 0; i < 4; i++) {
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
-            ThePlayerManager.GetActivePlayer(i).joypadID = event.slot;
+            auto &player = ThePlayerManager.GetActivePlayer(i);
+            player.joypadID = event.slot;
+            auto type = SDL_GetJoystickType(SDL_GetJoystickFromID(event.slot));
+            switch (type) {
+            case SDL_JOYSTICK_TYPE_GUITAR:
+                player.bindingType = GUITAR;
+                break;
+            case SDL_JOYSTICK_TYPE_DRUM_KIT:
+                player.bindingType = DRUMS;
+                break;
+            default:
+                player.bindingType = PAD;
+            }
             menu->OvershellState[i] = OS_OPTIONS;
             return true;
         }
