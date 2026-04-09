@@ -41,6 +41,8 @@ void Encore::Track::Draw() {
     if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
         AnimCamera.target.x = Offset * 3;
         AnimCamera.position.x = Offset * 2;
+        AnimCamera.position.y += (1 - Scale) * 4;
+        AnimCamera.target.y -= (1 - Scale) * 4;
     }
     if (ColumnFitting) {
         FitToColumn(ColumnLeft, ColumnRight, AnimCamera);
