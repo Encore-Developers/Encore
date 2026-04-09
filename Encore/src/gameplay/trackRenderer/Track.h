@@ -48,7 +48,7 @@ namespace Encore {
         float GetViewEndTime() const;
         float GetZPerSecond() const;
 
-        void FitToColumn(float left, float right);
+        void FitToColumn(float left, float right, Camera& camera);
 
         unsigned char BeatToCharViaTickThing(
             int tick,

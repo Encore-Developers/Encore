@@ -18,11 +18,19 @@
 #include "menus/gameMenu.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
+#include "users/playerManager.h"
 
 void Encore::Track::Draw() {
     ZoneScopedN("Track Draw")
+    // make a copy of BaseCamera to set AnimCamera to for calculations
+    // please use this
+    // if (ThePlayerManager.PlayersActive > 2) {
+    //    BaseCamera.target.x = Offset * 3;
+    //    BaseCamera.position.x = Offset * 2;
+    // }
+
     if (ColumnFitting) {
-        FitToColumn(ColumnLeft, ColumnRight);
+        FitToColumn(ColumnLeft, ColumnRight, BaseCamera);
     }
 
     NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
@@ -30,12 +38,20 @@ void Encore::Track::Draw() {
     player.engine->UpdateCalibration(player.InputCalibration);
 
     ProcessAnimation();
+    if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
+        AnimCamera.target.x = Offset * 3;
+        AnimCamera.position.x = Offset * 2;
+    }
+    if (ColumnFitting) {
+        FitToColumn(ColumnLeft, ColumnRight, AnimCamera);
+    }
+
     BeginMode3D(AnimCamera);
 
     for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
                          ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
                          ASSETPTR(multiplierFillShader), ASSETPTR(indicatorRingShader),
-                         ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader)}) {
+                         ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader) }) {
         shader->SetUniform("trackLength", Length);
         shader->SetUniform("fadeSize", FadeSize);
         shader->SetUniform("curveFac", CurveFac);
@@ -81,7 +97,6 @@ void Encore::Track::Draw() {
 
     EndMode3D();
 
-
     if (EncoreDebug::showDebug) {
         DrawTrackDebugWindow();
     }
@@ -106,7 +121,6 @@ float easeInOutQuad(float x) {
 }
 
 
-
 void Encore::Track::DrawSurface() {
     ZoneScoped;
     float time = GetNotePos3D(0) / 22.5;
@@ -123,7 +137,9 @@ void Encore::Track::DrawSurface() {
                 { 1, 1, 1 },
                 ColorBrightness(player.AccentColor, -0.25));
 
-    OverdriveTimer = Lerp(OverdriveTimer, (int)player.engine->stats->overdrive.Active, GetFrameTime() * 8);
+    OverdriveTimer = Lerp(OverdriveTimer,
+                          (int)player.engine->stats->overdrive.Active,
+                          GetFrameTime() * 8);
     if (OverdriveTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
         DrawModelEx(ASSET(trackSurface),
@@ -134,15 +150,18 @@ void Encore::Track::DrawSurface() {
                     ColorAlpha(GOLD, easeInOutQuad(OverdriveTimer)));
     }
 
-    SpotlightTimer = Lerp(SpotlightTimer, (int)(player.engine->stats->multNoOD() >= 4) , GetFrameTime() * 3);
-    if (SpotlightTimer > 0.01){
+    SpotlightTimer = Lerp(SpotlightTimer,
+                          (int)(player.engine->stats->multNoOD() >= 4),
+                          GetFrameTime() * 3);
+    if (SpotlightTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(spotlightTex);
         DrawModelEx(ASSET(trackSurface),
                     { 0 },
                     { 0 },
                     0,
                     { 1, 1, 1 },
-                    ColorAlpha(ColorBrightness(player.AccentColor, -0.25), easeInOutQuad(SpotlightTimer)));
+                    ColorAlpha(ColorBrightness(player.AccentColor, -0.25),
+                               easeInOutQuad(SpotlightTimer)));
     }
 
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
@@ -170,9 +189,16 @@ void Encore::Track::DrawOverdriveMeter() {
 
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillColor", OverdriveBarColor);
-    ASSET(overdriveShader).SetUniform("FillPct", 1.0f-player.engine->stats->overdrive.Fill);
-    ASSET(overdriveShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, 0.75));
-    DrawModelEx(ASSET(overdriveMeter), { 0, -0.1, -0.85 }, { 1, 0, 0 }, 60, { 0.95, 0.8, 0.95 }, player.AccentColor);
+    ASSET(overdriveShader).SetUniform("FillPct",
+                                      1.0f - player.engine->stats->overdrive.Fill);
+    ASSET(overdriveShader).SetUniform("BaseColor",
+                                      ColorBrightness(player.AccentColor, 0.75));
+    DrawModelEx(ASSET(overdriveMeter),
+                { 0, -0.1, -0.85 },
+                { 1, 0, 0 },
+                60,
+                { 0.95, 0.8, 0.95 },
+                player.AccentColor);
 
     return;
 
@@ -196,7 +222,7 @@ void Encore::Track::DrawOverdriveMeter() {
 }
 
 Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
-    Vector2 curPos = {0, 0};
+    Vector2 curPos = { 0, 0 };
 
     int mult = combo / 10;
     if (sixmult) {
@@ -217,12 +243,14 @@ Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
 
 void Encore::Track::DrawMultiplier() {
     ZoneScoped;
-    Vector3 position = {0,-0.1, -1.25};
-    Vector3 scale = {1.1, 1.1, 1.1};
-    ASSET(indicatorRingShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.3));
+    Vector3 position = { 0, -0.1, -1.25 };
+    Vector3 scale = { 1.1, 1.1, 1.1 };
+    ASSET(indicatorRingShader).SetUniform("BaseColor",
+                                          ColorBrightness(player.AccentColor, -0.3));
     ASSET(indicatorRingShader).SetUniform("FCColor", GOLD);
     ASSET(indicatorRingShader).SetUniform("time", GetTime());
-    ASSET(multiplierFillShader).SetUniform("BaseColor", ColorBrightness(player.AccentColor, -0.85));
+    ASSET(multiplierFillShader).SetUniform("BaseColor",
+                                           ColorBrightness(player.AccentColor, -0.85));
     int MaxMult = player.engine->stats->SixMultiplier ? 6 : 4;
     Color fillColor;
     if (player.engine->stats->multNoOD() == MaxMult) {
@@ -245,12 +273,19 @@ void Encore::Track::DrawMultiplier() {
     } else {
         ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
     }
-    Vector2 numberUV = MultiplierUVCalculation(player.engine->stats->SixMultiplier, player.engine->stats->Combo, player.engine->stats->overdrive.Active);
+    Vector2 numberUV = MultiplierUVCalculation(player.engine->stats->SixMultiplier,
+                                               player.engine->stats->Combo,
+                                               player.engine->stats->overdrive.Active);
 
     ASSET(multNumShader).SetUniform("uvOffset", numberUV);
     DrawModelEx(ASSET(multiplierFill), position, { 0 }, 0, scale, WHITE);
     DrawModelEx(ASSET(indicatorRing), position, { 0 }, 0, scale, WHITE);
-    DrawModelEx(ASSET(multiplierFrame), position, { 0 }, 0, scale, ColorBrightness(player.AccentColor, -0.5));
+    DrawModelEx(ASSET(multiplierFrame),
+                position,
+                { 0 },
+                0,
+                scale,
+                ColorBrightness(player.AccentColor, -0.5));
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 
@@ -279,7 +314,7 @@ void Encore::Track::DrawPerfect() {
     }
     //
     Vector2 pos = {};
-    Vector3 WorldMultiplierPosition = {0,-0.1, -1.3};
+    Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
     unsigned char alpha = 255;
     float FontSize = u.hinpct(0.025f);
     float TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
@@ -301,13 +336,15 @@ void Encore::Track::DrawPerfect() {
         } else {
             alpha = (unsigned char)(alphaF);
         }
-
     }
 
-    Vector2 ScreenMultiplierPosition = GetWorldToScreen(WorldMultiplierPosition, AnimCamera);
+    Vector2 ScreenMultiplierPosition = GetWorldToScreen(
+        WorldMultiplierPosition,
+        AnimCamera);
     float subtractStuff = (TextWidth * 0.25) * move;
-    float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth * 0.75);
-    pos = {xPos, ScreenMultiplierPosition.y - (TextHeight/2)};
+    float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth *
+        0.75);
+    pos = { xPos, ScreenMultiplierPosition.y - (TextHeight / 2) };
     pos.x += Offset * GetRenderWidth() * 0.5;
 
     GameMenu::mhDrawText(
@@ -315,7 +352,7 @@ void Encore::Track::DrawPerfect() {
         "PERFECT",
         pos,
         FontSize,
-        {GOLD.r, GOLD.g, GOLD.b, alpha},
+        { GOLD.r, GOLD.g, GOLD.b, alpha },
         ASSET(sdfShader),
         LEFT
     );
@@ -421,13 +458,18 @@ void Encore::Track::DrawBeatlines() {
                 break;
             }
             }
-            DrawModelEx(ASSET(beatline), { 0, 0, ScrollPos}, {0}, 0, {1,1,Size}, beatlineColor);
+            DrawModelEx(ASSET(beatline),
+                        { 0, 0, ScrollPos },
+                        { 0 },
+                        0,
+                        { 1, 1, Size },
+                        beatlineColor);
         }
     }
     rlDrawRenderBatchActive();
 };
 
-Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote& note) const {
+Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote &note) const {
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
     auto append_slot = [&](int index) {
@@ -441,7 +483,7 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote& note) 
     for (int i = 0; i < 5; i++) {
         if (lane & RhythmEngine::PlasticFrets[i]) {
             if (player.Instrument == PlasticDrums && note.NoteType == 1) {
-                append_slot(i+3);
+                append_slot(i + 3);
             } else {
                 append_slot(i);
             }
@@ -507,16 +549,18 @@ void Encore::Track::HandleEvent(Event *event) {
                     }
                     break;
                 }
-                slot->AnimateHit(hitEvent->perfect, player.QueryColorProfile(slot->colorSlot));
+                slot->AnimateHit(hitEvent->perfect,
+                                 player.QueryColorProfile(slot->colorSlot));
             } else
                 break;
         }
     }
     if (auto overhitEvent = event->GetTyped<OverhitEvent>()) {
         if (player.engine->UsesNoteMasks()) {
-            for (auto& slot : slots) {
-                if (slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->
-            HeldFrets[slot->index]) {
+            for (auto &slot : slots) {
+                if (slot->index < player.engine->stats->HeldFrets.size() && player.engine
+                    ->stats->
+                    HeldFrets[slot->index]) {
                     slot->AnimateOverhit();
                 }
             }
@@ -558,34 +602,34 @@ void Encore::Track::AddSlot(TrackSlot *slot) {
 void Encore::Track::Configure5Lane() {
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
-    AddSlot(new GemTrackSlot(this, 2*xMult, 1, SLOT_GREEN));
-    AddSlot(new GemTrackSlot(this, 1*xMult, 1, SLOT_RED));
-    AddSlot(new GemTrackSlot(this, 0*xMult, 1, SLOT_YELLOW));
-    AddSlot(new GemTrackSlot(this, -1*xMult, 1, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -2*xMult, 1, SLOT_ORANGE));
-    AddSlot(new OpenTrackSlot(this, 0*xMult, 5, SLOT_OPEN));
+    AddSlot(new GemTrackSlot(this, 2 * xMult, 1, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1 * xMult, 1, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0 * xMult, 1, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1 * xMult, 1, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2 * xMult, 1, SLOT_ORANGE));
+    AddSlot(new OpenTrackSlot(this, 0 * xMult, 5, SLOT_OPEN));
 }
 
 void Encore::Track::Configure5LaneKickOpen() {
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
-    AddSlot(new GemTrackSlot(this, 2*xMult, 1, 0.75, SLOT_GREEN));
-    AddSlot(new GemTrackSlot(this, 1*xMult, 1, 0.75, SLOT_RED));
-    AddSlot(new GemTrackSlot(this, 0*xMult, 1, 0.75, SLOT_YELLOW));
-    AddSlot(new GemTrackSlot(this, -1*xMult, 1, 0.75, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -2*xMult, 1, 0.75, SLOT_ORANGE));
-    AddSlot(new KickTrackSlot(this, 0*xMult, 5, SLOT_OPEN));
+    AddSlot(new GemTrackSlot(this, 2 * xMult, 1, 0.75, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 1 * xMult, 1, 0.75, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 0 * xMult, 1, 0.75, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1 * xMult, 1, 0.75, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2 * xMult, 1, 0.75, SLOT_ORANGE));
+    AddSlot(new KickTrackSlot(this, 0 * xMult, 5, SLOT_OPEN));
 }
 
 void Encore::Track::Configure5LaneGemOpen() {
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
-    AddSlot(new GemTrackSlot(this, 1.25*xMult, 5.0/6.0, SLOT_GREEN));
-    AddSlot(new GemTrackSlot(this, 0.41666*xMult, 5.0/6.0, SLOT_RED));
-    AddSlot(new GemTrackSlot(this, -0.41666*xMult, 5.0/6.0, SLOT_YELLOW));
-    AddSlot(new GemTrackSlot(this, -1.25*xMult, 5.0/6.0, SLOT_BLUE));
-    AddSlot(new GemTrackSlot(this, -2.08333*xMult, 5.0/6.0, SLOT_ORANGE));
-    AddSlot(new GemTrackSlot(this, 2.08333*xMult, 5.0/6.0, SLOT_OPEN));
+    AddSlot(new GemTrackSlot(this, 1.25 * xMult, 5.0 / 6.0, SLOT_GREEN));
+    AddSlot(new GemTrackSlot(this, 0.41666 * xMult, 5.0 / 6.0, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, -0.41666 * xMult, 5.0 / 6.0, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, -1.25 * xMult, 5.0 / 6.0, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -2.08333 * xMult, 5.0 / 6.0, SLOT_ORANGE));
+    AddSlot(new GemTrackSlot(this, 2.08333 * xMult, 5.0 / 6.0, SLOT_OPEN));
 }
 
 void Encore::Track::Configure4Lane() {
@@ -657,9 +701,16 @@ float Encore::Track::GetViewEndTime() const {
 float Encore::Track::GetZPerSecond() const {
     return NoteSpeed * BaseLength;
 }
-void Encore::Track::FitToColumn(float left, float right) {
-    float currentLeft = GetWorldToScreenEx({2.5, 0, 0}, BaseCamera, GetRenderWidth(), GetRenderHeight()).x;
-    float currentRight = GetWorldToScreenEx({-2.5, 0, 0}, BaseCamera, GetRenderWidth(), GetRenderHeight()).x;
+
+void Encore::Track::FitToColumn(float left, float right, Camera &camera) {
+    float currentLeft = GetWorldToScreenEx({ 3, 0, 0 },
+                                           camera,
+                                           GetRenderWidth(),
+                                           GetRenderHeight()).x;
+    float currentRight = GetWorldToScreenEx({ -3, 0, 0 },
+                                            camera,
+                                            GetRenderWidth(),
+                                            GetRenderHeight()).x;
     currentLeft = Remap(currentLeft, 0, GetRenderWidth(), -1.0f, 1.0f);
     currentRight = Remap(currentRight, 0, GetRenderWidth(), -1.0f, 1.0f);
     float currentMidPos = (currentLeft + currentRight) / 2;
@@ -669,6 +720,7 @@ void Encore::Track::FitToColumn(float left, float right) {
     float scale = Clamp(targetWidth / currentWidth, 0.3, 1.0);
     Offset = midPos - (currentMidPos);
     Scale = scale;
+
 }
 
 Encore::Track::~Track() {
