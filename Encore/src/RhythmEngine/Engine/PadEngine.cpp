@@ -116,8 +116,10 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
 }
 
 void Encore::RhythmEngine::PadEngine::HitNote(int lane) {
-    if (chart->CurrentNoteIterators.at(lane)->LengthTicks > 0) {
-        chart->SetCurrentNoteAsHeldNote(lane);
+    if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()) {
+        if (chart->CurrentNoteIterators.at(lane)->LengthTicks > 0) {
+            chart->SetCurrentNoteAsHeldNote(lane);
+        }
     }
     BaseEngine::HitNote(lane);
 }
@@ -130,7 +132,7 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
                 continue;
             EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
             if (CurrentNote->StartSeconds <= CurrentTime) {
-                HitNote(true);
+                HitNote(Lane);
             }
         }
         if (chart->HeldNotePointers.at(Lane) != nullptr
