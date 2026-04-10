@@ -41,8 +41,8 @@ void Encore::Track::Draw() {
     if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
         AnimCamera.target.x = Offset * 3;
         AnimCamera.position.x = Offset * 2;
-        AnimCamera.position.y += (1 - Scale) * 4;
-        AnimCamera.target.y -= (1 - Scale) * 4;
+        AnimCamera.position.y += (1 - Scale) * 6;
+        AnimCamera.target.y -= (1 - Scale) * 6;
     }
     if (ColumnFitting) {
         FitToColumn(ColumnLeft, ColumnRight, AnimCamera);
@@ -73,7 +73,9 @@ void Encore::Track::Draw() {
     rlDisableDepthTest();
 
     DrawSurface();
-
+    BeginBlendMode(BLEND_ADDITIVE);
+    DrawSolo();
+    EndBlendMode();
     DrawBeatlines();
     DrawOverdriveMeter();
     EndShaderMode();
@@ -221,6 +223,23 @@ void Encore::Track::DrawOverdriveMeter() {
                WHITE);
     rlPopMatrix();
     BeginShaderMode(ASSET(trackCurveShader));
+}
+
+void Encore::Track::DrawSolo() {
+    for (auto solo : player.engine->chart->solos) {
+        float midPos = GetNotePos3D((solo.StartSec + (solo.StartSec + solo.EndSec)) / 2);
+        float soloLength = (solo.StartSec + solo.EndSec) - (solo.StartSec);
+        DrawCube({ 2.55, 0, midPos },
+             0.1,
+             0.1,
+             soloLength * GetZPerSecond(),
+             {BLUE.r, BLUE.g, BLUE.b, 128});
+        DrawCube({ -2.55, 0, midPos },
+             0.1,
+             0.1,
+             soloLength * GetZPerSecond(),
+             {BLUE.r, BLUE.g, BLUE.b, 128});
+    }
 }
 
 Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
