@@ -17,6 +17,8 @@ void PipelineManager::ClearPipeline(SDL_GPUGraphicsPipeline **pipelinePtr) {
     pipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo); \
     if (!pipeline) {SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline %s: %s\n", SDL_GetError(), #pipeline); return;}
 
+#define WAITFORSHADERS(shaderOne, shaderTwo) AssetSet{ASSETPTR(shaderOne), ASSETPTR(shaderTwo)}.BlockUntilLoaded()
+
 void PipelineManager::CompileAll() {
     pipelinesLoaded = false;
     BlockUntilGPUReady();
@@ -45,12 +47,12 @@ void PipelineManager::CompileAll() {
     };
     SDL_GPUMultisampleState genericMultisampleState = {
         .sample_count = TheFramebuffer->sampleCount,
-        .enable_alpha_to_coverage = true
+        .enable_alpha_to_coverage = false
     };
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {};
 
-    AssetSet{ASSETPTR(noteVert), ASSETPTR(noteFrag)}.BlockUntilLoaded();
+    WAITFORSHADERS(noteFrag, noteVert);
     pipelineCreateInfo = {
         .vertex_shader = ASSET(noteVert),
         .fragment_shader = ASSET(noteFrag),
@@ -74,7 +76,7 @@ void PipelineManager::CompileThreaded() {
     compileThread.detach();
 }
 void PipelineManager::BlockUntilLoaded() {
-    while (pipelinesLoaded) {
+    while (!pipelinesLoaded) {
         std::this_thread::sleep_for(std::chrono::microseconds(1));
     }
 }

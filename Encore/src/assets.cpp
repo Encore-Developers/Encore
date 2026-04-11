@@ -271,7 +271,7 @@ void ShaderAsset::Load() {
         (const uint8_t *)SDL_ShaderCross_CompileSPIRVFromHLSL(&hlslInfo, &size);
 
     if (spirv == nullptr) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to compile shader: %s", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s: %s", id.c_str(), SDL_GetError());
         return;
     }
 

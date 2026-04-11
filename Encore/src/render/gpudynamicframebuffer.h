@@ -34,6 +34,20 @@ public:
         }
         return resolveTexture;
     }
+
+    SDL_GPUColorTargetInfo GetColorTargetInfo() {
+        SDL_GPUColorTargetInfo colorTargetInfo = {};
+        colorTargetInfo.texture = colorTexture;
+        colorTargetInfo.resolve_texture = resolveTexture;
+        colorTargetInfo.store_op = GetStoreOp();
+        return colorTargetInfo;
+    }
+
+    SDL_GPUDepthStencilTargetInfo GetDepthStencilTargetInfo() {
+        SDL_GPUDepthStencilTargetInfo depthStencilTargetInfo = {};
+        depthStencilTargetInfo.texture = depthTexture;
+        return depthStencilTargetInfo;
+    }
 };
 
 extern GPUDynamicFramebuffer* TheFramebuffer;

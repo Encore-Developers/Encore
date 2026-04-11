@@ -1,4 +1,5 @@
 
+#include "arguments.h"
 #include "imgui.h"
 #include "imgui/backends/imgui_impl_sdlgpu3.h"
 #include "imgui/backends/imgui_impl_sdl3.h"
@@ -20,6 +21,8 @@ bool TheGPUReady = false;
 SDL_Window* TheWindow = nullptr;
 GPUDynamicFramebuffer* TheFramebuffer = nullptr;
 PipelineManager ThePipelineManager;
+
+std::vector<std::string> ArgumentList::arguments = {};
 
 void BlockUntilGPUReady() {
     while (!TheGPUReady) {
@@ -60,10 +63,19 @@ struct GemInstance {
 };
 
 int main(int argc, char *argv[]) {
+    ArgumentList::InitArguments(argc, argv);
+    auto videoDriver = ArgumentList::GetArgValue("video_driver");
+    if (!videoDriver.empty()) {
+        SDL_SetHint(SDL_HINT_VIDEO_DRIVER, videoDriver.c_str());
+    }
+    auto graphicsDriver = ArgumentList::GetArgValue("graphics_driver");
+    if (!graphicsDriver.empty()) {
+        SDL_SetHint(SDL_HINT_GPU_DRIVER, graphicsDriver.c_str());
+    }
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
-    SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "x11");
+    //
 
     for (auto asset : TheAssets.assets) {
         asset->StartLoad();
@@ -145,6 +157,7 @@ int main(int argc, char *argv[]) {
     auto sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
 
     GPUDynamicBuffer<GemInstance> gemInstances(100, SDL_GPU_BUFFERUSAGE_VERTEX, true);
+    PIPELINE(BlockUntilLoaded());
 
     while (!shouldClose) {
         ZoneScopedN("Main Loop")
@@ -236,15 +249,11 @@ int main(int argc, char *argv[]) {
         }
 
 
-        SDL_GPUColorTargetInfo colorTargetInfo = {};
-        colorTargetInfo.texture = TheFramebuffer->colorTexture;
-        colorTargetInfo.resolve_texture = TheFramebuffer->resolveTexture;
+        SDL_GPUColorTargetInfo colorTargetInfo = TheFramebuffer->GetColorTargetInfo();
         colorTargetInfo.clear_color = (SDL_FColor){0.3f, 0.4f, 0.5f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-        colorTargetInfo.store_op = TheFramebuffer->GetStoreOp();
         colorTargetInfo.cycle = true;
-        SDL_GPUDepthStencilTargetInfo depthTargetInfo = {};
-        depthTargetInfo.texture = TheFramebuffer->depthTexture;
+        SDL_GPUDepthStencilTargetInfo depthTargetInfo = TheFramebuffer->GetDepthStencilTargetInfo();
         depthTargetInfo.clear_depth = 1;
         depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
@@ -270,6 +279,28 @@ int main(int argc, char *argv[]) {
             SDL_PushGPUVertexUniformData(cmdbuf, 0, &uniform, sizeof(uniform));
             SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, gemInstances.Size(), 0, 0, 0);
             SDL_EndGPURenderPass(renderPass);
+        }
+
+        {
+            ZoneScopedN("ImGui Render")
+            ImDrawData* drawData = ImGui::GetDrawData();
+
+            ImGui_ImplSDLGPU3_PrepareDrawData(drawData, cmdbuf);
+
+            // Setup and start a render pass
+            SDL_GPUColorTargetInfo target_info = {};
+            target_info.texture = TheFramebuffer->GetBlitSource();
+            target_info.load_op = SDL_GPU_LOADOP_LOAD;
+            target_info.store_op = SDL_GPU_STOREOP_STORE;
+            target_info.mip_level = 0;
+            target_info.layer_or_depth_plane = 0;
+            target_info.cycle = false;
+            SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(cmdbuf, &target_info, 1, nullptr);
+
+            // Render ImGui
+            ImGui_ImplSDLGPU3_RenderDrawData(drawData, cmdbuf, render_pass);
+
+            SDL_EndGPURenderPass(render_pass);
         }
 
         {
@@ -299,28 +330,6 @@ int main(int argc, char *argv[]) {
                 .cycle = false
             };
             SDL_BlitGPUTexture(cmdbuf, &blitInfo);
-        }
-
-        {
-            ZoneScopedN("ImGui Render")
-            ImDrawData* drawData = ImGui::GetDrawData();
-
-            ImGui_ImplSDLGPU3_PrepareDrawData(drawData, cmdbuf);
-
-            // Setup and start a render pass
-            SDL_GPUColorTargetInfo target_info = {};
-            target_info.texture = swapchainTexture;
-            target_info.load_op = SDL_GPU_LOADOP_LOAD;
-            target_info.store_op = SDL_GPU_STOREOP_STORE;
-            target_info.mip_level = 0;
-            target_info.layer_or_depth_plane = 0;
-            target_info.cycle = false;
-            SDL_GPURenderPass* render_pass = SDL_BeginGPURenderPass(cmdbuf, &target_info, 1, nullptr);
-
-            // Render ImGui
-            ImGui_ImplSDLGPU3_RenderDrawData(drawData, cmdbuf, render_pass);
-
-            SDL_EndGPURenderPass(render_pass);
         }
 
         {
