@@ -232,6 +232,7 @@ void ShaderAsset::PreprocessShader(std::string &input, std::unordered_set<std::s
     while (std::regex_search(input, match, includeRegex), match[0].matched) {
         auto file = std::string(match[1]);
         if (includedFiles->contains(file)) {
+            input.replace(match[0].first, match[0].second, "");
             continue;
         }
         includedFiles->insert(file);
