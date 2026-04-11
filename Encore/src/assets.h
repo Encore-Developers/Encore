@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <vector>
 #include <iostream>
+#include <unordered_set>
 
 enum AssetState : uint8_t {
     UNLOADED,
@@ -161,6 +162,8 @@ public:
 class ShaderAsset : public FileAsset {
     virtual void Load();
     void GenerateVertexInputState(SDL_ShaderCross_GraphicsShaderMetadata* metadata);
+
+    static void PreprocessShader(std::string &input, std::unordered_set<std::string>* includedFiles = nullptr);
 
     std::vector<SDL_GPUVertexBufferDescription> bufferDescriptions;
     std::vector<SDL_GPUVertexAttribute> vertexAttributes;

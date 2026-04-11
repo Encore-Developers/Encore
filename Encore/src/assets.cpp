@@ -16,6 +16,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <regex>
+#include <unordered_set>
 
 class Assets;
 class Asset;
@@ -93,10 +95,9 @@ void Asset::StartLoad() {
 }
 
 void Asset::LoadImmediate() {
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading asset %s immediately...", id.c_str());
-    StartLoad();
-    while (state == LOADING) {
-    }
+    //SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Loading asset %s immediately...", id.c_str());
+    Load();
+    assert(state == LOADED);
 }
 
 void FileAsset::LoadFile() {
@@ -218,13 +219,47 @@ void TextureAsset::Unload() {
     texture = nullptr;
     state = UNLOADED;
 }
+void ShaderAsset::PreprocessShader(std::string &input, std::unordered_set<std::string>* includedFiles) {
+    static const std::regex includeRegex("#include <(.+?)>");
+    std::smatch match;
+
+    bool ownsIncludeSet = false;
+    if (!includedFiles) {
+        includedFiles = new std::unordered_set<std::string>();
+        ownsIncludeSet = true;
+    }
+
+    while (std::regex_search(input, match, includeRegex), match[0].matched) {
+        auto file = std::string(match[1]);
+        if (includedFiles->contains(file)) {
+            continue;
+        }
+        includedFiles->insert(file);
+        FileAsset includedFile("shader_includes/" + file);
+        includedFile.addNullTerminator = true;
+        includedFile.LoadImmediate();
+        std::string includeContents = includedFile.fileBuffer;
+        includedFile.Unload();
+        PreprocessShader(includeContents, includedFiles);
+        input.replace(match[0].first, match[0].second, includeContents.c_str());
+    }
+
+    if (ownsIncludeSet) {
+        delete includedFiles;
+    }
+}
 void ShaderAsset::Load() {
     ZoneScopedN("Shader Compile")
     LoadFile();
 
+    std::string shaderContents(fileBuffer);
+    FreeFileBuffer();
+
+    PreprocessShader(shaderContents);
+
     size_t size = 0;
     SDL_ShaderCross_HLSL_Info hlslInfo = {
-        .source = fileBuffer,
+        .source = shaderContents.c_str(),
         .entrypoint = "main",
         .include_dir = nullptr,
         .defines = nullptr,
@@ -254,7 +289,6 @@ void ShaderAsset::Load() {
     BlockUntilGPUReady();
     shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, 0);
     state = LOADED;
-    FreeFileBuffer();
     SDL_free((void*)spirv);
     SDL_free(resourceInfo);
 }
