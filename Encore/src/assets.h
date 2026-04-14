@@ -249,6 +249,9 @@ public:
     NEWSHADERASSET(noteVert, "testshaders/test_instanced.vert.hlsl", VERT);
     NEWSHADERASSET(noteFrag, "testshaders/test.frag.hlsl", FRAG);
 
+    NEWSHADERASSET(boxVert, "ui/box/box.vert.hlsl", VERT);
+    NEWSHADERASSET(boxFrag, "ui/box/box.frag.hlsl", FRAG);
+
     NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");
     NEWTEXASSET(testMeshTex, "gameplay/track/notes/normal/diffuse.png");
 

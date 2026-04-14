@@ -86,8 +86,6 @@ if(WIN32)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
-  target_compile_definitions(${PROJECT_NAME} PRIVATE
-          "-DGLFW_EXPOSE_NATIVE_WIN32")
 endif()
 if(UNIX AND NOT APPLE)
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -100,10 +98,6 @@ if(UNIX AND NOT APPLE)
     file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/linux/lib/libdxcompiler.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
-  target_compile_definitions(${PROJECT_NAME} PRIVATE
-          "-DGLFW_EXPOSE_NATIVE_X11")
-  target_compile_definitions(${PROJECT_NAME} PRIVATE
-          "-DGLFW_EXPOSE_NATIVE_WAYLAND")
 endif()
 if(APPLE)
   find_library(DISCORD_GAME_SDK NAMES discord_game_sdk PATHS "lib/discord-rpc/macos")
@@ -146,6 +140,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")
+
+add_compile_options(-mavx)
 
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 

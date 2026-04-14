@@ -6,6 +6,7 @@ class PipelineManager {
 public:
     bool pipelinesLoaded = false;
     SDL_GPUGraphicsPipeline* notePipeline = nullptr;
+    SDL_GPUGraphicsPipeline* boxPipeline = nullptr;
 
     void CompileAll();
     void CompileThreaded();

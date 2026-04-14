@@ -1,10 +1,10 @@
 
 #include "arguments.h"
+#include "math/glm.h"
 #include "imgui.h"
 #include "imgui/backends/imgui_impl_sdlgpu3.h"
 #include "imgui/backends/imgui_impl_sdl3.h"
 #include "SDL3/SDL.h"
-#include "math/glm.h"
 #include "tracy/Tracy.hpp"
 #include "graphicsState.h"
 #include "assets.h"
@@ -13,6 +13,7 @@
 #include "render/gpudynamicbuffer.h"
 #include "render/gpudynamicframebuffer.h"
 #include "render/pipelines.h"
+#include "ui/box.h"
 
 #include <deque>
 
@@ -52,14 +53,7 @@ struct UBO {
 struct GemInstance {
     Vector2 position;
     Vector2 scale;
-
-    // uint8_t frameR;
-    // uint8_t frameG;
-    // uint8_t frameB;
-    //
-    // uint8_t noteR;
-    // uint8_t noteG;
-    // uint8_t noteB;
+    
 };
 
 int main(int argc, char *argv[]) {
@@ -85,7 +79,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    TheFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_8);
+    TheFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_4);
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
 
@@ -181,6 +175,9 @@ int main(int argc, char *argv[]) {
         static Vector2 uvOffset = {0, 0};
         static bool randomizeInstances = true;
         static int instanceCount = 30;
+        static UI::Box box({Color(0, 0.7, 0, 1), Color(0, 0.6, 0, 1)});
+        static Vector2 boxPos = {20, 20};
+        static Vector2 boxSize = {100, 100};
 
         if (ImGui::Begin("Test")) {
             ImGui::DragFloat3("Camera Position", &cam.position[0], 0.01f);
@@ -191,8 +188,39 @@ int main(int argc, char *argv[]) {
             ImGui::DragInt("Instance Count", &instanceCount);
             static bool antialiasing = true;
             ImGui::Checkbox("Antialiasing", &antialiasing);
-            TheFramebuffer->SetSampleCount(antialiasing ? SDL_GPU_SAMPLECOUNT_8 : SDL_GPU_SAMPLECOUNT_1);
+            TheFramebuffer->SetSampleCount(antialiasing ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1);
         }
+        ImGui::End();
+
+        ImGui::SetNextWindowPos(boxPos, ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(boxSize, ImGuiCond_Appearing);
+        if (ImGui::Begin("Rect", 0, 0)) {
+            ImGui::DragFloat4("Corner Radii", (float*)&box.cornerSizes, 1);
+            ImGui::ColorEdit4("Border Color Top", (float*)&box.color.top, ImGuiColorEditFlags_Float);
+            ImGui::ColorEdit4("Border Color Bottom", (float*)&box.color.bottom, ImGuiColorEditFlags_Float);
+            ImGui::Text("Size: %f, %f", boxSize.x, boxSize.y);
+            static UI::CornerType meshes[] = {UI::SQUIRCLE, UI::CIRCULAR, UI::ANGULAR};
+            static const char* meshNames[] = {"Squircle", "Circular", "No Corners"};
+            static int curMesh = 0;
+            ImGui::Combo("Corner Type", &curMesh, meshNames, 3);
+            if (ImGui::Button("Add Border")) {
+                box.borders.push_back({{5}, 5, Color(1, 1, 1, 1)});
+            }
+            box.cornerType = meshes[curMesh];
+            for (auto& border : box.borders) {
+                ImGui::PushID(&border);
+                ImGui::ColorEdit4("Border Color Top", (float*)&border.color.top, ImGuiColorEditFlags_Float);
+                ImGui::ColorEdit4("Border Color Bottom", (float*)&border.color.bottom, ImGuiColorEditFlags_Float);
+                ImGui::DragFloat4("Size", (float*)&border.sizes, 1);
+                ImGui::DragFloat("Corner Shrink", &border.cornerShrink);
+                ImGui::PopID();
+            }
+        }
+        ImGui::End();
+
+        ImGui::Begin("Rect2", 0, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar);
+        boxPos = ImGui::GetWindowPos();
+        boxSize = ImGui::GetWindowSize();
         ImGui::End();
 
         if (randomizeInstances) {
@@ -234,6 +262,7 @@ int main(int argc, char *argv[]) {
                 asset->Finalize(copyPass);
             }
         }
+        UI::Box::InitializeMeshes(copyPass);
         SDL_EndGPUCopyPass(copyPass);
 
         SDL_GPUTexture* swapchainTexture;
@@ -258,26 +287,17 @@ int main(int argc, char *argv[]) {
         depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
         depthTargetInfo.cycle = true;
-        static AssetSet meshStuff = {ASSETPTR(testMesh), ASSETPTR(testMeshTex)};
-        if (meshStuff.PollLoaded()) {
-            ZoneScopedN("Build Render Pass")
+        if (true) {
+            ZoneScopedN("2D Render Pass")
             auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
-            SDL_BindGPUGraphicsPipeline(renderPass, PIPELINE(notePipeline));
-            SDL_GPUBufferBinding vertBind[] = {
-                { .buffer = ASSET(testMesh).vertexBuffer, .offset = 0 },
-                gemInstances.GetBinding()
-            };
-            SDL_GPUBufferBinding indexBind = { .buffer = ASSET(testMesh).indexBuffer, .offset = 0 };
-            SDL_BindGPUVertexBuffers(renderPass, 0, vertBind, 2);
-            SDL_BindGPUIndexBuffer(renderPass, &indexBind, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-            SDL_GPUTextureSamplerBinding samplerBinding = {ASSET(testMeshTex), sampler};
-            SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
             UBO uniform {
-                cam.getMatrix(),
+                glm::orthoNO(0.0f, (float)TheFramebuffer->width, (float)TheFramebuffer->height, 0.0f, -1.0f, 1.0f),
                 uvOffset
             };
             SDL_PushGPUVertexUniformData(cmdbuf, 0, &uniform, sizeof(uniform));
-            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, gemInstances.Size(), 0, 0, 0);
+
+            box.Draw(renderPass, cmdbuf, boxPos, boxSize);
+
             SDL_EndGPURenderPass(renderPass);
         }
 

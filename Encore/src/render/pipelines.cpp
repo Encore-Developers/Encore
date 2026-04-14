@@ -29,12 +29,21 @@ void PipelineManager::CompileAll() {
         .cull_mode = SDL_GPU_CULLMODE_BACK,
         .front_face = SDL_GPU_FRONTFACE_CLOCKWISE,
     };
+    SDL_GPURasterizerState generic2DRasterizerState = {
+        .fill_mode = SDL_GPU_FILLMODE_FILL,
+        .cull_mode = SDL_GPU_CULLMODE_BACK,
+        .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+    };
     SDL_GPUDepthStencilState genericDepthStencilState = {
         .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
         .compare_mask = 0xff,
         .write_mask = 0xff,
         .enable_depth_test = true,
         .enable_depth_write = true,
+    };
+    SDL_GPUDepthStencilState generic2DDepthStencilState = {
+        .enable_depth_test = false,
+        .enable_depth_write = false,
     };
     SDL_GPUColorTargetDescription colorTargetDescription = {
         .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, TheWindow)
@@ -63,8 +72,20 @@ void PipelineManager::CompileAll() {
         .depth_stencil_state = genericDepthStencilState,
         .target_info = genericTargetInfo,
     };
-
     CREATEPIPELINE(notePipeline)
+
+    WAITFORSHADERS(boxFrag, boxVert);
+    pipelineCreateInfo = {
+        .vertex_shader = ASSET(boxVert),
+        .fragment_shader = ASSET(boxFrag),
+        .vertex_input_state = ASSET(boxVert).vertexInputState,
+        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+        .rasterizer_state = generic2DRasterizerState,
+        .multisample_state = genericMultisampleState,
+        .depth_stencil_state = generic2DDepthStencilState,
+        .target_info = genericTargetInfo
+    };
+    CREATEPIPELINE(boxPipeline);
 
     pipelinesLoaded = true;
 }

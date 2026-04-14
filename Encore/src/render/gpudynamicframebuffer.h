@@ -21,14 +21,14 @@ public:
 
     void SetSampleCount(SDL_GPUSampleCount sampleCount);
 
-    SDL_GPUStoreOp GetStoreOp() {
+    SDL_GPUStoreOp GetStoreOp() const {
         if (sampleCount == SDL_GPU_SAMPLECOUNT_1) {
             return SDL_GPU_STOREOP_STORE;
         }
         return SDL_GPU_STOREOP_RESOLVE;
     }
 
-    SDL_GPUTexture *GetBlitSource() {
+    SDL_GPUTexture *GetBlitSource() const {
         if (sampleCount == SDL_GPU_SAMPLECOUNT_1) {
             return colorTexture;
         }
