@@ -17,7 +17,7 @@
 bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
     double noteStartTime
 ) {
-    if (noteStartTime - goodFrontend > stats->InputTime - stats->InputOffset) {
+    if (noteStartTime - badFrontend > stats->InputTime - stats->InputOffset) {
         return true;
     }
     return false;
@@ -25,8 +25,8 @@ bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
 bool Encore::RhythmEngine::BaseEngine::InHitwindow(
     double noteStartTime
 ) {
-    if ((noteStartTime - goodFrontend < stats->InputTime - stats->InputOffset)
-        && (noteStartTime + goodBackend > stats->InputTime - stats->InputOffset)) {
+    if ((noteStartTime - badFrontend < stats->InputTime - stats->InputOffset)
+        && (noteStartTime + badBackend > stats->InputTime - stats->InputOffset)) {
         return true;
         }
     return false;
@@ -37,6 +37,16 @@ bool Encore::RhythmEngine::BaseEngine::PerfectHit(
 ) {
     if ((noteStartTime - perfectFrontend < stats->InputTime - stats->InputOffset)
         && (noteStartTime + perfectBackend > stats->InputTime - stats->InputOffset)) {
+        return true;
+        }
+    return false;
+}
+
+bool Encore::RhythmEngine::BaseEngine::GoodHit(
+    double noteStartTime
+) {
+    if ((noteStartTime - goodBackend < stats->InputTime - stats->InputOffset)
+        && (noteStartTime + goodFrontend > stats->InputTime - stats->InputOffset)) {
         return true;
         }
     return false;
@@ -115,7 +125,7 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
-    if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
+    if (CurrentNote.StartSeconds + badBackend < SongTime - stats->InputOffset
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
         GhostCount = 0;
         MissNote(Lane);
@@ -138,13 +148,16 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = stats->InputTime;
-        event.perfect = true;
+        event.judgement = 1;
+    }
+    if (!GoodHit(startTime)) {
+        event.judgement = -1;
     }
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
     stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
-    stats->HitNote(chordSize, PerfectHit(startTime));
+    stats->HitNote(chordSize, event.judgement);
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
 }

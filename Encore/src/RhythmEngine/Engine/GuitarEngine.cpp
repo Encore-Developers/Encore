@@ -24,8 +24,8 @@ bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
     // if its a chord just. go wild lmfao
 }
 
-bool HittableAsHopo(int NoteType, int Combo, int GhostCount) {
-    if (Combo > 0 && NoteType == 1 && GhostCount < 4)
+bool HittableAsHopo(int NoteType, bool CanHitHopo, int GhostCount) {
+    if (CanHitHopo > 0 && NoteType == 1 && GhostCount < 4)
         return true;
     return false;
 }
@@ -81,6 +81,7 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
             }
         }
         while (chart->CurrentNoteIterators.at(0)->StartSeconds <= CurrentTime) {
+            stats->InputTime = CurrentTime;
             HitNote(true);
             if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
                 break;
@@ -247,7 +248,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 
     if (MaskMatch(CurrentNote.Lane, pMask)
         && InHitwindow(CurrentNote.StartSeconds)
-        && (HittableAsHopo(CurrentNote.NoteType, stats->Combo, GhostCount)
+        && (HittableAsHopo(CurrentNote.NoteType, stats->CanHitHopo, GhostCount)
             || HittableAsTap(CurrentNote.NoteType) || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);
         return HitState::HitNote;

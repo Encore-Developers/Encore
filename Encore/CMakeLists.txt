@@ -2,7 +2,7 @@
 # project specific logic here.
 #
 
-
+set(CMAKE_OBJECT_PATH_MAX 500)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_OSX_ARCHITECTURES x86_64)
@@ -47,6 +47,9 @@ option(JSON_Diagnostics "" ON)
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
+set(SDL_STATIC ON)
+set(SDL_SHARED OFF)
+set(ENABLE_SPIRV_CODEGEN ON)
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 
 string(TIMESTAMP BUILDDATE UTC)

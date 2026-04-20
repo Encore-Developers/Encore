@@ -130,6 +130,7 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
                 continue;
+            stats->InputTime = CurrentTime;
             EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
             if (CurrentNote->StartSeconds <= CurrentTime) {
                 HitNote(Lane);

@@ -82,7 +82,7 @@ void Encore::Track::Draw() {
     EndMode3D();
 
     // this is really fucking stupid. bad fix.
-    DrawPerfect();
+    DrawJudgement();
 
     BeginMode3D(AnimCamera);
     BeginShaderMode(ASSET(trackCurveShader));
@@ -230,15 +230,15 @@ void Encore::Track::DrawSolo() {
         float midPos = GetNotePos3D((solo.StartSec + (solo.StartSec + solo.EndSec)) / 2);
         float soloLength = (solo.StartSec + solo.EndSec) - (solo.StartSec);
         DrawCube({ 2.55, 0, midPos },
-             0.1,
-             0.1,
-             soloLength * GetZPerSecond(),
-             {BLUE.r, BLUE.g, BLUE.b, 128});
+                 0.1,
+                 0.1,
+                 soloLength * GetZPerSecond(),
+                 { BLUE.r, BLUE.g, BLUE.b, 128 });
         DrawCube({ -2.55, 0, midPos },
-             0.1,
-             0.1,
-             soloLength * GetZPerSecond(),
-             {BLUE.r, BLUE.g, BLUE.b, 128});
+                 0.1,
+                 0.1,
+                 soloLength * GetZPerSecond(),
+                 { BLUE.r, BLUE.g, BLUE.b, 128 });
     }
 }
 
@@ -325,35 +325,71 @@ float easeInQuart(float x) {
     return x * x * x * x;
 }
 
-void Encore::Track::DrawPerfect() {
+void Encore::Track::DrawJudgement() {
     Units &u = Units::getInstance();
 
-    if (PerfectTimer > 0)
-        PerfectTimer -= GetFrameTime() * 5;
+    if (JudgementTimer > 0)
+        JudgementTimer -= GetFrameTime() * 5;
     else {
-        PerfectTimer = 0;
+        JudgementTimer = 0;
     }
     //
+    Color JudgementColor = WHITE;
+    std::string JudgementStr = "GOOD";
+    switch (JudgementType) {
+    case -1: {
+        JudgementColor = RED;
+        JudgementStr = "BAD";
+        break;
+    }
+    case 1: {
+        JudgementColor = GOLD;
+        JudgementStr = "PERFECT";
+        break;
+    }
+    default: {
+        JudgementStr = "GOOD";
+        break;
+    }
+    }
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
     unsigned char alpha = 255;
     float FontSize = u.hinpct(0.025f);
-    float TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
-    float TextHeight = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).y;
+    float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
+        x;
+    float TextHeight = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
+        y;
     float POffset = u.hinpct(0.05f);
     // perfect in
     float move = 0;
-    if (PerfectTimer > 1) {
-        move = 1 - easeInQuart(PerfectTimer - 1);
-        FontSize = (FontSize * 0.75f) + ((FontSize * 0.25) * move);
-        TextWidth = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).x;
-        TextHeight = MeasureTextEx(ASSET(rubikBold), "PERFECT", FontSize, 0).y;
-        alpha = (unsigned char)(255.0 * move);
+    double MaxAlpha = 255;
+    if (JudgementTimer > 1) {
+        if (JudgementType == 1) {
+            move = 1 - easeInQuart(JudgementTimer - 1);
+            FontSize = (FontSize * 0.75f) + ((FontSize * 0.25) * move);
+            TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0)
+                .x;
+            TextHeight = MeasureTextEx(
+                ASSET(rubikBold),
+                JudgementStr.c_str(),
+                FontSize,
+                0).y;
+        } else {
+            move = 1;
+            MaxAlpha = 128.0;
+        }
+        alpha = (unsigned char)(MaxAlpha * (1 - easeInQuart(JudgementTimer - 1)));
     } else {
-        move = easeOutQuart(PerfectTimer);
-        float alphaF = 255.0 * (easeInQuart(PerfectTimer) * 1.5);
-        if (alphaF > 255) {
-            alpha = 255;
+        if (JudgementType == 1) {
+            move = easeOutQuart(JudgementTimer);
+        } else {
+            move = 1;
+            MaxAlpha = 128.0;
+        }
+        float alphaF = MaxAlpha * (easeInQuart(JudgementTimer) * 1.5);
+        if (alphaF > MaxAlpha) {
+            alpha = MaxAlpha;
         } else {
             alpha = (unsigned char)(alphaF);
         }
@@ -370,10 +406,10 @@ void Encore::Track::DrawPerfect() {
 
     GameMenu::mhDrawText(
         ASSET(rubikBold),
-        "PERFECT",
+        JudgementStr,
         pos,
         FontSize,
-        { GOLD.r, GOLD.g, GOLD.b, alpha },
+        { JudgementColor.r, JudgementColor.g, JudgementColor.b, alpha },
         ASSET(sdfShader),
         LEFT
     );
@@ -553,9 +589,8 @@ void Encore::Track::HandleEvent(Event *event) {
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;
         auto slots = GetSlotsForNote(*note);
-        if (hitEvent->perfect == true) {
-            PerfectTimer = 2;
-        }
+        JudgementTimer = 2;
+        JudgementType = hitEvent->judgement;
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
@@ -564,13 +599,13 @@ void Encore::Track::HandleEvent(Event *event) {
                     for (int i = 0; i < 7; i++) {
                         if (allSlots[i]) {
                             auto slot = allSlots[i];
-                            slot->AnimateHit(hitEvent->perfect, PURPLE);
+                            slot->AnimateHit(hitEvent->judgement, PURPLE);
                         } else
                             break;
                     }
                     break;
                 }
-                slot->AnimateHit(hitEvent->perfect,
+                slot->AnimateHit(hitEvent->judgement,
                                  player.QueryColorProfile(slot->colorSlot));
             } else
                 break;
@@ -741,7 +776,6 @@ void Encore::Track::FitToColumn(float left, float right, Camera &camera) {
     float scale = Clamp(targetWidth / currentWidth, 0.3, 1.0);
     Offset = midPos - (currentMidPos);
     Scale = scale;
-
 }
 
 Encore::Track::~Track() {

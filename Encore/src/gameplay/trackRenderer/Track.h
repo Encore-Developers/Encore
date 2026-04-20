@@ -28,7 +28,7 @@ namespace Encore {
         void DrawSolo();
         void DrawMultiplier();
 
-        void DrawPerfect();
+        void DrawJudgement();
         TrackSlot **GetSlotsForNote(RhythmEngine::EncNote& note) const;
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
 
@@ -70,7 +70,8 @@ namespace Encore {
         float KickSpeedMult = 5;
         float SpotlightTimer = 0;
         float OverdriveTimer = 0;
-        float PerfectTimer = 0;
+        float JudgementTimer = 0;
+        int JudgementType = 0;
         // The column of the screen that this track can occupy. Used for multiplayer positioning.
         float ColumnLeft = -1;
         float ColumnRight = 1;

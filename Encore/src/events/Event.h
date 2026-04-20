@@ -22,9 +22,9 @@ namespace Encore {
     class NoteHitEvent : public Event {
     public:
         RhythmEngine::EncNote* note;
-        bool perfect = false;
+        int judgement = 0;
         NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
-        NoteHitEvent(RhythmEngine::EncNote* note, bool _perfect) : note(note), perfect(_perfect) {}
+        NoteHitEvent(RhythmEngine::EncNote* note, bool _judgement) : note(note), judgement(_judgement) {}
     };
 
     class OverhitEvent : public Event {

@@ -8,6 +8,8 @@ constexpr float goodFrontend = 0.075f; /**< Size of the "good" (lower point) ear
 constexpr float goodBackend = 0.075f; /**< Size of the "good" (lower point) late/negative hitwindow */
 constexpr float perfectFrontend = 0.025f; /**< Size of the "perfect" (higher point) early/positive hitwindow */
 constexpr float perfectBackend = 0.025f; /**< Size of the "perfect" (higher point) late/negative hitwindow */
+constexpr float badFrontend = 0.125f; /**< Size of the "bad" (multiplier breaking) early/positive hitwindow */
+constexpr float badBackend = 0.125f; /**< Size of the "bad" (multiplier breaking) late/negative hitwindow */
 
 constexpr float hopoFrontend = 0.025f; /**< Allows the player to hold a fret earlier than expected and still hit a hammer on. Is added on top of the goodFrontend variable */
 constexpr float hopoBackend = 0;

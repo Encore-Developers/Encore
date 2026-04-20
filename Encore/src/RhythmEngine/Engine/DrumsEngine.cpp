@@ -109,6 +109,7 @@ void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
             if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
                 if (CurrentNote->StartSeconds <= CurrentTime) {
+                    stats->InputTime = CurrentTime;
                     HitNote(Lane);
                 }
             }
