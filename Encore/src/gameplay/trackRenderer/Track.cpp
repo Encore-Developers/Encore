@@ -83,6 +83,7 @@ void Encore::Track::Draw() {
 
     // this is really fucking stupid. bad fix.
     DrawJudgement();
+    DrawCombo();
 
     BeginMode3D(AnimCamera);
     BeginShaderMode(ASSET(trackCurveShader));
@@ -262,6 +263,7 @@ Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
     return curPos;
 }
 
+
 void Encore::Track::DrawMultiplier() {
     ZoneScoped;
     Vector3 position = { 0, -0.1, -1.25 };
@@ -323,6 +325,38 @@ float easeOutQuart(float x) {
 
 float easeInQuart(float x) {
     return x * x * x * x;
+}
+
+void Encore::Track::DrawCombo() {
+    if (player.engine->stats->Combo == 0) return;
+    Units &u = Units::getInstance();
+    Vector2 pos = {};
+    Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
+    unsigned char alpha = 255;
+    float FontSize = u.hinpct(0.025f);
+    // float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
+    float TextHeight = MeasureTextEx(ASSET(rubikBold), std::to_string(player.engine->stats->Combo).c_str(), FontSize, 0).
+        y;
+    float POffset = u.hinpct(0.05f);
+    // perfect in
+
+    Vector2 ScreenMultiplierPosition = GetWorldToScreen(
+        WorldMultiplierPosition,
+        AnimCamera);
+    // float subtractStuff = (TextWidth * 0.25);
+    // float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth *
+    pos = { ScreenMultiplierPosition.x + POffset, ScreenMultiplierPosition.y - (TextHeight / 2) };
+    pos.x += Offset * GetRenderWidth() * 0.5;
+
+    GameMenu::mhDrawText(
+        ASSET(rubikBold),
+        std::to_string(player.engine->stats->Combo),
+        pos,
+        FontSize,
+        ColorAlpha(WHITE, 0.75),
+        ASSET(sdfShader),
+        LEFT
+    );
 }
 
 void Encore::Track::DrawJudgement() {

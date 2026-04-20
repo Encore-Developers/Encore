@@ -28,6 +28,7 @@ namespace Encore {
         void DrawSolo();
         void DrawMultiplier();
 
+        void DrawCombo();
         void DrawJudgement();
         TrackSlot **GetSlotsForNote(RhythmEngine::EncNote& note) const;
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
