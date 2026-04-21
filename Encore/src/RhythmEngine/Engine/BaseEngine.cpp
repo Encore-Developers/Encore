@@ -17,7 +17,7 @@
 bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
     double noteStartTime
 ) {
-    if (noteStartTime - badFrontend > stats->InputTime - stats->InputOffset) {
+    if (noteStartTime - goodFrontend > stats->InputTime - stats->InputOffset) {
         return true;
     }
     return false;
@@ -25,7 +25,7 @@ bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
 bool Encore::RhythmEngine::BaseEngine::InHitwindow(
     double noteStartTime
 ) {
-    if ((noteStartTime - badFrontend < stats->InputTime - stats->InputOffset)
+    if ((noteStartTime - goodFrontend < stats->InputTime - stats->InputOffset)
         && (noteStartTime + badBackend > stats->InputTime - stats->InputOffset)) {
         return true;
         }
