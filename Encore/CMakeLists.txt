@@ -29,16 +29,24 @@ option(JSON_Diagnostics "" ON)
 
 set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
+set(SDL_STATIC ON)
+set(SDL_SHARED OFF)
+set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF)
+set(ENABLE_SPIRV_CODEGEN ON)
+set(LLVM_ENABLE_WARNINGS OFF)
+add_definitions(-DENABLE_SPIRV_CODEGEN)
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 set(SDLSHADERCROSS_DXC ON)
 
-if (NOT APPLE)
+
+# Linux is the only platform with pre-compiled dxc binaries with support for SPIR-V.
+# TODO: pre-build our own dxc binaries
+if (UNIX AND NOT APPLE)
   # Use sdl_shadercross' download script
   set(SDLSHADERCROSS_VENDORED OFF)
   include(thirdparty/sdl_shadercross/build-scripts/download-prebuilt-DirectXShaderCompiler.cmake)
 else()
   # Allows DXC to compile correctly
-  # There are no pre-built binaries for macOS, lmao
   include(thirdparty/sdl_shadercross/external/DirectXShaderCompiler/cmake/caches/PredefinedParams.cmake)
   set(SDLSHADERCROSS_VENDORED ON)
 endif()

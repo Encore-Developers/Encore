@@ -326,7 +326,7 @@ public:
 
     void BlockUntilLoaded() {
         while (!PollLoaded()) {
-            usleep(1);
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
     }
 };

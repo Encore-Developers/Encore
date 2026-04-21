@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
 
 
         SDL_GPUColorTargetInfo colorTargetInfo = TheFramebuffer->GetColorTargetInfo();
-        colorTargetInfo.clear_color = (SDL_FColor){0.3f, 0.4f, 0.5f, 1.0f};
+        colorTargetInfo.clear_color = {0.3f, 0.4f, 0.5f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.cycle = true;
         SDL_GPUDepthStencilTargetInfo depthTargetInfo = TheFramebuffer->GetDepthStencilTargetInfo();
