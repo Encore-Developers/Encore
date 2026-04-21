@@ -78,7 +78,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int> >
             }
             float rate = 0;
             BASS_ChannelGetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, &rate);
-            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*songSpeed);
+            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*songSpeed*debugSpeed);
             streams++;
         } else {
             CHECK_BASS_ERROR2();

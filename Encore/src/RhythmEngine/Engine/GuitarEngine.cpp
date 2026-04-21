@@ -222,14 +222,14 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         && ((event.channel == InputChannel::STRUM_UP || event.channel ==
             InputChannel::STRUM_DOWN));
     if (StrumInput) {
+        if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
+            Timers["SAH"].ResetTimer();
+            TraceLog(LOG_DEBUG, "SAH Disabled");
+            return CheckNextInput;
+        }
         // miss should be managed by current frame
         // overhit is managed here
         if (EarlyStrike(CurrentNote.StartSeconds)) {
-            if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
-                Timers["SAH"].ResetTimer();
-                TraceLog(LOG_DEBUG, "SAH Disabled");
-                return CheckNextInput;
-            }
             Overhit();
             return OverhitNote;
         }
@@ -270,8 +270,18 @@ void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
     GhostCount = 0;
     if ((chart->CurrentNoteIterators.at(0)->NoteType == 1 || chart->CurrentNoteIterators.
         at(0)->NoteType == 2) && !strumInput) {
-        Timers["SAH"].ActivateTimer(stats->InputTime);
-        EncoreLog(LOG_DEBUG, "SAH Enabled");
+        if (chart->CurrentNoteIterators.at(0) < chart->Lanes.at(0).end()) {
+            double nextNoteTime = (chart->CurrentNoteIterators.at(0)+1)->StartSeconds;
+            double curNoteTime = chart->CurrentNoteIterators.at(0)->StartSeconds;
+            double midpoint = (nextNoteTime + curNoteTime) / 2;
+            double duration = midpoint - stats->InputTime;
+            if (duration > goodFrontend) {
+                duration = goodFrontend;
+            }
+            Timers["SAH"].Duration = duration;
+            Timers["SAH"].ActivateTimer(stats->InputTime);
+            EncoreLog(LOG_DEBUG, "SAH Enabled");
+        }
     }
     if (Timers["FAS"].CanBeUsedUp(stats->InputTime)) {
         Timers["FAS"].ResetTimer();
@@ -289,10 +299,6 @@ void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
 }
 
 void Encore::RhythmEngine::GuitarEngine::Overhit() {
-    if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
-        Timers["SAH"].ResetTimer();
-        TraceLog(LOG_DEBUG, "SAH Disabled");
-    }
     chart->DropSustain(0);
     BaseEngine::Overhit(0);
 }

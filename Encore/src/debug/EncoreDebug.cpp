@@ -164,6 +164,7 @@ void EncoreDebug::DrawQuickSettings() {
     ZoneScoped;
     if (Begin("Quick Settings")) {
         SliderFloat("Song Speed", &TheAudioManager.songSpeed, 0, 3);
+        SliderFloat("Debug Song Speed", &TheAudioManager.debugSpeed, 0, 3);
         Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
         Checkbox("VSync", &TheGameSettings.VerticalSync);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
