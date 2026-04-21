@@ -633,14 +633,22 @@ void Encore::Track::HandleEvent(Event *event) {
                     for (int i = 0; i < 7; i++) {
                         if (allSlots[i]) {
                             auto slot = allSlots[i];
-                            slot->AnimateHit(hitEvent->judgement, PURPLE);
+                            if (hitEvent->judgement == -1) {
+                                slot->AnimateOverhit();
+                            } else {
+                                slot->AnimateHit(hitEvent->judgement, PURPLE);
+                            }
                         } else
                             break;
                     }
                     break;
                 }
-                slot->AnimateHit(hitEvent->judgement,
+                if (hitEvent->judgement == -1) {
+                    slot->AnimateOverhit();
+                } else {
+                    slot->AnimateHit(hitEvent->judgement,
                                  player.QueryColorProfile(slot->colorSlot));
+                }
             } else
                 break;
         }
