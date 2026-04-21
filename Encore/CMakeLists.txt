@@ -39,8 +39,17 @@ add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 set(SDLSHADERCROSS_DXC ON)
 
 
-include(thirdparty/sdl_shadercross/external/DirectXShaderCompiler/cmake/caches/PredefinedParams.cmake)
-set(SDLSHADERCROSS_VENDORED ON)
+# Linux is the only platform with pre-compiled dxc binaries with support for SPIR-V.
+# TODO: pre-build our own dxc binaries
+if (UNIX AND NOT APPLE)
+  # Use sdl_shadercross' download script
+  set(SDLSHADERCROSS_VENDORED OFF)
+  include(thirdparty/sdl_shadercross/build-scripts/download-prebuilt-DirectXShaderCompiler.cmake)
+else()
+  # Allows DXC to compile correctly
+  include(thirdparty/sdl_shadercross/external/DirectXShaderCompiler/cmake/caches/PredefinedParams.cmake)
+  set(SDLSHADERCROSS_VENDORED ON)
+endif()
 #add_subdirectory(thirdparty/spirv-cross)
 set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF)
 add_subdirectory(thirdparty/sdl_shadercross EXCLUDE_FROM_ALL)
