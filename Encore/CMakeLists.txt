@@ -94,6 +94,12 @@ if(WIN32)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
+  # TODO: Change this when we eventually get pre-compiled binaries for this
+  add_custom_command(
+          TARGET Encore POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/sdl_shadercross/external/DirectXShaderCompiler/bin/dxcompiler.dll
+          ${CMAKE_CURRENT_BINARY_DIR}
+  )
 endif()
 if(UNIX AND NOT APPLE)
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
