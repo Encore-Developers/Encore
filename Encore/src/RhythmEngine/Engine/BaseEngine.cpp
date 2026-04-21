@@ -153,6 +153,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     if (!GoodHit(startTime)) {
         event.judgement = -1;
     }
+    event.offset = (stats->InputTime - stats->InputOffset) - startTime;
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;

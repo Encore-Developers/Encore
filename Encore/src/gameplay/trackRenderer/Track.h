@@ -73,6 +73,7 @@ namespace Encore {
         float OverdriveTimer = 0;
         float JudgementTimer = 0;
         int JudgementType = 0;
+        float LastHitOffset = 0;
         // The column of the screen that this track can occupy. Used for multiplayer positioning.
         float ColumnLeft = -1;
         float ColumnRight = 1;

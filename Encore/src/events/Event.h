@@ -23,8 +23,9 @@ namespace Encore {
     public:
         RhythmEngine::EncNote* note;
         int judgement = 0;
+        float offset = 0;
         NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
-        NoteHitEvent(RhythmEngine::EncNote* note, bool _judgement) : note(note), judgement(_judgement) {}
+        NoteHitEvent(RhythmEngine::EncNote* note, bool _judgement, float offset) : note(note), judgement(_judgement), offset(offset) {}
     };
 
     class OverhitEvent : public Event {

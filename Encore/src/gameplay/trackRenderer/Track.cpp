@@ -386,6 +386,13 @@ void Encore::Track::DrawJudgement() {
         break;
     }
     }
+    // Not an if-else because *technically* 0 is possible
+    if (LastHitOffset > 0) {
+        JudgementStr = "+" + JudgementStr;
+    }
+    if (LastHitOffset < 0) {
+        JudgementStr = "-" + JudgementStr;
+    }
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
     unsigned char alpha = 255;
@@ -625,6 +632,7 @@ void Encore::Track::HandleEvent(Event *event) {
         auto slots = GetSlotsForNote(*note);
         JudgementTimer = 2;
         JudgementType = hitEvent->judgement;
+        LastHitOffset = hitEvent->offset;
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
