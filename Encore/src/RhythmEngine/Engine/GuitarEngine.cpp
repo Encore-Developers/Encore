@@ -181,12 +181,12 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     // GetCurrentNote(0);
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
         return CheckNextInput;
-    EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
+    EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(0);
 
     bool extSus = false;
     if (chart->IsHeldNotePresent(0)) {
         if (chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.
-            at(0)->LengthSeconds > CurrentNote.StartSeconds) {
+            at(0)->LengthSeconds > CurrentNote->StartSeconds) {
                 extSus = true;
             };
 
@@ -201,7 +201,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             // is not an extended sustain
             !(chart->HeldNotePointers.at(0)->StartSeconds + chart->HeldNotePointers.at(0)
                 ->
-                LengthSeconds > CurrentNote.StartSeconds
+                LengthSeconds > CurrentNote->StartSeconds
             ) &&
 
             // is before the end of the sustain
@@ -241,20 +241,20 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
                 } else {
                     MissCheckNote -= 1;
                     chart->CurrentNoteIterators.at(0) = MissCheckNote;
-                    CurrentNote = *MissCheckNote;
+                    CurrentNote = &*MissCheckNote;
                     break;
                 }
             }
         }
         // miss should be managed by current frame
         // overhit is managed here
-        if (EarlyStrike(CurrentNote.StartSeconds)) {
+        if (EarlyStrike(CurrentNote->StartSeconds)) {
             Overhit();
             return OverhitNote;
         }
         // if frets match, continue and try to hit
-        if (InHitwindow(CurrentNote.StartSeconds)) {
-            if (!MaskMatch(CurrentNote.Lane, pMask)) {
+        if (InHitwindow(CurrentNote->StartSeconds)) {
+            if (!MaskMatch(CurrentNote->Lane, pMask)) {
                 Timers["FAS"].ActivateTimer(stats->InputTime);
                 EncoreLog(LOG_DEBUG, "FAS Enabled");
                 return CheckNextInput;
@@ -265,10 +265,10 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     // really couldve just put it up there LMFAO
     bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
 
-    if (MaskMatch(CurrentNote.Lane, pMask)
-        && InHitwindow(CurrentNote.StartSeconds)
-        && (HittableAsHopo(CurrentNote.NoteType, stats->CanHitHopo, GhostCount)
-            || HittableAsTap(CurrentNote.NoteType) || strum || player->bindingType == PAD)) {
+    if (MaskMatch(CurrentNote->Lane, pMask)
+        && InHitwindow(CurrentNote->StartSeconds)
+        && (HittableAsHopo(CurrentNote->NoteType, stats->CanHitHopo, GhostCount)
+            || HittableAsTap(CurrentNote->NoteType) || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);
         return HitState::HitNote;
     }
@@ -277,7 +277,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     if (event.action == Action::PRESS && event.channel <= InputChannel::LANE_5 && event.
         channel !=
         InputChannel::INVALID) {
-        if (stats->HeldFretsArrayToMask() > CurrentNote.Lane) {
+        if (stats->HeldFretsArrayToMask() > CurrentNote->Lane) {
             GhostCount++;
         }
     }
