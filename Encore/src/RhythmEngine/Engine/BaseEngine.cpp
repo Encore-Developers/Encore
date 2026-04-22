@@ -157,6 +157,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
+    chart->MissedNotePointers.push_back(&*chart->CurrentNoteIterators.at(lane));
     chart->UpdateCurrentNote(lane);
 }
 

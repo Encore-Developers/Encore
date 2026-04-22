@@ -24,7 +24,7 @@ float easeOutBounceKick(float x) {
 }
 
 
-void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
+void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
     Vector3 position = { xPos, 0.0, pos };
 

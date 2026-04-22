@@ -498,10 +498,24 @@ void Encore::Track::DrawNotes() {
             for (int i = 0; i < 7; i++) {
                 if (slots[i]) {
                     auto slot = slots[i];
-                    slot->DrawNote(note);
+                    slot->DrawNote(note, false);
                 } else
                     break;
             }
+        }
+    }
+
+    for (auto note : player.engine->chart->MissedNotePointers) {
+        if (note->StartSeconds < TheSongTime.GetElapsedTime()-5) {
+            continue;
+        }
+        auto slots = GetSlotsForNote(*note);
+        for (int i = 0; i < 7; i++) {
+            if (slots[i]) {
+                auto slot = slots[i];
+                slot->DrawNote(note, true);
+            } else
+                break;
         }
     }
 }

@@ -23,7 +23,7 @@ float easeOutBounce(float x) {
     }
 }
 
-void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
+void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
     float finalWidth = 1;
     Vector3 position = { xPos, 0.0, pos };
@@ -41,6 +41,10 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
             ASSET(noteShader).SetUniform("frameColor", WHITE);
         }
         ASSET(noteShader).SetUniform("noteColor", color);
+    }
+    if (missed) {
+        ASSET(noteShader).SetUniform("frameColor", Color{120, 120, 120, 255});
+        ASSET(noteShader).SetUniform("noteColor", Color{ 255, 50, 50, 255 });
     }
 
     if (note->LengthSeconds > 0) {

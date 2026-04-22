@@ -227,7 +227,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             TraceLog(LOG_DEBUG, "SAH Disabled");
             return CheckNextInput;
         }
-        if (stats->Combo == 0) {
+        if (stats->Combo == 0 && chart->CurrentNoteIterators.at(0) != chart->Lanes.at(0).begin()) {
             auto MissCheckNote = chart->CurrentNoteIterators.at(0);
             float offset = goodBackend;
             while (true) {
@@ -240,7 +240,9 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
                     offset = nextOffset;
                 } else {
                     MissCheckNote -= 1;
-                    chart->CurrentNoteIterators.at(0) = MissCheckNote;
+                    while (chart->CurrentNoteIterators.at(0) != MissCheckNote) {
+                        MissNote(0);
+                    }
                     CurrentNote = &*MissCheckNote;
                     break;
                 }

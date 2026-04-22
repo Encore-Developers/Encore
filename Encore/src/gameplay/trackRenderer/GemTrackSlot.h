@@ -15,7 +15,7 @@ namespace Encore {
         unsigned int hitFlareId;
         unsigned int shockwaveId;
 
-        virtual void DrawNote(RhythmEngine::EncNote *note);
+        virtual void DrawNote(RhythmEngine::EncNote *note, bool missed);
         virtual void DrawSustainTail(double startTime, double endTime);
         virtual void DrawSmasher(bool held);
         virtual void AnimateHit(bool perfect, Color color);

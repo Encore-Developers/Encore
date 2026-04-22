@@ -199,6 +199,7 @@ void DebugSeek(float time, float audioTime) {
         }
         auto player = ThePlayerManager.PlayerList[index];
         auto engine = player.engine.get();
+        engine->chart->MissedNotePointers.clear();
         for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
             if (i >= engine->chart->Lanes.size()) {
                 break;
