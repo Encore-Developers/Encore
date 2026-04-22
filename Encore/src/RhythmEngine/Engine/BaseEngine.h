@@ -39,7 +39,6 @@ namespace Encore::RhythmEngine {
         bool EarlyStrike(double noteStartTime);
         bool InHitwindow(double noteStartTime);
         bool PerfectHit(double noteStartTime);
-        bool GoodHit(double noteStartTime);
         void ProcessInput(ControllerEvent &event);
         /*
          * Before hitting the note,

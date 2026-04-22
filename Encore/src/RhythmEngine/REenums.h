@@ -52,6 +52,11 @@ namespace Encore::RhythmEngine {
                                         0b000000
     };
 
+    enum Judgement : int {
+        GOOD = 0,
+        PERFECT = 1
+    };
+
     enum class InputChannel : int8_t {
         LANE_1 = 0,
         LANE_2 = 1,

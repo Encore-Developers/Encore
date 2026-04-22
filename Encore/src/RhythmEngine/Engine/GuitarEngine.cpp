@@ -227,6 +227,25 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             TraceLog(LOG_DEBUG, "SAH Disabled");
             return CheckNextInput;
         }
+        if (stats->Combo == 0) {
+            auto MissCheckNote = chart->CurrentNoteIterators.at(0);
+            float offset = goodBackend;
+            while (true) {
+                if (MissCheckNote == chart->Lanes.at(0).end()) {
+                    break;
+                }
+                MissCheckNote += 1;
+                float nextOffset = (stats->InputTime - stats->InputOffset) - MissCheckNote->StartSeconds;
+                if (std::abs(nextOffset) < std::abs(offset)) {
+                    offset = nextOffset;
+                } else {
+                    MissCheckNote -= 1;
+                    chart->CurrentNoteIterators.at(0) = MissCheckNote;
+                    CurrentNote = *MissCheckNote;
+                    break;
+                }
+            }
+        }
         // miss should be managed by current frame
         // overhit is managed here
         if (EarlyStrike(CurrentNote.StartSeconds)) {

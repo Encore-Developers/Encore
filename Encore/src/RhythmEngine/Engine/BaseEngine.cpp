@@ -26,7 +26,7 @@ bool Encore::RhythmEngine::BaseEngine::InHitwindow(
     double noteStartTime
 ) {
     if ((noteStartTime - goodFrontend < stats->InputTime - stats->InputOffset)
-        && (noteStartTime + badBackend > stats->InputTime - stats->InputOffset)) {
+        && (noteStartTime + goodBackend > stats->InputTime - stats->InputOffset)) {
         return true;
         }
     return false;
@@ -42,15 +42,6 @@ bool Encore::RhythmEngine::BaseEngine::PerfectHit(
     return false;
 }
 
-bool Encore::RhythmEngine::BaseEngine::GoodHit(
-    double noteStartTime
-) {
-    if ((noteStartTime - goodBackend < stats->InputTime - stats->InputOffset)
-        && (noteStartTime + goodFrontend > stats->InputTime - stats->InputOffset)) {
-        return true;
-        }
-    return false;
-}
 void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     if (event.channel == InputChannel::INVALID)
         return;
@@ -125,7 +116,7 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
-    if (CurrentNote.StartSeconds + badBackend < SongTime - stats->InputOffset
+    if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
         GhostCount = 0;
         MissNote(Lane);
@@ -148,10 +139,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = stats->InputTime;
-        event.judgement = 1;
-    }
-    if (!GoodHit(startTime)) {
-        event.judgement = -1;
+        event.judgement = PERFECT;
     }
     event.offset = (stats->InputTime - stats->InputOffset) - startTime;
     FireEvent(&event);
