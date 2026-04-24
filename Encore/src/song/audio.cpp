@@ -234,7 +234,7 @@ void Encore::AudioManager::SetAudioStreamPosition(unsigned int handle, double ti
 }
 
 void Encore::AudioManager::loadSample(const std::string &path, const std::string &name) {
-    HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 8, 0);
+    HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, MAX_SAMPLE_CHANNELS, 0);
     CHECK_BASS_ERROR2();
     if (sample) {
         samples[name] = sample;

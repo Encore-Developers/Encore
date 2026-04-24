@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <string>
 
+// change this to allow a sound effect to repeat more
+#define MAX_SAMPLE_CHANNELS 8
+
 namespace Encore {
     class AudioManager {
     public:
