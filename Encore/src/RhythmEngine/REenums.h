@@ -68,6 +68,8 @@ namespace Encore::RhythmEngine {
         PAUSE = 9,
         OVERDRIVE = 10,
         WHAMMY = 11,
+        INPUT_LEFT = 12,
+        INPUT_RIGHT = 13,
         INVALID = -1
     };
     inline InputChannel IntIC(int lane) {
