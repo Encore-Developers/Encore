@@ -99,7 +99,10 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
         chart->DropSustain(0);
     }
     this->CheckMissedNotes(CurrentTime);
-    stats->overdrive.Add(CurrentTime, chart);
+    if (stats->overdrive.Add(CurrentTime, chart) && stats->overdrive.Fill >= 0.5 && !stats->overdrive.Active) {
+        TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
+        FireEvent(&odReady);
+    }
     bool odWasActive = stats->overdrive.Active;
     stats->overdrive.Update(CurrentTime);
     if (odWasActive == true && odWasActive != stats->overdrive.Active) {

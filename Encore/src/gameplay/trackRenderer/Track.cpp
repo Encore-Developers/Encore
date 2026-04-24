@@ -84,6 +84,7 @@ void Encore::Track::Draw() {
     // this is really fucking stupid. bad fix.
     DrawJudgement();
     DrawCombo();
+    DrawTrackNotifications();
 
     BeginMode3D(AnimCamera);
     BeginShaderMode(ASSET(trackCurveShader));
@@ -327,6 +328,44 @@ float easeInQuart(float x) {
     return x * x * x * x;
 }
 
+void Encore::Track::DrawTrackNotifications() {
+    if (Notifications.empty()) return;
+    if (Notifications.front().time + 5.0 < TheSongTime.GetElapsedTime()) {
+        Notifications.pop_front();
+    }
+    if (Notifications.empty()) return;
+    Units &u = Units::getInstance();
+    Vector3 NotificationPoint = { 0, 1, BaseLength + 5 };
+    Vector2 ScreenNotifPosition = GetWorldToScreen(
+        NotificationPoint,
+        AnimCamera);
+    float FontSize = u.hinpct(0.03f);
+    for (int i = 0; i < Notifications.size(); i++) {
+        if (!Notifications[i].isEvent) {
+            continue;
+        }
+        TrackNotificationEvent* notif = &Notifications[i];
+        std::string Text = "";
+
+        switch (notif->type) {
+            case TrackNotificationEvent::OVERDRIVE_READY: Text = "Overdrive ready!"; break;
+            case TrackNotificationEvent::COMBO: Text = " Note Combo"; break;
+            default: Text = "buttsex"; break;
+        }
+        float TextWidth = MeasureTextEx(ASSET(rubikBold), Text.c_str(), FontSize, 0).x;
+        Vector2 pos = { ScreenNotifPosition.x - (TextWidth/2), ScreenNotifPosition.y + (FontSize * i)};
+        pos.x += Offset * GetRenderWidth() * 0.5;
+        GameMenu::mhDrawText(
+            ASSET(rubikBold),
+            Text,
+            pos,
+            FontSize,
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
+        );
+    }
+}
 void Encore::Track::DrawCombo() {
     if (player.engine->stats->Combo == 0) return;
     Units &u = Units::getInstance();
@@ -640,6 +679,9 @@ void Encore::Track::HandleEvent(Event *event) {
     if (auto bounceEvent = event->GetTyped<HighwayBounceEvent>()) {
         KickTimer = bounceEvent->timer;
         KickSpeedMult = bounceEvent->mult;
+    }
+    if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
+        Notifications.push_back(*notifEvent);
     }
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;

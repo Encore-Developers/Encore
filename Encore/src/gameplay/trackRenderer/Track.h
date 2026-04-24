@@ -28,6 +28,7 @@ namespace Encore {
         void DrawSolo();
         void DrawMultiplier();
 
+        void DrawTrackNotifications();
         void DrawCombo();
         void DrawJudgement();
         TrackSlot **GetSlotsForNote(RhythmEngine::EncNote& note) const;
@@ -78,7 +79,7 @@ namespace Encore {
         float ColumnLeft = -1;
         float ColumnRight = 1;
         bool ColumnFitting = true;
-
+        std::deque<TrackNotificationEvent> Notifications;
         Camera3D AnimCamera;
         Camera3D BaseCamera;
 

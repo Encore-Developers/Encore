@@ -35,6 +35,20 @@ namespace Encore {
         OverhitEvent(int lane) : lane(lane) {}
     };
 
+    class TrackNotificationEvent : public Event {
+    public:
+        enum TrackNotificationType {
+            OVERDRIVE_READY,
+            COMBO,
+            YOU_ROCK
+        };
+        double time;
+        TrackNotificationType type;
+        int combo;
+        TrackNotificationEvent(double _time, TrackNotificationType _type) : time(_time), type(_type) {}
+        TrackNotificationEvent(double _time, TrackNotificationType _type, int _combo) : time(_time), type(_type), combo(_combo) {}
+    };
+
     class HighwayBounceEvent : public Event {
     public:
         float timer = 1.0f;
