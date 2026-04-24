@@ -249,7 +249,6 @@ int main(int argc, char *argv[]) {
     Encore::EncoreLog(LOG_INFO, "Audio successfully initialized");
 
     SetExitKey(0);
-    TheAudioManager.loadSample("Assets/combobreak.mp3", "miss");
     TheFrameManager.InitFrameManager();
     ChangeDirectory(GetApplicationDirectory());
 

@@ -31,6 +31,10 @@ GameplayMenu::GameplayMenu() {
 }
 
 GameplayMenu::~GameplayMenu() {
+
+    TheAudioManager.unloadSample("miss");
+
+    TheAudioManager.unloadSample("od_activate");
 }
 
 void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
@@ -643,6 +647,10 @@ void GameplayMenu::Load() {
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
 
+
+    TheAudioManager.loadSample("Assets/gameplay/sfx/combobreak.mp3", "miss");
+
+    TheAudioManager.loadSample("Assets/gameplay/sfx/od_activate.mp3", "od_activate");
     // i dont like the game stuttering when you active or get a streak
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
 

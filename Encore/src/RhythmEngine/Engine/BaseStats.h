@@ -7,6 +7,8 @@
 #include <array>
 #include <vector>
 #include "Overdrive.h"
+#include "settings/settings.h"
+#include "song/audio.h"
 #include "song/scoring.h"
 
 namespace Encore::RhythmEngine {
@@ -88,6 +90,7 @@ namespace Encore::RhythmEngine {
             AudioMuted = false;
         };
         void MissNote() {
+            TheAudioManager.playSample("miss", TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
             if (Combo > MaxCombo) MaxCombo = Combo;
             Combo = 0;
             Misses++;
@@ -96,6 +99,7 @@ namespace Encore::RhythmEngine {
             CanHitHopo = false;
         };
         void Overhit() {
+            TheAudioManager.playSample("miss", TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
             Overhits++;
             if (Combo > MaxCombo) MaxCombo = Combo;
             Combo = 0;
