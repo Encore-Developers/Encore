@@ -39,7 +39,7 @@ void LocateDevAssets() {
         //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
         if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
             execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
-            SDL_Log("Found dev directory: %s", execPath.c_str());
+            SDL_Log("Found dev directory: %s", execPath.generic_u8string().c_str());
             TheAssets.setDirectory(execPath);
             break;
         }
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
     }
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
-    SDL_Log("Asset path: %s", TheAssets.getDirectory().c_str());
+    SDL_Log("Asset path: %s", TheAssets.getDirectory().generic_u8string().c_str());
     //
 
     for (auto asset : TheAssets.assets) {
