@@ -42,9 +42,10 @@ set(SDLSHADERCROSS_DXC ON)
 
 # Linux is the only platform with pre-compiled dxc binaries with support for SPIR-V.
 # TODO: pre-build our own dxc binaries
-if (UNIX AND NOT APPLE)
+if (NOT APPLE)
   # Use sdl_shadercross' download script
-  set(SDLSHADERCROSS_VENDORED OFF)
+  set(SDLSHADERCROSS_VENDORED ON)
+  set(SDLSHADERCROSS_FORCE_PREBUILT_DXC ON)
   include(thirdparty/sdl_shadercross/build-scripts/download-prebuilt-DirectXShaderCompiler.cmake)
 else()
   # Allows DXC to compile correctly
