@@ -1,6 +1,6 @@
 # This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
-name: Indev - Windows x64, Linux, macOS
+name: Rewrite - Windows x64, Linux, macOS
 on:
   workflow_dispatch:
   pull_request:
@@ -32,13 +32,13 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build_x64 --config ${{env.BUILD_TYPE}}
 
-    - name: Move Assets/Songs folders and bass.dll x64
+    - name: Move Assets, Songs, and dlls into artifact dir
       working-directory: ${{github.workspace}}/build_x64/Encore
-      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll ; move discord_game_sdk.dll Release/discord_game_sdk.dll
+      run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll ; move discord_game_sdk.dll Release/discord_game_sdk.dll ; move dxcompiler.dll Release/dxcompiler.dll
         
     - uses: actions/upload-artifact@v4
       with:
-        name: Encore_Win_x64-Indev
+        name: Encore_Win_x64-rewrite
         path: ${{github.workspace}}/build_x64/Encore/Release/*
 
 
@@ -57,7 +57,7 @@ jobs:
       run: sudo apt-get update
       
     - name: Install Dependencies
-      run: sudo apt-get install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev libxtst-dev libspirv-cross-c-shared-dev
+      run: sudo apt-get install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev libxtst-dev
       
     - name: Configure CMake x64
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
