@@ -237,7 +237,11 @@ void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods
         }
     }
 }
-void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
+void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    if (event.action == Encore::RhythmEngine::Action::PRESS && event.channel == Encore::RhythmEngine::InputChannel::LANE_1) {
+        GotoSongSelect();
+    }
+}
 
 std::string version = ENCORE_VERSION;
 std::string branch = GIT_BRANCH;

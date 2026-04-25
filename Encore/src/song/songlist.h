@@ -75,7 +75,6 @@ public:
     ~SongList();
 
     int CurrentSong = 0;
-    int SongSelectOffset = 0;
     std::vector<ListMenuEntry> listMenuEntries;
     std::vector<Song> songs;
     int songCount = 0;

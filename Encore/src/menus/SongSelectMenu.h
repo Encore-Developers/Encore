@@ -18,7 +18,7 @@ public:
     void Load() override;
     void Unload();
     void UpdatePreviewVolume(double currentTime);
-
+    void ScrollSongSelect(int val);
 private:
     double previewStartTime = 0.0;
     float currentPreviewVolume = 0.0f;
@@ -27,7 +27,8 @@ private:
     const float previewPlayDuration = 30.0f;
     const float pauseDuration = 2.5f;
     double phaseStartTime = 0.0;
-    int pendingSongID = -1;
+    int curSongMenuPos = -1;
+    double curTime = 0.0;
     double selectionTime = 0.0;
 };
 

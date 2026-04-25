@@ -360,22 +360,21 @@ public:
 
     void LoadAlbumArt() {
         ZoneScoped;
-        Image albumImage = LoadImage(albumArtPath.c_str());
-        if (albumImage.height > 512) {
-            ImageResize(&albumImage, 512, 512);
-        }
-        albumArt = LoadTextureFromImage(albumImage);
+        albumArt = LoadTexture(albumArtPath.c_str());
         GenTextureMipmaps(&albumArt);
         SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
 
         {
-            ZoneScopedN("Album Art Blurring");
+            ZoneScopedN("Load Album Art Background");
+            Image albumImage;
+            albumImage = LoadImage(albumArtPath.c_str());
+            ImageResize(&albumImage, 256, 256);
             ImageBlurGaussian(&albumImage, 10);
             albumArtBlur = LoadTextureFromImage(albumImage);
+            UnloadImage(albumImage);
             GenTextureMipmaps(&albumArtBlur);
             SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
         }
-        UnloadImage(albumImage);
     };
 };
 
