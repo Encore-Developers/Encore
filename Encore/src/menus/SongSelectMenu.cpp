@@ -222,17 +222,22 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
 
 
 void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS && key == GLFW_KEY_UP) {
-        ScrollSongSelect(1);
-    }
-    if (action == GLFW_PRESS && key == GLFW_KEY_DOWN) {
-        ScrollSongSelect(-1);
-    }
-    if (action == GLFW_PRESS && key == GLFW_KEY_LEFT) {
-        ScrollSongSelect(5);
-    }
-    if (action == GLFW_PRESS && key == GLFW_KEY_RIGHT) {
-        ScrollSongSelect(-5);
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        switch (key) {
+        case GLFW_KEY_UP:
+            ScrollSongSelect(1);
+            break;
+        case GLFW_KEY_DOWN:
+            ScrollSongSelect(-1);
+            break;
+        case GLFW_KEY_LEFT:
+            ScrollSongSelect(5);
+            break;
+        case GLFW_KEY_RIGHT:
+            ScrollSongSelect(-5);
+            break;
+        default: return;
+        }
     }
 }
 
@@ -365,7 +370,7 @@ void SongSelectMenu::Draw() {
         songEntryHeight,
         ColorBrightness(AccentColor, -0.75f)
     );
-    int topOflistMenu = curSongMenuPos <= 4 ? 0 : curSongMenuPos - 4;
+    int topOflistMenu = curSongMenuPos <= 4 ? 1 : curSongMenuPos - 4;
     for (int listMenuPos = topOflistMenu;
          listMenuPos < TheSongList.listMenuEntries.size() &&
          (listMenuPos < curSongMenuPos + (topOflistMenu <= 4 ? 10 : 6));
@@ -423,34 +428,6 @@ void SongSelectMenu::Draw() {
                 u.RightSide - u.winpct(0.25f),
                 u.hinpct(0.7f)
             );
-            /*
-            if (GuiButton(
-                Rectangle{
-                    0, songYPos, (u.RightSide - u.winpct(0.25f)), songEntryHeight },
-                ""
-            )) {
-                TheSongList.curSong = &TheSongList.songs[pendingSongID];
-                listMenuPos = listMenuPos;
-                if (!TheAudioManager.loadedStreams.empty()) {
-                    for (auto &stream : TheAudioManager.loadedStreams) {
-                        TheAudioManager.StopPlayback(stream.handle);
-                    }
-                    TheAudioManager.loadedStreams.clear();
-                    currentPreviewVolume = 0.0f;
-                    previewState = PreviewState::FadeIn;
-                }
-                selectionTime = curTime;
-
-                if (!TheSongList.songs[pendingSongID].AlbumArtLoaded) {
-                    try {
-                        TheSongList.songs[pendingSongID].LoadAlbumArt();
-                        TheSongList.songs[pendingSongID].AlbumArtLoaded = true;
-                    } catch (const std::exception &e) {
-                        Encore::EncoreLog(LOG_ERROR, e.what());
-                    }
-                }
-            }
-            */
             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
             EndScissorMode();
 
@@ -782,6 +759,7 @@ void SongSelectMenu::Draw() {
         "Sort"
     )) {
         //todo: I BROKE THE SORT BUTTON LMFAO
+        // no i didnt
         int selectedSongIndex = -1;
         if (TheSongList.curSong) {
             for (size_t i = 0; i < TheSongList.songs.size(); i++) {
