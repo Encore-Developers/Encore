@@ -40,12 +40,11 @@ add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
 set(SDLSHADERCROSS_DXC ON)
 
 
-# Linux is the only platform with pre-compiled dxc binaries with support for SPIR-V.
-# TODO: pre-build our own dxc binaries
-if (NOT APPLE)
+if (1)
   # Use sdl_shadercross' download script
   set(SDLSHADERCROSS_VENDORED ON)
   set(SDLSHADERCROSS_FORCE_PREBUILT_DXC ON)
+  set(DXC_PREBUILT ON)
   include(thirdparty/sdl_shadercross/build-scripts/download-prebuilt-DirectXShaderCompiler.cmake)
 else()
   # Allows DXC to compile correctly
@@ -96,7 +95,9 @@ if(WIN32)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
-  file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/windows/bin/x64/dxcompiler.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  if (DXC_PREBUILT)
+    file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/windows/bin/x64/dxcompiler.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  endif()
 endif()
 if(UNIX AND NOT APPLE)
   if (CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -106,7 +107,9 @@ if(UNIX AND NOT APPLE)
     file(COPY "lib/bass/linux/x86_64/libbass.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/linux/x86_64")
     file(COPY "lib/bass/linux/x86_64/libbassopus.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-    file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/linux/lib/libdxcompiler.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    if (DXC_PREBUILT)
+      file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/linux/lib/libdxcompiler.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
 endif()
@@ -117,6 +120,9 @@ if(APPLE)
   file(COPY "lib/bass/macos/libbass.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/macos")
   file(COPY "lib/bass/macos/libbassopus.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  if (DXC_PREBUILT)
+    file(COPY "thirdparty/sdl_shadercross/external/DirectXShaderCompiler-binaries/macos/lib/libdxcompiler.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  endif()
   add_custom_command(TARGET Encore
           POST_BUILD COMMAND
           ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path"
