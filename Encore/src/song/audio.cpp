@@ -233,40 +233,11 @@ void Encore::AudioManager::SetAudioStreamPosition(unsigned int handle, double ti
     CHECK_BASS_ERROR2();
 }
 
-void Encore::AudioManager::loadSample(const std::string &path, const std::string &name) {
-    HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, MAX_SAMPLE_CHANNELS, 0);
+void Encore::AudioManager::playSample(HSAMPLE sample, float volume) {
+    HCHANNEL channel = BASS_SampleGetChannel(sample, false);
     CHECK_BASS_ERROR2();
-    if (sample) {
-        samples[name] = sample;
-    } else {
-        std::cerr << "Failed to load sample: " << path << std::endl;
-        CHECK_BASS_ERROR2();
-    }
-}
-
-void Encore::AudioManager::playSample(const std::string &name, float volume) {
-    auto it = samples.find(name);
-    if (it != samples.end()) {
-        HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
-        CHECK_BASS_ERROR2();
-        BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
-        CHECK_BASS_ERROR2();
-        BASS_ChannelPlay(channel, true);
-        CHECK_BASS_ERROR2();
-    } else {
-        std::cerr << "Sample not found: " << name << std::endl;
-        CHECK_BASS_ERROR2();
-    }
-}
-
-void Encore::AudioManager::unloadSample(const std::string &name) {
-    auto it = samples.find(name);
-    if (it != samples.end()) {
-        BASS_SampleFree(it->second);
-        samples.erase(it);
-        CHECK_BASS_ERROR2();
-    } else {
-        std::cerr << "Sample not found: " << name << std::endl;
-        CHECK_BASS_ERROR2();
-    }
+    BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
+    CHECK_BASS_ERROR2();
+    BASS_ChannelPlay(channel, true);
+    CHECK_BASS_ERROR2();
 }

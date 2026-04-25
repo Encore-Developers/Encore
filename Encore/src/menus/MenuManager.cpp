@@ -155,12 +155,6 @@ void MenuManager::DrawMenu() {
             Units &u = Units::getInstance();
             Assets &assets = Assets::getInstance();
 
-            static bool sampleLoaded = false;
-            if (!sampleLoaded) {
-                TheAudioManager.loadSample("Assets/kick.wav", "click");
-                sampleLoaded = true;
-            }
-
             if (GuiButton(
                     { (float)GetRenderWidth() / 2 - 250,
                       (float)GetRenderHeight() - 120,
@@ -207,7 +201,7 @@ void MenuManager::DrawMenu() {
                 double elapsedTime = currentTime - lastClickTime;
 
                 if (elapsedTime >= clickInterval) {
-                    TheAudioManager.playSample("click", 1);
+                    //TheAudioManager.playSample("click", 1);
                     lastClickTime += clickInterval;
                     // Increment by the interval to avoid missing clicks
                     std::cout << "Click" << std::endl;

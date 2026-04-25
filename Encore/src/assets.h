@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include "bass/bass.h"
 #include "menus/uiUnits.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
@@ -253,6 +254,28 @@ public:
     }
 };
 
+class SampleAsset : public FileAsset {
+    HSAMPLE sample;
+
+    virtual void Load();
+
+public:
+    SampleAsset(const std::string &id) : FileAsset(id) {}
+
+    SampleAsset() {}
+
+    virtual void Unload();
+
+    HSAMPLE Fetch() {
+        CheckForFetch();
+        return sample;
+    }
+
+    operator HSAMPLE() {
+        return Fetch();
+    }
+};
+
 class FontAsset : public FileAsset {
     Font font;
     int fontSize;
@@ -309,7 +332,7 @@ public:
 #define NEWSHADERASSET(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__, {})
 #define NEWSHADERASSET_POSTFINALIZE(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__)
 #define NEWLEGACYMODELASSET(varname, ...) LegacyModelAsset varname = LegacyModelAsset(__VA_ARGS__)
-
+#define NEWSAMPLEASSET(varname, path) SampleAsset varname = SampleAsset(path)
 
 class Assets {
 private:
@@ -349,6 +372,8 @@ public:
     NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
 
+    NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.mp3");
+    NEWSAMPLEASSET(activateSound, "gameplay/sfx/od_activate.mp3");
 
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
     std::vector<TextureAsset *> YargRings;

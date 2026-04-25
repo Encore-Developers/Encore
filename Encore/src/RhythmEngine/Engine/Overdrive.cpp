@@ -33,7 +33,7 @@ bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
     UseOverdriveLift = true;
     ActivationTime = CurrentTime;
     ActivationTick = TheSongTime.CurrentODTick;
-    TheAudioManager.playSample("od_activate", TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
+    TheAudioManager.playSample(ASSET(activateSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
     EncoreLog(LOG_DEBUG, TextFormat("First OD Tick: %4.4f", TheSongTime.CurrentODTick));
     return true;
 }

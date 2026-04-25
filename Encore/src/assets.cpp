@@ -5,6 +5,7 @@
 #include "assets.h"
 #include <filesystem>
 #include "raygui.h"
+#include "song/audio.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
 #include "util/enclog.h"
@@ -275,6 +276,15 @@ void TextureAsset::Finalize() {
 void TextureAsset::Unload() {
     UnloadTexture(tex);
     FileAsset::Unload();
+}
+void SampleAsset::Load() {
+    LoadFile();
+    sample = BASS_SampleLoad(true, fileBuffer, 0, fileSize, MAX_SAMPLE_CHANNELS, 0);
+    state = LOADED;
+}
+void SampleAsset::Unload() {
+    BASS_SampleFree(sample);
+    sample = 0;
 }
 
 void FontAsset::Load() {
