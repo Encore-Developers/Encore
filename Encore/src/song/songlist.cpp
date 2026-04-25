@@ -23,6 +23,12 @@ void SongList::Clear() {
     badSongCount = 0;
 }
 
+std::string lower(std::string string) {
+    std::transform(string.begin(), string.end(), string.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+    return string;
+}
+
 bool startsWith(const std::string &str, const std::string &prefix) {
     return str.substr(0, prefix.size()) == prefix;
 }
@@ -267,7 +273,7 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
             header = "#";
             break;
         }
-        if (header != currentHeader) {
+        if (lower(header) != lower(currentHeader)) {
             currentHeader = header;
             songEntries.emplace_back(true, 0, currentHeader, false);
             pos++;
