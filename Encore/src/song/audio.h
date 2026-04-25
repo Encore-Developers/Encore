@@ -1,7 +1,5 @@
 #pragma once
 
-#include "bass/bass.h"
-
 #include <vector>
 #include <filesystem>
 #include <unordered_map>
@@ -50,8 +48,9 @@ namespace Encore {
         static void StopPlayback(unsigned int handle);
 
         // Load and play samples
-        void playSample(HSAMPLE sample, float volume);
-
+        void playSample(unsigned long sample, float volume);
+        unsigned long loadSample(bool mem, void *file, size_t length);
+        void unloadSample(unsigned long sample);
         //
         void StartEffect(AudioStream* stream);
         void StopEffect(AudioStream* stream);

@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "song/audio.h"
+
 enum AssetState : uint8_t {
     UNLOADED,
     LOADING,
@@ -256,14 +258,20 @@ public:
 class SampleAsset : public FileAsset {
     uint32_t sample;
 
-    virtual void Load();
-
+    virtual void Load() {
+        LoadFile();
+        sample = TheAudioManager.loadSample(true, fileBuffer, fileSize);
+        state = LOADED;
+    }
 public:
     SampleAsset(const std::string &id) : FileAsset(id) {}
 
     SampleAsset() {}
 
-    virtual void Unload();
+    virtual void Unload() {
+        TheAudioManager.unloadSample(sample);
+        sample = 0;
+    }
 
     uint32_t Fetch() {
         CheckForFetch();
