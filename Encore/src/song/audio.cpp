@@ -233,7 +233,7 @@ void Encore::AudioManager::SetAudioStreamPosition(unsigned int handle, double ti
     CHECK_BASS_ERROR2();
 }
 
-void Encore::AudioManager::playSample(HSAMPLE sample, float volume) {
+void Encore::AudioManager::playSample(unsigned long sample, float volume) {
     HCHANNEL channel = BASS_SampleGetChannel(sample, false);
     CHECK_BASS_ERROR2();
     BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
