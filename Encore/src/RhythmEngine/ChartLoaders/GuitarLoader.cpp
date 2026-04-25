@@ -216,7 +216,9 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
             } else if (chart[0].back().StartTicks == event.tick) {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
-                chart[0].back().NoteType = 0;
+                if (chart[0].back().NoteType == 1) {
+                    chart[0].back().NoteType = 0;
+                }
                 if (!chart.trills.empty()) {
                     if (event.tick >= chart.trills[CurrentTrill].StartTick) {
                         //chart.rolls[CurrentRoll].lane +=
