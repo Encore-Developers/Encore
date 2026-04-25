@@ -30,14 +30,21 @@ void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
 
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
-
-    ASSET(noteShader).SetUniform("frameColor", WHITE);
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+        color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+        ASSET(noteShader).SetUniform("frameColor", GOLD);
+    } else {
+        ASSET(noteShader).SetUniform("frameColor", WHITE);
+    }
     ASSET(noteShader).SetUniform("noteColor", color);
-
+    if (missed) {
+        ASSET(noteShader).SetUniform("frameColor", Color{120, 120, 120, 255});
+        ASSET(noteShader).SetUniform("noteColor", Color{ 255, 50, 50, 255 });
+    }
 
     rlDrawRenderBatchActive();
 
-    DrawModelEx(ASSET(kickNote), position, {0}, 0, {width/5.0f, track->NoteHeight / 2.0f, 1}, WHITE);
+    DrawModelEx(ASSET(kickNote), position, {0}, 0, {width/5.0f, track->NoteHeight / 2.0f, 0.75}, WHITE);
 }
 
 void Encore::KickTrackSlot::DrawSmasher(bool held) {
