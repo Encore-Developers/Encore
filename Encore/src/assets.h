@@ -1,6 +1,5 @@
 #pragma once
 #include "raylib.h"
-#include "bass/bass.h"
 #include "menus/uiUnits.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
@@ -255,7 +254,7 @@ public:
 };
 
 class SampleAsset : public FileAsset {
-    HSAMPLE sample;
+    uint32_t sample;
 
     virtual void Load();
 
@@ -266,12 +265,12 @@ public:
 
     virtual void Unload();
 
-    HSAMPLE Fetch() {
+    uint32_t Fetch() {
         CheckForFetch();
         return sample;
     }
 
-    operator HSAMPLE() {
+    operator uint32_t() {
         return Fetch();
     }
 };

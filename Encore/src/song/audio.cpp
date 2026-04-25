@@ -1,4 +1,6 @@
 #include "audio.h"
+
+#include "assets.h"
 #include "bass/bass.h"
 #include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
@@ -6,7 +8,6 @@
 #include "tracy/Tracy.hpp"
 
 
-#include "GLFW/glfw3native.h"
 #include <vector>
 #include <filesystem>
 #include <iostream>
@@ -240,4 +241,15 @@ void Encore::AudioManager::playSample(HSAMPLE sample, float volume) {
     CHECK_BASS_ERROR2();
     BASS_ChannelPlay(channel, true);
     CHECK_BASS_ERROR2();
+}
+
+// Defined here to avoid conflicts with Raylib and BASS
+void SampleAsset::Load() {
+    LoadFile();
+    sample = BASS_SampleLoad(true, fileBuffer, 0, fileSize, MAX_SAMPLE_CHANNELS, 0);
+    state = LOADED;
+}
+void SampleAsset::Unload() {
+    BASS_SampleFree(sample);
+    sample = 0;
 }

@@ -277,15 +277,7 @@ void TextureAsset::Unload() {
     UnloadTexture(tex);
     FileAsset::Unload();
 }
-void SampleAsset::Load() {
-    LoadFile();
-    sample = BASS_SampleLoad(true, fileBuffer, 0, fileSize, MAX_SAMPLE_CHANNELS, 0);
-    state = LOADED;
-}
-void SampleAsset::Unload() {
-    BASS_SampleFree(sample);
-    sample = 0;
-}
+
 
 void FontAsset::Load() {
     ZoneScoped
