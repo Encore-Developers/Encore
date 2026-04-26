@@ -1,6 +1,7 @@
 #pragma once
 #ifdef GLM_OPS_MAIN
 #undef GLM_OPS_MAIN
+#include "SDL3/SDL_pixels.h"
 
 // Custom operators and typedefs for glm stuff
 
@@ -9,6 +10,10 @@ typedef glm::vec3 Vector3;
 typedef glm::vec4 Vector4;
 typedef glm::mat4 Matrix;
 typedef Vector4 Color;
+
+inline SDL_FColor ColorToSDLColor(const Color& color) {
+    return {color.x, color.y, color.z, color.w};
+}
 
 #include "imgui.h"
 #else

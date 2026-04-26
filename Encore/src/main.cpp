@@ -10,6 +10,7 @@
 #include "assets.h"
 #include "glm/gtc/random.hpp"
 #include "math/camera.h"
+#include "render/gpucompositor.h"
 #include "render/gpudynamicbuffer.h"
 #include "render/gpudynamicframebuffer.h"
 #include "render/pipelines.h"
@@ -180,6 +181,8 @@ int main(int argc, char *argv[]) {
         static UI::Box box({Color(0, 0.7, 0, 1), Color(0, 0.6, 0, 1)});
         static Vector2 boxPos = {20, 20};
         static Vector2 boxSize = {100, 100};
+        static float renderScale3D = 1.0f;
+        static bool drawAlphaDebug = false;
 
         if (ImGui::Begin("Test")) {
             ImGui::DragFloat3("Camera Position", &cam.position[0], 0.01f);
@@ -194,6 +197,8 @@ int main(int argc, char *argv[]) {
             static bool antialiasing2d = true;
             ImGui::Checkbox("2D Antialiasing", &antialiasing2d);
             The2DFramebuffer->SetSampleCount(antialiasing2d ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1);
+            ImGui::DragFloat("3D Render Scale", &renderScale3D, 0.01f, 0.05, 2);
+            ImGui::Checkbox("Debug Draw Alpha", &drawAlphaDebug);
         }
         ImGui::End();
 
@@ -270,32 +275,75 @@ int main(int argc, char *argv[]) {
         UI::Box::InitializeMeshes(copyPass);
         SDL_EndGPUCopyPass(copyPass);
 
+        unsigned int swapWidth;
+        unsigned int swapHeight;
         SDL_GPUTexture* swapchainTexture;
         {
-            unsigned int width;
-            unsigned int height;
             ZoneScopedN("Acquire Swapchain")
-            if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdbuf, window, &swapchainTexture, &width, &height)) {
+            if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdbuf, window, &swapchainTexture, &swapWidth, &swapHeight)) {
                 SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create swapchain texture: %s\n", SDL_GetError());
                 return 1;
             }
-            The2DFramebuffer->Update(width, height);
-            The3DFramebuffer->Update(width, height);
+            The2DFramebuffer->Update(swapWidth, swapHeight);
+            float scale = renderScale3D;
+            if (scale < 0.01) {
+                scale = 0.01;
+            }
+            The3DFramebuffer->Update(swapWidth*scale, swapHeight*scale);
         }
 
 
-        SDL_GPUColorTargetInfo colorTargetInfo = The2DFramebuffer->GetColorTargetInfo();
-        colorTargetInfo.clear_color = {0.3f, 0.4f, 0.5f, 1.0f};
-        colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-        colorTargetInfo.cycle = true;
-        SDL_GPUDepthStencilTargetInfo depthTargetInfo = The2DFramebuffer->GetDepthStencilTargetInfo();
-        depthTargetInfo.clear_depth = 1;
-        depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
-        depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
-        depthTargetInfo.cycle = true;
+        if (true) {
+            ZoneScopedN("3D Render Pass")
+            SDL_GPUColorTargetInfo colorTargetInfo = The3DFramebuffer->GetColorTargetInfo();
+            colorTargetInfo.clear_color = {0, 0, 0, 0};
+            colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+            colorTargetInfo.cycle = true;
+            colorTargetInfo.cycle_resolve_texture = true;
+            SDL_GPUDepthStencilTargetInfo depthTargetInfo = The3DFramebuffer->GetDepthStencilTargetInfo();
+            depthTargetInfo.clear_depth = 1;
+            depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+            depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
+            depthTargetInfo.cycle = true;
+            auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
+            UBO uniform {
+                cam.getMatrix(),
+                uvOffset
+            };
+            SDL_PushGPUVertexUniformData(cmdbuf, 0, &uniform, sizeof(uniform));
+            SDL_BindGPUGraphicsPipeline(renderPass, PIPELINE(notePipeline));
+            SDL_GPUBufferBinding bindings[] = {
+                {
+                    .buffer = ASSET(testMesh).vertexBuffer,
+                    .offset = 0
+                },
+                gemInstances.GetBinding()
+            };
+            SDL_BindGPUVertexBuffers(renderPass, 0, bindings, 2);
+            SDL_GPUBufferBinding indexBinding = {
+                .buffer = ASSET(testMesh).indexBuffer,
+                .offset = 0
+            };
+            SDL_BindGPUIndexBuffer(renderPass, &indexBinding, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+            SDL_GPUTextureSamplerBinding samplerBinding = {
+                ASSET(testMeshTex),
+                sampler
+            };
+            SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
+
+            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, gemInstances.Size(), 0, 0, 0);
+
+            SDL_EndGPURenderPass(renderPass);
+        }
+
         if (true) {
             ZoneScopedN("2D Render Pass")
-            auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
+            SDL_GPUColorTargetInfo colorTargetInfo = The2DFramebuffer->GetColorTargetInfo();
+            colorTargetInfo.clear_color = {0, 0, 0, 0};
+            colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+            colorTargetInfo.cycle = true;
+            colorTargetInfo.cycle_resolve_texture = true;
+            auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, nullptr);
             UBO uniform {
                 glm::orthoNO(0.0f, (float)The2DFramebuffer->width, (float)The2DFramebuffer->height, 0.0f, -1.0f, 1.0f),
                 uvOffset
@@ -308,6 +356,16 @@ int main(int argc, char *argv[]) {
         }
 
         {
+            ZoneScopedN("Composite Framebuffers")
+            static GPUCompositor compositor;
+            compositor.showAlphaDebug = drawAlphaDebug;
+            compositor.BeginCompositing(cmdbuf, swapchainTexture);
+            compositor.AddTexture(The3DFramebuffer->GetBlitSource());
+            compositor.AddTexture(The2DFramebuffer->GetBlitSource());
+            compositor.EndCompositing();
+        }
+
+        {
             ZoneScopedN("ImGui Render")
             ImDrawData* drawData = ImGui::GetDrawData();
 
@@ -315,7 +373,7 @@ int main(int argc, char *argv[]) {
 
             // Setup and start a render pass
             SDL_GPUColorTargetInfo target_info = {};
-            target_info.texture = TheFramebuffer->GetBlitSource();
+            target_info.texture = swapchainTexture;
             target_info.load_op = SDL_GPU_LOADOP_LOAD;
             target_info.store_op = SDL_GPU_STOREOP_STORE;
             target_info.mip_level = 0;
@@ -327,35 +385,6 @@ int main(int argc, char *argv[]) {
             ImGui_ImplSDLGPU3_RenderDrawData(drawData, cmdbuf, render_pass);
 
             SDL_EndGPURenderPass(render_pass);
-        }
-
-        {
-            ZoneScopedN("Blit Framebuffer")
-            SDL_GPUBlitInfo blitInfo = {
-                .source = {
-                    .texture = TheFramebuffer->GetBlitSource(),
-                    .mip_level = 0,
-                    .layer_or_depth_plane = 0,
-                    .x = 0,
-                    .y = 0,
-                    .w = TheFramebuffer->width,
-                    .h = TheFramebuffer->height,
-                },
-                .destination = {
-                    .texture = swapchainTexture,
-                    .mip_level = 0,
-                    .layer_or_depth_plane = 0,
-                    .x = 0,
-                    .y = 0,
-                    .w = TheFramebuffer->width,
-                    .h = TheFramebuffer->height,
-                },
-                .load_op = SDL_GPU_LOADOP_DONT_CARE,
-                .flip_mode = SDL_FLIP_NONE,
-                .filter = SDL_GPU_FILTER_NEAREST,
-                .cycle = false
-            };
-            SDL_BlitGPUTexture(cmdbuf, &blitInfo);
         }
 
         {

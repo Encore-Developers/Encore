@@ -1,12 +1,16 @@
 #pragma once
 #include "SDL3/SDL_gpu.h"
 
+#define DEFINEPIPELINE(name) SDL_GPUGraphicsPipeline* name = nullptr
+
 class PipelineManager {
     static void ClearPipeline(SDL_GPUGraphicsPipeline** pipelinePtr);
 public:
     bool pipelinesLoaded = false;
-    SDL_GPUGraphicsPipeline* notePipeline = nullptr;
-    SDL_GPUGraphicsPipeline* boxPipeline = nullptr;
+
+    DEFINEPIPELINE(notePipeline);
+    DEFINEPIPELINE(boxPipeline);
+    DEFINEPIPELINE(compositeLayerPipeline);
 
     void CompileAll();
     void CompileThreaded();

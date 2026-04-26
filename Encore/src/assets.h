@@ -252,6 +252,9 @@ public:
     NEWSHADERASSET(boxVert, "ui/box/box.vert.hlsl", VERT);
     NEWSHADERASSET(boxFrag, "ui/box/box.frag.hlsl", FRAG);
 
+    NEWSHADERASSET(compositeVert, "compositing/compositelayer.vert.hlsl", VERT);
+    NEWSHADERASSET(compositeFrag, "compositing/compositelayer.frag.hlsl", FRAG);
+
     NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");
     NEWTEXASSET(testMeshTex, "gameplay/track/notes/normal/diffuse.png");
 

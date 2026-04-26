@@ -10,6 +10,7 @@ public:
     SDL_GPUTexture *depthTexture = nullptr;
     SDL_GPUTexture *resolveTexture = nullptr;
     SDL_GPUSampleCount sampleCount;
+    SDL_GPUTextureFormat colorTextureFormat = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
     bool forceDirty = false;
     unsigned int width = -1;
     unsigned int height = -1;

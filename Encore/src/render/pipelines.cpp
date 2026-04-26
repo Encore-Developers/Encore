@@ -45,8 +45,40 @@ void PipelineManager::CompileAll() {
         .enable_depth_test = false,
         .enable_depth_write = false,
     };
+    SDL_GPUColorTargetBlendState genericAlphaBlendStateOverwrite = {
+        .src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ZERO,
+        .color_blend_op = SDL_GPU_BLENDOP_ADD,
+        .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO,
+        .alpha_blend_op = SDL_GPU_BLENDOP_MAX,
+        .enable_blend = true
+    };
+    SDL_GPUColorTargetBlendState genericAlphaBlendState = {
+        .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+        .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+        .color_blend_op = SDL_GPU_BLENDOP_ADD,
+        .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .alpha_blend_op = SDL_GPU_BLENDOP_MAX,
+        .enable_blend = true
+    };
+    SDL_GPUColorTargetBlendState genericAlphaPremultipliedBlendState = {
+        .src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+        .color_blend_op = SDL_GPU_BLENDOP_ADD,
+        .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .alpha_blend_op = SDL_GPU_BLENDOP_MAX,
+        .enable_blend = true
+    };
     SDL_GPUColorTargetDescription colorTargetDescription = {
-        .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, TheWindow)
+        .format = The3DFramebuffer->colorTextureFormat,
+        .blend_state = genericAlphaBlendState
+    };
+    SDL_GPUColorTargetDescription color2DTargetDescription = {
+        .format = The2DFramebuffer->colorTextureFormat,
+        .blend_state = genericAlphaBlendState
     };
     SDL_GPUGraphicsPipelineTargetInfo genericTargetInfo = {
         .color_target_descriptions = &colorTargetDescription,
@@ -54,8 +86,26 @@ void PipelineManager::CompileAll() {
         .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
         .has_depth_stencil_target = true
     };
+    SDL_GPUGraphicsPipelineTargetInfo generic2DTargetInfo = {
+        .color_target_descriptions = &color2DTargetDescription,
+        .num_color_targets = 1,
+        .has_depth_stencil_target = false
+    };
+    SDL_GPUColorTargetDescription compositorTargetDescription = {
+        .format = SDL_GetGPUSwapchainTextureFormat(TheGPU, TheWindow),
+        .blend_state = genericAlphaPremultipliedBlendState
+    };
+    SDL_GPUGraphicsPipelineTargetInfo compositorTargetInfo = {
+        .color_target_descriptions = &compositorTargetDescription,
+        .num_color_targets = 1,
+        .has_depth_stencil_target = false
+    };
     SDL_GPUMultisampleState genericMultisampleState = {
-        .sample_count = TheFramebuffer->sampleCount,
+        .sample_count = The3DFramebuffer->sampleCount,
+        .enable_alpha_to_coverage = false
+    };
+    SDL_GPUMultisampleState generic2DMultisampleState = {
+        .sample_count = The2DFramebuffer->sampleCount,
         .enable_alpha_to_coverage = false
     };
 
@@ -81,11 +131,27 @@ void PipelineManager::CompileAll() {
         .vertex_input_state = ASSET(boxVert).vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
         .rasterizer_state = generic2DRasterizerState,
-        .multisample_state = genericMultisampleState,
+        .multisample_state = generic2DMultisampleState,
         .depth_stencil_state = generic2DDepthStencilState,
-        .target_info = genericTargetInfo
+        .target_info = generic2DTargetInfo
     };
     CREATEPIPELINE(boxPipeline);
+
+    WAITFORSHADERS(compositeFrag, compositeVert);
+    pipelineCreateInfo = {
+        .vertex_shader = ASSET(compositeVert),
+        .fragment_shader = ASSET(compositeFrag),
+        .vertex_input_state = ASSET(compositeVert).vertexInputState,
+        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+        .rasterizer_state = generic2DRasterizerState,
+        .multisample_state = {
+            .sample_count = SDL_GPU_SAMPLECOUNT_1,
+            .enable_alpha_to_coverage = false
+        },
+        .depth_stencil_state = generic2DDepthStencilState,
+        .target_info = compositorTargetInfo
+    };
+    CREATEPIPELINE(compositeLayerPipeline);
 
     pipelinesLoaded = true;
 }
