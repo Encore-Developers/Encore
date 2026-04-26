@@ -12,7 +12,22 @@
 #include "OvershellHelper.h"
 #include "MenuManager.h"
 
-void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {}
+void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+
+    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+        switch (event.channel) {
+        case Encore::RhythmEngine::InputChannel::LANE_1:
+            for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+                Player &player = ThePlayerManager.GetActivePlayer(i);
+                player.engine->stats.reset();
+                player.engine->chart.reset();
+                player.engine.reset();
+            }
+            TheMenuManager.SwitchScreen(SONG_SELECT);
+            break;
+        }
+    }
+}
 void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
 resultsMenu::~resultsMenu() {
