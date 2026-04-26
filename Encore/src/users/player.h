@@ -101,15 +101,6 @@ public:
     Encore::ColorProfile *GetColorProfile() const;
     Color QueryColorProfile(Encore::ColorSlot slot);
 
-    enum ReadyUpStates {
-        PREVIEW,
-        INSTRUMENT,
-        DIFFICULTY
-    };
-    int ReadyUpMenuState = 1;
-
-    bool instSelected = false;
-    bool diffSelected = false;
     // zero indexed. local would be 0-3, online would be 4-7.
     // NOTE! this is only for like. local information and
     // not actually shared information. i was thinking of a UUID system for online
