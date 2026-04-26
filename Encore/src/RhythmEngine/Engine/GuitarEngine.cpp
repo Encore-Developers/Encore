@@ -294,7 +294,7 @@ void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
     GhostCount = 0;
     if ((chart->CurrentNoteIterators.at(0)->NoteType == 1 || chart->CurrentNoteIterators.
         at(0)->NoteType == 2) && !strumInput) {
-        if (chart->CurrentNoteIterators.at(0) < chart->Lanes.at(0).end()) {
+        if (chart->CurrentNoteIterators.at(0) < chart->Lanes.at(0).end() - 1) {
             double nextNoteTime = (chart->CurrentNoteIterators.at(0)+1)->StartSeconds;
             double curNoteTime = chart->CurrentNoteIterators.at(0)->StartSeconds;
             double midpoint = (nextNoteTime + curNoteTime) / 2;
