@@ -63,6 +63,23 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                     ReadyState[i] = true;
                     break;
                 }
+                break;
+            }
+            case Encore::RhythmEngine::InputChannel::LANE_2: {
+                switch (SlotState[i]) {
+                case INSTRUMENT:
+                    TheSongList.curSong->midiParsed = false;
+                    TheMenuManager.SwitchScreen(SONG_SELECT);
+                    break;
+                case DIFFICULTY:
+                    SlotState[i] = INSTRUMENT;
+                    break;
+                case READY:
+                    TheSongList.curSong->midiParsed = false;
+                    TheMenuManager.SwitchScreen(SONG_SELECT);
+                    ReadyState[i] = false;
+                    break;
+                }
             }
             }
         }
