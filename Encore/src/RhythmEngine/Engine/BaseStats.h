@@ -91,7 +91,6 @@ namespace Encore::RhythmEngine {
             AudioMuted = false;
         };
         void MissNote() {
-            TheAudioManager.playSample(ASSET(missSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
             if (Combo > MaxCombo) MaxCombo = Combo;
             Combo = 0;
             Misses++;
