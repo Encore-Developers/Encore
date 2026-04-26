@@ -20,7 +20,8 @@
 SDL_GPUDevice* TheGPU = nullptr;
 bool TheGPUReady = false;
 SDL_Window* TheWindow = nullptr;
-GPUDynamicFramebuffer* TheFramebuffer = nullptr;
+GPUDynamicFramebuffer* The2DFramebuffer = nullptr;
+GPUDynamicFramebuffer* The3DFramebuffer = nullptr;
 PipelineManager ThePipelineManager;
 
 std::vector<std::string> ArgumentList::arguments = {};
@@ -79,7 +80,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    TheFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_4);
+    The2DFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_4);
+    The3DFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_4);
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
 
@@ -186,9 +188,12 @@ int main(int argc, char *argv[]) {
             ImGui::DragFloat2("UV Offset", &uvOffset[0], 0.01f);
             ImGui::Checkbox("Randomize Gem Instances Every Frame", &randomizeInstances);
             ImGui::DragInt("Instance Count", &instanceCount);
-            static bool antialiasing = true;
-            ImGui::Checkbox("Antialiasing", &antialiasing);
-            TheFramebuffer->SetSampleCount(antialiasing ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1);
+            static bool antialiasing3d = true;
+            ImGui::Checkbox("3D Antialiasing", &antialiasing3d);
+            The3DFramebuffer->SetSampleCount(antialiasing3d ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1);
+            static bool antialiasing2d = true;
+            ImGui::Checkbox("2D Antialiasing", &antialiasing2d);
+            The2DFramebuffer->SetSampleCount(antialiasing2d ? SDL_GPU_SAMPLECOUNT_4 : SDL_GPU_SAMPLECOUNT_1);
         }
         ImGui::End();
 
@@ -274,15 +279,16 @@ int main(int argc, char *argv[]) {
                 SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create swapchain texture: %s\n", SDL_GetError());
                 return 1;
             }
-            TheFramebuffer->Update(width, height);
+            The2DFramebuffer->Update(width, height);
+            The3DFramebuffer->Update(width, height);
         }
 
 
-        SDL_GPUColorTargetInfo colorTargetInfo = TheFramebuffer->GetColorTargetInfo();
+        SDL_GPUColorTargetInfo colorTargetInfo = The2DFramebuffer->GetColorTargetInfo();
         colorTargetInfo.clear_color = {0.3f, 0.4f, 0.5f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.cycle = true;
-        SDL_GPUDepthStencilTargetInfo depthTargetInfo = TheFramebuffer->GetDepthStencilTargetInfo();
+        SDL_GPUDepthStencilTargetInfo depthTargetInfo = The2DFramebuffer->GetDepthStencilTargetInfo();
         depthTargetInfo.clear_depth = 1;
         depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
@@ -291,7 +297,7 @@ int main(int argc, char *argv[]) {
             ZoneScopedN("2D Render Pass")
             auto renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
             UBO uniform {
-                glm::orthoNO(0.0f, (float)TheFramebuffer->width, (float)TheFramebuffer->height, 0.0f, -1.0f, 1.0f),
+                glm::orthoNO(0.0f, (float)The2DFramebuffer->width, (float)The2DFramebuffer->height, 0.0f, -1.0f, 1.0f),
                 uvOffset
             };
             SDL_PushGPUVertexUniformData(cmdbuf, 0, &uniform, sizeof(uniform));

@@ -50,4 +50,5 @@ public:
     }
 };
 
-extern GPUDynamicFramebuffer* TheFramebuffer;
+extern GPUDynamicFramebuffer* The2DFramebuffer;
+extern GPUDynamicFramebuffer* The3DFramebuffer;
