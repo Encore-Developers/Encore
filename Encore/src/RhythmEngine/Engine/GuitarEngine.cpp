@@ -234,7 +234,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             auto MissCheckNote = chart->CurrentNoteIterators.at(0);
             float offset = goodBackend;
             while (true) {
-                if (MissCheckNote == chart->Lanes.at(0).end()) {
+                if (MissCheckNote >= chart->Lanes.at(0).end() - 1) {
                     break;
                 }
                 MissCheckNote += 1;
