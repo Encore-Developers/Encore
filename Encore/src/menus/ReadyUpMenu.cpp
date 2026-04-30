@@ -89,7 +89,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
 void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
 }
 
-bool ReadyUpMenu::DrawDifficulties(float BottomOvershell,
+void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                                    int playerInt,
                                    Player &player,
                                    float xPosOfMenu) {
@@ -115,7 +115,7 @@ bool ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                 SlotState[playerInt] = READY;
                 ReadyState[playerInt] = true;
                 player.Difficulty = i;
-                return true;
+                return;
             }
 
             DrawRectangleRec(pos, ButtonColor);

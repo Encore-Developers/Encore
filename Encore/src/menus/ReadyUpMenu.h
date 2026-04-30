@@ -24,7 +24,7 @@ public:
     ReadyUpMenu() = default;
     ~ReadyUpMenu() override = default;
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
-    bool DrawDifficulties(float BottomOvershell,
+    void DrawDifficulties(float BottomOvershell,
                  int playerInt,
                  Player &player,
                  float xPosOfMenu);
