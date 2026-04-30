@@ -299,6 +299,7 @@ void SongTime::SetOffset(double audioCalibration) {
 
 void SongTime::Start(double end) {
     endTime = end;
+    lastTimeSample = GetTime();
 }
 
 // Resets internal state, 
