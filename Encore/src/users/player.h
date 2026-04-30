@@ -13,7 +13,6 @@
 #include "timingvalues.h"
 #include "PadHandler/Controller.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
-#include "song/chart.h"
 #include "song/scoring.h"
 
 #include <span>

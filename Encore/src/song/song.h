@@ -4,7 +4,6 @@
 #define ENCORE_SONG_H
 
 #include "raylib.h"
-#include "chart.h"
 #include "midifile/MidiFile.h"
 #include <vector>
 #include <iostream>
