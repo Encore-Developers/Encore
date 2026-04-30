@@ -91,6 +91,9 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
         InputChannel::STRUM_DOWN)
         return CheckNextInput;
     int lane = ICInt(event.channel);
+    if (lane >= chart->Lanes.size())
+        return CheckNextInput;
+
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
         return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
