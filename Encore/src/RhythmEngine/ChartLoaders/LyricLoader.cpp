@@ -33,7 +33,8 @@ void Encore::RhythmEngine::LyricLoader::GetPhrases(smf::MidiEventList *midiEvent
 
 void Encore::RhythmEngine::LyricLoader::IteratePhrases(int tick) {
     if (!lyrics.empty()) {
-        while (CurrentPhrase < lyrics.size() - 1 && lyrics[CurrentPhrase].EndTick < tick) {
+        while (CurrentPhrase < lyrics.size() - 1
+               && lyrics[CurrentPhrase].EndTick < tick) {
             CurrentPhrase++;
         }
     }
@@ -42,12 +43,18 @@ void Encore::RhythmEngine::LyricLoader::IteratePhrases(int tick) {
 void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventList) {
     midiEventList->linkNotePairs();
     for (int eventInt = 0; eventInt < midiEventList->size(); eventInt++) {
-        if (!midiEventList->operator[](eventInt).isMeta())
+        if (!(*midiEventList)[eventInt].isMeta())
             continue;
-        smf::MidiEvent &event = midiEventList->operator[](eventInt);
+        smf::MidiEvent &event = (*midiEventList)[eventInt];
         if (!(event[1] == 1 || event[1] == 5))
             continue;
         IteratePhrases(event.tick);
+        if (CurrentPhrase == 0) {
+            Encore::EncoreLog(
+                LOG_DEBUG, "chart has at least one lyricless vox note. report to charter"
+            );
+            continue;
+        }
         std::string lyric = "";
 
         bool talkie = false;
@@ -70,16 +77,20 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         switch (lyric.back()) {
         case '%':
         case '+':
-        case '$': continue;
+        case '$':
+            continue;
         case '*':
         case '#':
-        case '^': lyric.pop_back(); talkie = true; break;
+        case '^':
+            lyric.pop_back();
+            talkie = true;
+            break;
         }
-        for (int i = 0; i < lyric.size()-1; i++) {
-            static const char* sectionSym = "§";
-            if (lyric[i] == sectionSym[0] && lyric[i+1] == sectionSym[1]) {
-                lyric.erase(lyric.begin()+i);
-                lyric.erase(lyric.begin()+i);
+        for (int i = 0; i < lyric.size() - 1; i++) {
+            static const char *sectionSym = "§";
+            if (lyric[i] == sectionSym[0] && lyric[i + 1] == sectionSym[1]) {
+                lyric.erase(lyric.begin() + i);
+                lyric.erase(lyric.begin() + i);
                 i--;
             }
         }
@@ -94,4 +105,3 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         currentPhrase.lyrics.emplace_back(event.seconds, lyric, talkie);
     }
 };
-
