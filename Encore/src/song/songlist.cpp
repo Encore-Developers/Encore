@@ -112,7 +112,7 @@ void SongList::sortList(SortType sortType) {
     listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
 }
 
-void SongList::sortList(SortType sortType, int &selectedSong) {
+void SongList::sortList(SortType sortType, size_t &selectedSong) {
     Song* curSong;
     bool hasCurrentSong = selectedSong >= 0 && selectedSong < songs.size();
     if (hasCurrentSong) {

@@ -205,21 +205,21 @@ void SettingsController::Draw() {
     DrawTextEx(assets.rubik, "Settings", {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
     GameMenu::mhDrawText(assets.redHatDisplayBlack, "CONTROLLER BINDINGS", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
 
-    float settingsOffsetX = 0.0f;
-    float EntryFontSize = u.hinpct(0.03f);
-    float EntryHeight = u.hinpct(0.06f) + 30.0f - 50.0f + 10.0f + 7.0f;
-    float EntryTop = TextPlacementTB + u.hinpct(0.15f);
-    float verticalGap = 0.0f;
-    float boxLeft = u.LeftSide + u.winpct(0.025f) + settingsOffsetX + 75.0f - 50.0f - 2.0f;
-    float boxWidth = u.wpct(boxWidthPct) + 50.0f + 17.0f + 7.0f - 2.0f - 2.0f;
-    float OptionLeft = boxLeft;
-    float OptionWidth = boxWidth;
-    Color boxBackground = Color{31, 31, 50, 255};
-    Color boxBorder = WHITE;
-    Color glowColor = Color{142, 13, 148, 220};
-    float highlightBorderWidth = 4.0f;
+    // float settingsOffsetX = 0.0f;
+    // float EntryFontSize = u.hinpct(0.03f);
+    // float EntryHeight = u.hinpct(0.06f) + 30.0f - 50.0f + 10.0f + 7.0f;
+    // float EntryTop = TextPlacementTB + u.hinpct(0.15f);
+    // float verticalGap = 0.0f;
+    // float boxLeft = u.LeftSide + u.winpct(0.025f) + settingsOffsetX + 75.0f - 50.0f - 2.0f;
+    // float boxWidth = u.wpct(boxWidthPct) + 50.0f + 17.0f + 7.0f - 2.0f - 2.0f;
+    // float OptionLeft = boxLeft;
+    // float OptionWidth = boxWidth;
+    // Color boxBackground = Color{31, 31, 50, 255};
+    // Color boxBorder = WHITE;
+    // Color glowColor = Color{142, 13, 148, 220};
+    // float highlightBorderWidth = 4.0f;
 
-    Vector2 mousePos = GetMousePosition();
+    // Vector2 mousePos = GetMousePosition();
     isHovering = false;
     /*
     TraceLog(LOG_INFO, "Rendering %zu controller entries", options.size());

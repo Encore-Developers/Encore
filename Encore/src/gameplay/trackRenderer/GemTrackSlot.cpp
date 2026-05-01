@@ -2,30 +2,30 @@
 #include "GemTrackSlot.h"
 
 #include "assets.h"
+#include "easing/easing.h"
 #include "rlgl.h"
 
 #include "Track.h"
 
 #include "song/song.h"
 
-float easeOutBounce(float x) {
-    const float n1 = 7.5625;
-    const float d1 = 2.75;
+// float easeOutBounce(float x) {
+//     const float n1 = 7.5625;
+//     const float d1 = 2.75;
 
-    if (x < 1 / d1) {
-        return n1 * x * x;
-    } else if (x < 2 / d1) {
-        return n1 * (x -= 1.5 / d1) * x + 0.75;
-    } else if (x < 2.5 / d1) {
-        return n1 * (x -= 2.25 / d1) * x + 0.9375;
-    } else {
-        return n1 * (x -= 2.625 / d1) * x + 0.984375;
-    }
-}
+//     if (x < 1 / d1) {
+//         return n1 * x * x;
+//     } else if (x < 2 / d1) {
+//         return n1 * (x -= 1.5 / d1) * x + 0.75;
+//     } else if (x < 2.5 / d1) {
+//         return n1 * (x -= 2.25 / d1) * x + 0.9375;
+//     } else {
+//         return n1 * (x -= 2.625 / d1) * x + 0.984375;
+//     }
+// }
 
 void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
-    float finalWidth = 1;
     Vector3 position = { xPos, 0.0, pos };
 
     // this is kinda nasty, just wanted a quick Thing
@@ -131,7 +131,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         overhitTimer = 0;
     }
 
-    float bounce = (1 - easeOutBounce(animTimer)) * 0.2;
+    float bounce = (1 - getEasingFunction(EaseOutBounce)(animTimer)) * 0.2;
 
     DrawModelEx(ASSET(smasherFrame),
                 { xPos, 0.025, 0 },
