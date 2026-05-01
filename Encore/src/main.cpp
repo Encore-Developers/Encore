@@ -185,6 +185,7 @@ int main(int argc, char *argv[]) {
 
     if (!SteamAPI_Init()) {
         printf("This is a Steam build of Encore - Steam must be running\n");
+        return 1;
     }
 #endif
     LocateDevAssets();
