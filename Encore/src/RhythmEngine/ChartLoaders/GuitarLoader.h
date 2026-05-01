@@ -6,6 +6,7 @@
 #define GUITARLOADER_H
 
 #include "BaseLoader.h"
+#include <queue>
 
 namespace Encore::RhythmEngine {
     class GuitarLoader final : public BaseLoader {

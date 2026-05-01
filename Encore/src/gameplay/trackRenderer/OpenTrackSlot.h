@@ -15,10 +15,10 @@ namespace Encore {
             openHitAnim = true;
         };
 
-        virtual void DrawNote(RhythmEngine::EncNote *note, bool missed);
-        virtual void DrawSustainTail(double startTime, double endTime);
-        virtual void DrawSmasher(bool held) {};
-        virtual void AnimateHit(bool perfect, Color color) {};
+        virtual void DrawNote(RhythmEngine::EncNote *note, bool missed) override;
+        virtual void DrawSustainTail(double startTime, double endTime) override;
+        virtual void DrawSmasher(bool held) override {};
+        virtual void AnimateHit(bool perfect, Color color) override {};
     };
 
 }

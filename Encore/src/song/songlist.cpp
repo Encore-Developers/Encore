@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <sstream>
 #include "util/binary.h"
 
 using json = nlohmann::json;
@@ -112,7 +113,7 @@ void SongList::sortList(SortType sortType) {
     listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
 }
 
-void SongList::sortList(SortType sortType, int &selectedSong) {
+void SongList::sortList(SortType sortType, size_t &selectedSong) {
     Song* curSong;
     bool hasCurrentSong = selectedSong >= 0 && selectedSong < songs.size();
     if (hasCurrentSong) {
@@ -332,7 +333,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
     songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
-    for (int i = 0; i < cachedSongCount; i++) {
+    for (size_t i = 0; i < cachedSongCount; i++) {
         ZoneScopedN("Song")
         CurrentChartNumber = i + 1;
         Song song;
@@ -371,7 +372,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     }
 
     SongCacheIn.close();
-    size_t loadedSongCount = songs.size();
+    // size_t loadedSongCount = songs.size();
 
 
     //if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {

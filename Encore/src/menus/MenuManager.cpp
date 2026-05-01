@@ -5,7 +5,6 @@
 #include "ReadyUpMenu.h"
 #include "SettingsAudioVideo.h"
 #include "SettingsController.h"
-#include "SettingsCredits.h"
 #include "SettingsGameplay.h"
 #include "SettingsKeyboard.h"
 #include "SettingsMenu.h"
@@ -18,7 +17,6 @@
 #include "settings/settings.h"
 #include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"
-#include "song/audio.h"
 #include "users/playerManager.h"
 #include "util/discord.h"
 #include "tracy/Tracy.hpp"
@@ -199,7 +197,6 @@ void MenuManager::DrawMenu() {
                         totalDifference += (tapTime - expectedClickTime);
                     }
                     TheGameSettings.AudioOffset = 0;
-                        static_cast<int>((totalDifference / tapTimes.size()) * 1000);
                     // Convert to milliseconds
                     std::cout
                         << static_cast<int>((totalDifference / tapTimes.size()) * 1000)
@@ -248,7 +245,7 @@ void MenuManager::DrawMenu() {
                     assets.rubikBold,
                     "Input Registered",
                     { static_cast<float>((GetRenderWidth() - u.hinpct(0.35f)) / 2),
-                      static_cast<float>(GetRenderHeight() / 2) },
+                      static_cast<float>(int(GetRenderHeight() / 2)) },
                     u.hinpct(0.05f),
                     0,
                     feedbackColor

@@ -6,11 +6,11 @@
 
 #include "GemTrackSlot.h"
 #include "assets.h"
+#include "menus/uiUnits.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
 #include "gameplay/enctime.h"
-#include "imgui.h"
 #include "KickTrackSlot.h"
 #include "OpenTrackSlot.h"
 #include "debug/EncoreDebug.h"
@@ -340,7 +340,7 @@ void Encore::Track::DrawTrackNotifications() {
         NotificationPoint,
         AnimCamera);
     float FontSize = u.hinpct(0.03f);
-    for (int i = 0; i < Notifications.size(); i++) {
+    for (size_t i = 0; i < Notifications.size(); i++) {
         if (!Notifications[i].isEvent) {
             continue;
         }
@@ -371,7 +371,6 @@ void Encore::Track::DrawCombo() {
     Units &u = Units::getInstance();
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
-    unsigned char alpha = 255;
     float FontSize = u.hinpct(0.025f);
     // float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
     float TextHeight = MeasureTextEx(ASSET(rubikBold), std::to_string(player.engine->stats->Combo).c_str(), FontSize, 0).
@@ -517,7 +516,7 @@ void Encore::Track::DrawNotes() {
         return;
     }
 
-    for (int lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
+    for (size_t lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
         std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize(lane);
         for (int curNote = NotePoolSize.second - 1; curNote >= NotePoolSize.first; curNote
              --) {
@@ -563,7 +562,7 @@ void Encore::Track::DrawSmashers() {
     ZoneScoped;
     rlEnableDepthTest();
     glClear(GL_DEPTH_BUFFER_BIT);
-    for (int i = 0; i < slots.size(); i++) {
+    for (size_t i = 0; i < slots.size(); i++) {
         auto slot = slots.at(i).get();
         slot->DrawSmasher(
             slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->
@@ -579,7 +578,7 @@ void Encore::Track::DrawBeatlines() {
             TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
         }
 
-        int beatlinePoolMaxSize = NOTE_POOL_SIZE / 4;
+        size_t beatlinePoolMaxSize = NOTE_POOL_SIZE / 4;
         size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
             ? beatlinePoolMaxSize
             : TheSongTime.Beatlines.size();
@@ -623,7 +622,7 @@ void Encore::Track::DrawBeatlines() {
 Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote &note) const {
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
-    auto append_slot = [&](int index) {
+    auto append_slot = [&](size_t index) {
         if (index >= slots.size()) {
             return;
         }
@@ -650,7 +649,7 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote &note) 
 Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask) const {
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
-    auto append_slot = [&](int index) {
+    auto append_slot = [&](size_t index) {
         if (index >= slots.size()) {
             return;
         }

@@ -70,6 +70,8 @@ void SongSelectMenu::ControllerInputCallback(
                 TheMenuManager.SwitchScreen(READY_UP);
             }
             break;
+        default: 
+            break;
         }
     }
     TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID];
@@ -371,7 +373,7 @@ void SongSelectMenu::Draw() {
         ColorBrightness(AccentColor, -0.75f)
     );
     int topOflistMenu = curSongMenuPos <= 4 ? 1 : curSongMenuPos - 4;
-    for (int listMenuPos = topOflistMenu;
+    for (size_t listMenuPos = topOflistMenu;
          listMenuPos < TheSongList.listMenuEntries.size() &&
          (listMenuPos < curSongMenuPos + (topOflistMenu <= 4 ? 10 : 6));
          listMenuPos++) {
@@ -502,7 +504,7 @@ void SongSelectMenu::Draw() {
     if (curSongMenuPos > 0 && curSongMenuPos < TheSongList.
         listMenuEntries.size()) {
         std::string categoryHeaderText = "";
-        int songIndex = curSongMenuPos;
+        size_t songIndex = curSongMenuPos;
 
         if (TheSongList.listMenuEntries[songIndex].isHeader && songIndex > 0 && !
             TheSongList.listMenuEntries[songIndex - 1].isHeader) {
@@ -760,7 +762,7 @@ void SongSelectMenu::Draw() {
     )) {
         //todo: I BROKE THE SORT BUTTON LMFAO
         // no i didnt
-        int selectedSongIndex = -1;
+        size_t selectedSongIndex = -1;
         if (TheSongList.curSong) {
             for (size_t i = 0; i < TheSongList.songs.size(); i++) {
                 if (&TheSongList.songs[i] == TheSongList.curSong) {

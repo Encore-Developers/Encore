@@ -1,7 +1,7 @@
 
 #ifndef ENCORE_TRACKSLOT_H
 #define ENCORE_TRACKSLOT_H
-#include "Track.h"
+
 #include "RhythmEngine/Notes/EncNote.h"
 #include "raylib.h"
 #include "users/ColorProfile.h"
@@ -16,7 +16,7 @@ namespace Encore {
         float length;
         ColorSlot colorSlot;
         Track *track;
-        int index = 0;
+        size_t index = 0;
 
         float overhitTimer = 0.0;
         bool openHitAnim = false;

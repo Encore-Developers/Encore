@@ -1,6 +1,7 @@
 #ifndef ENCORE_GEMTRACKSLOT_H
 #define ENCORE_GEMTRACKSLOT_H
 #include "TrackSlot.h"
+#include "particles/ParticleSystem.h"
 
 namespace Encore {
 

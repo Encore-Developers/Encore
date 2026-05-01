@@ -5,6 +5,7 @@
 
 #include "player.h"
 #include "util/discord.h"
+#include "util/enclog.h"
 
 class PlayerManager {
 public:
@@ -67,6 +68,8 @@ public:
         // WE'RE GONNA CRASH
         // WE'RE GONNA CRASH
         // WE'RE GONNA CRASH
+        Encore::EncoreLog(LOG_ERROR, "GetPlayerGamepad called. Get ready to have a headache.");
+        return *PlayerList.data();
     }
 
     void CreatePlayer(const std::string &name);

@@ -6,14 +6,10 @@
 #include "raylib.h"
 #include "midifile/MidiFile.h"
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include <unordered_map>
 #include <filesystem>
-#include <cmath>
 #include <string>
 #include <atomic>
-#include "picosha2.h"
 #include "inih/INIReader.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
@@ -307,7 +303,7 @@ public:
 
     // Coda BRE {};
     void getCodas(smf::MidiFile &midiFile) {
-        int codaCount = 0;
+        // int codaCount = 0;
         for (int track = 0; track < midiFile.getTrackCount(); track++) {
             std::string trackName;
             for (int events = 0; events < midiFile[track].getSize(); events++) {

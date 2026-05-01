@@ -7,7 +7,6 @@
 #include "raygui.h"
 #include "styles.h"
 #include "uiUnits.h"
-#include "song/audio.h"
 #include "users/playerManager.h"
 #include "OvershellHelper.h"
 #include "MenuManager.h"
@@ -16,7 +15,7 @@ void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
 
     if (event.action == Encore::RhythmEngine::Action::PRESS) {
         switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::LANE_1:
+        case Encore::RhythmEngine::InputChannel::LANE_1: {
             for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 player.engine->stats.reset();
@@ -24,6 +23,8 @@ void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                 player.engine.reset();
             }
             TheMenuManager.SwitchScreen(SONG_SELECT);
+        } break;
+        default:
             break;
         }
     }

@@ -5,6 +5,7 @@
 #include "OpenTrackSlot.h"
 
 #include "assets.h"
+#include "Track.h"
 
 void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     auto pos = track->GetNotePos3D(note->StartSeconds);

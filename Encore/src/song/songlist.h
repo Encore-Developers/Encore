@@ -90,7 +90,7 @@ public:
     void sortList(SortType sortType);
 
     // for when you have a song selected and want to keep that position in song list
-    void sortList(SortType sortType, int &selectedSong);
+    void sortList(SortType sortType, size_t &selectedSong);
 
     void WriteCache();
 

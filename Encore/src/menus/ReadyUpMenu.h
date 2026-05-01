@@ -16,8 +16,8 @@ class ReadyUpMenu : public OvershellMenu {
 
     std::array<ReadyUpMenuState, 4> SlotState{ INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
     std::array<bool, 4> ReadyState{ false, false, false, false };
-    std::array<int, 4> ControllerDiffSlot{ 0, 0, 0, 0 };
-    std::array<int, 4> ControllerInstSlot{ 0, 0, 0, 0 };
+    std::array<uint8_t, 4> ControllerDiffSlot{ 0, 0, 0, 0 };
+    std::array<uint8_t, 4> ControllerInstSlot{ 0, 0, 0, 0 };
 
     std::array<std::vector<int>, 4> PartsToDisplay = {};
 public:

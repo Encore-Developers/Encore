@@ -20,7 +20,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
         if (playerId == -1) continue;
         auto &player = ThePlayerManager.GetActivePlayer(i);
         if (player.joypadID != event.slot) continue;
-        if (event.slot == -1) return;
+        if (event.slot == std::numeric_limits<unsigned int>::max()) return;
         if (event.action == Encore::RhythmEngine::Action::PRESS) {
             switch (event.channel) {
             case Encore::RhythmEngine::InputChannel::STRUM_UP: {
@@ -35,6 +35,8 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
 
                     if (ControllerDiffSlot[i] > 4) ControllerDiffSlot[i] = 4;
                     break;
+                default:
+                    break;
                 }
                 break;
             }
@@ -47,6 +49,8 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                 case DIFFICULTY:
                     ControllerDiffSlot[i]--;
                     if (ControllerDiffSlot[i] < 0) ControllerDiffSlot[i] = 0;
+                    break;
+                default:
                     break;
                 }
                 break;
@@ -61,6 +65,8 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                     SlotState[i] = READY;
                     player.Difficulty = ControllerDiffSlot[i];
                     ReadyState[i] = true;
+                    break;
+                default:
                     break;
                 }
                 break;
@@ -81,6 +87,8 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                     break;
                 }
             }
+            default:
+                break;
             }
         }
     }
@@ -244,7 +252,7 @@ void ReadyUpMenu::Draw() {
                 break;
             }
 
-            for (int i = 0; i < PartsToDisplay[playerInt].size(); i++) {
+            for (size_t i = 0; i < PartsToDisplay[playerInt].size(); i++) {
                 if (ControllerInstSlot[playerInt] >= PartsToDisplay[playerInt].size()) {
                     ControllerInstSlot[playerInt] = PartsToDisplay[playerInt].size() - 1;
                 }
@@ -416,7 +424,7 @@ void ReadyUpMenu::Load() {
     for (int playerInt = 0; playerInt < 4; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
-        for (int i = 0; i < TheSongList.curSong->parts.size(); i++) {
+        for (size_t i = 0; i < TheSongList.curSong->parts.size(); i++) {
             if (TheSongList.curSong->parts[i]->Valid) {
                 PartsToDisplay[playerInt].push_back(i);
             }
