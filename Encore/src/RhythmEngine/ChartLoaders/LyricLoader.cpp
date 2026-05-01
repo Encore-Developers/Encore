@@ -51,12 +51,13 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
         if (!(event[1] == 1 || event[1] == 5))
             continue;
         IteratePhrases(event.tick);
-        if (CurrentPhrase == 0) {
-            Encore::EncoreLog(
-                LOG_DEBUG, "chart has at least one lyricless vox note. report to charter"
-            );
-            continue;
-        }
+        if (lyrics.empty()) break;
+        // if (CurrentPhrase == 0) {
+        //     Encore::EncoreLog(
+        //         LOG_DEBUG, "chart has at least one lyricless vox note. report to charter"
+        //     );
+        //     continue;
+        // }
         std::string lyric = "";
 
         bool talkie = false;
