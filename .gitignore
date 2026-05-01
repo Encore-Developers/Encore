@@ -7,6 +7,8 @@ CMakeFiles/
 .DS_Store
 out
 Encore/Songs/*
+Encore/thirdparty/steam
+Encore/lib/steam
 !Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/
 !Encore/Songs/Synthfox Soundworks - Untitled Chords Thing/*
 cmake-build-debug/

@@ -45,6 +45,10 @@ endif()
 option(JSON_Diagnostics "" ON)
 
 option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
+
+# Place Steamworks SDK headers in thirdparty/steam
+# Place Steamworks API redistributables in lib/steam
+option(STEAM "Compile Steam API support" OFF)
 set(SDL_X11_XSCRNSAVER OFF CACHE BOOL "" FORCE)
 
 set(SDL_STATIC ON)
@@ -74,6 +78,9 @@ file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include" "src" "include/rlImGui" "include/imgui")
+if(STEAM)
+  target_include_directories(Encore PRIVATE "thirdparty/steam")
+endif()
 if(WIN32)
   if (CMAKE_SIZEOF_VOID_P EQUAL 4)
     find_library(DISCORD_GAME_SDK NAMES discord_game_sdk PATHS "lib/discord-rpc/windows/x86/")
@@ -90,6 +97,10 @@ if(WIN32)
     file(COPY "lib/bass/windows/x64/bass.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/windows/x64/")
     file(COPY "lib/bass/windows/x64/bassopus.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    if(STEAM)
+      find_library(STEAMAPI NAMES steam_api PATHS "lib/steam/win64/")
+      file(COPY "lib/steam/win64/steam_api64.dll" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    endif()
   endif()
   target_compile_definitions(${PROJECT_NAME} PRIVATE
           "-DGLFW_EXPOSE_NATIVE_WIN32")
@@ -102,6 +113,10 @@ if(UNIX AND NOT APPLE)
     file(COPY "lib/bass/linux/x86_64/libbass.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
     find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/linux/x86_64")
     file(COPY "lib/bass/linux/x86_64/libbassopus.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    if(STEAM)
+      find_library(STEAMAPI NAMES steam_api PATHS "lib/steam/linux64/")
+      file(COPY "lib/steam/linux64/libsteam_api.so" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+    endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath='$ORIGIN'")
   endif()
   target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -116,6 +131,10 @@ if(APPLE)
   file(COPY "lib/bass/macos/libbass.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   find_library(BASSOPUS NAMES bassopus PATHS "lib/bass/macos")
   file(COPY "lib/bass/macos/libbassopus.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  if(STEAM)
+    find_library(STEAMAPI NAMES steam_api PATHS "lib/steam/osx/")
+    file(COPY "lib/steam/osx/libsteam_api.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  endif()
   add_custom_command(TARGET Encore
           POST_BUILD COMMAND
           ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path"
@@ -156,9 +175,15 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DBUILDDATE=\"${BUILDDATE}\"")
 
+if(STEAM)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE
+          "-DSTEAM")
+  file(WRITE ${CMAKE_BINARY_DIR}/Encore/steam_appid.txt "4691230")
+endif()
+
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 
-target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} SDL3::SDL3 Tracy::TracyClient)
+target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} ${STEAMAPI} SDL3::SDL3 Tracy::TracyClient)
 

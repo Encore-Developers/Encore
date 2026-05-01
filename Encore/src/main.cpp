@@ -16,6 +16,10 @@
 
 #include "settings/keybinds.h"
 #include "song/cacheload.h"
+
+#ifdef STEAM
+#include "steam_api.h"
+#endif
 #define assertm(exp, msg) assert((void(msg), exp))
 
 #define RAYGUI_IMPLEMENTATION
@@ -173,6 +177,16 @@ bool imGuiLoaded = false;
 ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
+
+#ifdef STEAM
+    if (SteamAPI_RestartAppIfNecessary(4691230)) {
+        return 1;
+    }
+
+    if (!SteamAPI_Init()) {
+        printf("This is a Steam build of Encore - Steam must be running\n");
+    }
+#endif
     LocateDevAssets();
 
     ArgumentList::InitArguments(argc, argv);
