@@ -4,13 +4,11 @@
 
 #ifndef NOTEVECTOR_H
 #define NOTEVECTOR_H
-#include "REenums.h"
+
 #include "Notes/EncNote.h"
 #include "RhythmEngine/events/EncEventVects/EventVectors.h"
 
-#include <array>
-#include <memory>
-#include <queue>
+#include <deque>
 #include <vector>
 
 inline std::vector<std::vector<int> > pDiffNotes = { { 60, 61, 62, 63, 64 },
@@ -53,7 +51,7 @@ namespace Encore::RhythmEngine {
             CurrentNoteIterators.resize(5);
             HeldNotePointers.resize(5);
         };
-        unsigned char size;
+        uint8_t size;
         NoteVector &operator[](const int i) { return this->Lanes.at(i); }
         NoteVector &at(const int i) { return this->Lanes.at(i); }
         std::vector<NoteVector> Lanes;
@@ -100,10 +98,10 @@ namespace Encore::RhythmEngine {
          * reset notes
          */
         void Reset(int lane) {
-            for (int i = 0; i < CurrentNoteIterators.size(); i++) {
+            for (size_t i = 0; i < CurrentNoteIterators.size(); i++) {
                 CurrentNoteIterators.at(i) = Lanes.at(i).begin();
             }
-            for (int i = 0; i < HeldNotePointers.size(); i++) {
+            for (size_t i = 0; i < HeldNotePointers.size(); i++) {
                 HeldNotePointers.at(i) = nullptr;
             }
         }

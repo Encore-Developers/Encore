@@ -4,6 +4,7 @@
 
 #include "DrumsLoader.h"
 
+#include "RhythmEngine/REenums.h"
 #include <regex>
 
 #include "song/scoring.h"

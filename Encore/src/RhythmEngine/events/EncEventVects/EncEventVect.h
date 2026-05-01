@@ -4,12 +4,13 @@
 
 #ifndef ENCEVENTVEC_H
 #define ENCEVENTVEC_H
+
 #include <vector>
 
 template <typename t>
 struct EncEventVect : std::vector<t> {
     virtual ~EncEventVect() = default;
-    int CurrentEvent = 0;
+    size_t CurrentEvent = 0;
 
     t &operator=(int event) { return this->at(event); }
 

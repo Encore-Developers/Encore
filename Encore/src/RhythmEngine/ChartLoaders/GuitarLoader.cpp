@@ -4,6 +4,7 @@
 
 #include "GuitarLoader.h"
 
+#include "RhythmEngine/REenums.h"
 #include "song/scoring.h"
 std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
 

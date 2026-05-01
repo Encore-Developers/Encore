@@ -3,6 +3,7 @@
 //
 
 #include "PadLoader.h"
+#include "RhythmEngine/REenums.h"
 
 #include "song/scoring.h"
 
@@ -40,7 +41,9 @@ void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].EndTick <= event.tick)
+            && chart.overdrive[CurrentOverdrive].StartTick
+                    + chart.overdrive[CurrentOverdrive].EndTick
+                <= event.tick)
             CurrentOverdrive++;
     }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
@@ -81,7 +84,12 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
     }
     chart[GetEventLane(Difficulty, event)].emplace_back(
 
-        event.tick, lengthTicks, event.seconds, lengthSec, GetNoteType(event), PlasticFrets[GetEventLane(Difficulty, event)]
+        event.tick,
+        lengthTicks,
+        event.seconds,
+        lengthSec,
+        GetNoteType(event),
+        PlasticFrets[GetEventLane(Difficulty, event)]
 
     );
     // i hate how solos need note counts before entering lol

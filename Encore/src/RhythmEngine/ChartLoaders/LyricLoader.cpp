@@ -3,6 +3,8 @@
 //
 
 #include "LyricLoader.h"
+#include "raylib.h"
+#include "util/enclog.h"
 
 void Encore::RhythmEngine::LyricLoader::LoadLyrics() {
     if (midiFile) {
@@ -86,7 +88,7 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
             talkie = true;
             break;
         }
-        for (int i = 0; i < lyric.size() - 1; i++) {
+        for (size_t i = 0; i < lyric.size() - 1; i++) {
             static const char *sectionSym = "§";
             if (lyric[i] == sectionSym[0] && lyric[i + 1] == sectionSym[1]) {
                 lyric.erase(lyric.begin() + i);
