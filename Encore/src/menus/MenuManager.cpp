@@ -45,42 +45,49 @@ void MenuManager::LoadMenu() {
         // cases.
     case MAIN_MENU: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new MainMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGS: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSAUDIOVIDEO: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsAudioVideo;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSGAMEPLAY: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsGameplay;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSKEYBOARD: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsKeyboard;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSCONTROLLER: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsController;
         ActiveMenu->Load();
         break;
     }
     case RESULTS: {
         TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusResults");
         ActiveMenu = new resultsMenu;
         ActiveMenu->Load();
         break;
@@ -88,12 +95,14 @@ void MenuManager::LoadMenu() {
     case SONG_SELECT: {
         // glfwSetGamepadStateCallback(gamepadStateCallback);
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SongSelectMenu;
         ActiveMenu->Load();
         break;
     }
     case READY_UP: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new ReadyUpMenu;
         ActiveMenu->Load();
         break;
@@ -105,6 +114,7 @@ void MenuManager::LoadMenu() {
     }
     case CACHE_LOADING_SCREEN: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new cacheLoadingScreen;
         ActiveMenu->Load();
         break;
@@ -112,6 +122,7 @@ void MenuManager::LoadMenu() {
     case CHART_LOADING_SCREEN: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",
             ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new ChartLoadingMenu;
         ActiveMenu->Load();
         break;
@@ -123,6 +134,8 @@ void MenuManager::LoadMenu() {
             ThePlayerManager.GetActivePlayer(0).Instrument,
             ThePlayerManager.PlayersActive
         );
+        TheGameRPC.SteamUpdatePresence("song", (TheSongList.curSong->title + " - " + TheSongList.curSong->artist).c_str());
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusPlayingSongNamed");
 
         ActiveMenu = new GameplayMenu;
         ActiveMenu->Load();

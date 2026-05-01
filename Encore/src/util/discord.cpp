@@ -3,6 +3,10 @@
 //
 
 #include "discord.h"
+
+#ifdef STEAM
+#include "isteamfriends.h"
+#endif
 #include "discord-rpc/core.h"
 #include <array>
 #include <ctime>
@@ -53,6 +57,11 @@ void Encore::Discord::Update() {
     if (!Initialized)
         return;
     core->RunCallbacks();
+}
+void Encore::Discord::SteamUpdatePresence(const char *key, const char *value) {
+#ifdef STEAM
+    SteamFriends()->SetRichPresence(key, value);
+#endif
 }
 
 void Encore::Discord::DiscordUpdatePresence(const std::string &title, const std::string &details, int players) {
