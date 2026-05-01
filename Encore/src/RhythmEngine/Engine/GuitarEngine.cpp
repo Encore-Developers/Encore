@@ -9,7 +9,6 @@
 #include "song/scoring.h"
 
 #include <bit>
-#include <filesystem>
 
 #include "song/audio.h"
 
@@ -47,8 +46,7 @@ bool HittableAsStrum(int NoteType, bool FAS, double inputTime, double FASTime) {
 bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &event
 ) {
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
-        int InstrumentNum =
-            stats->Type == Guitar ? inst - 5 : inst;
+        // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
         if (stats->overdrive.Activate(stats->InputTime)) {
             HighwayBounceEvent HBevent;
             FireEvent(&HBevent);
@@ -106,8 +104,7 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     bool odWasActive = stats->overdrive.Active;
     stats->overdrive.Update(CurrentTime);
     if (odWasActive == true && odWasActive != stats->overdrive.Active) {
-        int InstrumentNum =
-            stats->Type == Guitar ? inst - 5 : inst;
+        // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
         TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
         EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
     }

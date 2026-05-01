@@ -136,7 +136,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         lengthSec = 0;
     }
     if (lengthTicks > 0) {
-        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
+        chart.BaseScore += static_cast<double>(int(lengthTicks / 480)) * BASE_SCORE_SUSTAIN_POINTS;
         lengthTicks -= 1;
     }
     if (!OpenMarker.empty()) {

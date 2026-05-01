@@ -61,12 +61,12 @@ namespace Encore::RhythmEngine {
         // run these few things:
         // midiFile.absoluteTicks();
         // midiFile.doTimeAnalysis();
-        BaseLoader(int diff_, int thresh_, smf::MidiFile* midiFile_) : Difficulty(diff_), Threshold(thresh_), midiFile(midiFile_) {}
+        BaseLoader(int diff_, int thresh_, smf::MidiFile* midiFile_) : midiFile(midiFile_), Difficulty(diff_), Threshold(thresh_){}
 
-        int CurrentSolo = 0;
-        int CurrentOverdrive = 0;
-        int CurrentTrill = 0;
-        int CurrentRoll = 0;
+        size_t CurrentSolo = 0;
+        size_t CurrentOverdrive = 0;
+        size_t CurrentTrill = 0;
+        size_t CurrentRoll = 0;
 
         smf::MidiFile* midiFile;
         BaseChart chart;

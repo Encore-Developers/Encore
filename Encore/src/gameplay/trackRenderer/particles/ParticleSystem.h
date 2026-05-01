@@ -7,7 +7,6 @@
 #define SHOCKWAVE_LIFETIME 0.3f
 
 #include "raylib.h"
-#include "../Track.h"
 
 namespace Encore {
 

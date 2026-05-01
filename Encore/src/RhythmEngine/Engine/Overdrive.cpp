@@ -2,9 +2,12 @@
 // Created by maria on 26/08/2025.
 //
 
+#include "Overdrive.h"
+#include "assets.h"
 #include "gameplay/enctime.h"
+#include "settings/settings.h"
+#include "song/audio.h"
 #include "util/enclog.h"
-#include "BaseStats.h"
 #include "RhythmEngine/NoteVector.h"
 
 void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {

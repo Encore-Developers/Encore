@@ -5,7 +5,6 @@
 #ifndef BASESTATS_H
 #define BASESTATS_H
 #include <array>
-#include <vector>
 #include "Overdrive.h"
 #include "assets.h"
 #include "settings/settings.h"

@@ -1,14 +1,11 @@
 #pragma once
 #include "raylib.h"
-#include "menus/uiUnits.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
 
 #include <cassert>
-#include <atomic>
 #include <filesystem>
 #include <functional>
-#include <map>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -68,8 +65,8 @@ public:
     }
 
     Asset(Asset &&other) noexcept
-        : id(std::move(other.id)),
-          state(state),
+        : state(other.state),
+          id(std::move(other.id)),
           loadingThread() {
     }
 
@@ -683,7 +680,7 @@ public:
                                     "offset",
                                     "scale"
                                 },
-                                [this](Shader* shader) {
+                                [](Shader* shader) {
                                 });
 
     NEWLEGACYMODELASSET(indicatorRing, "gameplay/track/multiplier/indicator_ring.obj",
@@ -725,7 +722,7 @@ public:
                                     "offset",
                                     "scale"
                                 },
-                                [this](Shader* shader) {
+                                [](Shader* shader) {
                                 });
 
     NEWTEXASSET(multNumTex, "gameplay/track/multiplier/mult_number.png");
@@ -780,7 +777,7 @@ public:
 
     void StartLoad() {
         ZoneScoped
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (asset->state == UNLOADED) {
                 asset->StartLoad();
@@ -791,7 +788,7 @@ public:
     bool PollLoaded(bool doFinalize = false) {
         ZoneScoped
         bool loaded = true;
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (!asset->CanFetch()) {
                 loaded = false;
@@ -805,7 +802,7 @@ public:
 
     int CountLoaded() {
         int loaded = 0;
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             if (assets[i]->CanFetch()) {
                 loaded++;
             }
@@ -825,7 +822,7 @@ public:
         ZoneScoped
         while (!PollLoaded()) {
         }
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             // This finalizes any assets that need it
             // We're blocking anyways so why not
             assets[i]->CheckForFetch();
@@ -834,7 +831,7 @@ public:
 
     void LoadImmediate() {
         ZoneScoped
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             assets[i]->LoadImmediate();
             if (assets[i]->state == PREFINALIZED) {
                 assets[i]->CheckForFetch();

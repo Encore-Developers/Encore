@@ -67,16 +67,16 @@ private:
 
 public:
     std::vector<OverdriveTick> OverdriveTicks {};
-    int CurrentODTickItr;
+    size_t CurrentODTickItr;
     std::vector<BPM> BPMChanges {};
-    int CurrentBPM;
+    size_t CurrentBPM;
     std::vector<TimeSig> TimeSigChanges {};
-    int CurrentTimeSig;
+    size_t CurrentTimeSig;
     std::vector<Beatline> Beatlines {};
-    int CurrentBeatline;
+    size_t CurrentBeatline;
 
     std::vector<Section> Sections {};
-    int CurrentLyricPhrase = 0;
+    size_t CurrentLyricPhrase = 0;
     std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
 
     SongTime() = default;
