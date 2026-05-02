@@ -45,6 +45,29 @@ void SongSelectMenu::ScrollSongSelect(int val) {
     // prevent going past bottom
     if (curSongMenuPos >= TheSongList.listMenuEntries.size())
         curSongMenuPos = TheSongList.listMenuEntries.size()-1;
+
+    if (val != 0) {
+        TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID];
+
+        if (!TheAudioManager.loadedStreams.empty()) {
+            for (auto &stream : TheAudioManager.loadedStreams) {
+                TheAudioManager.StopPlayback(stream.handle);
+            }
+            TheAudioManager.loadedStreams.clear();
+            currentPreviewVolume = 0.0f;
+            previewState = PreviewState::FadeIn;
+        }
+        selectionTime = curTime;
+
+        if (!TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded) {
+            try {
+                TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
+                TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded = true;
+            } catch (const std::exception &e) {
+                Encore::EncoreLog(LOG_ERROR, e.what());
+            }
+        }
+    }
 }
 
 void SongSelectMenu::ControllerInputCallback(
@@ -74,26 +97,7 @@ void SongSelectMenu::ControllerInputCallback(
             break;
         }
     }
-    TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID];
 
-    if (!TheAudioManager.loadedStreams.empty()) {
-        for (auto &stream : TheAudioManager.loadedStreams) {
-            TheAudioManager.StopPlayback(stream.handle);
-        }
-        TheAudioManager.loadedStreams.clear();
-        currentPreviewVolume = 0.0f;
-        previewState = PreviewState::FadeIn;
-    }
-    selectionTime = curTime;
-
-    if (!TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded) {
-        try {
-            TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
-            TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded = true;
-        } catch (const std::exception &e) {
-            Encore::EncoreLog(LOG_ERROR, e.what());
-        }
-    }
 }
 
 void SongSelectMenu::Load() {
@@ -247,6 +251,10 @@ void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units u = Units::getInstance();
 
+    Vector2 mouseWheel = GetMouseWheelMoveV();
+    // Update song select offset based on mouse wheel
+    ScrollSongSelect(mouseWheel.y);
+
     curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
     if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime - selectionTime >= 0.75) {
@@ -281,33 +289,9 @@ void SongSelectMenu::Draw() {
 
     UpdatePreviewVolume(curTime);
 
-    Vector2 mouseWheel = GetMouseWheelMoveV();
-    // Update song select offset based on mouse wheel
-    ScrollSongSelect(mouseWheel.y);
 
-    if (curSongMenuPos != TheSongList.curSong->songListPos) {
-        if (TheSongList.listMenuEntries[curSongMenuPos].songListID) {
-            TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID];
-            if (!TheAudioManager.loadedStreams.empty()) {
-                for (auto &stream : TheAudioManager.loadedStreams) {
-                    TheAudioManager.StopPlayback(stream.handle);
-                }
-                TheAudioManager.loadedStreams.clear();
-                currentPreviewVolume = 0.0f;
-                previewState = PreviewState::FadeIn;
-            }
-            selectionTime = curTime;
 
-            if (!TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded) {
-                try {
-                    TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
-                    TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded = true;
-                } catch (const std::exception &e) {
-                    Encore::EncoreLog(LOG_ERROR, e.what());
-                }
-            }
-        }
-    }
+
     // todo(3drosalia): clean this shit up after changing it
     static Song blankSong = Song();
     Song *SongToDisplayInfo = TheSongList.curSong ? TheSongList.curSong : &blankSong;
@@ -775,7 +759,7 @@ void SongSelectMenu::Draw() {
         TheSongList.sortList(currentSortValue, selectedSongIndex);
         if (selectedSongIndex >= 0 && selectedSongIndex < TheSongList.songs.size()) {
             TheSongList.curSong = &TheSongList.songs[selectedSongIndex];
-            curSongMenuPos = TheSongList.curSong->songListPos - 5;
+            curSongMenuPos = TheSongList.curSong->songListPos - 6 ;
             if (curSongMenuPos < 1)
                 curSongMenuPos = 1;
             if (curSongMenuPos > TheSongList.listMenuEntries.size())
