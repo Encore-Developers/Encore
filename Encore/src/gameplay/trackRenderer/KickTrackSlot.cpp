@@ -9,21 +9,20 @@
 #include "rlgl.h"
 
 // TODO: don't duplicate this function
+// note: do not change this function i dont know why but it eats shit and dies when
+//       warnings are removed
 float easeOutBounceKick(float x) {
-    const float n1 = 7.5625;
-    const float d1 = 2.75;
+    constexpr float n1 = 7.5625f;
+    constexpr float d1 = 2.75f;
 
     if (x < 1 / d1) {
         return n1 * x * x;
-    } else if (x < 2 / d1) {
-        float old_x = x -= 1.5;
-        return n1 * (old_x / d1) * x + 0.75;
-    } else if (x < 2.5 / d1) {
-        float old_x = x -= 2.25;
-        return n1 * (old_x / d1) * x + 0.9375;
+    } else if (x < 2.0f / d1) {
+        return n1 * (x -= 1.5f / d1) * x + 0.75f;
+    } else if (x < 2.5f / d1) {
+        return n1 * (x -= 2.25f / d1) * x + 0.9375f;
     } else {
-        float old_x = x -= 2.625;
-        return n1 * (old_x / d1) * x + 0.984375;
+        return n1 * (x -= 2.625f / d1) * x + 0.984375f;
     }
 }
 
