@@ -7,6 +7,10 @@
 #define PI 3.1415926545
 #endif
 
+double abs(double t) {
+    return t < 0 ? -t : t;
+}
+
 double linear( double t ) {
     return t;
 }

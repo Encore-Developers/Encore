@@ -120,7 +120,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     }
 
     if (animTimer < 1) {
-        animTimer += GetFrameTime() * 5;
+        animTimer += GetFrameTime() * 4;
     } else {
         animTimer = 1;
     }
@@ -131,7 +131,9 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         overhitTimer = 0;
     }
 
-    float bounce = (1 - getEasingFunction(EaseOutBounce)(animTimer)) * 0.2;
+    static auto easeOutBounce = getEasingFunction(EaseOutBounce);
+    double ease = easeOutBounce(animTimer);
+    float bounce = (1 - ease) * 0.32;
 
     DrawModelEx(ASSET(smasherFrame),
                 { xPos, 0.025, 0 },
