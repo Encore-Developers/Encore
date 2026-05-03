@@ -161,7 +161,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         lane
     );
     if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick <= chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
             chart.solos[CurrentSolo].NoteCount++;
         }
     }

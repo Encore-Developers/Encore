@@ -97,12 +97,12 @@ void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) 
         event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[lane]
     );
     if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
             chart.solos[CurrentSolo].NoteCount++;
         }
     }
     if (!chart.overdrive.empty()) {
-        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick) {
+        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick && event.tick < chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength) {
             chart.overdrive[CurrentOverdrive].NoteCount++;
         }
     }

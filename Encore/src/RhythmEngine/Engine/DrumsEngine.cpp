@@ -104,6 +104,7 @@ void Encore::RhythmEngine::DrumsEngine::HitNote(int lane) {
 }
 
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
+    chart->solos.CheckEvents(CurrentTime);
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {

@@ -94,12 +94,12 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
     );
     // i hate how solos need note counts before entering lol
     if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick  && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
             chart.solos[CurrentSolo].NoteCount++;
         }
     }
     if (!chart.overdrive.empty()) {
-        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick) {
+        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick && event.tick < chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength) {
             chart.overdrive[CurrentOverdrive].NoteCount++;
         }
     }
