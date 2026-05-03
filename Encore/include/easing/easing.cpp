@@ -7,12 +7,6 @@
 #define PI 3.1415926545
 #endif
 
-#ifndef __APPLE__
-double abs(double t) {
-    return t < 0 ? -t : t;
-}
-#endif
-
 double linear( double t ) {
     return t;
 }
@@ -166,18 +160,18 @@ double easeInOutElastic( double t ) {
 }
 
 double easeInBounce( double t ) {
-    return pow( 2, 6 * (t - 1) ) * abs( sin( t * PI * 3.5 ) );
+    return pow( 2, 6 * (t - 1) ) * fabs( sin( t * PI * 3.5 ) );
 }
 
 double easeOutBounce( double t ) {
-    return 1 - pow( 2, -6 * t ) * abs( cos( t * PI * 3.5 ) );
+    return 1 - pow( 2, -6 * t ) * fabs( cos( t * PI * 3.5 ) );
 }
 
 double easeInOutBounce( double t ) {
     if( t < 0.5 ) {
-        return 8 * pow( 2, 8 * (t - 1) ) * abs( sin( t * PI * 7 ) );
+        return 8 * pow( 2, 8 * (t - 1) ) * fabs( sin( t * PI * 7 ) );
     } else {
-        return 1 - 8 * pow( 2, -8 * t ) * abs( sin( t * PI * 7 ) );
+        return 1 - 8 * pow( 2, -8 * t ) * fabs( sin( t * PI * 7 ) );
     }
 }
 
