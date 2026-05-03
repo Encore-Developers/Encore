@@ -20,8 +20,11 @@
 
 #include <raylib.h>
 
+#include "gameplay/LyricRenderer.h"
 #include "settings/keybinds.h"
 #include "tracy/Tracy.hpp"
+
+Encore::LyricRenderer TheLyricRenderer;
 
 GameplayMenu::GameplayMenu() {
     hasOvershell = false;
@@ -52,7 +55,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
         if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.
             overdriveBinds.second) {
             event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
-            }
+        }
         if (!player.Bot) {
             if (player.bindingType != PAD) {
                 if (key == TheGameKeybinds.strumBinds.first) {
@@ -61,13 +64,16 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
                     event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
                 }
             }
-            int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
+            int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals)
+                ? 5
+                : 4;
 
             for (int i = 0; i < DiffMax; i++) {
-                if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
-                    i]) {
+                if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.
+                    keybinds5kalt[
+                        i]) {
                     event.channel = Encore::RhythmEngine::IntIC(i);
-                    }
+                }
             }
             if (key == KEY_ESCAPE && action == GLFW_PRESS) {
                 event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
@@ -313,7 +319,9 @@ void GameplayMenu::Draw() {
         GetRenderHeight(),
         Color{ 255, 255, 255, BackgroundColor }
     );
-    double EndTime = TheSongList.curSong->end == 0.0 ? TheSongTime.GetSongLength() : TheSongList.curSong->end;
+    double EndTime = TheSongList.curSong->end == 0.0
+        ? TheSongTime.GetSongLength()
+        : TheSongList.curSong->end;
     if (TheSongTime.GetElapsedTime() > EndTime - 1) {
         // TODO: endgame
         TheSongTime.Reset();
@@ -355,71 +363,17 @@ void GameplayMenu::Draw() {
     // int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     // int flashInterval = (numer * 480) / denom;
-
-    if (!TheSongTime.Lyrics.empty()) {
-        ZoneScopedN("Lyrics Display")
-        float baselineVox = u.hpct(0.0025f) + u.hinpct(0.05f);
-        float voxHeight = u.hinpct(0.06f);
-        float FontSize = u.hinpct(0.0425f);
-        float padding = (voxHeight - FontSize) / 2;
-        // god forbid i have a proper ui library
-        float LyricLeft = 0;
-        std::string playedText = "";
-        std::string unplayedText = "";
-        // Color lyricColor = WHITE;
-        auto font = ASSETPTR(rubikBold);
-        for (const auto& lyric : TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).lyrics) {
-            if (lyric.StartSec < TheSongTime.GetElapsedTime()) {
-                playedText += lyric.Lyric;
-            } else {
-                unplayedText += lyric.Lyric;
-            }
-            // also this needs to be fixed (talkies dont display properly)
-            //if (lyric.talkie)
-            //    font = ASSETPTR(rubikBoldItalic);
-        }
-        // before i even CONSIDER going further with things like animations or fade or ANYTHING. this should be put somewhere but here.
-        Rectangle imageRec {0, 0, float(ASSET(mainLyricBar).width), float(ASSET(mainLyricBar).height)};
-        Rectangle dest {0, baselineVox, float(GetScreenWidth()), voxHeight};
-        LyricLeft += int(GetScreenWidth() / 2) - (MeasureTextEx(*font, (playedText + unplayedText).c_str(), FontSize, 0).x / 2);
-        DrawTexturePro(ASSET(mainLyricBar), imageRec, dest, {0, 0}, 0, WHITE);
-        GameMenu::mhDrawText(*font, playedText, {LyricLeft, baselineVox + padding}, FontSize, {119,183,255,255}, ASSET(sdfShader), LEFT);
-        LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
-        GameMenu::mhDrawText(*font, unplayedText, {LyricLeft, baselineVox + padding}, FontSize, WHITE, ASSET(sdfShader), LEFT);
-
-        if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
-            ZoneScopedN("Secondary Lyrics Display")
-            float topBelow = baselineVox + voxHeight;
-            float SecFontSize = FontSize * 0.75f;
-            float SecVoxSize = voxHeight * 0.75f;
-            float secPadding = (SecVoxSize - SecFontSize) / 2;
-            std::string lyricStr = "";
-            font = ASSETPTR(rubik);
-            for (const auto& lyric : TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase+1).lyrics) {
-                lyricStr += lyric.Lyric;
-            }
-            imageRec = {0, 0, float(ASSET(secLyricBar).width), float(ASSET(secLyricBar).height)};
-            dest = {0, topBelow, float(GetScreenWidth()), SecVoxSize};
-            LyricLeft = int(GetScreenWidth() / 2) - (MeasureTextEx(*font, (lyricStr).c_str(), SecFontSize, 0).x / 2);
-            DrawTexturePro(ASSET(secLyricBar), imageRec, dest, {0, 0}, 0, WHITE);
-            GameMenu::mhDrawText(*font, lyricStr, {LyricLeft, topBelow + secPadding}, SecFontSize, LIGHTGRAY, ASSET(sdfShader), LEFT);
-        }
-
-        if (TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).EndSec < TheSongTime.GetElapsedTime()) {
-            if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
-                TheSongTime.CurrentLyricPhrase++;
-            }
-        }
-    }
-
+    TheLyricRenderer.RenderLyrics();
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
         {
             ZoneScopedN("Engine Update")
-            if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !player.engine->practice) {}
-                player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
+            if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
+                player.engine->practice) {
+            }
+            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }
 
@@ -510,8 +464,10 @@ void GameplayMenu::Draw() {
     // there's better ways. forgive me for I have sinned
 
     if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5
-        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.5 + SongNameDuration) {
-        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime() + 7.5);
+        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.5 +
+        SongNameDuration) {
+        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime()
+            + 7.5);
         SongNameAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
                 getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
@@ -530,12 +486,15 @@ void GameplayMenu::Draw() {
             35,
             -SongNameWidth
         );
-    } else if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5 + SongNameDuration)
+    } else if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5 +
+        SongNameDuration)
         SongNameAlpha = 0;
 
     if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.75
-        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
-        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime() + 7.75);
+        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 +
+        SongNameDuration) {
+        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime()
+            + 7.75);
         SongArtistAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
                 getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
@@ -557,10 +516,11 @@ void GameplayMenu::Draw() {
         );
     }
 
-
     if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 8
-        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 8 + SongNameDuration) {
-        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime() + 8);
+        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 8 +
+        SongNameDuration) {
+        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime()
+            + 8);
         SongExtrasAlpha = static_cast<unsigned char>(Remap(
             static_cast<float>(
                 getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
@@ -590,7 +550,8 @@ void GameplayMenu::Draw() {
             -SongExtrasWidth
         );
     }
-    if (TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 + SongNameDuration) {
+    if (TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 +
+        SongNameDuration) {
         DrawRectangleGradientH(
             0,
             u.hpct(0.19f),

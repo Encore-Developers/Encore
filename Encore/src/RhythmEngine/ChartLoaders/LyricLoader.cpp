@@ -16,6 +16,8 @@ void Encore::RhythmEngine::LyricLoader::LoadLyrics() {
 
 void Encore::RhythmEngine::LyricLoader::GetPhrases(smf::MidiEventList *midiEventList) {
     midiEventList->linkNotePairs();
+    EncLyricPhrase fakefirst;
+    lyrics.emplace_back(fakefirst);
     for (int eventInt = 0; eventInt < midiEventList->size(); eventInt++) {
         smf::MidiEvent &event = midiEventList->operator[](eventInt);
         if (!lyrics.empty()) {
@@ -23,6 +25,10 @@ void Encore::RhythmEngine::LyricLoader::GetPhrases(smf::MidiEventList *midiEvent
                 continue;
         }
         if ((event[1] == 105 || event[1] == 106) && event.isNoteOn()) {
+            if (lyrics.size() == 1) {
+                lyrics.front().EndTick = event.tick - 480;
+                lyrics.front().EndSec = event.seconds - 1;
+            }
             EncLyricPhrase phrase;
             phrase.StartTick = event.tick;
             phrase.EndTick = event.getLinkedEvent()->tick;
@@ -31,6 +37,12 @@ void Encore::RhythmEngine::LyricLoader::GetPhrases(smf::MidiEventList *midiEvent
             lyrics.emplace_back(phrase);
         }
     }
+    EncLyricPhrase last;
+    last.StartSec = lyrics.back().EndSec;
+    last.StartTick = lyrics.back().EndTick;
+    last.EndTick = midiEventList->last().tick;
+    last.EndSec = midiEventList->last().seconds;
+    lyrics.emplace_back(last);
 };
 
 void Encore::RhythmEngine::LyricLoader::IteratePhrases(int tick) {
@@ -52,12 +64,10 @@ void Encore::RhythmEngine::LyricLoader::GetNotes(smf::MidiEventList *midiEventLi
             continue;
         IteratePhrases(event.tick);
         if (lyrics.empty()) break;
-        // if (CurrentPhrase == 0) {
         //     Encore::EncoreLog(
         //         LOG_DEBUG, "chart has at least one lyricless vox note. report to charter"
         //     );
         //     continue;
-        // }
         std::string lyric = "";
 
         bool talkie = false;
