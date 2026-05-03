@@ -28,7 +28,7 @@ void ArtLoader::ThreadRun() {
         auto image = LoadImage(request.song->albumArtPath.c_str());
         SendResult({image, false, {0}});
         auto blurred = ImageCopy(image);
-        ImageResize(&blurred, 256, 256);
+        ImageResize(&blurred, 512, 512);
         ImageBlurGaussian(&blurred, 10);
         SendResult({blurred, true, image});
     }
