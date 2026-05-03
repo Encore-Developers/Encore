@@ -44,7 +44,7 @@ double easeOutCubic( double t ) {
 }
 
 double easeInOutCubic( double t ) {
-    return t < 0.5 ? 4 * t * t * t : 1 + (--t) * (2 * (--t)) * (2 * t);
+    return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
 }
 
 double easeInQuart( double t ) {

@@ -3,6 +3,7 @@
 #include "assets.h"
 #include "imgui.h"
 #include "raymath.h"
+#include "easing/easing.h"
 #include "gameplay/inputCallbacks.h"
 #include "users/playerManager.h"
 #include "misc/imgui_stdlib.h"
@@ -25,6 +26,7 @@ bool showPlayerManager = false;
 bool showSongList = false;
 bool showQuickSettings = false;
 bool showPractice = false;
+bool showEasings = false;
 
 bool paused = false;
 std::string pauseText = "Pause";
@@ -47,6 +49,41 @@ ImVec4 ImGuiColor(Color color) {
     return { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
 }
 
+void DrawEasingsWindow() {
+    if (Begin("Easing Functions")) {
+        static easing_functions func = Linear;
+        if (BeginCombo("Function", getEasingFunctionName(func), 0)) {
+            for (unsigned int iter = Linear; iter <= EaseInOutBounce; iter++) {
+                if (Selectable(
+                        getEasingFunctionName((easing_functions)iter), func == iter
+                    )) {
+                    func = (easing_functions)iter;
+                }
+            }
+            EndCombo();
+        }
+
+        const unsigned int count = 100;
+        static float values[count] = { 0 };
+        auto easingFunc = getEasingFunction(func);
+        float min = 1000.f;
+        float max = -1000.0f;
+        for (unsigned int i = 0; i < count; i++) {
+            double f = (double)i / (double)count;
+            values[i] = easingFunc(f);
+            if (values[i] > max) {
+                max = values[i];
+            }
+            if (values[i] < min) {
+                min = values[i];
+            }
+        }
+        PlotLines(
+            "Values", values, count, 0, 0, min, max, { 0.0f, GetContentRegionAvail().y }
+        );
+    }
+    End();
+}
 void EncoreDebug::DrawDebug() {
     ZoneScoped;
     if (debugVersionHash.empty()) {
@@ -78,6 +115,9 @@ void EncoreDebug::DrawDebug() {
         DrawPracticeSectionSelector();
     }
     DrawSongScrubber();
+    if (showEasings) {
+        DrawEasingsWindow();
+    }
 }
 
 void EncoreDebug::MenuBar() {
@@ -88,6 +128,7 @@ void EncoreDebug::MenuBar() {
         MenuItem("Player Manager", 0, &showPlayerManager);
         MenuItem("Song List", 0, &showSongList, TheMenuManager.currentScreen != GAMEPLAY);
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
+        MenuItem("Easings Debug", 0, &showEasings);
         EndMenu();
     }
     if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()), 0, &showQuickSettings)) {
