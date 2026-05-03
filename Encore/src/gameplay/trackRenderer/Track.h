@@ -26,6 +26,7 @@ namespace Encore {
         void DrawSurface();
         void DrawOverdriveMeter();
         void DrawSolo();
+        void DrawSoloUI();
         void DrawMultiplier();
 
         void DrawTrackNotifications();

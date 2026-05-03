@@ -85,6 +85,7 @@ void Encore::Track::Draw() {
     DrawJudgement();
     DrawCombo();
     DrawTrackNotifications();
+    DrawSoloUI();
 
     BeginMode3D(AnimCamera);
     BeginShaderMode(ASSET(trackCurveShader));
@@ -241,6 +242,24 @@ void Encore::Track::DrawSolo() {
                  0.1,
                  soloLength * GetZPerSecond(),
                  { BLUE.r, BLUE.g, BLUE.b, 128 });
+    }
+
+}
+
+void Encore::Track::DrawSoloUI() {
+    if (player.engine->chart->solos.empty()) return;
+
+    Units &u = Units::getInstance();
+    solo* curSolo = &player.engine->chart->solos.at(player.engine->chart->solos.CurrentEvent);
+    if (TheSongTime.GetElapsedTime() > curSolo->StartSec && TheSongTime.GetElapsedTime() < curSolo->StartSec + curSolo->EndSec) {
+        Vector3 worldSpace = { 0, 2, BaseLength + 5 };
+        Vector2 screenPos = GetWorldToScreen(
+            worldSpace,
+            AnimCamera);
+        screenPos.x += Offset * GetRenderWidth() * 0.5;
+        float SoloPercentHeight = u.hinpct(0.05f);
+        GameMenu::mhDrawText(ASSET(redHatMono), TextFormat("%01i%%", int((float(curSolo->NotesHit) / float(curSolo->NoteCount)) * 100.0f)), screenPos, SoloPercentHeight, {119, 183, 255, 255}, ASSET(sdfShader), CENTER);
+        GameMenu::mhDrawText(ASSET(redHatMono), TextFormat("%01i/%01i", curSolo->NotesHit, curSolo->NoteCount), {screenPos.x, screenPos.y + SoloPercentHeight}, u.hinpct(0.025f), WHITE, ASSET(sdfShader), CENTER);
     }
 }
 
