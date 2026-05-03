@@ -7,9 +7,11 @@
 #define PI 3.1415926545
 #endif
 
+#ifndef __APPLE__
 double abs(double t) {
     return t < 0 ? -t : t;
 }
+#endif
 
 double linear( double t ) {
     return t;
