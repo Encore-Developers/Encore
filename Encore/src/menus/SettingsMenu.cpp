@@ -8,11 +8,8 @@
 #include "gameMenu.h"
 #include "raygui.h"
 #include "settings/settings.h"
-#include "settingsOptionRenderer.h"
 #include "uiUnits.h"
-#include "gameplay/enctime.h"
 #include "assets.h"
-#include "OvershellMenu.h"
 #include "util/settings-text.h"
 #include "OvershellHelper.h"
 
@@ -27,9 +24,6 @@ enum OptionsCategories {
 void SettingsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
-    // SettingsOld &settingsMain = SettingsOld::getInstance();
-    SongTime &enctime = TheSongTime;
-    settingsOptionRenderer sor;
     encOS::DrawTopOvershell(0.15f);
     if (TheSongList.curSong != nullptr)
         GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);

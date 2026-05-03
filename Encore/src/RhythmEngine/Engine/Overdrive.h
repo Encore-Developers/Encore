@@ -5,6 +5,9 @@
 #ifndef ENCORE_OVERDRIVE_H
 #define ENCORE_OVERDRIVE_H
 #include "RhythmEngine/NoteVector.h"
+
+#include <memory>
+
 namespace Encore::RhythmEngine {
     class Overdrive {
     public:
@@ -15,7 +18,7 @@ namespace Encore::RhythmEngine {
         bool UseOverdriveLift = false;
         void Update(double &CurrentTime);
         bool Activate(const double &CurrentTime);
-        void Add(const double &CurrentTime, std::shared_ptr<BaseChart> & chart);
+        bool Add(const double &CurrentTime, std::shared_ptr<BaseChart> & chart);
     };
 }
 #endif // ENCORE_OVERDRIVE_H

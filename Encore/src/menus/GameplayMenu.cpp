@@ -5,7 +5,6 @@
 #include "GameplayMenu.h"
 
 #include "gameMenu.h"
-#include "overshellRenderer.h"
 #include "uiUnits.h"
 #include "song/audio.h"
 #include "song/songlist.h"
@@ -17,9 +16,7 @@
 
 #include "users/playerManager.h"
 #include "MenuManager.h"
-#include "OvershellHelper.h"
 #include "../settings/settings.h"
-#include "timingvalues.h"
 
 #include <raylib.h>
 
@@ -56,22 +53,25 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
             overdriveBinds.second) {
             event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
             }
-        if (player.bindingType != PAD) {
-            if (key == TheGameKeybinds.strumBinds.first) {
-                event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
-            } else if (key == TheGameKeybinds.strumBinds.second) {
-                event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
-            }
-        }
-        int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
-        for (int i = 0; i < DiffMax; i++) {
-            if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
-                i]) {
-                event.channel = Encore::RhythmEngine::IntIC(i);
+        if (!player.Bot) {
+            if (player.bindingType != PAD) {
+                if (key == TheGameKeybinds.strumBinds.first) {
+                    event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+                } else if (key == TheGameKeybinds.strumBinds.second) {
+                    event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
                 }
-        }
-        if (key == KEY_ESCAPE && action == GLFW_PRESS) {
-            event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            }
+            int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals) ? 5 : 4;
+
+            for (int i = 0; i < DiffMax; i++) {
+                if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.keybinds5kalt[
+                    i]) {
+                    event.channel = Encore::RhythmEngine::IntIC(i);
+                    }
+            }
+            if (key == KEY_ESCAPE && action == GLFW_PRESS) {
+                event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            }
         }
         event.timestamp = TheSongTime.GetElapsedTime();
         if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
@@ -88,6 +88,9 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
         if (player.joypadID != -2 && player.joypadID != event.slot) {
             continue;
         }
+        if (player.Bot)
+            continue;
+
         Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
         if (engine->allowTimestampedInputs) {
@@ -197,7 +200,7 @@ void GameplayMenu::DrawGameplayStars(
     // todo: redo for band
     auto &player = ThePlayerManager.GetActivePlayer(0);
     int inst = player.Instrument % 5;
-    int diff = player.Difficulty;
+    // int diff = player.Difficulty;
     double starPercent = player.engine->stats->StarThresholdValue;
     int starsVal = player.engine->stats->Stars;
     for (int i = 0; i < 5; i++) {
@@ -299,8 +302,8 @@ void GameplayMenu::Draw() {
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         songPlaying = true;
     }
-    std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
-    std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
+    // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
+    // std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
     GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
@@ -349,9 +352,9 @@ void GameplayMenu::Draw() {
         return;
     }
 
-    int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
-    int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
-    int flashInterval = (numer * 480) / denom;
+    // int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
+    // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
+    // int flashInterval = (numer * 480) / denom;
 
     if (!TheSongTime.Lyrics.empty()) {
         ZoneScopedN("Lyrics Display")
@@ -363,7 +366,7 @@ void GameplayMenu::Draw() {
         float LyricLeft = 0;
         std::string playedText = "";
         std::string unplayedText = "";
-        Color lyricColor = WHITE;
+        // Color lyricColor = WHITE;
         auto font = ASSETPTR(rubikBold);
         for (const auto& lyric : TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).lyrics) {
             if (lyric.StartSec < TheSongTime.GetElapsedTime()) {
@@ -378,7 +381,7 @@ void GameplayMenu::Draw() {
         // before i even CONSIDER going further with things like animations or fade or ANYTHING. this should be put somewhere but here.
         Rectangle imageRec {0, 0, float(ASSET(mainLyricBar).width), float(ASSET(mainLyricBar).height)};
         Rectangle dest {0, baselineVox, float(GetScreenWidth()), voxHeight};
-        LyricLeft += (GetScreenWidth() / 2) - (MeasureTextEx(*font, (playedText + unplayedText).c_str(), FontSize, 0).x / 2);
+        LyricLeft += int(GetScreenWidth() / 2) - (MeasureTextEx(*font, (playedText + unplayedText).c_str(), FontSize, 0).x / 2);
         DrawTexturePro(ASSET(mainLyricBar), imageRec, dest, {0, 0}, 0, WHITE);
         GameMenu::mhDrawText(*font, playedText, {LyricLeft, baselineVox + padding}, FontSize, {119,183,255,255}, ASSET(sdfShader), LEFT);
         LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
@@ -397,7 +400,7 @@ void GameplayMenu::Draw() {
             }
             imageRec = {0, 0, float(ASSET(secLyricBar).width), float(ASSET(secLyricBar).height)};
             dest = {0, topBelow, float(GetScreenWidth()), SecVoxSize};
-            LyricLeft = (GetScreenWidth() / 2) - (MeasureTextEx(*font, (lyricStr).c_str(), SecFontSize, 0).x / 2);
+            LyricLeft = int(GetScreenWidth() / 2) - (MeasureTextEx(*font, (lyricStr).c_str(), SecFontSize, 0).x / 2);
             DrawTexturePro(ASSET(secLyricBar), imageRec, dest, {0, 0}, 0, WHITE);
             GameMenu::mhDrawText(*font, lyricStr, {LyricLeft, topBelow + secPadding}, SecFontSize, LIGHTGRAY, ASSET(sdfShader), LEFT);
         }
@@ -421,20 +424,20 @@ void GameplayMenu::Draw() {
         }
 
         tracks.at(i)->Draw();
-        int TopOfScreen = GetRenderHeight(); // width
-        int FakeStrikeline = (TopOfScreen / 5) * 4;
-        constexpr int NoteXWidth = 150;
-        constexpr int NoteHeight = 25;
+        // int TopOfScreen = GetRenderHeight(); // width
+        // int FakeStrikeline = (TopOfScreen / 5) * 4;
+        // constexpr int NoteXWidth = 150;
+        // constexpr int NoteHeight = 25;
 
-        int mospos =
-            ((GetRenderWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
-                / (1 + ThePlayerManager.PlayersActive))
-            - ((ThePlayerManager.PlayersActive * NoteXWidth * 5) / 2);
-        int MiddleOfScreen = mospos + (mospos * i); // height
-        int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth;
+        // int mospos =
+        //     ((GetRenderWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
+        //         / (1 + ThePlayerManager.PlayersActive))
+        //     - ((ThePlayerManager.PlayersActive * NoteXWidth * 5) / 2);
+        // int MiddleOfScreen = mospos + (mospos * i); // height
+        // int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth;
         auto chart = player.engine->chart;
-        int SidesWidth = 20;
-        int RailWidth = SidesWidth / 2;
+        // int SidesWidth = 20;
+        // int RailWidth = SidesWidth / 2;
 
         if (player.engine.get()->stats.get()->AudioMuted) {
             int InstrumentNum =

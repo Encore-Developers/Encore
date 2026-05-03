@@ -4,17 +4,12 @@
 #define ENCORE_SONG_H
 
 #include "raylib.h"
-#include "chart.h"
 #include "midifile/MidiFile.h"
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include <unordered_map>
 #include <filesystem>
-#include <cmath>
 #include <string>
 #include <atomic>
-#include "picosha2.h"
 #include "inih/INIReader.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
@@ -308,7 +303,7 @@ public:
 
     // Coda BRE {};
     void getCodas(smf::MidiFile &midiFile) {
-        int codaCount = 0;
+        // int codaCount = 0;
         for (int track = 0; track < midiFile.getTrackCount(); track++) {
             std::string trackName;
             for (int events = 0; events < midiFile[track].getSize(); events++) {
@@ -360,22 +355,21 @@ public:
 
     void LoadAlbumArt() {
         ZoneScoped;
-        Image albumImage = LoadImage(albumArtPath.c_str());
-        if (albumImage.height > 512) {
-            ImageResize(&albumImage, 512, 512);
-        }
-        albumArt = LoadTextureFromImage(albumImage);
+        albumArt = LoadTexture(albumArtPath.c_str());
         GenTextureMipmaps(&albumArt);
         SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
 
         {
-            ZoneScopedN("Album Art Blurring");
+            ZoneScopedN("Load Album Art Background");
+            Image albumImage;
+            albumImage = LoadImage(albumArtPath.c_str());
+            ImageResize(&albumImage, 256, 256);
             ImageBlurGaussian(&albumImage, 10);
             albumArtBlur = LoadTextureFromImage(albumImage);
+            UnloadImage(albumImage);
             GenTextureMipmaps(&albumArtBlur);
             SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
         }
-        UnloadImage(albumImage);
     };
 };
 

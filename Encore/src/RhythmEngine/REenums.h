@@ -52,6 +52,11 @@ namespace Encore::RhythmEngine {
                                         0b000000
     };
 
+    enum Judgement : int {
+        GOOD = 0,
+        PERFECT = 1
+    };
+
     enum class InputChannel : int8_t {
         LANE_1 = 0,
         LANE_2 = 1,
@@ -63,6 +68,8 @@ namespace Encore::RhythmEngine {
         PAUSE = 9,
         OVERDRIVE = 10,
         WHAMMY = 11,
+        INPUT_LEFT = 12,
+        INPUT_RIGHT = 13,
         INVALID = -1
     };
     inline InputChannel IntIC(int lane) {
@@ -77,8 +84,9 @@ namespace Encore::RhythmEngine {
             return InputChannel::LANE_4;
         case 4:
             return InputChannel::LANE_5;
+        default:
+            return InputChannel::INVALID;
         }
-        return InputChannel::INVALID;
     }
     inline int ICInt(InputChannel channel) {
         switch (channel) {
@@ -92,9 +100,10 @@ namespace Encore::RhythmEngine {
             return 3;
         case InputChannel::LANE_5:
             return 4;
+        default:
+            return 0;
         }
 
-        return 0;
     }
     enum class Action : int8_t {
         INVALID = -1,

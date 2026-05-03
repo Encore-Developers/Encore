@@ -5,7 +5,6 @@
 #include "ReadyUpMenu.h"
 #include "SettingsAudioVideo.h"
 #include "SettingsController.h"
-#include "SettingsCredits.h"
 #include "SettingsGameplay.h"
 #include "SettingsKeyboard.h"
 #include "SettingsMenu.h"
@@ -18,7 +17,6 @@
 #include "settings/settings.h"
 #include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"
-#include "song/audio.h"
 #include "users/playerManager.h"
 #include "util/discord.h"
 #include "tracy/Tracy.hpp"
@@ -45,42 +43,49 @@ void MenuManager::LoadMenu() {
         // cases.
     case MAIN_MENU: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new MainMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGS: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsMenu;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSAUDIOVIDEO: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsAudioVideo;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSGAMEPLAY: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsGameplay;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSKEYBOARD: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsKeyboard;
         ActiveMenu->Load();
         break;
     }
     case SETTINGSCONTROLLER: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SettingsController;
         ActiveMenu->Load();
         break;
     }
     case RESULTS: {
         TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusResults");
         ActiveMenu = new resultsMenu;
         ActiveMenu->Load();
         break;
@@ -88,12 +93,14 @@ void MenuManager::LoadMenu() {
     case SONG_SELECT: {
         // glfwSetGamepadStateCallback(gamepadStateCallback);
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new SongSelectMenu;
         ActiveMenu->Load();
         break;
     }
     case READY_UP: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new ReadyUpMenu;
         ActiveMenu->Load();
         break;
@@ -105,6 +112,7 @@ void MenuManager::LoadMenu() {
     }
     case CACHE_LOADING_SCREEN: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new cacheLoadingScreen;
         ActiveMenu->Load();
         break;
@@ -112,6 +120,7 @@ void MenuManager::LoadMenu() {
     case CHART_LOADING_SCREEN: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",
             ThePlayerManager.PlayersActive);
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
         ActiveMenu = new ChartLoadingMenu;
         ActiveMenu->Load();
         break;
@@ -123,6 +132,8 @@ void MenuManager::LoadMenu() {
             ThePlayerManager.GetActivePlayer(0).Instrument,
             ThePlayerManager.PlayersActive
         );
+        TheGameRPC.SteamUpdatePresence("song", (TheSongList.curSong->title + " - " + TheSongList.curSong->artist).c_str());
+        TheGameRPC.SteamUpdatePresence("steam_display", "#StatusPlayingSongNamed");
 
         ActiveMenu = new GameplayMenu;
         ActiveMenu->Load();
@@ -155,12 +166,6 @@ void MenuManager::DrawMenu() {
             Units &u = Units::getInstance();
             Assets &assets = Assets::getInstance();
 
-            static bool sampleLoaded = false;
-            if (!sampleLoaded) {
-                TheAudioManager.loadSample("Assets/kick.wav", "click");
-                sampleLoaded = true;
-            }
-
             if (GuiButton(
                     { (float)GetRenderWidth() / 2 - 250,
                       (float)GetRenderHeight() - 120,
@@ -192,7 +197,6 @@ void MenuManager::DrawMenu() {
                         totalDifference += (tapTime - expectedClickTime);
                     }
                     TheGameSettings.AudioOffset = 0;
-                        static_cast<int>((totalDifference / tapTimes.size()) * 1000);
                     // Convert to milliseconds
                     std::cout
                         << static_cast<int>((totalDifference / tapTimes.size()) * 1000)
@@ -207,7 +211,7 @@ void MenuManager::DrawMenu() {
                 double elapsedTime = currentTime - lastClickTime;
 
                 if (elapsedTime >= clickInterval) {
-                    TheAudioManager.playSample("click", 1);
+                    //TheAudioManager.playSample("click", 1);
                     lastClickTime += clickInterval;
                     // Increment by the interval to avoid missing clicks
                     std::cout << "Click" << std::endl;
@@ -241,7 +245,7 @@ void MenuManager::DrawMenu() {
                     assets.rubikBold,
                     "Input Registered",
                     { static_cast<float>((GetRenderWidth() - u.hinpct(0.35f)) / 2),
-                      static_cast<float>(GetRenderHeight() / 2) },
+                      static_cast<float>(int(GetRenderHeight() / 2)) },
                     u.hinpct(0.05f),
                     0,
                     feedbackColor

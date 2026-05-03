@@ -25,9 +25,12 @@ namespace Encore {
         void DrawBeatlines();
         void DrawSurface();
         void DrawOverdriveMeter();
+        void DrawSolo();
         void DrawMultiplier();
 
-        void DrawPerfect();
+        void DrawTrackNotifications();
+        void DrawCombo();
+        void DrawJudgement();
         TrackSlot **GetSlotsForNote(RhythmEngine::EncNote& note) const;
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
 
@@ -48,7 +51,7 @@ namespace Encore {
         float GetViewEndTime() const;
         float GetZPerSecond() const;
 
-        void FitToColumn(float left, float right);
+        void FitToColumn(float left, float right, Camera& camera);
 
         unsigned char BeatToCharViaTickThing(
             int tick,
@@ -58,8 +61,8 @@ namespace Encore {
         );
 
         float NoteSpeed = 1;
-        float BaseLength = 22;
-        float Length = 22;
+        float BaseLength = 20;
+        float Length = 20;
         float FadeSize = 3;
         float CurveFac = 50;
         float Offset = 0;
@@ -69,12 +72,14 @@ namespace Encore {
         float KickSpeedMult = 5;
         float SpotlightTimer = 0;
         float OverdriveTimer = 0;
-        float PerfectTimer = 0;
+        float JudgementTimer = 0;
+        int JudgementType = 0;
+        float LastHitOffset = 0;
         // The column of the screen that this track can occupy. Used for multiplayer positioning.
         float ColumnLeft = -1;
         float ColumnRight = 1;
         bool ColumnFitting = true;
-
+        std::deque<TrackNotificationEvent> Notifications;
         Camera3D AnimCamera;
         Camera3D BaseCamera;
 

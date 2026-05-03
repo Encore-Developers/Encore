@@ -2,9 +2,12 @@
 // Created by maria on 26/08/2025.
 //
 
+#include "Overdrive.h"
+#include "assets.h"
 #include "gameplay/enctime.h"
+#include "settings/settings.h"
+#include "song/audio.h"
 #include "util/enclog.h"
-#include "BaseStats.h"
 #include "RhythmEngine/NoteVector.h"
 
 void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
@@ -33,14 +36,19 @@ bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
     UseOverdriveLift = true;
     ActivationTime = CurrentTime;
     ActivationTick = TheSongTime.CurrentODTick;
+    TheAudioManager.playSample(ASSET(activateSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
     EncoreLog(LOG_DEBUG, TextFormat("First OD Tick: %4.4f", TheSongTime.CurrentODTick));
     return true;
 }
 
-void Encore::RhythmEngine::Overdrive::Add(
+bool Encore::RhythmEngine::Overdrive::Add(
     const double &CurrentTime, std::shared_ptr<BaseChart> &chart
 ) {
+    float previousFill = Fill;
     Fill += chart->overdrive.CheckOverdrive(CurrentTime);
     if (Fill > 1.0)
         Fill = 1.0;
+    if (Fill != previousFill)
+        return true;
+    return false;
 }

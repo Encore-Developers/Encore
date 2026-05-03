@@ -2,6 +2,7 @@
 #ifndef ENCORE_EVENT_H
 #define ENCORE_EVENT_H
 
+#include "RhythmEngine/REenums.h"
 #include "RhythmEngine/Notes/EncNote.h"
 
 #include <unordered_set>
@@ -22,15 +23,30 @@ namespace Encore {
     class NoteHitEvent : public Event {
     public:
         RhythmEngine::EncNote* note;
-        bool perfect = false;
+        RhythmEngine::Judgement judgement = RhythmEngine::GOOD;
+        float offset = 0;
         NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
-        NoteHitEvent(RhythmEngine::EncNote* note, bool _perfect) : note(note), perfect(_perfect) {}
+        NoteHitEvent(RhythmEngine::EncNote* note, RhythmEngine::Judgement _judgement, float offset) : note(note), judgement(_judgement), offset(offset) {}
     };
 
     class OverhitEvent : public Event {
     public:
         int lane;
         OverhitEvent(int lane) : lane(lane) {}
+    };
+
+    class TrackNotificationEvent : public Event {
+    public:
+        enum TrackNotificationType {
+            OVERDRIVE_READY,
+            COMBO,
+            YOU_ROCK
+        };
+        double time;
+        TrackNotificationType type;
+        int combo;
+        TrackNotificationEvent(double _time, TrackNotificationType _type) : time(_time), type(_type) {}
+        TrackNotificationEvent(double _time, TrackNotificationType _type, int _combo) : time(_time), type(_type), combo(_combo) {}
     };
 
     class HighwayBounceEvent : public Event {

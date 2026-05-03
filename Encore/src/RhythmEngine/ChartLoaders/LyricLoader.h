@@ -4,11 +4,14 @@
 
 #ifndef ENCORE_LYRICLOADER_H
 #define ENCORE_LYRICLOADER_H
-#include "BaseLoader.h"
+
+#include "RhythmEngine/Notes/EncNote.h"
+#include "midifile/MidiFile.h"
+#include <cstdint>
 
 namespace Encore::RhythmEngine {
     class LyricLoader {
-        int CurrentPhrase = 0;
+        uint32_t CurrentPhrase = 0;
         smf::MidiFile *midiFile;
         int trackIdx;
 

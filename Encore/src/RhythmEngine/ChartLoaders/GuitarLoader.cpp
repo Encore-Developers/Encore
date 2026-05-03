@@ -4,6 +4,7 @@
 
 #include "GuitarLoader.h"
 
+#include "RhythmEngine/REenums.h"
 #include "song/scoring.h"
 std::vector<smf::uchar> psDiff { 0x00, 0x01, 0x02, 0x03 };
 
@@ -135,7 +136,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         lengthSec = 0;
     }
     if (lengthTicks > 0) {
-        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
+        chart.BaseScore += static_cast<double>(int(lengthTicks / 480)) * BASE_SCORE_SUSTAIN_POINTS;
         lengthTicks -= 1;
     }
     if (!OpenMarker.empty()) {
@@ -216,7 +217,9 @@ void Encore::RhythmEngine::GuitarLoader::GetNotes(smf::MidiEventList track) {
             } else if (chart[0].back().StartTicks == event.tick) {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT;
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
-                chart[0].back().NoteType = 0;
+                if (chart[0].back().NoteType == 1) {
+                    chart[0].back().NoteType = 0;
+                }
                 if (!chart.trills.empty()) {
                     if (event.tick >= chart.trills[CurrentTrill].StartTick) {
                         //chart.rolls[CurrentRoll].lane +=

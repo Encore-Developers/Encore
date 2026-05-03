@@ -16,6 +16,10 @@
 
 #include "settings/keybinds.h"
 #include "song/cacheload.h"
+
+#ifdef STEAM
+#include "steam_api.h"
+#endif
 #define assertm(exp, msg) assert((void(msg), exp))
 
 #define RAYGUI_IMPLEMENTATION
@@ -173,6 +177,17 @@ bool imGuiLoaded = false;
 ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
+
+#ifdef STEAM
+    if (SteamAPI_RestartAppIfNecessary(4691230)) {
+        return 1;
+    }
+
+    if (!SteamAPI_Init()) {
+        printf("This is a Steam build of Encore - Steam must be running\n");
+        return 1;
+    }
+#endif
     LocateDevAssets();
 
     ArgumentList::InitArguments(argc, argv);
@@ -249,7 +264,6 @@ int main(int argc, char *argv[]) {
     Encore::EncoreLog(LOG_INFO, "Audio successfully initialized");
 
     SetExitKey(0);
-    TheAudioManager.loadSample("Assets/combobreak.mp3", "miss");
     TheFrameManager.InitFrameManager();
     ChangeDirectory(GetApplicationDirectory());
 

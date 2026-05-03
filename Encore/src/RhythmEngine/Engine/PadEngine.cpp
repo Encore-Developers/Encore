@@ -19,7 +19,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
         if (stats->overdrive.Activate(stats->InputTime)) {
             HighwayBounceEvent HBevent(2.0f, 2.5f);
             FireEvent(&HBevent);
-            for (int lane = 0; lane < chart->Lanes.size(); lane++) {
+            for (size_t lane = 0; lane < chart->Lanes.size(); lane++) {
                 if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()){
                     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
                     if (InHitwindow(CurrentNote->StartSeconds)) {
@@ -32,7 +32,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
     }
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::RELEASE) {
         if (stats->overdrive.UseOverdriveLift) {
-            for (int lane = 0; lane < chart->Lanes.size(); lane++) {
+            for (size_t lane = 0; lane < chart->Lanes.size(); lane++) {
                 if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()) {
                     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
                     if (InHitwindow(CurrentNote->StartSeconds) && CurrentNote->NoteType ==
@@ -90,7 +90,10 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
     if (event.channel == InputChannel::STRUM_UP || event.channel ==
         InputChannel::STRUM_DOWN)
         return CheckNextInput;
-    int lane = ICInt(event.channel);
+    size_t lane = ICInt(event.channel);
+    if (lane >= chart->Lanes.size())
+        return CheckNextInput;
+
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
         return CheckNextInput;
     EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
@@ -116,21 +119,24 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
 }
 
 void Encore::RhythmEngine::PadEngine::HitNote(int lane) {
-    if (chart->CurrentNoteIterators.at(lane)->LengthTicks > 0) {
-        chart->SetCurrentNoteAsHeldNote(lane);
+    if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()) {
+        if (chart->CurrentNoteIterators.at(lane)->LengthTicks > 0) {
+            chart->SetCurrentNoteAsHeldNote(lane);
+        }
     }
     BaseEngine::HitNote(lane);
 }
 
 void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
     LastUpdateTime = CurrentTime;
-    for (int Lane = 0; Lane < chart->Lanes.size(); Lane++) {
+    for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
                 continue;
+            stats->InputTime = CurrentTime;
             EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
             if (CurrentNote->StartSeconds <= CurrentTime) {
-                HitNote(true);
+                HitNote(Lane);
             }
         }
         if (chart->HeldNotePointers.at(Lane) != nullptr

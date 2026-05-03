@@ -3,10 +3,7 @@
 
 #include "settings/settings.h"
 #include "song/songlist.h"
-#include "util/enclog.h"
 
-#include <algorithm>
-#include <iostream>
 #include <cmath>
 #include "song/audio.h"
 
@@ -75,7 +72,7 @@ void SongTime::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
 
     // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
     if (OverdriveTicks.size() == 0) {
-        int overdriveTickCount = floor(midiFile.getFileDurationInTicks() / 480);
+        int overdriveTickCount = midiFile.getFileDurationInTicks() / 480;
         for (int i = 0; i < overdriveTickCount; i++) {
             OverdriveTicks.emplace_back(midiFile.getTimeInSeconds(480 * i), 480 * i);
         }
@@ -299,6 +296,7 @@ void SongTime::SetOffset(double audioCalibration) {
 
 void SongTime::Start(double end) {
     endTime = end;
+    lastTimeSample = GetTime();
 }
 
 // Resets internal state, 

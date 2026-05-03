@@ -41,6 +41,7 @@ bool Encore::RhythmEngine::BaseEngine::PerfectHit(
         }
     return false;
 }
+
 void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     if (event.channel == InputChannel::INVALID)
         return;
@@ -138,13 +139,14 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = stats->InputTime;
-        event.perfect = true;
+        event.judgement = PERFECT;
     }
+    event.offset = (stats->InputTime - stats->InputOffset) - startTime;
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
     stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
-    stats->HitNote(chordSize, PerfectHit(startTime));
+    stats->HitNote(chordSize, event.judgement);
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
 }
@@ -155,6 +157,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
+    chart->MissedNotePointers.push_back(&*chart->CurrentNoteIterators.at(lane));
     chart->UpdateCurrentNote(lane);
 }
 

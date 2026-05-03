@@ -2,6 +2,8 @@
 #include "ParticleSystem.h"
 
 #include "assets.h"
+#include "gameplay/trackRenderer/Track.h"
+
 void Encore::Particle::Update(ParticleSystem* system) {
     time += GetFrameTime();
     switch (type) {
@@ -15,6 +17,8 @@ void Encore::Particle::Update(ParticleSystem* system) {
         if (time > SHOCKWAVE_LIFETIME) {
             active = false;
         }
+        break;
+    default:
         break;
     }
 }
@@ -38,7 +42,7 @@ void Encore::Particle::Render(ParticleSystem* system) {
             float frac = (lifetime/FLARE_LIFETIME);
             color.a = (frac*frac)*255;
             Color white = {255, 255, 255, color.a};
-            Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
+            // Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
             float size = 2.4-time*0.5;
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             //DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorLerp(color, white, 0));
@@ -63,6 +67,8 @@ void Encore::Particle::Render(ParticleSystem* system) {
             EndBlendMode();
             break;
         }
+        default:
+            break;
     }
 }
 

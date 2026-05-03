@@ -74,7 +74,7 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
 }; // make player, load player stuff to PlayerList
 
 void PlayerManager::SavePlayerList() {
-    for (int i = 0; i < PlayerList.size(); i++) {
+    for (size_t i = 0; i < PlayerList.size(); i++) {
         SaveSpecificPlayer(i, false);
     }
 }; // ough this is gonna be complicated
@@ -124,7 +124,7 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
     Encore::WriteJsonFile(PlayerListSaveFile, PlayerListJson);
 }
 Player *PlayerManager::GetPlayerForJoystick(SDL_JoystickID id) {
-    for (int i = 0; i < ActivePlayers.size(); i++) {
+    for (size_t i = 0; i < ActivePlayers.size(); i++) {
         auto player = ActivePlayers[i];
         if (player == -1) {
             continue;
@@ -144,7 +144,7 @@ void PlayerManager::CreatePlayer(const std::string &name) {
 }; // set it as the next one in PlayerList
 
 void PlayerManager::DeletePlayer(const Player &PlayerToDelete) {
-    for (int i = 0; i < ActivePlayers.size(); i++) {
+    for (size_t i = 0; i < ActivePlayers.size(); i++) {
         auto player = ActivePlayers[i];
         if (player == -1) {
             continue;

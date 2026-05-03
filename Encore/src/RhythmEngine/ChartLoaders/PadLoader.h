@@ -6,6 +6,8 @@
 #define PADLOADER_H
 
 #include "BaseLoader.h"
+#include <array>
+#include <queue>
 
 namespace Encore::RhythmEngine {
     class PadLoader final : public BaseLoader {

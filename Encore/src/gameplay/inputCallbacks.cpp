@@ -99,12 +99,16 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
         // Generic inputs
         switch (event->gbutton.button) {
         case(SDL_GAMEPAD_BUTTON_DPAD_UP):
-        case(SDL_GAMEPAD_BUTTON_DPAD_RIGHT):
             outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
             break;
         case(SDL_GAMEPAD_BUTTON_DPAD_DOWN):
-        case(SDL_GAMEPAD_BUTTON_DPAD_LEFT):
             outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+            break;
+        case(SDL_GAMEPAD_BUTTON_DPAD_RIGHT):
+            outevent.channel = Encore::RhythmEngine::InputChannel::INPUT_RIGHT;
+            break;
+        case(SDL_GAMEPAD_BUTTON_DPAD_LEFT):
+            outevent.channel = Encore::RhythmEngine::InputChannel::INPUT_LEFT;
             break;
         case(SDL_GAMEPAD_BUTTON_START):
             outevent.channel = Encore::RhythmEngine::InputChannel::PAUSE;

@@ -1,0 +1,11 @@
+"lang"
+{
+	"Language"	"english"
+	"Tokens"
+	{
+		"#StatusInMenus"	"In the menus"
+		"#StatusResults"	"Viewing results"
+		"#StatusPlayingSongGeneric"	"Playing a song"
+		"#StatusPlayingSongNamed" "%song%"
+	}
+}

@@ -5,8 +5,10 @@
 #ifndef BASESTATS_H
 #define BASESTATS_H
 #include <array>
-#include <vector>
 #include "Overdrive.h"
+#include "assets.h"
+#include "settings/settings.h"
+#include "song/audio.h"
 #include "song/scoring.h"
 
 namespace Encore::RhythmEngine {
@@ -60,6 +62,7 @@ namespace Encore::RhythmEngine {
         double InputOffset = 0;
         double LastPerfectTime = -1;
         bool SixMultiplier = false;
+        bool CanHitHopo = true;
         bool Paused = false;
         bool Bot = false;
         double Health = 1.0;
@@ -69,14 +72,21 @@ namespace Encore::RhythmEngine {
         double StarThresholdValue = 0.0;
         StrumState strumState = StrumState::Default;
         Overdrive overdrive;
-        void HitNote(int chordSize, bool perfect) {
-            Combo++;
-            const double PointsPerNote = BASE_NOTE_POINT * (perfect ? PERFECT_MULTIPLIER : 1.0);
+        void HitNote(int chordSize, int perfect) {
+            if (perfect == -1) {
+                MaxCombo = Combo;
+                Combo = 0;
+            } else {
+                Combo++;
+                MaxCombo = Combo;
+            }
+            const double PointsPerNote = BASE_NOTE_POINT * (perfect == 1 ? PERFECT_MULTIPLIER : 1.0);
             Score += (PointsPerNote * chordSize) * multiplier();
-            if (perfect) PerfectHits++;
+            if (perfect == 1) PerfectHits++;
             // PerfectHits = 0;
             NotesHit++;
             AttemptedNotes++;
+            CanHitHopo = true;
             AudioMuted = false;
         };
         void MissNote() {
@@ -85,12 +95,15 @@ namespace Encore::RhythmEngine {
             Misses++;
             AttemptedNotes++;
             AudioMuted = true;
+            CanHitHopo = false;
         };
         void Overhit() {
+            TheAudioManager.playSample(ASSET(missSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
             Overhits++;
             if (Combo > MaxCombo) MaxCombo = Combo;
             Combo = 0;
             AudioMuted = true;
+            CanHitHopo = false;
         };
         [[nodiscard]] int multiplier() const {
             int od = overdrive.Active ? 2 : 1;

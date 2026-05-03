@@ -5,6 +5,7 @@
 #include "assets.h"
 #include <filesystem>
 #include "raygui.h"
+#include "song/audio.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
 #include "util/enclog.h"
@@ -276,6 +277,7 @@ void TextureAsset::Unload() {
     UnloadTexture(tex);
     FileAsset::Unload();
 }
+
 
 void FontAsset::Load() {
     ZoneScoped

@@ -4,40 +4,50 @@
 
 #include "KickTrackSlot.h"
 
+#include "Track.h"
 #include "assets.h"
 #include "rlgl.h"
 
 // TODO: don't duplicate this function
+// note: do not change this function i dont know why but it eats shit and dies when
+//       warnings are removed
 float easeOutBounceKick(float x) {
-    const float n1 = 7.5625;
-    const float d1 = 2.75;
+    constexpr float n1 = 7.5625f;
+    constexpr float d1 = 2.75f;
 
     if (x < 1 / d1) {
         return n1 * x * x;
-    } else if (x < 2 / d1) {
-        return n1 * (x -= 1.5 / d1) * x + 0.75;
-    } else if (x < 2.5 / d1) {
-        return n1 * (x -= 2.25 / d1) * x + 0.9375;
+    } else if (x < 2.0f / d1) {
+        return n1 * (x -= 1.5f / d1) * x + 0.75f;
+    } else if (x < 2.5f / d1) {
+        return n1 * (x -= 2.25f / d1) * x + 0.9375f;
     } else {
-        return n1 * (x -= 2.625 / d1) * x + 0.984375;
+        return n1 * (x -= 2.625f / d1) * x + 0.984375f;
     }
 }
 
 
-void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note) {
+void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     auto pos = track->GetNotePos3D(note->StartSeconds);
     Vector3 position = { xPos, 0.0, pos };
 
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot);
-
-    ASSET(noteShader).SetUniform("frameColor", WHITE);
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+        color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+        ASSET(noteShader).SetUniform("frameColor", GOLD);
+    } else {
+        ASSET(noteShader).SetUniform("frameColor", WHITE);
+    }
     ASSET(noteShader).SetUniform("noteColor", color);
-
+    if (missed) {
+        ASSET(noteShader).SetUniform("frameColor", Color{120, 120, 120, 255});
+        ASSET(noteShader).SetUniform("noteColor", Color{ 255, 50, 50, 255 });
+    }
 
     rlDrawRenderBatchActive();
 
-    DrawModelEx(ASSET(kickNote), position, {0}, 0, {width/5.0f, track->NoteHeight / 2.0f, 1}, WHITE);
+    DrawModelEx(ASSET(kickNote), position, {0}, 0, {width/5.0f, track->NoteHeight / 2.0f, 0.75}, WHITE);
 }
 
 void Encore::KickTrackSlot::DrawSmasher(bool held) {

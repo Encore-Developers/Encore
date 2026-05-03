@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <string>
 
+// change this to allow a sound effect to repeat more
+#define MAX_SAMPLE_CHANNELS 8
+
 namespace Encore {
     class AudioManager {
     public:
@@ -18,6 +21,7 @@ namespace Encore {
         std::vector<AudioStream> loadedStreams; // Loaded audio streams
 
         float songSpeed = 1.0;
+        float debugSpeed = 1.0;
 
         // Initialize the audio manager
         static bool Init();
@@ -44,10 +48,9 @@ namespace Encore {
         static void StopPlayback(unsigned int handle);
 
         // Load and play samples
-        void loadSample(const std::string &path, const std::string &name);
-        void playSample(const std::string &name, float volume);
-        void unloadSample(const std::string &name);
-
+        void playSample(unsigned long sample, float volume);
+        unsigned long loadSample(bool mem, void *file, size_t length);
+        void unloadSample(unsigned long sample);
         //
         void StartEffect(AudioStream* stream);
         void StopEffect(AudioStream* stream);

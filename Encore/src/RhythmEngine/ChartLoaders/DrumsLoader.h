@@ -6,6 +6,7 @@
 #define DRUMSLOADER_H
 
 #include "BaseLoader.h"
+#include <queue>
 
 namespace Encore::RhythmEngine {
     class DrumsLoader final : public BaseLoader {

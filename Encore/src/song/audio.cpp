@@ -1,10 +1,10 @@
 #include "audio.h"
+
 #include "bass/bass.h"
 #include "bass/bassopus.h"
 #include "GLFW/glfw3.h"
 #include "gameplay/enctime.h"
 #include "tracy/Tracy.hpp"
-
 
 #include "GLFW/glfw3native.h"
 #include <vector>
@@ -78,7 +78,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int> >
             }
             float rate = 0;
             BASS_ChannelGetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, &rate);
-            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*songSpeed);
+            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*songSpeed*debugSpeed);
             streams++;
         } else {
             CHECK_BASS_ERROR2();
@@ -233,32 +233,19 @@ void Encore::AudioManager::SetAudioStreamPosition(unsigned int handle, double ti
     CHECK_BASS_ERROR2();
 }
 
-void Encore::AudioManager::loadSample(const std::string &path, const std::string &name) {
-    HSAMPLE sample = BASS_SampleLoad(false, path.c_str(), 0, 0, 1, 0);
-    if (sample) {
-        samples[name] = sample;
-    } else {
-        std::cerr << "Failed to load sample: " << path << std::endl;
-    }
+void Encore::AudioManager::playSample(unsigned long sample, float volume) {
+    HCHANNEL channel = BASS_SampleGetChannel(sample, false);
+    CHECK_BASS_ERROR2();
+    BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
+    CHECK_BASS_ERROR2();
+    BASS_ChannelPlay(channel, true);
+    CHECK_BASS_ERROR2();
 }
 
-void Encore::AudioManager::playSample(const std::string &name, float volume) {
-    auto it = samples.find(name);
-    if (it != samples.end()) {
-        HCHANNEL channel = BASS_SampleGetChannel(it->second, false);
-        BASS_ChannelSetAttribute(channel, BASS_ATTRIB_VOL, volume);
-        BASS_ChannelPlay(channel, true);
-    } else {
-        std::cerr << "Sample not found: " << name << std::endl;
-    }
+unsigned long Encore::AudioManager::loadSample(bool mem, void *file, size_t length) {
+    return BASS_SampleLoad(mem, file, 0, length, MAX_SAMPLE_CHANNELS, 0);
 }
 
-void Encore::AudioManager::unloadSample(const std::string &name) {
-    auto it = samples.find(name);
-    if (it != samples.end()) {
-        BASS_SampleFree(it->second);
-        samples.erase(it);
-    } else {
-        std::cerr << "Sample not found: " << name << std::endl;
-    }
+void Encore::AudioManager::unloadSample(unsigned long sample) {
+    BASS_SampleFree(sample);
 }

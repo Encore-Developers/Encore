@@ -154,7 +154,7 @@ void EncoreDebug::MenuBar() {
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
 
     SetCursorPosX(avail - size - GetStyle().FramePadding.x);
-    Text(debugVersionHash.c_str());
+    Text("%s", debugVersionHash.c_str());
 
     EndMainMenuBar();
 }
@@ -164,6 +164,7 @@ void EncoreDebug::DrawQuickSettings() {
     ZoneScoped;
     if (Begin("Quick Settings")) {
         SliderFloat("Song Speed", &TheAudioManager.songSpeed, 0, 3);
+        SliderFloat("Debug Song Speed", &TheAudioManager.debugSpeed, 0, 3);
         Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
         Checkbox("VSync", &TheGameSettings.VerticalSync);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
@@ -198,7 +199,8 @@ void DebugSeek(float time, float audioTime) {
         }
         auto player = ThePlayerManager.PlayerList[index];
         auto engine = player.engine.get();
-        for (int i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+        engine->chart->MissedNotePointers.clear();
+        for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
             if (i >= engine->chart->Lanes.size()) {
                 break;
             }
@@ -218,8 +220,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
     ZoneScoped;
     if (TheMenuManager.currentScreen == GAMEPLAY) {
         if (Begin("Practice Section Selector")) {
-            for (int sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
-                Text(TheSongTime.Sections.at(sectionInt).name.c_str());
+            for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
+                Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
                 SameLine();
                 float buttWidth = CalcTextSize(" whole").x;
                 SetCursorPosX(GetWindowWidth() - (buttWidth * 3));
@@ -328,9 +330,9 @@ void EncoreDebug::DrawSongScrubber() {
                 }
                 return false;
             };
-            int layer = 0;
-            int maxlayer = 0;
-            for (int i = 0; i < TheSongTime.Sections.size(); i++) {
+            size_t layer = 0;
+            size_t maxlayer = 0;
+            for (size_t i = 0; i < TheSongTime.Sections.size(); i++) {
                 auto& section = TheSongTime.Sections[i];
                 float endTime = TheSongTime.GetSongLength();
                 if (i < TheSongTime.Sections.size() - 1) {
@@ -350,7 +352,7 @@ void EncoreDebug::DrawSongScrubber() {
                 }
                 float textY = pos.y + size.y + layer * GetFontSize();
                 drawlist->AddText(ImVec2(startPos+pos.x, textY), 0xffffffff, section.name.c_str());
-                texts.push_back({startPos, startPos+textWide, layer});
+                texts.push_back({startPos, startPos+textWide, static_cast<int>(layer)});
                 if (layer > maxlayer) {
                     maxlayer = layer;
                 }
@@ -461,7 +463,7 @@ void EncoreDebug::DrawSongList() {
     static auto UpdateList = [&] {
         songs.clear();
         std::string lowerFilter = tolowerStr(filter);
-        for (int i = 0; i < TheSongList.songs.size(); i++) {
+        for (size_t i = 0; i < TheSongList.songs.size(); i++) {
             auto song = &TheSongList.songs[i];
             if (filter.empty()) {
                 songs.push_back(song);
@@ -498,7 +500,7 @@ void EncoreDebug::DrawSongList() {
             TableSetupColumn("Source", ImGuiTableColumnFlags_WidthFixed);
             TableHeadersRow();
 
-            for (int i = 0; i < songs.size(); i++) {
+            for (size_t i = 0; i < songs.size(); i++) {
                 auto song = songs[i];
                 TableNextRow();
                 PushID(i);
@@ -576,17 +578,17 @@ void EncoreDebug::DrawAssetViewer() {
             TableHeadersRow();
 
             PushFont(GetIO().FontDefault, 16);
-            int i = 0;
+            size_t i = 0;
             for (auto asset : TheAssets.assets) {
                 TableNextRow();
                 PushID(i);
                 TableSetColumnIndex(1);
-                Text(
+                Text("%s",
                     std::filesystem::path(asset->id).filename().generic_string().c_str());
                 TableSetColumnIndex(2);
-                Text(typeid(*asset).name());
+                Text("%s", typeid(*asset).name());
                 TableSetColumnIndex(3);
-                Text(AssetStateName(asset->state));
+                Text("%s", AssetStateName(asset->state));
 
                 TableSetColumnIndex(0);
                 switch (asset->state) {
@@ -604,6 +606,8 @@ void EncoreDebug::DrawAssetViewer() {
                     if (SmallButton("Unload")) {
                         asset->Unload();
                     }
+                    break;
+                default:
                     break;
                 }
                 PopID();
@@ -659,21 +663,21 @@ void Encore::Track::DrawTrackDebugWindow() {
                                               countdown));
             };
             SeparatorText("Stats");
-            Text(TextFormat("Combo: %i", player.engine->stats->Combo));
-            Text(TextFormat("Ghost Count: %i", player.engine->GhostCount));
-            Text(TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
-            Text(
+            Text("%s", TextFormat("Combo: %i", player.engine->stats->Combo));
+            Text("%s", TextFormat("Ghost Count: %i", player.engine->GhostCount));
+            Text("%s", TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
+            Text("%s", 
                 TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes)
             );
-            Text(TextFormat("Misses: %i", player.engine->stats->Misses));
-            Text(TextFormat("Notes hit: %i (%.0f%)",
+            Text("%s", TextFormat("Misses: %i", player.engine->stats->Misses));
+            Text("%s", TextFormat("Notes hit: %i (%.0f%)",
                                    player.engine->stats->NotesHit,
                                    (float)player.engine->stats->NotesHit / player.engine->
                                    stats->AttemptedNotes * 100));
-            Text(TextFormat("Score: %4.2f", player.engine->stats->Score));
-            Text(TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
-            Text(TextFormat("Stars: *%i", player.engine->stats->Stars));
-            Text(TextFormat("Multiplier: %ix",
+            Text("%s", TextFormat("Score: %4.2f", player.engine->stats->Score));
+            Text("%s", TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
+            Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
+            Text("%s", TextFormat("Multiplier: %ix",
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
         }

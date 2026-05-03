@@ -1,17 +1,16 @@
 #pragma once
 #include "raylib.h"
-#include "menus/uiUnits.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
 
 #include <cassert>
-#include <atomic>
 #include <filesystem>
 #include <functional>
-#include <map>
 #include <thread>
 #include <unordered_map>
 #include <vector>
+
+#include "song/audio.h"
 
 enum AssetState : uint8_t {
     UNLOADED,
@@ -66,8 +65,8 @@ public:
     }
 
     Asset(Asset &&other) noexcept
-        : id(std::move(other.id)),
-          state(state),
+        : state(other.state),
+          id(std::move(other.id)),
           loadingThread() {
     }
 
@@ -253,6 +252,34 @@ public:
     }
 };
 
+class SampleAsset : public FileAsset {
+    uint32_t sample;
+
+    virtual void Load() {
+        LoadFile();
+        sample = TheAudioManager.loadSample(true, fileBuffer, fileSize);
+        state = LOADED;
+    }
+public:
+    SampleAsset(const std::string &id) : FileAsset(id) {}
+
+    SampleAsset() {}
+
+    virtual void Unload() {
+        TheAudioManager.unloadSample(sample);
+        sample = 0;
+    }
+
+    uint32_t Fetch() {
+        CheckForFetch();
+        return sample;
+    }
+
+    operator uint32_t() {
+        return Fetch();
+    }
+};
+
 class FontAsset : public FileAsset {
     Font font;
     int fontSize;
@@ -309,7 +336,7 @@ public:
 #define NEWSHADERASSET(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__, {})
 #define NEWSHADERASSET_POSTFINALIZE(varname, ...) ShaderAsset varname = ShaderAsset(__VA_ARGS__)
 #define NEWLEGACYMODELASSET(varname, ...) LegacyModelAsset varname = LegacyModelAsset(__VA_ARGS__)
-
+#define NEWSAMPLEASSET(varname, path) SampleAsset varname = SampleAsset(path)
 
 class Assets {
 private:
@@ -349,6 +376,8 @@ public:
     NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
 
+    NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.mp3");
+    NEWSAMPLEASSET(activateSound, "gameplay/sfx/od_activate.mp3");
 
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
     std::vector<TextureAsset *> YargRings;
@@ -651,7 +680,7 @@ public:
                                     "offset",
                                     "scale"
                                 },
-                                [this](Shader* shader) {
+                                [](Shader* shader) {
                                 });
 
     NEWLEGACYMODELASSET(indicatorRing, "gameplay/track/multiplier/indicator_ring.obj",
@@ -693,7 +722,7 @@ public:
                                     "offset",
                                     "scale"
                                 },
-                                [this](Shader* shader) {
+                                [](Shader* shader) {
                                 });
 
     NEWTEXASSET(multNumTex, "gameplay/track/multiplier/mult_number.png");
@@ -748,7 +777,7 @@ public:
 
     void StartLoad() {
         ZoneScoped
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (asset->state == UNLOADED) {
                 asset->StartLoad();
@@ -759,7 +788,7 @@ public:
     bool PollLoaded(bool doFinalize = false) {
         ZoneScoped
         bool loaded = true;
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             auto asset = assets[i];
             if (!asset->CanFetch()) {
                 loaded = false;
@@ -773,7 +802,7 @@ public:
 
     int CountLoaded() {
         int loaded = 0;
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             if (assets[i]->CanFetch()) {
                 loaded++;
             }
@@ -793,7 +822,7 @@ public:
         ZoneScoped
         while (!PollLoaded()) {
         }
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             // This finalizes any assets that need it
             // We're blocking anyways so why not
             assets[i]->CheckForFetch();
@@ -802,7 +831,7 @@ public:
 
     void LoadImmediate() {
         ZoneScoped
-        for (int i = 0; i < assets.size(); i++) {
+        for (size_t i = 0; i < assets.size(); i++) {
             assets[i]->LoadImmediate();
             if (assets[i]->state == PREFINALIZED) {
                 assets[i]->CheckForFetch();
