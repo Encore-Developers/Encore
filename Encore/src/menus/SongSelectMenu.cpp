@@ -16,6 +16,8 @@
 #include "song/audio.h"
 #include "song/songlist.h"
 #include "assets.h"
+#include "song/ArtLoader.h"
+
 #include <filesystem>
 #include <string>
 #include <set>
@@ -59,10 +61,9 @@ void SongSelectMenu::ScrollSongSelect(int val) {
         }
         selectionTime = curTime;
 
-        if (!TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded) {
+        if (TheArtLoader.currentSongArt != &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID]) {
             try {
                 TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
-                TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].AlbumArtLoaded = true;
             } catch (const std::exception &e) {
                 Encore::EncoreLog(LOG_ERROR, e.what());
             }
@@ -112,13 +113,9 @@ void SongSelectMenu::Load() {
     previewState = PreviewState::FadeIn;
     selectionTime = 0.0;
 
-    if (TheSongList.curSong && !TheSongList.curSong->AlbumArtLoaded) {
+    if (TheArtLoader.currentSongArt != TheSongList.curSong) {
         try {
             TheSongList.curSong->LoadAlbumArt();
-            SetTextureWrap(TheSongList.curSong->albumArtBlur, TEXTURE_WRAP_REPEAT);
-            SetTextureFilter(TheSongList.curSong->albumArtBlur,
-                             TEXTURE_FILTER_ANISOTROPIC_16X);
-            TheSongList.curSong->AlbumArtLoaded = true;
             TraceLog(LOG_DEBUG,
                      "Loaded album art for %s",
                      TheSongList.curSong->title.c_str());
@@ -298,11 +295,7 @@ void SongSelectMenu::Draw() {
 
     BeginDrawing();
     ClearBackground(DARKGRAY);
-    if (TheSongList.curSong && TheSongList.curSong->AlbumArtLoaded) {
-        BeginShaderMode(assets.bgShader);
-        GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
-        EndShaderMode();
-    }
+    GameMenu::DrawAlbumArtBackground();
 
     float TopOvershell = u.hpct(0.15f);
     DrawRectangle(
@@ -591,13 +584,13 @@ void SongSelectMenu::Draw() {
         WHITE
     );
 
-    if (TheSongList.curSong && TheSongList.curSong->AlbumArtLoaded) {
+    if (IsTextureValid(TheArtLoader.loadedArt)) {
         DrawTexturePro(
-            TheSongList.curSong->albumArt,
+            TheArtLoader.loadedArt,
             Rectangle{ 0,
                        0,
-                       (float)TheSongList.curSong->albumArt.width,
-                       (float)TheSongList.curSong->albumArt.width },
+                       (float)TheArtLoader.loadedArt.width,
+                       (float)TheArtLoader.loadedArt.width },
             Rectangle{ (float)AlbumX - AlbumInner,
                        (float)AlbumY,
                        (float)AlbumHeight,

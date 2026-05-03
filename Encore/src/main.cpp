@@ -15,6 +15,7 @@
 #include "SDL3/SDL.h"
 
 #include "settings/keybinds.h"
+#include "song/ArtLoader.h"
 #include "song/cacheload.h"
 
 #ifdef STEAM
@@ -297,6 +298,7 @@ int main(int argc, char *argv[]) {
         u.calcUnits();
 
         PollQueuedInputs(poller);
+        TheArtLoader.Poll();
 
         if (GetRenderWidth() < minWidth) {
             if (GetRenderHeight() < minHeight)

@@ -115,7 +115,7 @@ void SettingsController::Draw() {
     Units& u = Units::getInstance();
     Assets& assets = Assets::getInstance();
     TraceLog(LOG_INFO, "Units=%p, Assets initialized, rubikBold=%p", &u, &assets.rubikBold);
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground();
     DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
     encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();

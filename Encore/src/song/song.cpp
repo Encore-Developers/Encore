@@ -4,7 +4,7 @@
 
 #include "song.h"
 
-
+#include "ArtLoader.h"
 #include "inih/INIReader.h"
 #include <map>
 
@@ -99,6 +99,9 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
     }
     LoadInfoINI(songInfoPath);
     LoadAudioINI(songPath);
+}
+void Song::LoadAlbumArt() {
+    TheArtLoader.LoadAlbumArt(this);
 }
 
 void Song::LoadAudioINI(const std::filesystem::path& songPath) {

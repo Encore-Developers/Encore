@@ -181,7 +181,7 @@ void ChartLoadingMenu::Draw() {
     Assets &assets = Assets::getInstance();
 
     ClearBackground(BLACK);
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground();
     encOS::DrawTopOvershell(0.15f);
     DrawTextEx(
         assets.redHatDisplayBlack,

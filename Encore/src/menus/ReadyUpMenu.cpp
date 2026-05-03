@@ -10,6 +10,7 @@
 #include "raygui.h"
 #include "styles.h"
 #include "uiUnits.h"
+#include "song/ArtLoader.h"
 
 #include "users/playerManager.h"
 
@@ -163,7 +164,7 @@ void ReadyUpMenu::Draw() {
     bool SwitchMenus = true;
     Assets &assets = Assets::getInstance();
     Units &u = Units::getInstance();
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground();
 
     float AlbumArtLeft = u.LeftSide;
     float AlbumArtTop = u.hpct(0.05f);
@@ -195,11 +196,11 @@ void ReadyUpMenu::Draw() {
         BLACK
     );
     DrawTexturePro(
-        TheSongList.curSong->albumArt,
+        TheArtLoader.loadedArt,
         Rectangle{ 0,
                    0,
-                   (float)TheSongList.curSong->albumArt.width,
-                   (float)TheSongList.curSong->albumArt.width },
+                   (float)TheArtLoader.loadedArt.width,
+                   (float)TheArtLoader.loadedArt.width },
         Rectangle{ u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
         { 0, 0 },
         0,

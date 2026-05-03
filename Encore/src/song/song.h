@@ -138,15 +138,11 @@ public:
     float artistXOffset = 0;
     float artistTextWidth = 0;
     double artistScrollTime = 0.0;
-    Texture albumArtBlur;
-    Texture albumArt;
     std::string source = "custom";
     std::string album = "";
     int length = 0;
     int songListPos = 0;
     int BeatTrackID = 0;
-
-    bool AlbumArtLoaded = false;
     double music_start = 0.0;
     double end = 0.0;
     std::vector<PartIcon> partIcons{
@@ -353,24 +349,7 @@ public:
         // }
     }
 
-    void LoadAlbumArt() {
-        ZoneScoped;
-        albumArt = LoadTexture(albumArtPath.c_str());
-        GenTextureMipmaps(&albumArt);
-        SetTextureFilter(albumArt, TEXTURE_FILTER_TRILINEAR);
-
-        {
-            ZoneScopedN("Load Album Art Background");
-            Image albumImage;
-            albumImage = LoadImage(albumArtPath.c_str());
-            ImageResize(&albumImage, 256, 256);
-            ImageBlurGaussian(&albumImage, 10);
-            albumArtBlur = LoadTextureFromImage(albumImage);
-            UnloadImage(albumImage);
-            GenTextureMipmaps(&albumArtBlur);
-            SetTextureFilter(albumArtBlur, TEXTURE_FILTER_TRILINEAR);
-        }
-    };
+    void LoadAlbumArt();
 };
 
 

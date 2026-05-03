@@ -21,6 +21,7 @@
 #include "uiUnits.h"
 #include "../song/songlist.h"
 #include "SDL3/SDL_misc.h"
+#include "song/ArtLoader.h"
 
 #ifndef GIT_COMMIT_HASH
 #define GIT_COMMIT_HASH
@@ -136,7 +137,10 @@ void GameMenu::DrawBottomOvershell() {
 
 // todo: replace player with band stats
 
-void GameMenu::DrawAlbumArtBackground(Texture2D song) {
+void GameMenu::DrawAlbumArtBackground() {
+    if (!IsTextureValid(TheArtLoader.loadedArtBlur)) {
+        return;
+    }
     float diagonalLength = sqrtf(
         (float)(GetRenderWidth() * GetRenderWidth())
         + (float)(GetRenderHeight() * GetRenderHeight())
@@ -146,8 +150,8 @@ void GameMenu::DrawAlbumArtBackground(Texture2D song) {
 
     BeginShaderMode(menuAss.bgShader);
     DrawTexturePro(
-        song,
-        Rectangle { 0, 0, (float)song.width, (float)song.width },
+        TheArtLoader.loadedArtBlur,
+        Rectangle { 0, 0, (float)TheArtLoader.loadedArtBlur.width, (float)TheArtLoader.loadedArtBlur.width },
         Rectangle { RectXPos, -RectYPos * 2, diagonalLength * 2, diagonalLength * 2 },
         { 0, 0 },
         45,
@@ -187,21 +191,17 @@ void MainMenu::ChooseSplashText(std::filesystem::path directory) {
 
 void MainMenu::PickRandomMenuSong() {
     if (TheSongList.songs.size() > 0) {
-        AlbumArtBackground = menuAss.highwayTexture;
-
         try {
             int my = GetRandomValue(0, (int)TheSongList.songs.size() - 1);
             TheSongList.curSong = &TheSongList.songs[my];
             // ChosenSongInt = my;
 
             TheSongList.curSong->LoadAlbumArt();
-            AlbumArtBackground = TheSongList.curSong->albumArtBlur;
             TraceLog(LOG_INFO, TheSongList.curSong->title.c_str());
             songChosen = true;
             albumArtLoaded = true;
         } catch (const std::exception &e) {
             std::cout << e.what() << std::endl;
-            AlbumArtBackground = menuAss.highwayTexture;
         };
 
         TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
@@ -650,8 +650,8 @@ void MainMenu::Draw() {
 
 
 
-    if (albumArtLoaded)
-        GameMenu::DrawAlbumArtBackground(AlbumArtBackground);
+    GameMenu::DrawAlbumArtBackground();
+
 
 
     if (ThePlayerManager.PlayersActive == 0) {

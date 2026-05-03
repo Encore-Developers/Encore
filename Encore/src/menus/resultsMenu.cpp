@@ -10,6 +10,7 @@
 #include "users/playerManager.h"
 #include "OvershellHelper.h"
 #include "MenuManager.h"
+#include "song/ArtLoader.h"
 
 void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
 
@@ -97,7 +98,7 @@ void resultsMenu::Load() {
 void resultsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground();
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
     }
@@ -108,8 +109,8 @@ void resultsMenu::Draw() {
     float albumX = u.LeftSide;
     float albumY = u.hpct(0.0225f);
     DrawTexturePro(
-        TheSongList.curSong->albumArt,
-        { 0, 0, (float)TheSongList.curSong->albumArt.width, (float)TheSongList.curSong->albumArt.height },
+        TheArtLoader.loadedArt,
+        { 0, 0, (float)TheArtLoader.loadedArt.width, (float)TheArtLoader.loadedArt.height },
         { albumX, albumY, albumSize, albumSize },
         { 0, 0 },
         0,

@@ -19,6 +19,7 @@
 #include "misc/imgui_stdlib.h"
 #include "util/settings-text.h"
 #include "OvershellHelper.h"
+#include "song/ArtLoader.h"
 
 bool ShowGameplaySettings = true;
 
@@ -49,8 +50,8 @@ void SettingsGameplay::Draw() {
     settingsOptionRenderer sor;
     const float boxWidthPct = 0.55f;
 
-    if (TheSongList.curSong != nullptr && IsTextureValid(TheSongList.curSong->albumArtBlur)) {
-        GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    if (IsTextureValid(TheArtLoader.loadedArtBlur)) {
+        GameMenu::DrawAlbumArtBackground();
     } else {
         DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), BLACK);
     }

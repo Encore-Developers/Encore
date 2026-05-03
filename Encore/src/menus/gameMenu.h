@@ -8,6 +8,7 @@
 #include "assets.h"
 #include "users/player.h"
 #include "OvershellMenu.h"
+#include "song/ArtLoader.h"
 
 enum TextAlign {
     LEFT,
@@ -44,7 +45,7 @@ namespace GameMenu {
     void DrawFPS(int posX, int posY);
     void DrawVersion();
 
-    void DrawAlbumArtBackground(Texture2D song);
+    void DrawAlbumArtBackground();
 }
 
 class MainMenu : public OvershellMenu {
@@ -72,7 +73,6 @@ public:
     bool streamsLoaded = false;
     bool streamsPaused = false;
     bool stringChosen = false;
-    Texture2D AlbumArtBackground;
     bool albumArtLoaded = false;
     void loadMainMenu();
     inline void loadTitleScreen() {};

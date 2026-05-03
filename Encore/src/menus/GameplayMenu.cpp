@@ -304,7 +304,7 @@ void GameplayMenu::Draw() {
     }
     // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     // std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
         0,

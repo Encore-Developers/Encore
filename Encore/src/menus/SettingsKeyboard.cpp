@@ -14,7 +14,7 @@
 void SettingsKeyboard::Draw() {
     Units& u = Units::getInstance();
     Assets& assets = Assets::getInstance();
-    GameMenu::DrawAlbumArtBackground(TheSongList.curSong->albumArtBlur);
+    GameMenu::DrawAlbumArtBackground();
     DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
     encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
