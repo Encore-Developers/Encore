@@ -1,4 +1,5 @@
 #include "ArtLoader.h"
+#include <thread>
 
 #include "tracy/TracyC.h"
 
