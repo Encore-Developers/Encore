@@ -16,6 +16,8 @@
 #include "song/audio.h"
 #include "song/songlist.h"
 #include "assets.h"
+#include "imgui.h"
+#include "raymath.h"
 #include "song/ArtLoader.h"
 
 #include <filesystem>
@@ -36,6 +38,7 @@ SongSelectMenu::~SongSelectMenu() {
 }
 
 void SongSelectMenu::ScrollSongSelect(int val) {
+    auto oldPos = curSongMenuPos;
     if (curSongMenuPos <= TheSongList.listMenuEntries.size()) {
         curSongMenuPos -= val;
     }
@@ -48,26 +51,16 @@ void SongSelectMenu::ScrollSongSelect(int val) {
     if (curSongMenuPos >= TheSongList.listMenuEntries.size())
         curSongMenuPos = TheSongList.listMenuEntries.size()-1;
 
-    if (val != 0) {
+
+    if (oldPos != curSongMenuPos && !TheSongList.listMenuEntries[curSongMenuPos].isHeader) {
         TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID];
 
-        if (!TheAudioManager.loadedStreams.empty()) {
-            for (auto &stream : TheAudioManager.loadedStreams) {
-                TheAudioManager.StopPlayback(stream.handle);
-            }
-            TheAudioManager.loadedStreams.clear();
-            currentPreviewVolume = 0.0f;
-            previewState = PreviewState::FadeIn;
-        }
+        StopPreview();
+        currentPreviewVolume = 0.0f;
+        previewState = PreviewState::Hysteresis;
         selectionTime = curTime;
 
-        if (TheArtLoader.currentSongArt != &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID]) {
-            try {
-                TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
-            } catch (const std::exception &e) {
-                Encore::EncoreLog(LOG_ERROR, e.what());
-            }
-        }
+        TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
     }
 }
 
@@ -110,22 +103,10 @@ void SongSelectMenu::Load() {
     previewStartTime = 0.0;
     phaseStartTime = 0.0;
     currentPreviewVolume = 0.0f;
-    previewState = PreviewState::FadeIn;
+    previewState = PreviewState::Hysteresis;
     selectionTime = 0.0;
 
-    if (TheArtLoader.currentSongArt != TheSongList.curSong) {
-        try {
-            TheSongList.curSong->LoadAlbumArt();
-            TraceLog(LOG_DEBUG,
-                     "Loaded album art for %s",
-                     TheSongList.curSong->title.c_str());
-        } catch (const std::exception &e) {
-            TraceLog(LOG_ERROR,
-                     "Failed to load album art for %s: %s",
-                     TheSongList.curSong->title.c_str(),
-                     e.what());
-        }
-    }
+    TheSongList.curSong->LoadAlbumArt();
 
     if (TheSongList.curSong) {
         curSongMenuPos = TheSongList.curSong->songListPos;
@@ -148,7 +129,7 @@ void SongSelectMenu::Load() {
     // }
 }
 
-void SongSelectMenu::Unload() {
+void SongSelectMenu::StopPreview() {
     if (!TheAudioManager.loadedStreams.empty()) {
         for (auto &stream : TheAudioManager.loadedStreams) {
             TheAudioManager.StopPlayback(stream.handle);
@@ -156,7 +137,9 @@ void SongSelectMenu::Unload() {
         TheAudioManager.loadedStreams.clear();
     }
 }
-
+void SongSelectMenu::Unload() {
+    StopPreview();
+}
 
 void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
     float targetVolume = TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
@@ -244,6 +227,42 @@ void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, in
     }
 }
 
+void SongSelectMenu::LoadPreview(Song& song) {
+    ZoneScoped
+    try {
+        song.LoadAudioINI(song.songDir);
+        TheAudioManager.loadStreams(
+            song
+                .stemsPath
+        );
+        float previewStartTimeSec =
+            song
+                .previewStartTime
+            / 1000.0f;
+        TheAudioManager.seekStreams(previewStartTimeSec);
+        for (int j = 0; j < TheAudioManager.loadedStreams.size(); j++) {
+            float volume = 0.0f;
+            if (j == PartVocals)
+                volume = 0;
+            TheAudioManager.SetAudioStreamVolume(
+                TheAudioManager.loadedStreams[j].handle, volume
+            );
+            TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[j].handle);
+        }
+        previewStartTime = curTime;
+        phaseStartTime = curTime;
+        currentPreviewVolume = 0.0f;
+        previewState = PreviewState::FadeIn;
+    } catch (const std::exception &e) {
+        TraceLog(
+            LOG_ERROR,
+            "Failed to load preview audio for song %d: %s",
+            TheSongList.listMenuEntries[curSongMenuPos].songListID,
+            e.what()
+        );
+        previewState = PreviewState::Failed;
+    }
+}
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units u = Units::getInstance();
@@ -254,40 +273,16 @@ void SongSelectMenu::Draw() {
 
     curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
-    if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime - selectionTime >= 0.75) {
-        if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.songs.size()) {
-            try {
-                TheAudioManager.loadStreams(TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].stemsPath);
-                float previewStartTimeSec = TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].
-                    previewStartTime / 1000.0f;
-                TheAudioManager.seekStreams(previewStartTimeSec);
-                for (int j = 0; j < TheAudioManager.loadedStreams.size(); j++) {
-                    float volume = 0.0f;
-                    if (j == PartVocals)
-                        volume = 0;
-                    TheAudioManager.SetAudioStreamVolume(
-                        TheAudioManager.loadedStreams[j].handle,
-                        volume);
-                    TheAudioManager.
-                        BeginPlayback(TheAudioManager.loadedStreams[j].handle);
-                }
-                previewStartTime = curTime;
-                phaseStartTime = curTime;
-                currentPreviewVolume = 0.0f;
-                previewState = PreviewState::FadeIn;
-            } catch (const std::exception &e) {
-                TraceLog(LOG_ERROR,
-                         "Failed to load preview audio for song %d: %s",
-                         TheSongList.listMenuEntries[curSongMenuPos].songListID,
-                         e.what());
+    if (previewState == PreviewState::Hysteresis) {
+        if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime - selectionTime >= 0.75) {
+            if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.songs.size()) {
+                LoadPreview(TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID]);
             }
         }
     }
 
+
     UpdatePreviewVolume(curTime);
-
-
-
 
     // todo(3drosalia): clean this shit up after changing it
     static Song blankSong = Song();
@@ -354,6 +349,7 @@ void SongSelectMenu::Draw() {
          listMenuPos < TheSongList.listMenuEntries.size() &&
          (listMenuPos < curSongMenuPos + (topOflistMenu <= 4 ? 10 : 6));
          listMenuPos++) {
+        ZoneScopedN("Draw Entry")
         if (TheSongList.listMenuEntries.size() == listMenuPos)
             break;
         if (TheSongList.listMenuEntries[listMenuPos].isHeader) {
@@ -397,9 +393,9 @@ void SongSelectMenu::Draw() {
             }
             GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
             if (isCurSong) {
-
+                auto timer = Clamp(curTime - selectionTime, 0, 0.15);
                 DrawRectangleRec( Rectangle{0, songYPos, (u.RightSide - u.winpct(0.25f)), songEntryHeight },
-                    ColorBrightness(AccentColor, -0.4f));
+                    ColorBrightness(AccentColor, Remap(timer, 0, 0.15, 0, -0.4)));
             }
             BeginScissorMode(
                 0,

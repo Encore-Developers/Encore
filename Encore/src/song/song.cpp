@@ -105,6 +105,7 @@ void Song::LoadAlbumArt() {
 }
 
 void Song::LoadAudioINI(const std::filesystem::path& songPath) {
+    stemsPath.clear();
     for (const auto &entry : std::filesystem::directory_iterator(songPath)) {
         if (entry.is_regular_file()) {
             std::string base_filename = entry.path().string().substr(

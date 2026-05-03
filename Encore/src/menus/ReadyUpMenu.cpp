@@ -411,6 +411,7 @@ void ReadyUpMenu::Load() {
     SlotState = { INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
     ReadyState = { false, false, false, false };
     smf::MidiFile midiFile;
+    TheSongList.curSong->LoadAlbumArt();
     midiFile.read(TheSongList.curSong->midiPath.string());
     for (int track = 0; track < midiFile.getTrackCount(); track++) {
         SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
