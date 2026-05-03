@@ -14,6 +14,7 @@ namespace Encore::RhythmEngine {
     struct SoloEvents final : EncEventVect<solo> {
         bool TickDuringCurrentEvent(int tick) override;
         void UpdateEventViaNote(bool hit, int tick) override;
+        void CheckEvents(double time);
     };
 
     struct FillEvents final : EncEventVect<DrumFill> {

@@ -4,11 +4,20 @@
 #include "EventVectors.h"
 
 bool Encore::RhythmEngine::SoloEvents::TickDuringCurrentEvent(int tick) {
-    if (tick >= this->front().StartTick
-        && tick < this->front().StartTick + this->front().EndTick) {
+    if (tick >= this->at(CurrentEvent).StartTick
+        && tick < this->at(CurrentEvent).StartTick + this->at(CurrentEvent).TickLength) {
         return true;
         }
     return false;
+}
+
+void Encore::RhythmEngine::SoloEvents::CheckEvents(double time) {
+    if (this->empty())
+        return;
+
+    if (CurrentEvent < this->size() - 1 && time >= this->at(CurrentEvent).EndSec + this->at(CurrentEvent).StartSec) {
+        CurrentEvent++;
+    }
 }
 
 void Encore::RhythmEngine::SoloEvents::UpdateEventViaNote(bool hit, int tick) {
@@ -19,13 +28,13 @@ void Encore::RhythmEngine::SoloEvents::UpdateEventViaNote(bool hit, int tick) {
         return;
     }
     if (hit) {
-        this->front().NotesHit++;
+        this->at(CurrentEvent).NotesHit++;
         Encore::EncoreLog(
             LOG_DEBUG,
             TextFormat(
                 "Solo note hit: %01i/%01i",
-                this->front().NotesHit,
-                this->front().NoteCount
+                this->at(CurrentEvent).NotesHit,
+                this->at(CurrentEvent).NoteCount
             )
         );
     }

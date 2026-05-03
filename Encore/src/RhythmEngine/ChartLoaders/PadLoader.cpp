@@ -42,7 +42,7 @@ void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
             && chart.overdrive[CurrentOverdrive].StartTick
-                    + chart.overdrive[CurrentOverdrive].EndTick
+                    + chart.overdrive[CurrentOverdrive].TickLength
                 <= event.tick)
             CurrentOverdrive++;
     }

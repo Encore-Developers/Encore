@@ -28,7 +28,7 @@
 #define ITERATE_EVENT_BY_NOTE(event, itr, note)                                          \
     if (!chart.event.empty()) {                                                          \
         if (itr < chart.event.size() - 1                                                 \
-            && chart.event[itr].StartTick + chart.event[itr].EndTick < note.tick)        \
+            && chart.event[itr].StartTick + chart.event[itr].TickLength < note.tick)        \
             itr++;                                                                       \
     }
 

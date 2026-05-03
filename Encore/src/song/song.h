@@ -332,7 +332,7 @@ public:
                                     //     BRE.EndSec = midiFile.getTimeInSeconds(
                                     //         midiFile[track][i].tick
                                     //     );
-                                    //    BRE.EndTick = midiFile[track][i].tick;
+                                    //    BRE.TickLength = midiFile[track][i].tick;
                                     //    Encore::EncoreLog(LOG_DEBUG, "BRE end found");
                                     //    codaCount++;
                                     //}

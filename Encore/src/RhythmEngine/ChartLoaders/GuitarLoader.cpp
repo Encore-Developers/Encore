@@ -110,7 +110,7 @@ void Encore::RhythmEngine::GuitarLoader::CheckEvents(const smf::MidiEvent &event
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].EndTick <= event.tick)
+            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength <= event.tick)
             CurrentOverdrive++;
     }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
@@ -161,7 +161,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         lane
     );
     if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick) {
+        if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick <= chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
             chart.solos[CurrentSolo].NoteCount++;
         }
     }
@@ -177,7 +177,7 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         }
     }
     if (!chart.overdrive.empty()) {
-        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick) {
+        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick && event.tick < chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength) {
             chart.overdrive[CurrentOverdrive].NoteCount++;
         }
     }

@@ -52,7 +52,7 @@ void Encore::RhythmEngine::ODEvents::CheckEvents(int tick) {
         "MARIA WHY THE FUCK ARE YOU USING CheckEvents(int) ON OVERDRIVE?????"
     );
     /*
-    if (CurrentEvent < this->size() - 1 && tick >= this->at(CurrentEvent).EndTick) {
+    if (CurrentEvent < this->size() - 1 && tick >= this->at(CurrentEvent).TickLength) {
         CurrentEvent++;
     }*/
 }
@@ -86,7 +86,7 @@ bool Encore::RhythmEngine::ODEvents::TickDuringCurrentEvent(int tick) {
         return false;
 
     if (tick >= this->at(CurrentEvent).StartTick
-        && tick < this->at(CurrentEvent).StartTick + this->at(CurrentEvent).EndTick) {
+        && tick < this->at(CurrentEvent).StartTick + this->at(CurrentEvent).TickLength) {
         return true;
         }
     return false;

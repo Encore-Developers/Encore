@@ -56,7 +56,7 @@ void Encore::RhythmEngine::DrumsLoader::CheckEvents(const smf::MidiEvent &event)
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].EndTick <= event.tick)
+            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength <= event.tick)
             CurrentOverdrive++;
     }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)

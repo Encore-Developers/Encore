@@ -11,17 +11,17 @@ struct EncNoteEvent {
     double StartSec = 0.0;
     double EndSec = 0.0;
     int StartTick = 0;
-    int EndTick = 0;
+    int TickLength = 0;
 };
 
 struct EncChartEvent : EncNoteEvent {
     int NotesHit = 0;
     int NoteCount = 0;
     EncChartEvent() = default;
-    EncChartEvent(int tickStart, double secondStart, int tickEnd, double secondEnd) {
+    EncChartEvent(int tickStart, double secondStart, int tickLength, double secondEnd) {
         StartTick = tickStart;
         StartSec = secondStart;
-        EndTick = tickEnd;
+        TickLength = tickLength;
         EndSec = secondEnd;
     };
 };
@@ -53,7 +53,7 @@ struct solo : EncChartEvent {
         : EncChartEvent(
               StartTick = tickStart,
               StartSec = secondStart,
-              EndTick = tickEnd,
+              TickLength = tickEnd,
               EndSec = secondEnd
           ) {}
 };
@@ -63,7 +63,7 @@ struct trill : EncChartEvent {
         : EncChartEvent(
               StartTick = tickStart,
               StartSec = secondStart,
-              EndTick = tickEnd,
+              TickLength = tickEnd,
               EndSec = secondEnd
           ) {}
     uint8_t lane1 = 255;
@@ -75,7 +75,7 @@ struct roll : EncChartEvent {
         : EncChartEvent(
               StartTick = tickStart,
               StartSec = secondStart,
-              EndTick = tickEnd,
+              TickLength = tickEnd,
               EndSec = secondEnd
           ) {}
     uint8_t lane = 255;
@@ -88,7 +88,7 @@ struct odPhrase : EncChartEvent {
         : EncChartEvent(
               StartTick = tickStart,
               StartSec = secondStart,
-              EndTick = tickEnd,
+              TickLength = tickEnd,
               EndSec = secondEnd
           ) {}
     bool added = false;
@@ -100,7 +100,7 @@ struct section : EncChartEvent {
         : EncChartEvent(
               StartTick = tickStart,
               StartSec = secondStart,
-              EndTick = tickEnd,
+              TickLength = tickEnd,
               EndSec = secondEnd
           ) {}
     std::string Name;

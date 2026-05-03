@@ -22,7 +22,7 @@
 #include "song/ArtLoader.h"
 
 bool ShowGameplaySettings = true;
-
+bool AwesomenessDetection = false;
 void SettingsGameplay::Draw() {
     if (!IsWindowReady()) {
         return;
@@ -80,6 +80,10 @@ void SettingsGameplay::Draw() {
         {
             "Fullscreen",
             "TBD"
+        },
+        {
+            "Awesomeness Detection",
+            "Lets Marie know that you are awesome!"
         },
         // scan Songs
         {
@@ -210,6 +214,43 @@ void SettingsGameplay::Draw() {
     GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, defaultColor);
 
     settingOffset++;
+
+    float adTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
+    Rectangle adBoxRect = {boxLeft - borderWidth, adTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
+    DrawRectangle(boxLeft - borderWidth, adTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
+    DrawRectangle(boxLeft, adTop, boxWidth, EntryHeight, boxBackground);
+    Vector2 adTextSize = IsFontValid(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Awesomeness Detection", EntryFontSize, 0) : Vector2{100, 20};
+    if (IsFontValid(assets.rubikBold)) {
+        DrawTextEx(assets.rubikBold, "Awesomeness Detection", {boxLeft + u.winpct(0.01f), adTop + (EntryHeight - adTextSize.y) / 2}, EntryFontSize, 0, WHITE);
+    }
+    Rectangle adOffButtonRect = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, adTop, toggleButtonWidth, EntryHeight};
+    Rectangle adOnButtonRect = {OptionLeft + OptionWidth - toggleButtonWidth - toggleOffset, adTop, toggleButtonWidth, EntryHeight};
+    if (CheckCollisionPointRec(mousePos, adOffButtonRect) || CheckCollisionPointRec(mousePos, adOnButtonRect)) {
+        selectedIndex = 1;
+        isHovering = true;
+        DrawRectangleLinesEx(adBoxRect, highlightBorderWidth, glowColor);
+    }
+    // can i repent now
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, AwesomenessDetection ? defaultColor : ColorToInt(activeColor));
+    if (GuiButton(adOffButtonRect, "Off")) {
+        if (AwesomenessDetection) {
+            AwesomenessDetection = false;
+        }
+    }
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, AwesomenessDetection ? ColorToInt(activeColor) : defaultColor);
+    if (GuiButton(adOnButtonRect, "On")) {
+        if (!AwesomenessDetection) {
+            AwesomenessDetection = true;
+        }
+    }
+    if (!AwesomenessDetection) {
+        DrawRectangleLinesEx(adOffButtonRect, highlightBorderWidth, glowColor);
+    } else {
+        DrawRectangleLinesEx(adOnButtonRect, highlightBorderWidth, glowColor);
+    }
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, defaultColor);
+
+    settingOffset++;
     float scanSongsTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
     Rectangle scanSongsBoxRect = {boxLeft - borderWidth, scanSongsTop - borderWidth, boxWidth + 2 * borderWidth, scanButtonHeight + 2 * borderWidth};
     DrawRectangle(boxLeft - borderWidth, scanSongsTop - borderWidth, boxWidth + 2 * borderWidth, scanButtonHeight + 2 * borderWidth, boxBorder);
@@ -221,7 +262,7 @@ void SettingsGameplay::Draw() {
     Rectangle scanButtonRect = {OptionLeft + OptionWidth - scanButtonWidth, scanSongsTop, scanButtonWidth, scanButtonHeight};
 
     if (CheckCollisionPointRec(mousePos, scanButtonRect)) {
-        selectedIndex = 1;
+        selectedIndex = 2;
         isHovering = true;
         DrawRectangleLinesEx(scanSongsBoxRect, highlightBorderWidth, glowColor);
     }

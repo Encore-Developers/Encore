@@ -65,6 +65,7 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
 
 void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     this->LastUpdateTime = CurrentTime;
+    chart->solos.CheckEvents(CurrentTime);
     if (stats->Bot) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
             return;
