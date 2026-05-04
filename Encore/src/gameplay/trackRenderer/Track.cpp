@@ -14,6 +14,7 @@
 #include "KickTrackSlot.h"
 #include "OpenTrackSlot.h"
 #include "debug/EncoreDebug.h"
+#include "easing/easing.h"
 #include "events/Event.h"
 #include "menus/gameMenu.h"
 #include "song/song.h"
@@ -123,13 +124,9 @@ void Encore::Track::Load() {
     particleSystem->track = this;
 }
 
-float easeInOutQuad(float x) {
-    return x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2;
-}
-
-
 void Encore::Track::DrawSurface() {
     ZoneScoped;
+    auto ease = getEasingFunction(EaseInOutQuad);
     float time = GetNotePos3D(0) / 22.5;
     SetShaderValue(ASSET(highwayScrollShader),
                    ASSET(highwayScrollShader).GetUniformLoc("time"),
@@ -154,7 +151,7 @@ void Encore::Track::DrawSurface() {
                     { 0 },
                     0,
                     { 1, 1, 1 },
-                    ColorAlpha(GOLD, easeInOutQuad(OverdriveTimer)));
+                    ColorAlpha(GOLD, ease(OverdriveTimer)));
     }
 
     SpotlightTimer = Lerp(SpotlightTimer,
@@ -168,7 +165,7 @@ void Encore::Track::DrawSurface() {
                     0,
                     { 1, 1, 1 },
                     ColorAlpha(ColorBrightness(player.AccentColor, -0.25),
-                               easeInOutQuad(SpotlightTimer)));
+                               ease(SpotlightTimer)));
     }
 
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
@@ -252,7 +249,7 @@ void Encore::Track::DrawSoloUI() {
     Units &u = Units::getInstance();
     solo* curSolo = &player.engine->chart->solos.at(player.engine->chart->solos.CurrentEvent);
     if (TheSongTime.GetElapsedTime() > curSolo->StartSec && TheSongTime.GetElapsedTime() < curSolo->StartSec + curSolo->EndSec) {
-        Vector3 worldSpace = { 0, 2, BaseLength + 5 };
+        Vector3 worldSpace = { 0, 2.5, BaseLength + 5 };
         Vector2 screenPos = GetWorldToScreen(
             worldSpace,
             AnimCamera);
@@ -332,20 +329,6 @@ void Encore::Track::DrawMultiplier() {
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 
-float easeOutBack(float x) {
-    float c1 = 1.70158;
-    float c3 = c1 + 1;
-
-    return 1 + c3 * pow(x - 1, 3) + c1 * pow(x - 1, 2);
-}
-
-float easeOutQuart(float x) {
-    return 1 - pow(1 - x, 4);
-}
-
-float easeInQuart(float x) {
-    return x * x * x * x;
-}
 
 void Encore::Track::DrawTrackNotifications() {
     if (Notifications.empty()) return;
@@ -354,7 +337,7 @@ void Encore::Track::DrawTrackNotifications() {
     }
     if (Notifications.empty()) return;
     Units &u = Units::getInstance();
-    Vector3 NotificationPoint = { 0, 1, BaseLength + 5 };
+    Vector3 NotificationPoint = { 0, 0, BaseLength + 5 };
     Vector2 ScreenNotifPosition = GetWorldToScreen(
         NotificationPoint,
         AnimCamera);
@@ -464,7 +447,7 @@ void Encore::Track::DrawJudgement() {
     double MaxAlpha = 255;
     if (JudgementTimer > 1) {
         if (JudgementType == 1) {
-            move = 1 - easeInQuart(JudgementTimer - 1);
+            move = 1 - getEasingFunction(EaseInQuart)(JudgementTimer - 1);
             FontSize = (FontSize * 0.75f) + ((FontSize * 0.25) * move);
             TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0)
                 .x;
@@ -477,15 +460,15 @@ void Encore::Track::DrawJudgement() {
             move = 1;
             MaxAlpha = 128.0;
         }
-        alpha = (unsigned char)(MaxAlpha * (1 - easeInQuart(JudgementTimer - 1)));
+        alpha = (unsigned char)(MaxAlpha * (1 - getEasingFunction(EaseInQuart)(JudgementTimer - 1)));
     } else {
         if (JudgementType == 1) {
-            move = easeOutQuart(JudgementTimer);
+            move = getEasingFunction(EaseOutQuart)(JudgementTimer);
         } else {
             move = 1;
             MaxAlpha = 128.0;
         }
-        float alphaF = MaxAlpha * (easeInQuart(JudgementTimer) * 1.5);
+        float alphaF = MaxAlpha * (getEasingFunction(EaseInQuart)(JudgementTimer) * 1.5);
         if (alphaF > MaxAlpha) {
             alpha = MaxAlpha;
         } else {
@@ -757,11 +740,6 @@ void Encore::Track::HandleEvent(Event *event) {
     }
 }
 
-
-inline double easeInQuadd(double x) {
-    return x * x;
-}
-
 void Encore::Track::ProcessAnimation() {
     AnimCamera = BaseCamera;
     if (KickTimer > 0)
@@ -769,9 +747,9 @@ void Encore::Track::ProcessAnimation() {
     else {
         KickTimer = 0;
     }
-
-    AnimCamera.position.y = BaseCamera.position.y - (easeInQuadd(KickTimer) * 0.2);
-    AnimCamera.target.y = BaseCamera.target.y - (easeInQuadd(KickTimer) * 0.1);
+    auto ease = getEasingFunction(EaseInQuad);
+    AnimCamera.position.y = BaseCamera.position.y - (ease(KickTimer) * 0.2);
+    AnimCamera.target.y = BaseCamera.target.y - (ease(KickTimer) * 0.1);
 }
 
 void Encore::Track::AddSlot(TrackSlot *slot) {

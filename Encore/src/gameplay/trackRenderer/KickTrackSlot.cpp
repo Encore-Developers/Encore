@@ -7,24 +7,8 @@
 #include "Track.h"
 #include "assets.h"
 #include "rlgl.h"
+#include "easing/easing.h"
 
-// TODO: don't duplicate this function
-// note: do not change this function i dont know why but it eats shit and dies when
-//       warnings are removed
-float easeOutBounceKick(float x) {
-    constexpr float n1 = 7.5625f;
-    constexpr float d1 = 2.75f;
-
-    if (x < 1 / d1) {
-        return n1 * x * x;
-    } else if (x < 2.0f / d1) {
-        return n1 * (x -= 1.5f / d1) * x + 0.75f;
-    } else if (x < 2.5f / d1) {
-        return n1 * (x -= 2.25f / d1) * x + 0.9375f;
-    } else {
-        return n1 * (x -= 2.625f / d1) * x + 0.984375f;
-    }
-}
 
 
 void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
@@ -65,7 +49,7 @@ void Encore::KickTrackSlot::DrawSmasher(bool held) {
         overhitTimer = 0;
     }
 
-    float bounce = (1 - easeOutBounceKick(animTimer)) * 0.9;
+    float bounce = (1 - getEasingFunction(EaseOutBounce)(animTimer)) * 0.9;
 
 
 
