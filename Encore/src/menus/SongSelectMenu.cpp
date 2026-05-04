@@ -87,6 +87,12 @@ void SongSelectMenu::ControllerInputCallback(
                 TheMenuManager.SwitchScreen(READY_UP);
             }
             break;
+        case Encore::RhythmEngine::InputChannel::LANE_2:
+            if (TheSongList.curSong) {
+                Unload();
+                TheMenuManager.SwitchScreen(MAIN_MENU);
+            }
+            break;
         default: 
             break;
         }
