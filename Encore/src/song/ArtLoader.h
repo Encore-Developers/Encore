@@ -34,8 +34,8 @@ public:
 
 
     Song* currentSongArt;
-    Texture loadedArt;
-    Texture loadedArtBlur;
+    Texture2D loadedArt;
+    Texture2D loadedArtBlur;
 
     ArtLoader();
 

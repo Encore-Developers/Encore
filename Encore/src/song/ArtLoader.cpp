@@ -76,11 +76,13 @@ void ArtLoader::Poll() {
                 UnloadTexture(loadedArt);
             }
             loadedArt = LoadTextureFromImage(result.loadedImage);
+            SetTextureFilter(loadedArt, TEXTURE_FILTER_BILINEAR);
         } else {
             if (loadedArtBlur.id != 0) {
                 UnloadTexture(loadedArtBlur);
             }
             loadedArtBlur = LoadTextureFromImage(result.loadedImage);
+            SetTextureFilter(loadedArtBlur, TEXTURE_FILTER_BILINEAR);
             UnloadImage(result.loadedImage);
             UnloadImage(result.otherImage);
         }
