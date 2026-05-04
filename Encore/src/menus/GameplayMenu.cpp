@@ -339,6 +339,7 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
 
 void GameplayMenu::Draw() {
     UpdatePauseState();
+    UIInput = IsPaused();
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();

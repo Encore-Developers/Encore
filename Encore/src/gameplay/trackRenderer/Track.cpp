@@ -758,6 +758,7 @@ void Encore::Track::AddSlot(TrackSlot *slot) {
 }
 
 void Encore::Track::Configure5Lane() {
+    NoteHeight = 1;
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 2 * xMult, 1, SLOT_GREEN));
@@ -769,6 +770,7 @@ void Encore::Track::Configure5Lane() {
 }
 
 void Encore::Track::Configure5LaneKickOpen() {
+    NoteHeight = 1;
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 2 * xMult, 1, 0.75, SLOT_GREEN));
@@ -780,6 +782,7 @@ void Encore::Track::Configure5LaneKickOpen() {
 }
 
 void Encore::Track::Configure5LaneGemOpen() {
+    NoteHeight = 1;
     slots.clear();
     float xMult = player.LeftyFlip ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 1.25 * xMult, 5.0 / 6.0, SLOT_GREEN));
@@ -791,6 +794,7 @@ void Encore::Track::Configure5LaneGemOpen() {
 }
 
 void Encore::Track::Configure4Lane() {
+    NoteHeight = 1.25;
     slots.clear();
     AddSlot(new GemTrackSlot(this, 1.875, 1.25, SLOT_GREEN));
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, SLOT_RED));
@@ -799,6 +803,7 @@ void Encore::Track::Configure4Lane() {
 }
 
 void Encore::Track::ConfigureDrums() {
+    NoteHeight = 1.25;
     slots.clear();
     AddSlot(new KickTrackSlot(this, 0, 5, SLOT_KICK));
     AddSlot(new GemTrackSlot(this, 1.875, 1.25, 0.75, SLOT_RED));
@@ -812,6 +817,7 @@ void Encore::Track::ConfigureDrums() {
 }
 
 void Encore::Track::ConfigurePSDrums() {
+    NoteHeight = 1;
     slots.clear();
     AddSlot(new KickTrackSlot(this, 0, 5, SLOT_KICK));
     AddSlot(new GemTrackSlot(this, 2.25, 0.5, 0.75, SLOT_RED));
@@ -824,6 +830,7 @@ void Encore::Track::ConfigurePSDrums() {
 }
 
 void Encore::Track::ConfigureFuckYoyDrums() {
+    NoteHeight = 1;
     slots.clear();
     AddSlot(new GemTrackSlot(this, 0.3125, 0.625, 0.75, SLOT_KICK));
     AddSlot(new GemTrackSlot(this, 2.18, 0.625, 0.75, SLOT_RED));
@@ -836,6 +843,7 @@ void Encore::Track::ConfigureFuckYoyDrums() {
 }
 
 void Encore::Track::ConfigureDrumsGemKick() {
+    NoteHeight = 1;
     slots.clear();
     AddSlot(new GemTrackSlot(this, 2, 1, SLOT_KICK));
     AddSlot(new GemTrackSlot(this, 1, 1, SLOT_RED));

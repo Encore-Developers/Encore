@@ -4,6 +4,8 @@
 
 class Menu {
 public:
+    bool UIInput = true;
+
     Menu() {}
     virtual ~Menu() {}
 

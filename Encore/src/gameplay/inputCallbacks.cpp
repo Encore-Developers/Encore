@@ -88,7 +88,7 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
     if (player) {
         bindingType = player->bindingType;
     }
-    if (TheMenuManager.currentScreen != GAMEPLAY) {
+    if (TheMenuManager.ActiveMenu && TheMenuManager.ActiveMenu->UIInput) {
         bindingType = GUITAR;
     }
 

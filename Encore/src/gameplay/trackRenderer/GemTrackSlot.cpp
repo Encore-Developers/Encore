@@ -46,7 +46,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
                         position,
                         { -1, 0, 0 },
                         10,
-                        { width, (track->NoteHeight * width), width * 0.75f },
+                        { width, track->NoteHeight, width * 0.75f },
                         WHITE);
         } else if (track->player.Instrument < PlasticDrums) {
             DrawModelEx(ASSET(liftNote),
