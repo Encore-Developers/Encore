@@ -39,29 +39,33 @@ SongSelectMenu::~SongSelectMenu() {
 
 void SongSelectMenu::ScrollSongSelect(int val) {
     auto oldPos = curSongMenuPos;
-    if (curSongMenuPos <= TheSongList.listMenuEntries.size()) {
-        curSongMenuPos -= val;
+    // Dealing with the logic of current pos not being signed is annoying. just store it
+    // as signed temporarily
+    int newPos = curSongMenuPos;
+    if (newPos <= TheSongList.listMenuEntries.size()) {
+        newPos -= val;
     }
 
     // prevent going past top
-    if (curSongMenuPos < 1)
-        curSongMenuPos = 1;
+    if (newPos < 1)
+        newPos = 1;
 
     // prevent going past bottom
-    if (curSongMenuPos >= TheSongList.listMenuEntries.size())
-        curSongMenuPos = TheSongList.listMenuEntries.size()-1;
+    if (newPos >= TheSongList.listMenuEntries.size())
+        newPos = TheSongList.listMenuEntries.size()-1;
 
 
-    if (oldPos != curSongMenuPos && !TheSongList.listMenuEntries[curSongMenuPos].isHeader) {
-        TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID];
+    if (oldPos != newPos && !TheSongList.listMenuEntries[newPos].isHeader) {
+        TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[newPos].songListID];
 
         StopPreview();
         currentPreviewVolume = 0.0f;
         previewState = PreviewState::Hysteresis;
         selectionTime = curTime;
 
-        TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].songListID].LoadAlbumArt();
+        TheSongList.songs[TheSongList.listMenuEntries[newPos].songListID].LoadAlbumArt();
     }
+    curSongMenuPos = newPos;
 }
 
 void SongSelectMenu::ControllerInputCallback(
@@ -115,7 +119,8 @@ void SongSelectMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
 
     if (TheSongList.curSong) {
-        curSongMenuPos = TheSongList.curSong->songListPos;
+        // TODO: should probably fix the actual value here. Just subtracting 1 for now.
+        curSongMenuPos = TheSongList.curSong->songListPos-1;
         if (curSongMenuPos < 1)
             curSongMenuPos = 1;
         if (curSongMenuPos > TheSongList.listMenuEntries.size())

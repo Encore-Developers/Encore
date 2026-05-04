@@ -227,7 +227,7 @@ void OvershellMenu::DrawOvershell() {
             break;
         }
         case OS_OPTIONS: {
-            int len = dropInDropOut ? 8 : 4;
+            int len = dropInDropOut ? 8 : 5;
             int curSlot = len-1;
             if (DrawOvershellRectangleHeader(
                     OvershellLeftLoc,
@@ -247,40 +247,29 @@ void OvershellMenu::DrawOvershell() {
                 if (OvershellButton(i, curSlot--, "Return") || input.backPressed) {
                     OvershellState[i] = OS_ATTRACT;
                 }
+                if (OvershellButton(i, curSlot--, "Restart")) {
+                    TheAudioManager.unloadStreams();
+                    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+                        Player &player = ThePlayerManager.GetActivePlayer(i);
+                        player.engine->stats.reset();
+                        player.engine->chart.reset();
+                        player.engine.reset();
+                    }
+                    songPlaying = false;
+                    TheSongTime.FullReset();
+                    TheMenuManager.SwitchScreen(CHART_LOADING_SCREEN);
+                }
                 if (OvershellButton(i, curSlot--, "Exit Song")) {
-                    TheSongTime.Reset();
                     TheAudioManager.unloadStreams();
                     songPlaying = false;
-                    TheSongTime.Beatlines.erase(
-                        TheSongTime.Beatlines.begin(),
-                        TheSongTime.Beatlines.end()
-                    );
-                    // TheSongTime.OverdriveTicks.erase(
-                    //     TheSongTime.OverdriveTicks.begin(),
-                    //     TheSongTime.OverdriveTicks.end()
-                    // );
-                    TheSongTime.TimeSigChanges.erase(
-                        TheSongTime.TimeSigChanges.begin(),
-                        TheSongTime.TimeSigChanges.end()
-                    );
-                    TheSongTime.BPMChanges.erase(
-                        TheSongTime.BPMChanges.begin(),
-                        TheSongTime.BPMChanges.end()
-                    );
-                    TheSongTime.Lyrics.erase(
-                        TheSongTime.Lyrics.begin(),
-                        TheSongTime.Lyrics.end()
-                    );
-                    TheSongTime.LastTick = 0;
-                    TheSongTime.CurrentTick = 0;
-                    // TheSongTime.LastODTick = 0;
-                    // TheSongTime.CurrentODTick = 0;
-                    TheSongTime.CurrentBPM = 0;
-                    // TheSongTime.CurrentODTickItr = 0;
-                    TheSongTime.CurrentTimeSig = 0;
-                    TheSongTime.CurrentBeatline = 0;
-                    TheSongTime.CurrentLyricPhrase = 0;
-                    TheMenuManager.SwitchScreen(RESULTS);
+                    TheSongTime.FullReset();
+                    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+                        Player &player = ThePlayerManager.GetActivePlayer(i);
+                        player.engine->stats.reset();
+                        player.engine->chart.reset();
+                        player.engine.reset();
+                    }
+                    TheMenuManager.SwitchScreen(SONG_SELECT);
                 }
             }
             if (!BNSetting) {

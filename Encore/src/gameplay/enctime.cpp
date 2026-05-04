@@ -229,6 +229,33 @@ void SongTime::Reset() {
     paused = false;
 }
 
+// Bad.
+void SongTime::FullReset() {
+    Reset();
+    Beatlines.erase(
+        Beatlines.begin(),
+        Beatlines.end()
+    );
+    TimeSigChanges.erase(
+        TimeSigChanges.begin(),
+        TimeSigChanges.end()
+    );
+    BPMChanges.erase(
+        BPMChanges.begin(),
+        BPMChanges.end()
+    );
+    Lyrics.erase(
+        Lyrics.begin(),
+        Lyrics.end()
+    );
+    LastTick = 0;
+    CurrentTick = 0;
+    CurrentBPM = 0;
+    CurrentTimeSig = 0;
+    CurrentBeatline = 0;
+    CurrentLyricPhrase = 0;
+}
+
 void SongTime::Pause() {
     pauseTime = GetElapsedTime();
     TheAudioManager.pauseStreams();

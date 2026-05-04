@@ -93,6 +93,7 @@ public:
     // TODO: implement pausing
     // TODO: reset after songs
     void Reset();
+    void FullReset();
     void Start(double end);
     void Pause();
     void Resume();

@@ -24,7 +24,7 @@ class ArtLoader {
     void SendResult(LoadResult result);
 public:
     bool keepAlive = true;
-    std::counting_semaphore<100> semaphore;
+    std::counting_semaphore<1000000> semaphore;
 
     std::queue<ArtRequest> requests;
     std::mutex requestsMutex;
