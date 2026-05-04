@@ -487,8 +487,21 @@ void EncoreDebug::DrawPlayerManager() {
 std::string tolowerStr(std::string &in) {
     std::string out;
     for (auto c : in) {
+        // Quirk: ignore some characters, makes searching better
         if (c == '\'') {
-            continue; // Quirk: ignore apostrophe, makes searching better
+            continue;
+        }
+        if (c == ' ') {
+            continue;
+        }
+        if (c == '(') {
+            continue;
+        }
+        if (c == ')') {
+            continue;
+        }
+        if (c == ',') {
+            continue;
         }
         out += std::tolower(c);
     }
