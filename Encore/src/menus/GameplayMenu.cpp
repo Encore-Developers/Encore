@@ -16,6 +16,7 @@
 
 #include "users/playerManager.h"
 #include "MenuManager.h"
+#include "OvershellHelper.h"
 #include "../settings/settings.h"
 
 #include <raylib.h>
@@ -33,6 +34,44 @@ GameplayMenu::GameplayMenu() {
 GameplayMenu::~GameplayMenu() {
 }
 
+bool GameplayMenu::CheckPauseInput(Encore::RhythmEngine::ControllerEvent event) {
+    if (IsPaused()) {
+        OvershellControllerInputCallback(this, event);
+        return true;
+    }
+    if (event.channel == Encore::RhythmEngine::InputChannel::PAUSE && event.action == Encore::RhythmEngine::Action::PRESS) {
+        for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+            Player &player = ThePlayerManager.GetActivePlayer(i);
+            if (player.joypadID == event.slot) {
+                OvershellState[i] = OS_OPTIONS;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+void GameplayMenu::UpdatePauseState() {
+    if (IsPaused()) {
+        if (!streamsPaused) {
+            TheAudioManager.pauseStreams();
+            streamsPaused = true;
+        }
+    } else {
+        if (streamsPaused) {
+            TheAudioManager.unpauseStreams();
+            streamsPaused = false;
+        }
+    }
+}
+bool GameplayMenu::IsPaused() {
+    for (int i = 0; i < 4; i++) {
+        if (OvershellState[i] != OS_ATTRACT) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     for (auto track : tracks) {
         if (!track) {
@@ -47,6 +86,7 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
         if (action == 2)
             return;
         Encore::RhythmEngine::ControllerEvent event;
+        event.slot = -1;
         if (action == GLFW_PRESS) {
             event.action = Encore::RhythmEngine::Action::PRESS;
         } else if (action == GLFW_RELEASE) {
@@ -80,8 +120,9 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
             }
         }
         event.timestamp = TheSongTime.GetElapsedTime();
-        if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
-            engine->ProcessInput(event);
+        if (!CheckPauseInput(event))
+            if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
+                engine->ProcessInput(event);
     }
 };
 
@@ -99,11 +140,13 @@ void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent
 
         Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
-        if (engine->allowTimestampedInputs) {
-            if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
-                engine->UpdateOnFrame(event.timestamp);
+        if (!CheckPauseInput(event)) {
+            if (engine->allowTimestampedInputs) {
+                if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
+                    engine->UpdateOnFrame(event.timestamp);
+            }
+            engine->ProcessInput(event);
         }
-        engine->ProcessInput(event);
     }
 };
 
@@ -295,6 +338,7 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
 }
 
 void GameplayMenu::Draw() {
+    UpdatePauseState();
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
@@ -362,7 +406,7 @@ void GameplayMenu::Draw() {
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
-        {
+        if (!IsPaused()) {
             ZoneScopedN("Engine Update")
             if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
                 player.engine->practice) {
@@ -585,6 +629,10 @@ void GameplayMenu::Draw() {
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
     GuiSetFont(assets.rubik);
 
+    if (IsPaused()) {
+        DrawPauseMenu();
+    }
+
     GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
     GameMenu::DrawVersion();
 }
@@ -594,6 +642,7 @@ void GameplayMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
+    dropInDropOut = false;
 
     // i dont like the game stuttering when you active or get a streak
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
@@ -632,29 +681,82 @@ void GameplayMenu::Load() {
         stream.volume =
             TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
     }
-    /*
-    if (ThePlayerManager.PlayersActive > 1) {
-        ThePlayerManager.BandStats->Multiplayer = true;
-        for (int player = 0; player < ThePlayerManager.PlayersActive; player++) {
-            ThePlayerManager.GetActivePlayer(player).stats->Multiplayer = true;
-        }
-    } else {
-        ThePlayerManager.BandStats->Multiplayer = false;
-        for (int player = 0; player < ThePlayerManager.PlayersActive; player++) {
-            ThePlayerManager.GetActivePlayer(player).stats->Multiplayer = false;
-        }
-    }
 
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-        Player &player = ThePlayerManager.GetActivePlayer(i);
-        // player.stats->BaseScore = TheSongList.curSong->parts[player.Instrument]
-        //                               ->charts[player.Difficulty]
-        //                               .baseScore;
-        if (i == 0) {
-            ThePlayerManager.BandStats->BaseScore = player.stats->BaseScore;
-        } else {
-            ThePlayerManager.BandStats->BaseScore += player.stats->BaseScore;
-        }
+}
+void GameplayMenu::DrawPauseMenu() {
+    Assets &assets = Assets::getInstance();
+    Units &u = Units::getInstance();
+
+    float AlbumArtLeft = u.LeftSide;
+    float AlbumArtTop = u.hpct(0.05f);
+    float AlbumArtRight = u.winpct(0.15f);
+    float AlbumArtBottom = u.winpct(0.15f);
+    DrawRectangle(
+        0,
+        0,
+        (int)GetRenderWidth(),
+        (int)GetRenderHeight(),
+        GetColor(0x00000080)
+    );
+
+    encOS::DrawTopOvershell(0.2f);
+    GameMenu::DrawVersion();
+
+    DrawRectangle(
+        (int)u.LeftSide,
+        (int)AlbumArtTop,
+        (int)AlbumArtRight + 12,
+        (int)AlbumArtBottom + 12,
+        WHITE
+    );
+    DrawRectangle(
+        (int)u.LeftSide + 6,
+        (int)AlbumArtTop + 6,
+        (int)AlbumArtRight,
+        (int)AlbumArtBottom,
+        BLACK
+    );
+    DrawTexturePro(
+        TheArtLoader.loadedArt,
+        Rectangle{ 0,
+                   0,
+                   (float)TheArtLoader.loadedArt.width,
+                   (float)TheArtLoader.loadedArt.width },
+        Rectangle{ u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
+        { 0, 0 },
+        0,
+        WHITE
+    );
+
+    float BottomOvershell = u.hpct(1) - u.hinpct(0.15f);
+    float TextPlacementTB = AlbumArtTop;
+    float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
+    DrawTextEx(
+        assets.redHatDisplayItalic,
+        TheSongList.curSong->title.c_str(),
+        { TextPlacementLR, TextPlacementTB },
+        u.hinpct(0.05f),
+        0,
+        WHITE
+    );
+    DrawTextEx(
+        assets.rubikItalic,
+        TheSongList.curSong->artist.c_str(),
+        { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
+        u.hinpct(0.04f),
+        0,
+        WHITE
+    );
+    if (!TheSongList.curSong->charters.empty()) {
+        DrawTextEx(
+            assets.rubikItalic,
+            TheSongList.curSong->charters[0].c_str(),
+            { TextPlacementLR, TextPlacementTB + u.hinpct(0.095f) },
+            u.hinpct(0.04f),
+            0,
+            WHITE
+        );
     }
-    */
+    GameMenu::DrawBottomOvershell();
+    DrawOvershell();
 }

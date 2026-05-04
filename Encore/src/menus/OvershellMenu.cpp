@@ -1,4 +1,7 @@
 #include "OvershellMenu.h"
+
+#include "GameplayMenu.h"
+#include "MenuManager.h"
 #include "assets.h"
 #include "uiUnits.h"
 #include "gameMenu.h"
@@ -6,6 +9,7 @@
 #include "OvershellHelper.h"
 #include "raygui.h"
 #include "raylib.h"
+#include "gameplay/enctime.h"
 
 using namespace encOS;
 using namespace Encore::RhythmEngine;
@@ -84,7 +88,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
         }
 
     }
-    if ((event.channel == InputChannel::PAUSE || event.channel == InputChannel::LANE_1) && !controllerSignedIn) {
+    if (menu->dropInDropOut && (event.channel == InputChannel::PAUSE || event.channel == InputChannel::LANE_1) && !controllerSignedIn) {
         for (int i = 0; i < 4; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1 && menu->ControllersToAssign[i] == 0) {
                 menu->ControllersToAssign[i] = event.slot;
@@ -223,10 +227,11 @@ void OvershellMenu::DrawOvershell() {
             break;
         }
         case OS_OPTIONS: {
-
+            int len = dropInDropOut ? 8 : 4;
+            int curSlot = len-1;
             if (DrawOvershellRectangleHeader(
                     OvershellLeftLoc,
-                    OvershellTopLoc - (ButtonHeight * 8),
+                    OvershellTopLoc - (ButtonHeight * len),
                     unit.winpct(0.2f),
                     unit.winpct(0.05f),
                     playerManager.GetActivePlayer(i).Name,
@@ -237,11 +242,51 @@ void OvershellMenu::DrawOvershell() {
                 CancelButtonActivation = true;
                 continue;
             }
-            input.SetLength(8);
+            input.SetLength(len);
+            if (!dropInDropOut) {
+                if (OvershellButton(i, curSlot--, "Return") || input.backPressed) {
+                    OvershellState[i] = OS_ATTRACT;
+                }
+                if (OvershellButton(i, curSlot--, "Exit Song")) {
+                    TheSongTime.Reset();
+                    TheAudioManager.unloadStreams();
+                    songPlaying = false;
+                    TheSongTime.Beatlines.erase(
+                        TheSongTime.Beatlines.begin(),
+                        TheSongTime.Beatlines.end()
+                    );
+                    // TheSongTime.OverdriveTicks.erase(
+                    //     TheSongTime.OverdriveTicks.begin(),
+                    //     TheSongTime.OverdriveTicks.end()
+                    // );
+                    TheSongTime.TimeSigChanges.erase(
+                        TheSongTime.TimeSigChanges.begin(),
+                        TheSongTime.TimeSigChanges.end()
+                    );
+                    TheSongTime.BPMChanges.erase(
+                        TheSongTime.BPMChanges.begin(),
+                        TheSongTime.BPMChanges.end()
+                    );
+                    TheSongTime.Lyrics.erase(
+                        TheSongTime.Lyrics.begin(),
+                        TheSongTime.Lyrics.end()
+                    );
+                    TheSongTime.LastTick = 0;
+                    TheSongTime.CurrentTick = 0;
+                    // TheSongTime.LastODTick = 0;
+                    // TheSongTime.CurrentODTick = 0;
+                    TheSongTime.CurrentBPM = 0;
+                    // TheSongTime.CurrentODTickItr = 0;
+                    TheSongTime.CurrentTimeSig = 0;
+                    TheSongTime.CurrentBeatline = 0;
+                    TheSongTime.CurrentLyricPhrase = 0;
+                    TheMenuManager.SwitchScreen(RESULTS);
+                }
+            }
             if (!BNSetting) {
                 if (OvershellButton(
                         i,
-                        7,
+                        curSlot--,
                         TextFormat(
                             "Breakneck Speed - %4.2fx",
                             playerManager.GetActivePlayer(i).NoteSpeed
@@ -252,7 +297,7 @@ void OvershellMenu::DrawOvershell() {
             } else {
                 if (OvershellSlider(
                     i,
-                    7,
+                    curSlot--,
                     TextFormat(
                         "Breakneck Speed - %4.2fx",
                         playerManager.GetActivePlayer(i).NoteSpeed
@@ -266,59 +311,63 @@ void OvershellMenu::DrawOvershell() {
                 };
             }
 
-            const char* typeString;
-            switch (playerManager.GetActivePlayer(i).bindingType) {
-            case GUITAR:
-                typeString = "Guitar";
-                break;
-            case DRUMS:
-                typeString = "Drums";
-                break;
-            case PAD:
-                typeString = "Pad";
-                break;
-            default:
-                typeString = "Unknown";
-            }
-            if (OvershellButton(i, 6, TextFormat("Instrument Type: %s", typeString))) {
-                OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
-            }
-            auto padId = playerManager.GetActivePlayer(i).joypadID;
-            const char* padName = "Unknown";
-            if (padId == -2) {
-                padName = "All";
-            }
-            if (padId == -1) {
-                padName = "Keyboard";
-            }
-            if (SDL_GetJoystickFromID(padId)) {
-                padName = SDL_GetJoystickNameForID(padId);
-            }
-            GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.018f));
-            if (OvershellButton(i, 5, TextFormat("Controller: %s", padName))) {
-                OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
-                break;
-            }
-            GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.03f));
+            if (dropInDropOut) {
+                const char* typeString;
+                switch (playerManager.GetActivePlayer(i).bindingType) {
+                case GUITAR:
+                    typeString = "Guitar";
+                    break;
+                case DRUMS:
+                    typeString = "Drums";
+                    break;
+                case PAD:
+                    typeString = "Pad";
+                    break;
+                default:
+                    typeString = "Unknown";
+                }
+                if (OvershellButton(i, curSlot--, TextFormat("Instrument Type: %s", typeString))) {
+                    OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
+                }
+                auto padId = playerManager.GetActivePlayer(i).joypadID;
+                const char* padName = "Unknown";
+                if (padId == -2) {
+                    padName = "All";
+                }
+                if (padId == -1) {
+                    padName = "Keyboard";
+                }
+                if (SDL_GetJoystickFromID(padId)) {
+                    padName = SDL_GetJoystickNameForID(padId);
+                }
+                GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.018f));
+                if (OvershellButton(i, curSlot--, TextFormat("Controller: %s", padName))) {
+                    OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
+                    break;
+                }
+                GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.03f));
 
-            playerManager.GetActivePlayer(i).BrutalMode =
-                OvershellCheckbox(i, 4, "Brutal Mode", playerManager.GetActivePlayer(i).BrutalMode);
-            playerManager.GetActivePlayer(i).Bot =
-                OvershellCheckbox(i, 3, "Bot", playerManager.GetActivePlayer(i).Bot);
-            playerManager.GetActivePlayer(i).LeftyFlip = OvershellCheckbox(
-                i, 2, "Lefty Flip", playerManager.GetActivePlayer(i).LeftyFlip
-            );
-            if (OvershellButton(i, 1, "Drop Out")) {
-                playerManager.SaveSpecificPlayer(i, true);;
-                playerManager.RemoveActivePlayer(i);
-                OvershellState[i] = OS_ATTRACT;
-                CancelButtonActivation = true;
-                continue;
+                playerManager.GetActivePlayer(i).BrutalMode =
+                OvershellCheckbox(i, curSlot--, "Brutal Mode", playerManager.GetActivePlayer(i).BrutalMode);
+                playerManager.GetActivePlayer(i).Bot =
+                    OvershellCheckbox(i, curSlot--, "Bot", playerManager.GetActivePlayer(i).Bot);
             }
-            if (OvershellButton(i, 0, "Cancel") || input.backPressed) {
-                playerManager.SaveSpecificPlayer(i, true);
-                OvershellState[i] = OS_ATTRACT;
-                CancelButtonActivation = true;
+            playerManager.GetActivePlayer(i).LeftyFlip = OvershellCheckbox(
+                i, curSlot--, "Lefty Flip", playerManager.GetActivePlayer(i).LeftyFlip
+            );
+            if (dropInDropOut) {
+                if (OvershellButton(i, curSlot--, "Drop Out")) {
+                    playerManager.SaveSpecificPlayer(i, true);;
+                    playerManager.RemoveActivePlayer(i);
+                    OvershellState[i] = OS_ATTRACT;
+                    CancelButtonActivation = true;
+                    continue;
+                }
+                if (OvershellButton(i, curSlot--, "Cancel") || input.backPressed) {
+                    playerManager.SaveSpecificPlayer(i, true);
+                    OvershellState[i] = OS_ATTRACT;
+                    CancelButtonActivation = true;
+                }
             }
             break;
         }
@@ -370,9 +419,12 @@ void OvershellMenu::DrawOvershell() {
                 };
             } else { // no active players
                 // if its the first slot, keyboard can join ALWAYS
+                if (!dropInDropOut) {
+                    continue;
+                }
                 int joysticks;
                 SDL_GetJoysticks(&joysticks);
-                    if (i <= joysticks || i == 0) {
+                if (i <= joysticks || i == 0) {
                     if (DrawOvershellRectangleHeader(
                             OvershellLeftLoc,
                             OvershellTopLoc + unit.winpct(0.01f),

@@ -46,9 +46,9 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     if (event.channel == InputChannel::INVALID)
         return;
 
-    if (PauseGame(event)) {
-        return;
-    }
+    // if (PauseGame(event)) {
+    //     return;
+    // }
     if (PlayerIsPaused())
         return;
 

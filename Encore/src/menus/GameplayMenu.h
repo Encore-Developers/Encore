@@ -30,6 +30,8 @@ class GameplayMenu : public OvershellMenu {
     };
     std::array<std::shared_ptr<Encore::Track>, 4> tracks;
 public:
+    bool streamsPaused = false;
+
     GameplayMenu();
     virtual ~GameplayMenu();
     void DrawScorebox(Units &u, Assets &assets, float scoreY);
@@ -39,4 +41,8 @@ public:
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     void Draw() override;
     void Load() override;
+    void DrawPauseMenu();
+    bool CheckPauseInput(Encore::RhythmEngine::ControllerEvent event);
+    void UpdatePauseState();
+    bool IsPaused();
 };

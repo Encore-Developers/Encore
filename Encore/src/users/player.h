@@ -87,7 +87,7 @@ public:
     ControllerBindingType bindingType = GUITAR;
     // -1 == keyboard
     // -2 == all
-    SDL_JoystickID joypadID = -2;
+    SDL_JoystickID joypadID = -1;
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};
