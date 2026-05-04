@@ -112,6 +112,23 @@ bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) cons
     return practice && time < pStopTime && time >= pStartTime;
 }
 
+void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
+    stats->overdrive.ticks.UpdateOverdriveTick();
+    if (stats->overdrive.Add(CurrentTime, chart) && stats->overdrive.Fill >= 0.5 && !stats->overdrive.Active) {
+        TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
+        FireEvent(&odReady);
+    }
+
+    chart->solos.CheckEvents(CurrentTime);
+    bool odWasActive = stats->overdrive.Active;
+    stats->overdrive.Update(CurrentTime);
+    if (odWasActive == true && odWasActive != stats->overdrive.Active) {
+        // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
+        TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
+        EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
+    }
+}
+
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTime) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;

@@ -298,7 +298,6 @@ void GameplayMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
-    TheSongTime.UpdateOverdriveTick();
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     if (!songPlaying) {
@@ -331,10 +330,6 @@ void GameplayMenu::Draw() {
             TheSongTime.Beatlines.begin(),
             TheSongTime.Beatlines.end()
         );
-        TheSongTime.OverdriveTicks.erase(
-            TheSongTime.OverdriveTicks.begin(),
-            TheSongTime.OverdriveTicks.end()
-        );
         TheSongTime.TimeSigChanges.erase(
             TheSongTime.TimeSigChanges.begin(),
             TheSongTime.TimeSigChanges.end()
@@ -349,10 +344,9 @@ void GameplayMenu::Draw() {
         );
         TheSongTime.LastTick = 0;
         TheSongTime.CurrentTick = 0;
-        TheSongTime.LastODTick = 0;
-        TheSongTime.CurrentODTick = 0;
+        // TheSongTime.LastODTick = 0;
+        // TheSongTime.CurrentODTick = 0;
         TheSongTime.CurrentBPM = 0;
-        TheSongTime.CurrentODTickItr = 0;
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
         TheSongTime.CurrentLyricPhrase = 0;

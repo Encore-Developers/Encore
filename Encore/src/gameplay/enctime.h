@@ -30,11 +30,7 @@ struct TimeSig {
 // maybe the tick its at? but that doesnt matter since its like. a timeline.
 // the "delta" would just be this "tick" + the current % of time between this tick and the
 // next, if the next exists in fact i think this could just be a vector of double
-struct OverdriveTick {
-    OverdriveTick(double _time, int _tick) : time(_time), tick(_tick) {};
-    double time;
-    int tick;
-};
+
 enum BeatType {
     Major = 1,
     Minor = 0,
@@ -66,8 +62,6 @@ private:
     bool paused = false;
 
 public:
-    std::vector<OverdriveTick> OverdriveTicks {};
-    size_t CurrentODTickItr;
     std::vector<BPM> BPMChanges {};
     size_t CurrentBPM;
     std::vector<TimeSig> TimeSigChanges {};
@@ -80,13 +74,9 @@ public:
     std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
 
     SongTime() = default;
-    void GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID);
-    void UpdateOverdriveTick();
     void ParseSections(smf::MidiFile);
     double LastTick = 0;
     double CurrentTick = 0;
-    double LastODTick = 0;
-    double CurrentODTick = 0;
     void BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick);
 
     void UpdateTick();

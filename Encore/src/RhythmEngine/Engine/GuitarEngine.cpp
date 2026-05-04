@@ -65,7 +65,6 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
 
 void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
     this->LastUpdateTime = CurrentTime;
-    chart->solos.CheckEvents(CurrentTime);
     if (stats->Bot) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
             return;
@@ -98,17 +97,7 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
         chart->DropSustain(0);
     }
     this->CheckMissedNotes(CurrentTime);
-    if (stats->overdrive.Add(CurrentTime, chart) && stats->overdrive.Fill >= 0.5 && !stats->overdrive.Active) {
-        TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
-        FireEvent(&odReady);
-    }
-    bool odWasActive = stats->overdrive.Active;
-    stats->overdrive.Update(CurrentTime);
-    if (odWasActive == true && odWasActive != stats->overdrive.Active) {
-        // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
-        TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
-        EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
-    }
+    BaseUpdateOnFrame(CurrentTime);
     // there is ONLY lane 0 for guitar
 }
 

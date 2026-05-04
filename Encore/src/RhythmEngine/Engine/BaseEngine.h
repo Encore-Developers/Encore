@@ -65,8 +65,8 @@ namespace Encore::RhythmEngine {
         // bool GetCurrentNote(int lane);
         // virtual bool CanNoteBeHit();
         bool IsWithinPracticeSection(double time) const;
-        virtual void UpdateOnFrame(double CurrentTime) {
-        };
+        virtual void UpdateOnFrame(double CurrentTime) {};
+        void BaseUpdateOnFrame(double CurrentTime);
         void CheckMissedNotes(int Lane, double SongTime);
         void HitNote(int lane);
         void MissNote(int lane);

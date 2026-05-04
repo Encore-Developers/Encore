@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "OverdriveTicks.h"
+
 namespace Encore::RhythmEngine {
     class Overdrive {
     public:
@@ -15,6 +17,7 @@ namespace Encore::RhythmEngine {
         double ActivationTime = 0.0;
         double ActivationTick = 0.0;
         bool Active = false;
+        OverdriveTicks ticks;
         bool UseOverdriveLift = false;
         void Update(double &CurrentTime);
         bool Activate(const double &CurrentTime);

@@ -31,9 +31,9 @@ void LoadCharts() {
         TheSongTime.BeatmapFromMidiTrack(
             midiFile, TheSongList.curSong->endTick
         );
-        TheSongTime.GenerateOverdriveTicks(
-            midiFile, TheSongList.curSong->BeatTrackID
-        );
+        // TheSongTime.GenerateOverdriveTicks(
+        //    midiFile, TheSongList.curSong->BeatTrackID
+        //);
         TheSongTime.ParseSections(midiFile);
         for (int track = 0; track < midiFile.getTrackCount(); track++) {
             SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
@@ -134,7 +134,7 @@ void LoadCharts() {
                         .engine->chart->Lanes.at(i)
                         .begin();
             }
-
+            ThePlayerManager.GetActivePlayer(playerNum).engine->stats->overdrive.ticks.GenerateOverdriveTicks(midiFile, TheSongList.curSong->BeatTrackID);
             // if (!chart.plastic) {
             //     LoadingState = EXTRA_PROCESSING;
             //     int noteIdx = 0;

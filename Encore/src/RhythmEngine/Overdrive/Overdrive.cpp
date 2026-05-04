@@ -21,11 +21,11 @@ void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
     //  two measures per charge at 4/4
     //  8 beats per charge
     //  64 for full charge
-    Fill -= (TheSongTime.CurrentODTick - TheSongTime.LastODTick) / 32;
+    Fill -= (ticks.CurrentODTick - ticks.LastODTick) / 32;
 
     if (Fill <= 0) {
         Fill = 0;
-        EncoreLog(LOG_DEBUG, TextFormat("Last OD Tick: %4.4f", TheSongTime.CurrentODTick));
+        EncoreLog(LOG_DEBUG, TextFormat("Last OD Tick: %4.4f", ticks.CurrentODTick));
         Active = false;
     }
 }
@@ -35,9 +35,9 @@ bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
     Active = true;
     UseOverdriveLift = true;
     ActivationTime = CurrentTime;
-    ActivationTick = TheSongTime.CurrentODTick;
+    ActivationTick = ticks.CurrentODTick;
     TheAudioManager.playSample(ASSET(activateSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
-    EncoreLog(LOG_DEBUG, TextFormat("First OD Tick: %4.4f", TheSongTime.CurrentODTick));
+    EncoreLog(LOG_DEBUG, TextFormat("First OD Tick: %4.4f", ticks.CurrentODTick));
     return true;
 }
 

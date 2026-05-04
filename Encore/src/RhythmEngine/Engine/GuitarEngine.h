@@ -42,7 +42,7 @@ namespace Encore::RhythmEngine {
         // std::unordered_map<std::string, RhythmTimer> Timers {
         //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
         // };
-        void UpdateOnFrame(double CurrentTime) override;
+        void UpdateOnFrame(double CurrentTime);
         void SetStatsInputState(ControllerEvent &event) override;
         // bool CanNoteBeHit() override;
         void Overhit();
