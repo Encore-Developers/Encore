@@ -70,40 +70,27 @@ void Encore::Track::Draw() {
     ASSET(indicatorRingShader).SetUniform("tex2", ASSET(fcindtex2));
     ASSET(indicatorRingShader).SetUniform("baseTex", ASSET(fcindtex3));
 
-    BeginShaderMode(ASSET(trackCurveShader));
-    rlDisableDepthTest();
 
-    DrawSurface();
-    BeginBlendMode(BLEND_ADDITIVE);
-    DrawSolo();
-    EndBlendMode();
-    DrawBeatlines();
-    DrawOverdriveMeter();
-    EndShaderMode();
-    EndMode3D();
 
-    // this is really fucking stupid. bad fix.
-    DrawJudgement();
-    DrawCombo();
-    DrawTrackNotifications();
-    DrawSoloUI();
-
-    BeginMode3D(AnimCamera);
-    BeginShaderMode(ASSET(trackCurveShader));
-    DrawMultiplier();
-    DrawSmashers();
-
-    EndShaderMode();
-    EndMode3D();
-    BeginMode3D(AnimCamera);
-    BeginShaderMode(ASSET(trackCurveShader));
-    rlDisableDepthTest();
-    DrawNotes();
-
-    particleSystem->Render();
-    EndShaderMode();
-
-    EndMode3D();
+    {
+        BeginShaderMode(ASSET(trackCurveShader));
+        rlDisableDepthTest();
+        ZoneScopedN("Track Surface")
+        DrawSurface();
+        BeginBlendMode(BLEND_ADDITIVE);
+        DrawSolo();
+        EndBlendMode();
+        DrawBeatlines();
+        EndShaderMode();
+        EndMode3D();
+    }
+    {
+        ZoneScopedN("Track Notes + Smashers")
+        BeginMode3D(AnimCamera);
+        BeginShaderMode(ASSET(trackCurveShader));
+        DrawSmashers();
+        rlDisableDepthTest();
+        DrawNotes();
 
         EndShaderMode();
         EndMode3D();
