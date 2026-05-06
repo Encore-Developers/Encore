@@ -348,6 +348,7 @@ void GameplayMenu::Draw() {
     if (!songPlaying) {
         TheSongTime.Reset();
         double songEnd = floor(TheAudioManager.GetMusicTimeLength());
+        TheAudioManager.UpdateAudioStreamVolumes();
         TheSongTime.Start(songEnd);
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         songPlaying = true;
