@@ -37,11 +37,17 @@ const char *AssetStateName(AssetState state) {
     }
     return "INVALID";
 }
-void Asset::AddToFinalizeQueue() {
-    TheAssets.finalizeQueueMutex.lock();
-    TheAssets.finalizeQueue.push_back(this);
-    TheAssets.finalizeQueueMutex.unlock();
+void Asset::DoFinalize() {
+    ZoneScoped;
     state = PREFINALIZED;
+    BlockUntilGPUReady();
+
+    auto cmdbuf = SDL_AcquireGPUCommandBuffer(TheGPU);
+    auto copyPass = SDL_BeginGPUCopyPass(cmdbuf);
+    Finalize(copyPass);
+    SDL_EndGPUCopyPass(copyPass);
+
+    SDL_SubmitGPUCommandBuffer(cmdbuf);
 }
 
 Assets &Assets::getInstance() {
@@ -157,24 +163,40 @@ void TextureAsset::Load() {
     BlockUntilGPUReady();
     CopyToTransferBuffer();
 
-    AddToFinalizeQueue();
+    unsigned flags = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+    if (mips > 1) {
+        flags |= SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
+    }
+    SDL_GPUTextureCreateInfo createInfo = {
+        SDL_GPU_TEXTURETYPE_2D,
+        SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+                                            flags,
+        (unsigned int)width,
+        (unsigned int)height,
+        1,
+        (unsigned int)mips,
+        SDL_GPU_SAMPLECOUNT_1,
+        0
+    };
+    texture = SDL_CreateGPUTexture(TheGPU, &createInfo);
+
+    auto cmdbuf = SDL_AcquireGPUCommandBuffer(TheGPU);
+    auto copyPass = SDL_BeginGPUCopyPass(cmdbuf);
+    Finalize(copyPass);
+    SDL_EndGPUCopyPass(copyPass);
+
+    if (mips > 1) {
+        SDL_GenerateMipmapsForGPUTexture(cmdbuf, texture);
+    }
+
+    SDL_SubmitGPUCommandBuffer(cmdbuf);
+
 }
 
 void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
     ZoneScoped
 
-    SDL_GPUTextureCreateInfo createInfo = {
-        SDL_GPU_TEXTURETYPE_2D,
-        SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-        SDL_GPU_TEXTUREUSAGE_SAMPLER,
-        (unsigned int)width,
-        (unsigned int)height,
-        1,
-        1,
-        SDL_GPU_SAMPLECOUNT_1,
-        0
-    };
-    texture = SDL_CreateGPUTexture(TheGPU, &createInfo);
+
     SDL_GPUTextureTransferInfo transferInfo = {
         transferBuffer,
         0,
@@ -431,7 +453,7 @@ void MeshAsset::Load() {
     BlockUntilGPUReady();
     CopyToTransferBuffer();
 
-    AddToFinalizeQueue();
+    DoFinalize();
 }
 void MeshAsset::Finalize(SDL_GPUCopyPass *copyPass) {
 

@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    The2DFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_4);
+    The2DFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_8);
     The3DFramebuffer = new GPUDynamicFramebuffer(SDL_GPU_SAMPLECOUNT_4);
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
@@ -147,9 +147,13 @@ int main(int argc, char *argv[]) {
     SDL_GPUSamplerCreateInfo samplerCreate = {
         .min_filter = SDL_GPU_FILTER_LINEAR,
         .mag_filter = SDL_GPU_FILTER_LINEAR,
-        .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+        .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
         .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-        .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE
+        .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        .max_anisotropy = 4,
+        .min_lod = 0,
+        .max_lod = 8,
+        .enable_anisotropy = true
     };
     auto sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
 
@@ -259,7 +263,7 @@ int main(int argc, char *argv[]) {
             ZoneScopedN("Upload Gem Instances")
             gemInstances.UploadData(copyPass);
         }
-        if (!TheAssets.finalizeQueue.empty()) {
+        /*if (!TheAssets.finalizeQueue.empty()) {
             static std::deque<Asset*> pulled;
             pulled.clear();
             TheAssets.finalizeQueueMutex.lock();
@@ -271,7 +275,7 @@ int main(int argc, char *argv[]) {
             for (auto asset : pulled) {
                 asset->Finalize(copyPass);
             }
-        }
+        }*/
         UI::Box::InitializeMeshes(copyPass);
         SDL_EndGPUCopyPass(copyPass);
 

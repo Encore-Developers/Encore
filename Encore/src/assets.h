@@ -33,7 +33,7 @@ protected:
     virtual void Load() {
     }
 
-    void AddToFinalizeQueue();
+    void DoFinalize();
 
     SDL_GPUTransferBuffer* transferBuffer = nullptr;
 
@@ -42,6 +42,7 @@ public:
     AssetState state = UNLOADED;
     std::string id = {};
     std::thread loadingThread;
+    bool noPreload = false;
     /// Used for assets created by another and not stored in TheAssets (ShaderAsset)
     Asset *parent = nullptr;
 
@@ -226,6 +227,7 @@ public:
 
 #define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
 #define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path)
+#define NEWTEXASSET_MIPS(varname, path, mips) TextureAsset varname = TextureAsset(path, false, mips)
 #define NEWTEXASSET_KEEPRAW(varname, path) TextureAsset varname = TextureAsset(path, true)
 #define FRAG SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT
 #define VERT SDL_SHADERCROSS_SHADERSTAGE_VERTEX
@@ -256,7 +258,7 @@ public:
     NEWSHADERASSET(compositeFrag, "compositing/compositelayer.frag.hlsl", FRAG);
 
     NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");
-    NEWTEXASSET(testMeshTex, "gameplay/track/notes/normal/diffuse.png");
+    NEWTEXASSET_MIPS(testMeshTex, "gameplay/track/notes/normal/diffuse.png", 8);
 
     void AddRingsAndInstruments();
 
