@@ -105,6 +105,25 @@ void Encore::Track::Draw() {
 
     EndMode3D();
 
+        EndShaderMode();
+        EndMode3D();
+    }
+    {
+        ZoneScopedN("Track UI")
+        DrawJudgement();
+        DrawCombo();
+        DrawTrackNotifications();
+        DrawSoloUI();
+
+        BeginMode3D(AnimCamera);
+        BeginShaderMode(ASSET(trackCurveShader));
+        rlDisableDepthTest();
+        DrawOverdriveMeter();
+        particleSystem->Render();
+        DrawMultiplier();
+        EndShaderMode();
+        EndMode3D();
+    }
     if (EncoreDebug::showDebug) {
         DrawTrackDebugWindow();
     }

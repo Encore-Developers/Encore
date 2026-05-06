@@ -20,12 +20,13 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
         ASSET(noteShader).SetUniform("frameColor", color);
     }
     if (note->LengthSeconds > 0) {
-        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds);
+        Color sustainColor = missed ? GRAY : color;
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, sustainColor);
     }
     DrawModelEx(ASSET(openNote), position, {0}, 0, {width/5.0f, track->NoteHeight, 1}, WHITE);
 }
 
-void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime) {
+void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime, Color color) {
     if (endTime <= startTime) {
         return;
     }
@@ -33,7 +34,7 @@ void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime) {
     float sustainLength = endTime - startTime;
 
     DrawCube({ xPos, 0.1, midPos },
-             0.4,
+             0.4 * width,
              0.01,
              sustainLength * track->GetZPerSecond(),
              track->player.QueryColorProfile(colorSlot));
