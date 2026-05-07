@@ -22,7 +22,7 @@ std::string discordBuildDate = BUILDDATE;
 
 void Encore::Discord::Initialize(std::string discordBoot) {
     if (discordBoot != "false") {
-        auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_Default, &core);
+        auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_NoRequireDiscord, &core);
         if (!core) {
             std::cout << "Failed to instantiate discord core! (err " << static_cast<int>(result)
                       << ")\n";
