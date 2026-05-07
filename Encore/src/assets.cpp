@@ -47,7 +47,9 @@ void Asset::DoFinalize() {
     Finalize(copyPass);
     SDL_EndGPUCopyPass(copyPass);
 
-    SDL_SubmitGPUCommandBuffer(cmdbuf);
+    auto fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmdbuf);
+    SDL_WaitForGPUFences(TheGPU, true, &fence, 1);
+    SDL_ReleaseGPUFence(TheGPU, fence);
 }
 
 Assets &Assets::getInstance() {
@@ -189,8 +191,10 @@ void TextureAsset::Load() {
         SDL_GenerateMipmapsForGPUTexture(cmdbuf, texture);
     }
 
-    SDL_SubmitGPUCommandBuffer(cmdbuf);
-
+    auto fence = SDL_SubmitGPUCommandBufferAndAcquireFence(cmdbuf);
+    SDL_WaitForGPUFences(TheGPU, 1, &fence, 1);
+    state = LOADED;
+    SDL_ReleaseGPUFence(TheGPU, fence);
 }
 
 void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
@@ -217,7 +221,6 @@ void TextureAsset::Finalize(SDL_GPUCopyPass* copyPass) {
     SDL_UploadToGPUTexture(copyPass, &transferInfo, &region, false);
     SDL_ReleaseGPUTransferBuffer(TheGPU, transferBuffer);
     transferBuffer = nullptr;
-    state = LOADED;
 }
 
 void TextureAsset::CopyToTransferBuffer() {
@@ -310,7 +313,9 @@ void ShaderAsset::Load() {
         GenerateVertexInputState(resourceInfo);
     }
     BlockUntilGPUReady();
-    shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, 0);
+    static auto props = SDL_CreateProperties();
+    SDL_SetStringProperty(props, SDL_PROP_GPU_SHADER_CREATE_NAME_STRING, id.c_str());
+    shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, props);
     state = LOADED;
     SDL_free((void*)spirv);
     SDL_free(resourceInfo);
@@ -454,6 +459,7 @@ void MeshAsset::Load() {
     CopyToTransferBuffer();
 
     DoFinalize();
+    state = LOADED;
 }
 void MeshAsset::Finalize(SDL_GPUCopyPass *copyPass) {
 
@@ -480,8 +486,6 @@ void MeshAsset::Finalize(SDL_GPUCopyPass *copyPass) {
 
     SDL_ReleaseGPUTransferBuffer(TheGPU, transferBuffer);
     transferBuffer = nullptr;
-
-    state = LOADED;
 }
 void MeshAsset::CopyToTransferBuffer() {
     SDL_GPUTransferBufferCreateInfo createInfo = {

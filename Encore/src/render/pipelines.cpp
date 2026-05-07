@@ -14,6 +14,9 @@ void PipelineManager::ClearPipeline(SDL_GPUGraphicsPipeline **pipelinePtr) {
 }
 
 #define CREATEPIPELINE(pipeline) ClearPipeline(&pipeline); \
+    {static auto props = SDL_CreateProperties(); \
+    SDL_SetStringProperty(props, SDL_PROP_GPU_GRAPHICSPIPELINE_CREATE_NAME_STRING, #pipeline); \
+    pipelineCreateInfo.props = props;} \
     pipeline = SDL_CreateGPUGraphicsPipeline(TheGPU, &pipelineCreateInfo); \
     if (!pipeline) {SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could not create pipeline %s: %s\n", SDL_GetError(), #pipeline); return;}
 
