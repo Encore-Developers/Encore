@@ -31,22 +31,23 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
             PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
 
-                for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
-                    Encore::ColorProfile &profile = TheProfileManager.ColorProfiles[i];
-                    if (profile.Name == jsonObject.value().value("colorProfile", "none")) {
-                        newPlayer.SetColorProfile(&profile);
-                    }
+            std::string profileName = jsonObject.value().value("colorProfile", "!.2#/*");
+            for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
+                Encore::ColorProfile &profile = TheProfileManager.ColorProfiles[i];
+                if (profile.Name == profileName) {
+                    newPlayer.SetColorProfile(&profile);
                 }
+            }
 
             if (!jsonObject.value()["accentColor"].is_null()) {
                 int r, g, b;
                 r = jsonObject.value()["accentColor"].at("r").get<int>();
                 g = jsonObject.value()["accentColor"].at("g").get<int>();
                 b = jsonObject.value()["accentColor"].at("b").get<int>();
-                newPlayer.AccentColor = Color { static_cast<unsigned char>(r),
-                                                static_cast<unsigned char>(g),
-                                                static_cast<unsigned char>(b),
-                                                255 };
+                newPlayer.AccentColor = Color{ static_cast<unsigned char>(r),
+                                               static_cast<unsigned char>(g),
+                                               static_cast<unsigned char>(b),
+                                               255 };
             } else
                 newPlayer.AccentColor = { 255, 0, 255, 255 };
 
@@ -55,19 +56,24 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
                 || newPlayer.PlayerID == "1") {
                 // FOR GOOD MEASURE SO PEOPLE DONT HAVE TO ASK
                 Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
+                    LOG_ERROR,
+                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
                 );
                 Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
+                    LOG_ERROR,
+                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
                 );
                 Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
+                    LOG_ERROR,
+                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
                 );
                 Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
+                    LOG_ERROR,
+                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
                 );
                 Encore::EncoreLog(
-                    LOG_ERROR, "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
+                    LOG_ERROR,
+                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
                 );
 
                 remove(PlayerListSaveFile);
@@ -77,7 +83,8 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
         };
     } catch (const std::exception &e) {
         Encore::EncoreLog(
-            LOG_ERROR, TextFormat("Failed to load players. Reason: %s", e.what())
+            LOG_ERROR,
+            TextFormat("Failed to load players. Reason: %s", e.what())
         );
     }
 }; // make player, load player stuff to PlayerList
@@ -121,7 +128,8 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
     PlayerListJson.at(player->playerJsonObjectName)[key] = player->name;
         PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
-        PlayerListJson.at(player->playerJsonObjectName)["colorProfile"] = player->GetColorProfile()->Name;
+        PlayerListJson.at(player->playerJsonObjectName)["colorProfile"] = player->
+            GetColorProfile()->Name;
         PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["r"] =
             player->AccentColor.r;
         PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["g"] =
@@ -132,6 +140,7 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
 
     Encore::WriteJsonFile(PlayerListSaveFile, PlayerListJson);
 }
+
 Player *PlayerManager::GetPlayerForJoystick(SDL_JoystickID id) {
     for (size_t i = 0; i < ActivePlayers.size(); i++) {
         auto player = ActivePlayers[i];
@@ -160,7 +169,8 @@ void PlayerManager::DeletePlayer(const Player &PlayerToDelete) {
         }
         if (&PlayerList[player] == &PlayerToDelete) {
             RemoveActivePlayer(player);
-            ActivePlayers[i] = -1; // HACK: force the slot to -1 in case the player was assigned more than once
+            ActivePlayers[i] = -1;
+            // HACK: force the slot to -1 in case the player was assigned more than once
         }
     }
     for (auto iter = PlayerList.begin(); iter != PlayerList.end(); iter++) {
@@ -171,5 +181,4 @@ void PlayerManager::DeletePlayer(const Player &PlayerToDelete) {
     }
 }; // remove player, reload playerlist
 void PlayerManager::RenamePlayer(const Player &PlayerToRename) {
-
 }; // rename player

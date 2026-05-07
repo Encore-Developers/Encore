@@ -271,16 +271,23 @@ void Encore::Track::DrawUsername() {
     Units &u = Units::getInstance();
     Vector3 worldPos = { 0, 0, -2.0 };
     Vector2 screenPos = GetWorldToScreen(worldPos, AnimCamera);
+    Color color =  WHITE;
+    std::string NameText = player.Name;
+    if (player.engine->stats->Bot) {
+        color = SKYBLUE;
+        NameText += " (BOT)";
+    }
     screenPos.x += Offset * GetRenderWidth() * 0.5;
+    screenPos.y = GetRenderHeight() - u.hinpct(0.045f);
     float FontSize = u.hinpct(0.035f);
-    float width = MeasureTextEx(ASSET(rubik), player.Name.c_str(), FontSize, 0).x + FontSize;
+    float width = MeasureTextEx(ASSET(rubik), NameText.c_str(), FontSize, 0).x + FontSize;
     float left = screenPos.x - (width / 2);
     Rectangle icon = { left, screenPos.y, FontSize, FontSize };
     int num = player.Instrument > PartVocals ? player.Instrument - PartVocals - 1 : player.Instrument;
     auto iconA = TheAssets.InstIcons.at(num);
     DrawTexturePro(iconA->Fetch(), {0,0, float(iconA->width), float(iconA->height) }, icon, {0,0}, 0, WHITE);
     left += FontSize;
-    GameMenu::mhDrawText(ASSET(rubik), player.Name.c_str(), {left, screenPos.y}, FontSize, WHITE, ASSET(sdfShader), LEFT);
+    GameMenu::mhDrawText(ASSET(rubik), NameText, {left, screenPos.y}, FontSize, color, ASSET(sdfShader), LEFT);
 
 }
 
@@ -309,8 +316,9 @@ void Encore::Track::DrawMultiplier() {
     ZoneScoped;
     Vector3 position = { 0, -0.1, -1.25 };
     Vector3 scale = { 1.1, 1.1, 1.1 };
+    Color indColor = player.engine->stats->Bot ? SKYBLUE : ColorBrightness(player.AccentColor, -0.3);
     ASSET(indicatorRingShader).SetUniform("BaseColor",
-                                          ColorBrightness(player.AccentColor, -0.3));
+                                          indColor);
     ASSET(indicatorRingShader).SetUniform("FCColor", GOLD);
     ASSET(indicatorRingShader).SetUniform("time", GetTime());
     ASSET(multiplierFillShader).SetUniform("BaseColor",
@@ -332,11 +340,12 @@ void Encore::Track::DrawMultiplier() {
     }
     ASSET(multiplierFillShader).SetUniform("FillPercentage", fill);
 
-    if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0) {
+    if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0 && !player.engine->stats->Bot) {
         ASSET(indicatorRingShader).SetUniform("isFC", 1.0f);
     } else {
         ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
     }
+
     Vector2 numberUV = MultiplierUVCalculation(player.engine->stats->SixMultiplier,
                                                player.engine->stats->Combo,
                                                player.engine->stats->overdrive.Active);
@@ -349,7 +358,7 @@ void Encore::Track::DrawMultiplier() {
                 { 0 },
                 0,
                 scale,
-                ColorBrightness(player.AccentColor, -0.5));
+                 ColorBrightness(player.AccentColor, -0.5));
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 

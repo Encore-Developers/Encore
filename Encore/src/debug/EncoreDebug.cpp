@@ -501,6 +501,9 @@ void EncoreDebug::DrawPlayerManager() {
                     (player.Name + TextFormat("###%x", &player)).c_str())) {
                     InputText("Username", &player.Name);
                     SeparatorText("Color Profile");
+                    // for some reason, when creating a new profile, player.GetColorProfile() eats shit and dies
+                    // it doesnt get set to a nullptr??? but it gets set to some fucking random memory address and eugh
+                    // close this when making a new color profile
                     if (BeginCombo("Color Profiles", player.GetColorProfile()->Name.c_str())) {
                         for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
                             Encore::ColorProfile* profile = &TheProfileManager.ColorProfiles[i];
