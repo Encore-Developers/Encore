@@ -101,6 +101,7 @@ void Encore::Track::Draw() {
         DrawCombo();
         DrawTrackNotifications();
         DrawSoloUI();
+        DrawUsername();
 
         BeginMode3D(AnimCamera);
         BeginShaderMode(ASSET(trackCurveShader));
@@ -264,6 +265,23 @@ void Encore::Track::DrawSoloUI() {
         GameMenu::mhDrawText(ASSET(redHatMono), TextFormat("%01i%%", int((float(curSolo->NotesHit) / float(curSolo->NoteCount)) * 100.0f)), screenPos, SoloPercentHeight, {119, 183, 255, 255}, ASSET(sdfShader), CENTER);
         GameMenu::mhDrawText(ASSET(redHatMono), TextFormat("%01i/%01i", curSolo->NotesHit, curSolo->NoteCount), {screenPos.x, screenPos.y + SoloPercentHeight}, u.hinpct(0.025f), WHITE, ASSET(sdfShader), CENTER);
     }
+}
+
+void Encore::Track::DrawUsername() {
+    Units &u = Units::getInstance();
+    Vector3 worldPos = { 0, 0, -2.0 };
+    Vector2 screenPos = GetWorldToScreen(worldPos, AnimCamera);
+    screenPos.x += Offset * GetRenderWidth() * 0.5;
+    float FontSize = u.hinpct(0.035f);
+    float width = MeasureTextEx(ASSET(rubik), player.Name.c_str(), FontSize, 0).x + FontSize;
+    float left = screenPos.x - (width / 2);
+    Rectangle icon = { left, screenPos.y, FontSize, FontSize };
+    int num = player.Instrument > PartVocals ? player.Instrument - PartVocals - 1 : player.Instrument;
+    auto iconA = TheAssets.InstIcons.at(num);
+    DrawTexturePro(iconA->Fetch(), {0,0, float(iconA->width), float(iconA->height) }, icon, {0,0}, 0, WHITE);
+    left += FontSize;
+    GameMenu::mhDrawText(ASSET(rubik), player.Name.c_str(), {left, screenPos.y}, FontSize, WHITE, ASSET(sdfShader), LEFT);
+
 }
 
 Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
