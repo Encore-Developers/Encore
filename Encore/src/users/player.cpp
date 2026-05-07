@@ -329,10 +329,14 @@ void Player::ResetGameplayStats() {
 
 Encore::ColorProfile *Player::GetColorProfile() const {
     if (colorProfile) {
-        return colorProfile.get();
+        return colorProfile;
     } else {
         return &Encore::defaultProfile;
     }
+}
+
+void Player::SetColorProfile(Encore::ColorProfile* profile) {
+    colorProfile = profile;
 }
 
 Color Player::QueryColorProfile(Encore::ColorSlot slot) {

@@ -1,9 +1,13 @@
 
 #ifndef ENCORE_COLORPROFILE_H
 #define ENCORE_COLORPROFILE_H
+#include <string>
+#include <nlohmann/json.hpp>
 #include "raylib.h"
-namespace Encore {
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Color, r, g, b, a);
+
+namespace Encore {
     // SLOT_ prefix to prevent name conflicts
     enum ColorSlot : int {
         SLOT_GREEN = 0,
@@ -22,7 +26,9 @@ namespace Encore {
 
     class ColorProfile {
     public:
-        Color colors[SLOT_MAX] = { // Default colors
+        std::string Name = "Default Profile";
+        std::array<Color, SLOT_MAX> colors = {
+            // Default colors
             GREEN,
             RED,
             YELLOW,
@@ -30,14 +36,36 @@ namespace Encore {
             ORANGE,
             PURPLE, // OPEN
             ORANGE, // KICK
-            WHITE,  // OVERDRIVE
+            WHITE, // OVERDRIVE
             YELLOW, // HIHAT
-            BLUE,   // RIDE
-            GREEN   // CRASH
+            BLUE, // RIDE
+            GREEN // CRASH
         };
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(
+            ColorProfile,
+            Name,
+            colors
+        );
     };
 
+
+
     static ColorProfile defaultProfile;
+    static ColorProfile transgender {
+        "transgender",
+        { SKYBLUE,
+            PINK,
+            WHITE,
+            PINK,
+            SKYBLUE,
+            PURPLE, // OPEN
+            ORANGE, // KICK
+            PURPLE , // OVERDRIVE
+            YELLOW, // HIHAT
+            BLUE, // RIDE
+            GREEN // CRASH
+        }
+    };
 }
 
 

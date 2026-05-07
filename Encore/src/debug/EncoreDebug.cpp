@@ -15,6 +15,7 @@
 #include "song/audio.h"
 #include "song/song.h"
 #include "song/songlist.h"
+#include "users/profiles/ProfileManager.h"
 
 bool EncoreDebug::showDebug = false;
 bool EncoreDebug::reloadQueued = false;
@@ -23,6 +24,7 @@ bool EncoreDebug::reloadFonts = false;
 bool showDemoWindow = false;
 bool showAssets = false;
 bool showPlayerManager = false;
+bool showColorProfileManager = false;
 bool showSongList = false;
 bool showQuickSettings = false;
 bool showPractice = false;
@@ -111,6 +113,9 @@ void EncoreDebug::DrawDebug() {
     if (showQuickSettings) {
         DrawQuickSettings();
     }
+    if (showColorProfileManager) {
+        DrawColorProfileSettings();
+    }
     if (showPractice) {
         DrawPracticeSectionSelector();
     }
@@ -128,6 +133,7 @@ void EncoreDebug::MenuBar() {
         MenuItem("Player Manager", 0, &showPlayerManager);
         MenuItem("Song List", 0, &showSongList, TheMenuManager.currentScreen != GAMEPLAY);
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
+        MenuItem("Color Profile Manager", 0, &showColorProfileManager);
         MenuItem("Easings Debug", 0, &showEasings);
         EndMenu();
     }
@@ -200,6 +206,81 @@ void EncoreDebug::MenuBar() {
     EndMainMenuBar();
 }
 
+void EncoreDebug::DrawColorProfileSettings() {
+    ZoneScoped;
+    if (Begin("Color Profiles", &showColorProfileManager, 0)) {
+        if (Button("Save All")) {
+            TheProfileManager.SaveColorProfiles();
+        }
+
+        if (BeginTabBar("Profiles")) {
+            for (Encore::ColorProfile &profile : TheProfileManager.ColorProfiles) {
+
+
+                if (BeginTabItem(
+                    (profile.Name + TextFormat("###%x", &profile.Name)).c_str())) {
+                    bool disabled = false;
+                    if (&profile == &TheProfileManager.ColorProfiles.at(0) || &profile == &TheProfileManager.ColorProfiles.at(1)) {
+                        Text("%s", "Cannot edit default color profile.");
+                        BeginDisabled();
+                        disabled = true;
+                    }
+                    InputText("Profile Name", &profile.Name);
+                    ColorEdit("Overdrive",
+                              &profile.colors[Encore::SLOT_OVERDRIVE],
+                              0);
+                    SeparatorText(" ");
+                    ColorEdit("Green",
+                              &profile.colors[Encore::SLOT_GREEN],
+                              0);
+                    ColorEdit("Red",
+                              &profile.colors[Encore::SLOT_RED],
+                              0);
+                    ColorEdit("Yellow",
+                              &profile.colors[Encore::SLOT_YELLOW],
+                              0);
+                    ColorEdit("Blue",
+                              &profile.colors[Encore::SLOT_BLUE],
+                              0);
+                    ColorEdit("Orange",
+                              &profile.colors[Encore::SLOT_ORANGE],
+                              0);
+                    ColorEdit("Open",
+                              &profile.colors[Encore::SLOT_OPEN],
+                              0);
+                    SeparatorText("Drums Colors");
+                    ColorEdit("Kick",
+                              &profile.colors[Encore::SLOT_KICK],
+                              0);
+                    ColorEdit("Yellow Cymbal",
+                              &profile.colors[Encore::SLOT_HIHAT],
+                              0);
+                    ColorEdit("Blue Cymbal",
+                              &profile.colors[Encore::SLOT_RIDE],
+                              0);
+                    ColorEdit("Green Cymbal",
+                              &profile.colors[Encore::SLOT_CRASH],
+                              0);
+
+                    if (disabled) {
+                        EndDisabled();
+                    }
+                    EndTabItem();
+                    // if (Button("Delete Player")) {
+                    //    ThePlayerManager.SavePlayerList();
+                    // }
+
+                }
+
+            }
+            if (TabItemButton("New", ImGuiTabItemFlags_Trailing)) {
+                TheProfileManager.CreateColorProfile();
+            }
+        }
+        EndTabBar();
+    }
+    End();
+}
 
 void EncoreDebug::DrawQuickSettings() {
     ZoneScoped;
@@ -420,37 +501,46 @@ void EncoreDebug::DrawPlayerManager() {
                     (player.Name + TextFormat("###%x", &player)).c_str())) {
                     InputText("Username", &player.Name);
                     SeparatorText("Color Profile");
-                    ColorEdit("Green",
-                              &player.GetColorProfile()->colors[Encore::SLOT_GREEN],
-                              0);
-                    ColorEdit("Red",
-                              &player.GetColorProfile()->colors[Encore::SLOT_RED],
-                              0);
-                    ColorEdit("Yellow",
-                              &player.GetColorProfile()->colors[Encore::SLOT_YELLOW],
-                              0);
-                    ColorEdit("Blue",
-                              &player.GetColorProfile()->colors[Encore::SLOT_BLUE],
-                              0);
-                    ColorEdit("Orange",
-                              &player.GetColorProfile()->colors[Encore::SLOT_ORANGE],
-                              0);
-                    ColorEdit("Open",
-                              &player.GetColorProfile()->colors[Encore::SLOT_OPEN],
-                              0);
-                    SeparatorText("Drums Colors");
-                    ColorEdit("Kick",
-                              &player.GetColorProfile()->colors[Encore::SLOT_KICK],
-                              0);
-                    ColorEdit("Yellow Cymbal",
-                              &player.GetColorProfile()->colors[Encore::SLOT_HIHAT],
-                              0);
-                    ColorEdit("Blue Cymbal",
-                              &player.GetColorProfile()->colors[Encore::SLOT_RIDE],
-                              0);
-                    ColorEdit("Green Cymbal",
-                              &player.GetColorProfile()->colors[Encore::SLOT_CRASH],
-                              0);
+                    if (BeginCombo("Color Profiles", player.GetColorProfile()->Name.c_str())) {
+                        for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
+                            Encore::ColorProfile* profile = &TheProfileManager.ColorProfiles[i];
+                            if (Selectable(profile->Name.c_str())) {
+                                player.SetColorProfile(profile);
+                            }
+                        }
+                        EndCombo();
+                    }
+                    // ColorEdit("Green",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_GREEN],
+                    //           0);
+                    // ColorEdit("Red",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_RED],
+                    //           0);
+                    // ColorEdit("Yellow",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_YELLOW],
+                    //           0);
+                    // ColorEdit("Blue",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_BLUE],
+                    //           0);
+                    // ColorEdit("Orange",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_ORANGE],
+                    //           0);
+                    // ColorEdit("Open",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_OPEN],
+                    //           0);
+                    // SeparatorText("Drums Colors");
+                    // ColorEdit("Kick",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_KICK],
+                    //           0);
+                    // ColorEdit("Yellow Cymbal",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_HIHAT],
+                    //           0);
+                    // ColorEdit("Blue Cymbal",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_RIDE],
+                    //           0);
+                    // ColorEdit("Green Cymbal",
+                    //           &player.GetColorProfile()->colors[Encore::SLOT_CRASH],
+                    //           0);
 
                     SeparatorText(std::string("Player: " + player.Name).c_str());
                     SliderFloat("Note Speed", &player.NoteSpeed, 0, 3);

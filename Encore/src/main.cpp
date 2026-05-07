@@ -17,6 +17,7 @@
 #include "settings/keybinds.h"
 #include "song/ArtLoader.h"
 #include "song/cacheload.h"
+#include "users/profiles/ProfileManager.h"
 
 #ifdef STEAM
 #include "steam_api.h"
@@ -71,6 +72,7 @@ PlayerManager ThePlayerManager;
 Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
+Encore::ProfileManager TheProfileManager;
 Encore::Keybinds TheGameKeybinds;
 Encore::SettingsGameplay TheGameplaySettings;
 Encore::SettingsAudioVideo TheAudioVideoSettings;
@@ -247,9 +249,13 @@ int main(int argc, char *argv[]) {
 #endif
     TheSettingsInitializer.InitSettings(directory);
     CacheLoad::StartLoad();
-    ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
+    TheProfileManager.SetColorProfilesPath(directory / "Color Profiles");
+    TheProfileManager.LoadColorProfiles();
 
+    ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();
+
+
 
     if (TheGameSettings.VerticalSync) {
         SetConfigFlags(FLAG_VSYNC_HINT);

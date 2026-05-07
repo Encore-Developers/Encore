@@ -150,7 +150,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
             matches = true;
         }
         if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
-            color = track->player.QueryColorProfile(colorSlot);
+            color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
         }
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),

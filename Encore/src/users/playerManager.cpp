@@ -8,6 +8,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "profiles/ProfileManager.h"
+
 using json = nlohmann::json;
 
 PlayerManager::PlayerManager() = default;
@@ -28,6 +30,13 @@ void PlayerManager::LoadPlayerList() {
 newPlayer.name = jsonObject.value().at(key).get<type>();
             PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
+
+                for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
+                    Encore::ColorProfile &profile = TheProfileManager.ColorProfiles[i];
+                    if (profile.Name == jsonObject.value().value("colorProfile", "none")) {
+                        newPlayer.SetColorProfile(&profile);
+                    }
+                }
 
             if (!jsonObject.value()["accentColor"].is_null()) {
                 int r, g, b;
@@ -112,7 +121,7 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
     PlayerListJson.at(player->playerJsonObjectName)[key] = player->name;
         PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
-
+        PlayerListJson.at(player->playerJsonObjectName)["colorProfile"] = player->GetColorProfile()->Name;
         PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["r"] =
             player->AccentColor.r;
         PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["g"] =

@@ -69,7 +69,7 @@ class Player {
      * @brief Player information. What else could be said?
      */
 private:
-    std::shared_ptr<Encore::ColorProfile> colorProfile;
+    Encore::ColorProfile* colorProfile = nullptr;
 public:
     Player();
 
@@ -98,6 +98,7 @@ public:
     void ResetGameplayStats();
 
     Encore::ColorProfile *GetColorProfile() const;
+    void SetColorProfile(Encore::ColorProfile *profile);
     Color QueryColorProfile(Encore::ColorSlot slot);
 
     // zero indexed. local would be 0-3, online would be 4-7.
