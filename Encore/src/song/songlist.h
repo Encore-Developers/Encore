@@ -26,6 +26,11 @@ struct ListMenuEntry {
     }
 };
 
+struct LSection {
+    size_t firstListID;
+    size_t lastListID;
+};
+
 enum class SortType : int {
     EnumStart = 0,
     Title = 0,
@@ -76,6 +81,7 @@ public:
 
     int CurrentSong = 0;
     std::vector<ListMenuEntry> listMenuEntries;
+    std::vector<LSection> sectionEntries;
     std::vector<Song> songs;
     int songCount = 0;
     int directoryCount = 0;

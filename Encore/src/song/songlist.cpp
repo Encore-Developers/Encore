@@ -89,6 +89,7 @@ SongList::SongList() {}
 SongList::~SongList() {}
 
 void SongList::sortList(SortType sortType) {
+    sectionEntries.clear();
     switch (sortType) {
     case SortType::Title:
         std::sort(songs.begin(), songs.end(), sortTitle);
@@ -114,6 +115,7 @@ void SongList::sortList(SortType sortType) {
 }
 
 void SongList::sortList(SortType sortType, size_t &selectedSong) {
+    sectionEntries.clear();
     Song* curSong;
     bool hasCurrentSong = selectedSong >= 0 && selectedSong < songs.size();
     if (hasCurrentSong) {
@@ -276,6 +278,10 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
         }
         if (lower(header) != lower(currentHeader)) {
             currentHeader = header;
+            if (!sectionEntries.empty()) {
+                sectionEntries.back().lastListID = songEntries.size() - 1;
+            }
+            sectionEntries.emplace_back(songEntries.size());
             songEntries.emplace_back(true, 0, currentHeader, false);
             pos++;
         }
@@ -283,7 +289,9 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
         pos++;
         this->songs[i].songListPos = pos;
     }
-
+    if (!songEntries.empty()) {
+        sectionEntries.back().lastListID = songEntries.size();
+    }
     return songEntries;
 }
 

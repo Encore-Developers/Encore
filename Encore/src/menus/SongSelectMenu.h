@@ -11,6 +11,8 @@ class SongSelectMenu : public OvershellMenu {
 public:
     SongSelectMenu() = default;
     ~SongSelectMenu() override;
+    void ScrollUpHeader();
+    void ScrollDownHeader();
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
     void LoadPreview(Song& song);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
@@ -21,6 +23,8 @@ public:
     void UpdatePreviewVolume(double currentTime);
     void ScrollSongSelect(int val);
 private:
+    // 5 for unbound controllers
+    std::array<bool, 5> ControllerOrangeHeld = { false, false, false, false, false };
     double previewStartTime = 0.0;
     float currentPreviewVolume = 0.0f;
     enum class PreviewState { Hysteresis, FadeIn, Playing, FadeOut, Pause, Failed } previewState = PreviewState::Hysteresis;
