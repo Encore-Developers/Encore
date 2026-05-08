@@ -46,6 +46,7 @@ void SongSelectMenu::ScrollUpHeader() {
             } else {
                 curSongMenuPos = 1;
             }
+            StopPreview();
             break;
         }
     }
@@ -57,6 +58,7 @@ void SongSelectMenu::ScrollDownHeader() {
         if (curSongMenuPos >= sect.firstListID && curSongMenuPos <= sect.lastListID &&
             sectInt < TheSongList.sectionEntries.size() - 2) {
             curSongMenuPos = TheSongList.sectionEntries[sectInt + 1].firstListID;
+            StopPreview();
             break;
         }
     }
@@ -89,6 +91,9 @@ void SongSelectMenu::ScrollSongSelect(int val) {
         selectionTime = curTime;
 
         TheSongList.songs[TheSongList.listMenuEntries[newPos].songListID].LoadAlbumArt();
+    }
+    if (TheSongList.listMenuEntries[newPos].isHeader) {
+        StopPreview();
     }
     curSongMenuPos = newPos;
 }
@@ -341,14 +346,16 @@ void SongSelectMenu::Draw() {
     curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
     if (previewState == PreviewState::Hysteresis) {
-        if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime -
-            selectionTime >= 0.75) {
-            if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.songs
-                .size()) {
-                LoadPreview(
-                    TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].
-                        songListID]);
-            }
+        if (!TheSongList.listMenuEntries[curSongMenuPos].isHeader) {
+            if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime -
+                selectionTime >= 0.75) {
+                if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.songs
+                    .size()) {
+                    LoadPreview(
+                        TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].
+                            songListID]);
+                    }
+                }
         }
     }
 
@@ -793,24 +800,30 @@ void SongSelectMenu::Draw() {
     GameMenu::DrawBottomOvershell();
     GuiSetStyle(BUTTON,
                 BASE_COLOR_NORMAL,
-                ColorToInt(ColorBrightness(AccentColor, -0.25)));
-    if (GuiButton(Rectangle{ u.LeftSide, GetRenderHeight() - u.hpct(0.1475f),
-                             u.winpct(0.2f), u.hinpct(0.05f) },
-                  "Play Song")) {
+                0x00000000);
+    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
+    float ButtonWidth = u.winpct(0.125f);
+    float ButtonStart = u.LeftSide;
+    float ButtonTop = GetRenderHeight() - u.hpct(0.1475f);
+    float LabelStart = u.LeftSide + u.hinpct(0.01f);
+    float LabelTop = GetRenderHeight() - u.hpct(0.1375f);
+    if (GuiButton(Rectangle{ ButtonStart, ButtonTop,
+                             ButtonWidth, u.hinpct(0.05f) },
+                  "       Play Song")) {
         if (TheSongList.curSong) {
             Unload();
             TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
             TheMenuManager.SwitchScreen(READY_UP);
         }
     }
-    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+    GameMenu::mhDrawText(ASSET(rubikBold), "A", {LabelStart, LabelTop}, u.hinpct(0.03f), GREEN, ASSET(sdfShader), LEFT);
 
     if (GuiButton(
-        Rectangle{ u.LeftSide + u.winpct(0.4f) - 2,
-                   GetRenderHeight() - u.hpct(0.1475f),
-                   u.winpct(0.2f),
+        Rectangle{ ButtonStart + ButtonWidth * 2,
+                   ButtonTop,
+                   ButtonWidth,
                    u.hinpct(0.05f) },
-        "Sort"
+        "      Sort"
     )) {
         //todo: I BROKE THE SORT BUTTON LMFAO
         // no i didnt
@@ -843,10 +856,10 @@ void SongSelectMenu::Draw() {
             selectionTime = curTime;
         }
     }
-    if (GuiButton(Rectangle{ u.LeftSide + u.winpct(0.2f) - 1,
-                             GetRenderHeight() - u.hpct(0.1475f), u.winpct(0.2f),
+    if (GuiButton(Rectangle{ ButtonStart + (ButtonWidth),
+                             ButtonTop, ButtonWidth,
                              u.hinpct(0.05f) },
-                  "Back")) {
+                  "       Back")) {
         if (!TheAudioManager.loadedStreams.empty()) {
             for (auto &stream : TheAudioManager.loadedStreams) {
                 TheAudioManager.StopPlayback(stream.handle);
@@ -856,5 +869,13 @@ void SongSelectMenu::Draw() {
         Unload();
         TheMenuManager.SwitchScreen(MAIN_MENU);
     }
+    GameMenu::mhDrawText(ASSET(rubikBold), "B", {LabelStart + ButtonWidth, LabelTop}, u.hinpct(0.03f), RED, ASSET(sdfShader), LEFT);
+    GuiButton(Rectangle{ ButtonStart + (ButtonWidth * 3),
+                             ButtonTop, ButtonWidth * 2,
+                             u.hinpct(0.05f) },
+                  "        (Hold) Jump Sections");
+    GameMenu::mhDrawText(ASSET(rubikBold), "LB", {LabelStart + (ButtonWidth * 3), LabelTop}, u.hinpct(0.03f), ORANGE, ASSET(sdfShader), LEFT);
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
     DrawOvershell();
 }

@@ -423,24 +423,26 @@ void MainMenu::MainMenuScreen() {
     if (GuiButton({ 0, u.hpct(0.8f), u.LeftSide + SplashWidth, u.hpct(0.05f) }, "")) {
         ChooseSplashText(directory);
     }
+    float LeftMMButton = u.wpct(0.03f);
     if (!TheSongList.songs.empty()) {
         if (ThePlayerManager.PlayersActive != 0) {
             if (GuiButton(
-                    { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
+                    { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
                     "Play"
                 )) {
                 GotoSongSelect();
             }
+            GameMenu::mhDrawText(ASSET(rubikBold), "A", {u.wpct(0.02f), u.hpct(0.325f)}, u.hinpct(0.03f), GREEN, ASSET(sdfShader), RIGHT);
         } else {
             GuiButton(
-                { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
+                { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
                 "Add a player"
             );
         }
     } else {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(Color { 128, 0, 0, 255 }));
         GuiButton(
-            { u.wpct(0.02f), u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
+            { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
             "Invalid song cache!"
         );
         // TheSongList.ScanSongs(TheGameSettings.SongPaths);
@@ -456,17 +458,19 @@ void MainMenu::MainMenuScreen() {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
     }
     if (GuiButton(
-            { u.wpct(0.02f), u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, "Options"
+            { LeftMMButton, u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, "Options"
         )) {
         // glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
         TheMenuManager.SwitchScreen(SETTINGS);
     }
     if (GuiButton(
-            { u.wpct(0.02f), u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, "Quit"
+            { LeftMMButton, u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, "Quit"
         )) {
         // goes back to attract
-        for (int p = 0; p < ThePlayerManager.PlayersActive; p++)
-            ThePlayerManager.RemoveActivePlayer(p);
+        for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
+            if (ThePlayerManager.ActivePlayers.at(p) != -1)
+                ThePlayerManager.RemoveActivePlayer(p);
+        }
     }
     /*
     if (GuiButton(
