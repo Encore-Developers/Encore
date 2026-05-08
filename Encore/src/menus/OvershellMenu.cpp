@@ -10,6 +10,7 @@
 #include "raygui.h"
 #include "raylib.h"
 #include "gameplay/enctime.h"
+#include "users/profiles/ProfileManager.h"
 
 using namespace encOS;
 using namespace Encore::RhythmEngine;
@@ -230,7 +231,7 @@ void OvershellMenu::DrawOvershell() {
             break;
         }
         case OS_OPTIONS: {
-            int len = dropInDropOut ? 8 : 5;
+            int len = dropInDropOut ? 9 : 6;
             int curSlot = len-1;
             if (DrawOvershellRectangleHeader(
                     OvershellLeftLoc,
@@ -275,6 +276,7 @@ void OvershellMenu::DrawOvershell() {
                     TheMenuManager.SwitchScreen(SONG_SELECT);
                 }
             }
+
             if (!BNSetting) {
                 if (OvershellButton(
                         i,
@@ -302,7 +304,9 @@ void OvershellMenu::DrawOvershell() {
                     BNSetting = false;
                 };
             }
-
+            if (OvershellButton(i, curSlot--, "Color Profiles")) {
+                OvershellState[i] = OS_COLOR_PROFILE_SELECTION;
+            }
             if (dropInDropOut) {
                 const char* typeString;
                 switch (playerManager.GetActivePlayer(i).bindingType) {
@@ -481,6 +485,49 @@ void OvershellMenu::DrawOvershell() {
             if (OvershellButton(i, 0, "Back")) {
                 OvershellState[i] = OS_OPTIONS;
             }
+            break;
+        }
+        case OS_COLOR_PROFILE_SELECTION: {
+            float InfoLoc = (TheProfileManager.ColorProfiles.size() + 2);
+            if (OvershellButton(i, 0, "Cancel")) {
+                CancelButtonActivation = true;
+                OvershellState[i] = OS_OPTIONS;
+                ControllersToAssign[i] = 0;
+            }
+            BeginBlendMode(BLEND_MULTIPLIED);
+            DrawRectangleRec(
+                { OvershellLeftLoc,
+                  unit.hpct(1.0f) - (unit.winpct(0.03f)),
+                  unit.winpct(0.2f),
+                  unit.winpct(0.03f) },
+                Color { 255, 0, 0, 128 }
+            );
+            EndBlendMode();
+            int pos = 0;
+            if (!TheProfileManager.ColorProfiles.empty()) {
+                for (int x = 0; x < TheProfileManager.ColorProfiles.size(); x++) {
+                    if (OvershellButton(
+                                i, pos + 1, TheProfileManager.ColorProfiles[x].Name
+                            )) {
+                        playerManager.GetActivePlayer(i).SetColorProfile(&TheProfileManager.ColorProfiles[x]);
+                        OvershellState[i] = OS_OPTIONS;
+                            }
+                    pos++;
+                }
+            }
+            input.SetLength(pos + 1);
+            DrawOvershellRectangleHeader(
+                OvershellLeftLoc,
+                OvershellTopLoc - (ButtonHeight * (pos+2)),
+                unit.winpct(0.2f),
+                unit.winpct(0.05f),
+                playerManager.GetActivePlayer(i).Name,
+                playerManager.GetActivePlayer(i).AccentColor,
+                WHITE,
+                false
+            );
+
+            if (OvershellButton(i, pos + 1, "Select a profile")) {}
             break;
         }
         }

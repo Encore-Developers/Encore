@@ -8,6 +8,7 @@ enum OSState {
     OS_OPTIONS, // Player settings
     OS_INSTRUMENT_SELECTIONS, // Choosing instrument type
                               // (maybe do a submenu like ReadyUpState?)
+    OS_COLOR_PROFILE_SELECTION,
     OS_CONTROLLER_ASSIGNMENT,
     CREATION, // Creating a profile
     OS_READY_UP, // Readying up
@@ -34,6 +35,26 @@ public:
 
 extern POS TheOSState;
 */
+//
+// class BaseOSOption {
+// public:
+//     virtual ~BaseOSOption() = default;
+//     // display text
+//     std::string Name;
+//     virtual void draw(int pos, int slot);
+//     std::function<void()> action;
+//     /* this would be a per-class thing, example for buttons
+//     if (OvershellButton(Name, pos, slot)) {
+//         action();
+//     }
+//      */
+// };
+//
+// class OSOption : public BaseOSOption {
+//     void draw(int pos, int slot) override {
+//
+//     };
+// };
 
 class OvershellMenu : public Menu {
 public:
