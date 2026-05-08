@@ -1,5 +1,6 @@
 #include "PadConverters.h"
 #include "RhythmEngine/REenums.h"
+
 using namespace Encore::RhythmEngine;
 
 BaseChart
@@ -13,7 +14,7 @@ PadConverters::ConvertGuitarToPad(BaseChart &sourceChart) {
                 newNote.Lane = PlasticFrets[i];
                 newNote.NoteType = 0;
                 if (prevNote) {
-                    if (std::popcount(prevNote->Lane) >= std::popcount(note.Lane) && prevNote->Lane & note.Lane) {
+                    if (!(prevNote->Lane & ~note.Lane) && prevNote->Lane & note.Lane) {
                         if (note.StartSeconds - prevNote->StartSeconds < 0.150
                             && !newChart.Lanes[i].empty()
                             && newChart.Lanes[i].back().NoteType == 0
