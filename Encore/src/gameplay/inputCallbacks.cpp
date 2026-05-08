@@ -190,6 +190,9 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
                 case (SDL_GAMEPAD_BUTTON_EAST):
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
                     break;
+                case (SDL_GAMEPAD_BUTTON_SOUTH):
+                    outevent.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+                    break;
                 }
             }
             break;
