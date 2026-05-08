@@ -423,6 +423,10 @@ void ReadyUpMenu::Load() {
             TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
         }
     }
+    if (!TheSongList.curSong->parts[PartGuitar]->Valid && TheSongList.curSong->parts[PlasticGuitar]->Valid) {
+        TheSongList.curSong->parts[PartGuitar] = TheSongList.curSong->parts[PlasticGuitar];
+        TheSongList.curSong->parts[PartGuitar]->AutoToPad = true;
+    }
     for (int playerInt = 0; playerInt < 4; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;

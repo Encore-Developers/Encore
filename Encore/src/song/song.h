@@ -55,6 +55,7 @@ struct SongPart {
     int TrackInt = -1;
     bool Valid = false;
     std::array<bool, 4> ValidDiffs{ false, false, false, false };
+    bool AutoToPad = false;
 };
 
 struct Beat {

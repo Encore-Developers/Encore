@@ -16,7 +16,7 @@
 #include <thread>
 
 #include "RhythmEngine/ChartLoaders/LyricLoader.h"
-
+#include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
 
 bool StartLoading = true;
 bool FinishedLoading = false;
@@ -106,12 +106,26 @@ void LoadCharts() {
                     Encore::RhythmEngine::Drums;
             } else if (inst < PlasticDrums) {
                 midiFile[track].linkNotePairs();
-                Encore::RhythmEngine::PadLoader chartLoader(diff, &midiFile);
-                chartLoader.LoadChart(midiFile[track]);
+                Encore::RhythmEngine::BaseChart chart;
+                if (!TheSongList.curSong->parts[inst]->AutoToPad) {
+                    Encore::RhythmEngine::PadLoader chartLoader(diff, &midiFile);
+                    chartLoader.LoadChart(midiFile[track]);
+                    chart = chartLoader.chart;
+                } else {
+                    if (TheSongList.curSong->hopoThreshold == -1) {
+                        TheSongList.curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
+                    }
+                    Encore::RhythmEngine::GuitarLoader chartLoader(
+                        diff, TheSongList.curSong->hopoThreshold, &midiFile
+                    );
+                    chartLoader.LoadChart(midiFile[track]);
+                    chart = Encore::RhythmEngine::PadConverters::ConvertGuitarToPad(chartLoader.chart);
+                }
+
 
                 ThePlayerManager.GetActivePlayer(playerNum).engine =
                     std::make_shared<Encore::RhythmEngine::PadEngine>(
-                        std::make_shared<Encore::RhythmEngine::BaseChart>(chartLoader.chart),
+                        std::make_shared<Encore::RhythmEngine::BaseChart>(chart),
                     std::make_shared<Encore::RhythmEngine::PadStats>(0),
                     &player
                 );
