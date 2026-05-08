@@ -376,7 +376,7 @@ public:
     NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
 
-    NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.mp3");
+    NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.wav");
     NEWSAMPLEASSET(activateSound, "gameplay/sfx/od_activate.mp3");
 
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
