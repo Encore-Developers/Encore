@@ -18,6 +18,9 @@ namespace Encore::RhythmEngine {
         int NoteType = 0;
         uint8_t Lane = 0;
         bool NotePassed = false;
+
+        // Helper info for pad conversion
+        bool LiftConverted = false;
     };
 
     // for lyric display
