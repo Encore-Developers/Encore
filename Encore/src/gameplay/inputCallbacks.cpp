@@ -181,6 +181,7 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
                 case (SDL_GAMEPAD_BUTTON_DPAD_UP):
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
                     break;
+                case (SDL_GAMEPAD_BUTTON_DPAD_RIGHT):
                 case (SDL_GAMEPAD_BUTTON_WEST):
                     outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
                     break;
