@@ -62,6 +62,8 @@ private:
     bool paused = false;
 
 public:
+    int songPPQN = 480;
+
     std::vector<BPM> BPMChanges {};
     size_t CurrentBPM;
     std::vector<TimeSig> TimeSigChanges {};
@@ -82,7 +84,7 @@ public:
     void UpdateTick();
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
-    static double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);
+    double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);
     void GenerateBeatmap(int songEndTick);
     static double TickRangeToTimeDelta(int tickStart, int tickEnd, const BPM &currentBPM);
     static double TimeSinceBPMStart(BPM bpm, int endTick);

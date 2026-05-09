@@ -14,6 +14,7 @@ SongTime TheSongTime;
 void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
     ZoneScoped;
     //midiFile.doTimeAnalysis();
+    songPPQN = midiFile.getTicksPerQuarterNote();
     smf::MidiEventList &track = midiFile[0];
     track.linkEventPairs();
     for (int i = 0; i < track.getSize(); i++) {
@@ -100,7 +101,7 @@ void SongTime::UpdateTick() {
     double beatDelta = timeDelta * BPMChanges.at(CurrentBPM).bpm / 60.0;
 
     // add the last bpm's tick to the (beat delta * resolution)
-    CurrentTick = BPMChanges.at(CurrentBPM).tick + (beatDelta * 480.0);
+    CurrentTick = BPMChanges.at(CurrentBPM).tick + (beatDelta * double(songPPQN));
 }
 double SongTime::GetCurrentTick() const {
     return CurrentTick;
@@ -116,7 +117,7 @@ double SongTime::GetLastTick() const {
 double SongTime::TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm) {
     double timeDelta = timeEnd - timeStart;
     double beatDelta = timeDelta * bpm.bpm / 60.0;
-    return beatDelta * 480.0;
+    return beatDelta * double(songPPQN);
 }
 
 // major is like. the subdivision
@@ -169,7 +170,7 @@ void SongTime::CreateBeatlines(
     // so actually this works fine in 4/4 but i realize in /8 that it gets *weird*
     // maybe have it so that /8 is just It Always?
     const int ThingForBeatSubdiv = timeSig.denom == 4 ? 8 : timeSig.denom;
-    const int BeatSubdiv = (480 * 4) / ThingForBeatSubdiv;
+    const int BeatSubdiv = (songPPQN * 4) / ThingForBeatSubdiv;
 
     int BeatlineCount = 0;
     int curTick = startTick;

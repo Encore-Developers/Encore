@@ -131,12 +131,12 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
     int lengthTicks = event.getLinkedEvent()->tick - event.tick;
     double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
     int lane = PlasticFrets[GetEventLane(Difficulty, event)];
-    if (event.getLinkedEvent()->tick - event.tick < 170) {
+    if (event.getLinkedEvent()->tick - event.tick < Resolution * 0.3541) {
         lengthTicks = 0;
         lengthSec = 0;
     }
     if (lengthTicks > 0) {
-        chart.BaseScore += static_cast<double>(int(lengthTicks / 480)) * BASE_SCORE_SUSTAIN_POINTS;
+        chart.BaseScore += static_cast<double>(int(lengthTicks / Resolution)) * BASE_SCORE_SUSTAIN_POINTS;
         lengthTicks -= 1;
     }
     if (!OpenMarker.empty()) {

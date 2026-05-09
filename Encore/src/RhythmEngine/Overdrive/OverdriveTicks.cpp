@@ -23,9 +23,9 @@ void Encore::RhythmEngine::OverdriveTicks::GenerateOverdriveTicks(smf::MidiFile 
 
     // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
     if (ticks.size() == 0) {
-        int overdriveTickCount = midiFile.getFileDurationInTicks() / 480;
+        int overdriveTickCount = midiFile.getFileDurationInTicks() / TheSongTime.songPPQN;
         for (int i = 0; i < overdriveTickCount; i++) {
-            ticks.emplace_back(midiFile.getTimeInSeconds(480 * i), 480 * i);
+            ticks.emplace_back(midiFile.getTimeInSeconds(TheSongTime.songPPQN * i), TheSongTime.songPPQN * i);
         }
     }
 };

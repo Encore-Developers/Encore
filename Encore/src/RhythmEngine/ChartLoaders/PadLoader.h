@@ -23,7 +23,10 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        PadLoader(int diff_, smf::MidiFile *midiFile_);
+        PadLoader(int diff_, int thresh_, smf::MidiFile* midiFile_)
+            : BaseLoader(diff_, thresh_, midiFile_)  {
+            Resolution = midiFile_->getTPQ();
+        }
     };
 }
 

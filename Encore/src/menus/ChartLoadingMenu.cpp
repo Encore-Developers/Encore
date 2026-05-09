@@ -108,7 +108,7 @@ void LoadCharts() {
                 midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::BaseChart chart;
                 if (!TheSongList.curSong->parts[inst]->AutoToPad) {
-                    Encore::RhythmEngine::PadLoader chartLoader(diff, &midiFile);
+                    Encore::RhythmEngine::PadLoader chartLoader(diff, 170, &midiFile);
                     chartLoader.LoadChart(midiFile[track]);
                     chart = chartLoader.chart;
                 } else {

@@ -34,6 +34,7 @@ namespace Encore::RhythmEngine {
         GuitarLoader(int diff_, int thresh_, smf::MidiFile* midiFile_)
             : BaseLoader(diff_, thresh_, midiFile_)  {
             chart.Lanes.resize(1);
+            Resolution = midiFile_->getTPQ();
         }
     };
 }

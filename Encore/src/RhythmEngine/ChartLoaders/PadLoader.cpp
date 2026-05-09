@@ -7,9 +7,6 @@
 
 #include "song/scoring.h"
 
-Encore::RhythmEngine::PadLoader::PadLoader(int diff_, smf::MidiFile *midiFile_)
-    : BaseLoader(diff_, 170, midiFile_) {}
-
 [[nodiscard]] bool IsInLiftMarkerRange(int diff, const smf::MidiEvent &event) {
     return event[1] >= LiftMinMaxDiff[diff].first
         && event[1] <= LiftMinMaxDiff[diff].second;

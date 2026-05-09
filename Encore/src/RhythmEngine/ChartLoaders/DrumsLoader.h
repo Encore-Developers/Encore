@@ -28,7 +28,9 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        DrumsLoader(int diff_, smf::MidiFile* midiFile_) : BaseLoader(diff_, 0, midiFile_) {}
+        DrumsLoader(int diff_, smf::MidiFile* midiFile_) : BaseLoader(diff_, 0, midiFile_) {
+            Resolution = midiFile_->getTPQ();
+        }
     };
 }
 

@@ -72,6 +72,7 @@ namespace Encore::RhythmEngine {
         BaseChart chart;
         int Difficulty;
         int Threshold; // shouldnt be here but who care
+        int Resolution = 480;
         virtual void LoadChart(smf::MidiEventList track) {
             track.linkNotePairs();
             // first get events, hopos, taps, lifts, the likes
