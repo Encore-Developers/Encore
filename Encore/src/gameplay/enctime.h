@@ -81,6 +81,9 @@ public:
     double CurrentTick = 0;
     void BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick);
 
+    double GetBeatlineDelta();
+    void UpdateBeatlines();
+
     void UpdateTick();
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;

@@ -109,6 +109,39 @@ double SongTime::GetCurrentTick() const {
 double SongTime::GetLastTick() const {
     return LastTick;
 }
+
+double SongTime::GetBeatlineDelta() {
+    if (CurrentBeatline < Beatlines.size() && CurrentBeatline > 0) {
+        double thisIs = Beatlines[CurrentBeatline - 1].time;
+        double MyFirst = Beatlines[CurrentBeatline].time;
+        // Video on Instagram
+        // auto *curBeat = &Beatlines[CurrentBeatline - 1];
+        // auto *nextBeat = &Beatlines[CurrentBeatline];
+
+        for (int i = CurrentBeatline; i < Beatlines.size(); i++) {
+            if (Beatlines[i].type != Minor) {
+                MyFirst = Beatlines[i].time;
+                break;
+            }
+        }
+        for (int i = CurrentBeatline - 1; i > 0; i--) {
+            if (Beatlines[i].type != Minor) {
+                thisIs = Beatlines[i].time;
+                break;
+            }
+        }
+        return (GetElapsedTime() - thisIs) / (MyFirst - thisIs);
+    }
+    return 0;
+}
+
+void SongTime::UpdateBeatlines() {
+    if (!Beatlines.empty()) {
+        if (CurrentBeatline < Beatlines.size() - 1
+            && Beatlines[CurrentBeatline].time < GetElapsedTime())
+            CurrentBeatline++;
+    }
+}
 /*
  * expects that you have already run BeatmapFromMidiTrack.
  * maybe put this in there to generate said Beatmap

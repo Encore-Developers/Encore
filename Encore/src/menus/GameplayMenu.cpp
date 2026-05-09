@@ -284,6 +284,7 @@ void GameplayMenu::DrawGameplayStars(
         Rectangle emptyStarWH = {
             0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
         };
+        unsigned char alpha = starPercent >= STAR_THRESHOLDS[inst][5] ? 255 : (1-TheSongTime.GetBeatlineDelta() * 255);
         float yMaskPos = Remap(
             starPercent,
             STAR_THRESHOLDS[inst][4],
@@ -308,7 +309,7 @@ void GameplayMenu::DrawGameplayStars(
                 starRect,
                 { 0, 0 },
                 0,
-                WHITE
+                { 255, 255, 255, alpha }
             );
         }
         EndScissorMode();
@@ -343,6 +344,7 @@ void GameplayMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
+    TheSongTime.UpdateBeatlines();
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     if (!songPlaying) {
@@ -356,6 +358,7 @@ void GameplayMenu::Draw() {
     // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     // std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
     GameMenu::DrawAlbumArtBackground();
+    // BackgroundColor = (unsigned char)((1 - TheSongTime.GetBeatlineDelta()) * 255);
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
         0,

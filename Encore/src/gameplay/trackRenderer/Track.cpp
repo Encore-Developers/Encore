@@ -189,13 +189,12 @@ void Encore::Track::DrawSurface() {
 void Encore::Track::DrawOverdriveMeter() {
     ZoneScoped;
 
-    int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
-    int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
-    int flashInterval = (numer * 480) / denom;
+    // int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
+    // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
+    // int flashInterval = (numer * 480) / denom;
 
-    unsigned char streakFlash =
-        BeatToCharViaTickThing(TheSongTime.GetCurrentTick(), 0, 255, flashInterval);
-    float Percentage = float(streakFlash) / 255.0f;
+
+    float Percentage = 1-TheSongTime.GetBeatlineDelta();
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
@@ -204,6 +203,7 @@ void Encore::Track::DrawOverdriveMeter() {
                                       1.0f - player.engine->stats->overdrive.Fill);
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
+
     DrawModelEx(ASSET(overdriveMeter),
                 { 0, -0.1, -0.85 },
                 { 1, 0, 0 },
@@ -609,18 +609,25 @@ void Encore::Track::DrawSmashers() {
 void Encore::Track::DrawBeatlines() {
     ZoneScoped;
     if (!TheSongTime.Beatlines.empty()) {
-        if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
-            TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
-        }
+        // if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
+        //     TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
+        // }
 
         size_t beatlinePoolMaxSize = NOTE_POOL_SIZE / 4;
-        size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
-            ? beatlinePoolMaxSize
-            : TheSongTime.Beatlines.size();
+        // size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
+        //     ? beatlinePoolMaxSize
+        //     : TheSongTime.Beatlines.size();
+        int beatlineStart = TheSongTime.CurrentBeatline - 8;
+        if (beatlineStart < 0) beatlineStart = 0;
         // because i have to do bounds checks myself
-        BeatlinePool = { TheSongTime.Beatlines.begin(), BeatlinePoolSize };
+        // BeatlinePool = { TheSongTime.Beatlines.begin() + beatlineStart, BeatlinePoolSize };
 
-        for (auto &beatline : BeatlinePool) {
+        int beatlineEnd = beatlineStart + beatlinePoolMaxSize;
+        if (beatlineEnd > TheSongTime.Beatlines.size()) {
+            beatlineEnd = TheSongTime.Beatlines.size();
+        }
+        for (int i = beatlineStart; i < beatlineEnd; i++) {
+            auto &beatline = TheSongTime.Beatlines[i];
             float ScrollPos = GetNotePos3D(
                 beatline.time
             );
@@ -638,7 +645,7 @@ void Encore::Track::DrawBeatlines() {
                 break;
             }
             case Measure: {
-                beatlineColor = { 255, 255, 255, 240 };
+                beatlineColor = { 255, 255, 255, 255 };
                 Size = 0.75;
                 break;
             }
