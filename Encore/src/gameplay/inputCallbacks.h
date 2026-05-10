@@ -52,9 +52,14 @@ public:
     }
 
     void CallFuncOnSDLThread(const std::function<void()> &func) {
+#ifndef __APPLE__
         requestMutex.lock();
         funcRequests.push_back(func);
         requestMutex.unlock();
+#else
+        func();
+#endif
+
     }
 
     ~ControllerPoller() {
