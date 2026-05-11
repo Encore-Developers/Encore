@@ -30,6 +30,7 @@ void Encore::Track::Draw() {
     //    BaseCamera.position.x = Offset * 2;
     // }
 
+    UpdateControllerLED();
     if (ColumnFitting) {
         FitToColumn(ColumnLeft, ColumnRight, BaseCamera);
     }
@@ -714,7 +715,18 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
     }
     return (TrackSlot **)&slotBuffer;
 }
-
+void Encore::Track::UpdateControllerLED() {
+    if (player.joypadID > 0) {
+        auto joystick = SDL_GetJoystickFromID(player.joypadID);
+        if (joystick) {
+            float beatFrac = TheSongTime.GetBeatlineDelta();
+            Color baseColor = ColorLerp(player.AccentColor, {0, 0, 0, 0}, beatFrac);
+            Color overdriveColor = ColorLerp({ 255, 255, 0, 255 }, baseColor, beatFrac);
+            baseColor = ColorLerp(baseColor, overdriveColor, OverdriveTimer);
+            SDL_SetJoystickLED(joystick, baseColor.r, baseColor.g, baseColor.b);
+        }
+    }
+}
 
 void Encore::Track::HandleEvent(Event *event) {
     if (auto bounceEvent = event->GetTyped<HighwayBounceEvent>()) {

@@ -36,6 +36,8 @@ namespace Encore {
         TrackSlot **GetSlotsForNote(RhythmEngine::EncNote& note) const;
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
 
+        void UpdateControllerLED();
+
         virtual void HandleEvent(Event *);
 
         void ProcessAnimation();
