@@ -365,42 +365,53 @@ void Encore::Track::DrawMultiplier() {
 
 
 void Encore::Track::DrawTrackNotifications() {
-    if (Notifications.empty()) return;
-    if (Notifications.front().time + 5.0 < TheSongTime.GetElapsedTime()) {
-        Notifications.pop_front();
+    if (!Notification) return;
+    if (Notification->time + 3.5 < TheSongTime.GetElapsedTime()) {
+        Notification = nullptr;
+        return;
     }
-    if (Notifications.empty()) return;
     Units &u = Units::getInstance();
     Vector3 NotificationPoint = { 0, 0, BaseLength + 5 };
     Vector2 ScreenNotifPosition = GetWorldToScreen(
         NotificationPoint,
         AnimCamera);
-    float FontSize = u.hinpct(0.03f);
-    for (size_t i = 0; i < Notifications.size(); i++) {
-        if (!Notifications[i].isEvent) {
-            continue;
-        }
-        TrackNotificationEvent* notif = &Notifications[i];
+    float FontPct = 0.0225f;
+    float FontSize = u.hinpct(FontPct);
+    //for (size_t i = 0; i < Notifications.size(); i++) {
+        TrackNotificationEvent* notif = Notification;
         std::string Text = "";
-
         switch (notif->type) {
-            case TrackNotificationEvent::OVERDRIVE_READY: Text = "Overdrive ready!"; break;
-            case TrackNotificationEvent::COMBO: Text = " Note Combo"; break;
-            default: Text = "buttsex"; break;
+        case TrackNotificationEvent::OVERDRIVE_READY: Text = "Overdrive ready"; break;
+        case TrackNotificationEvent::COMBO: Text = " Note Combo"; break;
+        case TrackNotificationEvent::BASSGROOVE: Text = "Bass Groove"; break;
+        case TrackNotificationEvent::HOTSTART: Text = "Hot Start"; break;
+        default: Text = "buttsex"; break;
         }
-        float TextWidth = MeasureTextEx(ASSET(rubikBold), Text.c_str(), FontSize, 0).x;
-        Vector2 pos = { ScreenNotifPosition.x - (TextWidth/2), ScreenNotifPosition.y + (FontSize * i)};
+        float TextWidth = MeasureTextEx(ASSET(josefinSansBold), Text.c_str(), FontSize, 0).x;
+        float size = 0;
+        if (TheSongTime.GetElapsedTime() < notif->time + 0.25) {
+            size = (TheSongTime.GetElapsedTime() - notif->time) / ((notif->time + 0.25) - notif->time);
+        } else if (TheSongTime.GetElapsedTime() > notif->time + 3.0) {
+            float startTime = notif->time + 3.0;
+            float endTime = notif->time + 3.5;
+            size = 1-((TheSongTime.GetElapsedTime() - startTime) / (endTime - startTime));
+        } else {
+            size = 1;
+        }
+        if (size > 1) size = 1;
+
+        Vector2 pos = { ScreenNotifPosition.x, ScreenNotifPosition.y};
         pos.x += Offset * GetRenderWidth() * 0.5;
         GameMenu::mhDrawText(
-            ASSET(rubikBold),
+            ASSET(josefinSansBold),
             Text,
             pos,
-            FontSize,
-            WHITE,
+            u.hinpct(getEasingFunction(EaseOutBack)(size) * FontPct),
+            { 255, 255, 255, (unsigned char)(255.0f * size)},
             ASSET(sdfShader),
-            LEFT
+            CENTER
         );
-    }
+   // }
 }
 void Encore::Track::DrawCombo() {
     if (player.engine->stats->Combo == 0) return;
@@ -734,7 +745,13 @@ void Encore::Track::HandleEvent(Event *event) {
         KickSpeedMult = bounceEvent->mult;
     }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
-        Notifications.push_back(*notifEvent);
+        if (Notification) {
+            Notification->time = notifEvent->time - 0.25;
+            Notification->type = notifEvent->type;
+            Notification->combo = notifEvent->combo;
+        } else {
+            Notification = new TrackNotificationEvent(*notifEvent);
+        }
     }
     if (auto hitEvent = event->GetTyped<NoteHitEvent>()) {
         auto *note = hitEvent->note;

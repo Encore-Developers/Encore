@@ -164,6 +164,16 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         return;
     stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
     stats->HitNote(chordSize, event.judgement);
+    if (inst == PartBass) {
+        if (stats->Combo == 50) {
+            TrackNotificationEvent event2 {startTime, TrackNotificationEvent::BASSGROOVE};
+            FireEvent(&event2);
+        };
+    }
+    if (stats->Combo == 25 && stats->Overhits == 0 && stats->Misses == 0) {
+        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
+        FireEvent(&event2);
+    }
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
 }

@@ -40,7 +40,9 @@ namespace Encore {
         enum TrackNotificationType {
             OVERDRIVE_READY,
             COMBO,
-            YOU_ROCK
+            YOU_ROCK,
+            BASSGROOVE,
+            HOTSTART
         };
         double time;
         TrackNotificationType type;

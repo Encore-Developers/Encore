@@ -112,25 +112,25 @@ double SongTime::GetLastTick() const {
 
 double SongTime::GetBeatlineDelta() {
     if (CurrentBeatline < Beatlines.size() && CurrentBeatline > 0) {
-        double thisIs = Beatlines[CurrentBeatline - 1].time;
-        double MyFirst = Beatlines[CurrentBeatline].time;
+        double firstTime = Beatlines[CurrentBeatline - 1].time;
+        double secondTime = Beatlines[CurrentBeatline].time;
         // Video on Instagram
         // auto *curBeat = &Beatlines[CurrentBeatline - 1];
         // auto *nextBeat = &Beatlines[CurrentBeatline];
 
         for (int i = CurrentBeatline; i < Beatlines.size(); i++) {
             if (Beatlines[i].type != Minor) {
-                MyFirst = Beatlines[i].time;
+                secondTime = Beatlines[i].time;
                 break;
             }
         }
         for (int i = CurrentBeatline - 1; i > 0; i--) {
             if (Beatlines[i].type != Minor) {
-                thisIs = Beatlines[i].time;
+                firstTime = Beatlines[i].time;
                 break;
             }
         }
-        return (GetElapsedTime() - thisIs) / (MyFirst - thisIs);
+        return (GetElapsedTime() - firstTime) / (secondTime - firstTime);
     }
     return 0;
 }

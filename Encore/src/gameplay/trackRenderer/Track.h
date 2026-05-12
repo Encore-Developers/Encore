@@ -83,7 +83,7 @@ namespace Encore {
         float ColumnLeft = -1;
         float ColumnRight = 1;
         bool ColumnFitting = true;
-        std::deque<TrackNotificationEvent> Notifications;
+        TrackNotificationEvent* Notification = nullptr;
         Camera3D AnimCamera;
         Camera3D BaseCamera;
 
