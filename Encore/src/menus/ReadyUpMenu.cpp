@@ -104,8 +104,8 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                                    float xPosOfMenu) {
     Units &u = Units::getInstance();
     for (int i = 0; i < 4; i++) {
-        SongPart *chart = TheSongList.curSong->parts[player.Instrument];
-        if (chart->ValidDiffs[i]) {
+        SongPart &part = TheSongList.curSong->parts[player.Instrument];
+        if (part.ValidDiffs[i]) {
             Color ButtonColor = backgroundColor;
             if (ControllerDiffSlot[playerInt] == i) {
                 ButtonColor = ColorBrightness(AccentColor, -0.25);
@@ -142,7 +142,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             GuiButton(
                 { xPosOfMenu,
                   BottomOvershell - u.hinpct(0.05f)
-                  - (u.hinpct(0.05f) * chart->diff),
+                  - (u.hinpct(0.05f) * part.diff),
                   u.winpct(0.2f),
                   u.hinpct(0.05f) },
                 ""
@@ -150,7 +150,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             DrawRectangle(
                 xPosOfMenu + 2,
                 BottomOvershell + 2 - u.hinpct(0.05f)
-                - (u.hinpct(0.05f) * chart->diff),
+                - (u.hinpct(0.05f) * part.diff),
                 u.winpct(0.2f) - 4,
                 u.hinpct(0.05f) - 4,
                 Color{ 0, 0, 0, 128 }
@@ -264,7 +264,7 @@ void ReadyUpMenu::Draw() {
                       u.hinpct(0.05f) };
                 std::string PartName =
                     TextFormat("  %s", songPartsList[PartsToDisplay[playerInt][i]].c_str());
-                std::string PartAndDiff = std::to_string(TheSongList.curSong->parts[PartsToDisplay[playerInt][i]]->diff + 1) + "/7" + PartName;
+                std::string PartAndDiff = std::to_string(TheSongList.curSong->parts[PartsToDisplay[playerInt][i]].diff + 1) + "/7" + PartName;
                 if (GuiButton(pos, "")) {
                     ControllerInstSlot[playerInt] = i;
                     SlotState[playerInt] = DIFFICULTY;
@@ -423,15 +423,15 @@ void ReadyUpMenu::Load() {
             TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
         }
     }
-    if (!TheSongList.curSong->parts[PartGuitar]->Valid && TheSongList.curSong->parts[PlasticGuitar]->Valid) {
+    if (!TheSongList.curSong->parts[PartGuitar].Valid && TheSongList.curSong->parts[PlasticGuitar].Valid) {
         TheSongList.curSong->parts[PartGuitar] = TheSongList.curSong->parts[PlasticGuitar];
-        TheSongList.curSong->parts[PartGuitar]->AutoToPad = true;
+        TheSongList.curSong->parts[PartGuitar].AutoToPad = true;
     }
     for (int playerInt = 0; playerInt < 4; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
         for (size_t i = 0; i < TheSongList.curSong->parts.size(); i++) {
-            if (TheSongList.curSong->parts[i]->Valid) {
+            if (TheSongList.curSong->parts[i].Valid) {
                 PartsToDisplay[playerInt].push_back(i);
             }
         }

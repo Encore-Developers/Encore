@@ -59,10 +59,10 @@ void LoadCharts() {
         int diff = player.Difficulty;
         int inst = player.Instrument;
 
-        int track = TheSongList.curSong->parts[inst]->TrackInt;
+        int track = TheSongList.curSong->parts[inst].TrackInt;
         std::string trackName;
 
-        if (TheSongList.curSong->parts[inst]->Valid) {
+        if (TheSongList.curSong->parts[inst].Valid) {
             trackName = songPartsList[inst];
             Encore::EncoreLog(
                 LOG_DEBUG,
@@ -107,7 +107,7 @@ void LoadCharts() {
             } else if (inst < PlasticDrums) {
                 midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::BaseChart chart;
-                if (!TheSongList.curSong->parts[inst]->AutoToPad) {
+                if (!TheSongList.curSong->parts[inst].AutoToPad) {
                     Encore::RhythmEngine::PadLoader chartLoader(diff, 170, &midiFile);
                     chartLoader.LoadChart(midiFile[track]);
                     chart = chartLoader.chart;
@@ -184,6 +184,12 @@ void ChartLoadingMenu::Load() {
     // }
     // ThePlayerManager.BandStats = new BandGameplayStats;
     TheSongList.curSong->LoadAlbumArt();
+    TheAudioManager.unloadStreams();
+    TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
+    TheAudioManager.loadStreams(
+        TheSongList.curSong
+            ->stemsPath
+    );
     LoadCharts();
     // std::thread ChartLoader(LoadCharts);
     // ChartLoader.detach();

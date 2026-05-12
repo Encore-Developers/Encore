@@ -129,7 +129,7 @@ void SongSelectMenu::ControllerInputCallback(
         case Encore::RhythmEngine::InputChannel::LANE_1:
             if (TheSongList.curSong) {
                 Unload();
-                TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
+                //TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
                 TheMenuManager.SwitchScreen(READY_UP);
             }
             break;
@@ -764,8 +764,8 @@ void SongSelectMenu::Draw() {
             ResetToLeftPos;
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        int diffNumber = SongToDisplayInfo->parts[i]->diff;
-        if (SongToDisplayInfo->parts[i] && diffNumber == -1)
+        int diffNumber = SongToDisplayInfo->parts[i].diff;
+        if (diffNumber == -1)
             TintColor = DARKGRAY;
         auto instIcon = assets.InstIcons[asdasd];
         DrawTexturePro(*instIcon,
@@ -781,7 +781,7 @@ void SongSelectMenu::Draw() {
                        { 0, 0 },
                        0,
                        ColorBrightness(WHITE, 2));
-        if (SongToDisplayInfo->parts[i] && diffNumber > 0) {
+        if (diffNumber > 0) {
             if (diffNumber > 6) {
                 diffNumber = 6;
             }
@@ -812,7 +812,7 @@ void SongSelectMenu::Draw() {
                   "       Play Song")) {
         if (TheSongList.curSong) {
             Unload();
-            TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
+            //TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
             TheMenuManager.SwitchScreen(READY_UP);
         }
     }

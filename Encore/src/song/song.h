@@ -151,10 +151,10 @@ public:
     };
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
-    std::vector<SongPart *> parts{ new SongPart, new SongPart, new SongPart,
-                                   new SongPart, new SongPart, new SongPart,
-                                   new SongPart, new SongPart, new SongPart,
-                                   new SongPart, new SongPart };
+    std::vector<SongPart> parts { SongPart(), SongPart(), SongPart(),
+                                   SongPart(), SongPart(), SongPart(),
+                                   SongPart(), SongPart(), SongPart(),
+                                   SongPart(), SongPart() };
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 
@@ -202,9 +202,9 @@ public:
                 if (track[i].isNoteOn() && !track[i].isMeta()
                     && track[i][1] >= pDiffRangeNotes[diff][0]
                     && track[i][1] <= pDiffRangeNotes[diff][1]) {
-                    parts[songPart]->ValidDiffs.at(diff) = true;
-                    parts[songPart]->TrackInt = trackNumber;
-                    parts[songPart]->Valid = true;
+                    parts[songPart].ValidDiffs.at(diff) = true;
+                    parts[songPart].TrackInt = trackNumber;
+                    parts[songPart].Valid = true;
                     break;
                     }
             }

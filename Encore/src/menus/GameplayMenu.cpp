@@ -59,6 +59,10 @@ void GameplayMenu::UpdatePauseState() {
     } else {
         if (streamsPaused) {
             TheAudioManager.unpauseStreams();
+            for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+                Player &player = ThePlayerManager.GetActivePlayer(i);
+                player.engine->chart->MissedNotePointers.clear();
+            }
             streamsPaused = false;
         }
     }

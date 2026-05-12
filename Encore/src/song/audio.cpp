@@ -93,7 +93,6 @@ void Encore::AudioManager::unloadStreams() {
             StopPlayback(stream.handle);
             BASS_StreamFree(stream.handle);
         }
-        loadedStreams = {};
         loadedStreams.clear();
     }
 }

@@ -29,7 +29,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     }
     if (missed) {
         ASSET(noteShader).SetUniform("frameColor", Color{120, 120, 120, 255});
-        ASSET(noteShader).SetUniform("noteColor", Color{ 255, 50, 50, 255 });
+        ASSET(noteShader).SetUniform("noteColor", Color{ 140, 140, 140, 255 });
     }
 
     if (note->LengthSeconds > 0) {
