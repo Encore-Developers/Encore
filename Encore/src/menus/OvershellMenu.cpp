@@ -30,6 +30,11 @@ void DetectControllerType(Player& player) {
     switch (type) {
     case SDL_JOYSTICK_TYPE_GUITAR:
         player.bindingType = GUITAR;
+        if (player.joypadID > 0) {
+            if (SDL_GetJoystickVendorForID(player.joypadID) == 0x12ba && SDL_GetJoystickProductForID(player.joypadID) == 0x0100) {
+                player.bindingType = GUITAR_GHPS3;
+            }
+        }
         break;
     case SDL_JOYSTICK_TYPE_DRUM_KIT:
         player.bindingType = DRUMS;
@@ -311,6 +316,7 @@ void OvershellMenu::DrawOvershell() {
                 const char* typeString;
                 switch (playerManager.GetActivePlayer(i).bindingType) {
                 case GUITAR:
+                case GUITAR_GHPS3:
                     typeString = "Guitar";
                     break;
                 case DRUMS:
@@ -471,6 +477,12 @@ void OvershellMenu::DrawOvershell() {
 
             if (OvershellButton(i, 3, "Guitar")) {
                 playerManager.GetActivePlayer(i).bindingType = GUITAR;
+                Uint32 joyId = playerManager.GetActivePlayer(i).joypadID;
+                if (joyId > 0) {
+                    if (SDL_GetJoystickVendorForID(joyId) == 0x12ba && SDL_GetJoystickProductForID(joyId) == 0x0100) {
+                    playerManager.GetActivePlayer(i).bindingType = GUITAR_GHPS3;
+                    }
+                }
                 OvershellState[i] = OS_OPTIONS;
             }
             if (OvershellButton(i, 2, "Drums")) {

@@ -139,6 +139,26 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
             }
             break;
         }
+        case GUITAR_GHPS3: {
+            switch (event->gbutton.button) {
+            case(SDL_GAMEPAD_BUTTON_SOUTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                break;
+            case(SDL_GAMEPAD_BUTTON_EAST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                break;
+            case(SDL_GAMEPAD_BUTTON_NORTH):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                break;
+            case(SDL_GAMEPAD_BUTTON_WEST):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                break;
+            case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
+                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                break;
+            }
+            break;
+        }
         case DRUMS: {
             switch (event->gbutton.button) {
             case(SDL_GAMEPAD_BUTTON_SOUTH):
