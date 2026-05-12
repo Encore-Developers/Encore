@@ -47,111 +47,78 @@ std::string removeArticle(const std::string &str) {
     return str;
 }
 
-bool SongList::sortArtist(const Song &a, const Song &b) {
-    std::string aLower = TextToLower(a.artist.c_str());
-    std::string bLower = TextToLower(b.artist.c_str());
+bool SongList::sortArtist(Song *a, Song *b) {
+    ZoneScoped
+    std::string aLower = TextToLower(a->artist.c_str());
+    std::string bLower = TextToLower(b->artist.c_str());
     std::string aaa = removeArticle(aLower);
     std::string bbb = removeArticle(bLower);
     return aaa < bbb;
 }
 
-bool SongList::sortTitle(const Song &a, const Song &b) {
-    std::string aLower = TextToLower(a.title.c_str());
-    std::string bLower = TextToLower(b.title.c_str());
+bool SongList::sortTitle(Song *a, Song *b) {
+    ZoneScoped
+    std::string aLower = TextToLower(a->title.c_str());
+    std::string bLower = TextToLower(b->title.c_str());
     std::string aaa = removeArticle(aLower);
     std::string bbb = removeArticle(bLower);
     return aaa < bbb;
 }
 
-bool SongList::sortSource(const Song &a, const Song &b) {
-    std::string aLower = TextToLower(a.source.c_str());
-    std::string bLower = TextToLower(b.source.c_str());
+bool SongList::sortSource(Song *a, Song *b) {
+    std::string aLower = TextToLower(a->source.c_str());
+    std::string bLower = TextToLower(b->source.c_str());
     return aLower < bLower;
 }
 
-bool SongList::sortAlbum(const Song &a, const Song &b) {
-    std::string aLower = TextToLower(a.album.c_str());
-    std::string bLower = TextToLower(b.album.c_str());
+bool SongList::sortAlbum(Song *a, Song *b) {
+    std::string aLower = TextToLower(a->album.c_str());
+    std::string bLower = TextToLower(b->album.c_str());
     std::string aaa = removeArticle(aLower);
     std::string bbb = removeArticle(bLower);
     return aaa < bbb;
 }
 
-bool SongList::sortLen(const Song &a, const Song &b) {
-    return a.length < b.length;
+bool SongList::sortLen(Song *a, Song *b) {
+    return a->length < b->length;
 }
 
-bool SongList::sortYear(const Song &a, const Song &b) {
-    return a.releaseYear < b.releaseYear;
+bool SongList::sortYear(Song *a, Song *b) {
+    return a->releaseYear < b->releaseYear;
 }
 
 SongList::SongList() {}
 SongList::~SongList() {}
 
 void SongList::sortList(SortType sortType) {
+    ZoneScoped
     sectionEntries.clear();
+    sortedSongs.clear();
+    for (auto &song : songs) {
+        sortedSongs.push_back(&song);
+    }
     switch (sortType) {
     case SortType::Title:
-        std::sort(songs.begin(), songs.end(), sortTitle);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         break;
     case SortType::Artist:
-        std::sort(songs.begin(), songs.end(), sortAlbum);
-        std::sort(songs.begin(), songs.end(), sortArtist);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortAlbum);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortArtist);
         break;
     case SortType::Source:
-        std::sort(songs.begin(), songs.end(), sortTitle);
-        std::sort(songs.begin(), songs.end(), sortSource);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortSource);
         break;
     case SortType::Length:
-        std::sort(songs.begin(), songs.end(), sortLen);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortLen);
         break;
     case SortType::Year:
-        std::sort(songs.begin(), songs.end(), sortTitle);
-        std::sort(songs.begin(), songs.end(), sortYear);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortYear);
         break;
     default:;
     }
-    listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
-}
-
-void SongList::sortList(SortType sortType, size_t &selectedSong) {
-    sectionEntries.clear();
-    Song* curSong;
-    bool hasCurrentSong = selectedSong >= 0 && selectedSong < songs.size();
-    if (hasCurrentSong) {
-        curSong = &songs[selectedSong];
-    }
-    selectedSong = 0;
-    switch (sortType) {
-    case SortType::Title:
-        std::sort(songs.begin(), songs.end(), sortTitle);
-        break;
-    case SortType::Artist:
-        std::sort(songs.begin(), songs.end(), sortAlbum);
-        std::sort(songs.begin(), songs.end(), sortArtist);
-        break;
-    case SortType::Source:
-        std::sort(songs.begin(), songs.end(), sortTitle);
-        std::sort(songs.begin(), songs.end(), sortSource);
-        break;
-    case SortType::Length:
-        std::sort(songs.begin(), songs.end(), sortLen);
-        break;
-    case SortType::Year:
-        std::sort(songs.begin(), songs.end(), sortTitle);
-        std::sort(songs.begin(), songs.end(), sortYear);
-    break;
-    default:;
-    }
-    if (hasCurrentSong) {
-        for (size_t i = 0; i < songs.size(); i++) {
-            if (songs[i].artist == curSong->artist && songs[i].title == curSong->title) {
-                selectedSong = i;
-                break;
-            }
-        }
-    }
-    listMenuEntries = GenerateSongEntriesWithHeaders(songs, sortType);
+    GenerateSongEntriesWithHeaders(sortType);
 }
 
 void SongList::WriteCache() {
@@ -189,6 +156,7 @@ void SongList::WriteCache() {
 
 
 void SongList::ScanFolder(const std::filesystem::path &folder) {
+    ZoneScoped
     if (!std::filesystem::is_directory(folder)) {
         return;
     }
@@ -214,6 +182,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
 }
 
 void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) {
+    ZoneScoped
     Clear();
 
     for (const auto &folder : songsFolder) {
@@ -239,37 +208,34 @@ std::string GetLengthHeader(int length) {
     return "5:00+";
 }
 
-std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
-    const std::vector<Song> &songs, SortType sortType
-) {
-    std::vector<ListMenuEntry> songEntries;
+void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
     std::string currentHeader = "";
     int pos = 0;
-    for (size_t i = 0; i < songs.size(); i++) {
-        const Song &song = songs[i];
+    for (size_t i = 0; i < sortedSongs.size(); i++) {
+        const Song *song = sortedSongs[i];
         std::string header;
         switch (sortType) {
         case SortType::Title: {
-            std::string title = removeArticle(TextToLower(song.title.c_str()));
+            std::string title = removeArticle(TextToLower(song->title.c_str()));
             header = title.empty() ? "#" : std::string(1, toupper(title[0]));
             break;
         }
         case SortType::Artist: {
-            std::string artist = removeArticle(song.artist);
+            std::string artist = removeArticle(song->artist);
             header = artist.empty() ? "#" : artist;
             break;
         }
         case SortType::Source: {
-            std::string source = removeArticle(song.source);
+            std::string source = removeArticle(song->source);
             header = source.empty() ? "Unknown" : source;
             break;
         }
         case SortType::Length: {
-            header = GetLengthHeader(song.length);
+            header = GetLengthHeader(song->length);
             break;
         }
         case SortType::Year: {
-            header = song.releaseYear.empty() ? "Unknown Year" : song.releaseYear;
+            header = song->releaseYear.empty() ? "Unknown Year" : song->releaseYear;
             break;
         }
         default:
@@ -279,20 +245,20 @@ std::vector<ListMenuEntry> SongList::GenerateSongEntriesWithHeaders(
         if (lower(header) != lower(currentHeader)) {
             currentHeader = header;
             if (!sectionEntries.empty()) {
-                sectionEntries.back().lastListID = songEntries.size() - 1;
+                sectionEntries.back().lastListID = listMenuEntries.size() - 1;
             }
-            sectionEntries.emplace_back(songEntries.size());
-            songEntries.emplace_back(true, 0, currentHeader, false);
+            sectionEntries.emplace_back(listMenuEntries.size());
+            listMenuEntries.emplace_back(true, 0, currentHeader, false);
             pos++;
         }
-        songEntries.emplace_back(false, i, "", false);
+        listMenuEntries.emplace_back(false, i, "", false);
         pos++;
         this->songs[i].songListPos = pos;
     }
-    if (!songEntries.empty()) {
-        sectionEntries.back().lastListID = songEntries.size();
+    if (!listMenuEntries.empty()) {
+        sectionEntries.back().lastListID = listMenuEntries.size();
     }
-    return songEntries;
+    listMenuEntries.shrink_to_fit();
 }
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {

@@ -68,12 +68,12 @@ enum SongListLoadingStates {
 class SongList {
 
 
-    static bool sortArtist(const Song &a, const Song &b);
-    static bool sortTitle(const Song &a, const Song &b);
-    static bool sortSource(const Song &a, const Song &b);
-    static bool sortAlbum(const Song &a, const Song &b);
-    static bool sortLen(const Song &a, const Song &b);
-    static bool sortYear(const Song &a, const Song &b);
+    static bool sortArtist(Song *a, Song *b);
+    static bool sortTitle(Song *a, Song *b);
+    static bool sortSource(Song *a, Song *b);
+    static bool sortAlbum(Song *a, Song *b);
+    static bool sortLen(Song *a, Song *b);
+    static bool sortYear(Song *a, Song *b);
 
 public:
     SongList();
@@ -83,6 +83,7 @@ public:
     std::vector<ListMenuEntry> listMenuEntries;
     std::vector<LSection> sectionEntries;
     std::vector<Song> songs;
+    std::vector<Song*> sortedSongs;
     int songCount = 0;
     int directoryCount = 0;
     int badSongCount = 0;
@@ -103,8 +104,7 @@ public:
     void ScanSongs(const std::vector<std::filesystem::path> &songsFolder);
     void ScanFolder(const std::filesystem::path &folder);
 
-    std::vector<ListMenuEntry>
-    GenerateSongEntriesWithHeaders(const std::vector<Song> &songs, SortType sortType);
+    void GenerateSongEntriesWithHeaders(SortType sortType);
 
     void LoadCache(const std::vector<std::filesystem::path> &songsFolder);
 };

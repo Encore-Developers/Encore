@@ -82,7 +82,7 @@ void SongSelectMenu::ScrollSongSelect(int val) {
         newPos = TheSongList.listMenuEntries.size() - 1;
 
     if (oldPos != newPos && !TheSongList.listMenuEntries[newPos].isHeader) {
-        TheSongList.curSong = &TheSongList.songs[TheSongList.listMenuEntries[newPos].
+        TheSongList.curSong = TheSongList.sortedSongs[TheSongList.listMenuEntries[newPos].
             songListID];
 
         StopPreview();
@@ -90,7 +90,7 @@ void SongSelectMenu::ScrollSongSelect(int val) {
         previewState = PreviewState::Hysteresis;
         selectionTime = curTime;
 
-        TheSongList.songs[TheSongList.listMenuEntries[newPos].songListID].LoadAlbumArt();
+        TheSongList.sortedSongs[TheSongList.listMenuEntries[newPos].songListID]->LoadAlbumArt();
     }
     if (TheSongList.listMenuEntries[newPos].isHeader) {
         StopPreview();
@@ -182,7 +182,7 @@ void SongSelectMenu::Load() {
 
     // TheGameRenderer.streamsLoaded = false;
     // TheGameRenderer.midiLoaded = false;
-    // for (Song& song : TheSongList.songs) {
+    // for (Song& song : TheSongList.sortedSongs) {
     //     if (!song.ini) {
     //         // song.LoadSongJSON(song.songInfoPath);
     //     } else {
@@ -349,10 +349,10 @@ void SongSelectMenu::Draw() {
         if (!TheSongList.listMenuEntries[curSongMenuPos].isHeader) {
             if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime -
                 selectionTime >= 0.75) {
-                if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.songs
+                if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.sortedSongs
                     .size()) {
                     LoadPreview(
-                        TheSongList.songs[TheSongList.listMenuEntries[curSongMenuPos].
+                        *TheSongList.sortedSongs[TheSongList.listMenuEntries[curSongMenuPos].
                             songListID]);
                     }
                 }
@@ -399,11 +399,11 @@ void SongSelectMenu::Draw() {
     );
     DrawTextEx(
         assets.josefinSansItalic,
-        TextFormat("Songs loaded: %01i", TheSongList.songs.size()),
+        TextFormat("Songs loaded: %01i", TheSongList.sortedSongs.size()),
         { AlbumX - (AlbumOuter * 2)
           - MeasureTextEx(
               assets.josefinSansItalic,
-              TextFormat("Songs loaded: %01i", TheSongList.songs.size()),
+              TextFormat("Songs loaded: %01i", TheSongList.sortedSongs.size()),
               u.hinpct(0.03f),
               0
           ).x,
@@ -459,7 +459,7 @@ void SongSelectMenu::Draw() {
         } else if (!TheSongList.listMenuEntries[listMenuPos].hiddenEntry) {
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
             Font artistFont = assets.josefinSansItalic;
-            Song &songi = TheSongList.songs[TheSongList.listMenuEntries[listMenuPos].
+            Song *songi = TheSongList.sortedSongs[TheSongList.listMenuEntries[listMenuPos].
                 songListID];
             float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
             float songYPos = std::floor(
@@ -494,18 +494,18 @@ void SongSelectMenu::Draw() {
             int songTitleWidth = (u.winpct(0.3f)) - 6;
             int songArtistWidth = (u.winpct(0.5f)) - 6;
 
-            if (songi.titleTextWidth >= (float)songTitleWidth) {
-                if (curTime > songi.titleScrollTime
-                    && curTime < songi.titleScrollTime + 3.0)
-                    songi.titleXOffset = 0;
+            if (songi->titleTextWidth >= (float)songTitleWidth) {
+                if (curTime > songi->titleScrollTime
+                    && curTime < songi->titleScrollTime + 3.0)
+                    songi->titleXOffset = 0;
 
-                if (curTime > songi.titleScrollTime + 3.0) {
-                    songi.titleXOffset -= 1;
-                    if (songi.titleXOffset
-                        < -(songi.titleTextWidth - (float)songTitleWidth)) {
-                        songi.titleXOffset = -(songi.titleTextWidth - (float)
+                if (curTime > songi->titleScrollTime + 3.0) {
+                    songi->titleXOffset -= 1;
+                    if (songi->titleXOffset
+                        < -(songi->titleTextWidth - (float)songTitleWidth)) {
+                        songi->titleXOffset = -(songi->titleTextWidth - (float)
                             songTitleWidth);
-                        songi.titleScrollTime = curTime + 3.0;
+                        songi->titleScrollTime = curTime + 3.0;
                     }
                 }
             }
@@ -518,8 +518,8 @@ void SongSelectMenu::Draw() {
             );
             DrawTextEx(
                 assets.rubikBold,
-                songi.title.c_str(),
-                { songXPos + songi.titleXOffset + (isCurSong ? 10 : 20),
+                songi->title.c_str(),
+                { songXPos + songi->titleXOffset + (isCurSong ? 10 : 20),
                   songYPos + u.hinpct(0.0125f) },
                 u.hinpct(0.035f),
                 0,
@@ -527,16 +527,16 @@ void SongSelectMenu::Draw() {
             );
             EndScissorMode();
 
-            if (songi.artistTextWidth > (float)songArtistWidth) {
-                if (curTime > songi.artistScrollTime
-                    && curTime < songi.artistScrollTime + 3.0)
-                    songi.artistXOffset = 0;
+            if (songi->artistTextWidth > (float)songArtistWidth) {
+                if (curTime > songi->artistScrollTime
+                    && curTime < songi->artistScrollTime + 3.0)
+                    songi->artistXOffset = 0;
 
-                if (curTime > songi.artistScrollTime + 3.0) {
-                    songi.artistXOffset -= 1;
-                    if (songi.artistXOffset
-                        < -(songi.artistTextWidth - (float)songArtistWidth)) {
-                        songi.artistScrollTime = curTime + 3.0;
+                if (curTime > songi->artistScrollTime + 3.0) {
+                    songi->artistXOffset -= 1;
+                    if (songi->artistXOffset
+                        < -(songi->artistTextWidth - (float)songArtistWidth)) {
+                        songi->artistScrollTime = curTime + 3.0;
                     }
                 }
             }
@@ -549,8 +549,8 @@ void SongSelectMenu::Draw() {
             );
             DrawTextEx(
                 artistFont,
-                songi.artist.c_str(),
-                { songXPos + 30 + (float)songTitleWidth + songi.artistXOffset,
+                songi->artist.c_str(),
+                { songXPos + 30 + (float)songTitleWidth + songi->artistXOffset,
                   songYPos + u.hinpct(0.02f) },
                 u.hinpct(0.025f),
                 0,
@@ -575,32 +575,32 @@ void SongSelectMenu::Draw() {
 
         if (songIndex < TheSongList.listMenuEntries.size() && !TheSongList.listMenuEntries
             [songIndex].isHeader) {
-            Song &representativeSong = TheSongList.songs[TheSongList.listMenuEntries[
+            Song *representativeSong = TheSongList.sortedSongs[TheSongList.listMenuEntries[
                 songIndex].songListID];
             switch (currentSortValue) {
             case SortType::Title:
-                categoryHeaderText = representativeSong.title.empty()
+                categoryHeaderText = representativeSong->title.empty()
                     ? "#"
-                    : std::string(1, toupper(representativeSong.title[0]));
+                    : std::string(1, toupper(representativeSong->title[0]));
                 break;
             case SortType::Artist:
-                categoryHeaderText = representativeSong.artist.empty()
+                categoryHeaderText = representativeSong->artist.empty()
                     ? "#"
-                    : std::string(1, toupper(representativeSong.artist[0]));
+                    : std::string(1, toupper(representativeSong->artist[0]));
                 break;
             case SortType::Source:
-                categoryHeaderText = representativeSong.source.empty()
+                categoryHeaderText = representativeSong->source.empty()
                     ? "Unknown"
-                    : representativeSong.source;
+                    : representativeSong->source;
                 break;
             case SortType::Length:
                 categoryHeaderText = TheSongList.listMenuEntries[curSongMenuPos].
                     headerChar;
                 break;
             case SortType::Year:
-                categoryHeaderText = representativeSong.releaseYear.empty()
+                categoryHeaderText = representativeSong->releaseYear.empty()
                     ? "Unknown Year"
-                    : representativeSong.releaseYear;
+                    : representativeSong->releaseYear;
                 break;
             default:
                 categoryHeaderText = "";
@@ -829,17 +829,17 @@ void SongSelectMenu::Draw() {
         // no i didnt
         size_t selectedSongIndex = -1;
         if (TheSongList.curSong) {
-            for (size_t i = 0; i < TheSongList.songs.size(); i++) {
-                if (&TheSongList.songs[i] == TheSongList.curSong) {
+            for (size_t i = 0; i < TheSongList.sortedSongs.size(); i++) {
+                if (TheSongList.sortedSongs[i] == TheSongList.curSong) {
                     selectedSongIndex = i;
                     break;
                 }
             }
         }
         currentSortValue = NextSortType(currentSortValue);
-        TheSongList.sortList(currentSortValue, selectedSongIndex);
-        if (selectedSongIndex >= 0 && selectedSongIndex < TheSongList.songs.size()) {
-            TheSongList.curSong = &TheSongList.songs[selectedSongIndex];
+        TheSongList.sortList(currentSortValue);
+        if (selectedSongIndex >= 0 && selectedSongIndex < TheSongList.sortedSongs.size()) {
+            TheSongList.curSong = TheSongList.sortedSongs[selectedSongIndex];
             curSongMenuPos = TheSongList.curSong->songListPos - 6;
             if (curSongMenuPos < 1)
                 curSongMenuPos = 1;
