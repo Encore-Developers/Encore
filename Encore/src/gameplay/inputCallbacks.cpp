@@ -231,6 +231,9 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
         if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
             outevent.channel = Encore::RhythmEngine::InputChannel::WHAMMY;
             outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
+            if (bindingType == GUITAR_GHPS3) {
+                outevent.axis = int(((float(event->gaxis.value)) / 32768.0f) * 255.0f);
+            }
             outevent.slot = event->gdevice.which;
         }
         if (bindingType == PAD && player->Instrument > PartVocals) {

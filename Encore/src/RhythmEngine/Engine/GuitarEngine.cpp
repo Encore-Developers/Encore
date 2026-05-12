@@ -279,6 +279,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 
 void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
     GhostCount = 0;
+    whammy = 0;
     if ((chart->CurrentNoteIterators.at(0)->NoteType == 1 || chart->CurrentNoteIterators.
         at(0)->NoteType == 2) && !strumInput) {
         if (chart->CurrentNoteIterators.at(0) < chart->Lanes.at(0).end() - 1) {
