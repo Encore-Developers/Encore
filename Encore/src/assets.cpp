@@ -389,7 +389,8 @@ AssetSet gameplaySet = { ASSETPTR(trackSurface),
                          ASSETPTR(liftNote),
                          ASSETPTR(liftNoteTex),
                          ASSETPTR(liftMaskTex),
-    ASSETPTR(josefinSansBold)
+    ASSETPTR(josefinSansBold),
+    ASSETPTR(josefinSansBoldItalic)
 };
 
 
