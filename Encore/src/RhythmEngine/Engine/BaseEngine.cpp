@@ -124,8 +124,8 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
     stats->overdrive.Update(CurrentTime);
     if (odWasActive == true && odWasActive != stats->overdrive.Active) {
         // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
+        EncoreLog(LOG_DEBUG, TextFormat("Disabling effect on instrument: %i", inst));
         TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
-        EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
     }
 }
 
@@ -138,7 +138,7 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
         GhostCount = 0;
         MissNote(Lane);
         Encore::EncoreLog(
-            LOG_DEBUG, TextFormat("Missed note %01i:%01i", Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)))
+            LOG_DEBUG, TextFormat("Player %s missed note %01i : %01i", player->Name.c_str(), Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)))
         );
         }
 }
@@ -149,9 +149,10 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
 
     int startTick = chart->CurrentNoteIterators.at(lane)->StartTicks;
     double startTime = chart->CurrentNoteIterators.at(lane)->StartSeconds;
-    Encore::EncoreLog(
-            LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
-        );
+    // you REALLY dont need to be firing every few seconds
+    // Encore::EncoreLog(
+    //        LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
+    //    );
 
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
     if (PerfectHit(startTime)) {
@@ -196,7 +197,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
-    EncoreLog(LOG_DEBUG, "Overhit note");
+    TextFormat("Player %s overhit", player->Name.c_str());
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
