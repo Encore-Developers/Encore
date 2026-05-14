@@ -300,10 +300,9 @@ void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, in
 void SongSelectMenu::LoadPreview(Song &song) {
     ZoneScoped
     try {
-        song.LoadAudioINI(song.songDir);
         TheAudioManager.loadStreams(
             song
-            .stemsPath
+            .LoadAudioINI()
         );
         float previewStartTimeSec =
             song

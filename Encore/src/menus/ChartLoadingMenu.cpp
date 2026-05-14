@@ -185,10 +185,9 @@ void ChartLoadingMenu::Load() {
     // ThePlayerManager.BandStats = new BandGameplayStats;
     TheSongList.curSong->LoadAlbumArt();
     TheAudioManager.unloadStreams();
-    TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
+
     TheAudioManager.loadStreams(
-        TheSongList.curSong
-            ->stemsPath
+    TheSongList.curSong->LoadAudioINI()
     );
     LoadCharts();
     // std::thread ChartLoader(LoadCharts);

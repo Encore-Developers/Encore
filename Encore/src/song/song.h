@@ -158,8 +158,6 @@ public:
 
     std::vector<Beat> beatLines; // double time, bool downbeat
 
-    std::vector<std::pair<std::string, int>> stemsPath{};
-
     std::filesystem::path midiPath = "";
 
     std::string songDir = "";
@@ -171,7 +169,7 @@ public:
     std::string jsonHash = "";
     int hopoThreshold = -1;
     smf::MidiFile midiFile;
-    void LoadAudioINI(const std::filesystem::path& songPath);
+    std::vector<std::pair<std::string, int>> LoadAudioINI();
     float previewStartTime = 0.0f;
 
     SongParts GetSongPart(smf::MidiEventList track) {

@@ -98,15 +98,15 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
         }
     }
     LoadInfoINI(songInfoPath);
-    LoadAudioINI(songPath);
 }
 void Song::LoadAlbumArt() {
     TheArtLoader.LoadAlbumArt(this);
 }
 
-void Song::LoadAudioINI(const std::filesystem::path& songPath) {
-    stemsPath.clear();
-    for (const auto &entry : std::filesystem::directory_iterator(songPath)) {
+std::vector<std::pair<std::string, int>> Song::LoadAudioINI() {
+    ZoneScoped
+    std::vector<std::pair<std::string, int>> stemsPath;
+    for (const auto &entry : std::filesystem::directory_iterator(songDir)) {
         if (entry.is_regular_file()) {
             std::string base_filename = entry.path().string().substr(
                 entry.path().string().find_last_of("/\\") + 1
@@ -121,4 +121,5 @@ void Song::LoadAudioINI(const std::filesystem::path& songPath) {
             }
         }
     }
+    return stemsPath;
 }

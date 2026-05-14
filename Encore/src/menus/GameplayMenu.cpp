@@ -649,7 +649,6 @@ void GameplayMenu::Draw() {
 void GameplayMenu::Load() {
     ZoneScoped;
     TheSongList.curSong->LoadAlbumArt();
-    TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
     dropInDropOut = false;
 

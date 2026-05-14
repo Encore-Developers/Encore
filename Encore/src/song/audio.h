@@ -27,7 +27,7 @@ namespace Encore {
         static bool Init();
 
         // Load and manage audio streams
-        void loadStreams(std::vector<std::pair<std::string, int> > &paths);
+        void loadStreams(std::vector<std::pair<std::string, int> > paths);
         void unloadStreams();
         void pauseStreams() const;
         void playStreams() const;

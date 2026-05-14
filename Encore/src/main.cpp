@@ -17,6 +17,7 @@
 #include "settings/keybinds.h"
 #include "song/ArtLoader.h"
 #include "song/cacheload.h"
+#include "tracy/TracyC.h"
 #include "users/profiles/ProfileManager.h"
 
 #ifdef STEAM
@@ -398,13 +399,13 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void * operator new(std::size_t count) {
-    auto ptr = std::malloc(count);
-    TracyAlloc(ptr, count);
-    return ptr;
-}
-
-void operator delete(void* ptr) noexcept {
-    TracyFree(ptr);
-    free(ptr);
-}
+// void * operator new(std::size_t count) {
+//     auto ptr = std::malloc(count);
+//     TracyCAlloc(ptr, count);
+//     return ptr;
+// }
+//
+// void operator delete(void* ptr) noexcept {
+//     TracyCFree(ptr);
+//     free(ptr);
+// }

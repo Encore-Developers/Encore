@@ -203,9 +203,8 @@ void MainMenu::PickRandomMenuSong() {
         } catch (const std::exception &e) {
             std::cout << e.what() << std::endl;
         };
-
-        TheSongList.curSong->LoadAudioINI(TheSongList.curSong->songDir);
-        TheAudioManager.loadStreams(TheSongList.curSong->stemsPath);
+        TheAudioManager.unloadStreams();
+        TheAudioManager.loadStreams(TheSongList.curSong->LoadAudioINI());
         streamsLoaded = true;
         for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
             float Volume =

@@ -30,6 +30,7 @@ void MenuManager::SwitchScreen(Screens screen) {
     onNewMenu = true;
 }
 void MenuManager::LoadMenu() {
+    ZoneScoped
     TheMenuManager.onNewMenu = false;
     delete ActiveMenu;
     ActiveMenu = NULL;
