@@ -80,13 +80,57 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     if (endTime <= startTime) {
         return;
     }
-    float midPos = track->GetNotePos3D((endTime + startTime) / 2);
-    float sustainLength = endTime - startTime;
-    DrawCube({ xPos, 0.1, midPos },
-             0.2 + whammy,
-             0.1,
-             sustainLength * track->GetZPerSecond(),
-             color);
+    float startPos = track->GetNotePos3D(startTime);
+    float endPos = track->GetNotePos3D(endTime);
+    float tailPos = endPos;
+    endPos -= 0.1;
+    if (endPos < startPos) {
+        endPos = startPos;
+    }
+    float widthMult = 0.25;
+    Color bright = ColorBrightness(color, 0.2);
+    rlSetBlendMode(RL_BLEND_ADDITIVE);
+    rlDisableDepthTest();
+    rlBegin(RL_QUADS);
+
+
+    rlColor4ub(color.r, color.g, color.b, 0);
+    rlVertex3f(xPos - width*widthMult, 0.03, startPos);
+    rlVertex3f(xPos - width*widthMult, 0.03, endPos);
+    rlColor4ub(bright.r, bright.g, bright.b, 255);
+    rlVertex3f(xPos, 0.03, endPos);
+    rlVertex3f(xPos, 0.03, startPos);
+
+    rlVertex3f(xPos, 0.03, startPos);
+    rlVertex3f(xPos, 0.03, endPos);
+    rlColor4ub(color.r, color.g, color.b, 0);
+    rlVertex3f(xPos + width*widthMult, 0.03, endPos);
+    rlVertex3f(xPos + width*widthMult, 0.03, startPos);
+
+
+    rlColor4ub(color.r, color.g, color.b, 0);
+    rlVertex3f(xPos - width*widthMult, 0.03, endPos);
+    rlVertex3f(xPos - width*widthMult, 0.03, tailPos);
+    rlVertex3f(xPos, 0.03, tailPos);
+    rlColor4ub(bright.r, bright.g, bright.b, 255);
+    rlVertex3f(xPos, 0.03, endPos);
+
+    rlColor4ub(color.r, color.g, color.b, 0);
+    rlVertex3f(xPos + width*widthMult, 0.03, endPos);
+    rlColor4ub(bright.r, bright.g, bright.b, 255);
+    rlVertex3f(xPos, 0.03, endPos);
+    rlColor4ub(color.r, color.g, color.b, 0);
+    rlVertex3f(xPos, 0.03, tailPos);
+    rlVertex3f(xPos + width*widthMult, 0.03, tailPos);
+
+    rlEnd();
+    rlSetBlendMode(RL_BLEND_ALPHA);
+    rlEnableDepthTest();
+    // DrawCube({ xPos, 0.1, midPos },
+    //          0.2 + whammy,
+    //          0.1,
+    //          sustainLength * track->GetZPerSecond(),
+    //          color);
 }
 
 void Encore::GemTrackSlot::DrawSmasher(bool held) {
@@ -171,6 +215,9 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
     if (parentSlot) {
         parentSlot->AnimateHit(perfect, colorg);
         return;
+    }
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(TheSongTime.GetElapsedTime())) {
+        colorg = WHITE;
     }
     animTimer = 0;
     overhitTimer = 0;
