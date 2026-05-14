@@ -382,7 +382,7 @@ void Encore::Track::DrawTrackNotifications() {
         std::string Text = "";
         switch (notif->type) {
         case TrackNotificationEvent::OVERDRIVE_READY: Text = "Overdrive ready"; break;
-        case TrackNotificationEvent::COMBO: Text = " Note Combo"; break;
+        case TrackNotificationEvent::COMBO: Text = std::to_string(notif->combo) + " Note Combo"; break;
         case TrackNotificationEvent::BASSGROOVE: Text = "Bass Groove"; break;
         case TrackNotificationEvent::HOTSTART: Text = "Hot Start"; break;
         default: Text = "buttsex"; break;

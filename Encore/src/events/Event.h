@@ -42,7 +42,8 @@ namespace Encore {
             COMBO,
             YOU_ROCK,
             BASSGROOVE,
-            HOTSTART
+            HOTSTART,
+            FULLCOMBO
         };
         double time;
         TrackNotificationType type;

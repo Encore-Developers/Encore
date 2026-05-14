@@ -174,6 +174,13 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
         FireEvent(&event2);
     }
+
+    int comboNotif = stats->Combo > 200 ? stats->Combo % 100 : stats->Combo % 50;
+    if (comboNotif == 0) {
+        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::COMBO, stats->Combo};
+        FireEvent(&event2);
+    }
+
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
 }
