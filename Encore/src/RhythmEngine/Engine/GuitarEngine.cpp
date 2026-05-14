@@ -90,8 +90,9 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
         && heldNote->StartSeconds + heldNote->LengthSeconds >= CurrentTime
         && heldNote->StartSeconds <= CurrentTime) {
         double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
+        int chordMult = heldNote->Lane == 0 ? 25 : std::popcount(heldNote->Lane);
         stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick
-            * stats->multiplier()) * std::popcount(chart->HeldNotePointers.at(0)->Lane));
+            * stats->multiplier()) * chordMult);
     }
     if (heldNote && heldNote->StartSeconds + heldNote->LengthSeconds < CurrentTime) {
         chart->DropSustain(0);
@@ -141,7 +142,7 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
         case InputChannel::LANE_5: {
             if (chart->HeldNotePointers.at(0)) {
                 auto note = chart->HeldNotePointers.at(0);
-                if (note->Lane & PlasticFrets[ICInt(event.channel)] &&
+                if ( note->Lane != 0 && note->Lane & PlasticFrets[ICInt(event.channel)] &&
                     note->StartTicks + note->LengthTicks >= TheSongTime.CurrentTick +
                     240) {
                     chart->DropSustain(0);

@@ -16,8 +16,8 @@ namespace Encore {
         };
 
         virtual void DrawNote(RhythmEngine::EncNote *note, bool missed) override;
-        virtual void DrawSustainTail(double startTime, double endTime, Color color) override;
-        virtual void DrawSmasher(bool held) override {};
+        virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy) override;
+        virtual void DrawSmasher(bool held) override;
         virtual void AnimateHit(bool perfect, Color color) override {};
     };
 

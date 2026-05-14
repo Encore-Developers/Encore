@@ -770,7 +770,7 @@ void Encore::Track::HandleEvent(Event *event) {
                             if (hitEvent->judgement == -1) {
                                 slot->AnimateOverhit();
                             } else {
-                                slot->AnimateHit(hitEvent->judgement, PURPLE);
+                                slot->AnimateHit(hitEvent->judgement, player.QueryColorProfile(SLOT_OPEN));
                             }
                         } else
                             break;
