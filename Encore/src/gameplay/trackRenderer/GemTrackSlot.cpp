@@ -34,7 +34,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
 
     if (note->LengthSeconds > 0) {
         Color sustainColor = missed ? GRAY : color;
-        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, sustainColor, 0);
+        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, ColorBrightness(sustainColor, -0.5), 0);
     }
 
     rlDrawRenderBatchActive();
@@ -93,10 +93,11 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     rlDisableDepthTest();
     rlBegin(RL_QUADS);
 
-
+    // like i know this is a WIP but this is still really funny/cool to see
+    float whammyOffset = whammy * (width*widthMult);
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos - width*widthMult, 0.03, startPos);
-    rlVertex3f(xPos - width*widthMult, 0.03, endPos);
+    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, startPos);
+    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, endPos);
     rlColor4ub(bright.r, bright.g, bright.b, 255);
     rlVertex3f(xPos, 0.03, endPos);
     rlVertex3f(xPos, 0.03, startPos);
@@ -104,24 +105,24 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     rlVertex3f(xPos, 0.03, startPos);
     rlVertex3f(xPos, 0.03, endPos);
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos + width*widthMult, 0.03, endPos);
-    rlVertex3f(xPos + width*widthMult, 0.03, startPos);
+    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, endPos);
+    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, startPos);
 
 
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos - width*widthMult, 0.03, endPos);
-    rlVertex3f(xPos - width*widthMult, 0.03, tailPos);
+    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, endPos);
+    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, tailPos);
     rlVertex3f(xPos, 0.03, tailPos);
     rlColor4ub(bright.r, bright.g, bright.b, 255);
     rlVertex3f(xPos, 0.03, endPos);
 
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos + width*widthMult, 0.03, endPos);
+    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, endPos);
     rlColor4ub(bright.r, bright.g, bright.b, 255);
     rlVertex3f(xPos, 0.03, endPos);
     rlColor4ub(color.r, color.g, color.b, 0);
     rlVertex3f(xPos, 0.03, tailPos);
-    rlVertex3f(xPos + width*widthMult, 0.03, tailPos);
+    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, tailPos);
 
     rlEnd();
     rlSetBlendMode(RL_BLEND_ALPHA);
