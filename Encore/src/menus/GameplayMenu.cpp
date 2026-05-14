@@ -411,7 +411,6 @@ void GameplayMenu::Draw() {
     // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     // int flashInterval = (numer * 480) / denom;
     TheLyricRenderer.RenderLyrics();
-
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
@@ -510,128 +509,17 @@ void GameplayMenu::Draw() {
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
 
-    if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5
-        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.5 +
-        SongNameDuration) {
-        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime()
-            + 7.5);
-        SongNameAlpha = static_cast<unsigned char>(Remap(
-            static_cast<float>(
-                getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            255,
-            0
-        ));
-        SongNamePosition = Remap(
-            static_cast<float>(
-                getEasingFunction(EaseInOutBack)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            35,
-            -SongNameWidth
-        );
-    } else if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.5 +
-        SongNameDuration)
-        SongNameAlpha = 0;
-
-    if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 7.75
-        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 +
-        SongNameDuration) {
-        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime()
-            + 7.75);
-        SongArtistAlpha = static_cast<unsigned char>(Remap(
-            static_cast<float>(
-                getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            255,
-            0
-        ));
-
-        SongArtistPosition = Remap(
-            static_cast<float>(
-                getEasingFunction(EaseInOutBack)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            35,
-            -SongArtistWidth
-        );
-    }
-
-    if (TheSongTime.GetElapsedTime() > TheSongTime.GetStartTime() + 8
-        && TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 8 +
-        SongNameDuration) {
-        double timeSinceStart = TheSongTime.GetElapsedTime() - (TheSongTime.GetStartTime()
-            + 8);
-        SongExtrasAlpha = static_cast<unsigned char>(Remap(
-            static_cast<float>(
-                getEasingFunction(EaseOutCirc)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            255,
-            0
-        ));
-        SongBackgroundWidth = Remap(
-            static_cast<float>(
-                getEasingFunction(EaseInOutCirc)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            SongNameBackgroundWidth,
-            0
-        );
-
-        SongExtrasPosition = Remap(
-            static_cast<float>(
-                getEasingFunction(EaseInOutBack)(timeSinceStart / SongNameDuration)
-            ),
-            0,
-            1.0,
-            35,
-            -SongExtrasWidth
-        );
-    }
-    if (TheSongTime.GetElapsedTime() < TheSongTime.GetStartTime() + 7.75 +
-        SongNameDuration) {
-        DrawRectangleGradientH(
-            0,
-            u.hpct(0.19f),
-            1.25 * SongBackgroundWidth,
-            u.hinpct(0.02f + MediumHeader + SmallHeader + SmallHeader),
-            Color{ 0, 0, 0, 128 },
-            Color{ 0, 0, 0, 0 }
-        );
-        DrawTextEx(
-            assets.rubikBoldItalic,
-            TheSongList.curSong->title.c_str(),
-            { SongNamePosition, u.hpct(0.2f) },
-            u.hinpct(MediumHeader),
-            0,
-            Color{ 255, 255, 255, SongNameAlpha }
-        );
-        DrawTextEx(
-            assets.rubikItalic,
-            SongArtistString.c_str(),
-            { SongArtistPosition, u.hpct(0.2f + MediumHeader) },
-            u.hinpct(SmallHeader),
-            0,
-            Color{ 200, 200, 200, SongArtistAlpha }
-        );
-        DrawTextEx(
-            assets.rubikItalic,
-            TheSongList.curSong->charters[0].c_str(),
-            { SongExtrasPosition, u.hpct(0.2f + MediumHeader + SmallHeader) },
-            u.hinpct(SmallHeader),
-            0,
-            Color{ 200, 200, 200, SongExtrasAlpha }
-        );
-    }
+    float topOfVocalBar = u.hpct(0.2f);
+    float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+    GameMenu::mhDrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
+        {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
+        WHITE, ASSET(sdfShader), LEFT);
+    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
+        {u.wpct(0.01f), topOfVocalBar + (TitleFontSize * 1.25f)}, TitleFontSize * 0.85f,
+        LIGHTGRAY, ASSET(sdfShader), LEFT);
+    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
+        {u.wpct(0.01f), topOfVocalBar + ((TitleFontSize * 1.25f) + TitleFontSize)}, TitleFontSize * 0.85f,
+        LIGHTGRAY, ASSET(sdfShader), LEFT);
 
     GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
     GuiSetStyle(DEFAULT, TEXT_SIZE, static_cast<int>(u.hinpct(0.03f)));

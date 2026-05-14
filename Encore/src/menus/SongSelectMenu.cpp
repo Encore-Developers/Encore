@@ -388,15 +388,16 @@ void SongSelectMenu::Draw() {
     int AlbumOuter = u.hinpct(0.01f);
     int AlbumInner = u.hinpct(0.005f);
 
-    DrawTextEx(
+    GameMenu::mhDrawText(
         assets.josefinSansItalic,
         TextFormat("Sorted by: %s", sortTypes[(int)currentSortValue].c_str()),
         { u.LeftSide, u.hinpct(0.165f) },
         u.hinpct(0.03f),
-        0,
-        WHITE
+        WHITE,
+        ASSET(sdfShader),
+        LEFT
     );
-    DrawTextEx(
+    GameMenu::mhDrawText(
         assets.josefinSansItalic,
         TextFormat("Songs loaded: %01i", TheSongList.sortedSongs.size()),
         { AlbumX - (AlbumOuter * 2)
@@ -408,8 +409,9 @@ void SongSelectMenu::Draw() {
           ).x,
           u.hinpct(0.165f) },
         u.hinpct(0.03f),
-        0,
-        WHITE
+        WHITE,
+        ASSET(sdfShader),
+        LEFT
     );
 
     float songEntryHeight = u.hinpct(0.058333f);
@@ -447,13 +449,14 @@ void SongSelectMenu::Draw() {
                 headerColor
             );
 
-            DrawTextEx(
+            GameMenu::mhDrawText(
                 headerFont->Fetch(),
                 TheSongList.listMenuEntries[listMenuPos].headerChar.c_str(),
                 { songXPos, songYPos + u.hinpct(0.0125f) },
                 u.hinpct(0.035f),
-                0,
-                WHITE
+                WHITE,
+                ASSET(sdfShader),
+                LEFT
             );
         } else if (!TheSongList.listMenuEntries[listMenuPos].hiddenEntry) {
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
@@ -515,14 +518,15 @@ void SongSelectMenu::Draw() {
                 songTitleWidth,
                 songEntryHeight
             );
-            DrawTextEx(
+            GameMenu::mhDrawText(
                 assets.rubikBold,
                 songi->title.c_str(),
                 { songXPos + songi->titleXOffset + (isCurSong ? 10 : 20),
                   songYPos + u.hinpct(0.0125f) },
                 u.hinpct(0.035f),
-                0,
-                isCurSong ? WHITE : LightText
+                isCurSong ? WHITE : LightText,
+                ASSET(sdfShader),
+                LEFT
             );
             EndScissorMode();
 
@@ -546,14 +550,15 @@ void SongSelectMenu::Draw() {
                 songArtistWidth,
                 songEntryHeight
             );
-            DrawTextEx(
+            GameMenu::mhDrawText(
                 artistFont,
                 songi->artist.c_str(),
                 { songXPos + 30 + (float)songTitleWidth + songi->artistXOffset,
                   songYPos + u.hinpct(0.02f) },
                 u.hinpct(0.025f),
-                0,
-                isCurSong ? WHITE : LightText
+                isCurSong ? WHITE : LightText,
+                ASSET(sdfShader),
+                LEFT
             );
             EndScissorMode();
         }
@@ -612,13 +617,14 @@ void SongSelectMenu::Draw() {
                 .headerChar;
         }
 
-        DrawTextEx(
+        GameMenu::mhDrawText(
             assets.rubikBold,
             categoryHeaderText.c_str(),
             { u.LeftSide + 5, u.hpct(0.218333f) },
             u.hinpct(0.035f),
-            0,
-            WHITE
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
         );
     }
 
@@ -656,13 +662,14 @@ void SongSelectMenu::Draw() {
     float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth /
         2.0f);
     float titleTextY = AlbumY - u.hinpct(0.045f);
-    DrawTextEx(
+    GameMenu::mhDrawText(
         assets.rubikBold,
         titleText.c_str(),
         { titleTextX, titleTextY },
         titleFontSize,
-        0,
-        WHITE
+        WHITE,
+        ASSET(sdfShader),
+        LEFT
     );
 
     if (IsTextureValid(TheArtLoader.loadedArt)) {
@@ -722,12 +729,13 @@ void SongSelectMenu::Draw() {
     float albumNameTextTop = albumTextWidth <= u.winpct(0.25f)
         ? albumTTop
         : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
-    DrawTextEx(assets.rubikBold,
+    GameMenu::mhDrawText(assets.rubikBold,
                albumDisplayText.c_str(),
                { albumNameLeft, albumNameTextTop },
                albumNameFontSize,
-               0,
-               WHITE);
+               WHITE,
+               ASSET(sdfShader),
+               LEFT);
 
     DrawLine(u.RightSide - AlbumHeight - AlbumOuter,
              AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),

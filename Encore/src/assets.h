@@ -388,20 +388,25 @@ public:
     Texture2D songBackground;
 
     // Used as a default background for the menu
+#define FONT_SMALL 64
+#define FONT_MEDIUM 96
+#define FONT_LARGE 128
 
-    NEWFONTASSET(redHatDisplayItalic, "fonts/RedHatDisplay-BlackItalic.ttf", 128);
-    NEWFONTASSET(redHatDisplayBlack, "fonts/RedHatDisplay-Black.ttf", 128);
-    NEWFONTASSET(redHatDisplayItalicLarge, "fonts/RedHatDisplay-Black.ttf", 128);
-    NEWFONTASSET(josefinSansItalic, "fonts/JosefinSans-Italic.ttf", 128);
-    NEWFONTASSET(josefinSansNormal, "fonts/JosefinSans-Normal.ttf", 128);
-    NEWFONTASSET(josefinSansBold, "fonts/JosefinSans-Bold.ttf", 128);
-    NEWFONTASSET(redHatMono, "fonts/RedHatMono-Bold.ttf", 128);
-    NEWFONTASSET(rubik, "fonts/Rubik-Regular.ttf", 128);
-    NEWFONTASSET(rubikItalic, "fonts/Rubik-Italic.ttf", 128);
-    NEWFONTASSET_KEEPRAW(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", 64);
-    NEWFONTASSET(rubikBoldItalic, "fonts/Rubik-BoldItalic.ttf", 128);
 
-    NEWFONTASSET(rubikBold, "fonts/Rubik-Bold.ttf", 128);
+    NEWFONTASSET(redHatDisplayItalic, "fonts/RedHatDisplay-BlackItalic.ttf", FONT_LARGE);
+    NEWFONTASSET(redHatDisplayBlack, "fonts/RedHatDisplay-Black.ttf", FONT_LARGE);
+    NEWFONTASSET(redHatDisplayItalicLarge, "fonts/RedHatDisplay-Black.ttf", FONT_LARGE);
+    NEWFONTASSET(josefinSansItalic, "fonts/JosefinSans-Italic.ttf", FONT_LARGE);
+    NEWFONTASSET(josefinSansNormal, "fonts/JosefinSans-Normal.ttf", FONT_LARGE);
+    NEWFONTASSET(josefinSansBold, "fonts/JosefinSans-Bold.ttf", FONT_SMALL);
+    NEWFONTASSET(josefinSansBoldItalic, "fonts/JosefinSans-SemiBoldItalic.ttf", FONT_SMALL);
+    NEWFONTASSET(redHatMono, "fonts/RedHatMono-Bold.ttf", FONT_LARGE);
+    NEWFONTASSET(rubik, "fonts/Rubik-Regular.ttf", FONT_SMALL);
+    NEWFONTASSET(rubikItalic, "fonts/Rubik-Italic.ttf", FONT_LARGE);
+    NEWFONTASSET_KEEPRAW(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", FONT_SMALL);
+    NEWFONTASSET(rubikBoldItalic, "fonts/Rubik-BoldItalic.ttf", FONT_SMALL);
+
+    NEWFONTASSET(rubikBold, "fonts/Rubik-Bold.ttf", FONT_MEDIUM);
 
     NEWTEXASSET(discord, "ui/discord-mark-white.png");
     NEWTEXASSET(github, "ui/github-mark-white.png");
