@@ -209,6 +209,7 @@ std::string GetLengthHeader(int length) {
 }
 
 void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
+    listMenuEntries.clear();
     std::string currentHeader = "";
     int pos = 0;
     for (size_t i = 0; i < sortedSongs.size(); i++) {
