@@ -67,7 +67,12 @@ namespace Encore {
 
             SetWindowPosition(x, y);
             SetWindowSize(vidmode->width, vidmode->height);
+#ifdef __unix__
             glfwSetWindowMonitor(glfwGetCurrentContext(), monitor, x, y, vidmode->width, vidmode->height, vidmode->refreshRate);
+#elif WIN32
+            SetWindowState(FLAG_WINDOW_UNDECORATED);
+            // todo: make borderless fullscreen togglable on windows
+#endif
         }
     }
 
