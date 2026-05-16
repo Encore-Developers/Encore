@@ -16,6 +16,7 @@ public:
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
     void LoadPreview(Song& song);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
+    void ScrollToCurrentSong();
     void Draw() override;
     void Load() override;
     void StopPreview();

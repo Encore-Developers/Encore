@@ -156,6 +156,18 @@ void SongSelectMenu::ControllerInputCallback(
     }
 }
 
+void SongSelectMenu::ScrollToCurrentSong() {
+    if (TheSongList.curSong) {
+        // TODO: should probably fix the actual value here. Just subtracting 1 for now.
+        curSongMenuPos = TheSongList.curSong->songListPos - 1;
+        if (curSongMenuPos < 1)
+            curSongMenuPos = 1;
+        if (curSongMenuPos > TheSongList.listMenuEntries.size())
+            curSongMenuPos = TheSongList.listMenuEntries.size() - 1;
+    } else {
+        curSongMenuPos = 1;
+    }
+}
 void SongSelectMenu::Load() {
     // oh brother, this guy STINKS!
     //if (!IsAudioDeviceReady()) {
@@ -170,16 +182,7 @@ void SongSelectMenu::Load() {
 
     TheSongList.curSong->LoadAlbumArt();
 
-    if (TheSongList.curSong) {
-        // TODO: should probably fix the actual value here. Just subtracting 1 for now.
-        curSongMenuPos = TheSongList.curSong->songListPos - 1;
-        if (curSongMenuPos < 1)
-            curSongMenuPos = 1;
-        if (curSongMenuPos > TheSongList.listMenuEntries.size())
-            curSongMenuPos = TheSongList.listMenuEntries.size() - 1;
-    } else {
-        curSongMenuPos = 1;
-    }
+    ScrollToCurrentSong();
 
     // TheGameRenderer.streamsLoaded = false;
     // TheGameRenderer.midiLoaded = false;
@@ -838,34 +841,9 @@ void SongSelectMenu::Draw() {
     )) {
         //todo: I BROKE THE SORT BUTTON LMFAO
         // no i didnt
-        size_t selectedSongIndex = -1;
-        if (TheSongList.curSong) {
-            for (size_t i = 0; i < TheSongList.sortedSongs.size(); i++) {
-                if (TheSongList.sortedSongs[i] == TheSongList.curSong) {
-                    selectedSongIndex = i;
-                    break;
-                }
-            }
-        }
         currentSortValue = NextSortType(currentSortValue);
         TheSongList.sortList(currentSortValue);
-        if (selectedSongIndex >= 0 && selectedSongIndex < TheSongList.sortedSongs.size()) {
-            TheSongList.curSong = TheSongList.sortedSongs[selectedSongIndex];
-            curSongMenuPos = TheSongList.curSong->songListPos - 6;
-            if (curSongMenuPos < 1)
-                curSongMenuPos = 1;
-            if (curSongMenuPos > TheSongList.listMenuEntries.size())
-                curSongMenuPos = TheSongList.listMenuEntries.size() - 1;
-            if (!TheAudioManager.loadedStreams.empty()) {
-                for (auto &stream : TheAudioManager.loadedStreams) {
-                    TheAudioManager.StopPlayback(stream.handle);
-                }
-                TheAudioManager.loadedStreams.clear();
-                currentPreviewVolume = 0.0f;
-                previewState = PreviewState::FadeIn;
-            }
-            selectionTime = curTime;
-        }
+        ScrollToCurrentSong();
     }
     if (GuiButton(Rectangle{ ButtonStart + (ButtonWidth),
                              ButtonTop, ButtonWidth,
