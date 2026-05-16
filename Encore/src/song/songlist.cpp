@@ -213,7 +213,7 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
     std::string currentHeader = "";
     int pos = 0;
     for (size_t i = 0; i < sortedSongs.size(); i++) {
-        const Song *song = sortedSongs[i];
+        Song *song = sortedSongs[i];
         std::string header;
         switch (sortType) {
         case SortType::Title: {
@@ -253,8 +253,8 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
             pos++;
         }
         listMenuEntries.emplace_back(false, i, "", false);
+        song->songListPos = listMenuEntries.size();
         pos++;
-        this->songs[i].songListPos = pos;
     }
     if (!listMenuEntries.empty()) {
         sectionEntries.back().lastListID = listMenuEntries.size();
