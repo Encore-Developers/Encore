@@ -8,7 +8,7 @@ using json = nlohmann::json;
 
 Texture SourceIcon::GetTexture() {
     if (texture.id == 0) {
-        texture = LoadTexture(TheSourceIcons.iconIds[iconId].c_str());
+        texture = LoadTexture(TheSourceIcons.iconIds[iconId].generic_string().c_str());
         GenTextureMipmaps(&texture);
         SetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
     }
@@ -26,7 +26,7 @@ void OpenSource::InitIcons(const std::filesystem::path& dir) {
         }
     }
     for (const auto &entry : std::filesystem::directory_iterator(dir/ "icons")) {
-        iconIds[entry.path().stem()] = entry.path();
+        iconIds[entry.path().stem().generic_string().c_str()] = entry.path();
     };
 }
 SourceIcon *OpenSource::GetIcon(const std::string& sourceId) {
