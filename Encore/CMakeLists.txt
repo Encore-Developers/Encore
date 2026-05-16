@@ -76,6 +76,8 @@ endif()
 
 file(COPY "Songs" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
 file(COPY "Assets" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+file(COPY "thirdparty/opensource/base" DESTINATION ${CMAKE_BINARY_DIR}/Encore/Assets/opensource)
+file(COPY "thirdparty/opensource/extra" DESTINATION ${CMAKE_BINARY_DIR}/Encore/Assets/opensource)
 # Set the include directory for the executable
 target_include_directories(Encore PRIVATE "include" "src" "include/rlImGui" "include/imgui")
 if(STEAM)

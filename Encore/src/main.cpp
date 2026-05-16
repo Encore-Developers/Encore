@@ -16,6 +16,7 @@
 
 #include "settings/keybinds.h"
 #include "song/ArtLoader.h"
+#include "song/OpenSource.h"
 #include "song/cacheload.h"
 #include "tracy/TracyC.h"
 #include "users/profiles/ProfileManager.h"
@@ -84,11 +85,12 @@ Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
 std::filesystem::path prefsPath;
+OpenSource TheSourceIcons;
 
 // OvershellRenderer overshellRenderer;
 
 vector<std::string> ArgumentList::arguments;
-
+bool devAssets = false;
 
 
 #ifndef GIT_COMMIT_HASH
@@ -171,6 +173,7 @@ void LocateDevAssets() {
         if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
             execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
             Encore::EncoreLog(LOG_INFO, TextFormat("Found dev directory: %s", execPath.c_str()));
+            devAssets = true;
             TheAssets.setDirectory(execPath);
             break;
         }
@@ -256,6 +259,13 @@ int main(int argc, char *argv[]) {
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();
 
+    if (devAssets) {
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "../thirdparty/opensource/base");
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "../thirdparty/opensource/extra");
+    } else {
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "opensource/base");
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "opensource/extra");
+    }
 
 
     if (TheGameSettings.VerticalSync) {

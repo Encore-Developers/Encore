@@ -19,6 +19,7 @@
 #include "imgui.h"
 #include "raymath.h"
 #include "song/ArtLoader.h"
+#include "song/OpenSource.h"
 
 #include <filesystem>
 #include <string>
@@ -484,6 +485,11 @@ void SongSelectMenu::Draw() {
                                  ColorBrightness(AccentColor,
                                                  Remap(timer, 0, 0.15, 0, -0.4)));
             }
+            auto sourceTex = TheSourceIcons[songi->source]->GetTexture();
+            auto padding = u.hinpct(0.005f);
+            DrawTexturePro(
+                sourceTex,
+                { 0, 0, (float)sourceTex.width, (float)sourceTex.height}, {songXPos-songEntryHeight, songYPos+padding, songEntryHeight-padding*2, songEntryHeight-padding*2}, {0 , 0}, 0, WHITE);
             BeginScissorMode(
                 0,
                 u.hpct(0.15f),
@@ -651,9 +657,7 @@ void SongSelectMenu::Draw() {
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
 
-    std::string titleText = SongToDisplayInfo->source.empty()
-        ? "Custom"
-        : SongToDisplayInfo->source;
+    std::string titleText = TheSourceIcons[SongToDisplayInfo->source]->name;
     float titleFontSize = u.hinpct(0.035f);
     float titleTextWidth = MeasureTextEx(assets.rubikBold,
                                          titleText.c_str(),

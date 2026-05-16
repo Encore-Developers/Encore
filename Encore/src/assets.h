@@ -848,3 +848,4 @@ public:
 extern AssetSet initialSet;
 extern AssetSet mainMenuSet;
 extern AssetSet gameplaySet;
+extern bool devAssets;
