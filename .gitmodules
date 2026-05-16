@@ -4,3 +4,6 @@
 [submodule "Encore/thirdparty/tracy"]
 	path = Encore/thirdparty/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "Encore/thirdparty/opensource"]
+	path = Encore/thirdparty/opensource
+	url = https://github.com/YARC-Official/OpenSource.git
