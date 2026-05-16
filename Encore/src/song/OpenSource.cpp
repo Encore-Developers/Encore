@@ -35,3 +35,9 @@ SourceIcon *OpenSource::GetIcon(const std::string& sourceId) {
     }
     return idToIcon[sourceId];
 }
+const std::string &OpenSource::GetSourceName(const std::string &sourceId) {
+    if (!idToIcon.contains(sourceId)) {
+        return sourceId;
+    }
+    return idToIcon[sourceId]->name;
+}

@@ -26,6 +26,7 @@ public:
 
     void InitIcons(const std::filesystem::path& dir);
     SourceIcon* GetIcon(const std::string& sourceId);
+    const std::string& GetSourceName(const std::string& sourceId);
 
     SourceIcon* operator [](const std::string& sourceId) {
         return GetIcon(sourceId);

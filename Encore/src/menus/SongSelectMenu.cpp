@@ -657,7 +657,7 @@ void SongSelectMenu::Draw() {
     );
     DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
 
-    std::string titleText = TheSourceIcons[SongToDisplayInfo->source]->name;
+    std::string titleText = TheSourceIcons.GetSourceName(SongToDisplayInfo->source);
     float titleFontSize = u.hinpct(0.035f);
     float titleTextWidth = MeasureTextEx(assets.rubikBold,
                                          titleText.c_str(),
