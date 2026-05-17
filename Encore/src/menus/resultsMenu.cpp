@@ -11,6 +11,7 @@
 #include "OvershellHelper.h"
 #include "MenuManager.h"
 #include "song/ArtLoader.h"
+#include "song/OpenSource.h"
 
 void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
 
@@ -105,9 +106,9 @@ void resultsMenu::Draw() {
     encOS::DrawTopOvershell(0.2f);
     GameMenu::DrawVersion();
     // Draw album cover to the left of track info
-    float albumSize = u.hinpct(0.15f);
     float albumX = u.LeftSide;
     float albumY = u.hpct(0.0225f);
+    float albumSize = u.hpct(0.158f) - albumY;
     DrawTexturePro(
         TheArtLoader.loadedArt,
         { 0, 0, (float)TheArtLoader.loadedArt.width, (float)TheArtLoader.loadedArt.height },
@@ -118,29 +119,35 @@ void resultsMenu::Draw() {
     );
     // Shift track info text to the right of the album cover
     float textX = u.LeftSide + albumSize + u.winpct(0.01f);
-    DrawTextEx(
-        assets.redHatDisplayItalic,
-        TheSongList.curSong->title.c_str(),
-        { textX, u.hpct(0.0225f) },
-        u.hinpct(0.05f),
-        0,
-        WHITE
+    float TitleFontOffset = u.hpct(0.045f);
+    float TitleFontSize = u.hinpct(0.04f);
+    float SecondaryFontSize = TitleFontSize * 0.75f;
+    float SecondaryFontOffset = TitleFontSize * 1.2f;
+    float TitleSize = MeasureTextEx(ASSET(rubikBold), TheSongList.curSong->title.c_str(), TitleFontSize, 0).x;
+    GameMenu::mhDrawText(ASSET(rubikBold), TheSongList.curSong->title,
+{ textX, TitleFontOffset },
+        TitleFontSize,
+        WHITE,
+        ASSET(sdfShader),
+        LEFT
     );
-    DrawTextEx(
-        assets.rubikItalic,
-        TheSongList.curSong->artist.c_str(),
-        { textX, u.hpct(0.075f) },
-        u.hinpct(0.035f),
-        0,
-        WHITE
+    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist,
+        { textX + TitleSize + u.hinpct(0.02f), TitleFontOffset + u.hinpct(0.008f) },
+        SecondaryFontSize,
+        LIGHTGRAY,
+        ASSET(sdfShader),
+        LEFT
     );
-    DrawTextEx(
-        assets.rubikItalic,
-        TheSongList.curSong->charters[0].c_str(),
-        { textX, u.hpct(0.115f) },
-        u.hinpct(0.035f),
-        0,
-        WHITE
+    auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
+        {textX, TitleFontOffset + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
+    );
+    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
+        { textX + ( TitleFontSize * 1.125f), TitleFontOffset + SecondaryFontOffset },
+        SecondaryFontSize,
+        LIGHTGRAY,
+        ASSET(sdfShader),
+        LEFT
     );
     Color accentColor =
         ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
@@ -176,11 +183,11 @@ void resultsMenu::Draw() {
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
-         { u.wpct(0.5), u.hpct(0.02125f) },
+         { u.RightSide, u.hpct(0.02125f) },
          ScoreFontSize,
         GetColor(0x00adffFF),
         sdfShader,
-        CENTER
+        RIGHT
     );
 
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
