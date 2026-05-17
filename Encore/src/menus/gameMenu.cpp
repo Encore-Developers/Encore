@@ -467,7 +467,10 @@ void MainMenu::MainMenuScreen() {
         )) {
         // goes back to attract
         for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
-            if (ThePlayerManager.ActivePlayers.at(p) != -1)
+            // Checking for OS_ATTRACT here will result in strange behavior
+            // but it's better than a crash
+            // TODO: can we kill this button?
+            if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p) != -1)
                 ThePlayerManager.RemoveActivePlayer(p);
         }
     }
