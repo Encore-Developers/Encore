@@ -603,6 +603,22 @@ void Encore::Track::DrawNotes() {
                 break;
         }
     }
+    for (auto note : player.engine->chart->DroppedSustainPointers) {
+        if (note->StartSeconds + note->LengthSeconds < TheSongTime.GetElapsedTime() - 5) {
+            continue;
+        }
+        auto slots = GetSlotsForNote(*note);
+        for (int i = 0; i < 7; i++) {
+            if (slots[i]) {
+                auto slot = slots[i];
+                slot->DrawSustainTail(note->StartSeconds,
+                                      note->StartSeconds + note->LengthSeconds,
+                                      GRAY,
+                                      0);
+            } else
+                break;
+        }
+    }
 }
 
 void Encore::Track::DrawSmashers() {

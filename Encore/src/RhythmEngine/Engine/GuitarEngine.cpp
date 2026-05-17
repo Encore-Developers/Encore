@@ -197,7 +197,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 
             // is before the end of the sustain
             (!(chart->HeldNotePointers.at(0)->StartTicks + chart->HeldNotePointers.at(0)->
-                LengthTicks < TheSongTime.CurrentTick + 240))
+                LengthTicks < TheSongTime.CurrentTick + SUSTAIN_DROP_THRESHOLD))
         ) {
             chart->DropSustain(0);
         }

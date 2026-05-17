@@ -7,9 +7,11 @@
 
 #include "Notes/EncNote.h"
 #include "RhythmEngine/events/EncEventVects/EventVectors.h"
-
+#include "timingvalues.h"
 #include <deque>
 #include <vector>
+
+#include "gameplay/enctime.h"
 
 inline std::vector<std::vector<int> > pDiffNotes = { { 60, 61, 62, 63, 64 },
                                                      { 72, 73, 74, 75, 76 },
@@ -60,6 +62,7 @@ namespace Encore::RhythmEngine {
         // idea: use array instead of singular note
         std::vector<EncNote*> HeldNotePointers;
         std::vector<EncNote *> MissedNotePointers;
+        std::vector<EncNote *> DroppedSustainPointers;
         double BaseScore = 0;
         /**
          * this DOES NOT CARE about timing or ANYTHING.
@@ -90,6 +93,9 @@ namespace Encore::RhythmEngine {
 
         void DropSustain(int lane) {
             if (IsHeldNotePresent(lane)) {
+                if (HeldNotePointers.at(lane)->StartTicks + HeldNotePointers.at(lane)->LengthTicks > TheSongTime.GetCurrentTick() + SUSTAIN_DROP_THRESHOLD ) {
+                    DroppedSustainPointers.push_back(HeldNotePointers.at(lane));
+                }
                 HeldNotePointers.at(lane) = nullptr;
             }
         }
