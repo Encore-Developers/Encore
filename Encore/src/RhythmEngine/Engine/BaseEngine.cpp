@@ -155,7 +155,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     //    );
 
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
-    if (PerfectHit(startTime)) {
+    if (PerfectHit(startTime - stats->InputOffset)) {
         stats->LastPerfectTime = stats->InputTime;
         event.judgement = PERFECT;
     }
