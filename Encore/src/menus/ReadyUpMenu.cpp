@@ -427,6 +427,14 @@ void ReadyUpMenu::Load() {
         TheSongList.curSong->parts[PartGuitar] = TheSongList.curSong->parts[PlasticGuitar];
         TheSongList.curSong->parts[PartGuitar].AutoToPad = true;
     }
+    if (!TheSongList.curSong->parts[PartBass].Valid && TheSongList.curSong->parts[PlasticBass].Valid) {
+        TheSongList.curSong->parts[PartBass] = TheSongList.curSong->parts[PlasticBass];
+        TheSongList.curSong->parts[PartBass].AutoToPad = true;
+    }
+    if (!TheSongList.curSong->parts[PartKeys].Valid && TheSongList.curSong->parts[PlasticKeys].Valid) {
+        TheSongList.curSong->parts[PartKeys] = TheSongList.curSong->parts[PlasticKeys];
+        TheSongList.curSong->parts[PartKeys].AutoToPad = true;
+    }
     for (int playerInt = 0; playerInt < 4; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
