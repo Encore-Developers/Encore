@@ -15,26 +15,31 @@
 #include "users/playerManager.h"
 
 void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-
     for (int i = 0; i < 4; i++) {
         auto playerId = ThePlayerManager.ActivePlayers[i];
-        if (playerId == -1) continue;
+        if (playerId == -1)
+            continue;
         auto &player = ThePlayerManager.GetActivePlayer(i);
-        if (player.joypadID != event.slot) continue;
-        if (event.slot == std::numeric_limits<unsigned int>::max()) return;
+        if (player.joypadID != event.slot)
+            continue;
+        if (event.slot == std::numeric_limits<unsigned int>::max())
+            return;
         if (event.action == Encore::RhythmEngine::Action::PRESS) {
             switch (event.channel) {
             case Encore::RhythmEngine::InputChannel::STRUM_UP: {
                 switch (SlotState[i]) {
                 case INSTRUMENT:
                     ControllerInstSlot[i]++;
-                    if (ControllerInstSlot[i] < 0) ControllerInstSlot[i] = 0;
+                    if (ControllerInstSlot[i] < 0)
+                        ControllerInstSlot[i] = 0;
                     break;
                 case DIFFICULTY:
                     ControllerDiffSlot[i]++;
-                    if (ControllerDiffSlot[i] < 0) ControllerDiffSlot[i] = 0;
+                    if (ControllerDiffSlot[i] < 0)
+                        ControllerDiffSlot[i] = 0;
 
-                    if (ControllerDiffSlot[i] > 4) ControllerDiffSlot[i] = 4;
+                    if (ControllerDiffSlot[i] > 4)
+                        ControllerDiffSlot[i] = 4;
                     break;
                 default:
                     break;
@@ -45,11 +50,13 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                 switch (SlotState[i]) {
                 case INSTRUMENT:
                     ControllerInstSlot[i]--;
-                    if (ControllerInstSlot[i] < 0) ControllerInstSlot[i] = 0;
+                    if (ControllerInstSlot[i] < 0)
+                        ControllerInstSlot[i] = 0;
                     break;
                 case DIFFICULTY:
                     ControllerDiffSlot[i]--;
-                    if (ControllerDiffSlot[i] < 0) ControllerDiffSlot[i] = 0;
+                    if (ControllerDiffSlot[i] < 0)
+                        ControllerDiffSlot[i] = 0;
                     break;
                 default:
                     break;
@@ -60,7 +67,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                 switch (SlotState[i]) {
                 case INSTRUMENT:
                     SlotState[i] = DIFFICULTY;
-                    player.Instrument = PartsToDisplay[i][ControllerInstSlot[i]];
+                    player.Instrument = PartsToDisplay[ControllerInstSlot[i]];
                     break;
                 case DIFFICULTY:
                     SlotState[i] = READY;
@@ -110,16 +117,15 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             if (ControllerDiffSlot[playerInt] == i) {
                 ButtonColor = ColorBrightness(AccentColor, -0.25);
             }
-            Rectangle pos {
+            Rectangle pos{
                 xPosOfMenu,
-                     BottomOvershell - u.hinpct(0.05f)
-                     - (u.hinpct(0.05f) * (float)i),
-                     u.winpct(0.2f),
-                     u.hinpct(0.05f)
+                BottomOvershell - u.hinpct(0.05f)
+                - (u.hinpct(0.05f) * (float)i),
+                u.winpct(0.2f),
+                u.hinpct(0.05f)
             };
 
             if (GuiButton(pos, "")) {
-
                 ControllerDiffSlot[playerInt] = i;
                 SlotState[playerInt] = READY;
                 ReadyState[playerInt] = true;
@@ -130,14 +136,14 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             DrawRectangleRec(pos, ButtonColor);
 
             GameMenu::mhDrawText(
-                    ASSET(rubik),
-                    diffList[i],
-                    { pos.x, pos.y },
-                    u.hinpct(0.03f),
-                    WHITE,
-                    ASSET(sdfShader),
-                    LEFT
-                );
+                ASSET(rubik),
+                diffList[i],
+                { pos.x, pos.y },
+                u.hinpct(0.03f),
+                WHITE,
+                ASSET(sdfShader),
+                LEFT
+            );
         } else {
             GuiButton(
                 { xPosOfMenu,
@@ -253,22 +259,24 @@ void ReadyUpMenu::Draw() {
                 break;
             }
 
-            for (size_t i = 0; i < PartsToDisplay[playerInt].size(); i++) {
-                if (ControllerInstSlot[playerInt] >= PartsToDisplay[playerInt].size()) {
-                    ControllerInstSlot[playerInt] = PartsToDisplay[playerInt].size() - 1;
+            for (size_t i = 0; i < PartsToDisplay.size(); i++) {
+                if (ControllerInstSlot[playerInt] >= PartsToDisplay.size()) {
+                    ControllerInstSlot[playerInt] = PartsToDisplay.size() - 1;
                 }
-                Rectangle pos { xPosOfMenu,
-                      BottomOvershell - u.hinpct(0.05f)
-                      - (u.hinpct(0.05f) * (float)i),
-                      u.winpct(0.2f),
-                      u.hinpct(0.05f) };
+                Rectangle pos{ xPosOfMenu,
+                               BottomOvershell - u.hinpct(0.05f)
+                               - (u.hinpct(0.05f) * (float)i),
+                               u.winpct(0.2f),
+                               u.hinpct(0.05f) };
                 std::string PartName =
-                    TextFormat("  %s", songPartsList[PartsToDisplay[playerInt][i]].c_str());
-                std::string PartAndDiff = std::to_string(TheSongList.curSong->parts[PartsToDisplay[playerInt][i]].diff + 1) + "/7" + PartName;
+                    TextFormat("  %s", songPartsList[PartsToDisplay[i]].c_str());
+                std::string PartAndDiff = std::to_string(
+                        TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7" +
+                    PartName;
                 if (GuiButton(pos, "")) {
                     ControllerInstSlot[playerInt] = i;
                     SlotState[playerInt] = DIFFICULTY;
-                    player.Instrument = PartsToDisplay[playerInt][i];
+                    player.Instrument = PartsToDisplay[i];
                 }
                 GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
                 GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
@@ -423,39 +431,42 @@ void ReadyUpMenu::Load() {
             TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
         }
     }
-    if (!TheSongList.curSong->parts[PartGuitar].Valid && TheSongList.curSong->parts[PlasticGuitar].Valid) {
-        TheSongList.curSong->parts[PartGuitar] = TheSongList.curSong->parts[PlasticGuitar];
+    if (!TheSongList.curSong->parts[PartGuitar].Valid && TheSongList.curSong->parts[
+        PlasticGuitar].Valid) {
+        TheSongList.curSong->parts[PartGuitar] = TheSongList.curSong->parts[
+            PlasticGuitar];
         TheSongList.curSong->parts[PartGuitar].AutoToPad = true;
     }
-    if (!TheSongList.curSong->parts[PartBass].Valid && TheSongList.curSong->parts[PlasticBass].Valid) {
+    if (!TheSongList.curSong->parts[PartBass].Valid && TheSongList.curSong->parts[
+        PlasticBass].Valid) {
         TheSongList.curSong->parts[PartBass] = TheSongList.curSong->parts[PlasticBass];
         TheSongList.curSong->parts[PartBass].AutoToPad = true;
     }
-    if (!TheSongList.curSong->parts[PartKeys].Valid && TheSongList.curSong->parts[PlasticKeys].Valid) {
+    if (!TheSongList.curSong->parts[PartKeys].Valid && TheSongList.curSong->parts[
+        PlasticKeys].Valid) {
         TheSongList.curSong->parts[PartKeys] = TheSongList.curSong->parts[PlasticKeys];
         TheSongList.curSong->parts[PartKeys].AutoToPad = true;
     }
-    for (int playerInt = 0; playerInt < 4; playerInt++) {
-        if (ThePlayerManager.ActivePlayers[playerInt] == -1)
-            continue;
-        for (size_t i = 0; i < TheSongList.curSong->parts.size(); i++) {
-            if (TheSongList.curSong->parts[i].Valid) {
-                PartsToDisplay[playerInt].push_back(i);
-            }
+
+    for (size_t i = 0; i < TheSongList.curSong->parts.size(); i++) {
+        if (TheSongList.curSong->parts[i].Valid) {
+            PartsToDisplay.push_back(i);
         }
     }
+
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-        for (int g = 0; g < PartsToDisplay[i].size(); g++) {
-            if (ThePlayerManager.GetActivePlayer(i).Instrument == PartsToDisplay[i][g]) {
+        for (int g = 0; g < PartsToDisplay.size(); g++) {
+            if (ThePlayerManager.GetActivePlayer(i).Instrument == PartsToDisplay[g]) {
                 ControllerInstSlot[i] = g;
                 break;
             }
         }
         ControllerDiffSlot[i] = ThePlayerManager.GetActivePlayer(i).Difficulty;
-        if (!TheSongList.curSong->parts[PartsToDisplay[i][ControllerInstSlot[i]]].Valid) {
+        if (!TheSongList.curSong->parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
             ControllerInstSlot[i] = 0;
         }
-        if (!TheSongList.curSong->parts[ControllerInstSlot[i]].ValidDiffs[ControllerDiffSlot[i]]) {
+        if (!TheSongList.curSong->parts[ControllerInstSlot[i]].ValidDiffs[
+            ControllerDiffSlot[i]]) {
             ControllerDiffSlot[i] = 0;
         }
     }

@@ -19,7 +19,7 @@ class ReadyUpMenu : public OvershellMenu {
     std::array<uint8_t, 4> ControllerDiffSlot{ 0, 0, 0, 0 };
     std::array<uint8_t, 4> ControllerInstSlot{ 0, 0, 0, 0 };
 
-    std::array<std::vector<int>, 4> PartsToDisplay = {};
+    std::vector<int> PartsToDisplay = {};
 public:
     ReadyUpMenu() = default;
     ~ReadyUpMenu() override = default;
