@@ -444,4 +444,19 @@ void ReadyUpMenu::Load() {
             }
         }
     }
+    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+        for (int g = 0; g < PartsToDisplay[i].size(); g++) {
+            if (ThePlayerManager.GetActivePlayer(i).Instrument == PartsToDisplay[i][g]) {
+                ControllerInstSlot[i] = g;
+                break;
+            }
+        }
+        ControllerDiffSlot[i] = ThePlayerManager.GetActivePlayer(i).Difficulty;
+        if (!TheSongList.curSong->parts[PartsToDisplay[i][ControllerInstSlot[i]]].Valid) {
+            ControllerInstSlot[i] = 0;
+        }
+        if (!TheSongList.curSong->parts[ControllerInstSlot[i]].ValidDiffs[ControllerDiffSlot[i]]) {
+            ControllerDiffSlot[i] = 0;
+        }
+    }
 }

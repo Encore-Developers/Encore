@@ -175,7 +175,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         0,
         WHITE
     );
-
+    BeginBlendMode(BLEND_ADDITIVE);
     GameMenu::mhDrawText(
         assets.redHatMono,
         GameMenu::scoreCommaFormatter(
@@ -187,6 +187,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         assets.sdfShader,
         RIGHT
     );
+    EndBlendMode();
 }
 
 void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
