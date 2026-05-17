@@ -26,7 +26,9 @@ public:
     Player* GetPlayerForJoystick(SDL_JoystickID id);
 
     Player &GetActivePlayer(int slot) {
-        return PlayerList.at(ActivePlayers.at(slot));
+        auto profileIndex = ActivePlayers.at(slot);
+        assert(profileIndex >= 0);
+        return PlayerList.at(profileIndex);
     }
 
     void SetPlayerListSaveFileLocation(std::filesystem::path file) {
