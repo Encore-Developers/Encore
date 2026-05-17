@@ -181,6 +181,7 @@ void SongSelectMenu::Load() {
     selectionTime = 0.0;
 
     TheSongList.curSong->LoadAlbumArt();
+    gameplaySet.StartLoad();
 
     ScrollToCurrentSong();
 
@@ -376,7 +377,7 @@ void SongSelectMenu::Draw() {
     DrawRectangle(
         0,
         0,
-        u.RightSide - u.LeftSide,
+        GetRenderWidth(),
         (float)GetRenderHeight(),
         GetColor(0x00000080)
     );
@@ -395,7 +396,7 @@ void SongSelectMenu::Draw() {
     GameMenu::mhDrawText(
         assets.josefinSansItalic,
         TextFormat("Sorted by: %s", sortTypes[(int)currentSortValue].c_str()),
-        { u.LeftSide, u.hinpct(0.165f) },
+        { u.LeftSide, u.hpct(0.165f) },
         u.hinpct(0.03f),
         WHITE,
         ASSET(sdfShader),
@@ -411,7 +412,7 @@ void SongSelectMenu::Draw() {
               u.hinpct(0.03f),
               0
           ).x,
-          u.hinpct(0.165f) },
+          u.hpct(0.165f) },
         u.hinpct(0.03f),
         WHITE,
         ASSET(sdfShader),
@@ -421,7 +422,7 @@ void SongSelectMenu::Draw() {
     float songEntryHeight = u.hinpct(0.058333f);
     DrawRectangle(
         0,
-        u.hinpct(0.208333f),
+        u.hpct(0.266666f)-songEntryHeight,
         (u.RightSide - u.winpct(0.25f)),
         songEntryHeight,
         ColorBrightness(AccentColor, -0.75f)
