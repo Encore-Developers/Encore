@@ -197,14 +197,14 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     // float scoreY = u.hpct(0.15f);
     float TimerboxX = u.RightSide;
 
-    float HeightOfTimerbox = WidthOfTimerbox / 4;
+    float HeightOfTimerbox = WidthOfTimerbox / 2;
     float TimerboxY = scoreY;
     Rectangle TimerboxDraw{ TimerboxX, TimerboxY, WidthOfTimerbox, HeightOfTimerbox };
     DrawTexturePro(
         assets.Timerbox,
         TimerboxSrc,
         TimerboxDraw,
-        { WidthOfTimerbox, HeightOfTimerbox },
+        { WidthOfTimerbox, HeightOfTimerbox / 2 },
         0,
         WHITE
     );
@@ -213,7 +213,7 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     float Width = Remap(played, 0, length, 0, WidthOfTimerbox);
     BeginScissorMode(
         TimerboxX - WidthOfTimerbox,
-        TimerboxY - HeightOfTimerbox,
+        TimerboxY - (HeightOfTimerbox / 2),
         Width + 1,
         HeightOfTimerbox + 1
     );
@@ -221,7 +221,7 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
         assets.TimerboxOutline,
         TimerboxSrc,
         TimerboxDraw,
-        { WidthOfTimerbox, HeightOfTimerbox },
+        { WidthOfTimerbox, HeightOfTimerbox / 2 },
         0,
         WHITE
     );
