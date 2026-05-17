@@ -190,9 +190,7 @@ void SettingsGameplay::Draw() {
     if (GuiButton(offButtonRect, "Off")) {
         if (TheGameSettings.Fullscreen) {
             TheGameSettings.Fullscreen = false;
-            if (IsWindowFullscreen()) {
-                ToggleFullscreen();
-            }
+            TheGameSettings.UpdateFullscreen();
             TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
         }
     }
@@ -200,9 +198,7 @@ void SettingsGameplay::Draw() {
     if (GuiButton(onButtonRect, "On")) {
         if (!TheGameSettings.Fullscreen) {
             TheGameSettings.Fullscreen = true;
-            if (!IsWindowFullscreen()) {
-                ToggleFullscreen();
-            }
+            TheGameSettings.UpdateFullscreen();
             TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
         }
     }
@@ -340,15 +336,7 @@ void SettingsGameplay::ControllerInputCallback(Encore::RhythmEngine::ControllerE
     //}
 }
 
-void SettingsGameplay::Load() {
-    // SettingsOld& settingsMain = SettingsOld::getInstance();
-    // Ensure window state matches settings
-    if (TheGameSettings.Fullscreen && !IsWindowFullscreen()) {
-        ToggleFullscreen();
-    } else if (!TheGameSettings.Fullscreen && IsWindowFullscreen()) {
-        ToggleFullscreen();
-    }
-}
+void SettingsGameplay::Load() {}
 
 void SettingsGameplay::Save() {
     // SettingsOld& settingsMain = SettingsOld::getInstance();
