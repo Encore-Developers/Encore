@@ -31,52 +31,57 @@ void Encore::Track::Draw() {
     // }
 
     UpdateControllerLED();
-    if (ColumnFitting) {
-        FitToColumn(ColumnLeft, ColumnRight, BaseCamera);
+    {
+        ZoneScopedN("Track Animation/Position Proc")
+        if (ColumnFitting) {
+            FitToColumn(ColumnLeft, ColumnRight, BaseCamera);
+        }
+
+        NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
+        Length = BaseLength * player.HighwayLength;
+        player.engine->UpdateCalibration(player.InputCalibration);
+
+
+        ProcessAnimation();
+        if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
+            AnimCamera.target.x = Offset * 3;
+            AnimCamera.position.x = Offset * 2;
+            AnimCamera.position.y += (1 - Scale) * 6;
+            AnimCamera.target.y -= (1 - Scale) * 6;
+        }
+        if (ColumnFitting) {
+            FitToColumn(ColumnLeft, ColumnRight, AnimCamera);
+        }
+
+        BeginMode3D(AnimCamera);
     }
+    {
+        ZoneScopedN("Track Shader Uniforms")
+        for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
+                             ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
+                             ASSETPTR(multiplierFillShader),
+                             ASSETPTR(indicatorRingShader),
+                             ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader) }) {
+            shader->SetUniform("trackLength", Length);
+            shader->SetUniform("fadeSize", FadeSize);
+            shader->SetUniform("curveFac", CurveFac);
+            shader->SetUniform("offset", Offset);
+            shader->SetUniform("scale", Scale);
+        }
+        ASSET(multiplierFillShader).SetUniform("curveFac", 10000000000.0f);
+        ASSET(indicatorRingShader).SetUniform("curveFac", 10000000000.0f);
+        ASSET(multNumShader).SetUniform("curveFac", 10000000000.0f);
+        ASSET(multiplierFrameShader).SetUniform("curveFac", 10000000000.0f);
 
-    NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
-    Length = BaseLength * player.HighwayLength;
-    player.engine->UpdateCalibration(player.InputCalibration);
-
-    ProcessAnimation();
-    if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
-        AnimCamera.target.x = Offset * 3;
-        AnimCamera.position.x = Offset * 2;
-        AnimCamera.position.y += (1 - Scale) * 6;
-        AnimCamera.target.y -= (1 - Scale) * 6;
+        ASSET(indicatorRingShader).SetUniform("tex1", ASSET(fcindtex1));
+        ASSET(indicatorRingShader).SetUniform("tex2", ASSET(fcindtex2));
+        ASSET(indicatorRingShader).SetUniform("baseTex", ASSET(fcindtex3));
     }
-    if (ColumnFitting) {
-        FitToColumn(ColumnLeft, ColumnRight, AnimCamera);
-    }
-
-    BeginMode3D(AnimCamera);
-
-    for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                         ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
-                         ASSETPTR(multiplierFillShader), ASSETPTR(indicatorRingShader),
-                         ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader) }) {
-        shader->SetUniform("trackLength", Length);
-        shader->SetUniform("fadeSize", FadeSize);
-        shader->SetUniform("curveFac", CurveFac);
-        shader->SetUniform("offset", Offset);
-        shader->SetUniform("scale", Scale);
-    }
-    ASSET(multiplierFillShader).SetUniform("curveFac", 10000000000.0f);
-    ASSET(indicatorRingShader).SetUniform("curveFac", 10000000000.0f);
-    ASSET(multNumShader).SetUniform("curveFac", 10000000000.0f);
-    ASSET(multiplierFrameShader).SetUniform("curveFac", 10000000000.0f);
-
-    ASSET(indicatorRingShader).SetUniform("tex1", ASSET(fcindtex1));
-    ASSET(indicatorRingShader).SetUniform("tex2", ASSET(fcindtex2));
-    ASSET(indicatorRingShader).SetUniform("baseTex", ASSET(fcindtex3));
-
-
 
     {
+        ZoneScopedN("Track Surface")
         BeginShaderMode(ASSET(trackCurveShader));
         rlDisableDepthTest();
-        ZoneScopedN("Track Surface")
         DrawSurface();
         BeginBlendMode(BLEND_ADDITIVE);
         DrawSolo();
@@ -113,8 +118,11 @@ void Encore::Track::Draw() {
         EndShaderMode();
         EndMode3D();
     }
-    if (EncoreDebug::showDebug) {
-        DrawTrackDebugWindow();
+    {
+        ZoneScopedN("Debug")
+        if (EncoreDebug::showDebug) {
+            DrawTrackDebugWindow();
+        }
     }
 }
 
@@ -194,8 +202,7 @@ void Encore::Track::DrawOverdriveMeter() {
     // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     // int flashInterval = (numer * 480) / denom;
 
-
-    float Percentage = 1-TheSongTime.GetBeatlineDelta();
+    float Percentage = 1 - TheSongTime.GetBeatlineDelta();
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
@@ -248,23 +255,41 @@ void Encore::Track::DrawSolo() {
                  soloLength * GetZPerSecond(),
                  { BLUE.r, BLUE.g, BLUE.b, 128 });
     }
-
 }
 
 void Encore::Track::DrawSoloUI() {
-    if (player.engine->chart->solos.empty()) return;
+    if (player.engine->chart->solos.empty())
+        return;
 
     Units &u = Units::getInstance();
-    solo* curSolo = &player.engine->chart->solos.at(player.engine->chart->solos.CurrentEvent);
-    if (TheSongTime.GetElapsedTime() > curSolo->StartSec && TheSongTime.GetElapsedTime() < curSolo->StartSec + curSolo->EndSec) {
+    solo *curSolo = &player.engine->chart->solos.at(
+        player.engine->chart->solos.CurrentEvent);
+    if (TheSongTime.GetElapsedTime() > curSolo->StartSec && TheSongTime.GetElapsedTime() <
+        curSolo->StartSec + curSolo->EndSec) {
         Vector3 worldSpace = { 0, 2.5, BaseLength + 5 };
         Vector2 screenPos = GetWorldToScreen(
             worldSpace,
             AnimCamera);
         screenPos.x += Offset * GetRenderWidth() * 0.5;
         float SoloPercentHeight = u.hinpct(0.05f);
-        GameMenu::mhDrawText(ASSET(redHatMono), TextFormat("%01i%%", int((float(curSolo->NotesHit) / float(curSolo->NoteCount)) * 100.0f)), screenPos, SoloPercentHeight, {119, 183, 255, 255}, ASSET(sdfShader), CENTER);
-        GameMenu::mhDrawText(ASSET(redHatMono), TextFormat("%01i/%01i", curSolo->NotesHit, curSolo->NoteCount), {screenPos.x, screenPos.y + SoloPercentHeight}, u.hinpct(0.025f), WHITE, ASSET(sdfShader), CENTER);
+        GameMenu::mhDrawText(ASSET(redHatMono),
+                             TextFormat("%01i%%",
+                                        int((float(curSolo->NotesHit) / float(
+                                            curSolo->NoteCount)) * 100.0f)),
+                             screenPos,
+                             SoloPercentHeight,
+                             { 119, 183, 255, 255 },
+                             ASSET(sdfShader),
+                             CENTER);
+        GameMenu::mhDrawText(ASSET(redHatMono),
+                             TextFormat("%01i/%01i",
+                                        curSolo->NotesHit,
+                                        curSolo->NoteCount),
+                             { screenPos.x, screenPos.y + SoloPercentHeight },
+                             u.hinpct(0.025f),
+                             WHITE,
+                             ASSET(sdfShader),
+                             CENTER);
     }
 }
 
@@ -272,7 +297,7 @@ void Encore::Track::DrawUsername() {
     Units &u = Units::getInstance();
     Vector3 worldPos = { 0, 0, -2.0 };
     Vector2 screenPos = GetWorldToScreen(worldPos, AnimCamera);
-    Color color =  WHITE;
+    Color color = WHITE;
     std::string NameText = player.Name;
     if (player.engine->stats->Bot) {
         color = SKYBLUE;
@@ -284,12 +309,24 @@ void Encore::Track::DrawUsername() {
     float width = MeasureTextEx(ASSET(rubik), NameText.c_str(), FontSize, 0).x + FontSize;
     float left = screenPos.x - (width / 2);
     Rectangle icon = { left, screenPos.y, FontSize, FontSize };
-    int num = player.Instrument > PartVocals ? player.Instrument - PartVocals - 1 : player.Instrument;
+    int num = player.Instrument > PartVocals
+        ? player.Instrument - PartVocals - 1
+        : player.Instrument;
     auto iconA = TheAssets.InstIcons.at(num);
-    DrawTexturePro(iconA->Fetch(), {0,0, float(iconA->width), float(iconA->height) }, icon, {0,0}, 0, WHITE);
+    DrawTexturePro(iconA->Fetch(),
+                   { 0, 0, float(iconA->width), float(iconA->height) },
+                   icon,
+                   { 0, 0 },
+                   0,
+                   WHITE);
     left += FontSize;
-    GameMenu::mhDrawText(ASSET(rubik), NameText, {left, screenPos.y}, FontSize, color, ASSET(sdfShader), LEFT);
-
+    GameMenu::mhDrawText(ASSET(rubik),
+                         NameText,
+                         { left, screenPos.y },
+                         FontSize,
+                         color,
+                         ASSET(sdfShader),
+                         LEFT);
 }
 
 Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
@@ -317,7 +354,9 @@ void Encore::Track::DrawMultiplier() {
     ZoneScoped;
     Vector3 position = { 0, -0.1, -1.25 };
     Vector3 scale = { 1.1, 1.1, 1.1 };
-    Color indColor = player.engine->stats->Bot ? SKYBLUE : ColorBrightness(player.AccentColor, -0.3);
+    Color indColor = player.engine->stats->Bot
+        ? SKYBLUE
+        : ColorBrightness(player.AccentColor, -0.3);
     ASSET(indicatorRingShader).SetUniform("BaseColor",
                                           indColor);
     ASSET(indicatorRingShader).SetUniform("FCColor", GOLD);
@@ -341,7 +380,8 @@ void Encore::Track::DrawMultiplier() {
     }
     ASSET(multiplierFillShader).SetUniform("FillPercentage", fill);
 
-    if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0 && !player.engine->stats->Bot) {
+    if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0 && !
+        player.engine->stats->Bot) {
         ASSET(indicatorRingShader).SetUniform("isFC", 1.0f);
     } else {
         ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
@@ -359,13 +399,14 @@ void Encore::Track::DrawMultiplier() {
                 { 0 },
                 0,
                 scale,
-                 ColorBrightness(player.AccentColor, -0.5));
+                ColorBrightness(player.AccentColor, -0.5));
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 
 
 void Encore::Track::DrawTrackNotifications() {
-    if (!Notification) return;
+    if (!Notification)
+        return;
     if (Notification->time + 3.5 < TheSongTime.GetElapsedTime()) {
         Notification = nullptr;
         return;
@@ -378,49 +419,68 @@ void Encore::Track::DrawTrackNotifications() {
     float FontPct = 0.0225f;
     float FontSize = u.hinpct(FontPct);
     //for (size_t i = 0; i < Notifications.size(); i++) {
-        TrackNotificationEvent* notif = Notification;
-        std::string Text = "";
-        switch (notif->type) {
-        case TrackNotificationEvent::OVERDRIVE_READY: Text = "Overdrive ready"; break;
-        case TrackNotificationEvent::COMBO: Text = std::to_string(notif->combo) + " Note Combo"; break;
-        case TrackNotificationEvent::BASSGROOVE: Text = "Bass Groove"; break;
-        case TrackNotificationEvent::HOTSTART: Text = "Hot Start"; break;
-        default: Text = "buttsex"; break;
-        }
-        float TextWidth = MeasureTextEx(ASSET(josefinSansBold), Text.c_str(), FontSize, 0).x;
-        float size = 0;
-        if (TheSongTime.GetElapsedTime() < notif->time + 0.25) {
-            size = (TheSongTime.GetElapsedTime() - notif->time) / ((notif->time + 0.25) - notif->time);
-        } else if (TheSongTime.GetElapsedTime() > notif->time + 3.0) {
-            float startTime = notif->time + 3.0;
-            float endTime = notif->time + 3.5;
-            size = 1-((TheSongTime.GetElapsedTime() - startTime) / (endTime - startTime));
-        } else {
-            size = 1;
-        }
-        if (size > 1) size = 1;
+    TrackNotificationEvent *notif = Notification;
+    std::string Text = "";
+    switch (notif->type) {
+    case TrackNotificationEvent::OVERDRIVE_READY:
+        Text = "Overdrive ready";
+        break;
+    case TrackNotificationEvent::COMBO:
+        Text = std::to_string(notif->combo) + " Note Combo";
+        break;
+    case TrackNotificationEvent::BASSGROOVE:
+        Text = "Bass Groove";
+        break;
+    case TrackNotificationEvent::HOTSTART:
+        Text = "Hot Start";
+        break;
+    default:
+        Text = "buttsex";
+        break;
+    }
+    float TextWidth = MeasureTextEx(ASSET(josefinSansBold), Text.c_str(), FontSize, 0).x;
+    float size = 0;
+    if (TheSongTime.GetElapsedTime() < notif->time + 0.25) {
+        size = (TheSongTime.GetElapsedTime() - notif->time) / ((notif->time + 0.25) -
+            notif->time);
+    } else if (TheSongTime.GetElapsedTime() > notif->time + 3.0) {
+        float startTime = notif->time + 3.0;
+        float endTime = notif->time + 3.5;
+        size = 1 - ((TheSongTime.GetElapsedTime() - startTime) / (endTime - startTime));
+    } else {
+        size = 1;
+    }
+    if (size > 1)
+        size = 1;
+    if (size < 0)
+        size = 0;
 
-        Vector2 pos = { ScreenNotifPosition.x, ScreenNotifPosition.y};
-        pos.x += Offset * GetRenderWidth() * 0.5;
-        GameMenu::mhDrawText(
-            ASSET(josefinSansBold),
-            Text,
-            pos,
-            u.hinpct(getEasingFunction(EaseOutBack)(size) * FontPct),
-            { 255, 255, 255, (unsigned char)(255.0f * size)},
-            ASSET(sdfShader),
-            CENTER
-        );
-   // }
+    Vector2 pos = { ScreenNotifPosition.x, ScreenNotifPosition.y };
+    pos.x += Offset * GetRenderWidth() * 0.5;
+    GameMenu::mhDrawText(
+        ASSET(josefinSansBold),
+        Text,
+        pos,
+        u.hinpct(getEasingFunction(EaseOutBack)(size) * FontPct),
+        { 255, 255, 255, (unsigned char)(255.0f * size) },
+        ASSET(sdfShader),
+        CENTER
+    );
+    // }
 }
+
 void Encore::Track::DrawCombo() {
-    if (player.engine->stats->Combo == 0) return;
+    if (player.engine->stats->Combo == 0)
+        return;
     Units &u = Units::getInstance();
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
     float FontSize = u.hinpct(0.025f);
     // float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
-    float TextHeight = MeasureTextEx(ASSET(rubikBold), std::to_string(player.engine->stats->Combo).c_str(), FontSize, 0).
+    float TextHeight = MeasureTextEx(ASSET(rubikBold),
+                                     std::to_string(player.engine->stats->Combo).c_str(),
+                                     FontSize,
+                                     0).
         y;
     float POffset = u.hinpct(0.05f);
     // perfect in
@@ -430,7 +490,8 @@ void Encore::Track::DrawCombo() {
         AnimCamera);
     // float subtractStuff = (TextWidth * 0.25);
     // float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth *
-    pos = { ScreenMultiplierPosition.x + POffset, ScreenMultiplierPosition.y - (TextHeight / 2) };
+    pos = { ScreenMultiplierPosition.x + POffset,
+            ScreenMultiplierPosition.y - (TextHeight / 2) };
     pos.x += Offset * GetRenderWidth() * 0.5;
 
     GameMenu::mhDrawText(
@@ -505,7 +566,8 @@ void Encore::Track::DrawJudgement() {
             move = 1;
             MaxAlpha = 128.0;
         }
-        alpha = (unsigned char)(MaxAlpha * (1 - getEasingFunction(EaseInQuart)(JudgementTimer - 1)));
+        alpha = (unsigned char)(MaxAlpha * (1 - getEasingFunction(EaseInQuart)(
+            JudgementTimer - 1)));
     } else {
         if (JudgementType == 1) {
             move = getEasingFunction(EaseOutQuart)(JudgementTimer);
@@ -591,7 +653,7 @@ void Encore::Track::DrawNotes() {
     }
 
     for (auto note : player.engine->chart->MissedNotePointers) {
-        if (note->StartSeconds < TheSongTime.GetElapsedTime()-5) {
+        if (note->StartSeconds + note->LengthSeconds < TheSongTime.GetElapsedTime() - 5) {
             continue;
         }
         auto slots = GetSlotsForNote(*note);
@@ -646,7 +708,8 @@ void Encore::Track::DrawBeatlines() {
         //     ? beatlinePoolMaxSize
         //     : TheSongTime.Beatlines.size();
         int beatlineStart = TheSongTime.CurrentBeatline - 8;
-        if (beatlineStart < 0) beatlineStart = 0;
+        if (beatlineStart < 0)
+            beatlineStart = 0;
         // because i have to do bounds checks myself
         // BeatlinePool = { TheSongTime.Beatlines.begin() + beatlineStart, BeatlinePoolSize };
 
@@ -742,12 +805,14 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
     }
     return (TrackSlot **)&slotBuffer;
 }
+
 void Encore::Track::UpdateControllerLED() {
+    ZoneScoped
     if (player.joypadID > 0) {
         auto joystick = SDL_GetJoystickFromID(player.joypadID);
         if (joystick) {
             float beatFrac = TheSongTime.GetBeatlineDelta();
-            Color baseColor = ColorLerp(player.AccentColor, {0, 0, 0, 0}, beatFrac);
+            Color baseColor = ColorLerp(player.AccentColor, { 0, 0, 0, 0 }, beatFrac);
             Color overdriveColor = ColorLerp({ 255, 255, 0, 255 }, baseColor, beatFrac);
             baseColor = ColorLerp(baseColor, overdriveColor, OverdriveTimer);
             SDL_SetJoystickLED(joystick, baseColor.r, baseColor.g, baseColor.b);
@@ -786,7 +851,8 @@ void Encore::Track::HandleEvent(Event *event) {
                             if (hitEvent->judgement == -1) {
                                 slot->AnimateOverhit();
                             } else {
-                                slot->AnimateHit(hitEvent->judgement, player.QueryColorProfile(SLOT_OPEN));
+                                slot->AnimateHit(hitEvent->judgement,
+                                                 player.QueryColorProfile(SLOT_OPEN));
                             }
                         } else
                             break;
@@ -797,7 +863,7 @@ void Encore::Track::HandleEvent(Event *event) {
                     slot->AnimateOverhit();
                 } else {
                     slot->AnimateHit(hitEvent->judgement,
-                                 player.QueryColorProfile(slot->colorSlot));
+                                     player.QueryColorProfile(slot->colorSlot));
                 }
             } else
                 break;
