@@ -452,22 +452,34 @@ void SongSelectMenu::Draw() {
                 songEntryHeight,
                 headerColor
             );
-
-            GameMenu::mhDrawText(
+            if (currentSortValue == SortType::Source) {
+                GameMenu::mhDrawText(
                 headerFont->Fetch(),
-                TheSongList.listMenuEntries[listMenuPos].headerChar.c_str(),
+                TheSourceIcons.GetSourceName(TheSongList.listMenuEntries[listMenuPos].headerChar),
                 { songXPos, songYPos + u.hinpct(0.0125f) },
                 u.hinpct(0.035f),
                 WHITE,
                 ASSET(sdfShader),
                 LEFT
             );
+            } else {
+                GameMenu::mhDrawText(
+                    headerFont->Fetch(),
+                    TheSongList.listMenuEntries[listMenuPos].headerChar.c_str(),
+                    { songXPos, songYPos + u.hinpct(0.0125f) },
+                    u.hinpct(0.035f),
+                    WHITE,
+                    ASSET(sdfShader),
+                    LEFT
+                );
+            }
         } else if (!TheSongList.listMenuEntries[listMenuPos].hiddenEntry) {
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
             Font artistFont = assets.josefinSansItalic;
             Song *songi = TheSongList.sortedSongs[TheSongList.listMenuEntries[listMenuPos].
                 songListID];
-            float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
+            auto padding = u.hinpct(0.01f);
+            float songXPos = u.LeftSide + u.winpct(0.005f) - 2 + songEntryHeight;
             float songYPos = std::floor(
                 (u.hpct(0.266666f)) + ((songEntryHeight) * (listMenuPos - topOflistMenu))
             );
@@ -489,7 +501,6 @@ void SongSelectMenu::Draw() {
                                                  Remap(timer, 0, 0.15, 0, -0.4)));
             }
             auto sourceTex = TheSourceIcons[songi->source]->GetTexture();
-            auto padding = u.hinpct(0.005f);
             DrawTexturePro(
                 sourceTex,
                 { 0, 0, (float)sourceTex.width, (float)sourceTex.height}, {songXPos-songEntryHeight, songYPos+padding, songEntryHeight-padding*2, songEntryHeight-padding*2}, {0 , 0}, 0, WHITE);
@@ -522,7 +533,7 @@ void SongSelectMenu::Draw() {
             }
             auto LightText = Color{ 203, 203, 203, 255 };
             BeginScissorMode(
-                (int)songXPos + (isCurSong ? 5 : 20),
+                (int)songXPos + (isCurSong ? 0 : 5),
                 (int)songYPos,
                 songTitleWidth,
                 songEntryHeight
@@ -530,7 +541,7 @@ void SongSelectMenu::Draw() {
             GameMenu::mhDrawText(
                 assets.rubikBold,
                 songi->title.c_str(),
-                { songXPos + songi->titleXOffset + (isCurSong ? 10 : 20),
+                { songXPos + songi->titleXOffset + (isCurSong ? 0 : 10),
                   songYPos + u.hinpct(0.0125f) },
                 u.hinpct(0.035f),
                 isCurSong ? WHITE : LightText,
@@ -589,7 +600,7 @@ void SongSelectMenu::Draw() {
         if (songIndex < TheSongList.listMenuEntries.size() && !TheSongList.listMenuEntries
             [songIndex].isHeader) {
             Song *representativeSong = TheSongList.sortedSongs[TheSongList.listMenuEntries[
-                songIndex].songListID];
+                topOflistMenu].songListID];
             switch (currentSortValue) {
             case SortType::Title:
                 categoryHeaderText = representativeSong->title.empty()
@@ -602,9 +613,7 @@ void SongSelectMenu::Draw() {
                     : std::string(1, toupper(representativeSong->artist[0]));
                 break;
             case SortType::Source:
-                categoryHeaderText = representativeSong->source.empty()
-                    ? "Unknown"
-                    : representativeSong->source;
+                categoryHeaderText = TheSourceIcons.GetSourceName(representativeSong->source);
                 break;
             case SortType::Length:
                 categoryHeaderText = TheSongList.listMenuEntries[curSongMenuPos].
