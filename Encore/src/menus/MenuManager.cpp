@@ -85,6 +85,7 @@ void MenuManager::LoadMenu() {
         break;
     }
     case RESULTS: {
+        TheGameRPC.SteamOverlayPosition(false);
         TheGameRPC.DiscordUpdatePresence("Viewing results", "In the menus",ThePlayerManager.PlayersActive);
         TheGameRPC.SteamUpdatePresence("steam_display", "#StatusResults");
         ActiveMenu = new resultsMenu;
@@ -92,6 +93,9 @@ void MenuManager::LoadMenu() {
         break;
     }
     case SONG_SELECT: {
+        TheGameRPC.SteamOverlayPosition(false);
+
+
         // glfwSetGamepadStateCallback(gamepadStateCallback);
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
@@ -135,7 +139,7 @@ void MenuManager::LoadMenu() {
         );
         TheGameRPC.SteamUpdatePresence("song", (TheSongList.curSong->title + " - " + TheSongList.curSong->artist).c_str());
         TheGameRPC.SteamUpdatePresence("steam_display", "#StatusPlayingSongNamed");
-
+        TheGameRPC.SteamOverlayPosition(true);
         ActiveMenu = new GameplayMenu;
         ActiveMenu->Load();
         break;

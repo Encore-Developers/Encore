@@ -24,6 +24,8 @@ namespace Encore {
         void DiscordUpdatePresenceSong(const std::string &title, const std::string &details, int instrument, int players);
         void Update();
         void SteamUpdatePresence(const char* key, const char* value);
+        void SteamShowKeyboard();
+        void SteamOverlayPosition(bool top);
     };
 };
 

@@ -6,6 +6,7 @@
 
 #ifdef STEAM
 #include "isteamfriends.h"
+#include "isteamutils.h"
 #endif
 #include "discord-rpc/core.h"
 #include <array>
@@ -62,6 +63,20 @@ void Encore::Discord::SteamUpdatePresence(const char *key, const char *value) {
 #ifdef STEAM
     SteamFriends()->SetRichPresence(key, value);
 #endif
+}
+void Encore::Discord::SteamShowKeyboard() {
+#ifdef STEAM
+    SteamUtils()->ShowFloatingGamepadTextInput(k_EFloatingGamepadTextInputModeModeEmail, 1920/4, 0, 1920/2, 1080/2 );
+#endif
+}
+void Encore::Discord::SteamOverlayPosition(bool top) {
+    #ifdef STEAM
+    ENotificationPosition notificationPosition = k_EPositionBottomRight;
+    if (top) {
+        notificationPosition = k_EPositionTopRight;
+    }
+    SteamUtils()->SetOverlayNotificationPosition(notificationPosition);
+    #endif
 }
 
 void Encore::Discord::DiscordUpdatePresence(const std::string &title, const std::string &details, int players) {
