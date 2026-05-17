@@ -98,6 +98,14 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
             default:
                 break;
             }
+            int diffCount = 0;
+            SongPart& part = TheSongList.curSong->parts[player.Instrument];
+            for (int d = 0; d < 4; d++) {
+                if (part.ValidDiffs[d]) {
+                    diffCount += 1;
+                }
+            }
+            ControllerDiffSlot[i] = ControllerDiffSlot[i] % diffCount;
         }
     }
 }
