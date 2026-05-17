@@ -23,6 +23,7 @@
 
 #include "gameplay/LyricRenderer.h"
 #include "settings/keybinds.h"
+#include "song/OpenSource.h"
 #include "tracy/Tracy.hpp"
 
 Encore::LyricRenderer TheLyricRenderer;
@@ -158,11 +159,13 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
     Rectangle scoreboxSrc{
         0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
     };
+    // not optimized at all LMAO
     float WidthOfScorebox = u.hinpct(0.28);
     // float scoreY = u.hpct(0.15f);
     float ScoreboxX = u.RightSide;
-    float ScoreboxY = u.hpct(0.1425f);
-    float HeightOfScorebox = WidthOfScorebox / 4;
+    float HeightOfScorebox = WidthOfScorebox / (5 + (1/3));
+    float ScoreboxY = scoreY;
+    float scoreTextPadding = (HeightOfScorebox - u.hinpct(0.05)) / 2;
     Rectangle scoreboxDraw{ ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox };
     DrawTexturePro(
         assets.Scorebox,
@@ -178,7 +181,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         GameMenu::scoreCommaFormatter(
             ThePlayerManager.GetActivePlayer(0).engine->stats->Score
         ),
-        { u.RightSide - u.winpct(0.0145f), scoreY + u.hinpct(0.0025) },
+        { u.RightSide - u.winpct(0.0145f), ScoreboxY + scoreTextPadding },
         u.hinpct(0.05),
         Color{ 107, 161, 222, 255 },
         assets.sdfShader,
@@ -193,8 +196,9 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     float WidthOfTimerbox = u.hinpct(0.14);
     // float scoreY = u.hpct(0.15f);
     float TimerboxX = u.RightSide;
-    float TimerboxY = u.hpct(0.1425f);
+
     float HeightOfTimerbox = WidthOfTimerbox / 4;
+    float TimerboxY = scoreY;
     Rectangle TimerboxDraw{ TimerboxX, TimerboxY, WidthOfTimerbox, HeightOfTimerbox };
     DrawTexturePro(
         assets.Timerbox,
@@ -236,7 +240,7 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     GameMenu::mhDrawText(
         assets.rubik,
         textTime,
-        { u.RightSide - (WidthOfTimerbox / 2), scoreY - u.hinpct(SmallHeader) },
+        { u.RightSide - (WidthOfTimerbox / 2), TimerboxY - u.hinpct(SmallHeader * (0.66 * 1.25)) },
         u.hinpct(SmallHeader * 0.66),
         WHITE,
         assets.sdfShader,
@@ -458,7 +462,7 @@ void GameplayMenu::Draw() {
     TheAudioManager.UpdateAudioStreamVolumes();
 
     float scorePos = u.RightSide - u.hinpct(0.01f);
-    float scoreY = u.hpct(0.15f);
+    float scoreY = u.hpct(0.2f);
     float starY = scoreY + u.hinpct(0.065f);
     // Draw Stars
     DrawGameplayStars(u, assets, scorePos, starY);
@@ -509,16 +513,22 @@ void GameplayMenu::Draw() {
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
 
+    auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
     float topOfVocalBar = u.hpct(0.2f);
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
     GameMenu::mhDrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
         {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
         WHITE, ASSET(sdfShader), LEFT);
+    float TitleFontOffset = (TitleFontSize * 1.25f);
+    float SecondaryFontSize = TitleFontSize * 0.85f;
     GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
-        {u.wpct(0.01f), topOfVocalBar + (TitleFontSize * 1.25f)}, TitleFontSize * 0.85f,
+        {u.wpct(0.01f), topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
         LIGHTGRAY, ASSET(sdfShader), LEFT);
+    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
+        {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
+    );
     GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
-        {u.wpct(0.01f), topOfVocalBar + ((TitleFontSize * 1.25f) + TitleFontSize)}, TitleFontSize * 0.85f,
+        {u.wpct(0.01f) + ( TitleFontSize * 1.125f) , topOfVocalBar + (TitleFontOffset + TitleFontSize)}, SecondaryFontSize,
         LIGHTGRAY, ASSET(sdfShader), LEFT);
 
     GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
