@@ -39,7 +39,7 @@ SongSelectMenu::~SongSelectMenu() {
 }
 
 void SongSelectMenu::ScrollUpHeader() {
-    for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size() - 1; sectInt++) {
+    for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size(); sectInt++) {
         auto sect = TheSongList.sectionEntries[sectInt];
         if (curSongMenuPos >= sect.firstListID && curSongMenuPos <= sect.lastListID) {
             if (sectInt > 1) {
@@ -56,8 +56,7 @@ void SongSelectMenu::ScrollUpHeader() {
 void SongSelectMenu::ScrollDownHeader() {
     for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size() - 1; sectInt++) {
         auto sect = TheSongList.sectionEntries[sectInt];
-        if (curSongMenuPos >= sect.firstListID && curSongMenuPos <= sect.lastListID &&
-            sectInt < TheSongList.sectionEntries.size() - 2) {
+        if (curSongMenuPos >= sect.firstListID && curSongMenuPos <= sect.lastListID) {
             curSongMenuPos = TheSongList.sectionEntries[sectInt + 1].firstListID;
             StopPreview();
             break;
