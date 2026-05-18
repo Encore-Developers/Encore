@@ -553,7 +553,10 @@ void GameplayMenu::Load() {
 
     // i dont like the game stuttering when you active or get a streak
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
-
+    double End = 0.0;
+    double EndEvent = TheSongList.curSong->end;
+    double LastNote = 0.0;
+    double AudioEnd = TheAudioManager.GetMusicTimeLength();
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
@@ -583,7 +586,19 @@ void GameplayMenu::Load() {
         }
         if (player.Bot)
             player.engine->stats->Bot = true;
+
+        for (auto &lane : player.engine->chart->Lanes) {
+            if (lane.empty()) continue;
+            if (lane.back().LengthSeconds + lane.back().StartSeconds > LastNote) {
+                LastNote = lane.back().StartSeconds + lane.back().LengthSeconds + 1;
+            }
+        }
     }
+
+    if (LastNote > EndEvent) End = LastNote;
+    if (AudioEnd > LastNote) End = AudioEnd;
+    if (EndEvent > LastNote) End = EndEvent;
+    TheSongList.curSong->end = End;
     for (auto &stream : TheAudioManager.loadedStreams) {
         stream.volume =
             TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
