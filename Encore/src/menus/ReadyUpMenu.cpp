@@ -66,8 +66,10 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
             case Encore::RhythmEngine::InputChannel::LANE_1: {
                 switch (SlotState[i]) {
                 case INSTRUMENT:
-                    SlotState[i] = DIFFICULTY;
-                    player.Instrument = PartsToDisplay[ControllerInstSlot[i]];
+                    if (!PartsToDisplay.empty()) {
+                        SlotState[i] = DIFFICULTY;
+                        player.Instrument = PartsToDisplay[ControllerInstSlot[i]];
+                    }
                     break;
                 case DIFFICULTY:
                     SlotState[i] = READY;
@@ -105,7 +107,8 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
                     diffCount += 1;
                 }
             }
-            ControllerDiffSlot[i] = ControllerDiffSlot[i] % diffCount;
+            if (diffCount != 0)
+                ControllerDiffSlot[i] = ControllerDiffSlot[i] % diffCount;
         }
     }
 }
@@ -463,18 +466,18 @@ void ReadyUpMenu::Load() {
     }
 
     for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+        auto& player = ThePlayerManager.GetActivePlayer(i);
         for (int g = 0; g < PartsToDisplay.size(); g++) {
-            if (ThePlayerManager.GetActivePlayer(i).Instrument == PartsToDisplay[g]) {
+            if (player.Instrument == PartsToDisplay[g]) {
                 ControllerInstSlot[i] = g;
                 break;
             }
         }
-        ControllerDiffSlot[i] = ThePlayerManager.GetActivePlayer(i).Difficulty;
-        if (!TheSongList.curSong->parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
+        ControllerDiffSlot[i] = player.Difficulty;
+        if (!PartsToDisplay.empty() && !TheSongList.curSong->parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
             ControllerInstSlot[i] = 0;
         }
-        if (!TheSongList.curSong->parts[ControllerInstSlot[i]].ValidDiffs[
-            ControllerDiffSlot[i]]) {
+        if (!TheSongList.curSong->parts[player.Instrument].ValidDiffs[player.Difficulty]) {
             ControllerDiffSlot[i] = 0;
         }
     }
