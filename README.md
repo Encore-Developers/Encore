@@ -8,17 +8,17 @@ Encore supports controllers and keyboard.
 
 ## Installation
 
-### Stable releases
-
-Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Raylib/releases). 
-
-### Nightly releases
+### Nightly releases (recommended)
 
 Current nightly build:    
 - [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x64-Indev.zip)
 - [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64-Indev.zip)
 - [macOS](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_macOS-Indev.zip)
-  
+
+### "Stable" releases (not recommended)
+
+Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Raylib/releases).
+
 ### Running Encore
 
 Extract the .zip file that you downloaded, either Nightly or Stable, and extract it into a folder that you will be able to remember. If Windows Defender SmartScreen appears, click Read More, and Run. Encore is not a malicious program, and removing the SmartScreen popup would cost us (the developers) more than we're willing to pay.
@@ -34,7 +34,6 @@ Encore supports all songs with a song.ini and notes.mid. (no .chart!!!!!)
 
 ### Contributing
 
-For any code contributions, please use the Indev branch for developing/making pull requests.
 For any issues you come across, please report them to the Issues page on the Encore Github.
 
 ## Credits    
