@@ -137,7 +137,7 @@ double SongTime::GetBeatlineDelta() {
 
 void SongTime::UpdateBeatlines() {
     if (!Beatlines.empty()) {
-        if (CurrentBeatline < Beatlines.size() - 1
+        while (CurrentBeatline < Beatlines.size() - 1
             && Beatlines[CurrentBeatline].time < GetElapsedTime())
             CurrentBeatline++;
     }

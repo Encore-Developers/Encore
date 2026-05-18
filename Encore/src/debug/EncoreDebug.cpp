@@ -332,9 +332,10 @@ void DebugSeek(float time, float audioTime) {
                     break;
                 }
             }
-
         }
     }
+    TheSongTime.CurrentBeatline = 0;
+    TheSongTime.UpdateBeatlines();
 }
 
 
