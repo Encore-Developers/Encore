@@ -16,7 +16,7 @@
 #include "debug/EncoreDebug.h"
 #include "easing/easing.h"
 #include "events/Event.h"
-#include "menus/gameMenu.h"
+#include "menus/MainMenu.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
 #include "users/playerManager.h"

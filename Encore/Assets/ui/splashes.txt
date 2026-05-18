@@ -3,7 +3,7 @@ It's Encore-ing time!
 Do NOT drink the Among Us potion at 3 AM!
 What's better? Encore Raylib or Encore Unity?
 Player player = new Player;!
-gameMenu.cpp.obj : error LNK2001: unresolved external symbol "public: static struct Player Player::player" (?player@Player@@2UPlayer@@A)!
+MainMenu.cpp.obj : error LNK2001: unresolved external symbol "public: static struct Player Player::player" (?player@Player@@2UPlayer@@A)!
 case gameplay? like phoenix wright?
 wow it's an encore in here!
 Guacamole Gamer Fart 9000!

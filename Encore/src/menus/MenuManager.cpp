@@ -10,7 +10,7 @@
 #include "SettingsMenu.h"
 #include "SongSelectMenu.h"
 #include "cacheLoadingScreen.h"
-#include "gameMenu.h"
+#include "MainMenu.h"
 #include "menu.h"
 #include "raygui.h"
 #include "resultsMenu.h"

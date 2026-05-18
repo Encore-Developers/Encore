@@ -1,7 +1,7 @@
 #pragma once
 #include "enctime.h"
 #include "easing/easing.h"
-#include "menus/gameMenu.h"
+#include "menus/MainMenu.h"
 #include "menus/uiUnits.h"
 #include "RhythmEngine/Notes/EncNote.h"
 

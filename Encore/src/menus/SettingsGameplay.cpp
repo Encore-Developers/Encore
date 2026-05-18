@@ -5,7 +5,7 @@
 #include "SettingsGameplay.h"
 
 #include "MenuManager.h"
-#include "gameMenu.h"
+#include "MainMenu.h"
 #include "raygui.h"
 #include "assets.h"
 #include "settings/settings.h"

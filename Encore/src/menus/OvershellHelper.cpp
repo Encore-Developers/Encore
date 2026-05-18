@@ -3,7 +3,7 @@
 #include "raygui.h"
 #include "assets.h"
 #include "styles.h"
-#include "gameMenu.h"
+#include "MainMenu.h"
 #include "users/playerManager.h"
 
 void encOS::DrawBeacon(int slot, float x, float y, float width, float height, bool top, Color playerColor) {

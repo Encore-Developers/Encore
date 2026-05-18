@@ -11,7 +11,7 @@
 #include "../assets.h"
 #include "../song/audio.h"
 #include "../old/lerp.h"
-#include "../menus/gameMenu.h"
+#include "../menus/MainMenu.h"
 
 #include <variant>
 

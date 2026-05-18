@@ -5,7 +5,7 @@
 #include "ChartLoadingMenu.h"
 
 #include "MenuManager.h"
-#include "gameMenu.h"
+#include "MainMenu.h"
 #include "uiUnits.h"
 #include "RhythmEngine/engines.h"
 #include "gameplay/enctime.h"

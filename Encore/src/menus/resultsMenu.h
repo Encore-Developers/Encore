@@ -5,7 +5,7 @@
 #ifndef RESULTSMENU_H
 #define RESULTSMENU_H
 
-#include "gameMenu.h"
+#include "MainMenu.h"
 #include "menu.h"
 
 class resultsMenu : public OvershellMenu {

@@ -3,7 +3,7 @@
 //
 
 #include "resultsMenu.h"
-#include "gameMenu.h"
+#include "MainMenu.h"
 #include "raygui.h"
 #include "styles.h"
 #include "uiUnits.h"
