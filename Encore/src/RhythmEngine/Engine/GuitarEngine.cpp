@@ -50,7 +50,7 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &even
         if (stats->overdrive.Activate(stats->InputTime)) {
             HighwayBounceEvent HBevent;
             FireEvent(&HBevent);
-            TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
+            // TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
         }
         EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
         return true;

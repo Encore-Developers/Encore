@@ -124,8 +124,8 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
     stats->overdrive.Update(CurrentTime);
     if (odWasActive == true && odWasActive != stats->overdrive.Active) {
         // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
-        EncoreLog(LOG_DEBUG, TextFormat("Disabling effect on instrument: %i", inst));
-        TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
+        // EncoreLog(LOG_DEBUG, TextFormat("Disabling effect on instrument: %i", inst));
+        // TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
     }
 }
 
