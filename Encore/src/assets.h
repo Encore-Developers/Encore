@@ -453,6 +453,7 @@ public:
     NEWTEXASSET(hopoNoteTex, "gameplay/track/notes/hopo/diffuse.png");
     NEWTEXASSET(kickNoteTex, "gameplay/track/notes/kick/diffuse.png");
     NEWTEXASSET(openNoteTex, "gameplay/track/notes/open/diffuse.png");
+    NEWTEXASSET(openHopoNoteTex, "gameplay/track/notes/open hopo/diffuse.png");
     NEWTEXASSET(cymbalNoteTex, "gameplay/track/notes/cymbal/diffuse.png");
     NEWTEXASSET(liftNoteTex, "gameplay/track/notes/lift/diffuse.png");
 
@@ -496,6 +497,19 @@ public:
                         SetTextureWrap(openNoteTex, TEXTURE_WRAP_CLAMP);
                         SetTextureWrap(openMaskTex, TEXTURE_WRAP_CLAMP);
                         model->materials[0].maps[0].texture = openNoteTex;
+                        // const Texture2D mask = hopoMaskTex.Fetch();
+
+                        model->materials[0].shader = noteShader;
+                        model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                        openMaskTex;
+                        });
+
+    NEWLEGACYMODELASSET(openHopoNote,
+                        "gameplay/track/notes/open hopo/model.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(openHopoNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(openMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = openHopoNoteTex;
                         // const Texture2D mask = hopoMaskTex.Fetch();
 
                         model->materials[0].shader = noteShader;

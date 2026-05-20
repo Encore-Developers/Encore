@@ -13,20 +13,41 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     Vector3 position = { xPos, 0.0, pos };
     Color color = track->player.QueryColorProfile(colorSlot);
 
-    if (note->NoteType == 0) {
-        ASSET(noteShader).SetUniform("noteColor", color);
-        ASSET(noteShader).SetUniform("frameColor", WHITE);
+
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+        color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+        ASSET(noteShader).SetUniform("frameColor", GOLD);
     } else {
-        ASSET(noteShader).SetUniform("noteColor", WHITE);
-        ASSET(noteShader).SetUniform("frameColor", color);
+        ASSET(noteShader).SetUniform("frameColor", WHITE);
     }
+    if (missed) {
+        ASSET(noteShader).SetUniform("frameColor", Color{120, 120, 120, 255});
+        color = { 140, 140, 140, 255 };
+    }
+    ASSET(noteShader).SetUniform("noteColor", color);
+
     if (note->LengthSeconds > 0) {
         Color sustainColor = missed ? GRAY : color;
         DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, sustainColor, 0);
     }
     rlDrawRenderBatchActive();
 
-    DrawModelEx(ASSET(openNote), position, {0}, 0, {width/5.0f, track->NoteHeight, 1}, WHITE);
+    if (note->NoteType == 1 || note->NoteType == 2) {
+        DrawModelEx(ASSET(openHopoNote),
+                    position,
+                    { 0 },
+                    0,
+                    {width/5.0f, track->NoteHeight, 1},
+                    WHITE);
+
+    } else {
+        DrawModelEx(ASSET(openNote),
+                    position,
+                    { 0 },
+                    0,
+                    {width/5.0f, track->NoteHeight, 1},
+                    WHITE);
+    }
 }
 
 void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime, Color color, float whammy) {
