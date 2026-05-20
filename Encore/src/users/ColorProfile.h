@@ -41,6 +41,7 @@ namespace Encore {
             BLUE, // RIDE
             GREEN // CRASH
         };
+        bool builtin = false;
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(
             ColorProfile,
             Name,

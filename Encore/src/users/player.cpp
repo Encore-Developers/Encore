@@ -11,6 +11,8 @@
 
 #include <random>
 #include <nlohmann/json.hpp>
+
+#include "profiles/ProfileManager.h"
 /*
 void PlayerGameplayStats::AddHealth() {
     //if (Overdrive) {
@@ -328,14 +330,14 @@ void Player::ResetGameplayStats() {
 }
 
 Encore::ColorProfile *Player::GetColorProfile() const {
-    if (colorProfile) {
-        return colorProfile;
+    if (TheProfileManager.ColorProfiles.contains(colorProfile)) {
+        return &TheProfileManager.ColorProfiles.find(colorProfile)->second;
     } else {
         return &Encore::defaultProfile;
     }
 }
 
-void Player::SetColorProfile(Encore::ColorProfile* profile) {
+void Player::SetColorProfile(const std::string &profile) {
     colorProfile = profile;
 }
 

@@ -517,11 +517,11 @@ void OvershellMenu::DrawOvershell() {
             EndBlendMode();
             int pos = 0;
             if (!TheProfileManager.ColorProfiles.empty()) {
-                for (int x = 0; x < TheProfileManager.ColorProfiles.size(); x++) {
+                for (auto &x : TheProfileManager.ColorProfiles) {
                     if (OvershellButton(
-                                i, pos + 1, TheProfileManager.ColorProfiles[x].Name
+                                i, pos + 1, x.second.Name
                             )) {
-                        playerManager.GetActivePlayer(i).SetColorProfile(&TheProfileManager.ColorProfiles[x]);
+                        playerManager.GetActivePlayer(i).SetColorProfile(x.second.Name);
                         OvershellState[i] = OS_OPTIONS;
                             }
                     pos++;

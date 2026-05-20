@@ -214,52 +214,52 @@ void EncoreDebug::DrawColorProfileSettings() {
         }
 
         if (BeginTabBar("Profiles")) {
-            for (Encore::ColorProfile &profile : TheProfileManager.ColorProfiles) {
+            for (auto &profile : TheProfileManager.ColorProfiles) {
 
 
                 if (BeginTabItem(
-                    (profile.Name + TextFormat("###%x", &profile.Name)).c_str())) {
+                    (profile.second.Name + TextFormat("###%x", &profile.second.Name)).c_str())) {
                     bool disabled = false;
-                    if (&profile == &TheProfileManager.ColorProfiles.at(0) || &profile == &TheProfileManager.ColorProfiles.at(1)) {
+                    if (profile.second.builtin) {
                         Text("%s", "Cannot edit default color profile.");
                         BeginDisabled();
                         disabled = true;
                     }
-                    InputText("Profile Name", &profile.Name);
+                    InputText("Profile Name", &profile.second.Name);
                     ColorEdit("Overdrive",
-                              &profile.colors[Encore::SLOT_OVERDRIVE],
+                              &profile.second.colors[Encore::SLOT_OVERDRIVE],
                               0);
                     SeparatorText(" ");
                     ColorEdit("Green",
-                              &profile.colors[Encore::SLOT_GREEN],
+                              &profile.second.colors[Encore::SLOT_GREEN],
                               0);
                     ColorEdit("Red",
-                              &profile.colors[Encore::SLOT_RED],
+                              &profile.second.colors[Encore::SLOT_RED],
                               0);
                     ColorEdit("Yellow",
-                              &profile.colors[Encore::SLOT_YELLOW],
+                              &profile.second.colors[Encore::SLOT_YELLOW],
                               0);
                     ColorEdit("Blue",
-                              &profile.colors[Encore::SLOT_BLUE],
+                              &profile.second.colors[Encore::SLOT_BLUE],
                               0);
                     ColorEdit("Orange",
-                              &profile.colors[Encore::SLOT_ORANGE],
+                              &profile.second.colors[Encore::SLOT_ORANGE],
                               0);
                     ColorEdit("Open",
-                              &profile.colors[Encore::SLOT_OPEN],
+                              &profile.second.colors[Encore::SLOT_OPEN],
                               0);
                     SeparatorText("Drums Colors");
                     ColorEdit("Kick",
-                              &profile.colors[Encore::SLOT_KICK],
+                              &profile.second.colors[Encore::SLOT_KICK],
                               0);
                     ColorEdit("Yellow Cymbal",
-                              &profile.colors[Encore::SLOT_HIHAT],
+                              &profile.second.colors[Encore::SLOT_HIHAT],
                               0);
                     ColorEdit("Blue Cymbal",
-                              &profile.colors[Encore::SLOT_RIDE],
+                              &profile.second.colors[Encore::SLOT_RIDE],
                               0);
                     ColorEdit("Green Cymbal",
-                              &profile.colors[Encore::SLOT_CRASH],
+                              &profile.second.colors[Encore::SLOT_CRASH],
                               0);
 
                     if (disabled) {
@@ -506,10 +506,9 @@ void EncoreDebug::DrawPlayerManager() {
                     // it doesnt get set to a nullptr??? but it gets set to some fucking random memory address and eugh
                     // close this when making a new color profile
                     if (BeginCombo("Color Profiles", player.GetColorProfile()->Name.c_str())) {
-                        for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
-                            Encore::ColorProfile* profile = &TheProfileManager.ColorProfiles[i];
-                            if (Selectable(profile->Name.c_str())) {
-                                player.SetColorProfile(profile);
+                        for (auto i : TheProfileManager.ColorProfiles) {
+                            if (Selectable(i.second.Name.c_str())) {
+                                player.SetColorProfile(i.second.Name);
                             }
                         }
                         EndCombo();

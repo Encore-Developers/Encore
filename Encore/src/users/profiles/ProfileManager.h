@@ -8,7 +8,7 @@ namespace Encore {
     {
         std::filesystem::path ColorProfilesPath;
     public:
-        std::vector<ColorProfile> ColorProfiles;
+        std::unordered_map<std::string, ColorProfile> ColorProfiles;
         void SetColorProfilesPath(const std::filesystem::path& path) {
             if (!exists(path)) {
                 create_directory(path);
@@ -17,12 +17,14 @@ namespace Encore {
         }
         void LoadColorProfiles();
         void CreateColorProfile() {
-            ColorProfiles.emplace_back(ColorProfile());
+            ColorProfiles.emplace("New Profile", ColorProfile("New Profile"));
         }
         void SaveColorProfiles();
         ProfileManager() {
-            ColorProfiles.emplace_back(defaultProfile);
-            ColorProfiles.emplace_back(transgender);
+            defaultProfile.builtin = true;
+            transgender.builtin = true;
+            ColorProfiles.emplace(defaultProfile.Name, defaultProfile);
+            ColorProfiles.emplace(transgender.Name, transgender);
         };
     };
 }

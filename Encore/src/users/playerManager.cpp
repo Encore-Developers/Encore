@@ -33,10 +33,7 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
 
             std::string profileName = jsonObject.value().value("colorProfile", "!.2#/*");
             for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
-                Encore::ColorProfile &profile = TheProfileManager.ColorProfiles[i];
-                if (profile.Name == profileName) {
-                    newPlayer.SetColorProfile(&profile);
-                }
+                newPlayer.SetColorProfile(profileName);
             }
 
             if (!jsonObject.value()["accentColor"].is_null()) {
