@@ -211,11 +211,9 @@ void MainMenu::PickRandomMenuSong() {
                 TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
             if (i == PartVocals)
                 Volume = 0;
-            TheAudioManager.SetAudioStreamVolume(
-                TheAudioManager.loadedStreams[i].handle, Volume
-            );
+            TheAudioManager.loadedStreams[i]->SetVolume(Volume);
         }
-        TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
+        TheAudioManager.playStreams();
     }
 }
 void MainMenu::Load() {
@@ -638,9 +636,7 @@ void MainMenu::Draw() {
                 TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
             if (i == PartVocals)
                 Volume = 0;
-            TheAudioManager.SetAudioStreamVolume(
-                TheAudioManager.loadedStreams[i].handle, Volume
-            );
+            TheAudioManager.loadedStreams[i]->SetVolume(Volume);
         }
         if (played >= length - 0.5) {
             TheAudioManager.unloadStreams();

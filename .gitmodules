@@ -7,3 +7,6 @@
 [submodule "Encore/thirdparty/opensource"]
 	path = Encore/thirdparty/opensource
 	url = https://github.com/YARC-Official/OpenSource.git
+[submodule "Encore/thirdparty/sdl_mixer"]
+	path = Encore/thirdparty/sdl_mixer
+	url = https://github.com/libsdl-org/SDL_mixer.git

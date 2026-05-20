@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <string>
+#include "SDL3_mixer/SDL_mixer.h"
 
 // change this to allow a sound effect to repeat more
 #define MAX_SAMPLE_CHANNELS 8
@@ -12,13 +13,24 @@ namespace Encore {
     class AudioManager {
     public:
 
-        struct AudioStream {
-            unsigned int handle = 0;
+        MIX_Mixer* mixer = 0;
+        class AudioStream {
+        public:
+            MIX_Track* track = 0;
+            MIX_Audio* audio = 0;
             float volume = 1.0;
             int instrument = 0;
             unsigned long fxhandle = 0;
+
+            AudioStream(const std::string& path, int instrument);
+            AudioStream(const AudioStream&) = delete;
+
+            void SetVolume(float volume);
+            void Seek(double time) const;
+
+            ~AudioStream();
         };
-        std::vector<AudioStream> loadedStreams; // Loaded audio streams
+        std::vector<std::shared_ptr<AudioStream>> loadedStreams; // Loaded audio streams
 
         float songSpeed = 1.0;
         float debugSpeed = 1.0;
@@ -30,22 +42,18 @@ namespace Encore {
         void loadStreams(std::vector<std::pair<std::string, int> > paths);
         void unloadStreams();
         void pauseStreams() const;
-        void playStreams() const;
+        void playStreams(double time = 0) const;
         void restartStreams() const;
         void seekStreams(double time) const;
+        void stopStreams() const;
         // Audio stream information
         double GetMusicTimePlayed() const;
         [[nodiscard]] double GetMusicTimeLength() const;
 
         // Audio stream control
-        static void UpdateMusicStream(unsigned int handle);
         void unpauseStreams() const;
         void UpdateAudioStreamVolumes();
         AudioStream* GetAudioStreamByInstrument(int instrument);
-        static void SetAudioStreamVolume(unsigned int handle, float volume);
-        static void SetAudioStreamPosition(unsigned int handle, double time);
-        static void BeginPlayback(unsigned int handle);
-        static void StopPlayback(unsigned int handle);
 
         // Load and play samples
         void playSample(unsigned long sample, float volume);

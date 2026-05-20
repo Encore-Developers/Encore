@@ -196,12 +196,7 @@ void SongSelectMenu::Load() {
 }
 
 void SongSelectMenu::StopPreview() {
-    if (!TheAudioManager.loadedStreams.empty()) {
-        for (auto &stream : TheAudioManager.loadedStreams) {
-            TheAudioManager.StopPlayback(stream.handle);
-        }
-        TheAudioManager.loadedStreams.clear();
-    }
+    TheAudioManager.unloadStreams();
 }
 
 void SongSelectMenu::Unload() {
@@ -256,9 +251,7 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
                 float previewStartTimeSec = TheSongList.curSong->previewStartTime /
                     1000.0f;
                 TheAudioManager.seekStreams(previewStartTimeSec);
-                for (auto &stream : TheAudioManager.loadedStreams) {
-                    TheAudioManager.BeginPlayback(stream.handle);
-                }
+                TheAudioManager.playStreams();
             }
         }
         break;
@@ -268,8 +261,7 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
         float volume = currentPreviewVolume;
         if (i == PartVocals)
             volume = 0;
-        TheAudioManager.SetAudioStreamVolume(TheAudioManager.loadedStreams[i].handle,
-                                             volume);
+        TheAudioManager.loadedStreams[i]->SetVolume(volume);
     }
 }
 
@@ -312,17 +304,13 @@ void SongSelectMenu::LoadPreview(Song &song) {
             song
             .previewStartTime
             / 1000.0f;
-        TheAudioManager.seekStreams(previewStartTimeSec);
         for (int j = 0; j < TheAudioManager.loadedStreams.size(); j++) {
             float volume = 0.0f;
             if (j == PartVocals)
                 volume = 0;
-            TheAudioManager.SetAudioStreamVolume(
-                TheAudioManager.loadedStreams[j].handle,
-                volume
-            );
-            TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[j].handle);
+            TheAudioManager.loadedStreams[j]->SetVolume(volume);
         }
+        TheAudioManager.playStreams(previewStartTimeSec);
         previewStartTime = curTime;
         phaseStartTime = curTime;
         currentPreviewVolume = 0.0f;
@@ -858,12 +846,7 @@ void SongSelectMenu::Draw() {
                              ButtonTop, ButtonWidth,
                              u.hinpct(0.05f) },
                   "       Back")) {
-        if (!TheAudioManager.loadedStreams.empty()) {
-            for (auto &stream : TheAudioManager.loadedStreams) {
-                TheAudioManager.StopPlayback(stream.handle);
-            }
-            TheAudioManager.loadedStreams.clear();
-        }
+        TheAudioManager.unloadStreams();
         Unload();
         TheMenuManager.SwitchScreen(MAIN_MENU);
     }

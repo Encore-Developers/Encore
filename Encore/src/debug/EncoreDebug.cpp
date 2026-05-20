@@ -664,12 +664,7 @@ void EncoreDebug::DrawSongList() {
 
                 TableSetColumnIndex(0);
                 if (SmallButton("Play")) {
-                    if (!TheAudioManager.loadedStreams.empty()) {
-                        for (auto& stream : TheAudioManager.loadedStreams) {
-                            TheAudioManager.StopPlayback(stream.handle);
-                        }
-                        TheAudioManager.loadedStreams.clear();
-                    }
+                    TheAudioManager.unloadStreams();
                     TheSongList.curSong = song;
                     TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
                     TheMenuManager.SwitchScreen(READY_UP);

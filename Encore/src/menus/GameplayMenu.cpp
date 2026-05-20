@@ -361,7 +361,8 @@ void GameplayMenu::Draw() {
         double songEnd = floor(TheAudioManager.GetMusicTimeLength());
         TheAudioManager.UpdateAudioStreamVolumes();
         TheSongTime.Start(songEnd);
-        TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
+        //TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
+        TheAudioManager.playStreams();
         songPlaying = true;
     }
     // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
@@ -600,7 +601,7 @@ void GameplayMenu::Load() {
     if (EndEvent > LastNote) End = EndEvent;
     TheSongList.curSong->end = End;
     for (auto &stream : TheAudioManager.loadedStreams) {
-        stream.volume =
+        stream->volume =
             TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
     }
 

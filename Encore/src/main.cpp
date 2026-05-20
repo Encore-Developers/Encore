@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
         TheMenuManager.currentScreen = MAIN_MENU;
     }
 
-    ControllerPoller poller;
+    //ControllerPoller poller;
 
 
     if (TheGameSettings.Framerate > 0)
@@ -314,7 +314,7 @@ int main(int argc, char *argv[]) {
         glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
-        PollQueuedInputs(poller);
+        //PollQueuedInputs(poller);
         TheArtLoader.Poll();
 
         if (GetRenderWidth() < minWidth) {
@@ -404,7 +404,7 @@ int main(int argc, char *argv[]) {
         TheFrameManager.WaitForFrame();
         FrameMark;
     }
-    poller.active = false;
+    //poller.active = false;
     CloseWindow();
     return 0;
 }
