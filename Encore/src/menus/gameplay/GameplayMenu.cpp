@@ -33,6 +33,7 @@ GameplayMenu::GameplayMenu() {
 }
 
 GameplayMenu::~GameplayMenu() {
+    ShowCursor();
 }
 
 bool GameplayMenu::CheckPauseInput(Encore::RhythmEngine::ControllerEvent event) {
@@ -350,6 +351,11 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
 void GameplayMenu::Draw() {
     UpdatePauseState();
     UIInput = IsPaused();
+    if (IsPaused()) {
+        ShowCursor();
+    } else {
+        HideCursor();
+    }
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
