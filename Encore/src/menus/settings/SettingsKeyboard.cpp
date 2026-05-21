@@ -172,10 +172,15 @@ void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, 
 }
 
 void SettingsKeyboard::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    //if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
-    //    Save();
-    //    TheMenuManager.SwitchScreen(SETTINGS);
-    //}
+    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+        switch (event.channel) {
+        case Encore::RhythmEngine::InputChannel::LANE_2: {
+            Save();
+            TheMenuManager.SwitchScreen(SETTINGS);
+            break;
+        }
+        }
+    }
 }
 
 void SettingsKeyboard::Load() {

@@ -210,6 +210,14 @@ void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int 
 }
 
 void SettingsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+        switch (event.channel) {
+        case Encore::RhythmEngine::InputChannel::LANE_2: {
+            TheMenuManager.SwitchScreen(MAIN_MENU);
+            break;
+        }
+        }
+    }
 }
 
 void SettingsMenu::Load() {

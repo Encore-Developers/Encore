@@ -330,6 +330,15 @@ void SettingsGameplay::KeyboardInputCallback(int key, int scancode, int action, 
 }
 
 void SettingsGameplay::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+        switch (event.channel) {
+        case Encore::RhythmEngine::InputChannel::LANE_2: {
+            Save();
+            TheMenuManager.SwitchScreen(SETTINGS);
+            break;
+        }
+        }
+    }
     //if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
     //    Save();
     //    TheMenuManager.SwitchScreen(SETTINGS);

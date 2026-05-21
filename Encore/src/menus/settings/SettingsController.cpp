@@ -340,6 +340,15 @@ void SettingsController::KeyboardInputCallback(int key, int scancode, int action
 }
 
 void SettingsController::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+        switch (event.channel) {
+        case Encore::RhythmEngine::InputChannel::LANE_2: {
+            Save();
+            TheMenuManager.SwitchScreen(SETTINGS);
+            break;
+        }
+        }
+    }
     /*
     static GLFWgamepadstate prevState;
     static std::vector<float> debounceTimers(GLFW_GAMEPAD_AXIS_LAST + 1, 0.0f);
