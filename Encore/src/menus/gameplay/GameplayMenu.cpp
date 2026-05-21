@@ -18,6 +18,7 @@
 #include "../MenuManager.h"
 #include "../overshell/OvershellHelper.h"
 #include "../../settings/settings.h"
+#include "debug/EncoreDebug.h"
 
 #include <raylib.h>
 
@@ -351,7 +352,7 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
 void GameplayMenu::Draw() {
     UpdatePauseState();
     UIInput = IsPaused();
-    if (IsPaused()) {
+    if (IsPaused() || EncoreDebug::showDebug) {
         ShowCursor();
     } else {
         HideCursor();
