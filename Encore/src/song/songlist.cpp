@@ -164,7 +164,9 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     directoryCount++;
 
     auto infoPath = folder / "song.ini";
-    if (std::filesystem::exists(infoPath)) {
+    auto midiPath = folder / "notes.mid";
+
+    if (std::filesystem::exists(infoPath) && std::filesystem::exists(midiPath)) {
         Song song;
         song.songInfoPath = infoPath;
         song.songDir = folder.string();
