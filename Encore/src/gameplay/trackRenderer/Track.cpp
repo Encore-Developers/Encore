@@ -301,7 +301,7 @@ void Encore::Track::DrawUsername() {
     std::string NameText = player.Name;
     if (player.engine->stats->Bot) {
         color = SKYBLUE;
-        NameText += " (BOT)";
+        NameText += " (AUTOPLAY)";
     }
     screenPos.x += Offset * GetRenderWidth() * 0.5;
     screenPos.y = GetRenderHeight() - u.hinpct(0.045f);

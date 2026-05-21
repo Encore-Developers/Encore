@@ -110,7 +110,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
 void OvershellMenu::DrawOvershell() {
     Assets &assets = Assets::getInstance();
     Units &unit = Units::getInstance();
-    float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
+float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
     float InnerBottom = BottomBottomOvershell + unit.hinpct(0.005f);
     DrawRectangle(
         0, BottomBottomOvershell, (float)GetRenderWidth(), (float)GetRenderHeight(), WHITE
@@ -352,7 +352,7 @@ void OvershellMenu::DrawOvershell() {
                 playerManager.GetActivePlayer(i).BrutalMode =
                 OvershellCheckbox(i, curSlot--, "Brutal Mode", playerManager.GetActivePlayer(i).BrutalMode);
                 playerManager.GetActivePlayer(i).Bot =
-                    OvershellCheckbox(i, curSlot--, "Bot", playerManager.GetActivePlayer(i).Bot);
+                    OvershellCheckbox(i, curSlot--, "Autoplay", playerManager.GetActivePlayer(i).Bot);
             }
             playerManager.GetActivePlayer(i).LeftyFlip = OvershellCheckbox(
                 i, curSlot--, "Lefty Flip", playerManager.GetActivePlayer(i).LeftyFlip

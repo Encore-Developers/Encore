@@ -305,7 +305,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     //    ImportantInfoTextColor = RED;
    // }
     if (player.Bot) {
-        ImportantInfoText = "BOT";
+        ImportantInfoText = "Autoplay";
         ImportantInfoTextColor = SKYBLUE;
     }
     GameMenu::mhDrawText(
