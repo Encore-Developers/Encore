@@ -16,7 +16,7 @@
 #include <cstring>
 
 #include "RhythmEngine/REenums.h"
-#include "menus/OvershellMenu.h"
+#include "../menus/overshell/OvershellMenu.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"

@@ -10,7 +10,7 @@
 #include "settings/settings.h"
 #include "util/frame-manager.h"
 #include "gameplay/trackRenderer/Track.h"
-#include "menus/GameplayMenu.h"
+#include "../menus/gameplay/GameplayMenu.h"
 #include "menus/MenuManager.h"
 #include "song/audio.h"
 #include "song/song.h"

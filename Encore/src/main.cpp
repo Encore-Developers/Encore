@@ -55,11 +55,11 @@
 #include "menus/uiUnits.h"
 
 #include "settings/settings.h"
-#include "menus/SettingsAudioVideo.h"
-#include "menus/SettingsController.h"
-#include "menus/SettingsCredits.h"
-#include "menus/SettingsGameplay.h"
-#include "menus/SettingsKeyboard.h"
+#include "menus/settings/SettingsAudioVideo.h"
+#include "menus/settings/SettingsController.h"
+#include "menus/settings/SettingsCredits.h"
+#include "menus/settings/SettingsGameplay.h"
+#include "menus/settings/SettingsKeyboard.h"
 
 #include "menus/styles.h"
 #include "util/frame-manager.h"
