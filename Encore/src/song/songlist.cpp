@@ -20,7 +20,6 @@ std::filesystem::path SongList::badSongsPath() {
 }
 // sorting
 void SongList::Clear() {
-    std::filesystem::remove(badSongsPath());
     listMenuEntries.clear();
     songs.clear();
     songCount = 0;
@@ -159,7 +158,7 @@ void SongList::WriteCache() {
 }
 
 
-void SongList::ScanFolder(const std::filesystem::path &folder) {
+void SongList::ScanFolder(const std::filesystem::path &folder, std::ofstream &badSongs) {
     ZoneScoped
     if (!std::filesystem::is_directory(folder)) {
         return;
@@ -177,16 +176,12 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
             song.LoadSongIni(folder);
             songs.push_back(std::move(song));
         } else {
-            std::ofstream badSongs(badSongsPath(), std::ios::out | std::ios::app);
-
             badSongs << folder.string() << "\n";
-
-            badSongs.close();
         }
     } else {
         // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
-            ScanFolder(entry.path());
+            ScanFolder(entry.path(), badSongs);
         };
     }
 
@@ -198,18 +193,21 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     ZoneScoped
     Clear();
 
+    std::ofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc);
+
     for (const auto &folder : songsFolder) {
         if (!is_directory(folder)) {
             continue;
         }
         
-        ScanFolder(folder);
+        ScanFolder(folder, badSongs);
     }
 
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
     sortList(SortType::Title);
     curSong = nullptr;
+    badSongs.close();
 }
 
 std::string GetLengthHeader(int length) {

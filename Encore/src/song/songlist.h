@@ -103,7 +103,7 @@ public:
     void WriteCache();
 
     void ScanSongs(const std::vector<std::filesystem::path> &songsFolder);
-    void ScanFolder(const std::filesystem::path &folder);
+    void ScanFolder(const std::filesystem::path &folder, std::ofstream &badSongs);
 
     void GenerateSongEntriesWithHeaders(SortType sortType);
 
