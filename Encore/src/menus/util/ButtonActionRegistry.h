@@ -16,7 +16,7 @@ namespace Encore {
                 curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
             }
             if (buttMap.contains(event.channel)) {
-                buttMap.at(event.channel).RunAction(event.action, curSlot - 1);
+                buttMap.at(event.channel).RunAction(event.action, curSlot);
             }
         }
 
