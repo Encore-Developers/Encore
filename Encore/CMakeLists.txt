@@ -186,6 +186,6 @@ endif()
 set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
-
+target_include_directories(SDL3-static PUBLIC "include/gameinput")
 target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} ${STEAMAPI} SDL3::SDL3 Tracy::TracyClient)
 
