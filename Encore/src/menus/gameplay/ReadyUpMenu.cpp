@@ -25,7 +25,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
         if (event.slot == std::numeric_limits<unsigned int>::max())
             return;
 
-        buttReg.CallbackAction(event);
+        buttReg.HandleInput(event);
         if (event.action == Encore::RhythmEngine::Action::PRESS) {
             int diffCount = 0;
             SongPart& part = TheSongList.curSong->parts[player.Instrument];

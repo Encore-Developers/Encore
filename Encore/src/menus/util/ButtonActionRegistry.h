@@ -10,7 +10,7 @@ namespace Encore {
     public:
         std::map<RhythmEngine::InputChannel, ButtonAction> buttMap;
 
-        void CallbackAction(const RhythmEngine::ControllerEvent &event) {
+        void HandleInput(const RhythmEngine::ControllerEvent &event) {
             int curSlot = 0;
             if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
                 curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;

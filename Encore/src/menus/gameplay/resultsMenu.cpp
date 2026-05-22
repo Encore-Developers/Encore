@@ -14,7 +14,7 @@
 #include "song/OpenSource.h"
 
 void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    buttReg.CallbackAction(event);
+    buttReg.HandleInput(event);
 }
 void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
@@ -30,7 +30,7 @@ int FinalScore = 0;
 void resultsMenu::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "Back to Song Select", {
-        if (action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);

@@ -253,7 +253,7 @@ void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent eve
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
     }
-    buttReg.CallbackAction(event);
+    buttReg.HandleInput(event);
 }
 
 std::string version = ENCORE_VERSION;
