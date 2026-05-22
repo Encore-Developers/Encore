@@ -23,7 +23,7 @@
     OPTION(int, AudioOffset, 0)                                                          \
     OPTION(int, VideoOffset, 0)                                                          \
     OPTION(bool, DiscordRichPresence, true)                                              \
-    OPTION(int, Framerate, 60)                                                           \
+    OPTION(int, Framerate, 1000)                                                         \
     OPTION(bool, VerticalSync, true)                                                     \
     OPTION(bool, BackgroundBeatFlash, true)
 namespace Encore {
