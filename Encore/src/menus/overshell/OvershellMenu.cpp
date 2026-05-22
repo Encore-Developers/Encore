@@ -107,6 +107,13 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
     return false;
 }
 
+bool OvershellMenu::isOSOpen() {
+    for (const auto state : OvershellState) {
+        if (state != OS_ATTRACT) return true;
+    }
+    return false;
+}
+
 void OvershellMenu::DrawOvershell() {
     Assets &assets = Assets::getInstance();
     Units &unit = Units::getInstance();

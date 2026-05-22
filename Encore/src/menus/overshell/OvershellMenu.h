@@ -64,6 +64,7 @@ public:
     SDL_JoystickID ControllersToAssign[4] = {0, 0, 0, 0};
     int OvershellState[4] { OS_ATTRACT, OS_ATTRACT, OS_ATTRACT, OS_ATTRACT };
     int AvailableControllers = 0;
+    bool isOSOpen();
     bool dropInDropOut = true;
     virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) = 0;
     virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) = 0;
