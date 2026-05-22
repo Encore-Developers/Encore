@@ -160,8 +160,8 @@ public:
 
     std::filesystem::path midiPath = "";
 
-    std::string songDir = "";
-    std::string albumArtPath = "";
+    std::filesystem::path songDir = "";
+    std::filesystem::path albumArtPath = "";
     std::filesystem::path songInfoPath = "";
     std::string releaseYear = "";
     std::string loadingPhrase = "";
@@ -169,7 +169,7 @@ public:
     std::string jsonHash = "";
     int hopoThreshold = -1;
     smf::MidiFile midiFile;
-    std::vector<std::pair<std::string, int>> LoadAudioINI();
+    std::vector<std::pair<std::filesystem::path, int>> LoadAudioINI();
     float previewStartTime = 0.0f;
 
     SongParts GetSongPart(smf::MidiEventList track) {

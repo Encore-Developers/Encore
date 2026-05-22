@@ -8,7 +8,7 @@ namespace Encore {
     {
         std::filesystem::path ColorProfilesPath;
     public:
-        std::unordered_map<std::string, ColorProfile> ColorProfiles;
+        std::map<std::string, ColorProfile> ColorProfiles;
         void SetColorProfilesPath(const std::filesystem::path& path) {
             if (!exists(path)) {
                 create_directory(path);

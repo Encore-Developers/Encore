@@ -55,7 +55,7 @@ bool Encore::AudioManager::Init() {
     return true;
 }
 
-void Encore::AudioManager::loadStreams(std::vector<std::pair<std::string, int>> paths) {
+void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::path, int>> paths) {
     ZoneScoped;
     int streams = 0;
     for (auto &path : paths) {

@@ -19,16 +19,10 @@ std::map<std::string, int> IniStems = {
 void Song::LoadInfoINI(std::filesystem::path iniPath) {
     for (const auto &entry : std::filesystem::directory_iterator(iniPath.parent_path())) {
         if (entry.is_regular_file()) {
-            std::string base_filename = entry.path().string().substr(
-                entry.path().string().find_last_of("/\\") + 1
-            );
-            std::string::size_type const p(base_filename.find_last_of('.'));
-            std::string file_without_extension = base_filename.substr(0, p);
-
-            if (file_without_extension == "album") {
-                albumArtPath = entry.path().string();
+            if (entry.path().stem() == "album") {
+                albumArtPath = entry.path();
             }
-            if (base_filename == "notes.mid") {
+            if (entry.path().filename() == "notes.mid") {
                 midiPath = entry.path();
             }
         }
@@ -83,16 +77,10 @@ void Song::PullInfoFromINI(INIReader &ini) {
 void Song::LoadSongIni(const std::filesystem::path& songPath) {
     for (const auto &entry : std::filesystem::directory_iterator(songPath)) {
         if (entry.is_regular_file()) {
-            std::string base_filename = entry.path().string().substr(
-                entry.path().string().find_last_of("/\\") + 1
-            );
-            std::string::size_type const p(base_filename.find_last_of('.'));
-            std::string file_without_extension = base_filename.substr(0, p);
-
-            if (file_without_extension == "album") {
-                albumArtPath = entry.path().string();
+            if (entry.path().stem() == "album") {
+                albumArtPath = entry.path();
             }
-            if (base_filename == "notes.mid") {
+            if (entry.path().filename() == "notes.mid") {
                 midiPath = entry.path();
             }
         }
@@ -103,20 +91,15 @@ void Song::LoadAlbumArt() {
     TheArtLoader.LoadAlbumArt(this);
 }
 
-std::vector<std::pair<std::string, int>> Song::LoadAudioINI() {
+std::vector<std::pair<std::filesystem::path, int>> Song::LoadAudioINI() {
     ZoneScoped
-    std::vector<std::pair<std::string, int>> stemsPath;
+    std::vector<std::pair<std::filesystem::path, int>> stemsPath;
     for (const auto &entry : std::filesystem::directory_iterator(songDir)) {
         if (entry.is_regular_file()) {
-            std::string base_filename = entry.path().string().substr(
-                entry.path().string().find_last_of("/\\") + 1
-            );
-            std::string::size_type const p(base_filename.find_last_of('.'));
-            std::string file_without_extension = base_filename.substr(0, p);
             for (auto filename : IniStems) {
-                if (file_without_extension == filename.first
-                    && base_filename != "song.ini") {
-                    stemsPath.push_back({ entry.path().string(), filename.second });
+                if (entry.path().stem() == filename.first
+                    && entry.path().filename() != "song.ini") {
+                    stemsPath.push_back({ entry.path(), filename.second });
                 }
             }
         }

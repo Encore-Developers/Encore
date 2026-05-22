@@ -16,7 +16,7 @@ namespace Encore {
                 curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
             }
             if (buttMap.contains(event.channel)) {
-                buttMap.at(event.channel).RunAction(event.action, curSlot);
+                buttMap.at(event.channel).RunAction(event.action, curSlot - 1);
             }
         }
 
@@ -28,5 +28,5 @@ namespace Encore {
 // write lambdas yourself
 #define NEWBUTTONACTION(reg, lane, name, ...) reg.buttMap.emplace(Encore::RhythmEngine::InputChannel::lane, Encore::ButtonAction{name, __VA_ARGS__});
 
-// autofills most lambda information
+// autofills most lambda information, _action for action, slot for slot int
 #define NEWBUTTONACTION2(reg, lane, name, ...) reg.buttMap.emplace(Encore::RhythmEngine::InputChannel::lane, Encore::ButtonAction{name, [this](Encore::RhythmEngine::Action _action, int slot)__VA_ARGS__});

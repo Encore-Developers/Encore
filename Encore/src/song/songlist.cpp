@@ -137,8 +137,8 @@ void SongList::WriteCache() {
     SongCache << (size_t)songs.size();
 
     for (const auto &song : songs) {
-        SongCache << song.songDir;
-        SongCache << song.albumArtPath;
+        SongCache << song.songDir.string();
+        SongCache << song.albumArtPath.string();
         SongCache << song.songInfoPath.string();
         SongCache << song.midiPath.string();
         std::ifstream songInfo(song.songInfoPath);
@@ -172,7 +172,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::ofstream &ba
         if (std::filesystem::exists(folder / "notes.mid")) {
             Song song;
             song.songInfoPath = infoPath;
-            song.songDir = folder.string();
+            song.songDir = folder;
             song.LoadSongIni(folder);
             songs.push_back(std::move(song));
         } else {
@@ -316,7 +316,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     // Load cached songs
     Clear();
     Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
-    std::set<std::string> loadedSongs; // To track loaded songs and avoid duplicates
+    std::set<std::filesystem::path> loadedSongs; // To track loaded songs and avoid duplicates
     songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
     for (size_t i = 0; i < cachedSongCount; i++) {
@@ -325,8 +325,13 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         Song song;
 
         // Read cache values
-        SongCacheIn >> song.songDir;
-        SongCacheIn >> song.albumArtPath;
+        std::string dir;
+        SongCacheIn >> dir;
+        song.songDir = dir;
+
+        std::string art;
+        SongCacheIn >> art;
+        song.albumArtPath = art;
 
         std::string infopath;
         SongCacheIn >> infopath;

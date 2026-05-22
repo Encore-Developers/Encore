@@ -184,7 +184,7 @@ bool imGuiLoaded = false;
 ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
-
+    std::locale::global(std::locale{".utf-8"});
 #ifdef STEAM
     if (SteamAPI_RestartAppIfNecessary(4691230)) {
         return 1;
