@@ -1,11 +1,13 @@
 #pragma once
 #include "ButtonAction.h"
 
+#include <map>
+
 namespace Encore {
     class ButtonActionRegistry
     {
     public:
-        std::unordered_map<RhythmEngine::InputChannel, ButtonAction> buttMap;
+        std::map<RhythmEngine::InputChannel, ButtonAction> buttMap;
 
         void CallbackAction(RhythmEngine::InputChannel channel, RhythmEngine::Action action, int slot) {
             if (buttMap.contains(channel)) {
