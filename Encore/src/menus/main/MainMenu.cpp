@@ -419,7 +419,7 @@ void MainMenu::MainMenuScreen() {
     GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0x00000000);
     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x00000000);
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
-    if (GuiButton({ 0, u.hpct(0.8f), u.LeftSide + SplashWidth, u.hpct(0.05f) }, "")) {
+    if (GuiButton({ 0, u.hpct(0.8f), u.LeftSide + SplashWidth, u.hpct(0.05f) }, "") && !isOSOpen()) {
         ChooseSplashText(directory);
     }
     float LeftMMButton = u.wpct(0.03f);
@@ -428,7 +428,7 @@ void MainMenu::MainMenuScreen() {
             if (GuiButton(
                     { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
                     "Play"
-                )) {
+                ) && !isOSOpen()) {
                 GotoSongSelect();
             }
             GameMenu::mhDrawText(ASSET(rubikBold), "A", {u.wpct(0.02f), u.hpct(0.325f)}, u.hinpct(0.03f), GREEN, ASSET(sdfShader), RIGHT);
@@ -458,13 +458,13 @@ void MainMenu::MainMenuScreen() {
     }
     if (GuiButton(
             { LeftMMButton, u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, "Options"
-        )) {
+        ) && !isOSOpen()) {
         // glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
         TheMenuManager.SwitchScreen(SETTINGS);
     }
     if (GuiButton(
             { LeftMMButton, u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, "Quit"
-        )) {
+        ) && !isOSOpen()) {
         // goes back to attract
         for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
             // Checking for OS_ATTRACT here will result in strange behavior

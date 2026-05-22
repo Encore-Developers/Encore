@@ -136,7 +136,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                 u.hinpct(0.05f)
             };
 
-            if (GuiButton(pos, "")) {
+            if (GuiButton(pos, "") && !isOSOpen()) {
                 ControllerDiffSlot[playerInt] = i;
                 SlotState[playerInt] = READY;
                 ReadyState[playerInt] = true;
@@ -182,7 +182,6 @@ void ReadyUpMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units &u = Units::getInstance();
     GameMenu::DrawAlbumArtBackground();
-
     float AlbumArtLeft = u.LeftSide;
     float AlbumArtTop = u.hpct(0.05f);
     float AlbumArtRight = u.winpct(0.15f);
@@ -284,7 +283,7 @@ void ReadyUpMenu::Draw() {
                 std::string PartAndDiff = std::to_string(
                         TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7" +
                     PartName;
-                if (GuiButton(pos, "")) {
+                if (GuiButton(pos, "") && !isOSOpen()) {
                     ControllerInstSlot[playerInt] = i;
                     SlotState[playerInt] = DIFFICULTY;
                     player.Instrument = PartsToDisplay[i];
@@ -320,7 +319,7 @@ void ReadyUpMenu::Draw() {
                   u.winpct(0.2f),
                   u.hinpct(0.05f) },
                 ""
-            )) {
+            ) && !isOSOpen()) {
                 SlotState[playerInt] = DIFFICULTY;
                 ReadyState[playerInt] = false;
             }
@@ -355,7 +354,7 @@ void ReadyUpMenu::Draw() {
                   u.winpct(0.2f),
                   u.hinpct(0.05f) },
                 ""
-            )) {
+            ) && !isOSOpen()) {
                 SlotState[playerInt] = INSTRUMENT;
                 ReadyState[playerInt] = false;
             }
@@ -391,16 +390,16 @@ void ReadyUpMenu::Draw() {
             );
             GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x751D4AFF);
             GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0xA82A6BFF);
-            if (GuiButton(
-                { xPosOfMenu,
-                  BottomOvershell,
-                  u.winpct(0.2f),
-                  u.hinpct(0.05f) },
-                "Go Back"
-            )) {
-                SlotState[playerInt] = INSTRUMENT;
-                ReadyState[playerInt] = false;
-            }
+            //if (GuiButton(
+            //    { xPosOfMenu,
+            //      BottomOvershell,
+            //      u.winpct(0.2f),
+            //      u.hinpct(0.05f) },
+            //    "Go Back"
+            //)) {
+            //    SlotState[playerInt] = INSTRUMENT;
+            //    ReadyState[playerInt] = false;
+            //}
             GuiSetStyle(
                 BUTTON,
                 BASE_COLOR_FOCUSED,
