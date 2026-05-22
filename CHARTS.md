@@ -18,7 +18,7 @@ This is a regular CH/RB midi file. Any 5-fret/Classic chart should be in a track
 | Bass/Groove | `PART_BASS`  | `PAD_BASS`  |
 | Vocals*     | `PART_VOCALS` | `PAD_VOCALS` |
 | Keys        | `PART_KEYS`  | `PAD_KEYS`  |
-| Drums**     | `PART_DRUMS`  | `PAD_KEYS`   |  
+| Drums**     | `PART_DRUMS`  | `PAD_DRUMS`   |  
 *Only supports lyrics display at the moment  
 **Only supports 4 lane/Pro drums
 
