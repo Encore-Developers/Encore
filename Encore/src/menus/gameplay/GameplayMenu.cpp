@@ -660,30 +660,37 @@ void GameplayMenu::DrawPauseMenu() {
     float BottomOvershell = u.hpct(1) - u.hinpct(0.15f);
     float TextPlacementTB = AlbumArtTop;
     float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
-    DrawTextEx(
-        assets.redHatDisplayItalic,
+    GameMenu::mhDrawText(
+        ASSET(redHatDisplayItalic),
         TheSongList.curSong->title.c_str(),
         { TextPlacementLR, TextPlacementTB },
         u.hinpct(0.05f),
-        0,
-        WHITE
+        WHITE,
+        ASSET(sdfShader),
+        LEFT
     );
-    DrawTextEx(
-        assets.rubikItalic,
+    GameMenu::mhDrawText(
+        ASSET(rubikItalic),
         TheSongList.curSong->artist.c_str(),
         { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
         u.hinpct(0.04f),
-        0,
-        WHITE
+        WHITE,
+            ASSET(sdfShader),
+            LEFT
+    );
+    const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
+        {TextPlacementLR, TextPlacementTB + u.hinpct(0.095f), u.hinpct(0.04f), u.hinpct(0.04f)}, {0,0}, 0, WHITE
     );
     if (!TheSongList.curSong->charters.empty()) {
-        DrawTextEx(
-            assets.rubikItalic,
-            TheSongList.curSong->charters[0].c_str(),
-            { TextPlacementLR, TextPlacementTB + u.hinpct(0.095f) },
+        GameMenu::mhDrawText(
+            ASSET(rubikItalic),
+            TheSongList.curSong->charters[0],
+            { TextPlacementLR + u.hinpct(0.05f), TextPlacementTB + u.hinpct(0.095f) },
             u.hinpct(0.04f),
-            0,
-            WHITE
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
         );
     }
     GameMenu::DrawBottomOvershell();
