@@ -7,6 +7,7 @@
 #ifdef STEAM
 #include "isteamfriends.h"
 #include "isteamutils.h"
+#include "isteaminput.h"
 #endif
 #include "discord-rpc/core.h"
 #include <array>
@@ -14,7 +15,6 @@
 #include <iostream>
 #include <chrono>
 
-#include "isteaminput.h"
 
 discord::Core* core{};
 
