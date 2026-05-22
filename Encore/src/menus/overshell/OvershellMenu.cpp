@@ -509,7 +509,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
             break;
         }
         case OS_COLOR_PROFILE_SELECTION: {
-            float InfoLoc = (TheProfileManager.ColorProfiles.size() + 2);
+            float InfoLoc = (TheProfileManager.ColorProfiles.size() + 1);
             if (OvershellButton(i, 0, "Cancel")) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_OPTIONS;
@@ -539,7 +539,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
             input.SetLength(pos + 1);
             DrawOvershellRectangleHeader(
                 OvershellLeftLoc,
-                OvershellTopLoc - (ButtonHeight * (pos+2)),
+                OvershellTopLoc - (ButtonHeight * (pos+1)),
                 unit.winpct(0.2f),
                 unit.winpct(0.05f),
                 playerManager.GetActivePlayer(i).Name,
@@ -548,7 +548,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                 false
             );
 
-            if (OvershellButton(i, pos + 1, "Select a profile")) {}
+            //if (OvershellButton(i, pos + 1, "Select a profile")) {}
             break;
         }
         }
