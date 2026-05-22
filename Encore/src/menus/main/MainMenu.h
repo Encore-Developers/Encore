@@ -8,6 +8,7 @@
 #include "assets.h"
 #include "users/player.h"
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
 #include "song/ArtLoader.h"
 
 enum TextAlign {
@@ -61,7 +62,7 @@ public:
 
     bool hehe = false;
     bool shouldBreak = false;
-
+    Encore::ButtonActionRegistry buttReg;
     MainMenu() {}
     ~MainMenu() {}
     void Draw();

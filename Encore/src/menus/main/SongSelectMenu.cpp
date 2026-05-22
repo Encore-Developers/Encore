@@ -104,6 +104,8 @@ void SongSelectMenu::ControllerInputCallback(
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
     }
+    buttReg.CallbackAction(event.channel, event.action, curSlot);
+    /*
     if (event.action == Encore::RhythmEngine::Action::PRESS) {
         switch (event.channel) {
         case Encore::RhythmEngine::InputChannel::STRUM_UP:
@@ -152,7 +154,7 @@ void SongSelectMenu::ControllerInputCallback(
             ControllerOrangeHeld.at(curSlot) = false;
             break;
         }
-    }
+    }*/
 }
 
 void SongSelectMenu::ScrollToCurrentSong() {
@@ -183,7 +185,53 @@ void SongSelectMenu::Load() {
     gameplaySet.StartLoad();
 
     ScrollToCurrentSong();
-
+    buttReg.buttMap.clear();
+    NEWBUTTONACTION(buttReg, LANE_1, "Play Song", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (!TheSongList.curSong) return;
+        Unload();
+        TheMenuManager.SwitchScreen(READY_UP);
+    })
+    NEWBUTTONACTION(buttReg, LANE_2, "Back", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (!TheSongList.curSong) return;
+        Unload();
+        TheMenuManager.SwitchScreen(MAIN_MENU);
+    })
+    NEWBUTTONACTION(buttReg, LANE_3, "Sort", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        currentSortValue = NextSortType(currentSortValue);
+        TheSongList.sortList(currentSortValue);
+        ScrollToCurrentSong();
+    })
+    NEWBUTTONACTION(buttReg, LANE_5, "Jump Headers", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action == Encore::RhythmEngine::Action::REPEAT) return;
+        ControllerOrangeHeld.at(slot) = _action == Encore::RhythmEngine::Action::PRESS;
+    })
+    NEWBUTTONACTION(buttReg, INPUT_LEFT, "PgUp", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        ScrollSongSelect(5);
+    }, false)
+    NEWBUTTONACTION(buttReg, INPUT_RIGHT, "PgDn", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        ScrollSongSelect(-5);
+    }, false)
+    NEWBUTTONACTION(buttReg, STRUM_UP, "Up", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ControllerOrangeHeld.at(slot)) {
+            ScrollUpHeader();
+        } else {
+            ScrollSongSelect(1);
+        }
+    }, false)
+    NEWBUTTONACTION(buttReg, STRUM_DOWN, "Down", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ControllerOrangeHeld.at(slot)) {
+            ScrollDownHeader();
+        } else {
+            ScrollSongSelect(-1);
+        }
+    }, false)
     // TheGameRenderer.streamsLoaded = false;
     // TheGameRenderer.midiLoaded = false;
     // for (Song& song : TheSongList.sortedSongs) {
@@ -821,16 +869,9 @@ void SongSelectMenu::Draw() {
     }
 
     GameMenu::DrawBottomOvershell();
-    GuiSetStyle(BUTTON,
-                BASE_COLOR_NORMAL,
-                0x00000000);
-    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-    float ButtonWidth = u.winpct(0.125f);
-    float ButtonStart = u.LeftSide;
-    float ButtonTop = GetRenderHeight() - u.hpct(0.1475f);
-    float LabelStart = u.LeftSide + u.hinpct(0.01f);
-    float LabelTop = GetRenderHeight() - u.hpct(0.1375f);
-    if (GuiButton(Rectangle{ ButtonStart, ButtonTop,
+    buttReg.DrawPrompts(isOSOpen());
+
+    /*if (GuiButton(Rectangle{ ButtonStart, ButtonTop,
                              ButtonWidth, u.hinpct(0.05f) },
                   "       Play Song")) {
         if (TheSongList.curSong) {
@@ -873,7 +914,6 @@ void SongSelectMenu::Draw() {
                              u.hinpct(0.05f) },
                   "        (Hold) Jump Sections");
     GameMenu::mhDrawText(ASSET(rubikBold), "LB", {LabelStart + (ButtonWidth * 3), LabelTop}, u.hinpct(0.03f), ORANGE, ASSET(sdfShader), LEFT);
-    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
+*/
     DrawOvershell();
 }

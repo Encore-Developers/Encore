@@ -44,7 +44,8 @@ void DetectControllerType(Player& player) {
     }
 }
 
-OvershellInputState encOS::inputStates[] = {0, 1, 2, 3};
+// required to be changed for more than 4 players
+OvershellInputState encOS::inputStates[] = {0, 1, 2, 3 };
 OvershellInputState* OvershellInputState::currentState = nullptr;
 
 bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event) {

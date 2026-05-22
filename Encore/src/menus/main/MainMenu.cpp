@@ -20,6 +20,7 @@
 #include "../overshell/overshellRenderer.h"
 #include "../uiUnits.h"
 #include "../../song/songlist.h"
+#include "menus/util/ButtonActionRegistry.h"
 #include "SDL3/SDL_misc.h"
 #include "song/ArtLoader.h"
 
@@ -225,6 +226,17 @@ void MainMenu::Load() {
     if (!mainMenuSet.PollLoaded()) {
         mainMenuSet.StartLoad();
     }
+    buttReg.buttMap.clear();
+    NEWBUTTONACTION(buttReg, LANE_1, "Open Quickplay", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        GotoSongSelect();
+    })
+    NEWBUTTONACTION(buttReg, LANE_2, "Drop Out", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        slot -= 1;
+        if (slot == -1) return;
+        ThePlayerManager.RemoveActivePlayer(slot);
+    })
 }
 void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (ThePlayerManager.PlayersActive == 0) {
@@ -237,9 +249,11 @@ void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods
     }
 }
 void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    if (event.action == Encore::RhythmEngine::Action::PRESS && event.channel == Encore::RhythmEngine::InputChannel::LANE_1) {
-        GotoSongSelect();
+    int curSlot = 0;
+    if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
+        curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
     }
+    buttReg.CallbackAction(event.channel, event.action, curSlot);
 }
 
 std::string version = ENCORE_VERSION;
@@ -624,6 +638,7 @@ void MainMenu::MainMenuScreen() {
         DrawTextEx(menuAss.rubikItalic, "", SongArtistBox, SongFontSize, 0, WHITE);
     }
     GameMenu::DrawBottomOvershell();
+    buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();
 
     DrawWarning({GetRenderWidth() - 520.0f, u.hpct(0.2f)}, {500, 650});

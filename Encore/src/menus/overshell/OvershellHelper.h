@@ -124,5 +124,5 @@ namespace encOS {
 
     bool OvershellCheckbox(int slot, int x, std::string string, bool initialVal);
 
-    extern OvershellInputState inputStates[];
+    extern OvershellInputState inputStates[MAX_PLAYERS];
 }

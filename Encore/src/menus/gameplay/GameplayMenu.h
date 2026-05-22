@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "gameplay/trackRenderer/Track.h"
+#include "menus/util/ButtonActionRegistry.h"
 
 extern bool songPlaying;
 
@@ -28,7 +29,8 @@ class GameplayMenu : public OvershellMenu {
         {4,0,-4,0},
         {4,12,-12,-4}
     };
-    std::array<std::shared_ptr<Encore::Track>, 4> tracks;
+    std::array<std::shared_ptr<Encore::Track>, MAX_PLAYERS> tracks;
+    Encore::ButtonActionRegistry buttReg;
 public:
     bool streamsPaused = false;
 

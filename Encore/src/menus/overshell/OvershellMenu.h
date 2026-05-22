@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../menu.h"
+#include "users/playerManager.h"
 
 enum OSState {
     OS_ATTRACT, // No player/Join
@@ -61,8 +62,8 @@ public:
     OvershellMenu() {}
     virtual ~OvershellMenu() {}
 
-    SDL_JoystickID ControllersToAssign[4] = {0, 0, 0, 0};
-    int OvershellState[4] { OS_ATTRACT, OS_ATTRACT, OS_ATTRACT, OS_ATTRACT };
+    SDL_JoystickID ControllersToAssign[MAX_PLAYERS] = {0};
+    int OvershellState[MAX_PLAYERS] { 0 };
     int AvailableControllers = 0;
     bool isOSOpen();
     bool dropInDropOut = true;

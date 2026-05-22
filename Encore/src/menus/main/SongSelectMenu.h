@@ -5,6 +5,8 @@
 #ifndef SONGSELECTMENU_H
 #define SONGSELECTMENU_H
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonAction.h"
+#include "menus/util/ButtonActionRegistry.h"
 #include "song/song.h"
 
 class SongSelectMenu : public OvershellMenu {
@@ -24,6 +26,7 @@ public:
     void UpdatePreviewVolume(double currentTime);
     void ScrollSongSelect(int val);
 private:
+    Encore::ButtonActionRegistry buttReg;
     // 5 for unbound controllers
     std::array<bool, 5> ControllerOrangeHeld = { false, false, false, false, false };
     double previewStartTime = 0.0;

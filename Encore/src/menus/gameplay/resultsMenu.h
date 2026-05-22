@@ -23,7 +23,7 @@ class resultsMenu : public OvershellMenu {
     //  void
     //  renderStars(BandGameplayStats *&stats, float xPos, float yPos, float scale, bool
     //  left);
-
+    Encore::ButtonActionRegistry buttReg;
 public:
     resultsMenu();
     virtual void KeyboardInputCallback(int key, int scancode, int action, int mods);

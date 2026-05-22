@@ -24,82 +24,9 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
             continue;
         if (event.slot == std::numeric_limits<unsigned int>::max())
             return;
-        if (event.action == Encore::RhythmEngine::Action::PRESS) {
-            switch (event.channel) {
-            case Encore::RhythmEngine::InputChannel::STRUM_UP: {
-                switch (SlotState[i]) {
-                case INSTRUMENT:
-                    ControllerInstSlot[i]++;
-                    if (ControllerInstSlot[i] < 0)
-                        ControllerInstSlot[i] = 0;
-                    break;
-                case DIFFICULTY:
-                    ControllerDiffSlot[i]++;
-                    if (ControllerDiffSlot[i] < 0)
-                        ControllerDiffSlot[i] = 0;
 
-                    if (ControllerDiffSlot[i] > 4)
-                        ControllerDiffSlot[i] = 4;
-                    break;
-                default:
-                    break;
-                }
-                break;
-            }
-            case Encore::RhythmEngine::InputChannel::STRUM_DOWN: {
-                switch (SlotState[i]) {
-                case INSTRUMENT:
-                    ControllerInstSlot[i]--;
-                    if (ControllerInstSlot[i] < 0)
-                        ControllerInstSlot[i] = 0;
-                    break;
-                case DIFFICULTY:
-                    ControllerDiffSlot[i]--;
-                    if (ControllerDiffSlot[i] < 0)
-                        ControllerDiffSlot[i] = 0;
-                    break;
-                default:
-                    break;
-                }
-                break;
-            }
-            case Encore::RhythmEngine::InputChannel::LANE_1: {
-                switch (SlotState[i]) {
-                case INSTRUMENT:
-                    if (!PartsToDisplay.empty()) {
-                        SlotState[i] = DIFFICULTY;
-                        player.Instrument = PartsToDisplay[ControllerInstSlot[i]];
-                    }
-                    break;
-                case DIFFICULTY:
-                    SlotState[i] = READY;
-                    player.Difficulty = ControllerDiffSlot[i];
-                    ReadyState[i] = true;
-                    break;
-                default:
-                    break;
-                }
-                break;
-            }
-            case Encore::RhythmEngine::InputChannel::LANE_2: {
-                switch (SlotState[i]) {
-                case INSTRUMENT:
-                    TheSongList.curSong->midiParsed = false;
-                    TheMenuManager.SwitchScreen(SONG_SELECT);
-                    break;
-                case DIFFICULTY:
-                    SlotState[i] = INSTRUMENT;
-                    break;
-                case READY:
-                    TheSongList.curSong->midiParsed = false;
-                    TheMenuManager.SwitchScreen(SONG_SELECT);
-                    ReadyState[i] = false;
-                    break;
-                }
-            }
-            default:
-                break;
-            }
+        buttReg.CallbackAction(event.channel, event.action, i);
+        if (event.action == Encore::RhythmEngine::Action::PRESS) {
             int diffCount = 0;
             SongPart& part = TheSongList.curSong->parts[player.Instrument];
             for (int d = 0; d < 4; d++) {
@@ -422,10 +349,85 @@ void ReadyUpMenu::Draw() {
         TheMenuManager.SwitchScreen(SONG_SELECT);
     }
 
+
+    buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();
 }
 
 void ReadyUpMenu::Load() {
+    buttReg.buttMap.clear();
+    NEWBUTTONACTION(buttReg, LANE_1, "Select", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        switch (SlotState[slot]) {
+                case INSTRUMENT:
+            if (!PartsToDisplay.empty()) {
+                SlotState[slot] = DIFFICULTY;
+                ThePlayerManager.GetActivePlayer(slot).Instrument = PartsToDisplay[ControllerInstSlot[slot]];
+            }
+            break;
+        case DIFFICULTY:
+            SlotState[slot] = READY;
+            ThePlayerManager.GetActivePlayer(slot).Difficulty = ControllerDiffSlot[slot];
+            ReadyState[slot] = true;
+            break;
+        default:
+            break;
+        }
+    })
+    NEWBUTTONACTION(buttReg, LANE_2, "Back", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        switch (SlotState[slot]) {
+                case INSTRUMENT:
+            TheSongList.curSong->midiParsed = false;
+            TheMenuManager.SwitchScreen(SONG_SELECT);
+            break;
+        case DIFFICULTY:
+            SlotState[slot] = INSTRUMENT;
+            break;
+        case READY:
+            TheSongList.curSong->midiParsed = false;
+            TheMenuManager.SwitchScreen(SONG_SELECT);
+            ReadyState[slot] = false;
+            break;
+        }
+    })
+    NEWBUTTONACTION(buttReg, STRUM_UP, "Up", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        switch (SlotState[slot]) {
+                case INSTRUMENT:
+            ControllerInstSlot[slot]++;
+            if (ControllerInstSlot[slot] < 0)
+                ControllerInstSlot[slot] = 0;
+            break;
+        case DIFFICULTY:
+            ControllerDiffSlot[slot]++;
+            if (ControllerDiffSlot[slot] < 0)
+                ControllerDiffSlot[slot] = 0;
+
+            if (ControllerDiffSlot[slot] > 4)
+                ControllerDiffSlot[slot] = 4;
+            break;
+        default:
+            break;
+        }
+    }, false)
+    NEWBUTTONACTION(buttReg, STRUM_DOWN, "Down", [this](Encore::RhythmEngine::Action _action, int slot) {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        switch (SlotState[slot]) {
+                case INSTRUMENT:
+            ControllerInstSlot[slot]--;
+            if (ControllerInstSlot[slot] < 0)
+                ControllerInstSlot[slot] = 0;
+            break;
+        case DIFFICULTY:
+            ControllerDiffSlot[slot]--;
+            if (ControllerDiffSlot[slot] < 0)
+                ControllerDiffSlot[slot] = 0;
+            break;
+        default:
+            break;
+        }
+    }, false)
     SlotState = { INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
     ReadyState = { false, false, false, false };
     smf::MidiFile midiFile;

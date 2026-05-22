@@ -569,6 +569,20 @@ void GameplayMenu::Draw() {
 
 void GameplayMenu::Load() {
     ZoneScoped;
+    buttReg.buttMap.clear();
+    NEWBUTTONACTION(buttReg, LANE_1, "Confirm", [](Encore::RhythmEngine::Action action, int slot){})
+    NEWBUTTONACTION(buttReg, PAUSE, "Unpause", [this](Encore::RhythmEngine::Action action, int slot) {
+        if (action != Encore::RhythmEngine::Action::PRESS) return;
+        for (auto &state : OvershellState) {
+            state = OS_ATTRACT;
+        }
+    })
+    NEWBUTTONACTION(buttReg, LANE_2, "Back", [this](Encore::RhythmEngine::Action action, int slot){
+        if (action != Encore::RhythmEngine::Action::PRESS) return;
+        for (auto &state : OvershellState) {
+            state = OS_ATTRACT;
+        }
+    })
     TheSongList.curSong->LoadAlbumArt();
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
     dropInDropOut = false;
@@ -666,6 +680,7 @@ void GameplayMenu::DrawPauseMenu() {
         (int)AlbumArtBottom,
         BLACK
     );
+    buttReg.DrawPrompts(false, u.hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
     DrawTexturePro(
         TheArtLoader.loadedArt,
         Rectangle{ 0,

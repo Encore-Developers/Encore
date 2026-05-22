@@ -14,23 +14,7 @@
 #include "song/OpenSource.h"
 
 void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-
-    if (event.action == Encore::RhythmEngine::Action::PRESS) {
-        switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::LANE_1: {
-            for (int i = 0; i < MAX_PLAYERS; i++) {
-                if (ThePlayerManager.ActivePlayers[i] == -1) continue;
-                Player &player = ThePlayerManager.GetActivePlayer(i);
-                player.engine->stats.reset();
-                player.engine->chart.reset();
-                player.engine.reset();
-            }
-            TheMenuManager.SwitchScreen(SONG_SELECT);
-        } break;
-        default:
-            break;
-        }
-    }
+    buttReg.CallbackAction(event.channel, event.action, 0);
 }
 void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
 
@@ -44,6 +28,19 @@ resultsMenu::resultsMenu() {}
 int FinalScore = 0;
 
 void resultsMenu::Load() {
+    buttReg.buttMap.clear();
+    NEWBUTTONACTION(buttReg, LANE_1, "Back to Song Select", [this](Encore::RhythmEngine::Action action, int slot) {
+        if (action != Encore::RhythmEngine::Action::PRESS) return;
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+            Player &player = ThePlayerManager.GetActivePlayer(i);
+            player.engine->stats.reset();
+            player.engine->chart.reset();
+            player.engine.reset();
+        }
+        TheMenuManager.SwitchScreen(SONG_SELECT);
+    })
+
     FinalScore = 0;
     std::filesystem::path assetsdir = GetApplicationDirectory();
     assetsdir /= "Assets";
@@ -188,25 +185,26 @@ void resultsMenu::Draw() {
         sdfShader,
         RIGHT
     );
-
-    if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-        // delete ThePlayerManager.BandStats;
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
-            Player &player = ThePlayerManager.GetActivePlayer(i);
-            player.engine->stats.reset();
-            player.engine->chart.reset();
-            player.engine.reset();
-        }
-        //for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive; PlayersToReset++) {
-        //    Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
-        //    player.ResetGameplayStats();
-            // TheSongList.curSong->parts[player.Instrument]
-                // ->charts[player.Difficulty]
-                // .resetNotes();
-        //}
-        TheMenuManager.SwitchScreen(SONG_SELECT);
-    }
+    GameMenu::DrawBottomOvershell();
+    buttReg.DrawPrompts(isOSOpen());
+    //if (GuiButton({ 0, 0, 60, 60 }, "<")) {
+    //    // delete ThePlayerManager.BandStats;
+    //    for (int i = 0; i < MAX_PLAYERS; i++) {
+    //        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+    //        Player &player = ThePlayerManager.GetActivePlayer(i);
+    //        player.engine->stats.reset();
+    //        player.engine->chart.reset();
+    //        player.engine.reset();
+    //    }
+    //    //for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive; PlayersToReset++) {
+    //    //    Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
+    //    //    player.ResetGameplayStats();
+    //        // TheSongList.curSong->parts[player.Instrument]
+    //            // ->charts[player.Difficulty]
+    //            // .resetNotes();
+    //    //}
+    //    TheMenuManager.SwitchScreen(SONG_SELECT);
+    //}
     DrawOvershell();
 }
 

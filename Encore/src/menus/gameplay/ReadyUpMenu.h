@@ -5,6 +5,7 @@
 #ifndef READYUPMENU_H
 #define READYUPMENU_H
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
 #include "users/player.h"
 
 class ReadyUpMenu : public OvershellMenu {
@@ -14,11 +15,11 @@ class ReadyUpMenu : public OvershellMenu {
         READY
     };
 
-    std::array<ReadyUpMenuState, 4> SlotState{ INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
-    std::array<bool, 4> ReadyState{ false, false, false, false };
-    std::array<uint8_t, 4> ControllerDiffSlot{ 0, 0, 0, 0 };
-    std::array<uint8_t, 4> ControllerInstSlot{ 0, 0, 0, 0 };
-
+    std::array<ReadyUpMenuState, MAX_PLAYERS> SlotState{ INSTRUMENT };
+    std::array<bool, MAX_PLAYERS> ReadyState{ false };
+    std::array<uint8_t, MAX_PLAYERS> ControllerDiffSlot{ 0 };
+    std::array<uint8_t, MAX_PLAYERS> ControllerInstSlot{ 0 };
+    Encore::ButtonActionRegistry buttReg;
     std::vector<int> PartsToDisplay = {};
 public:
     ReadyUpMenu() = default;
