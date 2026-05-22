@@ -21,6 +21,7 @@ namespace Encore::RhythmEngine {
 
         // Helper info for pad conversion
         bool LiftConverted = false;
+        uint8_t OriginalLane = 0;
     };
 
     // for lyric display

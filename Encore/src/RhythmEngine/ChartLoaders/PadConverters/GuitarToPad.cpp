@@ -58,27 +58,41 @@ NoteHand PadConverters::GetNoteHand(EncNote &note) {
     return GetLaneHand(note.Lane);
 }
 
+void SetOriginalLanePass(BaseChart &sourceChart) {
+    for (int i = 0; i < sourceChart.Lanes[0].size(); i++) {
+        sourceChart.Lanes[0][i].OriginalLane = sourceChart.Lanes[0][i].Lane;
+    }
+}
+
 void HopoPass(BaseChart &sourceChart) {
+    int hopoTemperature = 0;
     for (int i = 2; i < sourceChart.Lanes[0].size()-3; i++) {
         EncNote& note = sourceChart.Lanes[0][i];
-        EncNote* prevNote = i > 0 ? &sourceChart.Lanes[0][i-1] : nullptr;
+        EncNote* prevNote = &sourceChart.Lanes[0][i-1];
         int noteCount = std::popcount(note.Lane);
         if (note.NoteType == 1 || note.NoteType == 2) {
             if (noteCount == 1) {
                 if (prevNote) {
                     if (GetNoteHand(*prevNote) == GetNoteHand(note) && note.StartSeconds - prevNote->StartSeconds < 0.150 && sourceChart.Lanes[0][i+2].StartSeconds - sourceChart.Lanes[0][i+1].StartSeconds < 0.150 && note.Lane != sourceChart.Lanes[0][i+1].Lane) {
+                        bool wasDifferentLane =
+                            sourceChart.Lanes[0][i - 2].OriginalLane != note.OriginalLane;
                         // RH flips
                         if (note.Lane == PlasticFrets[2]) {
-                            note.Lane = PlasticFrets[0];
+                            //note.Lane = PlasticFrets[0];
+                            if (wasDifferentLane && sourceChart.Lanes[0][i-2].Lane == PlasticFrets[0]) {
+                                note.Lane = PlasticFrets[1];
+                            } else {
+                                note.Lane = PlasticFrets[0];
+                            }
                         }
                         else if (note.Lane == PlasticFrets[4]) {
                             note.Lane = PlasticFrets[1];
                         }
                         else if (note.Lane == PlasticFrets[3]) {
-                            if (sourceChart.Lanes[0][i-2].Lane == PlasticFrets[0]) {
-                                note.Lane = PlasticFrets[1];
-                            } else {
+                            if (wasDifferentLane && sourceChart.Lanes[0][i-2].Lane == PlasticFrets[0]) {
                                 note.Lane = PlasticFrets[0];
+                            } else {
+                                note.Lane = PlasticFrets[1];
                             }
                         }
 
@@ -87,7 +101,7 @@ void HopoPass(BaseChart &sourceChart) {
                             note.Lane = PlasticFrets[2];
                         }
                         else if (note.Lane == PlasticFrets[1]) {
-                            if (sourceChart.Lanes[0][i-2].Lane == PlasticFrets[4]) {
+                            if (wasDifferentLane && sourceChart.Lanes[0][i-2].Lane == PlasticFrets[4]) {
                                 note.Lane = PlasticFrets[3];
                             } else {
                                 note.Lane = PlasticFrets[4];
@@ -95,6 +109,20 @@ void HopoPass(BaseChart &sourceChart) {
                         }
                     }
                 }
+            }
+        }
+        if (noteCount == 1 && GetLaneHand(note.OriginalLane) == GetLaneHand(prevNote->OriginalLane)) {
+            if (hopoTemperature < 2) {
+                note.Lane = note.OriginalLane;
+            }
+            hopoTemperature += 1;
+            if (hopoTemperature > 5) {
+                hopoTemperature = 5;
+            }
+        } else {
+            hopoTemperature -= 1;
+            if (hopoTemperature < 0) {
+                hopoTemperature = 0;
             }
         }
     }
@@ -106,6 +134,7 @@ PadConverters::ConvertGuitarToPad(BaseChart &sourceChart) {
     EncNote* prevNote = nullptr;
 
     ChordPass(sourceChart);
+    SetOriginalLanePass(sourceChart);
     HopoPass(sourceChart);
 
     for (auto& note : sourceChart.Lanes[0]) {
