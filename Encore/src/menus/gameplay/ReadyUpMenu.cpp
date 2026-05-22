@@ -15,7 +15,7 @@
 #include "users/playerManager.h"
 
 void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         auto playerId = ThePlayerManager.ActivePlayers[i];
         if (playerId == -1)
             continue;

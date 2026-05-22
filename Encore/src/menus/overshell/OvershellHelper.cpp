@@ -45,7 +45,7 @@ void encOS::DrawTopOvershell(double height) {
         ColorBrightness(GetColor(0x181827FF), -0.25f)
     );
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         float OvershellTopLoc = unit.hpct(1.0f) - unit.winpct(0.05f);
         float OvershellLeftLoc =
             (unit.wpct(0.125) + (unit.winpct(0.25) * i)) - unit.winpct(0.1);

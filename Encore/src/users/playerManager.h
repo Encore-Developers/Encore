@@ -24,7 +24,7 @@ public:
     // BandGameplayStats *BandStats;
     std::filesystem::path PlayerListSaveFile;
     std::vector<Player> PlayerList;
-    std::vector<int> ActivePlayers { -1, -1, -1, -1 };
+    std::array<int, MAX_PLAYERS> ActivePlayers;
     int PlayersActive = 0;
 
     Player* GetPlayerForJoystick(SDL_JoystickID id);

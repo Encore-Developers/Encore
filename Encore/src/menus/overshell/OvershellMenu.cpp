@@ -16,7 +16,7 @@ using namespace encOS;
 using namespace Encore::RhythmEngine;
 
 bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, int action, int mods) {
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT && key == KEY_ENTER) {
             ThePlayerManager.GetActivePlayer(i).joypadID = -1;
             menu->OvershellState[i] = OS_OPTIONS;
@@ -55,7 +55,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
         return false;
     }
     bool controllerSignedIn = false;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         bool thisSlotIsController = false;
         auto playerId = ThePlayerManager.ActivePlayers[i];
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
@@ -134,7 +134,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
     PlayerManager &playerManager = ThePlayerManager;
     float LeftMin = unit.wpct(0.1);
     float LeftMax = unit.wpct(0.9);
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
         bool EmptySlot = true;
         OvershellInputState& input = inputStates[i];
         input.Begin(this);
