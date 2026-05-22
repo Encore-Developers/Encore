@@ -7,6 +7,10 @@
 #include "util/discord.h"
 #include "util/enclog.h"
 
+#define MAX_PLAYERS 4
+
+
+
 class PlayerManager {
 public:
     PlayerManager();

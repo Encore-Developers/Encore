@@ -131,10 +131,17 @@ void MenuManager::LoadMenu() {
         break;
     }
     case GAMEPLAY: {
+        int inst = 0;
+        if (ThePlayerManager.PlayersActive == 1) {
+            for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+                if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+                inst = ThePlayerManager.GetActivePlayer(playerNum).Instrument;
+            }
+        }
         TheGameRPC.DiscordUpdatePresenceSong(
             "Playing a song",
             TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
-            ThePlayerManager.GetActivePlayer(0).Instrument,
+            inst,
             ThePlayerManager.PlayersActive
         );
         TheGameRPC.SteamUpdatePresence("song", (TheSongList.curSong->title + " - " + TheSongList.curSong->artist).c_str());

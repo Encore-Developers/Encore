@@ -53,7 +53,8 @@ void LoadCharts() {
     }
     // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
-    for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
+    for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+        if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
         ZoneScopedN("RhythmEngine ctors")
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
         int diff = player.Difficulty;

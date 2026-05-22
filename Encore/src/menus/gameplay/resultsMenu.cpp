@@ -18,7 +18,8 @@ void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
     if (event.action == Encore::RhythmEngine::Action::PRESS) {
         switch (event.channel) {
         case Encore::RhythmEngine::InputChannel::LANE_1: {
-            for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                if (ThePlayerManager.ActivePlayers[i] == -1) continue;
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 player.engine->stats.reset();
                 player.engine->chart.reset();
@@ -79,9 +80,8 @@ void resultsMenu::Load() {
     // ThePlayerManager.BandStats->PerfectScore << std::endl; std::cout << "Band Note
     // Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
-    for (int playerInt = 0; playerInt < 4; playerInt++) {
-        if (ThePlayerManager.ActivePlayers[playerInt] == -1)
-            continue;
+    for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
+        if (ThePlayerManager.ActivePlayers[playerInt] == -1) continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
         FinalScore += player.engine->stats->Score;
         //   PlayerGameplayStats *&stats =
@@ -100,7 +100,8 @@ void resultsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
     }
     encOS::DrawTopOvershell(0.2f);
@@ -178,8 +179,6 @@ void resultsMenu::Draw() {
     // renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f),
     // u.hinpct(0.05f), false);
     float ScoreFontSize = u.hinpct(0.075f);
-    std::string ScoreText =
-    GameMenu::scoreCommaFormatter(ThePlayerManager.GetActivePlayer(0).engine->stats->Score).c_str();
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
@@ -192,7 +191,8 @@ void resultsMenu::Draw() {
 
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
         // delete ThePlayerManager.BandStats;
-        for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
             player.engine->stats.reset();
             player.engine->chart.reset();

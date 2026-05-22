@@ -43,7 +43,8 @@ bool GameplayMenu::CheckPauseInput(Encore::RhythmEngine::ControllerEvent event) 
         return true;
     }
     if (event.channel == Encore::RhythmEngine::InputChannel::PAUSE && event.action == Encore::RhythmEngine::Action::PRESS) {
-        for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
             if (player.joypadID == event.slot) {
                 OvershellState[i] = OS_OPTIONS;
@@ -62,7 +63,8 @@ void GameplayMenu::UpdatePauseState() {
     } else {
         if (streamsPaused) {
             TheAudioManager.unpauseStreams();
-            for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                if (ThePlayerManager.ActivePlayers[i] == -1) continue;
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 player.engine->chart->MissedNotePointers.clear();
             }
@@ -161,6 +163,11 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
     Rectangle scoreboxSrc{
         0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
     };
+    double score = 0;
+    for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+        if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+        score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+    }
     // not optimized at all LMAO
     float WidthOfScorebox = u.hinpct(0.28);
     // float scoreY = u.hpct(0.15f);
@@ -181,7 +188,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
     GameMenu::mhDrawText(
         assets.redHatMono,
         GameMenu::scoreCommaFormatter(
-            ThePlayerManager.GetActivePlayer(0).engine->stats->Score
+            score
         ),
         { u.RightSide - u.winpct(0.0145f), ScoreboxY + scoreTextPadding },
         u.hinpct(0.05),
@@ -258,11 +265,18 @@ void GameplayMenu::DrawGameplayStars(
     float starY
 ) {
     // todo: redo for band
-    auto &player = ThePlayerManager.GetActivePlayer(0);
-    int inst = player.Instrument % 5;
+    double score = 0;
+    double baseScore = 0;
+    for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+        if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+        score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+        baseScore += ThePlayerManager.GetActivePlayer(playerNum).engine->chart->BaseScore;
+    }
+    // auto &player = ThePlayerManager.GetActivePlayer(playerInt);
+    // int inst = player.Instrument % 5;
     // int diff = player.Difficulty;
-    double starPercent = player.engine->stats->StarThresholdValue;
-    int starsVal = player.engine->stats->Stars;
+    double starPercent = score / baseScore;
+    // int starsVal = player.engine->stats->Stars;
     for (int i = 0; i < 5; i++) {
         bool firstStar = (i == 0);
         float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
@@ -274,8 +288,8 @@ void GameplayMenu::DrawGameplayStars(
         DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, { 0, 0 }, 0, WHITE);
         float yMaskPos = Remap(
             starPercent,
-            firstStar ? 0 : STAR_THRESHOLDS[inst][i - 1],
-            STAR_THRESHOLDS[inst][i],
+            firstStar ? 0 : STAR_THRESHOLDS[0][i - 1],
+            STAR_THRESHOLDS[0][i],
             0,
             u.hinpct(0.05)
         );
@@ -286,20 +300,20 @@ void GameplayMenu::DrawGameplayStars(
             starRect,
             { 0, 0 },
             0,
-            i == starsVal ? Color{ 192, 192, 192, 128 } : WHITE
+            starPercent > STAR_THRESHOLDS[0][i] ? Color{ 192, 192, 192, 128 } : WHITE
         );
         EndScissorMode();
     }
-    if (starPercent >= STAR_THRESHOLDS[inst][4]) {
+    if (starPercent >= STAR_THRESHOLDS[0][4]) {
         float starWH = u.hinpct(0.05);
         Rectangle emptyStarWH = {
             0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
         };
-        unsigned char alpha = starPercent >= STAR_THRESHOLDS[inst][5] ? 255 : (1-TheSongTime.GetBeatlineDelta() * 255);
+        unsigned char alpha = starPercent >= STAR_THRESHOLDS[0][5] ? 255 : (1-TheSongTime.GetBeatlineDelta() * 255);
         float yMaskPos = Remap(
             starPercent,
-            STAR_THRESHOLDS[inst][4],
-            STAR_THRESHOLDS[inst][5],
+            STAR_THRESHOLDS[0][4],
+            STAR_THRESHOLDS[0][5],
             0,
             u.hinpct(0.05)
         );
@@ -313,7 +327,7 @@ void GameplayMenu::DrawGameplayStars(
             float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
             Rectangle starRect = { starX, starY, starWH, starWH };
             DrawTexturePro(
-                starPercent >= STAR_THRESHOLDS[inst][5]
+                starPercent >= STAR_THRESHOLDS[0][5]
                 ? assets.goldStar
                 : assets.goldStarUnfilled,
                 emptyStarWH,
@@ -423,7 +437,8 @@ void GameplayMenu::Draw() {
     // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     // int flashInterval = (numer * 480) / denom;
     TheLyricRenderer.RenderLyrics();
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
         if (!IsPaused()) {
@@ -521,7 +536,7 @@ void GameplayMenu::Draw() {
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
 
-    auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
     float topOfVocalBar = u.hpct(0.2f);
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
     GameMenu::mhDrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
@@ -564,13 +579,16 @@ void GameplayMenu::Load() {
     double EndEvent = TheSongList.curSong->end;
     double LastNote = 0.0;
     double AudioEnd = TheAudioManager.GetMusicTimeLength();
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+    int playerCount = 0;
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
         tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
-        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * i;
-        tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (i + 1);
+        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
+        tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:
@@ -600,6 +618,7 @@ void GameplayMenu::Load() {
                 LastNote = lane.back().StartSeconds + lane.back().LengthSeconds + 1;
             }
         }
+        playerCount++;
     }
 
     if (LastNote > EndEvent) End = LastNote;
@@ -619,6 +638,8 @@ void GameplayMenu::DrawPauseMenu() {
     float AlbumArtLeft = u.LeftSide;
     float AlbumArtTop = u.hpct(0.05f);
     float AlbumArtRight = u.winpct(0.15f);
+
+    // why do you exist
     float AlbumArtBottom = u.winpct(0.15f);
     DrawRectangle(
         0,

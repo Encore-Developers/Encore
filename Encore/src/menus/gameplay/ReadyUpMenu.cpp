@@ -256,7 +256,7 @@ void ReadyUpMenu::Draw() {
     // load midi
     GameMenu::DrawBottomOvershell();
 
-    for (int playerInt = 0; playerInt < 4; playerInt++) {
+    for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
@@ -464,7 +464,8 @@ void ReadyUpMenu::Load() {
         }
     }
 
-    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         auto& player = ThePlayerManager.GetActivePlayer(i);
         for (int g = 0; g < PartsToDisplay.size(); g++) {
             if (player.Instrument == PartsToDisplay[g]) {

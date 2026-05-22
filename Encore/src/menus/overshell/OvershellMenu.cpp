@@ -279,7 +279,8 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                     TheAudioManager.unloadStreams();
                     songPlaying = false;
                     TheSongTime.FullReset();
-                    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+                    for (int i = 0; i < MAX_PLAYERS; i++) {
+                        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
                         Player &player = ThePlayerManager.GetActivePlayer(i);
                         player.engine->stats.reset();
                         player.engine->chart.reset();
