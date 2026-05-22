@@ -300,7 +300,7 @@ void GameplayMenu::DrawGameplayStars(
             starRect,
             { 0, 0 },
             0,
-            starPercent > STAR_THRESHOLDS[0][i] ? Color{ 192, 192, 192, 128 } : WHITE
+            starPercent < STAR_THRESHOLDS[0][i] ? Color{ 192, 192, 192, 128 } : WHITE
         );
         EndScissorMode();
     }
