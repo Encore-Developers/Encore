@@ -15,8 +15,12 @@ using json = nlohmann::json;
 std::filesystem::path SongList::cachePath() {
     return prefsPath / std::filesystem::path("songCache.encr");
 }
+std::filesystem::path SongList::badSongsPath() {
+    return prefsPath / std::filesystem::path("bad-songs.txt");
+}
 // sorting
 void SongList::Clear() {
+    std::filesystem::remove(badSongsPath());
     listMenuEntries.clear();
     songs.clear();
     songCount = 0;
@@ -164,14 +168,21 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     directoryCount++;
 
     auto infoPath = folder / "song.ini";
-    auto midiPath = folder / "notes.mid";
 
-    if (std::filesystem::exists(infoPath) && std::filesystem::exists(midiPath)) {
-        Song song;
-        song.songInfoPath = infoPath;
-        song.songDir = folder.string();
-        song.LoadSongIni(folder);
-        songs.push_back(std::move(song));
+    if (std::filesystem::exists(infoPath)) {
+        if (std::filesystem::exists(folder / "notes.mid")) {
+            Song song;
+            song.songInfoPath = infoPath;
+            song.songDir = folder.string();
+            song.LoadSongIni(folder);
+            songs.push_back(std::move(song));
+        } else {
+            std::ofstream badSongs(badSongsPath(), std::ios::out | std::ios::app);
+
+            badSongs << folder.string() << "\n";
+
+            badSongs.close();
+        }
     } else {
         // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {

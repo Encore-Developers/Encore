@@ -90,6 +90,7 @@ public:
     Song *curSong = nullptr;
 
     std::filesystem::path cachePath();
+    std::filesystem::path badSongsPath();
 
     void Clear();
 
