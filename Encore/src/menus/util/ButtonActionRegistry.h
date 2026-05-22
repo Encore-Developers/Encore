@@ -1,5 +1,6 @@
 #pragma once
 #include "ButtonAction.h"
+#include "users/playerManager.h"
 
 #include <map>
 
@@ -9,9 +10,13 @@ namespace Encore {
     public:
         std::map<RhythmEngine::InputChannel, ButtonAction> buttMap;
 
-        void CallbackAction(RhythmEngine::InputChannel channel, RhythmEngine::Action action, int slot) {
-            if (buttMap.contains(channel)) {
-                buttMap.at(channel).RunAction(action, slot);
+        void CallbackAction(const RhythmEngine::ControllerEvent &event) {
+            int curSlot = 0;
+            if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
+                curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
+            }
+            if (buttMap.contains(event.channel)) {
+                buttMap.at(event.channel).RunAction(event.action, curSlot);
             }
         }
 
@@ -20,4 +25,8 @@ namespace Encore {
     };
 }
 
+// write lambdas yourself
 #define NEWBUTTONACTION(reg, lane, name, ...) reg.buttMap.emplace(Encore::RhythmEngine::InputChannel::lane, Encore::ButtonAction{name, __VA_ARGS__});
+
+// autofills most lambda information
+#define NEWBUTTONACTION2(reg, lane, name, ...) reg.buttMap.emplace(Encore::RhythmEngine::InputChannel::lane, Encore::ButtonAction{name, [this](Encore::RhythmEngine::Action _action, int slot)__VA_ARGS__});

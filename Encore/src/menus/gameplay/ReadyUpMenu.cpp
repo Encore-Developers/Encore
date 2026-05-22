@@ -25,7 +25,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
         if (event.slot == std::numeric_limits<unsigned int>::max())
             return;
 
-        buttReg.CallbackAction(event.channel, event.action, i);
+        buttReg.CallbackAction(event);
         if (event.action == Encore::RhythmEngine::Action::PRESS) {
             int diffCount = 0;
             SongPart& part = TheSongList.curSong->parts[player.Instrument];
@@ -356,7 +356,7 @@ void ReadyUpMenu::Draw() {
 
 void ReadyUpMenu::Load() {
     buttReg.buttMap.clear();
-    NEWBUTTONACTION(buttReg, LANE_1, "Select", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_1, "Select", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
@@ -374,7 +374,7 @@ void ReadyUpMenu::Load() {
             break;
         }
     })
-    NEWBUTTONACTION(buttReg, LANE_2, "Back", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_2, "Back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
@@ -391,7 +391,7 @@ void ReadyUpMenu::Load() {
             break;
         }
     })
-    NEWBUTTONACTION(buttReg, STRUM_UP, "Up", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, STRUM_UP, "Up", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
@@ -411,7 +411,7 @@ void ReadyUpMenu::Load() {
             break;
         }
     }, false)
-    NEWBUTTONACTION(buttReg, STRUM_DOWN, "Down", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "Down", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:

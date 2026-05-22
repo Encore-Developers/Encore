@@ -104,7 +104,7 @@ void SongSelectMenu::ControllerInputCallback(
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
     }
-    buttReg.CallbackAction(event.channel, event.action, curSlot);
+    buttReg.CallbackAction(event);
     /*
     if (event.action == Encore::RhythmEngine::Action::PRESS) {
         switch (event.channel) {
@@ -186,37 +186,37 @@ void SongSelectMenu::Load() {
 
     ScrollToCurrentSong();
     buttReg.buttMap.clear();
-    NEWBUTTONACTION(buttReg, LANE_1, "Play Song", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_1, "Play Song", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (!TheSongList.curSong) return;
         Unload();
         TheMenuManager.SwitchScreen(READY_UP);
     })
-    NEWBUTTONACTION(buttReg, LANE_2, "Back", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_2, "Back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (!TheSongList.curSong) return;
         Unload();
         TheMenuManager.SwitchScreen(MAIN_MENU);
     })
-    NEWBUTTONACTION(buttReg, LANE_3, "Sort", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_3, "Sort", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         currentSortValue = NextSortType(currentSortValue);
         TheSongList.sortList(currentSortValue);
         ScrollToCurrentSong();
     })
-    NEWBUTTONACTION(buttReg, LANE_5, "Jump Headers", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_5, "Jump Headers", {
         if (_action == Encore::RhythmEngine::Action::REPEAT) return;
         ControllerOrangeHeld.at(slot) = _action == Encore::RhythmEngine::Action::PRESS;
     })
-    NEWBUTTONACTION(buttReg, INPUT_LEFT, "PgUp", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, INPUT_LEFT, "PgUp", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         ScrollSongSelect(5);
     }, false)
-    NEWBUTTONACTION(buttReg, INPUT_RIGHT, "PgDn", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, INPUT_RIGHT, "PgDn", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         ScrollSongSelect(-5);
     }, false)
-    NEWBUTTONACTION(buttReg, STRUM_UP, "Up", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, STRUM_UP, "Up", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (ControllerOrangeHeld.at(slot)) {
             ScrollUpHeader();
@@ -224,7 +224,7 @@ void SongSelectMenu::Load() {
             ScrollSongSelect(1);
         }
     }, false)
-    NEWBUTTONACTION(buttReg, STRUM_DOWN, "Down", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "Down", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (ControllerOrangeHeld.at(slot)) {
             ScrollDownHeader();

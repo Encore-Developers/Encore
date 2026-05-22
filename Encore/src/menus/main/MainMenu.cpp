@@ -227,11 +227,11 @@ void MainMenu::Load() {
         mainMenuSet.StartLoad();
     }
     buttReg.buttMap.clear();
-    NEWBUTTONACTION(buttReg, LANE_1, "Open Quickplay", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_1, "Open Quickplay", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         GotoSongSelect();
     })
-    NEWBUTTONACTION(buttReg, LANE_2, "Drop Out", [this](Encore::RhythmEngine::Action _action, int slot) {
+    NEWBUTTONACTION2(buttReg, LANE_2, "Drop Out", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         slot -= 1;
         if (slot == -1) return;
@@ -253,7 +253,7 @@ void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent eve
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
     }
-    buttReg.CallbackAction(event.channel, event.action, curSlot);
+    buttReg.CallbackAction(event);
 }
 
 std::string version = ENCORE_VERSION;
