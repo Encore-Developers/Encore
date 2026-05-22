@@ -15,6 +15,9 @@ using json = nlohmann::json;
 std::filesystem::path SongList::cachePath() {
     return prefsPath / std::filesystem::path("songCache.encr");
 }
+std::filesystem::path SongList::badSongsPath() {
+    return prefsPath / std::filesystem::path("bad-songs.txt");
+}
 // sorting
 void SongList::Clear() {
     listMenuEntries.clear();
@@ -155,7 +158,7 @@ void SongList::WriteCache() {
 }
 
 
-void SongList::ScanFolder(const std::filesystem::path &folder) {
+void SongList::ScanFolder(const std::filesystem::path &folder, std::ofstream &badSongs) {
     ZoneScoped
     if (!std::filesystem::is_directory(folder)) {
         return;
@@ -164,16 +167,21 @@ void SongList::ScanFolder(const std::filesystem::path &folder) {
     directoryCount++;
 
     auto infoPath = folder / "song.ini";
+
     if (std::filesystem::exists(infoPath)) {
-        Song song;
-        song.songInfoPath = infoPath;
-        song.songDir = folder.string();
-        song.LoadSongIni(folder);
-        songs.push_back(std::move(song));
+        if (std::filesystem::exists(folder / "notes.mid")) {
+            Song song;
+            song.songInfoPath = infoPath;
+            song.songDir = folder.string();
+            song.LoadSongIni(folder);
+            songs.push_back(std::move(song));
+        } else {
+            badSongs << folder.string() << "\n";
+        }
     } else {
         // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
-            ScanFolder(entry.path());
+            ScanFolder(entry.path(), badSongs);
         };
     }
 
@@ -185,18 +193,21 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     ZoneScoped
     Clear();
 
+    std::ofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc);
+
     for (const auto &folder : songsFolder) {
         if (!is_directory(folder)) {
             continue;
         }
         
-        ScanFolder(folder);
+        ScanFolder(folder, badSongs);
     }
 
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
     sortList(SortType::Title);
     curSong = nullptr;
+    badSongs.close();
 }
 
 std::string GetLengthHeader(int length) {
