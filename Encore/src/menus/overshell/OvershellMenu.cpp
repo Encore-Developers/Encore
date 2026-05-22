@@ -62,7 +62,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
             auto &player = ThePlayerManager.GetActivePlayer(i);
             player.joypadID = event.slot;
-            player.ActiveSlot = i + 1;
+            player.ActiveSlot = i;
             DetectControllerType(player);
             menu->OvershellState[i] = OS_OPTIONS;
             return true;
@@ -217,7 +217,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
 
                         if (ControllersToAssign[i] != 0) {
                             playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
-                            playerManager.GetActivePlayer(i).ActiveSlot = i + 1;
+                            playerManager.GetActivePlayer(i).ActiveSlot = i;
                             DetectControllerType(playerManager.GetActivePlayer(i));
                             ControllersToAssign[i] = 0;
                         }
