@@ -273,6 +273,10 @@ void PollQueuedInputs(ControllerPoller& poller) {
     ZoneScoped;
     while (poller.readIndex < poller.writeIndex) {
         auto event = poller.getEvent(poller.readIndex);
+        if (TheGameRPC.IsOverlayOpen) {
+            poller.readIndex++;
+            continue;
+        }
         if (TheMenuManager.ActiveMenu) {
             if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu)) {
                 if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {

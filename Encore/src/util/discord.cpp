@@ -23,6 +23,13 @@ std::string discordVersion = ENCORE_VERSION;
 std::string discordgitBranch = GIT_BRANCH;
 std::string discordBuildDate = BUILDDATE;
 
+#ifdef STEAM
+void Encore::Discord::OnOverlayOpen( GameOverlayActivated_t* callback ) {
+    if (callback->m_bActive) {
+        IsOverlayOpen = true;
+    }
+}
+#endif
 void Encore::Discord::Initialize(std::string discordBoot) {
     if (discordBoot != "false") {
         auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_NoRequireDiscord, &core);

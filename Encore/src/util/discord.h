@@ -10,11 +10,20 @@
 #include <string>
 
 
+#ifdef STEAM
+#include "isteamfriends.h"
+#include "steam_api_common.h"
+#endif
+
 namespace Encore {
     class Discord {
 
         int64_t startTime;
+#ifdef STEAM
+        STEAM_CALLBACK( Discord, OnOverlayOpen, GameOverlayActivated_t);
+#endif
     public:
+        bool IsOverlayOpen = false;
         bool Initialized = false;
         void Initialize(std::string discordBoot);
         ~Discord();
