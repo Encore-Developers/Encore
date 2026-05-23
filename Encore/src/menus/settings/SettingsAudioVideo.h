@@ -7,38 +7,31 @@
 #include "settings/settings.h"
 #include "assets.h"
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
+#include "menus/util/SettingRenderer.h"
 
 #ifndef SETTINGSAUDIOVIDEO_H
 #define SETTINGSAUDIOVIDEO_H
 
 namespace Encore {
-    class SettingsAudioVideo {
-    };
-}
-
-class SettingsAudioVideo : public OvershellMenu {
+        class SettingsAudioVideo : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
-    SETTINGS_OPTIONS;
+            SETTINGS_OPTIONS;
 #undef OPTION
-public:
-    int calibrationMenuOffset;
-    int GUI_TEXT_ALIGN_CENTER;
-    SettingsAudioVideo() = default;
-    ~SettingsAudioVideo() override = default;
-    void GuiSlider(Rectangle bounds,
-        std::nullptr_t null,
-        std::nullptr_t text_right,
-        int value,
-        float min_value,
-        float max_value
-    );
-    void Draw();
-    void KeyboardInputCallback(int key, int scancode, int action, int mods);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
-    void Load();
-    void Save();
-};
-
+            ButtonActionRegistry buttReg;
+        public:
+            int calibrationMenuOffset;
+            int GUI_TEXT_ALIGN_CENTER;
+            SettingsAudioVideo() = default;
+            ~SettingsAudioVideo() override;
+            SettingDoohickey settings;
+            void Draw();
+            void KeyboardInputCallback(int key, int scancode, int action, int mods);
+            void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
+            void Load();
+            void Save();
+        };
+    }
 extern Encore::SettingsAudioVideo TheAudioVideoSettings;
 
 #endif //SETTINGSAUDIOVIDEO_H

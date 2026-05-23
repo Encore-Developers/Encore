@@ -19,6 +19,7 @@ class SettingsMenu : public OvershellMenu {
     SETTINGS_OPTIONS;
 #undef OPTION
 public:
+
     SettingsMenu() = default;
     ~SettingsMenu() override = default;
     void KeyboardInputCallback(int key, int scancode, int action, int mods) override;

@@ -59,7 +59,7 @@ void MenuManager::LoadMenu() {
     case SETTINGSAUDIOVIDEO: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
-        ActiveMenu = new SettingsAudioVideo;
+        ActiveMenu = new Encore::SettingsAudioVideo;
         ActiveMenu->Load();
         break;
     }

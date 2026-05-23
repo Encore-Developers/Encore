@@ -335,7 +335,8 @@ AssetSet initialSet = {
     ASSETPTR(josefinSansItalic),
     ASSETPTR(bgShader),
     ASSETPTR(JetBrainsMono),
-    ASSETPTR(rubikBold)
+    ASSETPTR(rubikBold),
+    ASSETPTR(EntryBackground)
 };
 // Assets that are queued to load at boot but aren't critical for displaying the title
 // screen. Adding assets to this set results in a smaller impact on boot times

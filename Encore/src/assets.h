@@ -374,6 +374,7 @@ public:
 
     NEWTEXASSET(Scorebox, "gameplay/ui/Scorebox.png");
     NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");
+    NEWTEXASSET(EntryBackground, "gameplay/ui/entry_background.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
 
     NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.wav");

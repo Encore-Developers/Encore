@@ -266,18 +266,19 @@ void SettingsGameplay::Draw() {
         if (TheGameSettings.SongPaths.empty()) {
             TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
         } else {
-            try {
-                TraceLog(LOG_INFO, "Starting song scan with %d paths", TheGameSettings.SongPaths.size());
-                for (const auto& path : TheGameSettings.SongPaths) {
-                    TraceLog(LOG_INFO, "Scanning path: %s", path.c_str());
-                }
-                TheSongList.ScanSongs(TheGameSettings.SongPaths);
-                TraceLog(LOG_INFO, "Song scan completed successfully");
-            } catch (const std::exception& e) {
-                TraceLog(LOG_ERROR, "Error during song scan: %s", e.what());
-            } catch (...) {
-                TraceLog(LOG_ERROR, "Unknown error during song scan");
+            for (const auto& path : TheGameSettings.SongPaths) {
+                TraceLog(LOG_INFO, "Scanning path: %s", path.string().c_str());
             }
+            TheSongList.ScanSongs(TheGameSettings.SongPaths);
+            // try {
+            //     TraceLog(LOG_INFO, "Starting song scan with %d paths", TheGameSettings.SongPaths.size());
+            //
+            //     TraceLog(LOG_INFO, "Song scan completed successfully");
+            // } catch (const std::exception& e) {
+            //     TraceLog(LOG_ERROR, "Error during song scan: %s", e.what());
+            // } catch (...) {
+            //     TraceLog(LOG_ERROR, "Unknown error during song scan");
+            // }
         }
     }
 
