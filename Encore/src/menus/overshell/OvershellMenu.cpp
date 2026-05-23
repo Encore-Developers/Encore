@@ -25,8 +25,20 @@ bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, 
     }
     return false;
 }
+
+const std::unordered_map<std::string, ControllerBindingType> OvershellMenu::hardcodedControllerTypes = {
+    {"060074ae6f0e00004802000000010000", GUITAR} // RB4 Jaguar/Riffmaster
+};
+
 void DetectControllerType(Player& player) {
     auto type = SDL_GetJoystickType(SDL_GetJoystickFromID(player.joypadID));
+    char guidStr[33];
+    SDL_GUIDToString(SDL_GetJoystickGUIDForID(player.joypadID), guidStr, 33);
+    std::string guid = guidStr;
+    if (OvershellMenu::hardcodedControllerTypes.contains(guid)) {
+        player.bindingType = OvershellMenu::hardcodedControllerTypes.at(guid);
+        return;
+    }
     switch (type) {
     case SDL_JOYSTICK_TYPE_GUITAR:
         player.bindingType = GUITAR;

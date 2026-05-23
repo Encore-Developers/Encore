@@ -29,6 +29,7 @@ bool showSongList = false;
 bool showQuickSettings = false;
 bool showPractice = false;
 bool showEasings = false;
+bool showJoystickTools = false;
 
 bool paused = false;
 std::string pauseText = "Pause";
@@ -123,6 +124,10 @@ void EncoreDebug::DrawDebug() {
     if (showEasings) {
         DrawEasingsWindow();
     }
+
+    if (showJoystickTools) {
+        DrawJoystickTools();
+    }
 }
 
 void EncoreDebug::MenuBar() {
@@ -135,6 +140,7 @@ void EncoreDebug::MenuBar() {
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         MenuItem("Color Profile Manager", 0, &showColorProfileManager);
         MenuItem("Easings Debug", 0, &showEasings);
+        MenuItem("Joystick Tools", 0, &showJoystickTools);
         EndMenu();
     }
     if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()), 0, &showQuickSettings)) {
@@ -599,6 +605,70 @@ std::string tolowerStr(std::string &in) {
         out += std::tolower(c);
     }
     return out;
+}
+
+void EncoreDebug::DrawJoystickTools() {
+    if (Begin("Joystick Tools", &showJoystickTools)) {
+        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+            ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+        if (BeginTable("Joysticks", 3, flags, GetContentRegionAvail())) {
+            TableSetupScrollFreeze(0, 1);
+            TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+            TableSetupColumn("GUID", ImGuiTableColumnFlags_WidthStretch);
+            TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch);
+            TableHeadersRow();
+
+            int joystickCount = 0;
+            SDL_JoystickID* joysticks = SDL_GetJoysticks(&joystickCount);
+
+            for (int i = 0; i < joystickCount; i++) {
+                SDL_JoystickID joyId = joysticks[i];
+                TableNextRow();
+                PushID(i);
+
+                TableSetColumnIndex(0);
+                auto joystickName = SDL_GetJoystickNameForID(joyId);
+                Text("%s", joystickName);
+
+                TableSetColumnIndex(1);
+                char guidStr[33];
+                SDL_GUIDToString(SDL_GetJoystickGUIDForID(joyId), guidStr, 33);
+                Text("%s", guidStr);
+
+                TableSetColumnIndex(2);
+                if (SmallButton("Copy Name and GUID")) {
+                    std::string clipContent = std::string(guidStr) + "," + joystickName;
+                    ImGui::SetClipboardText(clipContent.c_str());
+                }
+                SameLine();
+                static std::string mappingStr;
+                if (SmallButton("Set Mapping")) {
+                    OpenPopup(joystickName);
+                    mappingStr = "";
+                }
+                if (BeginPopupModal(joystickName)) {
+
+                    InputText("Paste mapping", &mappingStr);
+                    if (Button("Apply")) {
+                        CloseCurrentPopup();
+                        SDL_AddGamepadMapping(mappingStr.c_str());
+                    }
+                    SameLine();
+                    if (Button("Cancel")) {
+                        CloseCurrentPopup();
+                    }
+
+                    EndPopup();
+                }
+
+
+                PopID();
+            }
+            EndTable();
+        }
+    }
+
+    End();
 }
 
 void EncoreDebug::DrawSongList() {

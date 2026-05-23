@@ -29,6 +29,7 @@ namespace EncoreDebug {
     void DrawSongScrubber();
     void DrawPracticeSectionSelector();
     void DrawColorProfileSettings();
+    void DrawJoystickTools();
 
     void StartReloadAssets();
 }

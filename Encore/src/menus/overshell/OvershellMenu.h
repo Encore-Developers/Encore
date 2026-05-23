@@ -59,6 +59,8 @@ extern POS TheOSState;
 
 class OvershellMenu : public Menu {
 public:
+    static const std::unordered_map<std::string, ControllerBindingType> hardcodedControllerTypes;
+
     OvershellMenu() {}
     virtual ~OvershellMenu() {}
 
