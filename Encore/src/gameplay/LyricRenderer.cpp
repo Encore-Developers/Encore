@@ -4,6 +4,7 @@
 
 #include "LyricRenderer.h"
 
+#include "raymath.h"
 
 inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
     const auto percent = static_cast<float>(value) / (255.0f);
