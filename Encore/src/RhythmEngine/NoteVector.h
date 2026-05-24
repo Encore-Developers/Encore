@@ -93,7 +93,7 @@ namespace Encore::RhythmEngine {
 
         void DropSustain(int lane) {
             if (IsHeldNotePresent(lane)) {
-                if (HeldNotePointers.at(lane)->StartTicks + HeldNotePointers.at(lane)->LengthTicks > TheSongTime.GetCurrentTick() + SUSTAIN_DROP_THRESHOLD ) {
+                if (HeldNotePointers.at(lane)->StartSeconds + HeldNotePointers.at(lane)->LengthSeconds - 0.075 > TheSongTime.GetElapsedTime() ) {
                     DroppedSustainPointers.push_back(HeldNotePointers.at(lane));
                 }
                 HeldNotePointers.at(lane) = nullptr;
