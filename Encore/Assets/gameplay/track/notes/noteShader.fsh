@@ -20,10 +20,12 @@ out vec4 finalColor;
 void main()
 {
     // vec2 push = vec2(fragTexCoord.x, fragTexCoord.y-time);
-	float maskColor = texture(maskTexture, fragTexCoord).r;
+	float maskColor = texture(maskTexture, fragTexCoord).g;
+	float shineColor = texture(maskTexture, fragTexCoord).r;
+	vec4 shine = vec4(shineColor, shineColor, shineColor, 1.0);
     vec4 baseColor;
     baseColor = texture(texture0, fragTexCoord) * mix(frameColor, noteColor, maskColor);
-
+    baseColor = baseColor + shine;
     baseColor.a *= smoothstep(trackLength, trackLength-fadeSize, fragPosition.z);
     finalColor = baseColor;
 }
