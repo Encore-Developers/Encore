@@ -45,12 +45,14 @@ namespace Encore {
 
         Camera3D VenueCamera = Camera3D();
 
-        static void DrawVenueBackground();
-        static void UpdateVenue();
+        void DrawVenueBackground();
+        void UpdateVenue();
 
-        static void GenerateVenueEvents();
+        void GenerateVenueEvents();
+
+        VenueHandler() {
+            GenerateVenueEvents();
+        }
     };
 }
-
-extern Encore::VenueHandler TheVenueHandler;
 #endif

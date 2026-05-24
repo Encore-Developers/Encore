@@ -15,10 +15,10 @@
 #include "gameplay/enctime.h"
 
 void Encore::VenueHandler::GenerateVenueEvents() {
-    TheVenueHandler.events.clear();
+    this->events.clear();
 
     // Add default event
-    TheVenueHandler.events.push_back(VenueEvent {0, VenueEventType::LIGHTSANIMATION_BLACKOUT});
+    this->events.push_back(VenueEvent {0, VenueEventType::LIGHTSANIMATION_BLACKOUT});
 
 
     for (const auto &[name, start] : TheSongTime.Sections) {
@@ -49,73 +49,69 @@ void Encore::VenueHandler::GenerateVenueEvents() {
             }
         }
 
-        TheVenueHandler.events.push_back(event);
+        this->events.push_back(event);
     }
 }
 
 void Encore::VenueHandler::UpdateVenue() {
 
-    if (TheAudioManager.GetMusicTimePlayed() < 800) {
-        GenerateVenueEvents();
-    }
-
     // Venue Animation (for random animation value)
-    TheVenueHandler.StageLightsAnimationTime += static_cast<float>((((TheSongTime.BPMChanges[TheSongTime.CurrentBPM].bpm / 60.0f) * TheSongTime.TimeSigChanges[TheSongTime.CurrentTimeSig].numer) / 2000.0f) * 3.14f);
+    this->StageLightsAnimationTime += static_cast<float>((((TheSongTime.BPMChanges[TheSongTime.CurrentBPM].bpm / 60.0f) * TheSongTime.TimeSigChanges[TheSongTime.CurrentTimeSig].numer) / 2000.0f) * 3.14f);
 
     // Assuming the events are already sorted, find the latest event crossed by the music
-    for (const VenueEvent e : TheVenueHandler.events) {
+    for (const VenueEvent e : this->events) {
         if (static_cast<float>(TheAudioManager.GetMusicTimePlayed()) >= e.musicPosition) {
-            TheVenueHandler.currentVenueEvent = e;
+            this->currentVenueEvent = e;
         }
     }
 
-    if (TheSongTime.GetBeatlineDelta() < TheVenueHandler.previousDeltaBeat) {
-        TheVenueHandler.beatCount++;
+    if (TheSongTime.GetBeatlineDelta() < this->previousDeltaBeat) {
+        this->beatCount++;
     }
-    TheVenueHandler.previousDeltaBeat = static_cast<float>(TheSongTime.GetBeatlineDelta());
+    this->previousDeltaBeat = static_cast<float>(TheSongTime.GetBeatlineDelta());
 
-    switch (TheVenueHandler.currentVenueEvent.eventType) {
+    switch (this->currentVenueEvent.eventType) {
     case VenueEventType::LIGHTSANIMATION_FLASH:
     case VenueEventType::LIGHTSANIMATION_ROAMING:
-        TheVenueHandler.StageLightsAnimationStatic -= 0.125f;
-        TheVenueHandler.StageLightsAnimationRandom += 0.1f;
+        this->StageLightsAnimationStatic -= 0.125f;
+        this->StageLightsAnimationRandom += 0.1f;
         break;
     case VenueEventType::LIGHTSANIMATION_BLACKOUT:
     case VenueEventType::LIGHTSANIMATION_STATIC:
     case VenueEventType::LIGHTSANIMATION_ONBEAT:
-        TheVenueHandler.StageLightsAnimationStatic += 0.1f;
-        TheVenueHandler.StageLightsAnimationRandom -= 0.1f;
+        this->StageLightsAnimationStatic += 0.1f;
+        this->StageLightsAnimationRandom -= 0.1f;
         break;
     }
 
-    TheVenueHandler.StageLightsAnimationStatic = Clamp(TheVenueHandler.StageLightsAnimationStatic, 0.0f, 1.0f);
-    TheVenueHandler.StageLightsAnimationRandom = Clamp(TheVenueHandler.StageLightsAnimationRandom, 0.0f, 1.0f);
+    this->StageLightsAnimationStatic = Clamp(this->StageLightsAnimationStatic, 0.0f, 1.0f);
+    this->StageLightsAnimationRandom = Clamp(this->StageLightsAnimationRandom, 0.0f, 1.0f);
 
     // WE NEED MORE!!!
     // MORE SHIT,
     // spaghetti,
     // CODE!!!
 
-    if (TheVenueHandler.currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_FLASH || TheVenueHandler.currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
-        TheVenueHandler.StageLightsBrightness = 0.5f + (0.5f-(TheSongTime.GetBeatlineDelta() * 0.5f));
+    if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_FLASH || this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
+        this->StageLightsBrightness = 0.5f + (0.5f-(TheSongTime.GetBeatlineDelta() * 0.5f));
     }
-    else if (TheVenueHandler.currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_BLACKOUT) {
-        TheVenueHandler.StageLightsBrightness -= 0.1f;
-        TheVenueHandler.StageLightsBrightness = std::max(TheVenueHandler.StageLightsBrightness, 0.0f);
+    else if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_BLACKOUT) {
+        this->StageLightsBrightness -= 0.1f;
+        this->StageLightsBrightness = std::max(this->StageLightsBrightness, 0.0f);
         std::cout << "blackout" << std::endl;
     }
     else {
-        TheVenueHandler.StageLightsBrightness = lerp(TheVenueHandler.StageLightsBrightness, 1.0f, 0.1f);
+        this->StageLightsBrightness = lerp(this->StageLightsBrightness, 1.0f, 0.1f);
     }
 
-    if (TheVenueHandler.currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
-        if (TheVenueHandler.beatCount % 2 == 1) {
-            TheVenueHandler.StageLightGlobalRotation += 0.25f;
-            TheVenueHandler.StageLightGlobalRotation = std::min(TheVenueHandler.StageLightGlobalRotation, 1.0f);
+    if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
+        if (this->beatCount % 2 == 1) {
+            this->StageLightGlobalRotation += 0.25f;
+            this->StageLightGlobalRotation = std::min(this->StageLightGlobalRotation, 1.0f);
         }
         else {
-            TheVenueHandler.StageLightGlobalRotation -= 0.25f;
-            TheVenueHandler.StageLightGlobalRotation = std::max(TheVenueHandler.StageLightGlobalRotation, -1.0f);
+            this->StageLightGlobalRotation -= 0.25f;
+            this->StageLightGlobalRotation = std::max(this->StageLightGlobalRotation, -1.0f);
         }
     }
 
@@ -124,7 +120,7 @@ void Encore::VenueHandler::UpdateVenue() {
 
 // This might be worse...
 void Encore::VenueHandler::DrawVenueBackground() {
-    Camera3D BaseCamera = TheVenueHandler.VenueCamera;
+    Camera3D BaseCamera = this->VenueCamera;
 
     rlDisableDepthMask();
     rlDisableDepthTest();
@@ -144,7 +140,7 @@ void Encore::VenueHandler::DrawVenueBackground() {
 
     Color CombinedLighting = ColorLerp(PrimaryLightsColor, SecondaryLightsColor, 0.5f);
 
-    float spotlightIntensity = TheVenueHandler.StageLightsBrightness / 2.0f;
+    float spotlightIntensity = this->StageLightsBrightness / 2.0f;
 
     Model StageModel = ASSET(VenueStage);
     Model CrowdModel = ASSET(CrowdTestModel); // Wish this would also use the animations...
@@ -153,7 +149,7 @@ void Encore::VenueHandler::DrawVenueBackground() {
     Material StageLampHookGlareMaterial = StageLampHookModel.materials[2];
     SetMaterialTexture(&StageLampHookGlareMaterial, MATERIAL_MAP_DIFFUSE, ASSET(StageLampLightTex));
 
-    Color StageModelColor = ColorBrightness(CombinedLighting, -1.0f + (TheVenueHandler.StageLightsBrightness * 2.0f));
+    Color StageModelColor = ColorBrightness(CombinedLighting, -1.0f + (this->StageLightsBrightness * 2.0f));
     StageModelColor.a = 255; // Just incase mixing colors goes wrong
 
 
@@ -183,13 +179,13 @@ void Encore::VenueHandler::DrawVenueBackground() {
         auto StageLampPosition = Vector3(-16, 15.0f, -12.0f);
         StageLampPosition.x += 3.5f*sl;
 
-        float randomRotationAngle = 15.0f * sin(TheVenueHandler.StageLightsAnimationTime - (sl*24.5f));
-        float staticRotationAngle = 7.5f * TheVenueHandler.StageLightGlobalRotation;
+        float randomRotationAngle = 15.0f * sin(this->StageLightsAnimationTime - (sl*24.5f));
+        float staticRotationAngle = 7.5f * this->StageLightGlobalRotation;
 
         float finalRotationAngle = 0.0f;
 
-        finalRotationAngle = lerp(finalRotationAngle, randomRotationAngle, TheVenueHandler.StageLightsAnimationRandom);
-        finalRotationAngle = lerp(finalRotationAngle, staticRotationAngle, TheVenueHandler.StageLightsAnimationStatic);
+        finalRotationAngle = lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
+        finalRotationAngle = lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
 
         if (sl % 2 == 1) {
             finalRotationAngle = -finalRotationAngle;
@@ -217,13 +213,13 @@ void Encore::VenueHandler::DrawVenueBackground() {
         auto StageLampPosition = Vector3(-16, 15.0f, -12.0f);
         StageLampPosition.x += 3.5f*sl;
 
-        float randomRotationAngle = 15.0f * sin(TheVenueHandler.StageLightsAnimationTime - (sl*24.5f));
-        float staticRotationAngle = 7.5f * TheVenueHandler.StageLightGlobalRotation;
+        float randomRotationAngle = 15.0f * sin(this->StageLightsAnimationTime - (sl*24.5f));
+        float staticRotationAngle = 7.5f * this->StageLightGlobalRotation;
 
         float finalRotationAngle = 0.0f;
 
-        finalRotationAngle = lerp(finalRotationAngle, randomRotationAngle, TheVenueHandler.StageLightsAnimationRandom);
-        finalRotationAngle = lerp(finalRotationAngle, staticRotationAngle, TheVenueHandler.StageLightsAnimationStatic);
+        finalRotationAngle = lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
+        finalRotationAngle = lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
 
         if (sl % 2 == 1) {
             CurrentLightColor = SecondaryLightsColor;
@@ -239,8 +235,8 @@ void Encore::VenueHandler::DrawVenueBackground() {
             if (m == 2) {
                 StageLampHookGlareMaterial.maps[MATERIAL_MAP_DIFFUSE].color = CurrentLightColor;
 
-                if (TheVenueHandler.currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
-                    if (TheVenueHandler.beatCount % 2 == sl % 2) {
+                if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
+                    if (this->beatCount % 2 == sl % 2) {
                         StageLampHookGlareMaterial.maps[MATERIAL_MAP_DIFFUSE].color.a = (int)(150 * spotlightIntensity);
                     }
                     else {

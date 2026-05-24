@@ -392,7 +392,7 @@ void GameplayMenu::Draw() {
     // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     // std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
     //GameMenu::DrawAlbumArtBackground();
-    Encore::VenueHandler::DrawVenueBackground();
+    this->venueHandler.DrawVenueBackground();
     // BackgroundColor = (unsigned char)((1 - TheSongTime.GetBeatlineDelta()) * 255);
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
@@ -591,6 +591,8 @@ void GameplayMenu::Load() {
     TheSongList.curSong->LoadAlbumArt();
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
     dropInDropOut = false;
+
+    venueHandler = Encore::VenueHandler();
 
     // i dont like the game stuttering when you active or get a streak
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;

@@ -74,7 +74,6 @@ SongList TheSongList;
 PlayerManager ThePlayerManager;
 Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
-Encore::VenueHandler TheVenueHandler;
 Encore::Settings TheGameSettings;
 Encore::ProfileManager TheProfileManager;
 Encore::Keybinds TheGameKeybinds;
