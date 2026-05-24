@@ -917,7 +917,7 @@ void Encore::Track::Configure5Lane() {
     AddSlot(new GemTrackSlot(this, 0 * xMult, 1, SLOT_YELLOW));
     AddSlot(new GemTrackSlot(this, -1 * xMult, 1, SLOT_BLUE));
     AddSlot(new GemTrackSlot(this, -2 * xMult, 1, SLOT_ORANGE));
-    AddSlot(new OpenTrackSlot(this, 0 * xMult, 5, SLOT_OPEN));
+    AddSlot(new OpenTrackSlot(this, 0 * xMult, 5, 0.5, SLOT_OPEN));
 }
 
 void Encore::Track::Configure5LaneKickOpen() {
