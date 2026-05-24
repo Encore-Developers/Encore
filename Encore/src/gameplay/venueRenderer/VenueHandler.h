@@ -43,6 +43,8 @@ namespace Encore {
 
         float StageLightsBrightness = 0.0f;
 
+        Camera3D VenueCamera = Camera3D();
+
         static void DrawVenueBackground();
         static void UpdateVenue();
 

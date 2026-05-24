@@ -124,7 +124,7 @@ void Encore::VenueHandler::UpdateVenue() {
 
 // This might be worse...
 void Encore::VenueHandler::DrawVenueBackground() {
-    Camera3D BaseCamera = Camera3D();
+    Camera3D BaseCamera = TheVenueHandler.VenueCamera;
 
     rlDisableDepthMask();
     rlDisableDepthTest();
