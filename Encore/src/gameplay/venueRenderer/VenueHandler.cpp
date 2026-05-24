@@ -13,6 +13,7 @@
 #include "raymath.h"
 #include "rlgl.h"
 #include "gameplay/enctime.h"
+#include <algorithm>
 
 void Encore::VenueHandler::GenerateVenueEvents() {
     events.clear();
