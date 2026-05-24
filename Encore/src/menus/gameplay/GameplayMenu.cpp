@@ -23,6 +23,7 @@
 #include <raylib.h>
 
 #include "gameplay/LyricRenderer.h"
+#include "gameplay/venueRenderer/VenueHandler.h"
 #include "settings/keybinds.h"
 #include "song/OpenSource.h"
 #include "tracy/Tracy.hpp"
@@ -387,7 +388,8 @@ void GameplayMenu::Draw() {
     }
     // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
     // std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
-    GameMenu::DrawAlbumArtBackground();
+    //GameMenu::DrawAlbumArtBackground();
+    Encore::VenueHandler::DrawVenueBackground();
     // BackgroundColor = (unsigned char)((1 - TheSongTime.GetBeatlineDelta()) * 255);
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(

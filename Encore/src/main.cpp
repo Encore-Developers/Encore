@@ -13,6 +13,7 @@
 
 #include "gameplay/inputCallbacks.h"
 #include "SDL3/SDL.h"
+#include "gameplay/venueRenderer/VenueHandler.h"
 
 #include "settings/keybinds.h"
 #include "song/ArtLoader.h"
@@ -73,6 +74,7 @@ SongList TheSongList;
 PlayerManager ThePlayerManager;
 Assets &assets = Assets::getInstance();
 Encore::AudioManager TheAudioManager;
+Encore::VenueHandler TheVenueHandler;
 Encore::Settings TheGameSettings;
 Encore::ProfileManager TheProfileManager;
 Encore::Keybinds TheGameKeybinds;
@@ -184,7 +186,7 @@ bool imGuiLoaded = false;
 ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
-    std::locale::global(std::locale{"en_US.utf-8"});
+    //std::locale::global(std::locale{"en_US.utf-8"}); Disabled for testing purposes
 #ifdef STEAM
     if (SteamAPI_RestartAppIfNecessary(4691230)) {
         return 1;

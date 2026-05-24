@@ -614,6 +614,26 @@ public:
                         model->materials[0].shader = trackCurveShader;
                         });
 
+    NEWLEGACYMODELASSET(VenueStage,
+                "gameplay/venue/TestVenueEncore.obj",
+                [this](Model* model) {
+                });
+
+    NEWLEGACYMODELASSET(StageLampHook,
+                "gameplay/venue/StageLampHook.obj",
+                [this](Model* model) {
+                });
+
+    NEWLEGACYMODELASSET(CrowdTestModel,
+                "gameplay/venue/test_model_crowdAnimation.glb",
+                [this](Model* model) {});
+    // Using .glb/.gltf format for model animations, and crowd work.
+    // But I don't think I can load animations through here.
+
+    NEWTEXASSET(StageLampLightTex, "gameplay/venue/StageLampLight.png");
+    NEWTEXASSET(StageLampLightGlow, "gameplay/venue/StageLampLightGlow.png");
+    NEWTEXASSET(StageLampLightGlare, "gameplay/venue/StageLampLightGlare.png");
+
     NEWTEXASSET(hitFlareTex, "gameplay/track/particles/hit_flare.png");
     NEWTEXASSET(hitFlareInnerTex, "gameplay/track/particles/hit_flare_inner.png");
     NEWTEXASSET(shockwaveTex, "gameplay/track/particles/shockwave.png");
