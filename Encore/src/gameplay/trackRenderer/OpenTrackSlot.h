@@ -14,6 +14,9 @@ namespace Encore {
         OpenTrackSlot(Track *track, float xPos, float width, ColorSlot colorSlot) : TrackSlot(track, xPos, width, 1, colorSlot) {
             openHitAnim = true;
         };
+        OpenTrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot) : TrackSlot(track, xPos, width, length, colorSlot) {
+            openHitAnim = true;
+        };
 
         virtual void DrawNote(RhythmEngine::EncNote *note, bool missed) override;
         virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy) override;

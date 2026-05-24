@@ -74,8 +74,8 @@ void GameplayMenu::UpdatePauseState() {
     }
 }
 bool GameplayMenu::IsPaused() {
-    for (int i = 0; i < 4; i++) {
-        if (OvershellState[i] != OS_ATTRACT) {
+    for (const int i : OvershellState) {
+        if (i != OS_ATTRACT) {
             return true;
         }
     }
@@ -125,9 +125,9 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
                     event.channel = Encore::RhythmEngine::IntIC(i);
                 }
             }
-            if (key == KEY_ESCAPE && action == GLFW_PRESS) {
-                event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
-            }
+        }
+        if (key == KEY_ESCAPE && action == GLFW_PRESS) {
+            event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
         }
         event.timestamp = TheSongTime.GetElapsedTime();
         if (!CheckPauseInput(event))

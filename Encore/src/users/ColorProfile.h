@@ -36,7 +36,7 @@ namespace Encore {
             ORANGE,
             PURPLE, // OPEN
             ORANGE, // KICK
-            WHITE, // OVERDRIVE
+            LIGHTGRAY, // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
             GREEN // CRASH

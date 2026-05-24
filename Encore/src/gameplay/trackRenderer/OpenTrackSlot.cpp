@@ -37,7 +37,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
                     position,
                     { 0 },
                     0,
-                    {width/5.0f, track->NoteHeight, 1},
+                    {width/5.0f, track->NoteHeight, length},
                     WHITE);
 
     } else {
@@ -45,7 +45,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
                     position,
                     { 0 },
                     0,
-                    {width/5.0f, track->NoteHeight, 1},
+                    {width/5.0f, track->NoteHeight, length},
                     WHITE);
     }
 }
