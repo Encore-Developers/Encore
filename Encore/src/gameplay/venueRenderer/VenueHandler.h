@@ -12,16 +12,34 @@
 namespace Encore {
     enum class VenueEventType {
         LIGHTSANIMATION_STATIC,
-        LIGHTSANIMATION_ONBEAT,
         LIGHTSANIMATION_ROAMING,
         LIGHTSANIMATION_FLASH,
-        LIGHTSANIMATION_BLACKOUT
+        LIGHTSANIMATION_STROBE,
+        LIGHTSANIMATION_BLACKOUT,
+        LIGHTSANIMATION_FRENZY,
 
     };
     class VenueEvent {
     public:
         float musicPosition = 0;
         VenueEventType eventType = VenueEventType::LIGHTSANIMATION_BLACKOUT;
+    };
+
+    enum class VenueObjectType {
+        VENUEOBJECT_LIGHTS,
+        VENUEOBJECT_EMITTER,
+    };
+
+    class VenueObject {
+        public:
+        Vector3 Position;
+        Vector3 Rotation;
+
+        bool RotateOnX;
+        bool RotateOnY;
+        bool RotateOnZ;
+
+        int AnimationSlot;
     };
 
     class VenueHandler {
@@ -40,6 +58,7 @@ namespace Encore {
         float StageLightsAnimationBeatSync = 0.0f;
 
         float StageLightGlobalRotation = 0.0f;
+        float StageLightGlobalAnimationSpeed;
 
         float StageLightsBrightness = 0.0f;
 
