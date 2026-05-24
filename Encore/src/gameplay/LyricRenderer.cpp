@@ -53,10 +53,10 @@ void Encore::LyricRenderer::RenderLyrics() {
         if (TheSongTime.GetNextLyric()) {
             RhythmEngine::EncLyricPhrase* NextLyric = TheSongTime.GetNextLyric();
             RhythmEngine::EncLyricPhrase& CurrentLyric = TheSongTime.GetCurrentLyric();
-            if (CurrentLyric.lyrics.empty() && NextLyric->lyrics.empty() && NextLyric->StartSec - 1.5 > TheSongTime.GetElapsedTime() && (displayState == FADE_IN || displayState == SHOWN)) {
+            if (CurrentLyric.lyrics.empty() && NextLyric->lyrics.empty() && NextLyric->StartSec - 3 > TheSongTime.GetElapsedTime() && (displayState == FADE_IN || displayState == SHOWN)) {
                 HideLyrics();
             }
-            else if (!NextLyric->lyrics.empty() && NextLyric->StartSec - 2 < TheSongTime.GetElapsedTime() && (displayState == FADE_OUT || displayState == HIDDEN)) {
+            else if (!NextLyric->lyrics.empty() && NextLyric->StartSec - 3 < TheSongTime.GetElapsedTime() && (displayState == FADE_OUT || displayState == HIDDEN)) {
                 ShowLyrics();
             }
         }
