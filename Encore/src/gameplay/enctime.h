@@ -74,6 +74,11 @@ public:
     std::vector<Section> Sections {};
     size_t CurrentLyricPhrase = 0;
     std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
+    // GetCurrentLyric will always be in bounds, and is currently wrapped by an Empty check
+    // where it is used. GetPreviousLyric and GetNextLyric return null if out of bounds.
+    Encore::RhythmEngine::EncLyricPhrase& GetCurrentLyric();
+    Encore::RhythmEngine::EncLyricPhrase* GetPreviousLyric();
+    Encore::RhythmEngine::EncLyricPhrase* GetNextLyric();
 
     SongTime() = default;
     void ParseSections(smf::MidiFile);

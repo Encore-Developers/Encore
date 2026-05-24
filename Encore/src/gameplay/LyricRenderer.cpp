@@ -4,6 +4,13 @@
 
 #include "LyricRenderer.h"
 
+#include "../../../cmake-build-relwithdebinfo-visual-studio/_deps/raylib-src/src/raymath.h"
+
+inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
+    const auto percent = static_cast<float>(value) / (255.0f);
+    return static_cast<unsigned char>(percent * static_cast<float>(max));
+}
+
 void Encore::LyricRenderer::RenderLyrics() {
     ProcessAnimation();
     if (!TheSongTime.Lyrics.empty()
@@ -12,36 +19,49 @@ void Encore::LyricRenderer::RenderLyrics() {
         auto easeInOut = getEasingFunction(EaseInOutSine);
         auto easeIn = getEasingFunction(EaseInQuad);
         auto easeOut = getEasingFunction(EaseOutQuad);
-
-        if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
-            DrawPhraseBackground(1, 0.11f, 0.06f * 0.75f);
+        DisplayAlpha = static_cast<unsigned char>(easeInOut(ShowHideTimer) * 255.0);
+        DrawPhraseBackground(1, 0.11f, 0.06f * 0.75f);
+        if (TheSongTime.GetNextLyric()) {
             DrawPhrase(
-                &TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase + 1),
+                TheSongTime.GetNextLyric(),
                 0.10f,
                 0.0425f * 0.75f,
                 (200 - (easeOut(AnimTimer) * 200)));
         }
         DrawPhraseBackground(0, 0.05, 0.06f);
         DrawPhrase(
-            &TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase),
+            &TheSongTime.GetCurrentLyric(),
             0.05f + (easeInOut(AnimTimer) * 0.05f),
             0.0425f - (easeInOut(AnimTimer) * (0.0425f * 0.25f)),
             255 - (easeInOut(AnimTimer) * 55));
 
-        if (TheSongTime.CurrentLyricPhrase > 0) {
+        if (TheSongTime.GetPreviousLyric()) {
             DrawPhrase(
-                &TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase-1),
+                TheSongTime.GetPreviousLyric(),
                 0.05f, // + (AnimTimer * 0.05f),
                 (0.0425f), // + (AnimTimer * (0.0425f * 0.25f)),
                 0 + (easeIn(AnimTimer) * 200));
         }
         if (TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).EndSec <
-            TheSongTime.
-            GetElapsedTime()) {
+            TheSongTime.GetElapsedTime()) {
             if (TheSongTime.CurrentLyricPhrase < TheSongTime.Lyrics.size() - 1) {
                 AnimTimer = 1;
                 TheSongTime.CurrentLyricPhrase++;
             }
+        }
+
+        if (TheSongTime.GetNextLyric()) {
+            RhythmEngine::EncLyricPhrase* NextLyric = TheSongTime.GetNextLyric();
+            RhythmEngine::EncLyricPhrase& CurrentLyric = TheSongTime.GetCurrentLyric();
+            if (CurrentLyric.lyrics.empty() && NextLyric->lyrics.empty() && NextLyric->StartSec - 1.5 > TheSongTime.GetElapsedTime() && (displayState == FADE_IN || displayState == SHOWN)) {
+                HideLyrics();
+            }
+            else if (!NextLyric->lyrics.empty() && NextLyric->StartSec - 2 < TheSongTime.GetElapsedTime() && (displayState == FADE_OUT || displayState == HIDDEN)) {
+                ShowLyrics();
+            }
+        }
+        if (TheSongTime.CurrentLyricPhrase == TheSongTime.Lyrics.size() - 1 && (displayState == FADE_IN || displayState == SHOWN)) {
+            HideLyrics();
         }
     }
 }
@@ -58,7 +78,7 @@ void Encore::LyricRenderer::DrawPhraseBackground(int type, float pos, float size
     if (type == 1)
         texture = ASSETPTR(secLyricBar);
 
-    DrawTexturePro(*texture, imageRec, dest, { 0, 0 }, 0, WHITE);
+    DrawTexturePro(*texture, imageRec, dest, { 0, 0 }, 0, {255,255,255, DisplayAlpha});
 }
 
 void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
@@ -101,7 +121,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                              playedText,
                              { LyricLeft, baselineVox + padding },
                              FontSize,
-                             { 119, 183, 255, alpha },
+                             { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) },
                              ASSET(sdfShader),
                              LEFT);
         LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
@@ -110,7 +130,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                          unplayedText,
                          { LyricLeft, baselineVox + padding },
                          FontSize,
-                         {255, 255, 255, alpha},
+                         {255, 255, 255, remapAlpha(alpha, DisplayAlpha)},
                          ASSET(sdfShader),
                          LEFT);
 }
