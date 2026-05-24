@@ -15,10 +15,10 @@
 #include "gameplay/enctime.h"
 
 void Encore::VenueHandler::GenerateVenueEvents() {
-    this->events.clear();
+    events.clear();
 
     // Add default event
-    this->events.push_back(VenueEvent {0, VenueEventType::LIGHTSANIMATION_BLACKOUT});
+    events.push_back(VenueEvent {0, VenueEventType::LIGHTSANIMATION_BLACKOUT});
 
 
     for (const auto &[name, start] : TheSongTime.Sections) {
@@ -49,69 +49,69 @@ void Encore::VenueHandler::GenerateVenueEvents() {
             }
         }
 
-        this->events.push_back(event);
+        events.push_back(event);
     }
 }
 
 void Encore::VenueHandler::UpdateVenue() {
 
     // Venue Animation (for random animation value)
-    this->StageLightsAnimationTime += static_cast<float>((((TheSongTime.BPMChanges[TheSongTime.CurrentBPM].bpm / 60.0f) * TheSongTime.TimeSigChanges[TheSongTime.CurrentTimeSig].numer) / 2000.0f) * 3.14f);
+    StageLightsAnimationTime += static_cast<float>((((TheSongTime.BPMChanges[TheSongTime.CurrentBPM].bpm / 60.0f) * TheSongTime.TimeSigChanges[TheSongTime.CurrentTimeSig].numer) / 2000.0f) * 3.14f);
 
     // Assuming the events are already sorted, find the latest event crossed by the music
-    for (const VenueEvent e : this->events) {
+    for (const VenueEvent e : events) {
         if (static_cast<float>(TheAudioManager.GetMusicTimePlayed()) >= e.musicPosition) {
-            this->currentVenueEvent = e;
+            currentVenueEvent = e;
         }
     }
 
-    if (TheSongTime.GetBeatlineDelta() < this->previousDeltaBeat) {
-        this->beatCount++;
+    if (TheSongTime.GetBeatlineDelta() < previousDeltaBeat) {
+        beatCount++;
     }
-    this->previousDeltaBeat = static_cast<float>(TheSongTime.GetBeatlineDelta());
+    previousDeltaBeat = static_cast<float>(TheSongTime.GetBeatlineDelta());
 
-    switch (this->currentVenueEvent.eventType) {
+    switch (currentVenueEvent.eventType) {
     case VenueEventType::LIGHTSANIMATION_FLASH:
     case VenueEventType::LIGHTSANIMATION_ROAMING:
-        this->StageLightsAnimationStatic -= 0.125f;
-        this->StageLightsAnimationRandom += 0.1f;
+        StageLightsAnimationStatic -= 0.125f;
+        StageLightsAnimationRandom += 0.1f;
         break;
     case VenueEventType::LIGHTSANIMATION_BLACKOUT:
     case VenueEventType::LIGHTSANIMATION_STATIC:
     case VenueEventType::LIGHTSANIMATION_ONBEAT:
-        this->StageLightsAnimationStatic += 0.1f;
-        this->StageLightsAnimationRandom -= 0.1f;
+        StageLightsAnimationStatic += 0.1f;
+        StageLightsAnimationRandom -= 0.1f;
         break;
     }
 
-    this->StageLightsAnimationStatic = Clamp(this->StageLightsAnimationStatic, 0.0f, 1.0f);
-    this->StageLightsAnimationRandom = Clamp(this->StageLightsAnimationRandom, 0.0f, 1.0f);
+    StageLightsAnimationStatic = Clamp(StageLightsAnimationStatic, 0.0f, 1.0f);
+    StageLightsAnimationRandom = Clamp(StageLightsAnimationRandom, 0.0f, 1.0f);
 
     // WE NEED MORE!!!
     // MORE SHIT,
     // spaghetti,
     // CODE!!!
 
-    if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_FLASH || this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
-        this->StageLightsBrightness = 0.5f + (0.5f-(TheSongTime.GetBeatlineDelta() * 0.5f));
+    if (currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_FLASH || currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
+        StageLightsBrightness = 0.5f + (0.5f-(TheSongTime.GetBeatlineDelta() * 0.5f));
     }
-    else if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_BLACKOUT) {
-        this->StageLightsBrightness -= 0.1f;
-        this->StageLightsBrightness = std::max(this->StageLightsBrightness, 0.0f);
+    else if (currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_BLACKOUT) {
+        StageLightsBrightness -= 0.1f;
+        StageLightsBrightness = std::max(StageLightsBrightness, 0.0f);
         std::cout << "blackout" << std::endl;
     }
     else {
-        this->StageLightsBrightness = lerp(this->StageLightsBrightness, 1.0f, 0.1f);
+        StageLightsBrightness = lerp(StageLightsBrightness, 1.0f, 0.1f);
     }
 
-    if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
-        if (this->beatCount % 2 == 1) {
-            this->StageLightGlobalRotation += 0.25f;
-            this->StageLightGlobalRotation = std::min(this->StageLightGlobalRotation, 1.0f);
+    if (currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
+        if (beatCount % 2 == 1) {
+            StageLightGlobalRotation += 0.25f;
+            StageLightGlobalRotation = std::min(StageLightGlobalRotation, 1.0f);
         }
         else {
-            this->StageLightGlobalRotation -= 0.25f;
-            this->StageLightGlobalRotation = std::max(this->StageLightGlobalRotation, -1.0f);
+            StageLightGlobalRotation -= 0.25f;
+            StageLightGlobalRotation = std::max(StageLightGlobalRotation, -1.0f);
         }
     }
 
