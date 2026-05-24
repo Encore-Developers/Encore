@@ -4,8 +4,7 @@
 
 #include "LyricRenderer.h"
 
-//#include "../../../cmake-build-relwithdebinfo-visual-studio/_deps/raylib-src/src/raymath.h"
-#include "raymath.h"
+#include "../../../cmake-build-relwithdebinfo-visual-studio/_deps/raylib-src/src/raymath.h"
 
 inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
     const auto percent = static_cast<float>(value) / (255.0f);
