@@ -721,7 +721,7 @@ void Encore::Track::DrawBeatlines() {
             auto &beatline = TheSongTime.Beatlines[i];
             float ScrollPos = GetNotePos3D(
                 beatline.time
-            );
+            )-0.24;
             float Size = 0;
             Color beatlineColor = WHITE;
             switch (beatline.type) {
