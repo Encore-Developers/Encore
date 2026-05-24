@@ -31,7 +31,6 @@ float avMenuMusicVolume = 0.0f;
 float avSoundEffectVolume = 0.0f;
 bool BackgroundBeatFlash = false;
 bool VerticalSync = false;
-int selectedIndex = 0;
 
 using namespace Encore;
 SettingsAudioVideo::~SettingsAudioVideo() {};
@@ -128,8 +127,8 @@ void SettingsAudioVideo::Draw() {
         }
     };
 
-    const char* headerText = sidebarContents[selectedIndex].header;
-    const char* sidebarBodyText = sidebarContents[selectedIndex].body;
+    const char* headerText = sidebarContents[settings.selectedIndex].header;
+    const char* sidebarBodyText = sidebarContents[settings.selectedIndex].body;
     float headerFontSize = u.hinpct(0.030f);
     float headerLineSpacing = headerFontSize * 1.2f;
     std::vector<std::string> headerLines = split(headerText, "\n");
@@ -157,10 +156,8 @@ void SettingsAudioVideo::Draw() {
         currentY += lineSpacing;
     }
 
-    float TextPlacementTB = u.hpct(0.05f);
-    float TextPlacementLR = u.wpct(0.05f);
-    DrawTextEx(assets.rubik, "Audio/Video", {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
-    GameMenu::mhDrawText(assets.redHatDisplayBlack, "SETTINGS", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
+    DrawTextEx(assets.rubik, "Main > Volume", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
+    GameMenu::mhDrawText(assets.redHatDisplayBlack, "SETTINGS", {u.LeftSide, u.hpct(0.05f)}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
 
     Color sliderNormal = Color{24, 24, 39, 178};
     Color sliderHovered = Color{84, 13, 88, 200};
@@ -175,7 +172,7 @@ void SettingsAudioVideo::Draw() {
     GuiSetStyle(SLIDER, SLIDER_WIDTH, 0);
     GuiSetStyle(SLIDER, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_CENTER);
 
-    settings.Draw(selectedIndex);
+    settings.Draw();
 
     GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
@@ -202,15 +199,11 @@ void SettingsAudioVideo::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        selectedIndex -= 1;
-        if (selectedIndex < 0) selectedIndex = 0;
-        if (selectedIndex >= settings.settingsArray.size()) selectedIndex = settings.settingsArray.size()-1;
+        settings.IncrementIndex(1);
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        selectedIndex += 1;
-        if (selectedIndex < 0) selectedIndex = 0;
-        if (selectedIndex >= settings.settingsArray.size()) selectedIndex = settings.settingsArray.size()-1;
+        settings.IncrementIndex(-1);
     }, false)
     NEWBUTTONACTION2(buttReg, LANE_1, "Select", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
@@ -222,58 +215,29 @@ void SettingsAudioVideo::Load() {
     })
     NEWBUTTONACTION2(buttReg, INPUT_LEFT, "Lower", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        settings.Action(selectedIndex, true);
+        settings.Action(true);
     }, false)
     NEWBUTTONACTION2(buttReg, INPUT_RIGHT, "Raise", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        settings.Action(selectedIndex, false);
+        settings.Action(false);
     }, false)
-    TheGameSettings.LoadFromFile("settings.json");
+    TheGameSettings.LoadFromFile((TheGameSettings.directory / "settings.json").string());
+    settings.Add(new Encore::SettingDoohickey::intSettingObject("Audio Offset", &TheGameSettings.AudioOffset, -100, 400, 5));
+    settings.Add(new Encore::SettingDoohickey::intSettingObject("Video Offset", &TheGameSettings.VideoOffset, -100, 400, 5));
+    settings.Add(new Encore::SettingDoohickey::intSettingObject("Framerate", &TheGameSettings.Framerate, 5, 2000, 5));
+    settings.Add(new SettingDoohickey::boolSettingObject("Vsync", &TheGameSettings.VerticalSync));
+    settings.Add(new SettingDoohickey::floatSettingObject("Main Volume", &TheGameSettings.avMainVolume, 0, 1, 0.05f));
+    settings.Add(new SettingDoohickey::floatSettingObject("Active Instrument Volume", &TheGameSettings.avActiveInstrumentVolume, 0, 1, 0.05f));
+    settings.Add(new SettingDoohickey::floatSettingObject("Inactive Instrument Volume", &TheGameSettings.avInactiveInstrumentVolume, 0, 1, 0.05f));
+    settings.Add(new SettingDoohickey::floatSettingObject("SFX Volume", &TheGameSettings.avSoundEffectVolume, 0, 1, 0.05f));
+    settings.Add(new SettingDoohickey::floatSettingObject("Mute Volume", &TheGameSettings.avMuteVolume, 0, 1, 0.05f));
+    settings.Add(new SettingDoohickey::floatSettingObject("Menu Music Volume", &TheGameSettings.avMenuMusicVolume, 0, 1, 0.05f));
 
 
-    AudioOffset = TheGameSettings.AudioOffset;
-    VideoOffset = TheGameSettings.VideoOffset;
-    Framerate = TheGameSettings.Framerate;
-    avMainVolume = TheGameSettings.avMainVolume;
-    avActiveInstrumentVolume = TheGameSettings.avActiveInstrumentVolume;
-    avInactiveInstrumentVolume = TheGameSettings.avInactiveInstrumentVolume;
-    avMuteVolume = TheGameSettings.avMuteVolume;
-    avMenuMusicVolume = TheGameSettings.avMenuMusicVolume;
-    avSoundEffectVolume = TheGameSettings.avSoundEffectVolume;
-    BackgroundBeatFlash = TheGameSettings.BackgroundBeatFlash;
-    VerticalSync = TheGameSettings.VerticalSync;
-
-    settings.Add(new SettingDoohickey::intSettingObject("Audio Offset", &AudioOffset, -100, 400, 5));
-    settings.Add(new SettingDoohickey::intSettingObject("Video Offset", &VideoOffset, -100, 400, 5));
-    settings.Add(new SettingDoohickey::intSettingObject("Framerate", &Framerate, 5, 2000, 5));
-    settings.Add(new SettingDoohickey::boolSettingObject("Vsync", &VerticalSync, 0, 1, 1));
-    settings.Add(new SettingDoohickey::floatSettingObject("Main Volume", &avMainVolume, 0, 1, 0.05f));
-    settings.Add(new SettingDoohickey::floatSettingObject("Active Instrument Volume", &avActiveInstrumentVolume, 0, 1, 0.05f));
-    settings.Add(new SettingDoohickey::floatSettingObject("Inactive Instrument Volume", &avInactiveInstrumentVolume, 0, 1, 0.05f));
-    settings.Add(new SettingDoohickey::floatSettingObject("SFX Volume", &avSoundEffectVolume, 0, 1, 0.05f));
-    settings.Add(new SettingDoohickey::floatSettingObject("Mute Volume", &avMuteVolume, 0, 1, 0.05f));
-    settings.Add(new SettingDoohickey::floatSettingObject("Menu Music Volume", &avMenuMusicVolume, 0, 1, 0.05f));
-
-
-    TraceLog(LOG_INFO, "Loaded audio/video settings: AudioOffset=%d, VideoOffset=%d, Framerate=%d, avMainVolume=%.2f",
-             AudioOffset, VideoOffset, Framerate, avMainVolume);
 }
 
 void SettingsAudioVideo::Save() {
-    TheGameSettings.AudioOffset = AudioOffset;
-    TheGameSettings.VideoOffset = VideoOffset;
-    TheGameSettings.Framerate = Framerate;
-    TheGameSettings.avMainVolume = avMainVolume;
-    TheGameSettings.avActiveInstrumentVolume = avActiveInstrumentVolume;
-    TheGameSettings.avInactiveInstrumentVolume = avInactiveInstrumentVolume;
-    TheGameSettings.avMuteVolume = avMuteVolume;
-    TheGameSettings.avMenuMusicVolume = avMenuMusicVolume;
-    TheGameSettings.avSoundEffectVolume = avSoundEffectVolume;
-    TheGameSettings.BackgroundBeatFlash = BackgroundBeatFlash;
-    TheGameSettings.VerticalSync = VerticalSync;
 
-    TheGameSettings.SaveToFile("settings.json");
+    TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
 
-    TraceLog(LOG_INFO, "Saved audio/video settings: AudioOffset=%d, VideoOffset=%d, Framerate=%d, avMainVolume=%.2f",
-             AudioOffset, VideoOffset, Framerate, avMainVolume);
 }

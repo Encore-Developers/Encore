@@ -15,9 +15,6 @@
 
 namespace Encore {
         class SettingsAudioVideo : public OvershellMenu {
-#define OPTION(type, value, default) type value = default;
-            SETTINGS_OPTIONS;
-#undef OPTION
             ButtonActionRegistry buttReg;
         public:
             int calibrationMenuOffset;

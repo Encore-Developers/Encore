@@ -7,6 +7,8 @@
 
 #include <GLFW/glfw3.h>
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
+#include "menus/util/SettingRenderer.h"
 
 namespace Encore {
     class SettingsGameplay {
@@ -20,7 +22,10 @@ public:
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     void Load();
     void Save();
-
+    Encore::ButtonActionRegistry buttReg;
+    bool ad = false;
+    std::function<void()> ScanSongsFunc;
+    Encore::SettingDoohickey settings;
 private:
 bool Fullscreen = false;
 };

@@ -116,17 +116,8 @@ void SettingsMenu::Draw() {
 
     encOS::DrawTopOvershell(0.15f);
 
-    DrawTextEx(assets.rubik, "Main Menu",
-               {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
-    GameMenu::mhDrawText(
-        assets.redHatDisplayBlack,
-        "SETTINGS",
-        {TextPlacementLR, TextPlacementTB},
-        u.hinpct(0.125f),
-        WHITE,
-        assets.sdfShader,
-        LEFT
-    );
+    DrawTextEx(assets.rubik, "Main", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
+    GameMenu::mhDrawText(assets.redHatDisplayBlack, "SETTINGS", {u.LeftSide, u.hpct(0.05f)}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
     float fontSize = u.hinpct(0.029f);
     DrawTextEx(assets.josefinSansItalic, "Select an option", {EntryTextLeft, TextTop}, fontSize, 0, Color{136, 136, 136, 255});
 
@@ -210,14 +201,23 @@ void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int 
 }
 
 void SettingsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    if (event.action == Encore::RhythmEngine::Action::PRESS) {
-        switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::LANE_2: {
-            TheMenuManager.SwitchScreen(MAIN_MENU);
-            break;
-        }
-        }
-    }
+    buttReg.buttMap.clear();
+    // todo: make SettingsMenu controller usable
+    NEWBUTTONACTION2(buttReg, LANE_1, "Select", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+    })
+    NEWBUTTONACTION2(buttReg, LANE_2, "Back", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        TheMenuManager.SwitchScreen(MAIN_MENU);
+    })
+    NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        // settings.IncrementIndex(1);
+    }, false)
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        // settings.IncrementIndex(-1);
+    }, false)
 }
 
 void SettingsMenu::Load() {

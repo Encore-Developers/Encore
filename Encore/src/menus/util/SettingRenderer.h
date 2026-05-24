@@ -4,6 +4,7 @@
 
 #ifndef ENCORE_SETTINGRENDERER_H
 #define ENCORE_SETTINGRENDERER_H
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -14,7 +15,8 @@ namespace Encore {
             INVALID,
             BOOL_SETTING,
             FLOAT_SETTING,
-            INT_SETTING
+            INT_SETTING,
+            BUTTON_SETTING
         };
 
         struct settingObject {
@@ -39,6 +41,8 @@ namespace Encore {
             // }
         };
 
+        int selectedIndex = 0;
+
         struct boolSettingObject : settingObject {
             std::string name;
             bool *value;
@@ -49,15 +53,12 @@ namespace Encore {
 
             ~boolSettingObject() override {value = nullptr;};
             boolSettingObject(const std::string &_name,
-                              bool *_value,
-                              int _min,
-                              int _max,
-                              int _increment) {
+                              bool *_value) {
                 name = _name;
                 value = _value;
-                min = _min;
-                max = _max;
-                increment = _increment;
+                min = 0;
+                max = 0;
+                increment = 0;
             }
         };
 
@@ -103,6 +104,25 @@ namespace Encore {
             }
             ;
         };
+
+        struct buttonSettingObject : settingObject {
+            std::string name;
+            std::function<void()> *value;
+            int min;
+            int max;
+            int increment;
+            settingType GetType() const override { return settingType::BUTTON_SETTING; }
+            ~buttonSettingObject() override {value = nullptr;};
+            buttonSettingObject(const std::string &_name,
+                             std::function<void()> *_value) {
+                name = _name;
+                value = _value;
+                min = 0;
+                max = 0;
+                increment = 0;
+            }
+            ;
+        };
         std::vector<settingObject*> settingsArray;
         ~SettingDoohickey() {
             for (const auto* setting : settingsArray) {
@@ -110,12 +130,16 @@ namespace Encore {
             }
             settingsArray.clear();
         }
-        void Action(int selectedIndex, bool remove);
-
+        void Action(bool remove);
+        void IncrementIndex(int val) {
+            selectedIndex -= val;
+            if (selectedIndex < 0) selectedIndex = 0;
+            if (selectedIndex >= settingsArray.size()) selectedIndex = settingsArray.size()-1;
+        };
         void Add(settingObject* object) {
             settingsArray.emplace_back(object);
         };
-        void Draw(int selectedIndex, float top = 0.15f);
+        void Draw(float top = 0.15f);
     };
 }
 

@@ -8,7 +8,7 @@
 #include "menus/uiUnits.h"
 #include "menus/main/MainMenu.h"
 
-void Encore::SettingDoohickey::Action(int selectedIndex, bool remove) {
+void Encore::SettingDoohickey::Action(bool remove) {
     switch (settingsArray.at(selectedIndex)->GetType()) {
     case settingType::BOOL_SETTING: {
         boolSettingObject* object = dynamic_cast<boolSettingObject *>(settingsArray.at(selectedIndex));
@@ -38,7 +38,7 @@ void Encore::SettingDoohickey::Action(int selectedIndex, bool remove) {
     }
 }
 
-void Encore::SettingDoohickey::Draw(int selectedIndex, float EntryTop) {
+void Encore::SettingDoohickey::Draw(float EntryTop) {
     Units u = Units::getInstance();
     float EntryFontSize = u.hinpct(0.03f);
     float EntryHeight = u.hinpct(0.05f);
@@ -94,14 +94,14 @@ void Encore::SettingDoohickey::Draw(int selectedIndex, float EntryTop) {
         }
         case settingType::FLOAT_SETTING: {
             floatSettingObject* object = dynamic_cast<floatSettingObject *>(settingsArray.at(settingOffset));
-            GameMenu::mhDrawText(ASSET(rubikBold), object->name.c_str(), {EntryLeft + u.winpct(0.01f), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
+            GameMenu::mhDrawText(ASSET(rubikBold), object->name, {EntryLeft + u.winpct(0.01f), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
             ::GuiSlider(wholeButtonSpace, nullptr, nullptr, object->value, object->min, object->max);
             GameMenu::mhDrawText(ASSET(rubik), TextFormat("%i%%", int(*object->value * 100)), {wholeButtonSpace.x + (wholeButtonSpace.width / 2), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
             break;
         }
         case settingType::INT_SETTING: {
             intSettingObject* object = dynamic_cast<intSettingObject*>(settingsArray.at(settingOffset));
-            GameMenu::mhDrawText(ASSET(rubikBold), object->name.c_str(), {EntryLeft + u.winpct(0.01f), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
+            GameMenu::mhDrawText(ASSET(rubikBold), object->name, {EntryLeft + u.winpct(0.01f), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
             Rectangle leftButton {wholeButtonSpace.x, wholeButtonSpace.y, wholeButtonSpace.height, wholeButtonSpace.height};
             Rectangle slider {wholeButtonSpace.x + leftButton.width, wholeButtonSpace.y, wholeButtonSpace.width - (leftButton.width*2), leftButton.width};
             Rectangle rightButton {wholeButtonSpace.x + wholeButtonSpace.width - leftButton.width, wholeButtonSpace.y, leftButton.width, leftButton.width};
@@ -120,6 +120,18 @@ void Encore::SettingDoohickey::Draw(int selectedIndex, float EntryTop) {
             }
             GameMenu::mhDrawText(ASSET(rubikBold), TextFormat("%i", *object->value), {slider.x + (slider.width / 2), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
             break;
+        }
+        case settingType::BUTTON_SETTING: {
+            buttonSettingObject* object = dynamic_cast<buttonSettingObject*>(settingsArray.at(settingOffset));
+            if (GuiButton(wholeBoxRect, "")) {
+                // this feels wrong
+                object->value->operator()();
+            }
+            GameMenu::mhDrawText(ASSET(rubikBold), object->name, {wholeBoxRect.x + (wholeBoxRect.width / 2), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, WHITE, ASSET(sdfShader), CENTER);
+            break;
+        }
+        case settingType::INVALID: {
+            GameMenu::mhDrawText(ASSET(rubikBold), settingsArray.at(settingOffset)->name, {EntryLeft + u.winpct(0.01f), top + (EntryHeight - EntryFontSize) / 2}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
         }
         }
     }

@@ -8,6 +8,7 @@
 #include "settings/settings.h"
 #include "assets.h"
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
 
 namespace Encore {
     class SettingsMenu {
@@ -26,6 +27,7 @@ public:
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
     void Load() override;
     void Draw() override;
+    Encore::ButtonActionRegistry buttReg;
 };
 
 extern Encore::SettingsMenu TheSettingsMenu;

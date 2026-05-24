@@ -136,154 +136,23 @@ void SettingsGameplay::Draw() {
     GameMenu::DrawBottomOvershell();
     DrawOvershell();
 
-    float TextPlacementTB = u.hpct(0.05f);
-    float TextPlacementLR = u.wpct(0.05f);
-    if (IsFontValid(assets.rubik)) {
-        DrawTextEx(assets.rubik, "Settings", {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
-    }
-    if (IsFontValid(assets.redHatDisplayBlack) && IsShaderValid(assets.sdfShader)) {
-        GameMenu::mhDrawText(assets.redHatDisplayBlack, "GAMEPLAY", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
-    }
+    DrawTextEx(assets.rubik, "Main > Gameplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
+    GameMenu::mhDrawText(assets.redHatDisplayBlack, "SETTINGS", {u.LeftSide, u.hpct(0.05f)}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
 
-    float settingsOffsetX = 0.0f;
-    float settingsOffsetY = 0.0f;
-    float EntryFontSize = u.hinpct(0.03f);
-    float EntryHeight = u.hinpct(0.06f) + 30.0f - 50.0f + 10.0f + 7.0f;
-    float EntryTop = TextPlacementTB + u.hinpct(0.125f) + u.hinpct(0.01f) + settingsOffsetY - 30.0f - 2.0f - 2.0f;
-    float verticalGap = 0.0f;
-    float boxLeft = u.LeftSide + u.winpct(0.025f) + settingsOffsetX + 75.0f - 50.0f - 2.0f;
-    float boxWidth = u.wpct(boxWidthPct) + 50.0f + 17.0f + 7.0f - 2.0f - 2.0f;
-    float OptionLeft = boxLeft;
-    float OptionWidth = boxWidth;
-    Color boxBackground = Color{31, 31, 50, 255};
-    Color boxBorder = WHITE;
+    float EntryHeight = u.hinpct(0.05f);
+    float EntryTop = u.hpct(0.15f);
+    float EntryLeft = u.LeftSide;
+    float EntryWidth = u.winpct(0.7);
     Color glowColor = Color{142, 13, 148, 220};
     float highlightBorderWidth = 4.0f;
 
-    float scanButtonWidth = OptionWidth;
-    float scanButtonHeight = EntryHeight + 10.0f;
-    float toggleButtonWidth = ((OptionWidth / 2) * 0.3f) - 30.0f;
-    float toggleOffset = 50.0f;
+    settings.Draw();
 
-    Color activeColor = Color{255, 105, 180, 255};
-    int defaultColor = GuiGetStyle(BUTTON, BASE_COLOR_PRESSED);
+    float scanSongsTop = EntryTop + (EntryHeight) * (settings.settingsArray.size());
+    Rectangle wholeBoxRect = {EntryLeft, scanSongsTop, EntryWidth, EntryHeight};
 
-    int settingOffset = 0;
-    float fullscreenTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
-    Rectangle fullscreenBoxRect = {boxLeft - borderWidth, fullscreenTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
-    DrawRectangle(boxLeft - borderWidth, fullscreenTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
-    DrawRectangle(boxLeft, fullscreenTop, boxWidth, EntryHeight, boxBackground);
-    Vector2 fullscreenTextSize = IsFontValid(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Fullscreen", EntryFontSize, 0) : Vector2{100, 20};
-    if (IsFontValid(assets.rubikBold)) {
-        DrawTextEx(assets.rubikBold, "Fullscreen", {boxLeft + u.winpct(0.01f), fullscreenTop + (EntryHeight - fullscreenTextSize.y) / 2}, EntryFontSize, 0, WHITE);
-    }
-    Rectangle offButtonRect = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, fullscreenTop, toggleButtonWidth, EntryHeight};
-    Rectangle onButtonRect = {OptionLeft + OptionWidth - toggleButtonWidth - toggleOffset, fullscreenTop, toggleButtonWidth, EntryHeight};
-    if (CheckCollisionPointRec(mousePos, offButtonRect) || CheckCollisionPointRec(mousePos, onButtonRect)) {
-        selectedIndex = 0;
-        isHovering = true;
-        DrawRectangleLinesEx(fullscreenBoxRect, highlightBorderWidth, glowColor);
-    }
-    // might redo later - Jaydenz
-    // TODO: fix this because oh my lordy lord
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, TheGameSettings.Fullscreen ? defaultColor : ColorToInt(activeColor));
-    if (GuiButton(offButtonRect, "Off")) {
-        if (TheGameSettings.Fullscreen) {
-            TheGameSettings.Fullscreen = false;
-            TheGameSettings.UpdateFullscreen();
-            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
-        }
-    }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, TheGameSettings.Fullscreen ? ColorToInt(activeColor) : defaultColor);
-    if (GuiButton(onButtonRect, "On")) {
-        if (!TheGameSettings.Fullscreen) {
-            TheGameSettings.Fullscreen = true;
-            TheGameSettings.UpdateFullscreen();
-            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
-        }
-    }
-    if (!TheGameSettings.Fullscreen) {
-        DrawRectangleLinesEx(offButtonRect, highlightBorderWidth, glowColor);
-    } else {
-        DrawRectangleLinesEx(onButtonRect, highlightBorderWidth, glowColor);
-    }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, defaultColor);
-
-    settingOffset++;
-
-    float adTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
-    Rectangle adBoxRect = {boxLeft - borderWidth, adTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth};
-    DrawRectangle(boxLeft - borderWidth, adTop - borderWidth, boxWidth + 2 * borderWidth, EntryHeight + 2 * borderWidth, boxBorder);
-    DrawRectangle(boxLeft, adTop, boxWidth, EntryHeight, boxBackground);
-    Vector2 adTextSize = IsFontValid(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Awesomeness Detection", EntryFontSize, 0) : Vector2{100, 20};
-    if (IsFontValid(assets.rubikBold)) {
-        DrawTextEx(assets.rubikBold, "Awesomeness Detection", {boxLeft + u.winpct(0.01f), adTop + (EntryHeight - adTextSize.y) / 2}, EntryFontSize, 0, WHITE);
-    }
-    Rectangle adOffButtonRect = {OptionLeft + OptionWidth - 2 * toggleButtonWidth - toggleOffset, adTop, toggleButtonWidth, EntryHeight};
-    Rectangle adOnButtonRect = {OptionLeft + OptionWidth - toggleButtonWidth - toggleOffset, adTop, toggleButtonWidth, EntryHeight};
-    if (CheckCollisionPointRec(mousePos, adOffButtonRect) || CheckCollisionPointRec(mousePos, adOnButtonRect)) {
-        selectedIndex = 1;
-        isHovering = true;
-        DrawRectangleLinesEx(adBoxRect, highlightBorderWidth, glowColor);
-    }
-    // can i repent now
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, AwesomenessDetection ? defaultColor : ColorToInt(activeColor));
-    if (GuiButton(adOffButtonRect, "Off")) {
-        if (AwesomenessDetection) {
-            AwesomenessDetection = false;
-        }
-    }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, AwesomenessDetection ? ColorToInt(activeColor) : defaultColor);
-    if (GuiButton(adOnButtonRect, "On")) {
-        if (!AwesomenessDetection) {
-            AwesomenessDetection = true;
-        }
-    }
-    if (!AwesomenessDetection) {
-        DrawRectangleLinesEx(adOffButtonRect, highlightBorderWidth, glowColor);
-    } else {
-        DrawRectangleLinesEx(adOnButtonRect, highlightBorderWidth, glowColor);
-    }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, defaultColor);
-
-    settingOffset++;
-    float scanSongsTop = EntryTop + (EntryHeight + verticalGap) * settingOffset;
-    Rectangle scanSongsBoxRect = {boxLeft - borderWidth, scanSongsTop - borderWidth, boxWidth + 2 * borderWidth, scanButtonHeight + 2 * borderWidth};
-    DrawRectangle(boxLeft - borderWidth, scanSongsTop - borderWidth, boxWidth + 2 * borderWidth, scanButtonHeight + 2 * borderWidth, boxBorder);
-    DrawRectangle(boxLeft, scanSongsTop, boxWidth, scanButtonHeight, boxBackground);
-    Vector2 scanSongsTextSize = IsFontValid(assets.rubikBold) ? MeasureTextEx(assets.rubikBold, "Scan Songs", EntryFontSize, 0) : Vector2{100, 20};
-    if (IsFontValid(assets.rubikBold)) {
-        DrawTextEx(assets.rubikBold, "Scan Songs", {boxLeft + u.winpct(0.01f), scanSongsTop + (scanButtonHeight - scanSongsTextSize.y) / 2}, EntryFontSize, 0, WHITE);
-    }
-    Rectangle scanButtonRect = {OptionLeft + OptionWidth - scanButtonWidth, scanSongsTop, scanButtonWidth, scanButtonHeight};
-
-    if (CheckCollisionPointRec(mousePos, scanButtonRect)) {
-        selectedIndex = 2;
-        isHovering = true;
-        DrawRectangleLinesEx(scanSongsBoxRect, highlightBorderWidth, glowColor);
-    }
-    if (GuiButton(scanButtonRect, "Scan Songs")) {
-        if (TheGameSettings.SongPaths.empty()) {
-            TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
-        } else {
-            for (const auto& path : TheGameSettings.SongPaths) {
-                TraceLog(LOG_INFO, "Scanning path: %s", path.string().c_str());
-            }
-            TheSongList.ScanSongs(TheGameSettings.SongPaths);
-            // try {
-            //     TraceLog(LOG_INFO, "Starting song scan with %d paths", TheGameSettings.SongPaths.size());
-            //
-            //     TraceLog(LOG_INFO, "Song scan completed successfully");
-            // } catch (const std::exception& e) {
-            //     TraceLog(LOG_ERROR, "Error during song scan: %s", e.what());
-            // } catch (...) {
-            //     TraceLog(LOG_ERROR, "Unknown error during song scan");
-            // }
-        }
-    }
-
-    ImGui::SetNextWindowPos({scanButtonRect.x, scanButtonRect.y+scanButtonHeight}, ImGuiCond_Always);
-    ImGui::SetNextWindowSize({scanButtonWidth, scanButtonHeight*3});
+    ImGui::SetNextWindowPos({wholeBoxRect.x, wholeBoxRect.y+wholeBoxRect.height}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({wholeBoxRect.width, wholeBoxRect.height*3});
     if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         const std::filesystem::path* toDelete = nullptr;
         for (const auto& path : TheGameSettings.SongPaths) {
@@ -306,13 +175,17 @@ void SettingsGameplay::Draw() {
                 }
             }, nullptr, nullptr, nullptr, false);});
         }
+
+        // note: removing this until i can figure out why it keeps fucking doing that
         // starting to really hate std::vector erase
-        for (auto it = TheGameSettings.SongPaths.begin(); it != TheGameSettings.SongPaths.end(); ++it) {
-            if (&*it == toDelete) {
-                TheGameSettings.SongPaths.erase(it);
-                break;
-            }
-        }
+        // if (!TheGameSettings.SongPaths.empty()) {
+        //    for (auto it = TheGameSettings.SongPaths.begin(); it != TheGameSettings.SongPaths.end(); ++it) {
+        //        if (&*it == toDelete) {
+        //            TheGameSettings.SongPaths.erase(it);
+        //            break;
+        //        }
+        //    }
+        //}
     }
     ImGui::End();
 
@@ -346,7 +219,53 @@ void SettingsGameplay::ControllerInputCallback(Encore::RhythmEngine::ControllerE
     //}
 }
 
-void SettingsGameplay::Load() {}
+void SettingsGameplay::Load() {
+
+    buttReg.buttMap.clear();
+    NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        settings.IncrementIndex(1);
+    }, false)
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        settings.IncrementIndex(-1);
+    }, false)
+    NEWBUTTONACTION2(buttReg, LANE_1, "Select", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+    })
+    NEWBUTTONACTION2(buttReg, LANE_2, "Back", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        Save();
+        TheMenuManager.SwitchScreen(SETTINGS);
+    })
+    NEWBUTTONACTION2(buttReg, INPUT_LEFT, "Lower", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        settings.Action(true);
+    }, false)
+    NEWBUTTONACTION2(buttReg, INPUT_RIGHT, "Raise", {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        settings.Action(false);
+    }, false)
+
+    ScanSongsFunc = [this]() {
+        if (TheGameSettings.SongPaths.empty()) {
+            TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
+        } else {
+            for (const auto& path : TheGameSettings.SongPaths) {
+                TraceLog(LOG_INFO, "Scanning path: %s", path.string().c_str());
+            }
+            TheSongList.ScanSongs(TheGameSettings.SongPaths);
+        }
+    };
+    TheGameSettings.LoadFromFile((TheGameSettings.directory / "settings.json").string());
+    settings.Add(new Encore::SettingDoohickey::boolSettingObject("Fullscreen", &TheGameSettings.Fullscreen));
+    settings.Add(new Encore::SettingDoohickey::boolSettingObject("Awesomeness Detection", &ad));
+    // settings.Add(new Encore::SettingDoohickey::buttonSettingObject("Scan Songs", &ScanSongsFunc));
+
+
+
+
+}
 
 void SettingsGameplay::Save() {
     // SettingsOld& settingsMain = SettingsOld::getInstance();
