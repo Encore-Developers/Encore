@@ -34,16 +34,23 @@ void Encore::RhythmEngine::LyricLoader::GetPhrases(smf::MidiEventList *midiEvent
             phrase.EndTick = event.getLinkedEvent()->tick;
             phrase.StartSec = event.seconds;
             phrase.EndSec = event.getLinkedEvent()->seconds;
-            if (lyrics.back().EndTick < event.tick - midiFile->getTPQ() * 8) {
+            if (lyrics.back().EndSec < event.seconds - 4) {
                 EncLyricPhrase prevPhrase1;
                 int EmptySpaceStart = lyrics.back().EndTick + midiFile->getTPQ();
                 int EmptySpaceEnd = event.tick - midiFile->getTPQ();
+                int EmptySpaceMiddle = EmptySpaceStart + ((EmptySpaceEnd - EmptySpaceStart) / 2);
                 prevPhrase1.StartTick = EmptySpaceStart;
-                prevPhrase1.EndTick = EmptySpaceEnd;
+                prevPhrase1.EndTick = EmptySpaceMiddle;
                 prevPhrase1.StartSec = midiFile->getTimeInSeconds( EmptySpaceStart);
-                prevPhrase1.EndSec = midiFile->getTimeInSeconds( EmptySpaceEnd);
+                prevPhrase1.EndSec = midiFile->getTimeInSeconds( EmptySpaceMiddle);
+                EncLyricPhrase prevPhrase2;
+                prevPhrase2.StartTick = EmptySpaceMiddle;
+                prevPhrase2.EndTick = EmptySpaceEnd;
+                prevPhrase2.StartSec = midiFile->getTimeInSeconds( EmptySpaceMiddle);
+                prevPhrase2.EndSec = midiFile->getTimeInSeconds( EmptySpaceEnd);
 
                 lyrics.emplace_back(prevPhrase1);
+                lyrics.emplace_back(prevPhrase2);
             }
             lyrics.emplace_back(phrase);
         }

@@ -53,6 +53,21 @@ void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
  */
 
 
+Encore::RhythmEngine::EncLyricPhrase &SongTime::GetCurrentLyric() {
+    return Lyrics.at(CurrentLyricPhrase);
+}
+Encore::RhythmEngine::EncLyricPhrase *SongTime::GetNextLyric() {
+    if (CurrentLyricPhrase < Lyrics.size() - 1) {
+        return &Lyrics.at(CurrentLyricPhrase + 1);
+    }
+    return nullptr;
+}
+Encore::RhythmEngine::EncLyricPhrase *SongTime::GetPreviousLyric() {
+    if (CurrentLyricPhrase > 0) {
+        return &Lyrics.at(CurrentLyricPhrase - 1);
+    }
+    return nullptr;
+}
 
 void SongTime::ParseSections(smf::MidiFile midiFile) {
     ZoneScoped;
