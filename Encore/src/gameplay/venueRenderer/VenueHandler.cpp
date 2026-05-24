@@ -273,5 +273,7 @@ void Encore::VenueHandler::DrawVenueBackground() {
 
     EndMode3D();
 
+    // Enable DepthMask so that the highway doesn't break while rendering
+    rlEnableDepthMask();
 
 };
