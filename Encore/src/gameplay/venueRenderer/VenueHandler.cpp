@@ -12,6 +12,7 @@
 #include "raygui.h"
 #include "raymath.h"
 #include "rlgl.h"
+#include "external/glad.h"
 #include "gameplay/enctime.h"
 #include <algorithm>
 
@@ -123,14 +124,14 @@ void Encore::VenueHandler::UpdateVenue() {
 void Encore::VenueHandler::DrawVenueBackground() {
     Camera3D BaseCamera = this->VenueCamera;
 
-    rlDisableDepthMask();
-    rlDisableDepthTest();
+    rlEnableDepthMask();
+    rlEnableDepthTest();
     rlEnableBackfaceCulling();
 
     Vector2 CameraShake = { (float)sin(TheAudioManager.GetMusicTimePlayed()) * 2.0f, (float)cos(TheAudioManager.GetMusicTimePlayed() * 0.5f) * 1.5f};
 
     BaseCamera = {
-        { -7.0f + CameraShake.x, 10.0f + CameraShake.y, 42.5f + CameraShake.x },
+        { -7.0f + CameraShake.x, 10.0f + CameraShake.y, 57.5f + CameraShake.x },
         { 0.0f, 6.0f, 0.0f },
         { 0.0f, 1.0f, 0.0f },
         60.0f,
@@ -168,11 +169,13 @@ void Encore::VenueHandler::DrawVenueBackground() {
             CrowdPersonPosition.y = 12.0f * y;
 
             //DrawModelEx(CrowdModel, {-47.5f + CrowdPersonPosition.x, 0, 90.0f + CrowdPersonPosition.y}, {0}, 0, {1, 1, 1}, {255, 255, 255, 255});
-            //DrawModelEx(CrowdModel, {0.0f + CrowdPersonPosition.x, 0, 0.0f + CrowdPersonPosition.y}, {0}, 0, {1, 1, 1}, {255, 255, 255, 255});
+            DrawModelEx(CrowdModel, {0.0f + CrowdPersonPosition.x, 0, 0.0f + CrowdPersonPosition.y}, {0}, 0, {1, 1, 1}, {255, 255, 255, 255});
 
         }
     }
 
+    rlDisableDepthTest();
+    rlDisableDepthMask();
 
     /// Draw base lamps, first
     for (int sl = 0; sl < 10; sl++) {
@@ -204,7 +207,6 @@ void Encore::VenueHandler::DrawVenueBackground() {
         }
     }
     EndBlendMode();
-
     /// Draw the light part of the lamps, second
     BeginBlendMode(BLEND_ADDITIVE);
     for (int sl = 0; sl < 10; sl++) {
