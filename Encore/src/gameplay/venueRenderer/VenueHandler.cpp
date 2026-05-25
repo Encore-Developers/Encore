@@ -169,7 +169,7 @@ void Encore::VenueHandler::DrawVenueBackground() {
             CrowdPersonPosition.y = 12.0f * y;
 
             //DrawModelEx(CrowdModel, {-47.5f + CrowdPersonPosition.x, 0, 90.0f + CrowdPersonPosition.y}, {0}, 0, {1, 1, 1}, {255, 255, 255, 255});
-            DrawModelEx(CrowdModel, {0.0f + CrowdPersonPosition.x, 0, 0.0f + CrowdPersonPosition.y}, {0}, 0, {1, 1, 1}, {255, 255, 255, 255});
+            //DrawModelEx(CrowdModel, {0.0f + CrowdPersonPosition.x, 0, 0.0f + CrowdPersonPosition.y}, {0}, 0, {1, 1, 1}, {255, 255, 255, 255});
 
         }
     }
