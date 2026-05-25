@@ -103,7 +103,7 @@ void Encore::VenueHandler::UpdateVenue() {
         std::cout << "blackout" << std::endl;
     }
     else {
-        StageLightsBrightness = lerp(StageLightsBrightness, 1.0f, 0.1f);
+        StageLightsBrightness = Lerp(StageLightsBrightness, 1.0f, 0.1f);
     }
 
     if (currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
@@ -188,8 +188,8 @@ void Encore::VenueHandler::DrawVenueBackground() {
 
         float finalRotationAngle = 0.0f;
 
-        finalRotationAngle = lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
-        finalRotationAngle = lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
+        finalRotationAngle = Lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
+        finalRotationAngle = Lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
 
         if (sl % 2 == 1) {
             finalRotationAngle = -finalRotationAngle;
@@ -221,8 +221,8 @@ void Encore::VenueHandler::DrawVenueBackground() {
 
         float finalRotationAngle = 0.0f;
 
-        finalRotationAngle = lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
-        finalRotationAngle = lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
+        finalRotationAngle = Lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
+        finalRotationAngle = Lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
 
         if (sl % 2 == 1) {
             CurrentLightColor = SecondaryLightsColor;
