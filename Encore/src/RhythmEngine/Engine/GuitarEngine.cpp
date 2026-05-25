@@ -66,6 +66,7 @@ bool Encore::RhythmEngine::GuitarEngine::IsInputTooEarly() {
         auto NextNote = chart->CurrentNoteIterators.at(0);
         NextNote += 1;
         float noteMiddlePoint = (NextNote->StartSeconds - CurrentNote.StartSeconds) / dynamicHitwindowRatio;
+        if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
         if (CurrentNote.StartSeconds - noteMiddlePoint > stats->InputTime - stats->InputOffset) {
             return true;
         }
@@ -88,6 +89,7 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
         auto NextNote = chart->CurrentNoteIterators.at(0);
         NextNote += 1;
         float noteMiddlePoint = (NextNote->StartSeconds - CurrentNote.StartSeconds) / dynamicHitwindowRatio;
+        if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
         if (CurrentNote.StartSeconds + noteMiddlePoint < CurrentTime - stats->InputOffset) {
             MissedNote = true;
         }

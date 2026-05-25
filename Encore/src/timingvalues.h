@@ -17,6 +17,7 @@ constexpr double liftLeniencyTime = 0.1; /**< Allows the player to strike right 
 constexpr double overdriveHitLeniency = 0.1; /**< Allows the player to strike right after activation overdrive without penalty */
 
 constexpr double dynamicHitwindowRatio = 1.25;
+constexpr double minimumHitwindowSize = 0.015;
 
 constexpr float healthLossPerNote = 0.03f;
 constexpr float healthGainPerNote = 0.015f;
