@@ -18,6 +18,11 @@ void Encore::Particle::Update(ParticleSystem* system) {
             active = false;
         }
         break;
+    case MARKIPLIER_FLASH:
+        if (time > MARKIPLIER_LIFETIME) {
+            active = false;
+        }
+        break;
     default:
         break;
     }
@@ -64,6 +69,17 @@ void Encore::Particle::Render(ParticleSystem* system) {
             float size = 2.0+(time*16.0);
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             DrawBillboardRec(system->billboardCamera, ASSET(shockwaveTex), source, position, {size, size/2},  white);
+            EndBlendMode();
+            break;
+        }
+        case MARKIPLIER_FLASH: {
+            float lifetime = MARKIPLIER_LIFETIME-time;
+            float frac = (lifetime/MARKIPLIER_LIFETIME);
+            color.a = (frac*frac)*255;
+            Rectangle source = { 0.0f, 0.0f, (float)ASSET(markiplierFlash).width, (float)ASSET(markiplierFlash).height };
+            float size = 1.25-time;
+            BeginBlendMode(BlendMode::BLEND_ADDITIVE);
+            DrawBillboardRec(system->billboardCamera, ASSET(markiplierFlash), source, position, {size, size}, color);
             EndBlendMode();
             break;
         }
