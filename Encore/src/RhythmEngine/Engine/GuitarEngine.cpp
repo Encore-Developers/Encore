@@ -23,6 +23,13 @@ bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
     // if its a chord just. go wild lmfao
 }
 
+bool IsEarly( float noteTime, float currentTime) {
+    if (noteTime - goodFrontend < currentTime) {
+        return true;
+    }
+    return false;
+}
+
 bool HittableAsHopo(int NoteType, bool CanHitHopo, int GhostCount) {
     if (CanHitHopo > 0 && NoteType == 1 && GhostCount < 4)
         return true;
@@ -285,7 +292,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         }*/
         // miss should be managed by current frame
         // overhit is managed here
-        if (player->BrutalMode ? IsInputTooEarly() : InHitwindow(CurrentNote->StartSeconds)) {
+        if (IsEarly(CurrentNote->StartSeconds, stats->InputTime - stats->InputOffset)) {
             Overhit();
             return OverhitNote;
         }
@@ -302,6 +309,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
 
     if (MaskMatch(CurrentNote->Lane, pMask)
+        && IsEarly(CurrentNote->StartSeconds, stats->InputTime - stats->InputOffset)
         && (HittableAsHopo(CurrentNote->NoteType, stats->CanHitHopo, GhostCount)
             || HittableAsTap(CurrentNote->NoteType) || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);

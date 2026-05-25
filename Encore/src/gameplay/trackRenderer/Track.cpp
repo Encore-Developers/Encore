@@ -303,6 +303,9 @@ void Encore::Track::DrawUsername() {
         color = SKYBLUE;
         NameText += " (AUTOPLAY)";
     }
+    if (player.BrutalMode) {
+        color = RED;
+    }
     screenPos.x += Offset * GetRenderWidth() * 0.5;
     screenPos.y = GetRenderHeight() - u.hinpct(0.045f);
     float FontSize = u.hinpct(0.035f);
