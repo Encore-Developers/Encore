@@ -183,7 +183,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     }
     int multiplierIncrease = stats->Combo % 10;
     // in the unplanned/planned career mode, id like this to be adjustable
-    if (multiplierIncrease == 0 && stats->Combo <= 30) {
+    if (multiplierIncrease == 0 && stats->Combo <= (stats->SixMultiplier ? 50 : 30)) {
         MultFlashEvent e {false};
         FireEvent(&e);
     }
