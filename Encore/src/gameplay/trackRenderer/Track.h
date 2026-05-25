@@ -87,6 +87,8 @@ namespace Encore {
         Camera3D AnimCamera;
         Camera3D BaseCamera;
 
+        Particle* multiplierFlash = nullptr;
+        unsigned int flashID;
         std::unique_ptr<ParticleSystem> particleSystem;
 
         Track(Player &player_)

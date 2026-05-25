@@ -617,6 +617,7 @@ public:
     NEWTEXASSET(hitFlareTex, "gameplay/track/particles/hit_flare.png");
     NEWTEXASSET(hitFlareInnerTex, "gameplay/track/particles/hit_flare_inner.png");
     NEWTEXASSET(shockwaveTex, "gameplay/track/particles/shockwave.png");
+    NEWTEXASSET(markiplierFlash, "gameplay/track/particles/markiplier-flash.png");
 
     NEWTEXASSET(overdriveMeterTex, "gameplay/track/meters/overdrive_base.png");
     NEWTEXASSET(overdriveMeterMask, "gameplay/track/meters/overdrive_fill.png");

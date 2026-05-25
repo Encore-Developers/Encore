@@ -181,12 +181,21 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::COMBO, stats->Combo};
         FireEvent(&event2);
     }
-
+    int multiplierIncrease = stats->Combo % 10;
+    // in the unplanned/planned career mode, id like this to be adjustable
+    if (multiplierIncrease == 0 && stats->Combo <= 30) {
+        MultFlashEvent e {false};
+        FireEvent(&e);
+    }
     chart->overdrive.UpdateEventViaNote(true, startTick);
     chart->solos.UpdateEventViaNote(true, startTick);
 }
 
 void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
+    if (stats->Combo >= 10) {
+        MultFlashEvent e {true};
+        FireEvent(&e);
+    }
     stats->MissNote();
     chart->overdrive.MissCurrentEvent(chart->CurrentNoteIterators.at(lane)->StartTicks);
     chart->overdrive.UpdateEventViaNote(
@@ -198,6 +207,10 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
 
 void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     TextFormat("Player %s overhit", player->Name.c_str());
+    if (stats->Combo > 0) {
+        MultFlashEvent e {true};
+        FireEvent(&e);
+    }
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {

@@ -828,6 +828,16 @@ void Encore::Track::HandleEvent(Event *event) {
         KickTimer = bounceEvent->timer;
         KickSpeedMult = bounceEvent->mult;
     }
+    if (auto multiplierIncrease = event->GetTyped<MultFlashEvent>()) {
+        Color color = multiplierIncrease->comboBreak ? RED : ColorBrightness(player.AccentColor, 0.2);
+        Particle flash;
+        flash.setActive(true)
+             .setType(MARKIPLIER_FLASH)
+             .pos({ 0, -0.099, -1.249 })
+             .col(color);
+        multiplierFlash = particleSystem->SpawnParticle(flash);
+        flashID = multiplierFlash->id;
+    }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
         if (Notification) {
             Notification->time = notifEvent->time - 0.25;

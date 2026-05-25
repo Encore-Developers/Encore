@@ -35,6 +35,12 @@ namespace Encore {
         OverhitEvent(int lane) : lane(lane) {}
     };
 
+    class MultFlashEvent : public Event {
+        public:
+        bool comboBreak = false;
+        MultFlashEvent(bool comboBreak) : comboBreak(comboBreak) {};
+    };
+
     class TrackNotificationEvent : public Event {
     public:
         enum TrackNotificationType {
