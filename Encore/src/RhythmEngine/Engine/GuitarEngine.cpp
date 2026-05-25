@@ -24,7 +24,7 @@ bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
 }
 
 bool IsEarly( float noteTime, float currentTime) {
-    if (noteTime - goodFrontend < currentTime) {
+    if (noteTime - goodFrontend > currentTime) {
         return true;
     }
     return false;
@@ -309,7 +309,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
 
     if (MaskMatch(CurrentNote->Lane, pMask)
-        && IsEarly(CurrentNote->StartSeconds, stats->InputTime - stats->InputOffset)
+        && !IsEarly(CurrentNote->StartSeconds, stats->InputTime - stats->InputOffset)
         && (HittableAsHopo(CurrentNote->NoteType, stats->CanHitHopo, GhostCount)
             || HittableAsTap(CurrentNote->NoteType) || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);
