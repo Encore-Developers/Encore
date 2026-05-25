@@ -323,7 +323,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                         playerManager.GetActivePlayer(i).NoteSpeed
                     ),
                     &playerManager.GetActivePlayer(i).NoteSpeed,
-                    0.25,
+                    0.05,
                     0.25,
                     3
                 )) {
