@@ -11,7 +11,7 @@ namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
         bool ActivateOverdrive(ControllerEvent &event) override;
         void CheckMissedNotes(double CurrentTime);
-
+        bool IsInputTooEarly();
         /*
          * STRUM PATH: ___________________________________________________________________
          * Check to see if the player overstrummed.
