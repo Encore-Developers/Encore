@@ -122,7 +122,7 @@ void Encore::VenueHandler::UpdateVenue() {
 
 // This might be worse...
 void Encore::VenueHandler::DrawVenueBackground() {
-    Camera3D BaseCamera = this->VenueCamera;
+    Camera3D BaseCamera = VenueCamera;
 
     rlEnableDepthMask();
     rlEnableDepthTest();
@@ -142,7 +142,7 @@ void Encore::VenueHandler::DrawVenueBackground() {
 
     Color CombinedLighting = ColorLerp(PrimaryLightsColor, SecondaryLightsColor, 0.5f);
 
-    float spotlightIntensity = this->StageLightsBrightness / 2.0f;
+    float spotlightIntensity = StageLightsBrightness / 2.0f;
 
     Model StageModel = ASSET(VenueStage);
     Model CrowdModel = ASSET(CrowdTestModel); // Wish this would also use the animations...
@@ -151,7 +151,7 @@ void Encore::VenueHandler::DrawVenueBackground() {
     Material StageLampHookGlareMaterial = StageLampHookModel.materials[2];
     SetMaterialTexture(&StageLampHookGlareMaterial, MATERIAL_MAP_DIFFUSE, ASSET(StageLampLightTex));
 
-    Color StageModelColor = ColorBrightness(CombinedLighting, -1.0f + (this->StageLightsBrightness * 2.0f));
+    Color StageModelColor = ColorBrightness(CombinedLighting, -1.0f + (StageLightsBrightness * 2.0f));
     StageModelColor.a = 255; // Just incase mixing colors goes wrong
 
 
@@ -183,13 +183,13 @@ void Encore::VenueHandler::DrawVenueBackground() {
         auto StageLampPosition = Vector3(-16, 15.0f, -12.0f);
         StageLampPosition.x += 3.5f*sl;
 
-        float randomRotationAngle = 15.0f * sin(this->StageLightsAnimationTime - (sl*24.5f));
-        float staticRotationAngle = 7.5f * this->StageLightGlobalRotation;
+        float randomRotationAngle = 15.0f * sin(StageLightsAnimationTime - (sl*24.5f));
+        float staticRotationAngle = 7.5f * StageLightGlobalRotation;
 
         float finalRotationAngle = 0.0f;
 
-        finalRotationAngle = Lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
-        finalRotationAngle = Lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
+        finalRotationAngle = Lerp(finalRotationAngle, randomRotationAngle, StageLightsAnimationRandom);
+        finalRotationAngle = Lerp(finalRotationAngle, staticRotationAngle, StageLightsAnimationStatic);
 
         if (sl % 2 == 1) {
             finalRotationAngle = -finalRotationAngle;
@@ -216,13 +216,13 @@ void Encore::VenueHandler::DrawVenueBackground() {
         auto StageLampPosition = Vector3(-16, 15.0f, -12.0f);
         StageLampPosition.x += 3.5f*sl;
 
-        float randomRotationAngle = 15.0f * sin(this->StageLightsAnimationTime - (sl*24.5f));
-        float staticRotationAngle = 7.5f * this->StageLightGlobalRotation;
+        float randomRotationAngle = 15.0f * sin(StageLightsAnimationTime - (sl*24.5f));
+        float staticRotationAngle = 7.5f * StageLightGlobalRotation;
 
         float finalRotationAngle = 0.0f;
 
-        finalRotationAngle = Lerp(finalRotationAngle, randomRotationAngle, this->StageLightsAnimationRandom);
-        finalRotationAngle = Lerp(finalRotationAngle, staticRotationAngle, this->StageLightsAnimationStatic);
+        finalRotationAngle = Lerp(finalRotationAngle, randomRotationAngle, StageLightsAnimationRandom);
+        finalRotationAngle = Lerp(finalRotationAngle, staticRotationAngle, StageLightsAnimationStatic);
 
         if (sl % 2 == 1) {
             CurrentLightColor = SecondaryLightsColor;
@@ -238,8 +238,8 @@ void Encore::VenueHandler::DrawVenueBackground() {
             if (m == 2) {
                 StageLampHookGlareMaterial.maps[MATERIAL_MAP_DIFFUSE].color = CurrentLightColor;
 
-                if (this->currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
-                    if (this->beatCount % 2 == sl % 2) {
+                if (currentVenueEvent.eventType == VenueEventType::LIGHTSANIMATION_ONBEAT) {
+                    if (beatCount % 2 == sl % 2) {
                         StageLampHookGlareMaterial.maps[MATERIAL_MAP_DIFFUSE].color.a = (int)(150 * spotlightIntensity);
                     }
                     else {
