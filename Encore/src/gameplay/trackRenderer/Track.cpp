@@ -415,7 +415,7 @@ void Encore::Track::DrawTrackNotifications() {
         return;
     }
     Units &u = Units::getInstance();
-    Vector3 NotificationPoint = { 0, 0, BaseLength + 5 };
+    Vector3 NotificationPoint = { 0, 0, (BaseLength + 5) * player.HighwayLength };
     Vector2 ScreenNotifPosition = GetWorldToScreen(
         NotificationPoint,
         AnimCamera);
