@@ -165,21 +165,19 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         return;
     stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
     stats->HitNote(chordSize, event.judgement);
-    if (inst == PartBass) {
-        if (stats->Combo == 50) {
-            TrackNotificationEvent event2 {startTime, TrackNotificationEvent::BASSGROOVE};
-            FireEvent(&event2);
-        };
-    }
+
     if (stats->Combo == 25 && stats->Overhits == 0 && stats->Misses == 0) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
         FireEvent(&event2);
     }
 
     int comboNotif = stats->Combo > 200 ? stats->Combo % 100 : stats->Combo % 50;
-    if (comboNotif == 0) {
-        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::COMBO, stats->Combo};
+    if (stats->Combo == 50 && (inst == PartBass || inst == PlasticBass)) {
+        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::BASSGROOVE};
         FireEvent(&event2);
+    } else if (comboNotif == 0) {
+        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::COMBO, stats->Combo};
+        FireEvent(&event2);;
     }
     int multiplierIncrease = stats->Combo % 10;
     // in the unplanned/planned career mode, id like this to be adjustable

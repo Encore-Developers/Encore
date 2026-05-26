@@ -171,7 +171,7 @@ void Encore::Track::DrawSurface() {
     }
 
     SpotlightTimer = Lerp(SpotlightTimer,
-                          (int)(player.engine->stats->multNoOD() >= 4),
+                          (int)(player.engine->stats->multNoOD() >= (player.engine->stats->SixMultiplier ? 6 : 4)),
                           GetFrameTime() * 3);
     if (SpotlightTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(spotlightTex);
