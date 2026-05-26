@@ -208,10 +208,11 @@ bool encOS::OvershellSlider(
     float OvershellLeftLoc =
         (u.wpct(0.125) + (u.winpct(0.25) * slot)) - u.winpct(0.1);
     float height = u.winpct(0.03f);
+    float speedTextWidth = u.winpct(0.04f);
     float widthNoHeight = u.winpct(0.2f) - height;
-    Rectangle bounds = { OvershellLeftLoc + height,
+    Rectangle bounds = { OvershellLeftLoc + speedTextWidth,
                          u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
-                         u.winpct(0.2f) - height - height,
+                         u.winpct(0.2f) - speedTextWidth - height,
                          height };
     Rectangle confirmBounds = { OvershellLeftLoc + widthNoHeight,
                                 u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
@@ -223,9 +224,9 @@ bool encOS::OvershellSlider(
     GuiButton(
         { OvershellLeftLoc,
           u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
-          height,
+          speedTextWidth,
           height },
-        TextFormat("%1.1f", *value)
+        TextFormat("%1.2f", *value)
     );
     *value = (round(*value / step) * step);
 
