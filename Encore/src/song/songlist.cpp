@@ -46,7 +46,6 @@ std::string removeArtistJunk(const std::string &str) {
 
 std::string removeArticle(const std::string &str) {
     ZoneScoped;
-    std::string result = str;
 
     if (str.starts_with("a ")) {
         return str.substr(2);
@@ -62,20 +61,12 @@ std::string removeArticle(const std::string &str) {
 
 bool SongList::sortArtist(Song *a, Song *b) {
     ZoneScoped
-    std::string aLower = TextToLower(a->artist.c_str());
-    std::string bLower = TextToLower(b->artist.c_str());
-    std::string aaa = removeArticle(TextToLower(a->artist.c_str()));
-    std::string bbb = removeArticle(TextToLower(b->artist.c_str()));
-    return removeArticle(TextToLower(a->artist.c_str())) < removeArticle(TextToLower(b->artist.c_str()));
+    return removeArticle(lower(a->artist)) < removeArticle(lower(b->artist));
 }
 
 bool SongList::sortTitle(Song *a, Song *b) {
     ZoneScoped
-    //std::string aLower = TextToLower(a->title.c_str());
-    //std::string bLower = TextToLower(b->title.c_str());
-    //std::string aaa = removeArticle(TextToLower(a->title.c_str()));
-    //std::string bbb = removeArticle(TextToLower(b->title.c_str()));
-    return removeArticle(TextToLower(a->title.c_str())) < removeArticle(TextToLower(b->title.c_str()));
+    return removeArticle(lower(a->title)) < removeArticle(lower(b->title));
 }
 
 bool SongList::sortSource(Song *a, Song *b) {
