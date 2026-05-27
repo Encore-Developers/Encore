@@ -232,12 +232,12 @@ void MainMenu::Load() {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         GotoSongSelect();
     })
-    NEWBUTTONACTION2(buttReg, LANE_2, "Drop Out", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        slot -= 1;
-        if (slot == -1) return;
-        ThePlayerManager.RemoveActivePlayer(slot);
-    })
+    //NEWBUTTONACTION2(buttReg, LANE_2, "Drop Out", {
+    //    if (_action != Encore::RhythmEngine::Action::PRESS) return;
+    //    slot -= 1;
+    //    if (slot == -1) return;
+    //    ThePlayerManager.RemoveActivePlayer(slot);
+    //})
 }
 void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
     if (ThePlayerManager.PlayersActive == 0) {
