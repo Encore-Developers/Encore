@@ -9,7 +9,7 @@
 #include "OvershellHelper.h"
 #include "raygui.h"
 #include "raylib.h"
-#include "../../../../../../../source/Encore/Encore/src/menus/locale/Locale.h"
+#include "menus/locale/Locale.h"
 #include "gameplay/enctime.h"
 #include "users/profiles/ProfileManager.h"
 
