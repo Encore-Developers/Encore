@@ -30,7 +30,7 @@ int FinalScore = 0;
 
 void resultsMenu::Load() {
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, LOCALISE("resultsMenu.back"), {
+    NEWBUTTONACTION2(buttReg, LANE_1, "resultsMenu.back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1) continue;

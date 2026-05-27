@@ -176,18 +176,25 @@ void GameMenu::DrawVersion() {
 };
 
 void MainMenu::ChooseSplashText(std::filesystem::path directory) {
-    std::ifstream splashes;
-    splashes.open((directory / "Assets/ui/splashes.txt"));
+    auto splashes = Encore::Locale::GetLocaleList("mainMenu.splashes");
+    // Gonna do some incredibly dumb bullshit for the Steam exclusive splashes. Sorry!
+#ifdef STEAM
+    Encore::LocaleList ownedSplashes = *splashes;
+    splashes = &ownedSplashes;
+    auto steamSplashes = Encore::Locale::GetLocaleList("mainMenu.steamOnlySplashes");
+    for (auto& splash : *steamSplashes) {
+        ownedSplashes.push_back(splash);
+    }
+#endif
+    if (splashes->empty()) {
+        return;
+    }
 
     std::random_device seed;
     std::mt19937 prng(seed());
     std::string line, result;
-    for (std::size_t n = 0; std::getline(splashes, line); n++) {
-        std::uniform_int_distribution<> dist(0, n);
-        if (dist(prng) < 1)
-            result = line;
-    }
-    SplashString = result;
+    std::uniform_int_distribution<> dist(0, splashes->size()-1);
+    SplashString = splashes->at(dist(prng));
     std::cout << result << std::endl;
 }
 
@@ -228,7 +235,7 @@ void MainMenu::Load() {
         mainMenuSet.StartLoad();
     }
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, LOCALISE("generic.confirm"), {
+    NEWBUTTONACTION2(buttReg, LANE_1, "generic.confirm", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (ControllerSelected) {
         case 0:
@@ -245,12 +252,12 @@ void MainMenu::Load() {
             break;
         }
     })
-    NEWBUTTONACTION2(buttReg, STRUM_UP, LOCALISE("generic.confirm"), {
+    NEWBUTTONACTION2(buttReg, STRUM_UP, "generic.confirm", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         ControllerSelected -= 1;
         if (ControllerSelected < 0) ControllerSelected = 0;
     }, false)
-    NEWBUTTONACTION2(buttReg, STRUM_DOWN, LOCALISE("generic.confirm"), {
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "generic.confirm", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         ControllerSelected += 1;
         if (ControllerSelected > 2) ControllerSelected = 2;
@@ -676,10 +683,7 @@ void MainMenu::Draw() {
         PickRandomMenuSong();
     }
 
-
-
     GameMenu::DrawAlbumArtBackground();
-
 
 
     if (ThePlayerManager.PlayersActive == 0) {

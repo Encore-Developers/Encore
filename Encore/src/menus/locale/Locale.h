@@ -65,16 +65,20 @@ namespace Encore {
         }
     };
 
+    typedef std::vector<std::string> LocaleList;
+
     class LocaleLayer {
         void AddEntries(const std::string& name, nlohmann::basic_json<>& json);
     public:
         std::string name;
         std::unordered_map<std::string, std::string> entries;
+        std::unordered_map<std::string, std::shared_ptr<LocaleList>> lists;
         bool fallback;
 
         LocaleLayer(const std::string& name, bool fallback);
 
         const std::string* FetchValue(const std::string& token) const;
+        const LocaleList* FetchList(const std::string& token) const;
     };
 
     class Locale {
@@ -85,6 +89,7 @@ namespace Encore {
         static void Init();
         static void AddLayer(const std::string& name, bool fallback);
         static LocalizedString Localize(const std::string& token);
+        static const LocaleList* GetLocaleList(const std::string& token);
 
         static LocalizedString LocalizeFormat(const std::string& token, std::format_args args) {
             ZoneScoped

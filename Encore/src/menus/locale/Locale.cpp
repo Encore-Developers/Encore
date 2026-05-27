@@ -15,11 +15,21 @@ std::unordered_set<std::string> Locale::unlocalizedTokens;
 
 void LocaleLayer::AddEntries(const std::string& stem, nlohmann::basic_json<> &json) {
     for (auto& [key, value] : json.items()) {
+        auto fullKey = stem + key;
         if (value.type() == nlohmann::json::value_t::string) {
-            entries.emplace(stem + key, value);
+            entries.emplace(fullKey, value);
+        }
+        if (value.type() == nlohmann::json::value_t::array) {
+            if (!lists.contains(fullKey)) {
+                lists.emplace(fullKey, std::make_shared<std::vector<std::string>>());
+            }
+            auto list = lists.find(fullKey);
+            for (auto& [index, str] : value.items()) {
+                list->second->push_back(str);
+            }
         }
         if (value.type() == nlohmann::json::value_t::object) {
-            AddEntries(stem + key + ".", value);
+            AddEntries(fullKey + ".", value);
         }
     }
 }
@@ -33,6 +43,11 @@ const std::string *LocaleLayer::FetchValue(const std::string &token) const {
     auto found = entries.find(token);
     if (found == entries.end()) return nullptr;
     return &found->second;
+}
+const LocaleList *LocaleLayer::FetchList(const std::string &token) const {
+    auto found = lists.find(token);
+    if (found == lists.end()) return nullptr;
+    return found->second.get();
 }
 void Locale::Init() {
     layers.clear();
@@ -67,4 +82,17 @@ LocalizedString Locale::Localize(const std::string &token) {
     }
     unlocalizedTokens.insert(token);
     return token;
+}
+const LocaleList *Locale::GetLocaleList(const std::string &token) {
+    for (auto &layer : layers) {
+        if (auto list = layer.FetchList(token)) {
+            if (layer.fallback) {
+                unlocalizedTokens.insert(token);
+            }
+            return list;
+        }
+    }
+    unlocalizedTokens.insert(token);
+    static LocaleList emptyList = {};
+    return &emptyList;
 }
