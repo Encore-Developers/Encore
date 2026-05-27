@@ -12,6 +12,7 @@
 #include "gameplay/trackRenderer/Track.h"
 #include "../menus/gameplay/GameplayMenu.h"
 #include "menus/MenuManager.h"
+#include "menus/locale/Locale.h"
 #include "song/audio.h"
 #include "song/song.h"
 #include "song/songlist.h"
@@ -30,6 +31,7 @@ bool showQuickSettings = false;
 bool showPractice = false;
 bool showEasings = false;
 bool showJoystickTools = false;
+bool showLocaleDebug = false;
 
 bool paused = false;
 std::string pauseText = "Pause";
@@ -124,9 +126,11 @@ void EncoreDebug::DrawDebug() {
     if (showEasings) {
         DrawEasingsWindow();
     }
-
     if (showJoystickTools) {
         DrawJoystickTools();
+    }
+    if (showLocaleDebug) {
+        DrawLocaleDebug();
     }
 }
 
@@ -141,6 +145,13 @@ void EncoreDebug::MenuBar() {
         MenuItem("Color Profile Manager", 0, &showColorProfileManager);
         MenuItem("Easings Debug", 0, &showEasings);
         MenuItem("Joystick Tools", 0, &showJoystickTools);
+        if (Encore::Locale::unlocalizedTokens.empty()) {
+            MenuItem("Locale Debug", 0, &showLocaleDebug);
+        } else {
+            std::size_t localeErrors = Encore::Locale::unlocalizedTokens.size();
+            MenuItem(std::vformat("Locale Debug (!!! {} unlocalized tokens)", std::make_format_args(localeErrors)).c_str(), 0, &showLocaleDebug);
+        }
+
         EndMenu();
     }
     if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()), 0, &showQuickSettings)) {
@@ -668,6 +679,61 @@ void EncoreDebug::DrawJoystickTools() {
         }
     }
 
+    End();
+}
+void EncoreDebug::DrawLocaleDebug() {
+    if (Begin("Locale Debug", &showLocaleDebug)) {
+        InputText("Current Locale", &TheGameSettings.Language);
+        if (Button("Reload Locale")) {
+            Encore::Locale::Init();
+        }
+
+        if (BeginTabBar("localeTabs")) {
+            if (BeginTabItem("Locale Layers")) {
+                for (auto& layer : Encore::Locale::layers) {
+                    if (CollapsingHeader(layer.name.c_str())) {
+                        if (layer.fallback) {
+                            Text("Fallback layer, will report unlocalized tokens");
+                        }
+
+                        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+
+                        if (BeginTable((std::string("Tokens##") + layer.name).c_str(), 2, flags, GetContentRegionAvail())) {
+                            TableSetupScrollFreeze(0, 1);
+                            TableSetupColumn("Token", ImGuiTableColumnFlags_WidthFixed);
+                            TableSetupColumn("String", ImGuiTableColumnFlags_WidthStretch);
+                            TableHeadersRow();
+
+                            for (auto& [key, value] : layer.entries) {
+                                TableNextRow();
+
+                                TableSetColumnIndex(0);
+                                Text("%s", key.c_str());
+
+                                TableSetColumnIndex(1);
+                                Text("%s", value.c_str());
+                            }
+
+                            EndTable();
+                        }
+                    }
+                }
+
+                EndTabItem();
+            }
+
+            if (BeginTabItem("Unlocalized Tokens")) {
+                for (auto& token : Encore::Locale::unlocalizedTokens) {
+                    Text("%s", token.c_str());
+                }
+                EndTabItem();
+            }
+            EndTabBar();
+        }
+
+
+    }
     End();
 }
 

@@ -1,0 +1,70 @@
+#include "Locale.h"
+
+#include "tracy/Tracy.hpp"
+#include "assets.h"
+#include "settings/settings.h"
+
+#include <nlohmann/json.hpp>
+#include <fstream>
+
+using namespace Encore;
+using json = nlohmann::json;
+
+std::vector<LocaleLayer> Locale::layers = {};
+std::unordered_set<std::string> Locale::unlocalizedTokens;
+
+void LocaleLayer::AddEntries(const std::string& stem, nlohmann::basic_json<> &json) {
+    for (auto& [key, value] : json.items()) {
+        if (value.type() == nlohmann::json::value_t::string) {
+            entries.emplace(stem + key, value);
+        }
+        if (value.type() == nlohmann::json::value_t::object) {
+            AddEntries(stem + key + ".", value);
+        }
+    }
+}
+LocaleLayer::LocaleLayer(const std::string &name, bool fallback) : name(name), fallback(fallback) {
+    auto path = FileAsset::ResolveAssetPath("locale/" + name + ".json");
+    std::ifstream file(path);
+    auto json = json::parse(file);
+    AddEntries("", json);
+}
+const std::string *LocaleLayer::FetchValue(const std::string &token) const {
+    auto found = entries.find(token);
+    if (found == entries.end()) return nullptr;
+    return &found->second;
+}
+void Locale::Init() {
+    layers.clear();
+    unlocalizedTokens.clear();
+    EncoreLog(LOG_WARNING, TextFormat("Loading locale. Using locale from settings: ", TheGameSettings.Language.c_str()));
+    AddLayer(TheGameSettings.Language, false);
+    AddLayer("en_US", true); // Fall back to English
+}
+void Locale::AddLayer(const std::string &name, bool fallback) {
+    // Check if a locale layer with this name already exists
+    for (auto& layer : layers) {
+        if (layer.name == name) {
+            return;
+        }
+    }
+    auto path = FileAsset::ResolveAssetPath("locale/" + name + ".json");
+    if (std::filesystem::exists(path)) {
+        layers.emplace_back(name, fallback);
+    } else {
+        EncoreLog(LOG_WARNING, TextFormat("Error: Could not find locale file for %s", name.c_str()));
+    }
+}
+LocalizedString Locale::Localize(const std::string &token) {
+    ZoneScoped
+    for (auto &layer : layers) {
+        if (auto localized = layer.FetchValue(token)) {
+            if (layer.fallback) {
+                unlocalizedTokens.insert(token);
+            }
+            return LocalizedString::FromStringPtr(localized);
+        }
+    }
+    unlocalizedTokens.insert(token);
+    return token;
+}

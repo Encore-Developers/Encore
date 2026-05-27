@@ -1,0 +1,28 @@
+{
+	"generic": {
+		"play": "Play",
+		"cancel": "Cancel",
+		"unknown": "Unknown"
+	},
+	"mainMenu": {
+		"options": "Options",
+		"quit": "Quit"
+	},
+	"overshell": {
+		"pressStart": "PRESS START",
+		"connectController": "CONNECT CONTROLLER",
+		"breakneckSpeed": "Breakneck Speed: {:.2f}",
+		"colorProfiles": "Color Profiles",
+		"instrumentType": "Instrument Type: {}",
+		"types": {
+			"guitar": "Guitar",
+			"drums": "Drums",
+			"pad": "Pad"
+		},
+		"currentController": "Controller: {}",
+		"brutalMode": "Brutal Mode",
+		"autoplay": "Autoplay",
+		"leftyFlip": "Lefty Flip",
+		"dropOut": "Drop Out"
+	}
+}

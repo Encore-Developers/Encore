@@ -96,6 +96,10 @@ public:
     virtual void Unload();
 
     std::filesystem::path GetPath() {
+        return ResolveAssetPath(id);
+    }
+
+    static std::filesystem::path ResolveAssetPath(const std::string& id) {
         return GetBaseDirectory() / id;
     }
 

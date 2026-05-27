@@ -30,6 +30,7 @@ namespace EncoreDebug {
     void DrawPracticeSectionSelector();
     void DrawColorProfileSettings();
     void DrawJoystickTools();
+    void DrawLocaleDebug();
 
     void StartReloadAssets();
 }

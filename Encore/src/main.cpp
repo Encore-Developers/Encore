@@ -13,6 +13,7 @@
 
 #include "gameplay/inputCallbacks.h"
 #include "SDL3/SDL.h"
+#include "menus/locale/Locale.h"
 
 #include "settings/keybinds.h"
 #include "song/ArtLoader.h"
@@ -184,7 +185,7 @@ bool imGuiLoaded = false;
 ImFont *imGuiFont;
 
 int main(int argc, char *argv[]) {
-    std::locale::global(std::locale{"en_US.utf-8"});
+    //std::locale::global(std::locale{"en_US.utf-8"});
 #ifdef STEAM
     if (SteamAPI_RestartAppIfNecessary(4691230)) {
         return 1;
@@ -258,6 +259,8 @@ int main(int argc, char *argv[]) {
 
     ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
     ThePlayerManager.LoadPlayerList();
+
+    Encore::Locale::Init();
 
     if (devAssets) {
         TheSourceIcons.InitIcons(TheAssets.getDirectory() / "../thirdparty/opensource/base");
