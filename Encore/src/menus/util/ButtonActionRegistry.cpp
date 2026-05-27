@@ -5,6 +5,7 @@
 #include "ButtonActionRegistry.h"
 
 #include "raygui.h"
+#include "menus/locale/Locale.h"
 #include "menus/MenuManager.h"
 #include "menus/uiUnits.h"
 #include "menus/main/MainMenu.h"
@@ -61,7 +62,8 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
     for (auto &butt : buttMap) {
         if (!butt.second.barVisible)
             continue;
-        float textWidth = MeasureTextEx(ASSET(rubik), butt.second.Name.c_str(), fontSize, 0).x;
+        auto name = LOCALIZE(butt.second.Name);
+        float textWidth = MeasureTextEx(ASSET(rubik), name, fontSize, 0).x;
         pos.width = textWidth + (buttonHeight * 1.5);
         if (GuiButton(pos,"") && !OvershellOpen) {
             butt.second.RunAction(RhythmEngine::Action::PRESS, 0);
@@ -78,7 +80,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
                              LEFT);
 
         GameMenu::mhDrawText(ASSET(rubik),
-                             butt.second.Name,
+                             name,
                              { pos.x + buttonHeight,
                                pos.y + u.hinpct(0.01f) },
                              fontSize,

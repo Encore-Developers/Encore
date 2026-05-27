@@ -11,6 +11,7 @@
 #include "../styles.h"
 #include "../uiUnits.h"
 #include "song/ArtLoader.h"
+#include "menus/locale/Locale.h"
 
 #include "users/playerManager.h"
 
@@ -75,7 +76,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
 
             GameMenu::mhDrawText(
                 ASSET(rubik),
-                diffList[i],
+                LOCALIZE(diffList[i]),
                 { pos.x, pos.y },
                 u.hinpct(0.03f),
                 WHITE,
@@ -205,11 +206,9 @@ void ReadyUpMenu::Draw() {
                                - (u.hinpct(0.05f) * (float)i),
                                u.winpct(0.2f),
                                u.hinpct(0.05f) };
-                std::string PartName =
-                    TextFormat("  %s", songPartsList[PartsToDisplay[i]].c_str());
                 std::string PartAndDiff = std::to_string(
-                        TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7" +
-                    PartName;
+                        TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7   " +
+                    std::string(LOCALIZE(songPartsList[PartsToDisplay[i]]));
                 if (GuiButton(pos, "") && !isOSOpen()) {
                     ControllerInstSlot[playerInt] = i;
                     SlotState[playerInt] = DIFFICULTY;
@@ -252,20 +251,20 @@ void ReadyUpMenu::Draw() {
             }
             GameMenu::mhDrawText(
                 assets.rubik,
-                "  Difficulty",
+                LOCALIZE("generic.difficulty"),
                 { xPosOfMenu, BottomOvershell - u.hinpct(0.04f) },
                 u.hinpct(0.03f),
                 WHITE,
                 assets.sdfShader,
                 LEFT
             );
+            auto difficultyLocalized = LOCALIZE(diffList[player.Difficulty]);
             DrawTextEx(
                 assets.rubikBold,
-                diffList[player.Difficulty].c_str(),
+                difficultyLocalized,
                 { xPosOfMenu + u.winpct(0.19f)
                   - MeasureTextEx(
-                      assets.rubikBold,
-                      diffList[player.Difficulty].c_str(),
+                      assets.rubikBold, difficultyLocalized,
                       u.hinpct(0.03f),
                       0
                   )
@@ -287,20 +286,21 @@ void ReadyUpMenu::Draw() {
             }
             GameMenu::mhDrawText(
                 assets.rubik,
-                "  Instrument",
+                LOCALIZE("generic.instrument"),
                 { xPosOfMenu, BottomOvershell - u.hinpct(0.09f) },
                 u.hinpct(0.03f),
                 WHITE,
                 assets.sdfShader,
                 LEFT
             );
+            auto text = LOCALIZE(songPartsList[player.Instrument]);
             DrawTextEx(
                 assets.rubikBold,
-                songPartsList[player.Instrument].c_str(),
+                text,
                 { xPosOfMenu + u.winpct(0.19f)
                   - MeasureTextEx(
                       assets.rubikBold,
-                      songPartsList[player.Instrument].c_str(),
+                      text,
                       u.hinpct(0.03f),
                       0
                   )
@@ -356,7 +356,7 @@ void ReadyUpMenu::Draw() {
 
 void ReadyUpMenu::Load() {
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, "Select", {
+    NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
@@ -374,7 +374,7 @@ void ReadyUpMenu::Load() {
             break;
         }
     })
-    NEWBUTTONACTION2(buttReg, LANE_2, "Back", {
+    NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:

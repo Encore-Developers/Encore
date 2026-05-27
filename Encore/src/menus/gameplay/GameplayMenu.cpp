@@ -573,14 +573,14 @@ void GameplayMenu::Draw() {
 void GameplayMenu::Load() {
     ZoneScoped;
     buttReg.buttMap.clear();
-    NEWBUTTONACTION(buttReg, LANE_1, "Confirm", [](Encore::RhythmEngine::Action action, int slot){})
-    NEWBUTTONACTION(buttReg, PAUSE, "Unpause", [this](Encore::RhythmEngine::Action action, int slot) {
+    NEWBUTTONACTION(buttReg, LANE_1, "generic.confirm", [](Encore::RhythmEngine::Action action, int slot){})
+    NEWBUTTONACTION(buttReg, PAUSE, "generic.unpause", [this](Encore::RhythmEngine::Action action, int slot) {
         if (action != Encore::RhythmEngine::Action::PRESS) return;
         for (auto &state : OvershellState) {
             state = OS_ATTRACT;
         }
     })
-    NEWBUTTONACTION(buttReg, LANE_2, "Back", [this](Encore::RhythmEngine::Action action, int slot){
+    NEWBUTTONACTION(buttReg, LANE_2, "generic.back", [this](Encore::RhythmEngine::Action action, int slot){
         if (action != Encore::RhythmEngine::Action::PRESS) return;
         for (auto &state : OvershellState) {
             state = OS_ATTRACT;

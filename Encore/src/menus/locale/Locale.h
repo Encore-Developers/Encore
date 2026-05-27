@@ -80,4 +80,5 @@ namespace Encore {
 }
 
 #define LOCALIZE(token) Encore::Locale::Localize(token)
+#define LOCALIZE_STR(token) std::string(Encore::Locale::Localize(token))
 #define LOCALIZE_FMT(token, ...) Encore::Locale::LocalizeFormat(token, std::make_format_args(__VA_ARGS__))

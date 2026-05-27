@@ -57,7 +57,7 @@ inline SortType NextSortType(SortType current) {
 inline std::atomic_int CurrentChartNumber = -1;
 inline std::atomic_int ListLoadingState = -1;
 inline std::atomic_int MaxChartsToLoad = -1;
-inline std::vector<std::string> sortTypes { "Title", "Artist", "Source", "Length", "Year" };
+inline std::vector<std::string> sortTypes { "title", "artist", "source", "length", "year" };
 
 enum SongListLoadingStates {
     FINDING_CACHE,

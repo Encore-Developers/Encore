@@ -18,6 +18,7 @@
 #include "assets.h"
 #include "imgui.h"
 #include "raymath.h"
+#include "menus/locale/Locale.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 
@@ -186,25 +187,25 @@ void SongSelectMenu::Load() {
 
     ScrollToCurrentSong();
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, "Play Song", {
+    NEWBUTTONACTION2(buttReg, LANE_1, "songSelect.playSong", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (!TheSongList.curSong) return;
         Unload();
         TheMenuManager.SwitchScreen(READY_UP);
     })
-    NEWBUTTONACTION2(buttReg, LANE_2, "Back", {
+    NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (!TheSongList.curSong) return;
         Unload();
         TheMenuManager.SwitchScreen(MAIN_MENU);
     })
-    NEWBUTTONACTION2(buttReg, LANE_3, "Sort", {
+    NEWBUTTONACTION2(buttReg, LANE_3, "songSelect.sort", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         currentSortValue = NextSortType(currentSortValue);
         TheSongList.sortList(currentSortValue);
         ScrollToCurrentSong();
     })
-    NEWBUTTONACTION2(buttReg, LANE_5, "Jump Headers", {
+    NEWBUTTONACTION2(buttReg, LANE_5, "songSelect.jumpHeaders", {
         if (_action == Encore::RhythmEngine::Action::REPEAT) return;
         ControllerOrangeHeld.at(slot) = _action == Encore::RhythmEngine::Action::PRESS;
     })
@@ -440,22 +441,25 @@ void SongSelectMenu::Draw() {
     int AlbumOuter = u.hinpct(0.01f);
     int AlbumInner = u.hinpct(0.005f);
 
+    std::string sortType = LOCALIZE("songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
     GameMenu::mhDrawText(
         assets.josefinSansItalic,
-        TextFormat("Sorted by: %s", sortTypes[(int)currentSortValue].c_str()),
+        LOCALIZE_FMT("songSelect.sortedBy", sortType),
         { u.LeftSide, u.hpct(0.165f) },
         u.hinpct(0.03f),
         WHITE,
         ASSET(sdfShader),
         LEFT
     );
+    std::size_t sortCount = TheSongList.sortedSongs.size();
+    auto songsLoadedFmt = LOCALIZE_FMT("songSelect.songsLoaded", sortCount);
     GameMenu::mhDrawText(
         assets.josefinSansItalic,
-        TextFormat("Songs loaded: %01i", TheSongList.sortedSongs.size()),
+        songsLoadedFmt,
         { AlbumX - (AlbumOuter * 2)
           - MeasureTextEx(
               assets.josefinSansItalic,
-              TextFormat("Songs loaded: %01i", TheSongList.sortedSongs.size()),
+              songsLoadedFmt,
               u.hinpct(0.03f),
               0
           ).x,
@@ -758,7 +762,7 @@ void SongSelectMenu::Draw() {
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
     GameMenu::mhDrawText(assets.redHatDisplayBlack,
-                         "MUSIC LIBRARY",
+                         LOCALIZE("songSelect.header"),
                          { TextPlacementLR, TextPlacementTB },
                          u.hinpct(0.125f),
                          WHITE,
@@ -810,14 +814,14 @@ void SongSelectMenu::Draw() {
     float DiffTop = AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.045f));
     float IconWidth = float(AlbumHeight - AlbumOuter) / 5.0f;
     GameMenu::mhDrawText(assets.rubikItalic,
-                         "Pad",
+                         LOCALIZE("parts.pad"),
                          { (u.RightSide - AlbumHeight + AlbumInner), DiffTop },
                          AlbumOuter * 3,
                          WHITE,
                          assets.sdfShader,
                          LEFT);
     GameMenu::mhDrawText(assets.rubikItalic,
-                         "Classic",
+                         LOCALIZE("parts.classic"),
                          { (u.RightSide - AlbumHeight + AlbumInner),
                            DiffTop + IconWidth + (AlbumOuter * 3) },
                          AlbumOuter * 3,

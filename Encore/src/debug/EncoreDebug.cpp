@@ -687,6 +687,11 @@ void EncoreDebug::DrawLocaleDebug() {
         if (Button("Reload Locale")) {
             Encore::Locale::Init();
         }
+        SameLine();
+        if (Button("Unload Locale")) {
+            Encore::Locale::layers.clear();
+            Encore::Locale::unlocalizedTokens.clear();
+        }
 
         if (BeginTabBar("localeTabs")) {
             if (BeginTabItem("Locale Layers")) {

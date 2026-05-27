@@ -2,11 +2,19 @@
 	"generic": {
 		"play": "Play",
 		"cancel": "Cancel",
-		"unknown": "Unknown"
+		"unknown": "Unknown",
+		"select": "Select",
+		"confirm": "Confirm",
+		"back": "Back",
+		"pause": "Pause",
+		"unpause": "Unpause",
+		"instrument": "Instrument",
+		"difficulty": "Difficulty"
 	},
 	"mainMenu": {
 		"options": "Options",
-		"quit": "Quit"
+		"quit": "Quit",
+		"hint": "Press START to select a profile"
 	},
 	"overshell": {
 		"pressStart": "PRESS START",
@@ -23,6 +31,51 @@
 		"brutalMode": "Brutal Mode",
 		"autoplay": "Autoplay",
 		"leftyFlip": "Lefty Flip",
-		"dropOut": "Drop Out"
+		"dropOut": "Drop Out",
+		"return": "Return",
+		"restart": "Restart",
+		"exitSong": "Exit Song"
+	},
+	"songSelect": {
+		"header": "MUSIC LIBRARY",
+		"playSong": "Play Song",
+		"sort": "Sort",
+		"jumpHeaders": "Jump Headers",
+		"sortedBy": "Sorted by: {}",
+		"songsLoaded": "{} songs loaded",
+		"sortTypes": {
+			"title": "Title",
+			"artist": "Artist",
+			"source": "Source",
+			"length": "Length",
+			"year": "Year"
+		},
+		"options": {
+			"audiovisual": "Audio/Visual",
+			"gameplay": "Gameplay",
+			"controllerBindings": "Controller Bindings",
+			"keyboardBindings": "Keyboard Bindings",
+			"credits": "Credits"
+		}
+	},
+	"parts": {
+		"pad": "Pad",
+		"classic": "Classic",
+		"drums": "Drums",
+		"bass": "Bass",
+		"lead": "Lead",
+		"keys": "Keys",
+		"vocals": "Vocals",
+		"classicDrums": "Classic Drums",
+		"classicBass": "Classic Bass",
+		"classicLead": "Classic Lead",
+		"classicKeys": "Classic Keys",
+		"classicVocals": "Classic Vocals"
+	},
+	"diff": {
+		"easy": "Easy",
+		"medium": "Medium",
+		"hard": "Hard",
+		"expert": "Expert"
 	}
 }

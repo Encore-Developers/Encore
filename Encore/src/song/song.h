@@ -67,33 +67,13 @@ struct Beat {
 
 static std::atomic_int LoadingState = -1;
 
-inline std::array<std::string, 4> diffList = { "Easy", "Medium", "Hard", "Expert" };
+inline std::array<std::string, 4> diffList = { "diff.easy", "diff.medium", "diff.hard", "diff.expert" };
 inline std::vector<std::string> songPartsList{
-    "Drums", "Bass", "Lead", "Keys",
-    "Vocals", "Classic Drums", "Classic Bass", "Classic Lead",
-    "Classic Keys", "Classic Vocals", "Classic Vocals",
+    "parts.drums", "parts.bass", "parts.lead", "parts.keys",
+    "parts.vocals", "parts.classicDrums", "parts.classicBass", "parts.classicLead",
+    "parts.classicKeys", "parts.classicVocals", "parts.classicVocals",
 };
 
-inline std::unordered_map<std::string, PartIcon> stringToEnum = {
-
-    { "Drum", PartIcon::IconDrum },
-    { "Bass", PartIcon::IconBass },
-    { "Guitar", PartIcon::IconGuitar },
-    { "Vocals", PartIcon::IconVocals },
-    { "Keyboard", PartIcon::IconKeyboard },
-    { "None", PartIcon::IconNone },
-    { "", PartIcon::IconNone }
-
-};
-
-inline PartIcon iconFromString(const std::string &str) {
-    auto it = stringToEnum.find(str);
-    if (it != stringToEnum.end()) {
-        return it->second;
-    } else {
-        throw std::runtime_error("Invalid enum string");
-    }
-}
 
 inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
     { "PAD DRUMS", SongParts::PartDrums }, { "PAD BASS", SongParts::PartBass },

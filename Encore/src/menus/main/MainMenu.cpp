@@ -332,7 +332,7 @@ void MainMenu::AttractScreen() {
         0,
         WHITE
     );
-    std::string hint = "Press ENTER to select a profile";
+    std::string hint = LOCALIZE("mainMenu.hint");
     float HintWidth = MeasureTextEx(menuAss.rubik, hint.c_str(), SplashFontSize, 0).x;
     Vector2 HintPos = { u.wpct(0.5f) - (HintWidth / 2), u.hpct(0.5f) + LogoHeight };
     DrawTextEx(menuAss.rubik, hint.c_str(), HintPos, SplashFontSize, 0, WHITE);
@@ -472,13 +472,13 @@ void MainMenu::MainMenuScreen() {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
     }
     if (GuiButton(
-            { LeftMMButton, u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, "Options"
+            { LeftMMButton, u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, LOCALIZE("mainMenu.options")
         ) && !isOSOpen()) {
         // glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
         TheMenuManager.SwitchScreen(SETTINGS);
     }
     if (GuiButton(
-            { LeftMMButton, u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, "Quit"
+            { LeftMMButton, u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, LOCALIZE("mainMenu.quit")
         ) && !isOSOpen()) {
         // goes back to attract
         for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
