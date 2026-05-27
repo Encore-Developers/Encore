@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <regex>
 #include <sstream>
 #include "util/binary.h"
 
@@ -37,14 +38,23 @@ bool startsWith(const std::string &str, const std::string &prefix) {
     return str.substr(0, prefix.size()) == prefix;
 }
 
+std::string removeArtistJunk(const std::string &str) {
+    ZoneScoped;
+    static const std::regex artistRegex("(?:(the|a|an|and||\\W) +)|([\\W])");
+    return std::regex_replace(str, artistRegex, " ");
+}
+
 std::string removeArticle(const std::string &str) {
+    ZoneScoped;
     std::string result = str;
 
-    if (startsWith(result, "a ")) {
+    if (str.starts_with("a ")) {
         return str.substr(2);
-    } else if (startsWith(result, "an ")) {
+    }
+    if (str.starts_with("an ")) {
         return str.substr(3);
-    } else if (startsWith(result, "the ")) {
+    }
+    if (str.starts_with("the ")) {
         return str.substr(4);
     }
     return str;
@@ -54,31 +64,33 @@ bool SongList::sortArtist(Song *a, Song *b) {
     ZoneScoped
     std::string aLower = TextToLower(a->artist.c_str());
     std::string bLower = TextToLower(b->artist.c_str());
-    std::string aaa = removeArticle(aLower);
-    std::string bbb = removeArticle(bLower);
-    return aaa < bbb;
+    std::string aaa = removeArticle(TextToLower(a->artist.c_str()));
+    std::string bbb = removeArticle(TextToLower(b->artist.c_str()));
+    return removeArticle(TextToLower(a->artist.c_str())) < removeArticle(TextToLower(b->artist.c_str()));
 }
 
 bool SongList::sortTitle(Song *a, Song *b) {
     ZoneScoped
-    std::string aLower = TextToLower(a->title.c_str());
-    std::string bLower = TextToLower(b->title.c_str());
-    std::string aaa = removeArticle(aLower);
-    std::string bbb = removeArticle(bLower);
-    return aaa < bbb;
+    //std::string aLower = TextToLower(a->title.c_str());
+    //std::string bLower = TextToLower(b->title.c_str());
+    //std::string aaa = removeArticle(TextToLower(a->title.c_str()));
+    //std::string bbb = removeArticle(TextToLower(b->title.c_str()));
+    return removeArticle(TextToLower(a->title.c_str())) < removeArticle(TextToLower(b->title.c_str()));
 }
 
 bool SongList::sortSource(Song *a, Song *b) {
+    ZoneScoped;
     std::string aLower = TextToLower(a->source.c_str());
     std::string bLower = TextToLower(b->source.c_str());
     return aLower < bLower;
 }
 
 bool SongList::sortAlbum(Song *a, Song *b) {
+    ZoneScoped;
     std::string aLower = TextToLower(a->album.c_str());
     std::string bLower = TextToLower(b->album.c_str());
-    std::string aaa = removeArticle(aLower);
-    std::string bbb = removeArticle(bLower);
+    std::string aaa = removeArticle(TextToLower(a->album.c_str()));
+    std::string bbb = removeArticle(TextToLower(b->album.c_str()));
     return aaa < bbb;
 }
 
@@ -105,18 +117,18 @@ void SongList::sortList(SortType sortType) {
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         break;
     case SortType::Artist:
-        std::sort(sortedSongs.begin(), sortedSongs.end(), sortAlbum);
+        // std::sort(sortedSongs.begin(), sortedSongs.end(), sortAlbum);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortArtist);
         break;
     case SortType::Source:
-        std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
+        // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortSource);
         break;
     case SortType::Length:
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortLen);
         break;
     case SortType::Year:
-        std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
+        // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortYear);
         break;
     default:;
@@ -233,12 +245,12 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
             break;
         }
         case SortType::Artist: {
-            std::string artist = removeArticle(song->artist);
+            std::string artist = removeArtistJunk(TextToLower(song->artist.c_str()));
             header = artist.empty() ? "#" : artist;
             break;
         }
         case SortType::Source: {
-            std::string source = removeArticle(song->source);
+            std::string source = song->source;
             header = source.empty() ? "Unknown" : source;
             break;
         }
@@ -260,7 +272,11 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
                 sectionEntries.back().lastListID = listMenuEntries.size() - 1;
             }
             sectionEntries.emplace_back(listMenuEntries.size());
-            listMenuEntries.emplace_back(true, 0, currentHeader, false);
+            if (sortType == SortType::Artist) {
+                listMenuEntries.emplace_back(true, 0, song->artist, false);
+            } else {
+                listMenuEntries.emplace_back(true, 0, currentHeader, false);
+            }
             pos++;
         }
         listMenuEntries.emplace_back(false, i, "", false);
