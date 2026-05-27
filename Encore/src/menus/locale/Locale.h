@@ -32,6 +32,21 @@ namespace Encore {
             output.ref = nullptr;
             return output;
         }
+        std::string toString() const {
+            if (!ref) {
+                return ownedData;
+            } else {
+                return ref;
+            }
+        }
+
+        const char* toChar() const {
+            if (!ref) {
+                return ownedData.c_str();
+            } else {
+                return ref;
+            }
+        }
 
         operator std::string() const {
             if (!ref) {
@@ -82,3 +97,8 @@ namespace Encore {
 #define LOCALIZE(token) Encore::Locale::Localize(token)
 #define LOCALIZE_STR(token) std::string(Encore::Locale::Localize(token))
 #define LOCALIZE_FMT(token, ...) Encore::Locale::LocalizeFormat(token, std::make_format_args(__VA_ARGS__))
+
+// i keep typing it wrong   -marie
+#define LOCALISE(token) LOCALIZE(token)
+#define LOCALISE_STR(token) LOCALIZE_STR(token)
+#define LOCALISE_FMT(token, ...) LOCALIZE_FMT(token, __VA_ARGS__)
