@@ -70,6 +70,7 @@ public:
     void KeyboardInputCallback(int key, int scancode, int action, int mods);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     std::string SplashString;
+    int ControllerSelected = 0;
     bool songsLoaded = false;
     bool streamsLoaded = false;
     bool streamsPaused = false;

@@ -228,10 +228,33 @@ void MainMenu::Load() {
         mainMenuSet.StartLoad();
     }
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, "Open Quickplay", {
+    NEWBUTTONACTION2(buttReg, LANE_1, LOCALISE("generic.confirm"), {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        GotoSongSelect();
+        switch (ControllerSelected) {
+        case 0:
+            GotoSongSelect();
+            break;
+        case 1:
+            TheMenuManager.SwitchScreen(SETTINGS);
+            break;
+        case 2:
+            for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
+                if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p) != -1)
+                    ThePlayerManager.RemoveActivePlayer(p);
+            }
+            break;
+        }
     })
+    NEWBUTTONACTION2(buttReg, STRUM_UP, LOCALISE("generic.confirm"), {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        ControllerSelected -= 1;
+        if (ControllerSelected < 0) ControllerSelected = 0;
+    }, false)
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, LOCALISE("generic.confirm"), {
+        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        ControllerSelected += 1;
+        if (ControllerSelected > 2) ControllerSelected = 2;
+    }, false)
     //NEWBUTTONACTION2(buttReg, LANE_2, "Drop Out", {
     //    if (_action != Encore::RhythmEngine::Action::PRESS) return;
     //    slot -= 1;
@@ -351,7 +374,7 @@ void MainMenu::AttractScreen() {
     );
     DrawOvershell();
 
-    DrawWarning({0, 32}, {500, 650});
+    DrawWarning({0, 0}, {500, 650});
 }
 void MainMenu::GotoSongSelect() {
     TheAudioManager.unloadStreams();
@@ -421,13 +444,17 @@ void MainMenu::MainMenuScreen() {
         0,
         WHITE
     );
-    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.08f));
-    GuiSetFont(menuAss.redHatDisplayBlack);
-    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
-    GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xaaaaaaFF);
-    GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);
-    GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
-    GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
+    auto DrawButtonGradient =  [](Rectangle _pos, Color _color) {
+        DrawRectangle(0, _pos.y, _pos.x, _pos.height, _color);
+        DrawRectangleGradientH(
+            _pos.x,
+            _pos.y,
+            _pos.width,
+            _pos.height,
+            _color,
+            Color { 0, 0, 0, 0 }
+            );
+    };
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x00000000);
     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0x00000000);
     GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0x00000000);
@@ -439,81 +466,61 @@ void MainMenu::MainMenuScreen() {
         ChooseSplashText(directory);
     }
     float LeftMMButton = u.wpct(0.03f);
+    Color color = {170, 170, 170, 255};
+    float MainMenuButtonTopLeft = u.hpct(0.3f);
+    Rectangle pos = {LeftMMButton, MainMenuButtonTopLeft, u.winpct(0.35), u.hinpct(0.08f)};
+    // Look. I'll admit this isnt the best thing I couldve done.
+    // But I dont think any more unnecessary work should be needed for this.
+    // It's three fucking buttons for crying out loud. What more should i do?
+    // I mean i *guess* this could be shared with the Settings menus but. meh
+    // i already have the settings menu to wrangle with
     if (!TheSongList.songs.empty()) {
-        if (ThePlayerManager.PlayersActive != 0) {
-            if (GuiButton(
-                    { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
-                    LOCALIZE("generic.play")
-                ) && !isOSOpen()) {
-                GotoSongSelect();
-            }
-            GameMenu::mhDrawText(ASSET(rubikBold), "A", {u.wpct(0.02f), u.hpct(0.325f)}, u.hinpct(0.03f), GREEN, ASSET(sdfShader), RIGHT);
-        } else {
-            GuiButton(
-                { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
-                "Add a player"
-            );
+        if (GuiButton(pos, "") && !isOSOpen()) {
+            GotoSongSelect();
         }
+        if (CheckCollisionPointRec(GetMousePosition(), pos) || ControllerSelected == 0) {
+            DrawButtonGradient(pos, accentColor);
+            color = WHITE;
+        }
+        GameMenu::mhDrawText(ASSET(redHatDisplayBlack), LOCALIZE("generic.play"), {pos.x, pos.y}, pos.height, color, ASSET(sdfShader), LEFT);
     } else {
-        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(Color { 128, 0, 0, 255 }));
-        GuiButton(
-            { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
-            LOCALISE("mainMenu.invalidCache")
-        );
-        // TheSongList.ScanSongs(TheGameSettings.SongPaths);
-        DrawRectanglePro(
-            { ((float)GetRenderWidth() / 2) - 125,
-              ((float)GetRenderHeight() / 2) - 120,
-              250,
-              60 },
-            { 0, 0 },
-            0,
-            Color { 0, 0, 0, 64 }
-        );
-        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+        GameMenu::mhDrawText(ASSET(redHatDisplayBlack), LOCALIZE("mainMenu.invalidCache"), {pos.x, pos.y}, pos.height, RED, ASSET(sdfShader), LEFT);
     }
-    if (GuiButton(
-            { LeftMMButton, u.hpct(0.39f), u.winpct(0.5), u.hinpct(0.08f) }, LOCALIZE("mainMenu.options")
-        ) && !isOSOpen()) {
-        // glfwSetGamepadStateCallback(gamepadStateCallbackSetControls);
-        TheMenuManager.SwitchScreen(SETTINGS);
-    }
-    if (GuiButton(
-            { LeftMMButton, u.hpct(0.48f), u.winpct(0.2f), u.hinpct(0.08f) }, LOCALIZE("mainMenu.quit")
-        ) && !isOSOpen()) {
-        // goes back to attract
-        for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
-            // Checking for OS_ATTRACT here will result in strange behavior
-            // but it's better than a crash
-            // TODO: can we kill this button?
-            if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p) != -1)
-                ThePlayerManager.RemoveActivePlayer(p);
+
+    {
+        color = {170, 170, 170, 255};
+        pos.y += u.hinpct(0.09f);
+
+        if (GuiButton(pos, "") && !isOSOpen()) {
+            TheMenuManager.SwitchScreen(SETTINGS);
         }
+        if (CheckCollisionPointRec(GetMousePosition(), pos) || ControllerSelected == 1) {
+            DrawButtonGradient(pos, accentColor);
+            color = WHITE;
+        }
+        GameMenu::mhDrawText(ASSET(redHatDisplayBlack), LOCALIZE("mainMenu.options"), {pos.x, pos.y}, pos.height, color, ASSET(sdfShader), LEFT);
     }
-    /*
-    if (GuiButton(
-            { u.wpct(0.8f), u.hpct(0.90f), u.winpct(0.5f), u.hinpct(0.05f) }, "Sound
-    Test"
-        )) {
-        TheMenuManager.SwitchScreen(SOUND_TEST);
+
+    {
+        pos.y += u.hinpct(0.09f);
+        color = {170, 170, 170, 255};
+        if (CheckCollisionPointRec(GetMousePosition(), pos) || ControllerSelected == 2) {
+            DrawButtonGradient(pos, accentColor);
+            color = WHITE;
+        }
+        if (GuiButton(pos, "") && !isOSOpen()) {
+            // goes back to attract
+            for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
+                // Checking for OS_ATTRACT here will result in strange behavior
+                // but it's better than a crash
+                // TODO: can we kill this button?
+                // Yes.
+                if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p) != -1)
+                    ThePlayerManager.RemoveActivePlayer(p);
+            }
+        }
+        GameMenu::mhDrawText(ASSET(redHatDisplayBlack), LOCALIZE("mainMenu.quit"), {pos.x, pos.y}, pos.height, color, ASSET(sdfShader), LEFT);
     }
-    */
-    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-    GuiSetStyle(
-        BUTTON,
-        BASE_COLOR_FOCUSED,
-        ColorToInt(ColorBrightness(Color { 255, 0, 255, 255 }, -0.5))
-    );
-    GuiSetStyle(
-        BUTTON,
-        BASE_COLOR_PRESSED,
-        ColorToInt(ColorBrightness(Color { 255, 0, 255, 255 }, -0.3))
-    );
-    GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0xFFFFFFFF);
-    GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0xFFFFFFFF);
-    GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0xFFFFFFFF);
-    GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x505050ff);
-    GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
 
     if (GuiButton(
             { (float)GetRenderWidth() - 60,
@@ -535,8 +542,6 @@ void MainMenu::MainMenuScreen() {
         OpenURL("https://discord.gg/GhkgVUAC9v");
     }
 
-    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.03f));
-    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
     GuiSetFont(menuAss.rubik);
     DrawTextureEx(
         menuAss.github,
