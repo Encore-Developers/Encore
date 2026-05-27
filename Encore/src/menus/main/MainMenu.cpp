@@ -19,7 +19,7 @@
 #include "../menu.h"
 #include "../overshell/overshellRenderer.h"
 #include "../uiUnits.h"
-#include "../../../../../../../source/Encore/Encore/src/menus/locale/Locale.h"
+#include "../locale/Locale.h"
 #include "../../song/songlist.h"
 #include "menus/util/ButtonActionRegistry.h"
 #include "SDL3/SDL_misc.h"
