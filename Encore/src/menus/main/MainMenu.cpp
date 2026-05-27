@@ -262,39 +262,40 @@ std::string branch = GIT_BRANCH;
 std::string build = GIT_COMMIT_HASH;
 
 void DrawWarning(Vector2 pos, Vector2 size) {
+    // this was nasty but i wanted to do this anyways
     std::string WindowName = "encore " + version + "-" + branch + ":" + build;
     ImGui::SetNextWindowPos({pos.x, pos.y}, ImGuiCond_Always);
     ImGui::SetNextWindowSize({size.x, size.y});
     if (ImGui::Begin(WindowName.c_str(), 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
         ImGui::PushTextWrapPos();
-        ImGui::TextColored({1, 0, 0, 1}, "%s", "WARNING!");
-        ImGui::Text("This is an in-development build of Encore.");
+        ImGui::TextColored({1, 0, 0, 1}, "%s", LOCALIZE("mainMenu.warning.warning").toChar());
+        ImGui::Text("%s", LOCALIZE("mainMenu.warning.info1").toChar());
         //ImGui::Text("How the game is presented to you RIGHT NOW is not representative of the game's final state.");
-        ImGui::Text("This version is a release of the old codebase to have *something* out there while we work on a rewrite.");
+        ImGui::Text("%s", LOCALIZE("mainMenu.warning.info2").toChar());
         ImGui::NewLine();
-        ImGui::TextColored({1, 1, 0, 1}, "%s", "Press F3 to access the debug menu.");
-        ImGui::Text("This unlocks half of the available utilities and toys Encore currently has to offer.");
+        ImGui::TextColored({1, 1, 0, 1}, "%s", LOCALIZE("mainMenu.warning.debug1").toChar());
+        ImGui::Text("%s", LOCALIZE("mainMenu.warning.debug2").toChar());
         ImGui::NewLine();
-        ImGui::Text("NOTES:");
+        ImGui::Text("%s", LOCALIZE("mainMenu.warning.bulletList.header").toChar());
         static auto bulletText = [](const char* text) {
             ImGui::Bullet();
-            ImGui::Text(text);
+            ImGui::Text("%s", text);
         };
-        bulletText("A very basic, shitty DualShock mode is available\nin the Overshell below.");
-        bulletText("Some devices (like Santroller instruments) might not be detected as the correct instrument. Use the Instrument Type option in the Overshell to change it.");
-        bulletText("Song paths can be set in Settings > Gameplay. Encore supports CH/PS (.ini) song folders with a notes.mid file.");
-        bulletText(".CHART FILES ARE NOT SUPPORTED!");
-        bulletText("If you come across any crashes or bugs:");
+        bulletText(LOCALIZE("mainMenu.warning.bulletList.dsMode").toChar());
+        bulletText(LOCALIZE("mainMenu.warning.bulletList.instType").toChar());
+        bulletText(LOCALIZE("mainMenu.warning.bulletList.songPaths").toChar());
+        bulletText(LOCALIZE("mainMenu.warning.bulletList.FUCKCHARTFILES").toChar());
+        bulletText(LOCALIZE("mainMenu.warning.bulletList.support").toChar());
         ImGui::Indent();
-        if (ImGui::TextLink("Encore Github Repo")) {
+        if (ImGui::TextLink(LOCALIZE("mainMenu.warning.bulletList.github").toChar())) {
             SDL_OpenURL("https://github.com/Encore-Developers/Encore");
         }
-        if (ImGui::TextLink("Encore Discord")) {
+        if (ImGui::TextLink(LOCALIZE("mainMenu.warning.bulletList.discord").toChar())) {
             SDL_OpenURL("https://discord.gg/GhkgVUAC9v");
         }
         ImGui::Unindent();
         ImGui::NewLine();
-        ImGui::Text("Have fun!");
+        ImGui::Text("%s", LOCALIZE("mainMenu.warning.addendum").toChar());
         ImGui::PopTextWrapPos();
     }
     ImGui::End();
@@ -457,7 +458,7 @@ void MainMenu::MainMenuScreen() {
         GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, ColorToInt(Color { 128, 0, 0, 255 }));
         GuiButton(
             { LeftMMButton, u.hpct(0.3f), u.winpct(0.2f), u.hinpct(0.08f) },
-            "Invalid song cache!"
+            LOCALISE("mainMenu.invalidCache")
         );
         // TheSongList.ScanSongs(TheGameSettings.SongPaths);
         DrawRectanglePro(
@@ -626,7 +627,7 @@ void MainMenu::MainMenuScreen() {
         GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
     } else {
         Vector2 TitleSize =
-            MeasureTextEx(menuAss.rubikBoldItalic, "No song loaded", SongFontSize, 0);
+            MeasureTextEx(menuAss.rubikBoldItalic, LOCALISE("mainMenu.noSongLoaded"), SongFontSize, 0);
         Vector2 ArtistSize = MeasureTextEx(menuAss.rubikItalic, "", SongFontSize, 0);
 
         Vector2 SongTitleBox = { u.RightSide - TitleSize.x - u.winpct(0.01f),
@@ -634,7 +635,7 @@ void MainMenu::MainMenuScreen() {
         Vector2 SongArtistBox = { u.RightSide - ArtistSize.x - u.winpct(0.01f),
                                   u.hpct(0.2f) - u.hinpct(0.1f) };
         DrawTextEx(
-            menuAss.rubikBoldItalic, "No song loaded", SongTitleBox, SongFontSize, 0, WHITE
+            menuAss.rubikBoldItalic, LOCALISE("mainMenu.noSongLoaded"), SongTitleBox, SongFontSize, 0, WHITE
         );
         DrawTextEx(menuAss.rubikItalic, "", SongArtistBox, SongFontSize, 0, WHITE);
     }

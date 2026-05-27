@@ -14,7 +14,27 @@
 	"mainMenu": {
 		"options": "Options",
 		"quit": "Quit",
-		"hint": "Press START to select a profile"
+		"hint": "Press START to select a profile",
+		"noSongLoaded": "No song loaded",
+		"invalidCache": "Invalid song cache!",
+		"warning" : {
+			"warning" : "WARNING!",
+			"info1": "This is an in-development build of Encore.",
+			"info2": "This version is a release of the old codebase to have *something* out there while we work on a rewrite.",
+			"debug1": "Press F3 to access the debug menu.",
+			"debug2": "This unlocks half of the available utilities and toys Encore currently has to offer.",
+			"bulletList" : {
+				"header": "NOTES:",
+				"dsMode": "A very basic, shitty DualShock mode is available\nin the Overshell below.",
+				"instType": "Some devices (like Santroller instruments) might not be detected as the correct instrument. Use the Instrument Type option in the Overshell to change it.",
+				"songPaths": "Song paths can be set in Settings > Gameplay. Encore supports CH/PS (.ini) song folders with a notes.mid file.",
+				"FUCKCHARTFILES": ".CHART FILES ARE NOT SUPPORTED!",
+				"support": "If you come across any crashes or bugs:",
+				"github": "Encore Github Repo",
+				"discord": "Encore Discord"
+			},
+			"addendum": "Have fun!"
+		}
 	},
 	"overshell": {
 		"pressStart": "PRESS START",
@@ -57,6 +77,42 @@
 			"keyboardBindings": "Keyboard Bindings",
 			"credits": "Credits"
 		}
+	},
+	"resultsMenu": {
+		"back": "Back to Song Select",
+		"indevWarning": "Scoring is disabled in indev builds",
+		"infoText": {
+			"fc": "Flawless",
+			"autoplay": "Autoplay"
+		},
+		"statline": {
+			"perfect": "Perfects:",
+			"good": "Goods:",
+			"missed": "Missed:",
+			"overhit": "Strikes:",
+			"streak": "Max Streak:",
+			"noteCount": "Notes:"
+		}
+	},
+	"gameplay": {
+		"perfect": "PERFECT",
+		"good": "GOOD",
+		"bad": "BAD",
+		"autoplay": "(AUTOPLAY)",
+		"trackNotification": {
+			"overdrive": "Overdrive ready",
+			"combo": "{} Note Combo",
+			"hotstart": "Hot Start",
+			"bassgroove": "Bass Groove"
+		}
+	},
+	"chartLoading": {
+		"header": "LOADING",
+		"loadingPhrase": "Loading Song"
+	},
+	"cacheLoading": {
+		"header": "LOADING CACHE",
+		"loading": "{}/{} songs loaded"
 	},
 	"parts": {
 		"pad": "Pad",

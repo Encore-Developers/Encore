@@ -15,6 +15,7 @@
 
 #include <thread>
 
+#include "menus/locale/Locale.h"
 #include "RhythmEngine/ChartLoaders/LyricLoader.h"
 #include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
 
@@ -205,7 +206,7 @@ void ChartLoadingMenu::Draw() {
     encOS::DrawTopOvershell(0.15f);
     DrawTextEx(
         assets.redHatDisplayBlack,
-        "LOADING...  ",
+        LOCALIZE("chartLoading.header"),
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
         0,
@@ -215,7 +216,7 @@ void ChartLoadingMenu::Draw() {
         MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
 
     std::string LoadingPhrase = TheSongList.curSong->loadingPhrase.empty()
-        ? "Loading Song..."
+        ? LOCALIZE("chartLoading.loadingPhrase").toString()
         : TheSongList.curSong->loadingPhrase;
 
     DrawTextEx(

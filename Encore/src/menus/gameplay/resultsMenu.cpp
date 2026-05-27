@@ -10,6 +10,7 @@
 #include "users/playerManager.h"
 #include "../overshell/OvershellHelper.h"
 #include "../MenuManager.h"
+#include "menus/locale/Locale.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 
@@ -29,7 +30,7 @@ int FinalScore = 0;
 
 void resultsMenu::Load() {
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, "Back to Song Select", {
+    NEWBUTTONACTION2(buttReg, LANE_1, LOCALISE("resultsMenu.back"), {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1) continue;
@@ -65,7 +66,7 @@ void resultsMenu::Load() {
     GoldStar = GameMenu::LoadTextureFilter(assetsdir / "ui/gold-star.png");
     Star = GameMenu::LoadTextureFilter(assetsdir / "ui/star.png");
     EmptyStar = GameMenu::LoadTextureFilter(assetsdir / "ui/empty-star.png");
-    diffList = { "Easy", "Medium", "Hard", "Expert" };
+    diffList = { "diff.easy", "diff.medium", "diff.hard", "diff.expert" };
     sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
     // std::cout << "Band Score: " << ThePlayerManager.BandStats->Score << std::endl;
     // std::cout << "Band Sustain Score: " << ThePlayerManager.BandStats->SustainScore <<
@@ -149,9 +150,9 @@ void resultsMenu::Draw() {
     );
     Color accentColor =
         ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
-    std::string indevWarnText = "Scoring is disabled in indev builds";
     float warningTextSize = u.hinpct(0.038f);
-    float textWidth = MeasureTextEx(assets.josefinSansItalic, indevWarnText.c_str(), warningTextSize, 0).x;
+    auto warning = LOCALIZE("resultsMenu.indevWarning");
+    float textWidth = MeasureTextEx(assets.josefinSansItalic, warning, warningTextSize, 0).x;
     Vector2 TopLeft = { u.LeftSide, u.hpct(0.158f) };
     DrawRectangle(0, TopLeft.y, u.LeftSide, warningTextSize, accentColor);
 
@@ -165,7 +166,7 @@ void resultsMenu::Draw() {
     );
     GameMenu::mhDrawText(
         assets.josefinSansItalic,
-        indevWarnText.c_str(),
+        LOCALIZE("resultsMenu.indevWarning"),
         { TopLeft.x, TopLeft.y + u.hinpct(0.008f) },
         u.hinpct(0.025f),
         WHITE,
@@ -293,28 +294,33 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         false
     );
 
-    std::string ImportantInfoText;
-    Color ImportantInfoTextColor = WHITE;
     if (rendAsFC) {
-        ImportantInfoText = "Flawless!";
+        GameMenu::mhDrawText(
+            assets.rubikBold,
+            LOCALIZE("resultsMenu.infoText.fc"),
+            {cardPos + cardHalfWidth, u.hpct(0.32f)},
+            SmallHeader,
+            WHITE,
+            sdfShader,
+            CENTER
+        );
     }
     //if (player.stats->Quit && !player.Bot) {
     //    ImportantInfoText = "Quit";
     //    ImportantInfoTextColor = RED;
    // }
     if (player.Bot) {
-        ImportantInfoText = "Autoplay";
-        ImportantInfoTextColor = SKYBLUE;
+        GameMenu::mhDrawText(
+            assets.rubikBold,
+            LOCALIZE("resultsMenu.infoText.autoplay"),
+            {cardPos + cardHalfWidth, u.hpct(0.32f)},
+            SmallHeader,
+            SKYBLUE,
+            sdfShader,
+            CENTER
+        );
     }
-    GameMenu::mhDrawText(
-        assets.rubikBold,
-        ImportantInfoText,
-        {cardPos + cardHalfWidth, u.hpct(0.32f)},
-        SmallHeader,
-        ImportantInfoTextColor,
-        sdfShader,
-        CENTER
-    );
+
     DrawTextEx(
         assets.redHatDisplayItalic,
         TextFormat("%3.0f%%", Percent),
@@ -336,8 +342,8 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
     std::string InstDiffName = TextFormat(
         "%s %s",
-        diffList[player.Difficulty].c_str(),
-        songPartsList[player.Instrument].c_str()
+        LOCALIZE(diffList[player.Difficulty]).toChar(),
+        LOCALIZE(songPartsList[player.Instrument]).toChar()
     );
     float InstDiffPos =
         MeasureTextEx(assets.rubikBold, InstDiffName.c_str(), u.hinpct(0.03f), 0).x;
@@ -358,13 +364,13 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float statsLeft = cardPos + u.winpct(0.01f);
     float statsRight = cardPos + u.winpct(0.21f);
 
-    DrawTextEx(assets.rubik, "Perfects:", { statsLeft, statsHeight }, u.hinpct(0.03f), 0,
-    WHITE); DrawTextEx( assets.rubik, "Goods:", { statsLeft, statsHeight +
+    DrawTextEx(assets.rubik, LOCALISE("resultsMenu.statline.perfect"), { statsLeft, statsHeight }, u.hinpct(0.03f), 0,
+    WHITE); DrawTextEx( assets.rubik, LOCALISE("resultsMenu.statline.good"), { statsLeft, statsHeight +
     u.hinpct(0.035f) }, u.hinpct(0.03f), 0, WHITE
     );
     DrawTextEx(
         assets.rubik,
-        "Missed:",
+        LOCALISE("resultsMenu.statline.missed"),
         { statsLeft, statsHeight + u.hinpct(0.07f) },
         u.hinpct(0.03f),
         0,
@@ -372,7 +378,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
     DrawTextEx(
         assets.rubik,
-        "Strikes:",
+        LOCALISE("resultsMenu.statline.overhit"),
         { statsLeft, statsHeight + u.hinpct(0.105f) },
         u.hinpct(0.03f),
         0,
@@ -380,7 +386,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
     DrawTextEx(
         assets.rubik,
-        "Max Streak:",
+        LOCALISE("resultsMenu.statline.streak"),
         { statsLeft, statsHeight + u.hinpct(0.14f) },
         u.hinpct(0.03f),
         0,
@@ -388,7 +394,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
     DrawTextEx(
         assets.rubik,
-        "Notes:",
+        LOCALISE("resultsMenu.statline.noteCount"),
         { statsLeft, statsHeight + u.hinpct(0.175f) },
         u.hinpct(0.03f),
         0,

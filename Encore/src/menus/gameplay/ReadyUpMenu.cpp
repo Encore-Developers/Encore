@@ -207,8 +207,8 @@ void ReadyUpMenu::Draw() {
                                u.winpct(0.2f),
                                u.hinpct(0.05f) };
                 std::string PartAndDiff = std::to_string(
-                        TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7   " +
-                    std::string(LOCALIZE(songPartsList[PartsToDisplay[i]]));
+                        TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7   ";
+                PartAndDiff += LOCALIZE(songPartsList[PartsToDisplay[i]]).toString();
                 if (GuiButton(pos, "") && !isOSOpen()) {
                     ControllerInstSlot[playerInt] = i;
                     SlotState[playerInt] = DIFFICULTY;

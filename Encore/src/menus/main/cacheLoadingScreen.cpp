@@ -14,6 +14,7 @@
 #include "song/songlist.h"
 #include "raygui.h"
 #include "../MenuManager.h"
+#include "menus/locale/Locale.h"
 #include "settings/settings.h"
 #include "song/cacheload.h"
 
@@ -51,7 +52,7 @@ void cacheLoadingScreen::Draw() {
 
     GameMenu::mhDrawText(
         ASSET(redHatDisplayBlack),
-        "LOADING CACHE",
+        LOCALIZE("cacheLoading.header"),
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
         WHITE,
@@ -61,7 +62,8 @@ void cacheLoadingScreen::Draw() {
     float RubikFontSize = u.hinpct(0.05f);
     int loaded = CurrentChartNumber;
     int toLoad = MaxChartsToLoad;
-    std::string LoadingText = TextFormat("%d/%d songs loaded", loaded, toLoad);
+    std::string songs = TextFormat("%d/%d", loaded, toLoad);
+    std::string LoadingText = LOCALIZE_FMT("cacheLoading.loading", loaded, toLoad);
     GameMenu::mhDrawText(
         ASSET(rubikBold),
         LoadingText,

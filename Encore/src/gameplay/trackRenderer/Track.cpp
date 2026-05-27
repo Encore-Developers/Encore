@@ -17,6 +17,7 @@
 #include "easing/easing.h"
 #include "events/Event.h"
 #include "../../menus/main/MainMenu.h"
+#include "menus/locale/Locale.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
 #include "users/playerManager.h"
@@ -301,7 +302,7 @@ void Encore::Track::DrawUsername() {
     std::string NameText = player.Name;
     if (player.engine->stats->Bot) {
         color = SKYBLUE;
-        NameText += " (AUTOPLAY)";
+        NameText += " " + LOCALISE("gameplay.autoplay").toString();
     }
     if (player.BrutalMode) {
         color = RED;
@@ -426,16 +427,17 @@ void Encore::Track::DrawTrackNotifications() {
     std::string Text = "";
     switch (notif->type) {
     case TrackNotificationEvent::OVERDRIVE_READY:
-        Text = "Overdrive ready";
+        Text = LOCALISE("gameplay.trackNotification.overdrive").toString();
         break;
-    case TrackNotificationEvent::COMBO:
-        Text = std::to_string(notif->combo) + " Note Combo";
+    case TrackNotificationEvent::COMBO: {
+        Text = LOCALIZE_FMT("gameplay.trackNotification.combo", notif->combo).toString();
         break;
+    }
     case TrackNotificationEvent::BASSGROOVE:
-        Text = "Bass Groove";
+        Text = LOCALISE("gameplay.trackNotification.bassgroove").toString();
         break;
     case TrackNotificationEvent::HOTSTART:
-        Text = "Hot Start";
+        Text = LOCALISE("gameplay.trackNotification.hotstart").toString();
         break;
     default:
         Text = "buttsex";
@@ -522,16 +524,16 @@ void Encore::Track::DrawJudgement() {
     switch (JudgementType) {
     case -1: {
         JudgementColor = RED;
-        JudgementStr = "BAD";
+        JudgementStr = LOCALISE("gameplay.bad").toString();
         break;
     }
     case 1: {
         JudgementColor = GOLD;
-        JudgementStr = "PERFECT";
+        JudgementStr = LOCALISE("gameplay.perfect").toString();
         break;
     }
     default: {
-        JudgementStr = "GOOD";
+        JudgementStr = LOCALISE("gameplay.good").toString();
         break;
     }
     }
