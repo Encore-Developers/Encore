@@ -77,7 +77,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             GameMenu::mhDrawText(
                 ASSET(rubik),
                 LOCALIZE(diffList[i]),
-                { pos.x, pos.y },
+                { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
                 u.hinpct(0.03f),
                 WHITE,
                 ASSET(sdfShader),
@@ -224,7 +224,7 @@ void ReadyUpMenu::Draw() {
                 GameMenu::mhDrawText(
                     assets.rubik,
                     PartAndDiff,
-                    { pos.x, pos.y },
+                    { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
                     u.hinpct(0.03f),
                     WHITE,
                     assets.sdfShader,
