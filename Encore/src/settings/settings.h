@@ -61,7 +61,8 @@ namespace Encore {
         VideoOffset,
         DiscordRichPresence,
         SongPaths,
-        BackgroundBeatFlash
+        BackgroundBeatFlash,
+        Language
     );
 
     class SettingsInit {
