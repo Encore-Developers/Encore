@@ -21,7 +21,6 @@ namespace Encore {
             ButtonActionRegistry buttReg;
         public:
             int calibrationMenuOffset;
-            int GUI_TEXT_ALIGN_CENTER;
             SettingsAudioVideo() = default;
             ~SettingsAudioVideo() override;
             SettingDoohickey settings;

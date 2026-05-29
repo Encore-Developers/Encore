@@ -214,7 +214,7 @@ void MainMenu::PickRandomMenuSong() {
         };
         TheAudioManager.unloadStreams();
         TheAudioManager.loadStreams(TheSongList.curSong->LoadAudioINI());
-        streamsLoaded = true;
+        GameMenu::streamsLoaded = true;
         for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
             float Volume =
                 TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
@@ -230,7 +230,10 @@ void MainMenu::PickRandomMenuSong() {
 void MainMenu::Load() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     ChooseSplashText(directory);
-    PickRandomMenuSong();
+    if (GameMenu::FirstMainMenuBoot) {
+        PickRandomMenuSong();
+        GameMenu::FirstMainMenuBoot = false;
+    };
     if (!mainMenuSet.PollLoaded()) {
         mainMenuSet.StartLoad();
     }
@@ -385,7 +388,7 @@ void MainMenu::AttractScreen() {
 }
 void MainMenu::GotoSongSelect() {
     TheAudioManager.unloadStreams();
-    streamsLoaded = false;
+    GameMenu::streamsLoaded = false;
     streamsPaused = false;
     for (Song &songi : TheSongList.songs) {
         songi.titleScrollTime = GetTime();
@@ -564,7 +567,7 @@ void MainMenu::MainMenuScreen() {
         0.075,
         WHITE
     );
-    if (streamsLoaded) {
+    if (GameMenu::streamsLoaded) {
         Vector2 TitleSize = MeasureTextEx(
             menuAss.rubikBoldItalic, TheSongList.curSong->title.c_str(), SongFontSize, 0
         );
@@ -632,7 +635,7 @@ void MainMenu::MainMenuScreen() {
             albumArtLoaded = false;
             streamsPaused = false;
             songChosen = false;
-            streamsLoaded = false;
+            GameMenu::streamsLoaded = false;
             randomSongChosen = false;
             PickRandomMenuSong();
         }
@@ -659,7 +662,7 @@ void MainMenu::MainMenuScreen() {
 }
 // this is really nasty shit as far as im concerned please dont think about it too much
 void MainMenu::Draw() {
-    if (streamsLoaded) {
+    if (GameMenu::streamsLoaded) {
         float played = TheAudioManager.GetMusicTimePlayed();
         float length = TheAudioManager.GetMusicTimeLength();
         for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
@@ -676,7 +679,7 @@ void MainMenu::Draw() {
             albumArtLoaded = false;
             streamsPaused = false;
             songChosen = false;
-            streamsLoaded = false;
+            GameMenu::streamsLoaded = false;
             randomSongChosen = false;
         }
     } else {

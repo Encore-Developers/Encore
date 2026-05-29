@@ -761,6 +761,8 @@ void SongSelectMenu::Draw() {
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
+    GameMenu::mhDrawText(assets.rubik, LOCALISE("songSelect.quickplay"), {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, ASSET(sdfShader), LEFT);
+
     GameMenu::mhDrawText(assets.redHatDisplayBlack,
                          LOCALIZE("songSelect.header"),
                          { TextPlacementLR, TextPlacementTB },

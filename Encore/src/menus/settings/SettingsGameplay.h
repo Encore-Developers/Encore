@@ -7,24 +7,37 @@
 
 #include <GLFW/glfw3.h>
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
+#include "menus/util/SettingRenderer.h"
+#include "song/songlist.h"
+
 
 namespace Encore {
-    class SettingsGameplay {
+    class SettingsGameplay : public OvershellMenu {
+        std::function<void()> scanSongsFunc;
+#define OPTION(type, value, default) type value = default;
+        SETTINGS_OPTIONS;
+#undef OPTION
+        bool ad = false;
+        void ScanSongs() {
+            if (TheGameSettings.SongPaths.empty()) {
+                TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
+            } else {
+                for (const auto& path : TheGameSettings.SongPaths) {
+                    TraceLog(LOG_INFO, "Scanning path: %s", path.string().c_str());
+                }
+                TheSongList.ScanSongs(TheGameSettings.SongPaths);
+            }
+        }
+    public:
+        void Draw();
+        void KeyboardInputCallback(int key, int scancode, int action, int mods);
+        void ControllerInputCallback(RhythmEngine::ControllerEvent event);
+        void Load();
+        void Save();
+        SettingDoohickey settings;
+        ButtonActionRegistry buttReg;
     };
 }
-
-class SettingsGameplay : public OvershellMenu {
-public:
-    void Draw();
-    void KeyboardInputCallback(int key, int scancode, int action, int mods);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
-    void Load();
-    void Save();
-
-private:
-bool Fullscreen = false;
-};
-
-extern Encore::SettingsGameplay TheGameplaySettings;
 
 #endif // SETTINGS_GAMEPLAY_H

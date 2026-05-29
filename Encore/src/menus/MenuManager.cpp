@@ -66,7 +66,7 @@ void MenuManager::LoadMenu() {
     case SETTINGSGAMEPLAY: {
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",ThePlayerManager.PlayersActive);
         TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
-        ActiveMenu = new SettingsGameplay;
+        ActiveMenu = new Encore::SettingsGameplay;
         ActiveMenu->Load();
         break;
     }

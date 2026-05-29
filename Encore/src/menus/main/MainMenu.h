@@ -43,6 +43,9 @@ namespace GameMenu {
         Shader sdfShader,
         int align
     );
+    static bool FirstMainMenuBoot = true;
+
+    static bool streamsLoaded = false;
     void DrawFPS(int posX, int posY);
     void DrawVersion();
 
@@ -72,7 +75,6 @@ public:
     std::string SplashString;
     int ControllerSelected = 0;
     bool songsLoaded = false;
-    bool streamsLoaded = false;
     bool streamsPaused = false;
     bool stringChosen = false;
     bool albumArtLoaded = false;
@@ -81,3 +83,5 @@ public:
 
     bool songChosen = false;
 };
+
+

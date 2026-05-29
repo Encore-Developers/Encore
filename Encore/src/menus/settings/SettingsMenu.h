@@ -8,16 +8,19 @@
 #include "settings/settings.h"
 #include "assets.h"
 #include "../overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
 
-namespace Encore {
-    class SettingsMenu {
-    };
-}
 
 class SettingsMenu : public OvershellMenu {
-#define OPTION(type, value, default) type value = default;
-    SETTINGS_OPTIONS;
-#undef OPTION
+    Encore::ButtonActionRegistry buttReg;
+
+    std::array<std::string, 5> menuItems = {
+        "settings.header.audioVisual",
+        "settings.header.gameplay",
+        "settings.header.controller",
+        "settings.header.keyboard",
+        "settings.header.credits"
+    };
 public:
 
     SettingsMenu() = default;
@@ -27,7 +30,5 @@ public:
     void Load() override;
     void Draw() override;
 };
-
-extern Encore::SettingsMenu TheSettingsMenu;
 
 #endif //SETTINGSMENU_H

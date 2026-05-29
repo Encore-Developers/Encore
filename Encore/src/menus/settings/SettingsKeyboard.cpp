@@ -10,59 +10,21 @@
 #include "../overshell/OvershellMenu.h"
 #include "raygui.h"
 #include "../overshell/OvershellHelper.h"
+#include "menus/locale/Locale.h"
 
 void SettingsKeyboard::Draw() {
     Units& u = Units::getInstance();
     Assets& assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
-    DrawRectangle(u.LeftSide, 0, u.winpct(1.0f), GetRenderHeight(), Color{0, 0, 0});
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
     encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawVersion();
     GameMenu::DrawBottomOvershell();
 
-    float SidebarLeft = u.LeftSide + u.winpct(0.70f);
-    float SidebarWidth = u.wpct(0.235f);
-    float SidebarTop = u.hinpct(0.15f);
-    float SidebarHeight = u.hpct(0.85f);
-    float SidebarHeaderHeight = u.hinpct(0.10f);
-    float borderWidth = u.winpct(0.002f);
-    float innerTop = SidebarTop + borderWidth;
-    DrawLineEx({SidebarLeft - borderWidth, SidebarTop}, {SidebarLeft - borderWidth, SidebarTop + SidebarHeight}, borderWidth, WHITE);
-    DrawLineEx({SidebarLeft + SidebarWidth, SidebarTop}, {SidebarLeft + SidebarWidth, SidebarTop + SidebarHeight}, borderWidth, WHITE);
-    DrawLineEx({SidebarLeft - borderWidth, SidebarTop + SidebarHeight}, {SidebarLeft + SidebarWidth + borderWidth, SidebarTop + SidebarHeight}, borderWidth, WHITE);
-    DrawRectangle(SidebarLeft, SidebarTop, SidebarWidth, SidebarHeight, Color{31, 31, 50, 255});
-
-    const char* headerText = sidebarContents[selectedIndex].header;
-    const char* sidebarBodyText = sidebarContents[selectedIndex].body;
-    float headerFontSize = u.hinpct(0.030f);
-    float headerLineSpacing = headerFontSize * 1.2f;
-    std::vector<std::string> headerLines = split(headerText, "\n");
-    float maxHeaderWidth = 0;
-    for (const std::string& line : headerLines) {
-        Vector2 lineSize = MeasureTextEx(assets.rubikBold, line.c_str(), headerFontSize, 0);
-        if (lineSize.x > maxHeaderWidth) maxHeaderWidth = lineSize.x;
-    }
-    float currentHeaderY = innerTop + u.hinpct(0.02f);
-    for (const std::string& line : headerLines) {
-        float lineX = SidebarLeft + (SidebarWidth - maxHeaderWidth) / 2;
-        DrawTextEx(assets.rubikBold, line.c_str(), {lineX, currentHeaderY}, headerFontSize, 0, WHITE);
-        currentHeaderY += headerLineSpacing;
-    }
-    float bodyFontSize = u.hinpct(0.030f);
-    float lineSpacing = bodyFontSize * 1.2f;
-    std::vector<std::string> lines = split(sidebarBodyText, "\n");
-    float currentY = SidebarTop + SidebarHeaderHeight + u.hinpct(0.02f);
-    for (const std::string& line : lines) {
-        Vector2 lineSize = MeasureTextEx(assets.rubik, line.c_str(), bodyFontSize, 0);
-        float lineX = SidebarLeft + (SidebarWidth - lineSize.x) / 2;
-        DrawTextEx(assets.rubik, line.c_str(), {lineX, currentY}, bodyFontSize, 0, WHITE);
-        currentY += lineSpacing;
-    }
-
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.wpct(0.05f);
-    DrawTextEx(assets.rubik, "Settings", {TextPlacementLR, u.hpct(0.027f)}, u.hinpct(0.042f), 0, LIGHTGRAY);
-    GameMenu::mhDrawText(assets.redHatDisplayBlack, "KEYBOARD BINDINGS", {TextPlacementLR, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
+    GameMenu::mhDrawText(assets.rubik, LOCALISE("settings.header.keyboard"), {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, ASSET(sdfShader), LEFT);
+    GameMenu::mhDrawText(assets.redHatDisplayBlack, LOCALISE("settings.header.main"), {u.LeftSide, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
 
     float settingsOffsetX = 0.0f;
     float settingsOffsetY = 0.0f;

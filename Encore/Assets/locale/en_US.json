@@ -9,10 +9,49 @@
 		"pause": "Pause",
 		"unpause": "Unpause",
 		"instrument": "Instrument",
-		"difficulty": "Difficulty"
+		"difficulty": "Difficulty",
+		"on": "On",
+		"off": "Off"
+	},
+	"settings": {
+		"header": {
+			"main": "SETTINGS",
+			"categorySel": "Main Menu",
+			"audioVisual": "Audio",
+			"gameplay": "Gameplay",
+			"controller": "Controller Bindings",
+			"keyboard": "Keyboard Bindings",
+			"credits": "Credits"
+		},
+		"separator": {
+			"volume": "Volume",
+			"calibration": "Calibration",
+			"video": "Video",
+			"songs": "Songs"
+		},
+		"subtitle": "Select a menu",
+		"audioOffset": "Audio Offset",
+		"videoOffset": "Video Offset",
+		"framerate": "Framerate",
+		"verticalSync": "Vsync",
+		"scanSongs": "Scan Songs",
+		"awesomenessDetection": "Awesomeness Detection",
+		"fullscreen": "Fullscreen",
+		"volume": {
+			"global": "Main Volume",
+			"active": "Active Instrument Volume",
+			"inactive": "Inactive Instrument Volume",
+			"sfx": "SFX Volume",
+			"mute": "Mute Volume",
+			"menuMusic": "Menu Music Volume"
+		},
+		"prompt": {
+			"exit": "Save and Exit",
+			"exitWithoutSaving":"Exit Without Saving"
+		}
 	},
 	"mainMenu": {
-		"options": "Options",
+		"options": "Settings",
 		"quit": "Quit",
 		"hint": "Press START to select a profile",
 		"noSongLoaded": "No song loaded",
@@ -156,6 +195,7 @@
 	},
 	"songSelect": {
 		"header": "MUSIC LIBRARY",
+		"quickplay": "Quickplay",
 		"playSong": "Play Song",
 		"sort": "Sort",
 		"jumpHeaders": "Jump Headers",
