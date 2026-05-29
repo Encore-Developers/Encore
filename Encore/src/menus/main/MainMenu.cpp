@@ -196,7 +196,11 @@ void MainMenu::ChooseSplashText(std::filesystem::path directory) {
     std::mt19937 prng(seed());
     std::string line, result;
     std::uniform_int_distribution<> dist(0, splashes->size()-1);
-    SplashString = splashes->at(dist(prng));
+    int selection = dist(prng);
+    SplashString = splashes->at(selection);
+    if (selection == Encore::Locale::GetLocaleList("mainMenu.splashes")->size()) {
+        SplashString += TheGameRPC.GetSteamNickname() + "!";
+    }
     std::cout << result << std::endl;
 }
 

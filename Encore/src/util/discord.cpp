@@ -8,7 +8,9 @@
 #include "isteamfriends.h"
 #include "isteamutils.h"
 #include "isteaminput.h"
+#include "isteamuser.h"
 #endif
+
 #include "discord-rpc/core.h"
 #include <array>
 #include <ctime>
@@ -73,6 +75,16 @@ void Encore::Discord::SteamUpdatePresence(const char *key, const char *value) {
     SteamFriends()->SetRichPresence(key, value);
 #endif
 }
+
+std::string Encore::Discord::GetSteamNickname() {
+#ifdef STEAM
+    if (SteamFriends()->GetPersonaName()) {
+        return SteamFriends()->GetPersonaName();
+    }
+    return "Player";
+#endif
+}
+
 void Encore::Discord::SteamShowKeyboard() {
 #ifdef STEAM
     SteamUtils()->ShowFloatingGamepadTextInput(k_EFloatingGamepadTextInputModeModeEmail, 1920/4, 0, 1920/2, 1080/2 );
