@@ -122,6 +122,15 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
 #define SETTING_ACTION(type, name, key) { key, player->name },
             PLAYER_JSON_SETTINGS
 #undef SETTING_ACTION
+            { "colorProfiles",
+              { { "plastic", player->
+                GetColorProfile(Encore::ProfileManager::ColorProfileType::PLASTIC)->Name },
+                { "pad", player->
+                GetColorProfile(Encore::ProfileManager::ColorProfileType::PAD)->Name },
+                { "drums", player->
+                GetColorProfile(Encore::ProfileManager::ColorProfileType::DRUMS)->Name }
+                }
+            },
             { "accentColor",
               { { "r", player->AccentColor.r },
                 { "g", player->AccentColor.g },

@@ -277,6 +277,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
             if (!dropInDropOut) {
                 if (OvershellButton(i, curSlot--, LOCALIZE("overshell.return")) || input.backPressed) {
                     OvershellState[i] = OS_ATTRACT;
+                    ThePlayerManager.SaveSpecificPlayer(i, true);
                 }
                 if (OvershellButton(i, curSlot--, LOCALIZE("overshell.restart"))) {
                     TheAudioManager.unloadStreams();
