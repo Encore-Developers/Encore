@@ -604,6 +604,7 @@ void GameplayMenu::Load() {
         Player &player = ThePlayerManager.GetActivePlayer(i);
         tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
+
         tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
         tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
         switch (player.Instrument) {
@@ -611,9 +612,11 @@ void GameplayMenu::Load() {
         case PlasticBass:
         case PlasticKeys:
             tracks.at(i)->Configure5Lane();
+            tracks.at(i)->ColorProfileType = Encore::ProfileManager::PLASTIC;
             break;
         case PlasticDrums:
             tracks.at(i)->ConfigureDrums();
+            tracks.at(i)->ColorProfileType = Encore::ProfileManager::DRUMS;
             break;
         default:
             if (player.Difficulty == 3) {
@@ -621,6 +624,7 @@ void GameplayMenu::Load() {
             } else {
                 tracks.at(i)->Configure4Lane();
             }
+            tracks.at(i)->ColorProfileType = Encore::ProfileManager::PAD;
         }
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals
             || player.Instrument == PartBass) {

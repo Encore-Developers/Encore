@@ -51,7 +51,7 @@ namespace Encore {
 
 
 
-    static ColorProfile defaultProfile;
+    static ColorProfile defaultPlastic;
     static ColorProfile transgender {
         "transgender",
         { SKYBLUE,
@@ -62,6 +62,21 @@ namespace Encore {
             PURPLE, // OPEN
             ORANGE, // KICK
             PURPLE , // OVERDRIVE
+            YELLOW, // HIHAT
+            BLUE, // RIDE
+            GREEN // CRASH
+        }
+    };
+    static ColorProfile defaultPad {
+        "Default Pad Profile",
+        { SKYBLUE,
+            SKYBLUE,
+            PURPLE,
+            PURPLE,
+            PURPLE,
+            PURPLE, // OPEN
+            ORANGE, // KICK
+            LIGHTGRAY , // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
             GREEN // CRASH

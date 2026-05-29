@@ -522,45 +522,30 @@ void EncoreDebug::DrawPlayerManager() {
                     // for some reason, when creating a new profile, player.GetColorProfile() eats shit and dies
                     // it doesnt get set to a nullptr??? but it gets set to some fucking random memory address and eugh
                     // close this when making a new color profile
-                    if (BeginCombo("Color Profiles", player.GetColorProfile()->Name.c_str())) {
+                    if (BeginCombo("Plastic Color Profile", player.GetColorProfile(Encore::ProfileManager::PLASTIC)->Name.c_str())) {
                         for (auto i : TheProfileManager.ColorProfiles) {
                             if (Selectable(i.second.Name.c_str())) {
-                                player.SetColorProfile(i.second.Name);
+                                player.SetColorProfile(i.second.Name, Encore::ProfileManager::PLASTIC);
                             }
                         }
                         EndCombo();
                     }
-                    // ColorEdit("Green",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_GREEN],
-                    //           0);
-                    // ColorEdit("Red",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_RED],
-                    //           0);
-                    // ColorEdit("Yellow",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_YELLOW],
-                    //           0);
-                    // ColorEdit("Blue",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_BLUE],
-                    //           0);
-                    // ColorEdit("Orange",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_ORANGE],
-                    //           0);
-                    // ColorEdit("Open",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_OPEN],
-                    //           0);
-                    // SeparatorText("Drums Colors");
-                    // ColorEdit("Kick",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_KICK],
-                    //           0);
-                    // ColorEdit("Yellow Cymbal",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_HIHAT],
-                    //           0);
-                    // ColorEdit("Blue Cymbal",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_RIDE],
-                    //           0);
-                    // ColorEdit("Green Cymbal",
-                    //           &player.GetColorProfile()->colors[Encore::SLOT_CRASH],
-                    //           0);
+                    if (BeginCombo("Pad Color Profile", player.GetColorProfile(Encore::ProfileManager::PAD)->Name.c_str())) {
+                        for (auto i : TheProfileManager.ColorProfiles) {
+                            if (Selectable(i.second.Name.c_str())) {
+                                player.SetColorProfile(i.second.Name, Encore::ProfileManager::PAD);
+                            }
+                        }
+                        EndCombo();
+                    }
+                    if (BeginCombo("Drums Color Profile", player.GetColorProfile(Encore::ProfileManager::DRUMS)->Name.c_str())) {
+                        for (auto i : TheProfileManager.ColorProfiles) {
+                            if (Selectable(i.second.Name.c_str())) {
+                                player.SetColorProfile(i.second.Name, Encore::ProfileManager::DRUMS);
+                            }
+                        }
+                        EndCombo();
+                    }
 
                     SeparatorText(std::string("Player: " + player.Name).c_str());
                     SliderFloat("Note Speed", &player.NoteSpeed, 0, 3);
@@ -997,8 +982,8 @@ void Encore::Track::DrawTrackDebugWindow() {
             for (auto& slot : slots) {
                 Separator();
                 PushID(slot->index);
-                if (ColorButton("Hit", ImGuiColor(player.QueryColorProfile(slot->colorSlot)))) {
-                    slot->AnimateHit(false, player.QueryColorProfile(slot->colorSlot));
+                if (ColorButton("Hit", ImGuiColor(player.QueryColorProfile(slot->colorSlot, ColorProfileType)))) {
+                    slot->AnimateHit(false, player.QueryColorProfile(slot->colorSlot, ColorProfileType));
                 }
                 DragFloat("X Position", &slot->xPos, 0.01);
                 DragFloat("Width", &slot->width, 0.01);

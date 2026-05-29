@@ -14,13 +14,13 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     Vector3 position = { xPos, 0.0, pos };
 
     // this is kinda nasty, just wanted a quick Thing
-    Color color = track->player.QueryColorProfile(colorSlot);
+    Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
     if (note->NoteType == 2) {
         ASSET(noteShader).SetUniform("frameColor", color);
         ASSET(noteShader).SetUniform("noteColor", Color{ 60, 60, 60, 255 });
     } else {
         if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
-            color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+            color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
             ASSET(noteShader).SetUniform("frameColor", GOLD);
         } else {
             ASSET(noteShader).SetUniform("frameColor", WHITE);
@@ -138,7 +138,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     if (parentSlot) {
         return;
     }
-    Color color = track->player.QueryColorProfile(colorSlot);
+    Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
 
     if (held) {
         ASSET(smasherPiston).Fetch().materials[0].maps[0].texture = ASSET(smasherOnTex);
@@ -195,7 +195,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
             matches = true;
         }
         if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
-            color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+            color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         }
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),

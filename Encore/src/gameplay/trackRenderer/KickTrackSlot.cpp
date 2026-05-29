@@ -16,9 +16,9 @@ void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     Vector3 position = { xPos, 0.0, pos };
 
     // this is kinda nasty, just wanted a quick Thing
-    Color color = track->player.QueryColorProfile(colorSlot);
+    Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
     if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
-        color = track->player.QueryColorProfile(SLOT_OVERDRIVE);
+        color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         ASSET(noteShader).SetUniform("frameColor", GOLD);
     } else {
         ASSET(noteShader).SetUniform("frameColor", WHITE);
@@ -35,7 +35,7 @@ void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
 }
 
 void Encore::KickTrackSlot::DrawSmasher(bool held) {
-    Color color = track->player.QueryColorProfile(colorSlot);
+    Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
 
     if (animTimer < 1) {
         animTimer += GetFrameTime() * 2.5f;

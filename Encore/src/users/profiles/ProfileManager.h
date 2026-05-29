@@ -6,8 +6,14 @@
 namespace Encore {
     class ProfileManager
     {
+
         std::filesystem::path ColorProfilesPath;
     public:
+        enum ColorProfileType {
+            PLASTIC,
+            PAD,
+            DRUMS
+        };
         std::map<std::string, ColorProfile> ColorProfiles;
         void SetColorProfilesPath(const std::filesystem::path& path) {
             if (!exists(path)) {
@@ -21,10 +27,12 @@ namespace Encore {
         }
         void SaveColorProfiles();
         ProfileManager() {
-            defaultProfile.builtin = true;
+            defaultPlastic.builtin = true;
             transgender.builtin = true;
-            ColorProfiles.emplace(defaultProfile.Name, defaultProfile);
+            defaultPad.builtin = true;
+            ColorProfiles.emplace(defaultPlastic.Name, defaultPlastic);
             ColorProfiles.emplace(transgender.Name, transgender);
+            ColorProfiles.emplace(defaultPad.Name, defaultPad);
         };
     };
 }

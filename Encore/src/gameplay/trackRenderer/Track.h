@@ -64,6 +64,7 @@ namespace Encore {
             int QuarterNoteLength
         );
 
+        ProfileManager::ColorProfileType ColorProfileType = ProfileManager::PLASTIC;
         float NoteSpeed = 1;
         float BaseLength = 20;
         float Length = 20;

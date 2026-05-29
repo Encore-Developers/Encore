@@ -23,7 +23,7 @@ void Encore::ProfileManager::LoadColorProfiles() {
 
 void Encore::ProfileManager::SaveColorProfiles() {
     for (const auto& profile : ColorProfiles) {
-        if (profile.second.Name == defaultProfile.Name || profile.second.Name == transgender.Name) {
+        if (profile.first == defaultPlastic.Name || profile.first == transgender.Name || profile.first == defaultPad.Name) {
             continue;
         }
         json outJson;

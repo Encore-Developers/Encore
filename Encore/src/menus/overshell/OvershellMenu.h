@@ -10,6 +10,7 @@ enum OSState {
     OS_INSTRUMENT_SELECTIONS, // Choosing instrument type
                               // (maybe do a submenu like ReadyUpState?)
     OS_COLOR_PROFILE_SELECTION,
+    OS_COLOR_PROFILE_TYPE_SELECTOR,
     OS_CONTROLLER_ASSIGNMENT,
     CREATION, // Creating a profile
     OS_READY_UP, // Readying up
@@ -65,6 +66,7 @@ public:
     virtual ~OvershellMenu() {}
 
     SDL_JoystickID ControllersToAssign[MAX_PLAYERS] = {0};
+    Encore::ProfileManager::ColorProfileType ColorProfileType[MAX_PLAYERS] { Encore::ProfileManager::PLASTIC };
     int OvershellState[MAX_PLAYERS] { 0 };
     int AvailableControllers = 0;
     bool isOSOpen();

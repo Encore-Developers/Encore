@@ -265,11 +265,11 @@ Player::Player() {
     BrutalMode = false;
     // gen stuff, move to own function (thanks https://github.com/mariusbancila/stduuid)
     std::random_device rd;
-    auto seed_data = std::array<int, std::mt19937::state_size> {};
+    auto seed_data = std::array<int, std::mt19937::state_size>{};
     std::generate(std::begin(seed_data), std::end(seed_data), std::ref(rd));
     std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
     std::mt19937 generator(seq);
-    uuids::uuid_random_generator gen { generator };
+    uuids::uuid_random_generator gen{ generator };
     uuids::uuid const id = gen();
 
     PlayerID = uuids::to_string(id);
@@ -329,20 +329,29 @@ void Player::ResetGameplayStats() {
     */
 }
 
-Encore::ColorProfile *Player::GetColorProfile() const {
-    if (TheProfileManager.ColorProfiles.contains(colorProfile)) {
-        return &TheProfileManager.ColorProfiles.find(colorProfile)->second;
-    } else {
-        return &Encore::defaultProfile;
+Encore::ColorProfile *Player::GetColorProfile(
+    Encore::ProfileManager::ColorProfileType type) const {
+    if (TheProfileManager.ColorProfiles.contains(ColorProfiles.at(type))) {
+        return &TheProfileManager.ColorProfiles.find(ColorProfiles.at(type))->second;
     }
+    switch (type) {
+    case Encore::ProfileManager::ColorProfileType::DRUMS:
+    case Encore::ProfileManager::ColorProfileType::PLASTIC:
+        return &Encore::defaultPlastic;
+    case Encore::ProfileManager::ColorProfileType::PAD:
+        return &Encore::defaultPad;
+    }
+    return &Encore::defaultPlastic;
 }
 
-void Player::SetColorProfile(const std::string &profile) {
-    colorProfile = profile;
+void Player::SetColorProfile(const std::string &profile,
+                             Encore::ProfileManager::ColorProfileType type) {
+    ColorProfiles.at(type) = profile;
 }
 
-Color Player::QueryColorProfile(Encore::ColorSlot slot) {
-    return GetColorProfile()->colors[slot];
+Color Player::QueryColorProfile(Encore::ColorSlot slot,
+                                Encore::ProfileManager::ColorProfileType type) {
+    return GetColorProfile(type)->colors[slot];
 }
 
 /*

@@ -867,7 +867,7 @@ void Encore::Track::HandleEvent(Event *event) {
                                 slot->AnimateOverhit();
                             } else {
                                 slot->AnimateHit(hitEvent->judgement,
-                                                 player.QueryColorProfile(SLOT_OPEN));
+                                                 player.QueryColorProfile(SLOT_OPEN, ColorProfileType));
                             }
                         } else
                             break;
@@ -878,7 +878,7 @@ void Encore::Track::HandleEvent(Event *event) {
                     slot->AnimateOverhit();
                 } else {
                     slot->AnimateHit(hitEvent->judgement,
-                                     player.QueryColorProfile(slot->colorSlot));
+                                     player.QueryColorProfile(slot->colorSlot, ColorProfileType));
                 }
             } else
                 break;

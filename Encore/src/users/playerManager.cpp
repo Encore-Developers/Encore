@@ -9,6 +9,7 @@
 #include <nlohmann/json.hpp>
 
 #include "profiles/ProfileManager.h"
+#include "profiles/ProfileManager.h"
 
 using json = nlohmann::json;
 
@@ -34,10 +35,15 @@ void PlayerManager::LoadPlayerList() {
 newPlayer.name = jsonObject.value().at(key).get<type>();
             PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
-
-            std::string profileName = jsonObject.value().value("colorProfile", "!.2#/*");
-            for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
-                newPlayer.SetColorProfile(profileName);
+            if (!jsonObject.value()["colorProfiles"].is_null()) {
+                std::string plasticName = jsonObject.value()["colorProfiles"].value("plastic", "Default Profile");
+                std::string padName = jsonObject.value()["colorProfiles"].value("pad", "Default Pad Profile");
+                std::string drumName = jsonObject.value()["colorProfiles"].value("drums", "Default Profile");
+                // for (int i = 0; i < TheProfileManager.ColorProfiles.size(); i++) {
+                newPlayer.SetColorProfile(plasticName, Encore::ProfileManager::PLASTIC);
+                newPlayer.SetColorProfile(padName, Encore::ProfileManager::PAD);
+                newPlayer.SetColorProfile(drumName, Encore::ProfileManager::DRUMS);
+                // }
             }
 
             if (!jsonObject.value()["accentColor"].is_null()) {
@@ -129,8 +135,12 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
     PlayerListJson.at(player->playerJsonObjectName)[key] = player->name;
         PLAYER_JSON_SETTINGS;
 #undef SETTING_ACTION
-        PlayerListJson.at(player->playerJsonObjectName)["colorProfile"] = player->
-            GetColorProfile()->Name;
+        PlayerListJson.at(player->playerJsonObjectName)["colorProfiles"]["plastic"] = player->
+            GetColorProfile(Encore::ProfileManager::ColorProfileType::PLASTIC)->Name;
+        PlayerListJson.at(player->playerJsonObjectName)["colorProfiles"]["pad"] = player->
+            GetColorProfile(Encore::ProfileManager::ColorProfileType::PAD)->Name;
+        PlayerListJson.at(player->playerJsonObjectName)["colorProfiles"]["drums"] = player->
+            GetColorProfile(Encore::ProfileManager::ColorProfileType::DRUMS)->Name;
         PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["r"] =
             player->AccentColor.r;
         PlayerListJson.at(player->playerJsonObjectName)["accentColor"]["g"] =

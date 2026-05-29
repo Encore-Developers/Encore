@@ -17,6 +17,7 @@
 
 #include <span>
 
+#include "profiles/ProfileManager.h"
 #include "SDL3/SDL_gamepad.h"
 
 // #include "libstud-uuid/uuid/uuid.hxx"
@@ -70,7 +71,11 @@ class Player {
      * @brief Player information. What else could be said?
      */
 private:
-    std::string colorProfile = "Default Profile";
+    std::array<std::string, 3> ColorProfiles {
+        "Default Profile",
+        "Default Pad Profile",
+        "Default Profile"
+    };
 public:
     Player();
 
@@ -98,9 +103,9 @@ public:
 
     void ResetGameplayStats();
 
-    Encore::ColorProfile *GetColorProfile() const;
-    void SetColorProfile(const std::string &profile);
-    Color QueryColorProfile(Encore::ColorSlot slot);
+    Encore::ColorProfile *GetColorProfile(Encore::ProfileManager::ColorProfileType type) const;
+    void SetColorProfile(const std::string &profile, Encore::ProfileManager::ColorProfileType type);
+    Color QueryColorProfile(Encore::ColorSlot slot, Encore::ProfileManager::ColorProfileType type);
 
     // zero indexed. local would be 0-3, online would be 4-7.
     // NOTE! this is only for like. local information and
