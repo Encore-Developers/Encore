@@ -5,7 +5,7 @@
 #define MAX_PARTICLES 300
 #define FLARE_LIFETIME 0.18f
 #define SHOCKWAVE_LIFETIME 0.3f
-#define MARKIPLIER_LIFETIME 0.5f
+#define MARKIPLIER_LIFETIME 0.75f
 
 #include "raylib.h"
 
