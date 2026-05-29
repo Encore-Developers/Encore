@@ -81,8 +81,8 @@ std::string Encore::Discord::GetSteamNickname() {
     if (SteamFriends()->GetPersonaName()) {
         return SteamFriends()->GetPersonaName();
     }
-    return "Player";
 #endif
+    return "Player";
 }
 
 void Encore::Discord::SteamShowKeyboard() {
