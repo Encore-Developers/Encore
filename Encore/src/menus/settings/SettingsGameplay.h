@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include "../overshell/OvershellMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
+#include "menus/util/Jukebox.h"
 #include "menus/util/SettingRenderer.h"
 #include "song/songlist.h"
 
@@ -20,6 +21,7 @@ namespace Encore {
 #undef OPTION
         bool ad = false;
         void ScanSongs() {
+            TheGameJukebox.UnloadStreams();
             if (TheGameSettings.SongPaths.empty()) {
                 TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
             } else {

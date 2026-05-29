@@ -55,7 +55,6 @@ namespace GameMenu {
 class MainMenu : public OvershellMenu {
     
     void ChooseSplashText(std::filesystem::path directory);
-    void PickRandomMenuSong();
     void AttractScreen();
     void GotoSongSelect();
     void MainMenuScreen();
@@ -73,6 +72,7 @@ public:
     void KeyboardInputCallback(int key, int scancode, int action, int mods);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     std::string SplashString;
+    float TitleAnimTimer = 1;
     int ControllerSelected = 0;
     bool songsLoaded = false;
     bool streamsPaused = false;
