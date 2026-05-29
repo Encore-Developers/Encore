@@ -10,19 +10,23 @@
 
 
 void Encore::Jukebox::TogglePlayback() {
-    if (playing) {
-        TheAudioManager.pauseStreams();
-        playing = false;
-    } else {
-        TheAudioManager.playStreams();
-        playing = true;
+    if (streamsLoaded) {
+        if (playing) {
+            TheAudioManager.pauseStreams();
+            playing = false;
+        } else {
+            TheAudioManager.playStreams();
+            playing = true;
+        }
     }
 }
 
 void Encore::Jukebox::UnloadStreams() {
-    TheAudioManager.unloadStreams();
-    streamsLoaded = false;
-    playing = false;
+    if (streamsLoaded) {
+        TheAudioManager.unloadStreams();
+        streamsLoaded = false;
+        playing = false;
+    }
 }
 
 void Encore::Jukebox::Update() {
@@ -43,14 +47,16 @@ void Encore::Jukebox::Update() {
 }
 
 void Encore::Jukebox::AdjustVolume() {
-    for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
-        float Volume =
-            TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
-        if (TheAudioManager.loadedStreams[i].instrument == PartVocals)
-            Volume = 0;
-        TheAudioManager.SetAudioStreamVolume(
-            TheAudioManager.loadedStreams[i].handle, Volume
-        );
+    if (streamsLoaded) {
+        for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
+            float Volume =
+                TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
+            if (TheAudioManager.loadedStreams[i].instrument == PartVocals)
+                Volume = 0;
+            TheAudioManager.SetAudioStreamVolume(
+                TheAudioManager.loadedStreams[i].handle, Volume
+            );
+        }
     }
 }
 
