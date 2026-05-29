@@ -107,7 +107,9 @@ void SettingsGameplay::Load() {
     }, false)
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        if (settings.settingsArray.at(settings.selectedIndex)->GetType() == SettingDoohickey::settingType::BUTTON_SETTING)
+        auto type = settings.settingsArray.at(settings.selectedIndex)->GetType();
+        if (type == SettingDoohickey::settingType::BUTTON_SETTING ||
+            type == SettingDoohickey::settingType::BOOL_SETTING)
             settings.Action(false);
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {

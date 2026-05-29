@@ -22,27 +22,15 @@ void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hover
         EndBlendMode();
     }
     GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
-    Rectangle offRect = {ButtonSpace.x, ButtonSpace.y, ButtonSpace.width/2, ButtonSpace.height};
-    Rectangle onRect = {ButtonSpace.x + ButtonSpace.width/2, ButtonSpace.y, ButtonSpace.width/2, ButtonSpace.height};
 
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, *value ? defaultColor : ColorToInt(activeColor));
-    if (GuiButton(offRect, "") && !Clickable) {
-        *value = false;
+    Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - ButtonSpace.height, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
+    GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
+    if (GuiButton(rightButton, "") && !Clickable) {
+        *value = !*value;
     }
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, *value ? ColorToInt(activeColor) : defaultColor);
-    if (GuiButton(onRect, "") && !Clickable) {
-        *value = true;
-    }
-    GameMenu::mhDrawText(ASSET(rubik), LOCALISE("generic.on"), {onRect.x + onRect.width/2, TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
-    GameMenu::mhDrawText(ASSET(rubik), LOCALISE("generic.off"), {offRect.x + offRect.width/2, TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
-
-    if (!*value) {
+    if (*value) {
         BeginBlendMode(BLEND_ADDITIVE);
-        DrawRectangleRec(offRect, {glowColor.r, glowColor.g, glowColor.b, (unsigned char)(glowColor.a*2)});
-        EndBlendMode();
-    } else {
-        BeginBlendMode(BLEND_ADDITIVE);
-        DrawRectangleRec(onRect, {glowColor.r, glowColor.g, glowColor.b, (unsigned char)(glowColor.a*2)});
+        DrawRectangleRec(rightButton, {glowColor.r, glowColor.g, glowColor.b, (unsigned char)(glowColor.a*3)});
         EndBlendMode();
     }
 }
@@ -126,10 +114,7 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
     GameMenu::mhDrawText(ASSET(rubikBold), TextFormat("%i", *value), {slider.x + (slider.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
 }
 void Encore::SettingDoohickey::boolSettingObject::Action(bool invert) {
-    if (invert)
-        *value = false;
-    else
-        *value = true;
+    *value = !*value;
 }
 void Encore::SettingDoohickey::floatSettingObject::Action(bool invert) {
     if (invert)
