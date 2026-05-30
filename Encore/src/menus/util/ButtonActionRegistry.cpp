@@ -65,7 +65,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         auto name = LOCALIZE(butt.second.Name);
         float textWidth = MeasureTextEx(ASSET(rubik), name, fontSize, 0).x;
         pos.width = textWidth + (buttonHeight * 1.5);
-        if (GuiButton(pos,"") && !OvershellOpen) {
+        if (!OvershellOpen && GuiButton(pos,"")) {
             butt.second.RunAction(RhythmEngine::Action::PRESS, 0);
         };
 
