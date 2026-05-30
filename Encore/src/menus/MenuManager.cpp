@@ -51,6 +51,7 @@ void MenuManager::DrawMenu() {
         std::string folderCount = std::to_string(FolderCount);
         std::string songCount = std::to_string(SongCount);
         std::string badSongCount = std::to_string(BadSongCount);
+        std::string songsHashed = std::to_string(SongsHashed);
         GameMenu::mhDrawText(
             ASSET(rubik),
             "Scanning Songs",
@@ -111,6 +112,25 @@ void MenuManager::DrawMenu() {
         GameMenu::mhDrawText(
             ASSET(redHatMono),
             badSongCount,
+            {  warningBox.x + warningBox.width, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            RIGHT
+        );
+        warningBox.y += fontSize;
+        GameMenu::mhDrawText(
+            ASSET(rubik),
+            "Songs Hashed: ",
+            {  warningBox.x, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
+        );
+        GameMenu::mhDrawText(
+            ASSET(redHatMono),
+            songsHashed,
             {  warningBox.x + warningBox.width, warningBox.y },
             fontSize,
             WHITE,

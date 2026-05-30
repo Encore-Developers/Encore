@@ -5,6 +5,8 @@
 
 #include "song.h"
 
+#include <deque>
+
 // Version is formatted as YY_MM_DD_RR, where:
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
 // - MM: Current month
@@ -54,13 +56,14 @@ inline SortType NextSortType(SortType current) {
     return current;
 }
 
-inline std::atomic_int CurrentChartNumber = -1;
-inline std::atomic_int ListLoadingState = -1;
-inline std::atomic_int FolderCount = -1;
-inline std::atomic_int SongCount = -1;
-inline std::atomic_int BadSongCount = -1;
+inline std::atomic_int CurrentChartNumber = 0;
+inline std::atomic_int ListLoadingState = 0;
+inline std::atomic_int FolderCount = 0;
+inline std::atomic_int SongCount = 0;
+inline std::atomic_int BadSongCount = 0;
+inline std::atomic_int SongsHashed = 0;
 inline std::atomic_bool ScanningSongs = false;
-inline std::atomic_int MaxChartsToLoad = -1;
+inline std::atomic_int MaxChartsToLoad = 0;
 inline std::vector<std::string> sortTypes { "title", "artist", "source", "length", "year" };
 
 enum SongListLoadingStates {
@@ -86,7 +89,8 @@ public:
     int CurrentSong = 0;
     std::vector<ListMenuEntry> listMenuEntries;
     std::vector<LSection> sectionEntries;
-    std::vector<Song> songs;
+    std::deque<Song> songs;
+    std::mutex songsMutex;
     std::vector<Song*> sortedSongs;
     int songCount = 0;
     int directoryCount = 0;

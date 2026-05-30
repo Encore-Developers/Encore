@@ -1,5 +1,6 @@
 #include "songlist.h"
 
+#include "picosha2.h"
 #include "SDL3/SDL_filesystem.h"
 #include "util/enclog.h"
 
@@ -12,6 +13,7 @@
 #include <regex>
 #include <sstream>
 #include "util/binary.h"
+#include "util/threadpool.h"
 
 using json = nlohmann::json;
 
@@ -137,6 +139,7 @@ void SongList::sortList(SortType sortType) {
 }
 
 void SongList::WriteCache() {
+    ZoneScoped
     std::filesystem::remove(cachePath());
 
     // Native-endian order used for best performance, since the cache is not a portable
@@ -169,6 +172,7 @@ void SongList::WriteCache() {
     SongCache.close();
 }
 
+ThreadPool* scanPool;
 
 void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &badSongs) {
     ZoneScoped
@@ -189,7 +193,15 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 song.songInfoPath = infoPath;
                 song.songDir = folder;
                 song.LoadSongIni(folder);
-                songs.push_back(std::move(song));
+                auto placedSong = &songs.emplace_back(std::move(song));
+                scanPool->SubmitTask([folder, placedSong]() {
+                    ZoneScopedN("Hash Song")
+                    std::ifstream hashStream(folder / "notes.mid", std::ios::binary);
+                    unsigned char hash[picosha2::k_digest_size] = {0};
+                    picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
+                    memcpy(placedSong->chartHash, hash, picosha2::k_digest_size);
+                    ++SongsHashed;
+                });
             } else {
                 badSongs << "Song does not have notes.mid" << std::endl;
                 badSongs << folder << std::endl << std::endl;
@@ -219,6 +231,8 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     ScanningSongs = true;
     Clear();
 
+    scanPool = new ThreadPool(std::thread::hardware_concurrency()-1);
+
     std::wofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc | std::ios::binary);
 
     badSongs.imbue(std::locale(badSongs.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>));
@@ -231,6 +245,8 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
 
         ScanFolder(folder, badSongs);
     }
+
+    delete scanPool;
 
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
@@ -359,7 +375,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
     std::set<std::filesystem::path> loadedSongs;
     // To track loaded songs and avoid duplicates
-    songs.reserve(cachedSongCount);
+    //songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
     for (size_t i = 0; i < cachedSongCount; i++) {
         ZoneScopedN("Song")

@@ -26,6 +26,7 @@ namespace Encore {
             SongCount = 0;
             BadSongCount = 0;
             FolderCount = 0;
+            SongsHashed = 0;
             if (TheGameSettings.SongPaths.empty()) {
                 TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
             } else {
@@ -37,6 +38,7 @@ namespace Encore {
                     SongCount = 0;
                     BadSongCount = 0;
                     FolderCount = 0;
+                    SongsHashed = 0;
                 });
                 ScanSongsThread.detach();
             }

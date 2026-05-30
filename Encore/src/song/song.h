@@ -3,6 +3,7 @@
 #ifndef ENCORE_SONG_H
 #define ENCORE_SONG_H
 
+#include "picosha2.h"
 #include "raylib.h"
 #include "midifile/MidiFile.h"
 #include <vector>
@@ -126,6 +127,7 @@ public:
     int BeatTrackID = 0;
     double music_start = 0.0;
     double end = 0.0;
+    unsigned char chartHash[picosha2::k_digest_size];
     std::vector<PartIcon> partIcons{
         PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone
     };
