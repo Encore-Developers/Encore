@@ -25,7 +25,7 @@ void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hover
 
     Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - ButtonSpace.height, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
     GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
-    if (GuiButton(rightButton, "") && !Clickable) {
+    if (!Clickable && GuiButton(rightButton, "")) {
         *value = !*value;
     }
     if (*value) {
