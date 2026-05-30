@@ -42,6 +42,7 @@ void Encore::Jukebox::Update() {
         }
     } else {
         PickRandomSong();
+        LoadStreams();
         StartStreams();
     }
 }
