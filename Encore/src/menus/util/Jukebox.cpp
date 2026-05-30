@@ -84,7 +84,7 @@ void Encore::Jukebox::StartStreams() {
 }
 
 void Encore::Jukebox::LoadStreams() {
-    if (!streamsLoaded) {
+    if (!streamsLoaded && TheSongList.curSong) {
         TheAudioManager.loadStreams(TheSongList.curSong->LoadAudioINI());
         streamsLoaded = true;
         AdjustVolume();
