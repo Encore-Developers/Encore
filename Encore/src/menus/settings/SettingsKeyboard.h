@@ -12,10 +12,6 @@
 #ifndef SETTINGSKEYBOARD_H
 #define SETTINGSKEYBOARD_H
 
-namespace Encore {
-    class SettingsKeyboard {
-    };
-}
 
 class SettingsKeyboard : public OvershellMenu {
 #define OPTION(type, value, default) type value = default;
@@ -74,6 +70,5 @@ private:
     };
 };
 
-extern Encore::SettingsKeyboard TheKeyboardSettings;
 
 #endif // SETTINGSKEYBOARD_H

@@ -4,6 +4,7 @@
 
 #include "ReadyUpMenu.h"
 
+#include "ChartLoadingMenu.h"
 #include "../overshell/OvershellHelper.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
@@ -12,6 +13,7 @@
 #include "../uiUnits.h"
 #include "song/ArtLoader.h"
 #include "menus/locale/Locale.h"
+#include "menus/main/SongSelectMenu.h"
 
 #include "users/playerManager.h"
 
@@ -342,11 +344,11 @@ void ReadyUpMenu::Draw() {
         }
     }
     if (SwitchMenus) {
-        TheMenuManager.SwitchScreen(CHART_LOADING_SCREEN);
+        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>();
     }
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
         TheSongList.curSong->midiParsed = false;
-        TheMenuManager.SwitchScreen(SONG_SELECT);
+        TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     }
 
 
@@ -379,14 +381,14 @@ void ReadyUpMenu::Load() {
         switch (SlotState[slot]) {
                 case INSTRUMENT:
             TheSongList.curSong->midiParsed = false;
-            TheMenuManager.SwitchScreen(SONG_SELECT);
+            TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
             break;
         case DIFFICULTY:
             SlotState[slot] = INSTRUMENT;
             break;
         case READY:
             TheSongList.curSong->midiParsed = false;
-            TheMenuManager.SwitchScreen(SONG_SELECT);
+            TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
             ReadyState[slot] = false;
             break;
         }

@@ -12,6 +12,8 @@
 #include "gameplay/trackRenderer/Track.h"
 #include "../menus/gameplay/GameplayMenu.h"
 #include "menus/MenuManager.h"
+#include "menus/gameplay/ReadyUpMenu.h"
+#include "menus/gameplay/resultsMenu.h"
 #include "menus/locale/Locale.h"
 #include "song/audio.h"
 #include "song/song.h"
@@ -110,7 +112,7 @@ void EncoreDebug::DrawDebug() {
     if (showPlayerManager) {
         DrawPlayerManager();
     }
-    if (showSongList && TheMenuManager.currentScreen != GAMEPLAY) {
+    if (showSongList && !dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get())) {
         DrawSongList();
     }
     if (showQuickSettings) {
@@ -136,11 +138,12 @@ void EncoreDebug::DrawDebug() {
 
 void EncoreDebug::MenuBar() {
     ZoneScoped;
+    bool isGameplay = dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()) != nullptr;
     BeginMainMenuBar();
     if (BeginMenu("Windows")) {
         MenuItem("Assets", 0, &showAssets);
         MenuItem("Player Manager", 0, &showPlayerManager);
-        MenuItem("Song List", 0, &showSongList, TheMenuManager.currentScreen != GAMEPLAY);
+        MenuItem("Song List", 0, &showSongList, !dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()));
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         MenuItem("Color Profile Manager", 0, &showColorProfileManager);
         MenuItem("Easings Debug", 0, &showEasings);
@@ -158,7 +161,7 @@ void EncoreDebug::MenuBar() {
 
     }
 
-    if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem("End Song")) {
+    if (!isGameplay && MenuItem("End Song")) {
         TheSongTime.Reset();
         TheAudioManager.unloadStreams();
         songPlaying = false;
@@ -191,13 +194,13 @@ void EncoreDebug::MenuBar() {
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
         TheSongTime.CurrentLyricPhrase = 0;
-        TheMenuManager.SwitchScreen(RESULTS);
+        TheMenuManager.CreateAndSwitchMenu<resultsMenu>();
     }
-    if (TheMenuManager.currentScreen == GAMEPLAY) {
+    if (isGameplay) {
         MenuItem("Practice", 0, &showPractice);
     }
 
-    if (TheMenuManager.currentScreen == GAMEPLAY && MenuItem(pauseText.c_str())) {
+    if (isGameplay && MenuItem(pauseText.c_str())) {
         paused = !paused;
         for (auto index : ThePlayerManager.ActivePlayers) {
             if (index == -1)
@@ -358,7 +361,8 @@ void DebugSeek(float time, float audioTime) {
 
 void EncoreDebug::DrawPracticeSectionSelector() {
     ZoneScoped;
-    if (TheMenuManager.currentScreen == GAMEPLAY) {
+    bool isGameplay = dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()) != nullptr;
+    if (isGameplay) {
         if (Begin("Practice Section Selector")) {
             for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
                 Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
@@ -431,7 +435,8 @@ struct TimelineTextSpacer {
 
 void EncoreDebug::DrawSongScrubber() {
     ZoneScoped;
-    if (TheMenuManager.currentScreen == GAMEPLAY) {
+    bool isGameplay = dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()) != nullptr;
+    if (isGameplay) {
         SetNextWindowPos({0, GetFrameHeight()+4}, ImGuiCond_Always);
         SetNextWindowSize({ImGui::GetIO().DisplaySize.x, 0}, ImGuiCond_Always);
         if (Begin("Song Scrubber", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
@@ -797,7 +802,7 @@ void EncoreDebug::DrawSongList() {
                     }
                     TheSongList.curSong = song;
                     TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-                    TheMenuManager.SwitchScreen(READY_UP);
+                    TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>();
                 }
 
                 PopID();

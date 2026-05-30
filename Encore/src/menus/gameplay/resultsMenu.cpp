@@ -11,6 +11,7 @@
 #include "../overshell/OvershellHelper.h"
 #include "../MenuManager.h"
 #include "menus/locale/Locale.h"
+#include "menus/main/SongSelectMenu.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 
@@ -39,7 +40,7 @@ void resultsMenu::Load() {
             player.engine->chart.reset();
             player.engine.reset();
         }
-        TheMenuManager.SwitchScreen(SONG_SELECT);
+        TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     })
 
     FinalScore = 0;

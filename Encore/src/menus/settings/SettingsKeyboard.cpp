@@ -2,6 +2,8 @@
 //
 
 #include "SettingsKeyboard.h"
+
+#include "SettingsMenu.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "assets.h"
@@ -128,7 +130,7 @@ void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, 
         if (selectedIndex > 0) bindingOption = selectedIndex - 1;
     } else if (key == GLFW_KEY_ESCAPE) {
         Save();
-        TheMenuManager.SwitchScreen(SETTINGS);
+        TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     }
 
 }
@@ -138,7 +140,7 @@ void SettingsKeyboard::ControllerInputCallback(Encore::RhythmEngine::ControllerE
         switch (event.channel) {
         case Encore::RhythmEngine::InputChannel::LANE_2: {
             Save();
-            TheMenuManager.SwitchScreen(SETTINGS);
+            TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
             break;
         }
         }

@@ -11,6 +11,8 @@
 #include "raylib.h"
 #include "menus/locale/Locale.h"
 #include "gameplay/enctime.h"
+#include "menus/gameplay/ChartLoadingMenu.h"
+#include "menus/main/SongSelectMenu.h"
 #include "users/profiles/ProfileManager.h"
 
 using namespace encOS;
@@ -289,7 +291,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                     }
                     songPlaying = false;
                     TheSongTime.FullReset();
-                    TheMenuManager.SwitchScreen(CHART_LOADING_SCREEN);
+                    TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>();
                 }
                 if (OvershellButton(i, curSlot--, LOCALIZE("overshell.exitSong"))) {
                     TheAudioManager.unloadStreams();
@@ -302,7 +304,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                         player.engine->chart.reset();
                         player.engine.reset();
                     }
-                    TheMenuManager.SwitchScreen(SONG_SELECT);
+                    TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
                 }
             }
 

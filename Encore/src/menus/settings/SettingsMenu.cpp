@@ -4,6 +4,10 @@
 
 #include "SettingsMenu.h"
 
+#include "SettingsAudioVideo.h"
+#include "SettingsController.h"
+#include "SettingsGameplay.h"
+#include "SettingsKeyboard.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "raygui.h"
@@ -96,16 +100,16 @@ void SettingsMenu::Draw() {
                 clickedIndex = i;
                 switch (i) {
                 case AUDIO_VISUAL:
-                    TheMenuManager.SwitchScreen(SETTINGSAUDIOVIDEO);
+                    TheMenuManager.CreateAndSwitchMenu<Encore::SettingsAudioVideo>();
                     break;
                 case GAMEPLAY_SETTINGS:
-                    TheMenuManager.SwitchScreen(SETTINGSGAMEPLAY);
+                    TheMenuManager.CreateAndSwitchMenu<Encore::SettingsGameplay>();
                     break;
                 case CONTROLLER_BINDINGS:
-                    TheMenuManager.SwitchScreen(SETTINGSCONTROLLER);
+                    TheMenuManager.CreateAndSwitchMenu<SettingsController>();
                     break;
                 case KEYBOARD_BINDINGS:
-                    TheMenuManager.SwitchScreen(SETTINGSKEYBOARD);
+                    TheMenuManager.CreateAndSwitchMenu<SettingsKeyboard>();
                     break;
                 case CREDITS:
                     break;
@@ -154,16 +158,16 @@ void SettingsMenu::Load() {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (selectedIndex) {
         case AUDIO_VISUAL:
-            TheMenuManager.SwitchScreen(SETTINGSAUDIOVIDEO);
+            TheMenuManager.CreateAndSwitchMenu<Encore::SettingsAudioVideo>();
             break;
         case GAMEPLAY_SETTINGS:
-            TheMenuManager.SwitchScreen(SETTINGSGAMEPLAY);
+            TheMenuManager.CreateAndSwitchMenu<Encore::SettingsGameplay>();
             break;
         case CONTROLLER_BINDINGS:
-            TheMenuManager.SwitchScreen(SETTINGSCONTROLLER);
+            TheMenuManager.CreateAndSwitchMenu<SettingsController>();
             break;
         case KEYBOARD_BINDINGS:
-            TheMenuManager.SwitchScreen(SETTINGSKEYBOARD);
+            TheMenuManager.CreateAndSwitchMenu<SettingsKeyboard>();
             break;
         case CREDITS:
             break;
@@ -171,6 +175,6 @@ void SettingsMenu::Load() {
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        TheMenuManager.SwitchScreen(MAIN_MENU);
+        TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     })
 }

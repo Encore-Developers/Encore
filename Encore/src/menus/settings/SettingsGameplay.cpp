@@ -4,6 +4,7 @@
 
 #include "SettingsGameplay.h"
 
+#include "SettingsMenu.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "raygui.h"
@@ -115,12 +116,12 @@ void SettingsGameplay::Load() {
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         Save();
-        TheMenuManager.SwitchScreen(SETTINGS);
+        TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     // might as well take advantage of this copying
     NEWBUTTONACTION2(buttReg, LANE_3, "settings.prompt.exitWithoutSaving", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        TheMenuManager.SwitchScreen(SETTINGS);
+        TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     NEWBUTTONACTION2(buttReg, INPUT_LEFT, "Lower", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;

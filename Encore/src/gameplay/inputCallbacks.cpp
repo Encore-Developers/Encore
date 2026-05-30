@@ -46,7 +46,7 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
         return;
     }
 
-    if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu)) {
+    if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
         if (OvershellKeyboardInputCallback(menu, key, scancode, action, mods)) {
             return;
         }
@@ -56,26 +56,7 @@ void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) 
 
 
 void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event) {
-    //Encore::EncoreLog(
-    //    LOG_DEBUG,
-    //    TextFormat(
-    //        "Gamepad %01i inputted on menu %s",
-    //        joypadID,
-    //        ToString(TheMenuManager.currentScreen)
-    //    )
-    //);
-    switch (TheMenuManager.currentScreen) {
-    // NOTE: when adding a new Menu
-    // derivative, you
-    // must put its enum value in Screens, and its
-    // assignment in this switch/case. You will also
-    // add its case to the `ActiveMenu->Draw();`
-    // cases.
-    default: {
-        // TheMenuManager.ActiveMenu->ControllerInputCallback(joypadID, state);
-        break;
-    }
-    }
+    // this is a noop for now TODO remove
 }
 
 std::unordered_map<SDL_JoystickID, std::pair<bool, bool>> ControllerTriggerState;
@@ -278,7 +259,7 @@ void PollQueuedInputs(ControllerPoller& poller) {
             continue;
         }
         if (TheMenuManager.ActiveMenu) {
-            if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu)) {
+            if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
                 if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
                     poller.readIndex++;
                     continue;
@@ -348,7 +329,7 @@ void ControllerPoller::Run() {
             if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
                 auto time = TheSongTime.GetElapsedTime();
                 auto encEvent = TranslateEvent(&event);
-                if (TheMenuManager.currentScreen == GAMEPLAY) {
+                if (!TheAudioManager.loadedStreams.empty()) {
                     encEvent.timestamp = time;
                 } else {
                     encEvent.timestamp = 0;

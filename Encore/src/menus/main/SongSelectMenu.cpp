@@ -18,6 +18,7 @@
 #include "assets.h"
 #include "imgui.h"
 #include "raymath.h"
+#include "menus/gameplay/ReadyUpMenu.h"
 #include "menus/locale/Locale.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
@@ -191,13 +192,13 @@ void SongSelectMenu::Load() {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (!TheSongList.curSong) return;
         Unload();
-        TheMenuManager.SwitchScreen(READY_UP);
+        TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>();
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         if (!TheSongList.curSong) return;
         Unload();
-        TheMenuManager.SwitchScreen(MAIN_MENU);
+        TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     })
     NEWBUTTONACTION2(buttReg, LANE_3, "songSelect.sort", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;

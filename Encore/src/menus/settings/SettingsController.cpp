@@ -3,6 +3,8 @@
 //
 
 #include "SettingsController.h"
+
+#include "SettingsMenu.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "assets.h"
@@ -257,7 +259,7 @@ void SettingsController::KeyboardInputCallback(int key, int scancode, int action
         else dropdownActive = true;
     } else if (key == GLFW_KEY_ESCAPE) {
         Save();
-        TheMenuManager.SwitchScreen(SETTINGS);
+        TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     }
 }
 
@@ -266,7 +268,7 @@ void SettingsController::ControllerInputCallback(Encore::RhythmEngine::Controlle
         switch (event.channel) {
         case Encore::RhythmEngine::InputChannel::LANE_2: {
             Save();
-            TheMenuManager.SwitchScreen(SETTINGS);
+            TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
             break;
         }
         }

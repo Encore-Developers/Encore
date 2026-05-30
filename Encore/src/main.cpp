@@ -14,6 +14,8 @@
 #include "gameplay/inputCallbacks.h"
 #include "SDL3/SDL.h"
 #include "menus/locale/Locale.h"
+#include "menus/main/MainMenu.h"
+#include "menus/main/cacheLoadingScreen.h"
 
 #include "settings/keybinds.h"
 #include "song/ArtLoader.h"
@@ -79,9 +81,6 @@ Encore::ProfileManager TheProfileManager;
 Encore::Keybinds TheGameKeybinds;
 Encore::SettingsGameplay TheGameplaySettings;
 Encore::SettingsAudioVideo TheAudioVideoSettings;
-Encore::SettingsController TheControllerSettings;
-Encore::SettingsKeyboard TheKeyboardSettings;
-Encore::SettingsCredits TheCredits;
 Encore::Discord TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
@@ -295,9 +294,9 @@ int main(int argc, char *argv[]) {
     mainMenuSet.StartLoad();
     SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
     if (!CacheLoad::finished) {
-        TheMenuManager.currentScreen = CACHE_LOADING_SCREEN;
+        TheMenuManager.CreateAndSwitchMenu<cacheLoadingScreen>();
     } else {
-        TheMenuManager.currentScreen = MAIN_MENU;
+        TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     }
 
     ControllerPoller poller;

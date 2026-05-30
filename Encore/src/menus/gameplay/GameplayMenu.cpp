@@ -10,6 +10,7 @@
 #include "song/songlist.h"
 #include "raymath.h"
 #include "raygui.h"
+#include "resultsMenu.h"
 #include "gameplay/enctime.h"
 #include "../styles.h"
 #include "easing/easing.h"
@@ -82,6 +83,24 @@ bool GameplayMenu::IsPaused() {
         }
     }
     return false;
+}
+void GameplayMenu::SetPresence() {
+    int inst = 0;
+    if (ThePlayerManager.PlayersActive == 1) {
+        for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+            if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+            inst = ThePlayerManager.GetActivePlayer(playerNum).Instrument;
+        }
+    }
+    TheGameRPC.DiscordUpdatePresenceSong(
+        "Playing a song",
+        TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
+        inst,
+        ThePlayerManager.PlayersActive
+    );
+    TheGameRPC.SteamUpdatePresence("song", (TheSongList.curSong->title + " - " + TheSongList.curSong->artist).c_str());
+    TheGameRPC.SteamUpdatePresence("steam_display", "#StatusPlayingSongNamed");
+    TheGameRPC.SteamOverlayPosition(true);
 }
 
 void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
@@ -432,7 +451,7 @@ void GameplayMenu::Draw() {
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
         TheSongTime.CurrentLyricPhrase = 0;
-        TheMenuManager.SwitchScreen(RESULTS);
+        TheMenuManager.CreateAndSwitchMenu<resultsMenu>();
         return;
     }
 

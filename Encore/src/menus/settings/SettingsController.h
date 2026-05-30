@@ -12,10 +12,6 @@
 #ifndef SETTINGSCONTROLLER_H
 #define SETTINGSCONTROLLER_H
 
-namespace Encore {
-    class SettingsController {
-    };
-}
 
 class SettingsController : public OvershellMenu {
 public:
@@ -73,6 +69,5 @@ private:
     };
 };
 
-extern Encore::SettingsController TheControllerSettings;
 
 #endif // SETTINGSCONTROLLER_H

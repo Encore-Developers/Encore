@@ -13,6 +13,8 @@
 #include "../../old/lerp.h"
 #include "MainMenu.h"
 
+#include "SongSelectMenu.h"
+
 #include <variant>
 
 #include "imgui.h"
@@ -24,6 +26,7 @@
 #include "menus/util/ButtonActionRegistry.h"
 #include "menus/util/Jukebox.h"
 #include "SDL3/SDL_misc.h"
+#include "menus/settings/SettingsMenu.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 
@@ -225,7 +228,7 @@ void MainMenu::Load() {
             GotoSongSelect();
             break;
         case 1:
-            TheMenuManager.SwitchScreen(SETTINGS);
+            TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
             break;
         case 2:
             for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
@@ -404,7 +407,7 @@ void MainMenu::GotoSongSelect() {
         songi.artistScrollTime = GetTime();
         songi.artistTextWidth = menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
     }
-    TheMenuManager.SwitchScreen(SONG_SELECT);
+    TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
 }
 void MainMenu::MainMenuScreen() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
@@ -510,7 +513,7 @@ void MainMenu::MainMenuScreen() {
         pos.y += u.hinpct(0.09f);
 
         if (GuiButton(pos, "") && !isOSOpen()) {
-            TheMenuManager.SwitchScreen(SETTINGS);
+            TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
         }
         if (CheckCollisionPointRec(GetMousePosition(), pos) || ControllerSelected == 1) {
             DrawButtonGradient(pos, accentColor);

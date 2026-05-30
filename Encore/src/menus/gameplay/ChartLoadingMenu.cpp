@@ -4,6 +4,7 @@
 
 #include "ChartLoadingMenu.h"
 
+#include "GameplayMenu.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "../uiUnits.h"
@@ -235,6 +236,6 @@ void ChartLoadingMenu::Draw() {
         // TheGameRenderer.LoadGameplayAssets();
         FinishedLoading = false;
         StartLoading = true;
-        TheMenuManager.SwitchScreen(GAMEPLAY);
+        TheMenuManager.CreateAndSwitchMenu<GameplayMenu>();
     }
 }

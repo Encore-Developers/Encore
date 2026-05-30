@@ -47,4 +47,6 @@ public:
     bool CheckPauseInput(Encore::RhythmEngine::ControllerEvent event);
     void UpdatePauseState();
     bool IsPaused();
+
+    virtual void SetPresence() override;
 };

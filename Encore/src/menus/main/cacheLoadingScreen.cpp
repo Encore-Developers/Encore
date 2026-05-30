@@ -103,7 +103,7 @@ void cacheLoadingScreen::Draw() {
         CacheLoad::StartLoad();
     }
     if (CacheLoad::finished) {
-        TheMenuManager.SwitchScreen(MAIN_MENU);
+        TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     }
 }
 

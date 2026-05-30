@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "settings/settings.h"
 #include "menus/MenuManager.h"
+#include "menus/gameplay/GameplayMenu.h"
 #include "tracy/Tracy.hpp"
 
 void Encore::FrameManager::InitFrameManager() {
@@ -24,7 +25,7 @@ void Encore::FrameManager::WaitForFrame() {
         currentTime = GetTime();
         updateDrawTime = currentTime - previousTime;
         int Target = TheGameSettings.Framerate;
-        if (TheMenuManager.currentScreen != GAMEPLAY)
+        if (!dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()))
             Target = menuFPS;
 
         if (Target > 0) {
