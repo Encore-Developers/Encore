@@ -11,6 +11,9 @@ void CacheLoad::StartLoad() {
     started = true;
     cacheLoadThread = std::thread([]() {
         TracyCSetThreadName("Song Cache Loader")
+        if (TheGameSettings.SongPaths.empty()) {
+            TheGameSettings.SongPaths.push_back( "./Songs");
+        }
         TheSongList.LoadCache(TheGameSettings.SongPaths);
         finished = true;
     });
