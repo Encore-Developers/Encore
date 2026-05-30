@@ -58,7 +58,7 @@ void Encore::SettingDoohickey::Draw(float EntryTop) {
         float top = u.hpct(EntryTop) + (EntryHeight * settingOffset);
         Rectangle wholeBoxRect = {EntryLeft, top, EntryWidth, EntryHeight};
         bool hovered = false;
-        if (CheckCollisionPointRec(mousePos, wholeBoxRect)) {
+        if (!isOSOpen && !ScanningSongs && CheckCollisionPointRec(mousePos, wholeBoxRect)) {
             selectedIndex = settingOffset;
         }
         if (selectedIndex == settingOffset) {

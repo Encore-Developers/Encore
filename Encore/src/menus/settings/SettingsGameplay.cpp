@@ -50,7 +50,7 @@ void SettingsGameplay::Draw() {
 
     ImGui::SetNextWindowPos({rect.x, rect.y}, ImGuiCond_Always);
     ImGui::SetNextWindowSize({rect.width, rect.height*4});
-    if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+    if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         const std::filesystem::path* toDelete = nullptr;
         for (const auto& path : TheGameSettings.SongPaths) {
             ImGui::PushID((void*)&path);

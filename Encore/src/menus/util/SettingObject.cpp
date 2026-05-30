@@ -48,7 +48,11 @@ void Encore::SettingDoohickey::floatSettingObject::Draw(Rectangle pos, bool hove
         EndBlendMode();
     }
     GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
-    ::GuiSlider(ButtonSpace, nullptr, nullptr, value, min, max);
+    float temp = *value;
+    GuiSlider(ButtonSpace, nullptr, nullptr, &temp, min, max);
+    if (!Clickable) {
+        *value = temp;
+    }
     GameMenu::mhDrawText(ASSET(rubik), TextFormat("%i%%", int(*value * 100)), {ButtonSpace.x + (ButtonSpace.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
 }
 
@@ -96,7 +100,8 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
     Rectangle leftButton {ButtonSpace.x, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
     Rectangle slider {ButtonSpace.x + leftButton.width, ButtonSpace.y, ButtonSpace.width - (leftButton.width*2), leftButton.width};
     Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - leftButton.width, ButtonSpace.y, leftButton.width, leftButton.width};
-    if (GuiButton(leftButton, TextFormat("-%i", increment)) && !Clickable) {
+
+    if (!Clickable && GuiButton(leftButton, "")) {
         *value -= increment;
         if (*value < min) *value = min;
     }
@@ -107,10 +112,13 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
         if (*value < min) *value = min;
         if (*value > max) *value = max;
     }
-    if (GuiButton(rightButton, TextFormat("+%i", increment)) && !Clickable) {
+    if (!Clickable && GuiButton(rightButton, "")) {
         *value += increment;
         if (*value > max) *value = max;
     }
+
+    GameMenu::mhDrawText(ASSET(rubik), TextFormat("-%i", increment), {leftButton.x + (leftButton.width / 2), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), CENTER);
+    GameMenu::mhDrawText(ASSET(rubik), TextFormat("+%i", increment), {rightButton.x + (rightButton.width / 2), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), CENTER);
     GameMenu::mhDrawText(ASSET(rubikBold), TextFormat("%i", *value), {slider.x + (slider.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
 }
 void Encore::SettingDoohickey::boolSettingObject::Action(bool invert) {
