@@ -340,15 +340,9 @@ void ControllerPoller::Run() {
             switch (event.type) {
             case SDL_EVENT_GAMEPAD_ADDED:
                 SDL_OpenGamepad(event.gdevice.which);
-                Encore::EncoreLog(LOG_INFO,
-                                  TextFormat("SDL gamepad name %s",
-                                             SDL_GetGamepadNameForID(event.gdevice.which)));
                 break;
             case SDL_EVENT_GAMEPAD_REMOVED:
                 // TODO: device removal/saving gamepad pointer to player
-                Encore::EncoreLog(LOG_INFO,
-                                  TextFormat("SDL gamepad name %s",
-                                             SDL_GetGamepadNameForID(event.gdevice.which)));
                 break;
             }
             if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
