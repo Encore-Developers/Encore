@@ -43,4 +43,79 @@ void MenuManager::DrawMenu() {
     // Copy the shared pointer so it doesn't get dealloc'd mid-drawing
     std::shared_ptr<Menu> menu = ActiveMenu;
     menu->Draw();
+    if (ScanningSongs) {
+        Units &u = Units::getInstance();
+        Rectangle warningBox {u.wpct(0.35), u.hpct(0.35), u.winpct(0.3), u.hinpct(0.3)};
+        DrawRectangleRec(warningBox, {64, 64, 64, 196});
+        float fontSize = u.hinpct(0.05f);
+        std::string folderCount = std::to_string(FolderCount);
+        std::string songCount = std::to_string(SongCount);
+        std::string badSongCount = std::to_string(BadSongCount);
+        GameMenu::mhDrawText(
+            ASSET(rubik),
+            "Scanning Songs",
+            {  warningBox.x, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
+        );
+        warningBox.y += fontSize;
+        GameMenu::mhDrawText(
+            ASSET(rubik),
+            "Folders Found: ",
+            {  warningBox.x, warningBox.y},
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
+        );
+        GameMenu::mhDrawText(
+            ASSET(redHatMono),
+            folderCount,
+            {  warningBox.x + (warningBox.width), warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            RIGHT
+        );
+        warningBox.y += fontSize;
+        GameMenu::mhDrawText(
+            ASSET(rubik),
+            "Songs Found: ",
+            {  warningBox.x, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
+        );
+        GameMenu::mhDrawText(
+            ASSET(redHatMono),
+            songCount,
+            {  warningBox.x + warningBox.width, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            RIGHT
+        );
+        warningBox.y += fontSize;
+        GameMenu::mhDrawText(
+            ASSET(rubik),
+            "Bad Songs: ",
+            {  warningBox.x, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            LEFT
+        );
+        GameMenu::mhDrawText(
+            ASSET(redHatMono),
+            badSongCount,
+            {  warningBox.x + warningBox.width, warningBox.y },
+            fontSize,
+            WHITE,
+            ASSET(sdfShader),
+            RIGHT
+        );
+    }
 }

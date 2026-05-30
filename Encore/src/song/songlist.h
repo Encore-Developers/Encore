@@ -56,6 +56,10 @@ inline SortType NextSortType(SortType current) {
 
 inline std::atomic_int CurrentChartNumber = -1;
 inline std::atomic_int ListLoadingState = -1;
+inline std::atomic_int FolderCount = -1;
+inline std::atomic_int SongCount = -1;
+inline std::atomic_int BadSongCount = -1;
+inline std::atomic_bool ScanningSongs = false;
 inline std::atomic_int MaxChartsToLoad = -1;
 inline std::vector<std::string> sortTypes { "title", "artist", "source", "length", "year" };
 
@@ -103,7 +107,7 @@ public:
     void WriteCache();
 
     void ScanSongs(const std::vector<std::filesystem::path> &songsFolder);
-    void ScanFolder(const std::filesystem::path &folder, std::ofstream &badSongs);
+    void ScanFolder(const std::filesystem::path &folder, std::wofstream &badSongs);
 
     void GenerateSongEntriesWithHeaders(SortType sortType);
 

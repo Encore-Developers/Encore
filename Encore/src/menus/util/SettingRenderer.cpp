@@ -9,11 +9,13 @@
 #include "menus/main/MainMenu.h"
 
 void Encore::SettingDoohickey::Action(bool remove) {
+    if (ScanningSongs) return;
     if (settingsArray.at(selectedIndex))
         settingsArray.at(selectedIndex)->Action(remove);
 }
 
 void Encore::SettingDoohickey::IncrementSelected(bool up) {
+    if (ScanningSongs) return;
     int val = up ? -1 : 1;
     selectedIndex += val;
 
@@ -62,7 +64,7 @@ void Encore::SettingDoohickey::Draw(float EntryTop) {
         if (selectedIndex == settingOffset) {
             hovered = true;
         }
-        settingsArray.at(settingOffset)->Draw(wholeBoxRect, hovered, isOSOpen);
+        settingsArray.at(settingOffset)->Draw(wholeBoxRect, hovered, isOSOpen || ScanningSongs);
 
     }
 }

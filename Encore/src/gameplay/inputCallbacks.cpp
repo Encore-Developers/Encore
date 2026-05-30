@@ -18,6 +18,7 @@
 #include "RhythmEngine/REenums.h"
 #include "../menus/overshell/OvershellMenu.h"
 #include "song/song.h"
+#include "song/songlist.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
 #include "users/player.h"
@@ -265,7 +266,8 @@ void PollQueuedInputs(ControllerPoller& poller) {
                     continue;
                 }
             }
-            TheMenuManager.ActiveMenu->ControllerInputCallback(event);
+            if (!ScanningSongs)
+                TheMenuManager.ActiveMenu->ControllerInputCallback(event);
         }
         poller.readIndex++;
     }

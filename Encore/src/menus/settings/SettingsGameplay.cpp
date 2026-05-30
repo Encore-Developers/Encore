@@ -100,14 +100,17 @@ void SettingsGameplay::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         settings.IncrementSelected(true);
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         settings.IncrementSelected(false);
     }, false)
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         auto type = settings.settingsArray.at(settings.selectedIndex)->GetType();
         if (type == SettingDoohickey::settingType::BUTTON_SETTING ||
             type == SettingDoohickey::settingType::BOOL_SETTING)
@@ -115,20 +118,24 @@ void SettingsGameplay::Load() {
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         Save();
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     // might as well take advantage of this copying
     NEWBUTTONACTION2(buttReg, LANE_3, "settings.prompt.exitWithoutSaving", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     NEWBUTTONACTION2(buttReg, INPUT_LEFT, "Lower", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         settings.Action(true);
     }, false)
     NEWBUTTONACTION2(buttReg, INPUT_RIGHT, "Raise", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (ScanningSongs) return;
         settings.Action(false);
     }, false)
 

@@ -10,6 +10,7 @@
 #include "menus/util/ButtonActionRegistry.h"
 #include "menus/util/Jukebox.h"
 #include "menus/util/SettingRenderer.h"
+#include "song/cacheload.h"
 #include "song/songlist.h"
 
 
@@ -22,16 +23,26 @@ namespace Encore {
         bool ad = false;
         void ScanSongs() {
             TheGameJukebox.UnloadStreams();
+            SongCount = 0;
+            BadSongCount = 0;
+            FolderCount = 0;
             if (TheGameSettings.SongPaths.empty()) {
                 TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
             } else {
                 for (const auto& path : TheGameSettings.SongPaths) {
                     TraceLog(LOG_INFO, "Scanning path: %s", path.string().c_str());
                 }
-                TheSongList.ScanSongs(TheGameSettings.SongPaths);
+                ScanSongsThread = std::thread([]() {
+                    TheSongList.ScanSongs(TheGameSettings.SongPaths);
+                    SongCount = 0;
+                    BadSongCount = 0;
+                    FolderCount = 0;
+                });
+                ScanSongsThread.detach();
             }
         }
     public:
+        std::thread ScanSongsThread;
         void Draw();
         void KeyboardInputCallback(int key, int scancode, int action, int mods);
         void ControllerInputCallback(RhythmEngine::ControllerEvent event);

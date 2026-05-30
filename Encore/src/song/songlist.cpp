@@ -6,6 +6,7 @@
 #include <set>
 
 #include <algorithm>
+#include <codecvt>
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <regex>
@@ -13,12 +14,15 @@
 #include "util/binary.h"
 
 using json = nlohmann::json;
+
 std::filesystem::path SongList::cachePath() {
     return prefsPath / std::filesystem::path("songCache.encr");
 }
+
 std::filesystem::path SongList::badSongsPath() {
     return prefsPath / std::filesystem::path("bad-songs.txt");
 }
+
 // sorting
 void SongList::Clear() {
     listMenuEntries.clear();
@@ -29,8 +33,10 @@ void SongList::Clear() {
 }
 
 std::string lower(std::string string) {
-    std::transform(string.begin(), string.end(), string.begin(),
-    [](unsigned char c){ return std::tolower(c); });
+    std::transform(string.begin(),
+                   string.end(),
+                   string.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
     return string;
 }
 
@@ -93,8 +99,11 @@ bool SongList::sortYear(Song *a, Song *b) {
     return a->releaseYear < b->releaseYear;
 }
 
-SongList::SongList() {}
-SongList::~SongList() {}
+SongList::SongList() {
+}
+
+SongList::~SongList() {
+}
 
 void SongList::sortList(SortType sortType) {
     ZoneScoped
@@ -122,7 +131,7 @@ void SongList::sortList(SortType sortType) {
         // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortYear);
         break;
-    default:;
+    default: ;
     }
     GenerateSongEntriesWithHeaders(sortType);
 }
@@ -161,7 +170,7 @@ void SongList::WriteCache() {
 }
 
 
-void SongList::ScanFolder(const std::filesystem::path &folder, std::ofstream &badSongs) {
+void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &badSongs) {
     ZoneScoped
     if (!std::filesystem::is_directory(folder)) {
         return;
@@ -170,16 +179,30 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::ofstream &ba
     directoryCount++;
 
     auto infoPath = folder / "song.ini";
+    ++FolderCount;
 
     if (std::filesystem::exists(infoPath)) {
-        if (std::filesystem::exists(folder / "notes.mid")) {
-            Song song;
-            song.songInfoPath = infoPath;
-            song.songDir = folder;
-            song.LoadSongIni(folder);
-            songs.push_back(std::move(song));
-        } else {
-            badSongs << folder.string() << "\n";
+        ++SongCount;
+        try {
+            if (std::filesystem::exists(folder / "notes.mid")) {
+                Song song;
+                song.songInfoPath = infoPath;
+                song.songDir = folder;
+                song.LoadSongIni(folder);
+                songs.push_back(std::move(song));
+            } else {
+                badSongs << "Song does not have notes.mid" << std::endl;
+                badSongs << folder << std::endl << std::endl;
+                ++BadSongCount;
+            }
+        } catch (const std::exception& e) {
+            // I give up. If your song includes any fucked up characters and can't,
+            // for some reason, be scanned, we're just putting you on the bad songs list.
+            // God. I fucking hate C actually. Both C and C++. Both ends.
+            // How do people manage with this bullshit?
+            ++BadSongCount;
+            badSongs << e.what() << std::endl;
+            badSongs << folder << std::endl << std::endl;
         }
     } else {
         // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
@@ -188,21 +211,24 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::ofstream &ba
         };
     }
 
-
     songCount++;
 }
 
 void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) {
     ZoneScoped
+    ScanningSongs = true;
     Clear();
 
-    std::ofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc);
+    std::wofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc | std::ios::binary);
+
+    badSongs.imbue(std::locale(badSongs.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>));
+    badSongs << "Please open in Notepad++ or any editor that detects UTF16" << std::endl << std::endl;
 
     for (const auto &folder : songsFolder) {
         if (!is_directory(folder)) {
             continue;
         }
-        
+
         ScanFolder(folder, badSongs);
     }
 
@@ -211,14 +237,20 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     sortList(SortType::Title);
     curSong = nullptr;
     badSongs.close();
+    ScanningSongs = false;
 }
 
 std::string GetLengthHeader(int length) {
-    if (length < 60000) return "< 1:00";
-    if (length < 120000) return "1:00-2:00";
-    if (length < 180000) return "2:00-3:00";
-    if (length < 240000) return "3:00-4:00";
-    if (length < 300000) return "4:00-5:00";
+    if (length < 60000)
+        return "< 1:00";
+    if (length < 120000)
+        return "1:00-2:00";
+    if (length < 180000)
+        return "2:00-3:00";
+    if (length < 240000)
+        return "3:00-4:00";
+    if (length < 300000)
+        return "4:00-5:00";
     return "5:00+";
 }
 
@@ -282,7 +314,9 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
     ZoneScoped;
-    Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Loading cache from %s", cachePath().generic_u8string().c_str()));
+    Encore::EncoreLog(LOG_INFO,
+                      TextFormat("CACHE: Loading cache from %s",
+                                 cachePath().generic_u8string().c_str()));
     encore::bin_ifstream_native SongCacheIn(cachePath(), std::ios::binary);
     if (!SongCacheIn) {
         Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");
@@ -323,7 +357,8 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     // Load cached songs
     Clear();
     Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
-    std::set<std::filesystem::path> loadedSongs; // To track loaded songs and avoid duplicates
+    std::set<std::filesystem::path> loadedSongs;
+    // To track loaded songs and avoid duplicates
     songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
     for (size_t i = 0; i < cachedSongCount; i++) {
