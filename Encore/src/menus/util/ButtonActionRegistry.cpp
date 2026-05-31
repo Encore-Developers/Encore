@@ -70,7 +70,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         };
 
         // todo: replace this with actual controller-dependant icons
-        GameMenu::mhDrawText(ASSET(rubikBold),
+        Text::DrawText(ASSET(rubikBold),
                              tempLaneToButtonLabel(butt.first),
                              { pos.x + u.hinpct(0.01f),
                                pos.y + u.hinpct(0.01f) },
