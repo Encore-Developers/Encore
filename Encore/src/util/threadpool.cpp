@@ -5,11 +5,11 @@
 void ThreadPool::ThreadRun() {
     TracyCSetThreadName("Thread Pool Member")
     while (true) {
+        tasksSem.acquire();
         {
-            ZoneScopedN("Wait for Task")
-            tasksSem.acquire();
+            ZoneScopedN("Lock Tasks")
+            tasksMutex.lock();
         }
-        tasksMutex.lock();
         if (shutdown && tasks.empty()) {
             tasksMutex.unlock();
             return;
@@ -26,8 +26,12 @@ ThreadPool::ThreadPool(unsigned int threadCount) : tasksSem(0), threadCount(thre
     }
 }
 void ThreadPool::SubmitTask(std::function<void()> task) {
-    tasksMutex.lock();
-    tasks.push_front(task);
+    ZoneScoped
+    {
+        ZoneScopedN("Lock Tasks")
+        tasksMutex.lock();
+    }
+    tasks.push_back(task);
     tasksMutex.unlock();
     tasksSem.release();
 }

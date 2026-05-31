@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "song/audio.h"
+#include "util/threadpool.h"
 
 enum AssetState : uint8_t {
     UNLOADED,
@@ -348,6 +349,8 @@ private:
         GetPrevDirectoryPath(GetApplicationDirectory())) / "Assets";
 
 public:
+    ThreadPool loadingPool = std::thread::hardware_concurrency()-1;
+
     std::vector<Asset *> assets; // Stored for debugging
     Assets() {
     }

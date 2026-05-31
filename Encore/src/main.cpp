@@ -198,8 +198,10 @@ int main(int argc, char *argv[]) {
     LocateDevAssets();
 
     ArgumentList::InitArguments(argc, argv);
-    initialSet.StartLoad();
     AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).StartLoad();
+    initialSet.StartLoad();
+    TheAssets.AddRingsAndInstruments();
+    mainMenuSet.StartLoad();
 
     std::string discordOff = ArgumentList::GetArgValue("discord");
     TheGameRPC.Initialize(discordOff);
@@ -290,8 +292,6 @@ int main(int argc, char *argv[]) {
     SETDEFAULTSTYLE();
 
     SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
-    TheAssets.AddRingsAndInstruments();
-    mainMenuSet.StartLoad();
     SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
     if (!CacheLoad::finished) {
         TheMenuManager.CreateAndSwitchMenu<cacheLoadingScreen>();

@@ -100,20 +100,18 @@ Asset::Asset(const std::string &id) {
 
 void Asset::StartLoad() {
     ZoneScoped;
+    ZoneNameF("Start Load %s", id.c_str());
     if (state == UNLOADED) {
         state = LOADING;
-        loadingThread = std::thread([this]() { TracyCSetThreadName(TextFormat("Asset Load Thread: %s", id.c_str())); this->Load(); });
-        loadingThread.detach();
+        //loadingThread = std::thread([this]() { TracyCSetThreadName(TextFormat("Asset Load Thread: %s", id.c_str())); this->Load(); });
+        TheAssets.loadingPool.SubmitTask([this]() {ZoneScoped; ZoneNameF("Load %s", id.c_str()); this->Load();});
+        //loadingThread.detach();
         //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
     }
 }
 
 void Asset::LoadImmediate() {
-    Encore::EncoreLog(LOG_INFO,
-                      TextFormat("Loading asset %s immediately...", id.c_str()));
-    StartLoad();
-    while (state == LOADING) {
-    }
+    Load();
 }
 
 void FileAsset::LoadFile() {
@@ -184,8 +182,7 @@ void ShaderAsset::Load() {
         code.AddAsset(fragmentCode);
     if (vertexCode)
         code.AddAsset(vertexCode);
-    code.StartLoad();
-    code.BlockUntilLoaded();
+    code.LoadImmediate();
     state = PREFINALIZED;
 }
 
