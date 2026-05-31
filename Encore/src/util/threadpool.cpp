@@ -21,6 +21,9 @@ void ThreadPool::ThreadRun() {
     }
 }
 ThreadPool::ThreadPool(unsigned int threadCount) : tasksSem(0), threadCount(threadCount) {
+    if (this->threadCount < 1) {
+        this->threadCount = 1;
+    }
     for (size_t i = 0; i < threadCount; ++i) {
         threads.push_back(std::thread(&ThreadPool::ThreadRun, this));
     }
