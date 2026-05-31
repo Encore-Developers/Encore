@@ -6,7 +6,6 @@
 #include "song.h"
 
 #include <deque>
-#include <mutex>
 
 // Version is formatted as YY_MM_DD_RR, where:
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
@@ -91,7 +90,6 @@ public:
     std::vector<ListMenuEntry> listMenuEntries;
     std::vector<LSection> sectionEntries;
     std::deque<Song> songs;
-    std::mutex songsMutex;
     std::vector<Song*> sortedSongs;
     int songCount = 0;
     int directoryCount = 0;
