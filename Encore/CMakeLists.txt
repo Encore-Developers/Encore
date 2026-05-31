@@ -143,6 +143,17 @@ if(APPLE)
           $<TARGET_FILE:Encore>)
 endif()
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  if( supported )
+    message(STATUS "IPO / LTO enabled")
+    set_property(TARGET Encore PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "IPO / LTO not supported: <${error}>")
+  endif()
+endif()
 # Get the current working branch
 execute_process(
         COMMAND git rev-parse --abbrev-ref HEAD
