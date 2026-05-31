@@ -12,6 +12,7 @@ using json = nlohmann::json;
 
 std::vector<LocaleLayer> Locale::layers = {};
 std::unordered_set<std::string> Locale::unlocalizedTokens;
+bool Locale::debugLongStrings = false;
 
 void LocaleLayer::AddEntries(const std::string& stem, nlohmann::basic_json<> &json) {
     for (auto& [key, value] : json.items()) {
@@ -72,6 +73,9 @@ void Locale::AddLayer(const std::string &name, bool fallback) {
 }
 LocalizedString Locale::Localize(const std::string &token) {
     ZoneScoped
+    if (debugLongStrings) {
+        return LocalizedString::FromStaticChars("_____________________LOCALIZED_____________________");
+    }
     for (auto &layer : layers) {
         if (auto localized = layer.FetchValue(token)) {
             if (layer.fallback) {

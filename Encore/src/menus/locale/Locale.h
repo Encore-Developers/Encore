@@ -25,6 +25,11 @@ namespace Encore {
             output.ref = in->c_str();
             return output;
         }
+        static LocalizedString FromStaticChars(const char* in) {
+            LocalizedString output;
+            output.ref = in;
+            return output;
+        }
 
         static LocalizedString MoveStr(std::string data) {
             LocalizedString output;
@@ -85,6 +90,8 @@ namespace Encore {
     public:
         static std::vector<LocaleLayer> layers;
         static std::unordered_set<std::string> unlocalizedTokens;
+
+        static bool debugLongStrings;
 
         static void Init();
         static void AddLayer(const std::string& name, bool fallback);

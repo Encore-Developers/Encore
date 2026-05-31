@@ -183,7 +183,8 @@
 		"types": {
 			"guitar": "Guitar",
 			"drums": "Drums",
-			"pad": "Pad"
+			"pad": "Pad",
+			"plastic": "Plastic"
 		},
 		"currentController": "Controller: {}",
 		"brutalMode": "Brutal Mode",

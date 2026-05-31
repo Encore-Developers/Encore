@@ -682,6 +682,7 @@ void EncoreDebug::DrawLocaleDebug() {
             Encore::Locale::layers.clear();
             Encore::Locale::unlocalizedTokens.clear();
         }
+        Checkbox("Debug Long Strings", &Encore::Locale::debugLongStrings);
 
         if (BeginTabBar("localeTabs")) {
             if (BeginTabItem("Locale Layers")) {
