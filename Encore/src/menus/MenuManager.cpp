@@ -51,9 +51,9 @@ void MenuManager::DrawMenu() {
         float fontSize = u.hinpct(0.05f);
 
         TextDisplay data;
-        data.Font(ASSET(rubik)).Size(fontSize).Pos(warningBox.x, warningBox.y);
+        data.Fnt(ASSET(rubik)).Size(fontSize).Pos(warningBox.x, warningBox.y);
         TextDisplay count;
-        count.Font(ASSET(redHatMono)).Size(fontSize)
+        count.Fnt(ASSET(redHatMono)).Size(fontSize)
              .Pos(warningBox.x + warningBox.width, warningBox.y).Align(RIGHT);
 
         data.lDrawText("songScanning.header");

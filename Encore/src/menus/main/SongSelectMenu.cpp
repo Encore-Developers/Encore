@@ -444,7 +444,7 @@ void SongSelectMenu::Draw() {
 
     std::string sortType = LOCALIZE("songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
     TextDisplay sortData;
-    sortData.Font(ASSET(josefinSansItalic)).Size(u.hinpct(0.03f))
+    sortData.Fnt(ASSET(josefinSansItalic)).Size(u.hinpct(0.03f))
             .Pos(u.LeftSide, u.hpct(0.165f))
             .DrawText(LOCALISE_FMT("songSelect.sortedBy", sortType));
 

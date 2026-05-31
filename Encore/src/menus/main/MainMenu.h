@@ -30,7 +30,7 @@ struct TextDisplay {
     Color color{255, 255, 255, 255};
     TextAlign align = LEFT;
 
-    TextDisplay& Font(const Font &_font) {
+    TextDisplay& Fnt(const Font &_font) {
         this->font = _font;
         return *this;
     }
@@ -46,7 +46,7 @@ struct TextDisplay {
         this->fontSize = _fontSize;
         return *this;
     }
-    TextDisplay& Color(const Color _color) {
+    TextDisplay& Col(const Color _color) {
         this->color = _color;
         return *this;
     }
