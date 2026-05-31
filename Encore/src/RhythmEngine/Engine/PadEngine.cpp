@@ -134,8 +134,9 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
             if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
                 continue;
             stats->InputTime = CurrentTime;
-            EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
-            if (CurrentNote->StartSeconds <= CurrentTime) {
+            while (chart->CurrentNoteIterators.at(Lane)->StartSeconds <= CurrentTime) {
+                if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
+                    break;
                 HitNote(Lane);
             }
         }
