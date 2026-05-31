@@ -47,9 +47,9 @@ void SettingsMenu::Draw() {
     encOS::DrawTopOvershell(0.15f);
 
     // find a better name for this than Main Menu
-    GameMenu::lDrawText(assets.rubik, "settings.header.categorySel",
+    Encore::Text::lDrawText(assets.rubik, "settings.header.categorySel",
                          {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
-    GameMenu::lDrawText(
+    Encore::Text::lDrawText(
         assets.redHatDisplayBlack,
         "settings.header.main",
         {u.LeftSide, TextPlacementTB},
@@ -58,7 +58,7 @@ void SettingsMenu::Draw() {
         LEFT
     );
     float fontSize = u.hinpct(0.029f);
-    GameMenu::lDrawText(assets.josefinSansItalic, "settings.subtitle", {EntryTextLeft, TextTop}, fontSize, Color{136, 136, 136, 255}, LEFT);
+    Encore::Text::lDrawText(assets.josefinSansItalic, "settings.subtitle", {EntryTextLeft, TextTop}, fontSize, Color{136, 136, 136, 255}, LEFT);
 
     DrawLineEx({EntryTextLeft, TextLineTop}, {EntryTextLeft + u.wpct(0.42f), TextLineTop}, u.winpct(0.001f), WHITE);
 
@@ -119,9 +119,9 @@ void SettingsMenu::Draw() {
         if (i == selectedIndex) {
             Color textColor = (i == clickedIndex) ? GRAY : WHITE;
             DrawButtonGradient(itemRect, ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f));
-            GameMenu::lDrawText(ASSET(redHatDisplayBlack), menuItems[i], {itemRect.x, itemRect.y}, EntryFontSize, textColor, LEFT);
+            Encore::Text::lDrawText(ASSET(redHatDisplayBlack), menuItems[i], {itemRect.x, itemRect.y}, EntryFontSize, textColor, LEFT);
         } else {
-            GameMenu::lDrawText(ASSET(redHatDisplayBlack), menuItems[i], {itemRect.x, itemRect.y}, EntryFontSize, Color{136, 136, 136, 255}, LEFT);
+            Encore::Text::lDrawText(ASSET(redHatDisplayBlack), menuItems[i], {itemRect.x, itemRect.y}, EntryFontSize, Color{136, 136, 136, 255}, LEFT);
         }
     }
 

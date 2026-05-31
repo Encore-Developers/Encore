@@ -941,21 +941,21 @@ void Encore::Track::DrawTrackDebugWindow() {
                                               countdown));
             };
             SeparatorText("Stats");
-            Text("%s", TextFormat("Combo: %i", player.engine->stats->Combo));
-            Text("%s", TextFormat("Ghost Count: %i", player.engine->GhostCount));
-            Text("%s", TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
-            Text("%s", 
+            ImGui::Text("%s", TextFormat("Combo: %i", player.engine->stats->Combo));
+            ImGui::Text("%s", TextFormat("Ghost Count: %i", player.engine->GhostCount));
+            ImGui::Text("%s", TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
+            ImGui::Text("%s",
                 TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes)
             );
-            Text("%s", TextFormat("Misses: %i", player.engine->stats->Misses));
-            Text("%s", TextFormat("Notes hit: %i (%.0f%)",
+            ImGui::Text("%s", TextFormat("Misses: %i", player.engine->stats->Misses));
+            ImGui::Text("%s", TextFormat("Notes hit: %i (%.0f%)",
                                    player.engine->stats->NotesHit,
                                    (float)player.engine->stats->NotesHit / player.engine->
                                    stats->AttemptedNotes * 100));
-            Text("%s", TextFormat("Score: %4.2f", player.engine->stats->Score));
-            Text("%s", TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
-            Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
-            Text("%s", TextFormat("Multiplier: %ix",
+            ImGui::Text("%s", TextFormat("Score: %4.2f", player.engine->stats->Score));
+            ImGui::Text("%s", TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
+            ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
+            ImGui::Text("%s", TextFormat("Multiplier: %ix",
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
         }

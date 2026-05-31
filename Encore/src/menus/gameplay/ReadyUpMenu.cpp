@@ -76,7 +76,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
 
             DrawRectangleRec(pos, ButtonColor);
 
-            GameMenu::lDrawText(
+            Encore::Text::lDrawText(
                 ASSET(rubik),
                 diffList[i],
                 { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
@@ -222,7 +222,7 @@ void ReadyUpMenu::Draw() {
                     ButtonColor = ColorBrightness(AccentColor, 0.5);
                 }
                 DrawRectangleRec(pos, ButtonColor);
-                GameMenu::mhDrawText(
+                Encore::Text::DrawText(
                     assets.rubik,
                     PartAndDiff,
                     { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
@@ -249,7 +249,7 @@ void ReadyUpMenu::Draw() {
                 SlotState[playerInt] = DIFFICULTY;
                 ReadyState[playerInt] = false;
             }
-            GameMenu::lDrawText(
+            Encore::Text::lDrawText(
                 assets.rubik,
                 "generic.difficulty",
                 { xPosOfMenu, BottomOvershell - u.hinpct(0.04f) },
@@ -283,7 +283,7 @@ void ReadyUpMenu::Draw() {
                 SlotState[playerInt] = INSTRUMENT;
                 ReadyState[playerInt] = false;
             }
-            GameMenu::lDrawText(
+            Encore::Text::lDrawText(
                 assets.rubik,
                 "generic.instrument",
                 { xPosOfMenu, BottomOvershell - u.hinpct(0.09f) },

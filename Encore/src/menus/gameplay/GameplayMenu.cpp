@@ -207,7 +207,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         WHITE
     );
     BeginBlendMode(BLEND_ADDITIVE);
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         assets.redHatMono,
         GameMenu::scoreCommaFormatter(
             score
@@ -268,7 +268,7 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
         songMinutes,
         songSeconds
     );
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         assets.rubik,
         textTime,
         { u.RightSide - (WidthOfTimerbox / 2), TimerboxY - u.hinpct(SmallHeader * (0.66 * 1.25)) },
@@ -559,18 +559,18 @@ void GameplayMenu::Draw() {
     const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
     float topOfVocalBar = u.hpct(0.2f);
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
-    GameMenu::mhDrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
+    Encore::Text::DrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
                          {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
                          WHITE, LEFT);
     float TitleFontOffset = (TitleFontSize * 1.25f);
     float SecondaryFontSize = TitleFontSize * 0.85f;
-    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
                          {u.wpct(0.01f), topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
                          LIGHTGRAY, LEFT);
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
                          {u.wpct(0.01f) + ( TitleFontSize * 1.125f) , topOfVocalBar + (TitleFontOffset + TitleFontSize)}, SecondaryFontSize,
                          LIGHTGRAY, LEFT);
 
@@ -720,7 +720,7 @@ void GameplayMenu::DrawPauseMenu() {
     float BottomOvershell = u.hpct(1) - u.hinpct(0.15f);
     float TextPlacementTB = AlbumArtTop;
     float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         ASSET(redHatDisplayItalic),
         TheSongList.curSong->title.c_str(),
         { TextPlacementLR, TextPlacementTB },
@@ -728,7 +728,7 @@ void GameplayMenu::DrawPauseMenu() {
         WHITE,
         LEFT
     );
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         ASSET(rubikItalic),
         TheSongList.curSong->artist.c_str(),
         { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
@@ -741,7 +741,7 @@ void GameplayMenu::DrawPauseMenu() {
         {TextPlacementLR, TextPlacementTB + u.hinpct(0.095f), u.hinpct(0.04f), u.hinpct(0.04f)}, {0,0}, 0, WHITE
     );
     if (!TheSongList.curSong->charters.empty()) {
-        GameMenu::mhDrawText(
+        Encore::Text::DrawText(
             ASSET(rubikItalic),
             TheSongList.curSong->charters[0],
             { TextPlacementLR + u.hinpct(0.05f), TextPlacementTB + u.hinpct(0.095f) },

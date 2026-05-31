@@ -80,68 +80,6 @@ Texture2D GameMenu::LoadTextureFilter(const std::filesystem::path &texturePath) 
     return tex;
 }
 
-void GameMenu::mhDrawText(
-    const Font &font,
-    const std::string &text,
-    Vector2 pos,
-    float fontSize,
-    Color color,
-    TextAlign align
-) {
-    float textLeftPos = pos.x;
-    float TextWidth = MeasureTextEx(font, text.c_str(), fontSize, 0).x;
-
-    switch (align) {
-    case CENTER: {
-        textLeftPos = pos.x - (TextWidth / 2);
-        break;
-    }
-    case RIGHT: {
-        textLeftPos = pos.x - (TextWidth);
-        break;
-    }
-    }
-    BeginShaderMode(ASSET(sdfShader));
-    DrawTextEx(font, text.c_str(), { textLeftPos, pos.y }, fontSize, 0, color);
-    EndShaderMode();
-}
-
-void GameMenu::mhDrawText(
-    const TextDisplay &data,
-    const std::string &text
-) {
-    float textLeftPos = data.pos.x;
-    float TextWidth = MeasureTextEx(data.font, text.c_str(), data.fontSize, 0).x;
-
-    switch (data.align) {
-    case CENTER: {
-        textLeftPos = data.pos.x - (TextWidth / 2);
-        break;
-    }
-    case RIGHT: {
-        textLeftPos = data.pos.x - (TextWidth);
-        break;
-    }
-    }
-    BeginShaderMode(ASSET(sdfShader));
-    DrawTextEx(data.font, text.c_str(), { textLeftPos, data.pos.y }, data.fontSize, 0, data.color);
-    EndShaderMode();
-}
-
-void GameMenu::lDrawText(
-    const Font &font, const std::string &localizationKey, Vector2 pos, float fontSize, Color color, TextAlign align) {
-    mhDrawText(font, LOCALISE(localizationKey), pos, fontSize, color, align);
-}
-
-void GameMenu::lDrawText(
-    const TextDisplay &data, const std::string &localizationKey) {
-    mhDrawText(data, LOCALISE(localizationKey));
-}
-
-float GameMenu::TextWidth(const TextDisplay &data, const std::string &text) {
-    return MeasureTextEx(data.font, text.c_str(), data.fontSize, 0).x;
-}
-
 
 
 void GameMenu::DrawTopOvershell(float TopOvershell) {
@@ -217,29 +155,6 @@ void GameMenu::DrawVersion() {
     );
 };
 
-void TextDisplay::lDrawText(const std::string &localizeKey) const {
-    DrawText(LOCALISE(localizeKey));
-}
-
-void TextDisplay::DrawText(const std::string &text) const {
-    float textLeftPos = pos.x;
-    float TextWidth = MeasureTextEx(font, text.c_str(), fontSize, 0).x;
-
-    switch (align) {
-    case CENTER: {
-        textLeftPos = pos.x - (TextWidth / 2);
-        break;
-    }
-    case RIGHT: {
-        textLeftPos = pos.x - (TextWidth);
-        break;
-    }
-    }
-    BeginShaderMode(ASSET(sdfShader));
-    DrawTextEx(font, text.c_str(), { textLeftPos, pos.y }, fontSize, 0, color);
-    EndShaderMode();
-
-}
 
 void MainMenu::ChooseSplashText(std::filesystem::path directory) {
     auto splashes = Encore::Locale::GetLocaleList("mainMenu.splashes");
@@ -442,10 +357,10 @@ void MainMenu::AttractScreen() {
             if (TitleAnimTimer > 1) TitleAnimTimer = 1;
         }
         unsigned char Alpha = 96 + (easeInOut(TitleAnimTimer) * 159);
-        GameMenu::mhDrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
+        Encore::Text::DrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
                              {u.wpct(0.99f), topOfVocalBar}, TitleFontSize,
                              {255, 255, 255, Alpha}, RIGHT);
-        GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
+        Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
                              {u.wpct(0.99f) - TitleFontOffset, topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
                              {200, 200, 200, Alpha}, RIGHT);
         DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
@@ -564,9 +479,9 @@ void MainMenu::MainMenuScreen() {
             DrawButtonGradient(pos, accentColor);
             color = WHITE;
         }
-        GameMenu::lDrawText(ASSET(redHatDisplayBlack), "generic.play", {pos.x, pos.y}, pos.height, color, LEFT);
+        Encore::Text::lDrawText(ASSET(redHatDisplayBlack), "generic.play", {pos.x, pos.y}, pos.height, color, LEFT);
     } else {
-        GameMenu::lDrawText(ASSET(redHatDisplayBlack), "mainMenu.invalidCache", {pos.x, pos.y}, pos.height, RED, LEFT);
+        Encore::Text::lDrawText(ASSET(redHatDisplayBlack), "mainMenu.invalidCache", {pos.x, pos.y}, pos.height, RED, LEFT);
     }
 
     {
@@ -580,7 +495,7 @@ void MainMenu::MainMenuScreen() {
             DrawButtonGradient(pos, accentColor);
             color = WHITE;
         }
-        GameMenu::lDrawText(ASSET(redHatDisplayBlack), "mainMenu.options", {pos.x, pos.y}, pos.height, color, LEFT);
+        Encore::Text::lDrawText(ASSET(redHatDisplayBlack), "mainMenu.options", {pos.x, pos.y}, pos.height, color, LEFT);
     }
 
     {
@@ -602,7 +517,7 @@ void MainMenu::MainMenuScreen() {
             }
             TitleAnimTimer = 1;
         }
-        GameMenu::lDrawText(ASSET(redHatDisplayBlack), "mainMenu.quit", {pos.x, pos.y}, pos.height, color, LEFT);
+        Encore::Text::lDrawText(ASSET(redHatDisplayBlack), "mainMenu.quit", {pos.x, pos.y}, pos.height, color, LEFT);
     }
 
     if (GuiButton(

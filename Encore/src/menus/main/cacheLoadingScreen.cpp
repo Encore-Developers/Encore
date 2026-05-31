@@ -50,7 +50,7 @@ void cacheLoadingScreen::Draw() {
         MAGENTA
     );
 
-    GameMenu::lDrawText(
+    Encore::Text::lDrawText(
         ASSET(redHatDisplayBlack),
         "cacheLoading.header",
         { u.LeftSide, u.hpct(0.05f) },
@@ -63,7 +63,7 @@ void cacheLoadingScreen::Draw() {
     int toLoad = MaxChartsToLoad;
     std::string songs = TextFormat("%d/%d", loaded, toLoad);
     std::string LoadingText = LOCALIZE_FMT("cacheLoading.loading", loaded, toLoad);
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         ASSET(rubikBold),
         LoadingText,
         { u.RightSide, u.hpct(0.085f) },
@@ -87,7 +87,7 @@ void cacheLoadingScreen::Draw() {
         0,
         WHITE
     );
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         ASSET(josefinSansItalic),
         CacheSplash[SplashSel],
         { u.LeftSide + u.hinpct(0.16),

@@ -443,7 +443,7 @@ void SongSelectMenu::Draw() {
     int AlbumInner = u.hinpct(0.005f);
 
     std::string sortType = LOCALIZE("songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
-    TextDisplay sortData;
+    Encore::TextDisplay sortData;
     sortData.Fnt(ASSET(josefinSansItalic)).Size(u.hinpct(0.03f))
             .Pos(u.LeftSide, u.hpct(0.165f))
             .DrawText(LOCALISE_FMT("songSelect.sortedBy", sortType));
@@ -452,6 +452,9 @@ void SongSelectMenu::Draw() {
     std::size_t sortCount = TheSongList.sortedSongs.size();
     sortData.Align(RIGHT).DrawText(LOCALISE_FMT("songSelect.songsLoaded", sortCount));
 
+
+    float songTitleWidth = u.winpct(0.3f);
+    float songArtistWidth = u.winpct(0.5f);
     float songEntryHeight = u.hinpct(0.058333f);
     DrawRectangle(
         0,
@@ -461,6 +464,16 @@ void SongSelectMenu::Draw() {
         ColorBrightness(AccentColor, -0.75f)
     );
     int topOflistMenu = curSongMenuPos <= 4 ? 1 : curSongMenuPos - 4;
+    Encore::TextDisplay songTitle;
+    Encore::TextDisplay songArtist;
+    float songXPos = u.LeftSide + u.winpct(0.005f) - 2 + songEntryHeight;
+    float songYPos = std::floor(u.hpct(0.266666f));
+    songTitle.Fnt(ASSET(rubikBold)).Size(u.hinpct(0.035f))
+             .Pos(songXPos, songYPos + u.hinpct(0.0125f));
+
+    songArtist.Fnt(ASSET(josefinSansItalic)).Size(u.hinpct(0.025f))
+             .Pos(songXPos + songTitleWidth + 30, songYPos + u.hinpct(0.02f));
+
     for (size_t listMenuPos = topOflistMenu;
          listMenuPos < TheSongList.listMenuEntries.size() &&
          (listMenuPos < curSongMenuPos + (topOflistMenu <= 4 ? 10 : 6));
@@ -468,67 +481,40 @@ void SongSelectMenu::Draw() {
         ZoneScopedN("Draw Entry")
         if (TheSongList.listMenuEntries.size() == listMenuPos)
             break;
+
         if (TheSongList.listMenuEntries[listMenuPos].isHeader) {
-            float songXPos = u.LeftSide + u.winpct(0.005f) - 2;
-            float songYPos = std::floor(
-                (u.hpct(0.266666f)) + (songEntryHeight * (listMenuPos - topOflistMenu))
-            );
+            Rectangle entryRec {0, songYPos, u.RightSide - u.winpct(0.25f), songEntryHeight};
             Color headerColor = ColorBrightness(AccentColor, -0.75f);
-            FontAsset *headerFont = ASSETPTR(rubikBold);
             if (listMenuPos == curSongMenuPos) {
                 headerColor = ColorBrightness(AccentColor, -0.4f);
-                headerFont = ASSETPTR(rubikBoldItalic);
-            }
-            DrawRectangle(
-                0,
-                songYPos,
-                (u.RightSide - u.winpct(0.25f)),
-                songEntryHeight,
-                headerColor
-            );
-            if (currentSortValue == SortType::Source) {
-                GameMenu::mhDrawText(
-                    headerFont->Fetch(),
-                    TheSourceIcons.GetSourceName(TheSongList.listMenuEntries[listMenuPos].headerChar),
-                    { songXPos, songYPos + u.hinpct(0.0125f) },
-                    u.hinpct(0.035f),
-                    WHITE,
-                    LEFT
-                );
+                songTitle.Col(WHITE);
+                songArtist.Col(WHITE);
             } else {
-                GameMenu::mhDrawText(
-                    headerFont->Fetch(),
-                    TheSongList.listMenuEntries[listMenuPos].headerChar.c_str(),
-                    { songXPos, songYPos + u.hinpct(0.0125f) },
-                    u.hinpct(0.035f),
-                    WHITE,
-                    LEFT
-                );
+                songTitle.Col({ 203, 203, 203, 255 });
+                songArtist.Col({ 203, 203, 203, 255 });
             }
+            DrawRectangleRec(entryRec, headerColor);
+            std::string headerText;
+            if (currentSortValue == SortType::Source) {
+                headerText = TheSourceIcons.GetSourceName(TheSongList.listMenuEntries[listMenuPos].headerChar);
+            } else {
+                headerText = TheSongList.listMenuEntries[listMenuPos].headerChar;
+            }
+            songTitle.DrawText(headerText);
+            songTitle.pos.y += songEntryHeight;
+            songArtist.pos.y += songEntryHeight;
+            songYPos += songEntryHeight;
         } else if (!TheSongList.listMenuEntries[listMenuPos].hiddenEntry) {
+            Rectangle entryRec {0, songYPos, u.RightSide - u.winpct(0.25f), songEntryHeight};
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
-            Font artistFont = assets.josefinSansItalic;
-            Song *songi = TheSongList.sortedSongs[TheSongList.listMenuEntries[listMenuPos].
-                songListID];
+            Song *songi = TheSongList.sortedSongs[TheSongList.listMenuEntries[listMenuPos].songListID];
             auto padding = u.hinpct(0.01f);
-            float songXPos = u.LeftSide + u.winpct(0.005f) - 2 + songEntryHeight;
-            float songYPos = std::floor(
-                (u.hpct(0.266666f)) + ((songEntryHeight) * (listMenuPos - topOflistMenu))
-            );
             if (listMenuPos % 2) {
-                DrawRectangle(
-                    0,
-                    songYPos,
-                    (u.RightSide - u.winpct(0.25f)),
-                    songEntryHeight,
-                    Color{ 0, 0, 0, 64 }
-                );
+                DrawRectangleRec(entryRec, { 0, 0, 0, 64 });
             }
-            GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
             if (isCurSong) {
                 auto timer = Clamp(curTime - selectionTime, 0, 0.15);
-                DrawRectangleRec(Rectangle{ 0, songYPos, (u.RightSide - u.winpct(0.25f)),
-                                            songEntryHeight },
+                DrawRectangleRec(entryRec,
                                  ColorBrightness(AccentColor,
                                                  Remap(timer, 0, 0.15, 0, -0.4)));
             }
@@ -536,81 +522,56 @@ void SongSelectMenu::Draw() {
             DrawTexturePro(
                 sourceTex,
                 { 0, 0, (float)sourceTex.width, (float)sourceTex.height}, {songXPos-songEntryHeight, songYPos+padding, songEntryHeight-padding*2, songEntryHeight-padding*2}, {0 , 0}, 0, WHITE);
-            BeginScissorMode(
-                0,
-                u.hpct(0.15f),
-                u.RightSide - u.winpct(0.25f),
-                u.hinpct(0.7f)
-            );
-            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-            EndScissorMode();
 
-            int songTitleWidth = (u.winpct(0.3f)) - 6;
-            int songArtistWidth = (u.winpct(0.5f)) - 6;
-
-            if (songi->titleTextWidth >= (float)songTitleWidth) {
-                if (curTime > songi->titleScrollTime
-                    && curTime < songi->titleScrollTime + 3.0)
+            // im so fucking scared
+            // i dont know what this does. its framerate dependant too. im so fucking confused
+            // theres gotta be a better way but im not being paid enough to figure it out
+            songi->titleTextWidth = songTitle.TextWidth(songi->title.c_str());
+            if (songi->titleTextWidth > songTitleWidth) {
+                if (curTime > songi->titleScrollTime && curTime < songi->titleScrollTime + 3.0) {
                     songi->titleXOffset = 0;
-
+                }
                 if (curTime > songi->titleScrollTime + 3.0) {
                     songi->titleXOffset -= 1;
-                    if (songi->titleXOffset
-                        < -(songi->titleTextWidth - (float)songTitleWidth)) {
-                        songi->titleXOffset = -(songi->titleTextWidth - (float)
-                            songTitleWidth);
+                    if (songi->titleXOffset < -(songi->titleTextWidth - songTitleWidth)) {
+                        songi->titleXOffset = -(songi->titleTextWidth - songTitleWidth);
                         songi->titleScrollTime = curTime + 3.0;
                     }
                 }
             }
-            auto LightText = Color{ 203, 203, 203, 255 };
-            BeginScissorMode(
-                (int)songXPos + (isCurSong ? 0 : 5),
-                (int)songYPos,
-                songTitleWidth,
-                songEntryHeight
-            );
-            GameMenu::mhDrawText(
-                assets.rubikBold,
-                songi->title.c_str(),
-                { songXPos + songi->titleXOffset + (isCurSong ? 0 : 10),
-                  songYPos + u.hinpct(0.0125f) },
-                u.hinpct(0.035f),
-                isCurSong ? WHITE : LightText,
-                LEFT
-            );
-            EndScissorMode();
-
-            if (songi->artistTextWidth > (float)songArtistWidth) {
-                if (curTime > songi->artistScrollTime
-                    && curTime < songi->artistScrollTime + 3.0)
+            songi->artistTextWidth = songTitle.TextWidth(songi->artist.c_str());
+            if (songi->artistTextWidth > songArtistWidth) {
+                if (curTime > songi->artistScrollTime && curTime < songi->artistScrollTime + 3.0) {
                     songi->artistXOffset = 0;
-
+                }
                 if (curTime > songi->artistScrollTime + 3.0) {
                     songi->artistXOffset -= 1;
-                    if (songi->artistXOffset
-                        < -(songi->artistTextWidth - (float)songArtistWidth)) {
+                    if (songi->artistXOffset < -(songi->artistTextWidth - songArtistWidth)) {
+                        songi->artistXOffset = -(songi->artistTextWidth - songArtistWidth);
                         songi->artistScrollTime = curTime + 3.0;
                     }
                 }
             }
-
-            BeginScissorMode(
-                (int)songXPos + 30 + (int)songTitleWidth,
-                (int)songYPos,
-                songArtistWidth,
-                songEntryHeight
-            );
-            GameMenu::mhDrawText(
-                artistFont,
-                songi->artist.c_str(),
-                { songXPos + 30 + (float)songTitleWidth + songi->artistXOffset,
-                  songYPos + u.hinpct(0.02f) },
-                u.hinpct(0.025f),
-                isCurSong ? WHITE : LightText,
-                LEFT
-            );
+            if (!isCurSong) {
+                songTitle.Col({ 203, 203, 203, 255 });
+                songArtist.Col({ 203, 203, 203, 255 });
+            } else {
+                songTitle.Col(WHITE);
+                songArtist.Col(WHITE);
+            }
+            songTitle.pos.x = songXPos + songi->titleXOffset;
+            BeginScissorMode(songXPos, songYPos, songTitleWidth, songEntryHeight);
+            songTitle.DrawText(songi->title.c_str());
             EndScissorMode();
+
+            BeginScissorMode(songXPos + songTitleWidth + 30, songYPos, songArtistWidth, songEntryHeight);
+            songArtist.pos.x = songXPos + songTitleWidth + songi->artistXOffset + 30;
+            songArtist.DrawText(songi->artist.c_str());
+            EndScissorMode();
+
+            songTitle.pos.y += songEntryHeight;
+            songArtist.pos.y += songEntryHeight;
+            songYPos += songEntryHeight;
         }
     }
     if (curSongMenuPos > 0 && curSongMenuPos < TheSongList.
@@ -665,7 +626,7 @@ void SongSelectMenu::Draw() {
                 .headerChar;
         }
 
-        GameMenu::mhDrawText(
+        Encore::Text::DrawText(
             assets.rubikBold,
             categoryHeaderText.c_str(),
             { u.LeftSide + 5, u.hpct(0.218333f) },
@@ -707,7 +668,7 @@ void SongSelectMenu::Draw() {
     float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth /
         2.0f);
     float titleTextY = AlbumY - u.hinpct(0.045f);
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         assets.rubikBold,
         titleText.c_str(),
         { titleTextX, titleTextY },
@@ -737,49 +698,51 @@ void SongSelectMenu::Draw() {
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
-    GameMenu::lDrawText(assets.rubik, "songSelect.quickplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
+    Encore::Text::lDrawText(assets.rubik, "songSelect.quickplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
 
-    GameMenu::lDrawText(assets.redHatDisplayBlack,
-                         "songSelect.header",
-                         { TextPlacementLR, TextPlacementTB },
-                         u.hinpct(0.125f),
-                         WHITE,
-                         LEFT);
+    Encore::TextDisplay header;
+    header.Pos(TextPlacementLR, TextPlacementTB)
+          .Bounds(u.winpct(0.74), u.hinpct(0.125f))
+          .Size(u.hinpct(0.125f)).Fnt(ASSET(redHatDisplayBlack)).lDrawText("songSelect.header");
 
     std::string albumText = SongToDisplayInfo->album.empty()
         ? "No Album Listed"
         : SongToDisplayInfo->album;
     std::string yearText = SongToDisplayInfo->releaseYear.empty()
-        ? "Unknown Year"
+        ? "67"
         : SongToDisplayInfo->releaseYear;
-    std::string albumDisplayText = albumText + " | " + yearText;
-    float albumTextHeight = MeasureTextEx(assets.rubikBold,
-                                          albumDisplayText.c_str(),
-                                          u.hinpct(0.035f),
-                                          0).y;
-    float albumTextWidth = MeasureTextEx(assets.rubikBold,
-                                         albumDisplayText.c_str(),
-                                         u.hinpct(0.035f),
-                                         0).x;
-    float albumNameTextCenter = u.RightSide - u.winpct(0.125f) - AlbumInner;
-    float albumTTop = AlbumY + AlbumHeight + u.hinpct(0.011f);
-    float albumNameFontSize = albumTextWidth <= u.winpct(0.25f)
-        ? u.hinpct(0.035f)
-        : u.winpct(0.23f) / (albumTextWidth / albumTextHeight);
-    float albumNameLeft = albumNameTextCenter - (MeasureTextEx(
-        assets.rubikBold,
-        albumDisplayText.c_str(),
-        albumNameFontSize,
-        0).x / 2);
-    float albumNameTextTop = albumTextWidth <= u.winpct(0.25f)
-        ? albumTTop
-        : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
-    GameMenu::mhDrawText(assets.rubikBold,
-                         albumDisplayText.c_str(),
-                         { albumNameLeft, albumNameTextTop },
-                         albumNameFontSize,
-                         WHITE,
-                         LEFT);
+    std::string albumDisplayText = albumText + ", " + yearText;
+
+    // float albumTextHeight = MeasureTextEx(assets.rubikBold,
+    //                                       albumDisplayText.c_str(),
+    //                                       u.hinpct(0.035f),
+    //                                       0).y;
+    // float albumTextWidth = MeasureTextEx(assets.rubikBold,
+    //                                      albumDisplayText.c_str(),
+    //                                      u.hinpct(0.035f),
+    //                                      0).x;
+   // float albumNameTextCenter = u.RightSide - (AlbumWidth / 2) - AlbumInner;
+    float albumTTop = AlbumY + AlbumHeight + AlbumOuter;
+   // float albumNameFontSize = albumTextWidth <= AlbumWidth
+    //    ? fontSize
+   //     : AlbumWidth / (albumTextWidth / albumTextHeight);
+
+    //float albumNameLeft = albumNameTextCenter - (MeasureTextEx(
+    //    assets.rubikBold,
+    //    albumDisplayText.c_str(),
+    //    albumNameFontSize,
+    //    0).x / 2);
+
+    ////float albumNameTextTop = albumTextWidth <= AlbumWidth
+    //    ? albumTTop
+    //    : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
+
+    //Encore::Text::DrawText(assets.rubikBold,
+    //                     albumDisplayText.c_str(),
+    //                     { albumNameLeft, albumNameTextTop },
+    //                     albumNameFontSize,
+    //                     WHITE,
+    //                     LEFT);
 
     DrawLine(u.RightSide - AlbumHeight - AlbumOuter,
              AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
@@ -789,13 +752,13 @@ void SongSelectMenu::Draw() {
 
     float DiffTop = AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.045f));
     float IconWidth = float(AlbumHeight - AlbumOuter) / 5.0f;
-    GameMenu::lDrawText(assets.rubikItalic,
+    Encore::Text::lDrawText(assets.rubikItalic,
                          "parts.pad",
                          { (u.RightSide - AlbumHeight + AlbumInner), DiffTop },
                          AlbumOuter * 3,
                          WHITE,
                          LEFT);
-    GameMenu::lDrawText(assets.rubikItalic,
+    Encore::Text::lDrawText(assets.rubikItalic,
                          "parts.classic",
                          { (u.RightSide - AlbumHeight + AlbumInner),
                            DiffTop + IconWidth + (AlbumOuter * 3) },
@@ -849,6 +812,11 @@ void SongSelectMenu::Draw() {
     GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
 
+    Encore::TextDisplay albumData;
+    albumData.Bounds(AlbumHeight - AlbumOuter, u.hinpct(0.04f))
+             .Pos(AlbumX, albumTTop).Size(u.hinpct(0.035f)).Align(CENTER)
+             .Fnt(ASSET(rubik));
+    albumData.DrawText(albumDisplayText);
     /*if (GuiButton(Rectangle{ ButtonStart, ButtonTop,
                              ButtonWidth, u.hinpct(0.05f) },
                   "       Play Song")) {

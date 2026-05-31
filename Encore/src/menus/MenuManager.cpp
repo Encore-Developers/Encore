@@ -50,9 +50,9 @@ void MenuManager::DrawMenu() {
         DrawRectangleRec(warningBox, { 64, 64, 64, 196 });
         float fontSize = u.hinpct(0.05f);
 
-        TextDisplay data;
+        Encore::TextDisplay data;
         data.Fnt(ASSET(rubik)).Size(fontSize).Pos(warningBox.x, warningBox.y);
-        TextDisplay count;
+        Encore::TextDisplay count;
         count.Fnt(ASSET(redHatMono)).Size(fontSize)
              .Pos(warningBox.x + warningBox.width, warningBox.y).Align(RIGHT);
 

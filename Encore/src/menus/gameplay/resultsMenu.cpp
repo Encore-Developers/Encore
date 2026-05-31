@@ -124,13 +124,13 @@ void resultsMenu::Draw() {
     float SecondaryFontSize = TitleFontSize * 0.75f;
     float SecondaryFontOffset = TitleFontSize * 1.2f;
     float TitleSize = MeasureTextEx(ASSET(rubikBold), TheSongList.curSong->title.c_str(), TitleFontSize, 0).x;
-    GameMenu::mhDrawText(ASSET(rubikBold), TheSongList.curSong->title,
+    Encore::Text::DrawText(ASSET(rubikBold), TheSongList.curSong->title,
                          { textX, TitleFontOffset },
                          TitleFontSize,
                          WHITE,
                          LEFT
     );
-    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist,
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist,
                          { textX + TitleSize + u.hinpct(0.02f), TitleFontOffset + u.hinpct(0.008f) },
                          SecondaryFontSize,
                          LIGHTGRAY,
@@ -140,7 +140,7 @@ void resultsMenu::Draw() {
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {textX, TitleFontOffset + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-    GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
                          { textX + ( TitleFontSize * 1.125f), TitleFontOffset + SecondaryFontOffset },
                          SecondaryFontSize,
                          LIGHTGRAY,
@@ -162,7 +162,7 @@ void resultsMenu::Draw() {
         accentColor,
         Color { 0, 0, 0, 0 }
     );
-    GameMenu::lDrawText(
+    Encore::Text::lDrawText(
         assets.josefinSansItalic,
         "resultsMenu.indevWarning",
         { TopLeft.x, TopLeft.y + u.hinpct(0.008f) },
@@ -174,7 +174,7 @@ void resultsMenu::Draw() {
     // renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f),
     // u.hinpct(0.05f), false);
     float ScoreFontSize = u.hinpct(0.075f);
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         assets.redHatDisplayItalic,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
         { u.RightSide, u.hpct(0.02125f) },
@@ -272,7 +272,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float Percent =
        floorf(((float)stats->NotesHit / (float)stats->AttemptedNotes) * 100.0f);
 
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         assets.redHatDisplayItalic,
         scoreString,
         { scorePos, (float)GetRenderHeight() / 2 },
@@ -290,7 +290,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
 
     if (rendAsFC) {
-        GameMenu::lDrawText(
+        Encore::Text::lDrawText(
             assets.rubikBold,
             "resultsMenu.infoText.fc",
             {cardPos + cardHalfWidth, u.hpct(0.32f)},
@@ -304,7 +304,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     //    ImportantInfoTextColor = RED;
    // }
     if (player.Bot) {
-        GameMenu::lDrawText(
+        Encore::Text::lDrawText(
             assets.rubikBold,
             "resultsMenu.infoText.autoplay",
             {cardPos + cardHalfWidth, u.hpct(0.32f)},

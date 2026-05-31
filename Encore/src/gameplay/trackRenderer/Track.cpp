@@ -273,7 +273,7 @@ void Encore::Track::DrawSoloUI() {
             AnimCamera);
         screenPos.x += Offset * GetRenderWidth() * 0.5;
         float SoloPercentHeight = u.hinpct(0.05f);
-        GameMenu::mhDrawText(ASSET(redHatMono),
+        Text::DrawText(ASSET(redHatMono),
                              TextFormat("%01i%%",
                                         int((float(curSolo->NotesHit) / float(
                                             curSolo->NoteCount)) * 100.0f)),
@@ -281,7 +281,7 @@ void Encore::Track::DrawSoloUI() {
                              SoloPercentHeight,
                              { 119, 183, 255, 255 },
                              CENTER);
-        GameMenu::mhDrawText(ASSET(redHatMono),
+        Text::DrawText(ASSET(redHatMono),
                              TextFormat("%01i/%01i",
                                         curSolo->NotesHit,
                                         curSolo->NoteCount),
@@ -322,7 +322,7 @@ void Encore::Track::DrawUsername() {
                    0,
                    WHITE);
     left += FontSize;
-    GameMenu::mhDrawText(ASSET(rubik),
+    Text::DrawText(ASSET(rubik),
                          NameText,
                          { left, screenPos.y },
                          FontSize,
@@ -459,7 +459,7 @@ void Encore::Track::DrawTrackNotifications() {
 
     Vector2 pos = { ScreenNotifPosition.x, ScreenNotifPosition.y };
     pos.x += Offset * GetRenderWidth() * 0.5;
-    GameMenu::mhDrawText(
+    Text::DrawText(
         ASSET(josefinSansBold),
         Text,
         pos,
@@ -495,7 +495,7 @@ void Encore::Track::DrawCombo() {
             ScreenMultiplierPosition.y - (TextHeight / 2) };
     pos.x += Offset * GetRenderWidth() * 0.5;
 
-    GameMenu::mhDrawText(
+    Text::DrawText(
         ASSET(rubikBold),
         std::to_string(player.engine->stats->Combo),
         pos,
@@ -592,7 +592,7 @@ void Encore::Track::DrawJudgement() {
     pos = { xPos, ScreenMultiplierPosition.y - (TextHeight / 2) };
     pos.x += Offset * GetRenderWidth() * 0.5;
 
-    GameMenu::mhDrawText(
+    Text::DrawText(
         ASSET(rubikBold),
         JudgementStr,
         pos,

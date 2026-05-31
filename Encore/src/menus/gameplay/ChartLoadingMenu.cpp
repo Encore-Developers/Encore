@@ -205,13 +205,13 @@ void ChartLoadingMenu::Draw() {
     ClearBackground(BLACK);
     GameMenu::DrawAlbumArtBackground();
     encOS::DrawTopOvershell(0.15f);
-    DrawTextEx(
+    Encore::Text::lDrawText(
         assets.redHatDisplayBlack,
-        LOCALIZE("chartLoading.header"),
+        "chartLoading.header",
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
-        0,
-        WHITE
+        WHITE,
+        LEFT
     );
     float AfterLoadingTextPos =
         MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
@@ -220,13 +220,13 @@ void ChartLoadingMenu::Draw() {
         ? LOCALIZE("chartLoading.loadingPhrase").toString()
         : TheSongList.curSong->loadingPhrase;
 
-    DrawTextEx(
+    Encore::Text::DrawText(
         assets.rubikBold,
         LoadingPhrase.c_str(),
         { u.LeftSide + AfterLoadingTextPos + u.winpct(0.02f), u.hpct(0.09f) },
         u.hinpct(0.05f),
-        0,
-        LIGHTGRAY
+        LIGHTGRAY,
+        LEFT
     );
 
     GameMenu::DrawBottomOvershell();

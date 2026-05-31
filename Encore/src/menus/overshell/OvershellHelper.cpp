@@ -101,7 +101,7 @@ bool encOS::DrawOvershellRectangleHeader(
     }
 
     float centerPos = x + (width / 2);
-    GameMenu::mhDrawText(
+    Encore::Text::DrawText(
         assets.redHatDisplayBlack,
         username.c_str(),
         { centerPos, (height / 4) + y },

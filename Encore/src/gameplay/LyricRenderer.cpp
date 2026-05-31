@@ -117,7 +117,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
         0).x / 2);
 
     if (!playedText.empty()) {
-        GameMenu::mhDrawText(*font,
+        Text::DrawText(*font,
                              playedText,
                              { LyricLeft, baselineVox + padding },
                              FontSize,
@@ -125,7 +125,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                              LEFT);
         LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
     }
-    GameMenu::mhDrawText(*font,
+    Text::DrawText(*font,
                          unplayedText,
                          { LyricLeft, baselineVox + padding },
                          FontSize,
