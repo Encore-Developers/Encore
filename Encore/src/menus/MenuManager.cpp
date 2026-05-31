@@ -30,6 +30,7 @@ void MenuManager::SwitchToMenu(std::shared_ptr<Menu> menu) {
     ActiveMenu = std::move(menu);
     onNewMenu = true;
 }
+
 void MenuManager::LoadMenu() {
     ZoneScoped
     TheMenuManager.onNewMenu = false;
@@ -45,97 +46,32 @@ void MenuManager::DrawMenu() {
     menu->Draw();
     if (ScanningSongs) {
         Units &u = Units::getInstance();
-        Rectangle warningBox {u.wpct(0.35), u.hpct(0.35), u.winpct(0.3), u.hinpct(0.3)};
-        DrawRectangleRec(warningBox, {64, 64, 64, 196});
+        Rectangle warningBox{ u.wpct(0.35), u.hpct(0.35), u.winpct(0.3), u.hinpct(0.3) };
+        DrawRectangleRec(warningBox, { 64, 64, 64, 196 });
         float fontSize = u.hinpct(0.05f);
-        std::string folderCount = std::to_string(FolderCount);
-        std::string songCount = std::to_string(SongCount);
-        std::string badSongCount = std::to_string(BadSongCount);
-        std::string songsHashed = std::to_string(SongsHashed);
-        GameMenu::mhDrawText(
-            ASSET(rubik),
-            "Scanning Songs",
-            {  warningBox.x, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            LEFT
-        );
-        warningBox.y += fontSize;
-        GameMenu::mhDrawText(
-            ASSET(rubik),
-            "Folders Found: ",
-            {  warningBox.x, warningBox.y},
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            LEFT
-        );
-        GameMenu::mhDrawText(
-            ASSET(redHatMono),
-            folderCount,
-            {  warningBox.x + (warningBox.width), warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            RIGHT
-        );
-        warningBox.y += fontSize;
-        GameMenu::mhDrawText(
-            ASSET(rubik),
-            "Songs Found: ",
-            {  warningBox.x, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            LEFT
-        );
-        GameMenu::mhDrawText(
-            ASSET(redHatMono),
-            songCount,
-            {  warningBox.x + warningBox.width, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            RIGHT
-        );
-        warningBox.y += fontSize;
-        GameMenu::mhDrawText(
-            ASSET(rubik),
-            "Bad Songs: ",
-            {  warningBox.x, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            LEFT
-        );
-        GameMenu::mhDrawText(
-            ASSET(redHatMono),
-            badSongCount,
-            {  warningBox.x + warningBox.width, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            RIGHT
-        );
-        warningBox.y += fontSize;
-        GameMenu::mhDrawText(
-            ASSET(rubik),
-            "Songs Hashed: ",
-            {  warningBox.x, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            LEFT
-        );
-        GameMenu::mhDrawText(
-            ASSET(redHatMono),
-            songsHashed,
-            {  warningBox.x + warningBox.width, warningBox.y },
-            fontSize,
-            WHITE,
-            ASSET(sdfShader),
-            RIGHT
-        );
+
+        TextDisplay data;
+        data.Font(ASSET(rubik)).Size(fontSize).Pos(warningBox.x, warningBox.y);
+        TextDisplay count;
+        count.Font(ASSET(redHatMono)).Size(fontSize)
+             .Pos(warningBox.x + warningBox.width, warningBox.y).Align(RIGHT);
+
+        data.lDrawText("songScanning.header");
+        data.pos.y += fontSize;
+        count.pos.y += fontSize;
+        data.lDrawText("songScanning.folders");
+        count.DrawText(std::to_string(FolderCount));
+        data.pos.y += fontSize;
+        count.pos.y += fontSize;
+        data.lDrawText("songScanning.songs");
+        count.DrawText(std::to_string(SongCount));
+        data.pos.y += fontSize;
+        count.pos.y += fontSize;
+        data.lDrawText("songScanning.hashed");
+        count.DrawText(std::to_string(SongsHashed));
+        data.pos.y += fontSize;
+        count.pos.y += fontSize;
+        data.lDrawText("songScanning.badSongs");
+        count.DrawText(std::to_string(BadSongCount));
     }
 }

@@ -76,13 +76,12 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
 
             DrawRectangleRec(pos, ButtonColor);
 
-            GameMenu::mhDrawText(
+            GameMenu::lDrawText(
                 ASSET(rubik),
-                LOCALIZE(diffList[i]),
+                diffList[i],
                 { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
                 u.hinpct(0.03f),
                 WHITE,
-                ASSET(sdfShader),
                 LEFT
             );
         } else {
@@ -229,7 +228,6 @@ void ReadyUpMenu::Draw() {
                     { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
                     u.hinpct(0.03f),
                     WHITE,
-                    assets.sdfShader,
                     LEFT
                 );
             }
@@ -251,13 +249,12 @@ void ReadyUpMenu::Draw() {
                 SlotState[playerInt] = DIFFICULTY;
                 ReadyState[playerInt] = false;
             }
-            GameMenu::mhDrawText(
+            GameMenu::lDrawText(
                 assets.rubik,
-                LOCALIZE("generic.difficulty"),
+                "generic.difficulty",
                 { xPosOfMenu, BottomOvershell - u.hinpct(0.04f) },
                 u.hinpct(0.03f),
                 WHITE,
-                assets.sdfShader,
                 LEFT
             );
             auto difficultyLocalized = LOCALIZE(diffList[player.Difficulty]);
@@ -286,13 +283,12 @@ void ReadyUpMenu::Draw() {
                 SlotState[playerInt] = INSTRUMENT;
                 ReadyState[playerInt] = false;
             }
-            GameMenu::mhDrawText(
+            GameMenu::lDrawText(
                 assets.rubik,
-                LOCALIZE("generic.instrument"),
+                "generic.instrument",
                 { xPosOfMenu, BottomOvershell - u.hinpct(0.09f) },
                 u.hinpct(0.03f),
                 WHITE,
-                assets.sdfShader,
                 LEFT
             );
             auto text = LOCALIZE(songPartsList[player.Instrument]);

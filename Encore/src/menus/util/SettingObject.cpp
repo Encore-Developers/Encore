@@ -21,7 +21,7 @@ void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hover
         DrawRectangleRec(pos, glowColor);
         EndBlendMode();
     }
-    GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
+    GameMenu::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
 
     Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - ButtonSpace.height, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
     GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
@@ -32,6 +32,8 @@ void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hover
         BeginBlendMode(BLEND_ADDITIVE);
         DrawRectangleRec(rightButton, {glowColor.r, glowColor.g, glowColor.b, (unsigned char)(glowColor.a*3)});
         EndBlendMode();
+        float half = rightButton.height / 2;
+        GameMenu::mhDrawText(ASSET(redHatDisplayBlack), "X", {rightButton.x + half, rightButton.y}, rightButton.height, WHITE, CENTER);
     }
 }
 
@@ -47,13 +49,13 @@ void Encore::SettingDoohickey::floatSettingObject::Draw(Rectangle pos, bool hove
         DrawRectangleRec(pos, glowColor);
         EndBlendMode();
     }
-    GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
+    GameMenu::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
     float temp = *value;
     GuiSlider(ButtonSpace, nullptr, nullptr, &temp, min, max);
     if (!Clickable) {
         *value = temp;
     }
-    GameMenu::mhDrawText(ASSET(rubik), TextFormat("%i%%", int(*value * 100)), {ButtonSpace.x + (ButtonSpace.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
+    GameMenu::mhDrawText(ASSET(rubik), TextFormat("%i%%", int(*value * 100)), {ButtonSpace.x + (ButtonSpace.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, CENTER);
 }
 
 void Encore::SettingDoohickey::buttonSettingObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
@@ -73,14 +75,14 @@ void Encore::SettingDoohickey::buttonSettingObject::Draw(Rectangle pos, bool hov
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mousePos, pos) && !Clickable) {
         value->operator()();
     }
-    GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + (pos.width /2), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), CENTER);
+    GameMenu::lDrawText(ASSET(rubikBold), name, {pos.x + (pos.width /2), TextTop}, EntryFontSize, WHITE, CENTER);
 }
 
 void Encore::SettingDoohickey::separatorObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
     Units u = Units::getInstance();
     float EntryFontSize = u.hinpct(0.03f);
     float TextTop = pos.y + ((pos.height - EntryFontSize) / 3) * 2;
-    GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
+    GameMenu::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
     DrawLineEx({pos.x, pos.y + pos.height-2}, {pos.x + pos.width, pos.y + pos.height-2}, 2, WHITE);
 }
 
@@ -96,7 +98,7 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
         DrawRectangleRec(pos, glowColor);
         EndBlendMode();
     }
-    GameMenu::mhDrawText(ASSET(rubikBold), LOCALISE(name), {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), LEFT);
+    GameMenu::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
     Rectangle leftButton {ButtonSpace.x, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
     Rectangle slider {ButtonSpace.x + leftButton.width, ButtonSpace.y, ButtonSpace.width - (leftButton.width*2), leftButton.width};
     Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - leftButton.width, ButtonSpace.y, leftButton.width, leftButton.width};
@@ -117,9 +119,9 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
         if (*value > max) *value = max;
     }
 
-    GameMenu::mhDrawText(ASSET(rubik), TextFormat("-%i", increment), {leftButton.x + (leftButton.width / 2), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), CENTER);
-    GameMenu::mhDrawText(ASSET(rubik), TextFormat("+%i", increment), {rightButton.x + (rightButton.width / 2), TextTop}, EntryFontSize, WHITE, ASSET(sdfShader), CENTER);
-    GameMenu::mhDrawText(ASSET(rubikBold), TextFormat("%i", *value), {slider.x + (slider.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, ASSET(sdfShader), CENTER);
+    GameMenu::mhDrawText(ASSET(rubik), TextFormat("-%i", increment), {leftButton.x + (leftButton.width / 2), TextTop}, EntryFontSize, WHITE, CENTER);
+    GameMenu::mhDrawText(ASSET(rubik), TextFormat("+%i", increment), {rightButton.x + (rightButton.width / 2), TextTop}, EntryFontSize, WHITE, CENTER);
+    GameMenu::mhDrawText(ASSET(rubikBold), TextFormat("%i", *value), {slider.x + (slider.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, CENTER);
 }
 void Encore::SettingDoohickey::boolSettingObject::Action(bool invert) {
     *value = !*value;

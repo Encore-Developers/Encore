@@ -125,29 +125,26 @@ void resultsMenu::Draw() {
     float SecondaryFontOffset = TitleFontSize * 1.2f;
     float TitleSize = MeasureTextEx(ASSET(rubikBold), TheSongList.curSong->title.c_str(), TitleFontSize, 0).x;
     GameMenu::mhDrawText(ASSET(rubikBold), TheSongList.curSong->title,
-{ textX, TitleFontOffset },
-        TitleFontSize,
-        WHITE,
-        ASSET(sdfShader),
-        LEFT
+                         { textX, TitleFontOffset },
+                         TitleFontSize,
+                         WHITE,
+                         LEFT
     );
     GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist,
-        { textX + TitleSize + u.hinpct(0.02f), TitleFontOffset + u.hinpct(0.008f) },
-        SecondaryFontSize,
-        LIGHTGRAY,
-        ASSET(sdfShader),
-        LEFT
+                         { textX + TitleSize + u.hinpct(0.02f), TitleFontOffset + u.hinpct(0.008f) },
+                         SecondaryFontSize,
+                         LIGHTGRAY,
+                         LEFT
     );
     auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {textX, TitleFontOffset + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
     GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
-        { textX + ( TitleFontSize * 1.125f), TitleFontOffset + SecondaryFontOffset },
-        SecondaryFontSize,
-        LIGHTGRAY,
-        ASSET(sdfShader),
-        LEFT
+                         { textX + ( TitleFontSize * 1.125f), TitleFontOffset + SecondaryFontOffset },
+                         SecondaryFontSize,
+                         LIGHTGRAY,
+                         LEFT
     );
     Color accentColor =
         ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
@@ -165,14 +162,13 @@ void resultsMenu::Draw() {
         accentColor,
         Color { 0, 0, 0, 0 }
     );
-    GameMenu::mhDrawText(
+    GameMenu::lDrawText(
         assets.josefinSansItalic,
-        LOCALIZE("resultsMenu.indevWarning"),
+        "resultsMenu.indevWarning",
         { TopLeft.x, TopLeft.y + u.hinpct(0.008f) },
         u.hinpct(0.025f),
         WHITE,
-        sdfShader,
-        0
+        LEFT
     );
 
     // renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f),
@@ -181,10 +177,9 @@ void resultsMenu::Draw() {
     GameMenu::mhDrawText(
         assets.redHatDisplayItalic,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
-         { u.RightSide, u.hpct(0.02125f) },
-         ScoreFontSize,
+        { u.RightSide, u.hpct(0.02125f) },
+        ScoreFontSize,
         GetColor(0x00adffFF),
-        sdfShader,
         RIGHT
     );
     GameMenu::DrawBottomOvershell();
@@ -283,7 +278,6 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         { scorePos, (float)GetRenderHeight() / 2 },
         u.hinpct(0.065f),
         GetColor(0x00adffFF),
-        sdfShader,
         CENTER
     );
 
@@ -296,13 +290,12 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
 
     if (rendAsFC) {
-        GameMenu::mhDrawText(
+        GameMenu::lDrawText(
             assets.rubikBold,
-            LOCALIZE("resultsMenu.infoText.fc"),
+            "resultsMenu.infoText.fc",
             {cardPos + cardHalfWidth, u.hpct(0.32f)},
             SmallHeader,
             WHITE,
-            sdfShader,
             CENTER
         );
     }
@@ -311,13 +304,12 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     //    ImportantInfoTextColor = RED;
    // }
     if (player.Bot) {
-        GameMenu::mhDrawText(
+        GameMenu::lDrawText(
             assets.rubikBold,
-            LOCALIZE("resultsMenu.infoText.autoplay"),
+            "resultsMenu.infoText.autoplay",
             {cardPos + cardHalfWidth, u.hpct(0.32f)},
             SmallHeader,
             SKYBLUE,
-            sdfShader,
             CENTER
         );
     }

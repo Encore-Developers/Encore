@@ -215,7 +215,6 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         { u.RightSide - u.winpct(0.0145f), ScoreboxY + scoreTextPadding },
         u.hinpct(0.05),
         Color{ 107, 161, 222, 255 },
-        assets.sdfShader,
         RIGHT
     );
     EndBlendMode();
@@ -275,7 +274,6 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
         { u.RightSide - (WidthOfTimerbox / 2), TimerboxY - u.hinpct(SmallHeader * (0.66 * 1.25)) },
         u.hinpct(SmallHeader * 0.66),
         WHITE,
-        assets.sdfShader,
         CENTER
     );
 }
@@ -562,19 +560,19 @@ void GameplayMenu::Draw() {
     float topOfVocalBar = u.hpct(0.2f);
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
     GameMenu::mhDrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
-        {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
-        WHITE, ASSET(sdfShader), LEFT);
+                         {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
+                         WHITE, LEFT);
     float TitleFontOffset = (TitleFontSize * 1.25f);
     float SecondaryFontSize = TitleFontSize * 0.85f;
     GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
-        {u.wpct(0.01f), topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
-        LIGHTGRAY, ASSET(sdfShader), LEFT);
+                         {u.wpct(0.01f), topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
+                         LIGHTGRAY, LEFT);
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
     GameMenu::mhDrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
-        {u.wpct(0.01f) + ( TitleFontSize * 1.125f) , topOfVocalBar + (TitleFontOffset + TitleFontSize)}, SecondaryFontSize,
-        LIGHTGRAY, ASSET(sdfShader), LEFT);
+                         {u.wpct(0.01f) + ( TitleFontSize * 1.125f) , topOfVocalBar + (TitleFontOffset + TitleFontSize)}, SecondaryFontSize,
+                         LIGHTGRAY, LEFT);
 
     GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
     GuiSetStyle(DEFAULT, TEXT_SIZE, static_cast<int>(u.hinpct(0.03f)));
@@ -728,7 +726,6 @@ void GameplayMenu::DrawPauseMenu() {
         { TextPlacementLR, TextPlacementTB },
         u.hinpct(0.05f),
         WHITE,
-        ASSET(sdfShader),
         LEFT
     );
     GameMenu::mhDrawText(
@@ -737,8 +734,7 @@ void GameplayMenu::DrawPauseMenu() {
         { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
         u.hinpct(0.04f),
         WHITE,
-            ASSET(sdfShader),
-            LEFT
+        LEFT
     );
     const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
@@ -751,7 +747,6 @@ void GameplayMenu::DrawPauseMenu() {
             { TextPlacementLR + u.hinpct(0.05f), TextPlacementTB + u.hinpct(0.095f) },
             u.hinpct(0.04f),
             WHITE,
-            ASSET(sdfShader),
             LEFT
         );
     }

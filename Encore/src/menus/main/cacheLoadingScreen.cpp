@@ -50,13 +50,12 @@ void cacheLoadingScreen::Draw() {
         MAGENTA
     );
 
-    GameMenu::mhDrawText(
+    GameMenu::lDrawText(
         ASSET(redHatDisplayBlack),
-        LOCALIZE("cacheLoading.header"),
+        "cacheLoading.header",
         { u.LeftSide, u.hpct(0.05f) },
         u.hinpct(0.125f),
         WHITE,
-        ASSET(sdfShader),
         LEFT
     );
     float RubikFontSize = u.hinpct(0.05f);
@@ -70,7 +69,6 @@ void cacheLoadingScreen::Draw() {
         { u.RightSide, u.hpct(0.085f) },
         RubikFontSize,
         LIGHTGRAY,
-        ASSET(sdfShader),
         RIGHT
     );
     GameMenu::DrawBottomOvershell();
@@ -96,7 +94,6 @@ void cacheLoadingScreen::Draw() {
           GetRenderHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
         RubikFontSize / 1.5f,
         WHITE,
-        ASSET(sdfShader),
         LEFT
     );
     if (!CacheLoad::started) {

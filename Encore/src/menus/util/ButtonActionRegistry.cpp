@@ -54,16 +54,16 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
                 0x00000000);
     GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
     float ButtonWidth = u.winpct(0.135f);
-    const float ButtonStart = left;
-    const float ButtonTop = top;
     const float buttonHeight = u.hinpct(0.05f);
     const float fontSize = u.hinpct(0.03f);
-    Rectangle pos = {ButtonStart, ButtonTop, ButtonWidth, buttonHeight};
+    Rectangle pos = {left, top, ButtonWidth, buttonHeight};
+    TextDisplay ButtonData;
+    ButtonData.Pos(left + buttonHeight, top + u.hinpct(0.01f)).Size(fontSize);
+
     for (auto &butt : buttMap) {
         if (!butt.second.barVisible)
             continue;
-        auto name = LOCALIZE(butt.second.Name);
-        float textWidth = MeasureTextEx(ASSET(rubik), name, fontSize, 0).x;
+        float textWidth = ButtonData.lTextWidth(butt.second.Name);
         pos.width = textWidth + (buttonHeight * 1.5);
         if (!OvershellOpen && GuiButton(pos,"")) {
             butt.second.RunAction(RhythmEngine::Action::PRESS, 0);
@@ -72,21 +72,14 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         // todo: replace this with actual controller-dependant icons
         GameMenu::mhDrawText(ASSET(rubikBold),
                              tempLaneToButtonLabel(butt.first),
-                             { pos.x +  + u.hinpct(0.01f),
+                             { pos.x + u.hinpct(0.01f),
                                pos.y + u.hinpct(0.01f) },
                              fontSize,
                              tempColorToButtonLabel(butt.first),
-                             ASSET(sdfShader),
                              LEFT);
 
-        GameMenu::mhDrawText(ASSET(rubik),
-                             name,
-                             { pos.x + buttonHeight,
-                               pos.y + u.hinpct(0.01f) },
-                             fontSize,
-                             WHITE,
-                             ASSET(sdfShader),
-                             LEFT);
+        ButtonData.lDrawText(butt.second.Name);
+        ButtonData.pos.x += pos.width;
         pos.x += pos.width;
     }
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);

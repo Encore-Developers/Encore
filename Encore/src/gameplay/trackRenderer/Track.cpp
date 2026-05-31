@@ -280,7 +280,6 @@ void Encore::Track::DrawSoloUI() {
                              screenPos,
                              SoloPercentHeight,
                              { 119, 183, 255, 255 },
-                             ASSET(sdfShader),
                              CENTER);
         GameMenu::mhDrawText(ASSET(redHatMono),
                              TextFormat("%01i/%01i",
@@ -289,7 +288,6 @@ void Encore::Track::DrawSoloUI() {
                              { screenPos.x, screenPos.y + SoloPercentHeight },
                              u.hinpct(0.025f),
                              WHITE,
-                             ASSET(sdfShader),
                              CENTER);
     }
 }
@@ -329,7 +327,6 @@ void Encore::Track::DrawUsername() {
                          { left, screenPos.y },
                          FontSize,
                          color,
-                         ASSET(sdfShader),
                          LEFT);
 }
 
@@ -468,7 +465,6 @@ void Encore::Track::DrawTrackNotifications() {
         pos,
         u.hinpct(getEasingFunction(EaseOutBack)(size) * FontPct),
         { 255, 255, 255, (unsigned char)(255.0f * size) },
-        ASSET(sdfShader),
         CENTER
     );
     // }
@@ -505,7 +501,6 @@ void Encore::Track::DrawCombo() {
         pos,
         FontSize,
         ColorAlpha(WHITE, 0.75),
-        ASSET(sdfShader),
         LEFT
     );
 }
@@ -603,7 +598,6 @@ void Encore::Track::DrawJudgement() {
         pos,
         FontSize,
         { JudgementColor.r, JudgementColor.g, JudgementColor.b, alpha },
-        ASSET(sdfShader),
         LEFT
     );
 }

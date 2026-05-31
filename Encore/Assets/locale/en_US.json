@@ -253,6 +253,13 @@
 		"header": "LOADING CACHE",
 		"loading": "{}/{} songs loaded"
 	},
+	"songScanning":  {
+		"header": "Scanning Songs",
+		"folders": "Folders Found:",
+		"songs": "Songs Found:",
+		"badSongs": "Bad Songs Found:",
+		"hashed": "Songs Hashes:"
+	},
 	"parts": {
 		"pad": "Pad",
 		"classic": "Classic",

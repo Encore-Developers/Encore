@@ -443,33 +443,14 @@ void SongSelectMenu::Draw() {
     int AlbumInner = u.hinpct(0.005f);
 
     std::string sortType = LOCALIZE("songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
-    GameMenu::mhDrawText(
-        assets.josefinSansItalic,
-        LOCALIZE_FMT("songSelect.sortedBy", sortType),
-        { u.LeftSide, u.hpct(0.165f) },
-        u.hinpct(0.03f),
-        WHITE,
-        ASSET(sdfShader),
-        LEFT
-    );
+    TextDisplay sortData;
+    sortData.Font(ASSET(josefinSansItalic)).Size(u.hinpct(0.03f))
+            .Pos(u.LeftSide, u.hpct(0.165f))
+            .DrawText(LOCALISE_FMT("songSelect.sortedBy", sortType));
+
+    sortData.pos.x = AlbumX - (AlbumOuter * 2);
     std::size_t sortCount = TheSongList.sortedSongs.size();
-    auto songsLoadedFmt = LOCALIZE_FMT("songSelect.songsLoaded", sortCount);
-    GameMenu::mhDrawText(
-        assets.josefinSansItalic,
-        songsLoadedFmt,
-        { AlbumX - (AlbumOuter * 2)
-          - MeasureTextEx(
-              assets.josefinSansItalic,
-              songsLoadedFmt,
-              u.hinpct(0.03f),
-              0
-          ).x,
-          u.hpct(0.165f) },
-        u.hinpct(0.03f),
-        WHITE,
-        ASSET(sdfShader),
-        LEFT
-    );
+    sortData.Align(RIGHT).DrawText(LOCALISE_FMT("songSelect.songsLoaded", sortCount));
 
     float songEntryHeight = u.hinpct(0.058333f);
     DrawRectangle(
@@ -507,14 +488,13 @@ void SongSelectMenu::Draw() {
             );
             if (currentSortValue == SortType::Source) {
                 GameMenu::mhDrawText(
-                headerFont->Fetch(),
-                TheSourceIcons.GetSourceName(TheSongList.listMenuEntries[listMenuPos].headerChar),
-                { songXPos, songYPos + u.hinpct(0.0125f) },
-                u.hinpct(0.035f),
-                WHITE,
-                ASSET(sdfShader),
-                LEFT
-            );
+                    headerFont->Fetch(),
+                    TheSourceIcons.GetSourceName(TheSongList.listMenuEntries[listMenuPos].headerChar),
+                    { songXPos, songYPos + u.hinpct(0.0125f) },
+                    u.hinpct(0.035f),
+                    WHITE,
+                    LEFT
+                );
             } else {
                 GameMenu::mhDrawText(
                     headerFont->Fetch(),
@@ -522,7 +502,6 @@ void SongSelectMenu::Draw() {
                     { songXPos, songYPos + u.hinpct(0.0125f) },
                     u.hinpct(0.035f),
                     WHITE,
-                    ASSET(sdfShader),
                     LEFT
                 );
             }
@@ -598,7 +577,6 @@ void SongSelectMenu::Draw() {
                   songYPos + u.hinpct(0.0125f) },
                 u.hinpct(0.035f),
                 isCurSong ? WHITE : LightText,
-                ASSET(sdfShader),
                 LEFT
             );
             EndScissorMode();
@@ -630,7 +608,6 @@ void SongSelectMenu::Draw() {
                   songYPos + u.hinpct(0.02f) },
                 u.hinpct(0.025f),
                 isCurSong ? WHITE : LightText,
-                ASSET(sdfShader),
                 LEFT
             );
             EndScissorMode();
@@ -694,7 +671,6 @@ void SongSelectMenu::Draw() {
             { u.LeftSide + 5, u.hpct(0.218333f) },
             u.hinpct(0.035f),
             WHITE,
-            ASSET(sdfShader),
             LEFT
         );
     }
@@ -737,7 +713,6 @@ void SongSelectMenu::Draw() {
         { titleTextX, titleTextY },
         titleFontSize,
         WHITE,
-        ASSET(sdfShader),
         LEFT
     );
 
@@ -762,14 +737,13 @@ void SongSelectMenu::Draw() {
 
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
-    GameMenu::mhDrawText(assets.rubik, LOCALISE("songSelect.quickplay"), {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, ASSET(sdfShader), LEFT);
+    GameMenu::lDrawText(assets.rubik, "songSelect.quickplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
 
-    GameMenu::mhDrawText(assets.redHatDisplayBlack,
-                         LOCALIZE("songSelect.header"),
+    GameMenu::lDrawText(assets.redHatDisplayBlack,
+                         "songSelect.header",
                          { TextPlacementLR, TextPlacementTB },
                          u.hinpct(0.125f),
                          WHITE,
-                         assets.sdfShader,
                          LEFT);
 
     std::string albumText = SongToDisplayInfo->album.empty()
@@ -801,12 +775,11 @@ void SongSelectMenu::Draw() {
         ? albumTTop
         : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
     GameMenu::mhDrawText(assets.rubikBold,
-               albumDisplayText.c_str(),
-               { albumNameLeft, albumNameTextTop },
-               albumNameFontSize,
-               WHITE,
-               ASSET(sdfShader),
-               LEFT);
+                         albumDisplayText.c_str(),
+                         { albumNameLeft, albumNameTextTop },
+                         albumNameFontSize,
+                         WHITE,
+                         LEFT);
 
     DrawLine(u.RightSide - AlbumHeight - AlbumOuter,
              AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
@@ -816,20 +789,18 @@ void SongSelectMenu::Draw() {
 
     float DiffTop = AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.045f));
     float IconWidth = float(AlbumHeight - AlbumOuter) / 5.0f;
-    GameMenu::mhDrawText(assets.rubikItalic,
-                         LOCALIZE("parts.pad"),
+    GameMenu::lDrawText(assets.rubikItalic,
+                         "parts.pad",
                          { (u.RightSide - AlbumHeight + AlbumInner), DiffTop },
                          AlbumOuter * 3,
                          WHITE,
-                         assets.sdfShader,
                          LEFT);
-    GameMenu::mhDrawText(assets.rubikItalic,
-                         LOCALIZE("parts.classic"),
+    GameMenu::lDrawText(assets.rubikItalic,
+                         "parts.classic",
                          { (u.RightSide - AlbumHeight + AlbumInner),
                            DiffTop + IconWidth + (AlbumOuter * 3) },
                          AlbumOuter * 3,
                          WHITE,
-                         assets.sdfShader,
                          LEFT);
     for (int i = 0; i < 10; i++) {
         bool RowTwo = i < 5;

@@ -122,7 +122,6 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                              { LyricLeft, baselineVox + padding },
                              FontSize,
                              { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) },
-                             ASSET(sdfShader),
                              LEFT);
         LyricLeft += MeasureTextEx(*font, playedText.c_str(), FontSize, 0).x;
     }
@@ -131,6 +130,5 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                          { LyricLeft, baselineVox + padding },
                          FontSize,
                          {255, 255, 255, remapAlpha(alpha, DisplayAlpha)},
-                         ASSET(sdfShader),
                          LEFT);
 }

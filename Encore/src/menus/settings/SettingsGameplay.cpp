@@ -38,8 +38,8 @@ void SettingsGameplay::Draw() {
     GameMenu::DrawVersion();
 
     float TextPlacementTB = u.hpct(0.05f);
-    GameMenu::mhDrawText(assets.rubik, LOCALISE("settings.header.gameplay"), {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, ASSET(sdfShader), LEFT);
-    GameMenu::mhDrawText(assets.redHatDisplayBlack, LOCALISE("settings.header.main"), {u.LeftSide, TextPlacementTB}, u.hinpct(0.125f), WHITE, assets.sdfShader, LEFT);
+    GameMenu::lDrawText(assets.rubik, "settings.header.gameplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
+    GameMenu::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {u.LeftSide, TextPlacementTB}, u.hinpct(0.125f), WHITE, LEFT);
     settings.isOSOpen = isOSOpen();
     settings.Draw();
     float EntryHeight = u.hinpct(0.05f);

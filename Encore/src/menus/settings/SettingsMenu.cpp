@@ -47,19 +47,18 @@ void SettingsMenu::Draw() {
     encOS::DrawTopOvershell(0.15f);
 
     // find a better name for this than Main Menu
-    GameMenu::mhDrawText(assets.rubik, LOCALISE("settings.header.categorySel"),
-               {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, ASSET(sdfShader), LEFT);
-    GameMenu::mhDrawText(
+    GameMenu::lDrawText(assets.rubik, "settings.header.categorySel",
+                         {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
+    GameMenu::lDrawText(
         assets.redHatDisplayBlack,
-        LOCALISE("settings.header.main"),
+        "settings.header.main",
         {u.LeftSide, TextPlacementTB},
         u.hinpct(0.125f),
         WHITE,
-        assets.sdfShader,
         LEFT
     );
     float fontSize = u.hinpct(0.029f);
-    GameMenu::mhDrawText(assets.josefinSansItalic, LOCALISE("settings.subtitle"), {EntryTextLeft, TextTop}, fontSize, Color{136, 136, 136, 255}, ASSET(sdfShader), LEFT);
+    GameMenu::lDrawText(assets.josefinSansItalic, "settings.subtitle", {EntryTextLeft, TextTop}, fontSize, Color{136, 136, 136, 255}, LEFT);
 
     DrawLineEx({EntryTextLeft, TextLineTop}, {EntryTextLeft + u.wpct(0.42f), TextLineTop}, u.winpct(0.001f), WHITE);
 
@@ -120,9 +119,9 @@ void SettingsMenu::Draw() {
         if (i == selectedIndex) {
             Color textColor = (i == clickedIndex) ? GRAY : WHITE;
             DrawButtonGradient(itemRect, ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f));
-            GameMenu::mhDrawText(ASSET(redHatDisplayBlack), LOCALIZE(menuItems[i]), {itemRect.x, itemRect.y}, EntryFontSize, textColor, ASSET(sdfShader), LEFT);
+            GameMenu::lDrawText(ASSET(redHatDisplayBlack), menuItems[i], {itemRect.x, itemRect.y}, EntryFontSize, textColor, LEFT);
         } else {
-            GameMenu::mhDrawText(ASSET(redHatDisplayBlack), LOCALIZE(menuItems[i]), {itemRect.x, itemRect.y}, EntryFontSize, Color{136, 136, 136, 255}, ASSET(sdfShader), LEFT);
+            GameMenu::lDrawText(ASSET(redHatDisplayBlack), menuItems[i], {itemRect.x, itemRect.y}, EntryFontSize, Color{136, 136, 136, 255}, LEFT);
         }
     }
 

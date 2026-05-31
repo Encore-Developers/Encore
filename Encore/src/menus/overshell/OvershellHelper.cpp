@@ -107,7 +107,6 @@ bool encOS::DrawOvershellRectangleHeader(
         { centerPos, (height / 4) + y },
         (height / 2),
         usernameColor,
-        assets.sdfShader,
         CENTER
     );
     return toReturn;
