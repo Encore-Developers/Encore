@@ -72,6 +72,7 @@ namespace Encore {
         float CurveFac = 50;
         float Offset = 0;
         float Scale = 1;
+        float MaxScale = 1;
         float NoteHeight = 1;
         float KickTimer = 0;
         float KickSpeedMult = 5;

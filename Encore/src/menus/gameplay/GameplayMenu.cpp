@@ -607,13 +607,18 @@ void GameplayMenu::Load() {
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
     dropInDropOut = false;
 
-    // i dont like the game stuttering when you active or get a streak
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
     double End = 0.0;
     double EndEvent = TheSongList.curSong->end;
     double LastNote = 0.0;
     double AudioEnd = TheAudioManager.GetMusicTimeLength();
     int playerCount = 0;
+
+    float trackMaxScale = 1;
+
+    if (ThePlayerManager.PlayersActive == 1) {
+        trackMaxScale = 1.1;
+    }
 
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (ThePlayerManager.ActivePlayers[i] == -1) continue;
@@ -624,6 +629,7 @@ void GameplayMenu::Load() {
 
         tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
         tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
+        tracks.at(i)->MaxScale = trackMaxScale;
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:

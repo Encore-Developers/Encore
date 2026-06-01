@@ -6,7 +6,6 @@
 
 #include "GemTrackSlot.h"
 #include "assets.h"
-#include "menus/uiUnits.h"
 #include "raylib.h"
 #include "raymath.h"
 #include "rlgl.h"
@@ -103,12 +102,16 @@ void Encore::Track::Draw() {
         EndMode3D();
     }
     {
+        Vector2 bottomPos = {GetRenderWidth()/2.0f + Offset*GetRenderWidth()/2.0f, (float)GetRenderHeight()};
+        Camera2D cam = {bottomPos, bottomPos, 0, Scale};
+        BeginMode2D(cam);
         ZoneScopedN("Track UI")
         DrawJudgement();
         DrawCombo();
         DrawTrackNotifications();
         DrawSoloUI();
         DrawUsername();
+        EndMode2D();
 
         BeginMode3D(AnimCamera);
         BeginShaderMode(ASSET(trackCurveShader));
@@ -262,7 +265,6 @@ void Encore::Track::DrawSoloUI() {
     if (player.engine->chart->solos.empty())
         return;
 
-    Units &u = Units::getInstance();
     solo *curSolo = &player.engine->chart->solos.at(
         player.engine->chart->solos.CurrentEvent);
     if (TheSongTime.GetElapsedTime() > curSolo->StartSec && TheSongTime.GetElapsedTime() <
@@ -272,7 +274,7 @@ void Encore::Track::DrawSoloUI() {
             worldSpace,
             AnimCamera);
         screenPos.x += Offset * GetRenderWidth() * 0.5;
-        float SoloPercentHeight = u.hinpct(0.05f);
+        float SoloPercentHeight = GetRenderHeight()*0.05f;
         Text::DrawText(ASSET(redHatMono),
                              TextFormat("%01i%%",
                                         int((float(curSolo->NotesHit) / float(
@@ -286,14 +288,13 @@ void Encore::Track::DrawSoloUI() {
                                         curSolo->NotesHit,
                                         curSolo->NoteCount),
                              { screenPos.x, screenPos.y + SoloPercentHeight },
-                             u.hinpct(0.025f),
+                             GetRenderHeight()*0.025f,
                              WHITE,
                              CENTER);
     }
 }
 
 void Encore::Track::DrawUsername() {
-    Units &u = Units::getInstance();
     Vector3 worldPos = { 0, 0, -2.0 };
     Vector2 screenPos = GetWorldToScreen(worldPos, AnimCamera);
     Color color = WHITE;
@@ -306,8 +307,8 @@ void Encore::Track::DrawUsername() {
         color = RED;
     }
     screenPos.x += Offset * GetRenderWidth() * 0.5;
-    screenPos.y = GetRenderHeight() - u.hinpct(0.045f);
-    float FontSize = u.hinpct(0.035f);
+    screenPos.y = GetRenderHeight() - GetRenderHeight()*0.045;
+    float FontSize = GetRenderHeight()*0.035;
     float width = MeasureTextEx(ASSET(rubik), NameText.c_str(), FontSize, 0).x + FontSize;
     float left = screenPos.x - (width / 2);
     Rectangle icon = { left, screenPos.y, FontSize, FontSize };
@@ -412,13 +413,12 @@ void Encore::Track::DrawTrackNotifications() {
         Notification = nullptr;
         return;
     }
-    Units &u = Units::getInstance();
     Vector3 NotificationPoint = { 0, 0, (BaseLength + 5) * player.HighwayLength };
     Vector2 ScreenNotifPosition = GetWorldToScreen(
         NotificationPoint,
         AnimCamera);
     float FontPct = 0.0225f;
-    float FontSize = u.hinpct(FontPct);
+    float FontSize = GetRenderHeight() * FontPct;
     //for (size_t i = 0; i < Notifications.size(); i++) {
     TrackNotificationEvent *notif = Notification;
     std::string Text = "";
@@ -463,7 +463,7 @@ void Encore::Track::DrawTrackNotifications() {
         ASSET(josefinSansBold),
         Text,
         pos,
-        u.hinpct(getEasingFunction(EaseOutBack)(size) * FontPct),
+        GetRenderHeight()*getEasingFunction(EaseOutBack)(size) * FontPct,
         { 255, 255, 255, (unsigned char)(255.0f * size) },
         CENTER
     );
@@ -473,17 +473,16 @@ void Encore::Track::DrawTrackNotifications() {
 void Encore::Track::DrawCombo() {
     if (player.engine->stats->Combo == 0)
         return;
-    Units &u = Units::getInstance();
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
-    float FontSize = u.hinpct(0.025f);
+    float FontSize = GetRenderHeight()*0.025f;
     // float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
     float TextHeight = MeasureTextEx(ASSET(rubikBold),
                                      std::to_string(player.engine->stats->Combo).c_str(),
                                      FontSize,
                                      0).
         y;
-    float POffset = u.hinpct(0.05f);
+    float POffset = GetRenderHeight()*0.05f;
     // perfect in
 
     Vector2 ScreenMultiplierPosition = GetWorldToScreen(
@@ -506,7 +505,6 @@ void Encore::Track::DrawCombo() {
 }
 
 void Encore::Track::DrawJudgement() {
-    Units &u = Units::getInstance();
 
     if (JudgementTimer > 0)
         JudgementTimer -= GetFrameTime() * 5;
@@ -542,12 +540,12 @@ void Encore::Track::DrawJudgement() {
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
     unsigned char alpha = 255;
-    float FontSize = u.hinpct(0.025f);
+    float FontSize = GetRenderHeight()*0.025f;
     float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
         x;
     float TextHeight = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
         y;
-    float POffset = u.hinpct(0.05f);
+    float POffset = GetRenderHeight()*0.05f;
     // perfect in
     float move = 0;
     double MaxAlpha = 255;
@@ -1043,7 +1041,7 @@ void Encore::Track::FitToColumn(float left, float right, Camera &camera) {
     float midPos = (left + right) / 2;
     float currentWidth = currentRight - currentLeft;
     float targetWidth = right - left;
-    float scale = Clamp(targetWidth / currentWidth, 0.3, 1.0);
+    float scale = Clamp(targetWidth / currentWidth, 0.3, MaxScale);
     Offset = midPos - (currentMidPos);
     Scale = scale;
 }
