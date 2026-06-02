@@ -62,15 +62,14 @@ void SettingsGameplay::Draw() {
             ImGui::PopID();
         }
         if (ImGui::Button("Add...")) {
-            // lambdas upon lambdas :smile:
-            ControllerPoller::instance->CallFuncOnSDLThread([] {SDL_ShowOpenFolderDialog([](void*, const char* const* filelist, int filter) {
+            SDL_ShowOpenFolderDialog([](void*, const char* const* filelist, int filter) {
                 if (filelist) {
                     while (*filelist) {
                         TheGameSettings.SongPaths.push_back(*filelist);
                         filelist++;
                     }
                 }
-            }, nullptr, nullptr, nullptr, false);});
+            }, nullptr, nullptr, nullptr, false);
         }
         // starting to really hate std::vector erase
         for (auto it = TheGameSettings.SongPaths.begin(); it != TheGameSettings.SongPaths.end(); ++it) {
@@ -89,7 +88,7 @@ void SettingsGameplay::Draw() {
     DrawOvershell();
 }
 
-void SettingsGameplay::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+void SettingsGameplay::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
 void SettingsGameplay::ControllerInputCallback(RhythmEngine::ControllerEvent event) {

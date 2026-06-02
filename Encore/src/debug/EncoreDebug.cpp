@@ -311,7 +311,6 @@ void EncoreDebug::DrawQuickSettings() {
         Checkbox("VSync", &TheGameSettings.VerticalSync);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
-        SliderInt("Controller Poll Rate", &ControllerPoller::controllerPollRate, 10, 1000, "%dhz");
         if (DragInt("Audio Calibration", &TheGameSettings.AudioOffset, 1, 0, 0, "%dms")) {
             TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
         }
@@ -612,6 +611,9 @@ std::string tolowerStr(std::string &in) {
 
 void EncoreDebug::DrawJoystickTools() {
     if (Begin("Joystick Tools", &showJoystickTools)) {
+        Text("Audio Sync Time: %f", syncAudioTime);
+        Text("SDL Tick Time: %f", (float)syncSDLTicks * 0.000000001);
+        Text("Last Translated Time: %f", lastTranslatedTime);
         const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
         if (BeginTable("Joysticks", 3, flags, GetContentRegionAvail())) {

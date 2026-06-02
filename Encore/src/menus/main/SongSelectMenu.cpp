@@ -323,25 +323,25 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
 }
 
 
-void SongSelectMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        switch (key) {
-        case GLFW_KEY_UP:
+void SongSelectMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
+    if (event->down || event->repeat) {
+        switch (event->key) {
+        case SDLK_UP:
             ScrollSongSelect(1);
             break;
-        case GLFW_KEY_DOWN:
+        case SDLK_DOWN:
             ScrollSongSelect(-1);
             break;
-        case GLFW_KEY_LEFT:
+        case SDLK_LEFT:
             ScrollSongSelect(5);
             break;
-        case GLFW_KEY_RIGHT:
+        case SDLK_RIGHT:
             ScrollSongSelect(-5);
             break;
-        case GLFW_KEY_PAGE_UP:
+        case SDLK_PAGEUP:
             ScrollUpHeader();
             break;
-        case GLFW_KEY_PAGE_DOWN:
+        case SDLK_PAGEDOWN:
             ScrollDownHeader();
             break;
         default:

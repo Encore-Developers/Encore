@@ -24,6 +24,7 @@
 #include <raylib.h>
 
 #include "gameplay/LyricRenderer.h"
+#include "gameplay/inputCallbacks.h"
 #include "settings/keybinds.h"
 #include "song/OpenSource.h"
 #include "tracy/Tracy.hpp"
@@ -103,7 +104,7 @@ void GameplayMenu::SetPresence() {
     TheGameRPC.SteamOverlayPosition(true);
 }
 
-void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
     for (auto track : tracks) {
         if (!track) {
             continue;
@@ -114,24 +115,25 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
         }
         Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
-        if (action == 2)
+        if (sdlEvent->repeat)
             return;
         Encore::RhythmEngine::ControllerEvent event;
         event.slot = -1;
-        if (action == GLFW_PRESS) {
+        if (sdlEvent->down) {
             event.action = Encore::RhythmEngine::Action::PRESS;
-        } else if (action == GLFW_RELEASE) {
+        } else {
             event.action = Encore::RhythmEngine::Action::RELEASE;
         }
-        if (key == TheGameKeybinds.overdriveBinds.first || key == TheGameKeybinds.
+        SDL_Keycode sdlKeycode = sdlEvent->key;
+        if (sdlKeycode == TheGameKeybinds.overdriveBinds.first || sdlKeycode == TheGameKeybinds.
             overdriveBinds.second) {
             event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
         }
         if (!player.Bot) {
             if (player.bindingType != PAD) {
-                if (key == TheGameKeybinds.strumBinds.first) {
+                if (sdlKeycode == TheGameKeybinds.strumBinds.first) {
                     event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
-                } else if (key == TheGameKeybinds.strumBinds.second) {
+                } else if (sdlKeycode == TheGameKeybinds.strumBinds.second) {
                     event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
                 }
             }
@@ -140,17 +142,17 @@ void GameplayMenu::KeyboardInputCallback(int key, int scancode, int action, int 
                 : 4;
 
             for (int i = 0; i < DiffMax; i++) {
-                if (key == TheGameKeybinds.keybinds5k[i] || key == TheGameKeybinds.
+                if (sdlKeycode == TheGameKeybinds.keybinds5k[i] || sdlKeycode == TheGameKeybinds.
                     keybinds5kalt[
                         i]) {
                     event.channel = Encore::RhythmEngine::IntIC(i);
                 }
             }
         }
-        if (key == KEY_ESCAPE && action == GLFW_PRESS) {
+        if (sdlKeycode == SDLK_ESCAPE && sdlEvent->down) {
             event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
         }
-        event.timestamp = TheSongTime.GetElapsedTime();
+        event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
         if (!CheckPauseInput(event))
             if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
                 engine->ProcessInput(event);

@@ -18,7 +18,7 @@
 void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
     buttReg.HandleInput(event);
 }
-void resultsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {}
+void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {}
 
 resultsMenu::~resultsMenu() {
     // for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {

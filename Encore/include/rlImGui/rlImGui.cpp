@@ -816,12 +816,7 @@ void HandleGamepadStickEvent(ImGuiIO& io, GamepadAxis axis, ImGuiKey negKey, ImG
     io.AddKeyAnalogEvent(posKey, axisValue > deadZone, axisValue > deadZone ? axisValue : 0);
 }
 
-struct KeyEvent {
-    int key;
-    bool pressed;
-};
-
-std::vector<KeyEvent> keyEvents;
+std::vector<SDL_KeyboardEvent> keyEvents;
 
 bool ImGui_ImplRaylib_ProcessEvents(void)
 {
@@ -856,27 +851,27 @@ bool ImGui_ImplRaylib_ProcessEvents(void)
     // Encore change: rewire key events to get them from the glfw callback
 	for (auto event : keyEvents)
     {
-        const auto imguiKey = RaylibKeyMap[event.key];
+        const auto imguiKey = RaylibKeyMap[ConvertScancodeToKey(event.scancode)];
 	    switch (event.key) {
 	    case KEY_LEFT_CONTROL:
 	    case KEY_RIGHT_CONTROL:
-	        io.AddKeyEvent(ImGuiMod_Ctrl, event.pressed);
+	        io.AddKeyEvent(ImGuiMod_Ctrl, event.down);
 	        break;
 	    case KEY_LEFT_SHIFT:
 	    case KEY_RIGHT_SHIFT:
-	        io.AddKeyEvent(ImGuiMod_Shift, event.pressed);
+	        io.AddKeyEvent(ImGuiMod_Shift, event.down);
 	        break;
 	    case KEY_LEFT_ALT:
 	    case KEY_RIGHT_ALT:
-	        io.AddKeyEvent(ImGuiMod_Alt, event.pressed);
+	        io.AddKeyEvent(ImGuiMod_Alt, event.down);
 	    case KEY_LEFT_SUPER:
 	    case KEY_RIGHT_SUPER:
-	        io.AddKeyEvent(ImGuiMod_Super, event.pressed);
+	        io.AddKeyEvent(ImGuiMod_Super, event.down);
 	    default:
 	        break;
 	    }
 
-        io.AddKeyEvent(imguiKey, event.pressed);
+        io.AddKeyEvent(imguiKey, event.down);
     }
 
     keyEvents.clear();
@@ -966,11 +961,6 @@ bool ImGui_ImplRaylib_ProcessEvents(void)
 
 
 // Encore specific
-void rlImGuiPushKeyEvent(int key, int scancode, int action, int mods) {
-    bool pressed = false;
-    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-        pressed = true;
-    }
-
-    keyEvents.push_back({key, pressed});
+void rlImGuiPushKeyEvent(SDL_KeyboardEvent& event) {
+    keyEvents.push_back(event);
 }

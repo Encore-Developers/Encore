@@ -15,7 +15,7 @@ public:
     ~SongSelectMenu() override;
     void ScrollUpHeader();
     void ScrollDownHeader();
-    void KeyboardInputCallback(int key, int scancode, int action, int mods) override;
+    void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
     void LoadPreview(Song& song);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
     void ScrollToCurrentSong();

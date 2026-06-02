@@ -220,47 +220,8 @@ std::pair<std::string, int> SettingsController::getBindTypeAndIndex(size_t optio
     return {"", -1};
 }
 
-void SettingsController::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    static bool dropdownActive = false;
-    static int selectedPreset = 0;
+void SettingsController::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 
-    if (action != GLFW_PRESS) return;
-
-    if (dropdownActive) {
-        if (key == GLFW_KEY_ENTER || key == GLFW_KEY_ESCAPE) {
-            dropdownActive = false;
-            if (key == GLFW_KEY_ENTER && selectedPreset >= 0 && static_cast<size_t>(selectedPreset) < presets.size()) {
-                applyPreset(selectedPreset);
-                Save();
-                TraceLog(LOG_INFO, "Applied preset via keyboard: %s", presets[selectedPreset].c_str());
-            }
-            return;
-        }
-        if (key == GLFW_KEY_DOWN) {
-            selectedPreset = (selectedPreset + 1) % presets.size();
-        } else if (key == GLFW_KEY_UP) {
-            selectedPreset = (selectedPreset - 1 + presets.size()) % presets.size();
-        }
-        return;
-    }
-
-    if (key == GLFW_KEY_DOWN) {
-        selectedIndex = (selectedIndex + 1) % sidebarContents.size();
-        if (selectedIndex == 0) selectedIndex = 1;
-    } else if (key == GLFW_KEY_UP) {
-        selectedIndex = (selectedIndex - 1 + sidebarContents.size()) % sidebarContents.size();
-        if (selectedIndex == 0) selectedIndex = sidebarContents.size() - 1;
-    } else if (key == GLFW_KEY_R) {
-        resetToDefaultKeys();
-        Save();
-        TraceLog(LOG_INFO, "Reset controller bindings");
-    } else if (key == GLFW_KEY_ENTER) {
-        if (selectedIndex > 0) bindingOption = selectedIndex - 1;
-        else dropdownActive = true;
-    } else if (key == GLFW_KEY_ESCAPE) {
-        Save();
-        TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
-    }
 }
 
 void SettingsController::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {

@@ -11,7 +11,7 @@ public:
     Menu() {}
     virtual ~Menu() {}
 
-    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) = 0;
+    virtual void KeyboardInputCallback(SDL_KeyboardEvent* event) = 0;
     virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) = 0;
 
     virtual void Draw() = 0; // NOTE: requires BeginDrawing() to have already been called

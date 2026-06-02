@@ -25,7 +25,7 @@ namespace Encore {
             ~SettingsAudioVideo() override;
             SettingDoohickey settings;
             void Draw();
-            void KeyboardInputCallback(int key, int scancode, int action, int mods);
+            void KeyboardInputCallback(SDL_KeyboardEvent* event);
             void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
             void Load();
             void Save();

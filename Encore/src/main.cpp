@@ -317,6 +317,27 @@ int main(int argc, char *argv[]) {
         u.calcUnits();
 
         //PollQueuedInputs(poller);
+        SyncSDLWithAudio();
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+
+            switch (event.type) {
+            case SDL_EVENT_KEY_DOWN:
+            case SDL_EVENT_KEY_UP:
+                keyCallback((SDL_KeyboardEvent*)&event);
+                break;
+            case SDL_EVENT_GAMEPAD_ADDED:
+                SDL_OpenGamepad(event.gdevice.which);
+            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+            case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                ProcessControllerEvent(TranslateSDLEvent(&event));
+                break;
+            default:
+                break;
+            }
+            ProcessSDLEvent(event);
+        }
         TheArtLoader.Poll();
 
         if (GetRenderWidth() < minWidth) {

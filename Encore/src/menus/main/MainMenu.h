@@ -56,7 +56,7 @@ public:
     ~MainMenu() {}
     void Draw();
     void Load();
-    void KeyboardInputCallback(int key, int scancode, int action, int mods);
+    void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     std::string SplashString;
     float TitleAnimTimer = 1;

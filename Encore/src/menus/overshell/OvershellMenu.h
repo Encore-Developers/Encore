@@ -71,7 +71,7 @@ public:
     int AvailableControllers = 0;
     bool isOSOpen();
     bool dropInDropOut = true;
-    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) = 0;
+    virtual void KeyboardInputCallback(SDL_KeyboardEvent* event) = 0;
     virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) = 0;
     virtual void Draw() = 0;
     virtual void Load() = 0;
@@ -82,5 +82,5 @@ public:
     bool hasOvershell = true;
 };
 
-bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, int action, int mods);
+bool OvershellKeyboardInputCallback(OvershellMenu *menu, SDL_KeyboardEvent* event);
 bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::RhythmEngine::ControllerEvent event);

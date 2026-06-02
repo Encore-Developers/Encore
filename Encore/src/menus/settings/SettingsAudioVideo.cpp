@@ -61,7 +61,7 @@ void SettingsAudioVideo::Draw() {
 }
 
 
-void SettingsAudioVideo::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+void SettingsAudioVideo::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
 void SettingsAudioVideo::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {

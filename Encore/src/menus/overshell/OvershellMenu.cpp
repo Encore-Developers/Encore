@@ -18,9 +18,9 @@
 using namespace encOS;
 using namespace Encore::RhythmEngine;
 
-bool OvershellKeyboardInputCallback(OvershellMenu *menu, int key, int scancode, int action, int mods) {
+bool OvershellKeyboardInputCallback(OvershellMenu *menu, SDL_KeyboardEvent* event) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT && key == KEY_ENTER) {
+        if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT && event->key == SDLK_RETURN) {
             ThePlayerManager.GetActivePlayer(i).joypadID = -1;
             menu->OvershellState[i] = OS_OPTIONS;
             return true;

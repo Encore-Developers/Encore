@@ -43,7 +43,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
     }
 }
 
-void ReadyUpMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+void ReadyUpMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
 void ReadyUpMenu::DrawDifficulties(float BottomOvershell,

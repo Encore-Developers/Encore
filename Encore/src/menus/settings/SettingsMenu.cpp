@@ -134,7 +134,7 @@ void SettingsMenu::Draw() {
     DrawOvershell();
 }
 
-void SettingsMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+void SettingsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
 void SettingsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {

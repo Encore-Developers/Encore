@@ -204,12 +204,12 @@ void MainMenu::Load() {
     //    ThePlayerManager.RemoveActivePlayer(slot);
     //})
 }
-void MainMenu::KeyboardInputCallback(int key, int scancode, int action, int mods) {
+void MainMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
     if (ThePlayerManager.PlayersActive == 0) {
-        if (GLFW_KEY_ENTER == key) {
+        if (event->key == SDLK_RETURN) {
             OvershellState[0] = OS_PLAYER_SELECTION;
         }
-        if (GLFW_KEY_ESCAPE == key) {
+        if (event->key == SDLK_ESCAPE) {
             exit(0);
         }
     }

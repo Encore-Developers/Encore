@@ -14,7 +14,7 @@ class SoundTestMenu : public Menu {
 public:
     SoundTestMenu();
     virtual ~SoundTestMenu();
-    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods) {};
+    virtual void KeyboardInputCallback(SDL_KeyboardEvent* event) {};
     virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {};
     virtual void Load();
     virtual void Draw();

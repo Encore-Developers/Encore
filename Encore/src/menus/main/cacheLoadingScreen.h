@@ -13,7 +13,7 @@ class cacheLoadingScreen : public Menu {
 public:
     cacheLoadingScreen();
     virtual ~cacheLoadingScreen();
-    void KeyboardInputCallback(int key, int scancode, int action, int mods) override {};
+    void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override {};
     void Draw() override;
     void Load() override;

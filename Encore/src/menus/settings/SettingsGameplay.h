@@ -46,7 +46,7 @@ namespace Encore {
     public:
         std::thread ScanSongsThread;
         void Draw();
-        void KeyboardInputCallback(int key, int scancode, int action, int mods);
+        void KeyboardInputCallback(SDL_KeyboardEvent* event);
         void ControllerInputCallback(RhythmEngine::ControllerEvent event);
         void Load();
         void Save();

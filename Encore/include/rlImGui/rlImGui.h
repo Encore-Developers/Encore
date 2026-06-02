@@ -181,8 +181,8 @@ RLIMGUIAPI void rlImGuiImageRenderTextureFit(const RenderTexture* image, bool ce
 /// <returns>True if the button was clicked</returns>
 bool rlImGuiImageButton(const char* name, const Texture* image);
 
-/// Encore specific code for bypassing us stealing the glfw key callback
-void rlImGuiPushKeyEvent(int key, int scancode, int action, int mods);
+/// Encore specific code for our own SDL keyboard code
+void rlImGuiPushKeyEvent(SDL_KeyboardEvent &event);
 
 /// <summary>
 /// Draws a texture as an image button in an ImGui context. Uses the current ImGui cursor position and the specified size.

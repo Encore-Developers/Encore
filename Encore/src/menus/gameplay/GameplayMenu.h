@@ -39,7 +39,7 @@ public:
     void DrawScorebox(Units &u, Assets &assets, float scoreY);
     void DrawTimerbox(Units &u, Assets &assets, float scoreY);
     void DrawGameplayStars(Units &u, Assets &assets, float scorePos, float starY);
-    void KeyboardInputCallback(int key, int scancode, int action, int mods);
+    void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     void Draw() override;
     void Load() override;

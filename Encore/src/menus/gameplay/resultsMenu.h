@@ -26,7 +26,7 @@ class resultsMenu : public OvershellMenu {
     Encore::ButtonActionRegistry buttReg;
 public:
     resultsMenu();
-    virtual void KeyboardInputCallback(int key, int scancode, int action, int mods);
+    virtual void KeyboardInputCallback(SDL_KeyboardEvent* event);
     virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
     ~resultsMenu() override;
     void Draw() override;

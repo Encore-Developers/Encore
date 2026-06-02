@@ -6,6 +6,7 @@
 #define INPUTCALLBACKS_H
 #include "GLFW/glfw3.h"
 #include "RhythmEngine/REenums.h"
+#include "SDL3/SDL_events.h"
 
 #include <functional>
 #include <thread>
@@ -14,101 +15,18 @@
 
 // what to check when a key changes states (what was the change? was it pressed? or
 // released? what time? what window? were any modifiers pressed?)
-void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods);
+void keyCallback(SDL_KeyboardEvent* event);
 void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event);
+void SyncSDLWithAudio();
+double SDLTimeToAudioTime(uint64_t ticks);
+
+extern double syncAudioTime;
+extern uint64_t syncSDLTicks;
+
+extern double lastTranslatedTime;
 
 #define MAX_EVENTS 2000
 
-
-/// Manages SDL and polls input on a seperate thread, timestampping input events using enctime
-class ControllerPoller {
-private:
-    void Run();
-public:
-    static int controllerPollRate;
-    static ControllerPoller* instance;
-
-    Encore::RhythmEngine::ControllerEvent eventQueue[MAX_EVENTS];
-    unsigned long writeIndex = 0;
-    unsigned long readIndex = 0;
-    std::thread pollThread;
-
-    std::vector<std::function<void()>> funcRequests;
-    std::mutex requestMutex;
-
-    bool active = true;
-
-    unsigned int loopIndex(unsigned int input) {
-        return input % MAX_EVENTS;
-    }
-
-    Encore::RhythmEngine::ControllerEvent& getEvent(unsigned int index) {
-        return eventQueue[loopIndex(index)];
-    }
-
-    ControllerPoller() {
-        pollThread = std::thread(&ControllerPoller::Run, this);
-        instance = this;
-    }
-
-    void CallFuncOnSDLThread(const std::function<void()> &func) {
-#ifndef __APPLE__
-        requestMutex.lock();
-        funcRequests.push_back(func);
-        requestMutex.unlock();
-#else
-        func();
-#endif
-
-    }
-
-    ~ControllerPoller() {
-        active = false;
-        pollThread.join();
-    }
-};
-
-void PollQueuedInputs(ControllerPoller&);
-
-/*
-static void gamepadStateCallbackSetControls(int jid, GLFWgamepadstate state) {
-    for (int i = 0; i < 6; i++) {
-        axesValues2[i] = state.axes[i];
-    }
-    if (changingKey || changingOverdrive || changingPause) {
-        for (int i = 0; i < 15; i++) {
-            if (state.buttons[i] == 1) {
-                if (buttonValues[i] == 0) {
-                    controllerID = jid;
-                    pressedGamepadInput = i;
-                    return;
-                } else {
-                    buttonValues[i] = state.buttons[i];
-                }
-            }
-        }
-        for (int i = 0; i < 6; i++) {
-            if (state.axes[i] == 1.0f || (i <= 3 && state.axes[i] == -1.0f)) {
-                axesValues[i] = 0.0f;
-                if (state.axes[i] == 1.0f) axisDirection = 1;
-                else axisDirection = -1;
-                controllerID = jid;
-                pressedGamepadInput = -(1 + i);
-                return;
-            } else {
-                axesValues[i] = 0.0f;
-            }
-        }
-    } else {
-        for (int i = 0; i < 15; i++) {
-            buttonValues[i] = state.buttons[i];
-        }
-        for (int i = 0; i < 6; i++) {
-            axesValues[i] = state.axes[i];
-        }
-        pressedGamepadInput = -999;
-    }
-}
-*/
-
+void ProcessControllerEvent(const Encore::RhythmEngine::ControllerEvent &event);
+Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event);
 #endif //INPUTCALLBACKS_H

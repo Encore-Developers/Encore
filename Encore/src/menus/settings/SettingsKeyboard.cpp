@@ -104,34 +104,7 @@ std::pair<std::string, int> SettingsKeyboard::getBindTypeAndIndex(size_t optionI
     }
 }
 
-void SettingsKeyboard::KeyboardInputCallback(int key, int scancode, int action, int mods) {
-    if (action != GLFW_PRESS) return;
-    // TODO: change this system to use TheGameKeybinds instead of SettingsOld
-    /*
-    if (bindingOption >= 0) {
-        if (key != GLFW_KEY_ESCAPE) { // Allow any key except ESC
-            *options[bindingOption].second = key;
-            auto [bindType, bindIndex] = getBindTypeAndIndex(bindingOption);
-            settings.rebindKey(bindType, bindIndex);
-            Save();
-            TraceLog(LOG_INFO, "Bound %s to key %d (%s)", options[bindingOption].first.c_str(), key, keybinds.getKeyStr(key).c_str());
-        }
-        bindingOption = -1;
-        return;
-    }
-    */
-    if (key == GLFW_KEY_DOWN) {
-        selectedIndex = (selectedIndex + 1) % sidebarContents.size();
-        if (selectedIndex == 0) selectedIndex = 1; // fixed header
-    } else if (key == GLFW_KEY_UP) {
-        selectedIndex = (selectedIndex - 1 + sidebarContents.size()) % sidebarContents.size();
-        if (selectedIndex == 0) selectedIndex = sidebarContents.size() - 1;
-    } else if (key == GLFW_KEY_ENTER) {
-        if (selectedIndex > 0) bindingOption = selectedIndex - 1;
-    } else if (key == GLFW_KEY_ESCAPE) {
-        Save();
-        TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
-    }
+void SettingsKeyboard::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 
 }
 

@@ -26,33 +26,33 @@
 
 using namespace std::chrono_literals;
 
-void keyCallback(GLFWwindow *wind, int key, int scancode, int action, int mods) {
+void keyCallback(SDL_KeyboardEvent* event) {
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s",
     // key, ToString(TheMenuManager.currentScreen)) );
 
-    if (action == GLFW_PRESS) {
-        if (key == KEY_F11 || (key == KEY_ENTER && mods & GLFW_MOD_ALT)) {
+    if (event->down) {
+        if (event->key == SDLK_F11 || (event->key == SDLK_RETURN && event->mod & SDL_KMOD_ALT)) {
             TheGameSettings.Fullscreen = !TheGameSettings.Fullscreen;
             TheGameSettings.UpdateFullscreen();
             return;
         }
 
-        if (key == KEY_F3) {
+        if (event->key == SDLK_F3) {
             EncoreDebug::showDebug = !EncoreDebug::showDebug;
         }
     }
 
-    rlImGuiPushKeyEvent(key, scancode, action, mods);
+    rlImGuiPushKeyEvent(*event);
     if (ImGui::GetIO().WantCaptureKeyboard) {
         return;
     }
 
     if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
-        if (OvershellKeyboardInputCallback(menu, key, scancode, action, mods)) {
+        if (OvershellKeyboardInputCallback(menu, event)) {
             return;
         }
     }
-    TheMenuManager.ActiveMenu->KeyboardInputCallback(key, scancode, action, mods);
+    TheMenuManager.ActiveMenu->KeyboardInputCallback(event);
 }
 
 
@@ -60,10 +60,31 @@ void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event) {
     // this is a noop for now TODO remove
 }
 
+double syncAudioTime;
+uint64_t syncSDLTicks;
+double lastTranslatedTime = 0;
+
+void SyncSDLWithAudio() {
+    if (TheAudioManager.loadedStreams.empty()) {
+        syncAudioTime = 0;
+        syncSDLTicks = 0;
+    }
+    syncSDLTicks = SDL_GetTicksNS();
+    syncAudioTime = TheAudioManager.GetMusicTimePlayed();
+}
+
+double SDLTimeToAudioTime(uint64_t ticks) {
+    int64_t tickDelta = ticks - syncSDLTicks;
+    double secondsDelta = (float)tickDelta * 0.000000001;
+    lastTranslatedTime = syncAudioTime + secondsDelta;
+    return lastTranslatedTime;
+}
+
 std::unordered_map<SDL_JoystickID, std::pair<bool, bool>> ControllerTriggerState;
 
-Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
+Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
     Encore::RhythmEngine::ControllerEvent outevent = {};
+
 
     Player* player = ThePlayerManager.GetPlayerForJoystick(event->gbutton.which);
     ControllerBindingType bindingType = GUITAR;
@@ -77,6 +98,7 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
+        outevent.timestamp = SDLTimeToAudioTime(event->gbutton.timestamp);
 
         // Generic inputs
         switch (event->gbutton.button) {
@@ -251,111 +273,15 @@ Encore::RhythmEngine::ControllerEvent TranslateEvent(SDL_Event *event) {
     return outevent;
 }
 
-void PollQueuedInputs(ControllerPoller& poller) {
+void ProcessControllerEvent(const Encore::RhythmEngine::ControllerEvent &event) {
     ZoneScoped;
-    while (poller.readIndex < poller.writeIndex) {
-        auto event = poller.getEvent(poller.readIndex);
-        if (TheGameRPC.IsOverlayOpen) {
-            poller.readIndex++;
-            continue;
-        }
-        if (TheMenuManager.ActiveMenu) {
-            if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
-                if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
-                    poller.readIndex++;
-                    continue;
-                }
-            }
-            if (!ScanningSongs)
-                TheMenuManager.ActiveMenu->ControllerInputCallback(event);
-        }
-        poller.readIndex++;
-    }
-}
-
-void _PollQueuedInputs() {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        // Encore::EncoreLog(LOG_INFO, TextFormat("SDL event %i", event.type));
-        switch (event.type) {
-        case SDL_EVENT_GAMEPAD_ADDED:
-            SDL_OpenGamepad(event.gdevice.which);
-            Encore::EncoreLog(LOG_INFO,
-                              TextFormat("SDL gamepad name %s",
-                                         SDL_GetGamepadNameForID(event.gdevice.which)));
-            break;
-        case SDL_EVENT_GAMEPAD_REMOVED:
-            // TODO: device removal/saving gamepad pointer to player
-            Encore::EncoreLog(LOG_INFO,
-                              TextFormat("SDL gamepad name %s",
-                                         SDL_GetGamepadNameForID(event.gdevice.which)));
-            break;
-            // case SDL_EVENT_QUIT:
-            //    return 0;
-        }
-        if (TheMenuManager.ActiveMenu && (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP)) {
-            TheMenuManager.ActiveMenu->ControllerInputCallback(TranslateEvent(&event));
-        }
-    }
-}
-
-int ControllerPoller::controllerPollRate = 1000;
-ControllerPoller* ControllerPoller::instance;
-
-void ControllerPoller::Run() {
-    TracyCSetThreadName("Controller Poll Thread")
-    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
-    SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
-    if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) {
-        SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
-        return;
-    }
-    Encore::EncoreLog(LOG_INFO, TextFormat("SDL Initialzed: revision %s", SDL_GetRevision()));
-
-    // Mapping for Xbox One guitars under the xone linux module
-    SDL_AddGamepadMapping("060074ae6f0e00004802000000010000,PDP Rock Band 4 Jaguar,a:b3,b:b4,y:b5,x:b6,leftshoulder:b7,back:b0,start:b1,guide:b2,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,rightx:a0");
-
-    while (active) {
-        ZoneScopedN("Controller Poll Thread")
-        auto start = std::chrono::high_resolution_clock::now();
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-            case SDL_EVENT_GAMEPAD_ADDED:
-                SDL_OpenGamepad(event.gdevice.which);
-                break;
-            case SDL_EVENT_GAMEPAD_REMOVED:
-                // TODO: device removal/saving gamepad pointer to player
-                break;
-            }
-            if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || event.type == SDL_EVENT_GAMEPAD_BUTTON_UP || event.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
-                auto time = TheSongTime.GetElapsedTime();
-                auto encEvent = TranslateEvent(&event);
-                if (!TheAudioManager.loadedStreams.empty()) {
-                    encEvent.timestamp = time;
-                } else {
-                    encEvent.timestamp = 0;
-                }
-                getEvent(writeIndex) = encEvent;
-                writeIndex++;
+    if (TheMenuManager.ActiveMenu) {
+        if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
+            if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
+                return;
             }
         }
-
-        {
-            ZoneScopedN("Enqueue Events")
-            requestMutex.lock();
-            for (auto &func : funcRequests) {
-                func();
-            }
-            funcRequests.clear();
-            requestMutex.unlock();
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        auto span = std::chrono::milliseconds(1000/controllerPollRate) - (end - start);
-        {
-            ZoneScopedN("Sleep")
-            std::this_thread::sleep_for(span);
-        }
+        if (!ScanningSongs)
+            TheMenuManager.ActiveMenu->ControllerInputCallback(event);
     }
 }
