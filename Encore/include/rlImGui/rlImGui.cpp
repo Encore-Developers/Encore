@@ -35,7 +35,6 @@
 #include "rlgl.h"
 
 #include "imgui.h"
-#include "GLFW/glfw3.h"
 #include "tracy/Tracy.hpp"
 
 #include <math.h>
