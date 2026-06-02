@@ -5,7 +5,6 @@
 #ifndef SETTINGS_GAMEPLAY_H
 #define SETTINGS_GAMEPLAY_H
 
-#include <GLFW/glfw3.h>
 #include "../overshell/OvershellMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
 #include "menus/util/Jukebox.h"
