@@ -31,7 +31,7 @@
 
 bool Encore::AudioManager::Init() {
 #ifdef WIN32
-    if (!BASS_Init(-1, 44100, 0, glfwGetWin32Window(glfwGetCurrentContext()), NULL)) {
+    if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
         CHECK_BASS_ERROR();
         return false;
     }
