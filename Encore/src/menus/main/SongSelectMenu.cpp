@@ -314,13 +314,12 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
         break;
     }
 
-    for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
+    for (auto &stream : TheAudioManager.loadedStreams) {
         float volume = currentPreviewVolume;
-        if (i == PartVocals)
-            volume = 0;
-        TheAudioManager.SetAudioStreamVolume(TheAudioManager.loadedStreams[i].handle,
-                                             volume);
+        TheAudioManager.SetAudioStreamVolume(stream.instrument, volume);
     }
+
+    TheAudioManager.UpdateAudioStreamVolumes();
 }
 
 
@@ -363,16 +362,12 @@ void SongSelectMenu::LoadPreview(Song &song) {
             .previewStartTime
             / 1000.0f;
         TheAudioManager.seekStreams(previewStartTimeSec);
-        for (int j = 0; j < TheAudioManager.loadedStreams.size(); j++) {
+        for (auto &stream : TheAudioManager.loadedStreams) {
             float volume = 0.0f;
-            if (j == PartVocals)
-                volume = 0;
-            TheAudioManager.SetAudioStreamVolume(
-                TheAudioManager.loadedStreams[j].handle,
-                volume
-            );
-            TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[j].handle);
+            TheAudioManager.SetAudioStreamVolume(stream.instrument, volume);
         }
+        TheAudioManager.UpdateAudioStreamVolumes();
+        TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         previewStartTime = curTime;
         phaseStartTime = curTime;
         currentPreviewVolume = 0.0f;

@@ -221,7 +221,7 @@ void EncoreDebug::MenuBar() {
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
 
     SetCursorPosX(avail - size - GetStyle().FramePadding.x);
-    Text("%s", debugVersionHash.c_str());
+    ImGui::Text("%s", debugVersionHash.c_str());
 
     EndMainMenuBar();
 }
@@ -241,7 +241,7 @@ void EncoreDebug::DrawColorProfileSettings() {
                     (profile.second.Name + TextFormat("###%x", &profile.second.Name)).c_str())) {
                     bool disabled = false;
                     if (profile.second.builtin) {
-                        Text("%s", "Cannot edit default color profile.");
+                        ImGui::Text("%s", "Cannot edit default color profile.");
                         BeginDisabled();
                         disabled = true;
                     }
@@ -317,12 +317,14 @@ void EncoreDebug::DrawQuickSettings() {
         }
         DragInt("Video Calibration", &TheGameSettings.VideoOffset, 1, 0, 0, "%dms");
 
-        Text("Audio Settings");
+        ImGui::Text("Audio Settings");
         SliderFloat("Main Volume", &TheGameSettings.avMainVolume, 0.0, 1.0);
         if (CollapsingHeader("Advanced")) {
             SliderFloat("Active Inst Volume", &TheGameSettings.avActiveInstrumentVolume, 0.0, 1.0);
-            SliderFloat("Inactive Inst Volume", &TheGameSettings.avInactiveInstrumentVolume, 0.0, 1.0);
             SliderFloat("Track Mute Volume", &TheGameSettings.avMuteVolume, 0.0, 1.0);
+            SliderFloat("Inactive Inst Volume", &TheGameSettings.avInactiveInstrumentVolume, 0.0, 1.0);
+            SliderFloat("Inactive Vocals Volume", &TheGameSettings.avInactiveVocalsVolume, 0.0, 1.0);
+            SliderFloat("Crowd Volume", &TheGameSettings.avCrowdVolume, 0.0, 1.0);
             SliderFloat("SFX Volume", &TheGameSettings.avSoundEffectVolume, 0.0, 1.0);
             SliderFloat("Menu Music Volume", &TheGameSettings.avMenuMusicVolume, 0.0, 1.0);
         }
@@ -365,7 +367,7 @@ void EncoreDebug::DrawPracticeSectionSelector() {
     if (isGameplay) {
         if (Begin("Practice Section Selector")) {
             for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
-                Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
+                ImGui::Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
                 SameLine();
                 float buttWidth = CalcTextSize(" whole").x;
                 SetCursorPosX(GetWindowWidth() - (buttWidth * 3));
@@ -629,12 +631,12 @@ void EncoreDebug::DrawJoystickTools() {
 
                 TableSetColumnIndex(0);
                 auto joystickName = SDL_GetJoystickNameForID(joyId);
-                Text("%s", joystickName);
+                ImGui::Text("%s", joystickName);
 
                 TableSetColumnIndex(1);
                 char guidStr[33];
                 SDL_GUIDToString(SDL_GetJoystickGUIDForID(joyId), guidStr, 33);
-                Text("%s", guidStr);
+                ImGui::Text("%s", guidStr);
 
                 TableSetColumnIndex(2);
                 if (SmallButton("Copy Name and GUID")) {
@@ -689,7 +691,7 @@ void EncoreDebug::DrawLocaleDebug() {
                 for (auto& layer : Encore::Locale::layers) {
                     if (CollapsingHeader(layer.name.c_str())) {
                         if (layer.fallback) {
-                            Text("Fallback layer, will report unlocalized tokens");
+                            ImGui::Text("Fallback layer, will report unlocalized tokens");
                         }
 
                         const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
@@ -705,10 +707,10 @@ void EncoreDebug::DrawLocaleDebug() {
                                 TableNextRow();
 
                                 TableSetColumnIndex(0);
-                                Text("%s", key.c_str());
+                                ImGui::Text("%s", key.c_str());
 
                                 TableSetColumnIndex(1);
-                                Text("%s", value.c_str());
+                                ImGui::Text("%s", value.c_str());
                             }
 
                             EndTable();
@@ -721,7 +723,7 @@ void EncoreDebug::DrawLocaleDebug() {
 
             if (BeginTabItem("Unlocalized Tokens")) {
                 for (auto& token : Encore::Locale::unlocalizedTokens) {
-                    Text("%s", token.c_str());
+                    ImGui::Text("%s", token.c_str());
                 }
                 EndTabItem();
             }
@@ -785,13 +787,13 @@ void EncoreDebug::DrawSongList() {
                 PushID(i);
 
                 TableSetColumnIndex(1);
-                Text("%s", song->title.c_str());
+                ImGui::Text("%s", song->title.c_str());
 
                 TableSetColumnIndex(2);
-                Text("%s", song->artist.c_str());
+                ImGui::Text("%s", song->artist.c_str());
 
                 TableSetColumnIndex(3);
-                Text("%s", song->source.c_str());
+                ImGui::Text("%s", song->source.c_str());
 
                 TableSetColumnIndex(0);
                 if (SmallButton("Play")) {
@@ -862,12 +864,12 @@ void EncoreDebug::DrawAssetViewer() {
                 TableNextRow();
                 PushID(i);
                 TableSetColumnIndex(1);
-                Text("%s",
+                ImGui::Text("%s",
                     std::filesystem::path(asset->id).filename().generic_string().c_str());
                 TableSetColumnIndex(2);
-                Text("%s", typeid(*asset).name());
+                ImGui::Text("%s", typeid(*asset).name());
                 TableSetColumnIndex(3);
-                Text("%s", AssetStateName(asset->state));
+                ImGui::Text("%s", AssetStateName(asset->state));
 
                 TableSetColumnIndex(0);
                 switch (asset->state) {

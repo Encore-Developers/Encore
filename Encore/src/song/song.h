@@ -18,6 +18,10 @@
 #include <array>
 #include <nlohmann/json.hpp>
 
+#include "audio.h"
+
+using namespace Encore;
+
 enum PartIcon {
     IconDrum,
     IconBass,
@@ -27,8 +31,8 @@ enum PartIcon {
     IconNone
 };
 
-enum SongParts {
-    PartDrums,
+enum SongParts : int {
+    PartDrums = 0,
     PartBass,
     PartGuitar,
     PartKeys,
@@ -109,6 +113,23 @@ inline SongParts partFromStringINI(const std::string &str) {
     }
 }
 
+// todo: split drums into getting individual stems for proper drum mappings
+inline std::map<SongParts, AudioManager::Stems> InstrumentToStemEnum {
+        { PartDrums, AudioManager::Stems::Drums1 },
+        { PartDrums, AudioManager::Stems::Drums2 },
+        { PartDrums, AudioManager::Stems::Drums3 },
+        { PartDrums, AudioManager::Stems::Drums4 },
+        { PartBass, AudioManager::Stems::Bass },
+        { PartGuitar, AudioManager::Stems::Guitar },
+        { PartVocals, AudioManager::Stems::Vocals },
+        { PartKeys, AudioManager::Stems::Keys },
+};
+
+inline AudioManager::Stems GetStemFromInstrument(SongParts part) {
+    int fuck = part > PartVocals ? part - PlasticDrums : part;
+    // I AM A PROGRAMMER! I AM A PROGRAMMER!
+    return InstrumentToStemEnum.at(SongParts(fuck));
+}
 class Song {
 public:
     bool midiParsed = false;
@@ -151,7 +172,7 @@ public:
     std::string jsonHash = "";
     int hopoThreshold = -1;
     smf::MidiFile midiFile;
-    std::vector<std::pair<std::filesystem::path, int>> LoadAudioINI();
+    std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> LoadAudioINI();
     float previewStartTime = 0.0f;
 
     SongParts GetSongPart(smf::MidiEventList track) {

@@ -55,7 +55,7 @@ bool Encore::AudioManager::Init() {
     return true;
 }
 
-void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::path, int>> paths) {
+void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::path, Stems>> paths) {
     ZoneScoped;
     int streams = 0;
     for (auto &path : paths) {
@@ -157,12 +157,13 @@ void Encore::AudioManager::UpdateAudioStreamVolumes() {
     };
     CHECK_BASS_ERROR2();
 }
+
 Encore::AudioManager::AudioStream *
-Encore::AudioManager::GetAudioStreamByInstrument(int instrument) {
+Encore::AudioManager::GetAudioStreamByInstrument(Stems stem) {
     if (loadedStreams.empty())
         return nullptr;
     for (auto &stream : loadedStreams) {
-        if (stream.instrument == instrument)
+        if (stream.instrument == stem)
             return &stream;
     };
     return nullptr;
@@ -190,8 +191,11 @@ double Encore::AudioManager::GetMusicTimeLength() const {
     CHECK_BASS_ERROR2();
 }
 
-void Encore::AudioManager::SetAudioStreamVolume(unsigned int handle, float volume) {
-    BASS_ChannelSetAttribute(handle, BASS_ATTRIB_VOL, volume);
+void Encore::AudioManager::SetAudioStreamVolume(Stems stem, float volume) {
+    for (auto &stream : loadedStreams) {
+        if (stem == stream.instrument)
+            stream.volume = volume;
+    }
     CHECK_BASS_ERROR2();
 }
 
@@ -231,6 +235,7 @@ void Encore::AudioManager::SetAudioStreamPosition(unsigned int handle, double ti
     BASS_ChannelSetPosition(handle, positionBytes, BASS_POS_BYTE);
     CHECK_BASS_ERROR2();
 }
+
 
 void Encore::AudioManager::playSample(unsigned long sample, float volume) {
     HCHANNEL channel = BASS_SampleGetChannel(sample, false);

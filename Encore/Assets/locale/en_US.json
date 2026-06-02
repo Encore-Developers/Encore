@@ -43,7 +43,9 @@
 			"inactive": "Inactive Instrument Volume",
 			"sfx": "SFX Volume",
 			"mute": "Mute Volume",
-			"menuMusic": "Menu Music Volume"
+			"menuMusic": "Menu Music Volume",
+			"vocals": "Vocal Track Volume",
+			"crowd": "Crowd Volume"
 		},
 		"prompt": {
 			"exit": "Save and Exit",

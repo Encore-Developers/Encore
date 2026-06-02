@@ -14,8 +14,10 @@
 
 #define SETTINGS_OPTIONS                                                                 \
     OPTION(float, avMainVolume, 0.5f)                                                    \
-    OPTION(float, avActiveInstrumentVolume, 0.75f)                                       \
-    OPTION(float, avInactiveInstrumentVolume, 0.5f)                                      \
+    OPTION(float, avActiveInstrumentVolume, 1.0f)                                        \
+    OPTION(float, avInactiveInstrumentVolume, 0.75f)                                     \
+    OPTION(float, avInactiveVocalsVolume, 1.0f)                                          \
+    OPTION(float, avCrowdVolume, 1.0f)                                                   \
     OPTION(float, avSoundEffectVolume, 0.5f)                                             \
     OPTION(float, avMuteVolume, 0.15f)                                                   \
     OPTION(float, avMenuMusicVolume, 0.15f)                                              \
@@ -44,6 +46,24 @@ namespace Encore {
         void SaveToFile(const std::string& filename) const;
         void LoadFromFile(const std::string& filename);
         void UpdateFullscreen();
+
+        // look it would probably be better to use an array+enum combo for this
+        // but thisll make do for now
+        float GetActiveVolume() const {
+            return avMainVolume * avActiveInstrumentVolume;
+        };
+        float GetInactiveVolume() const {
+            return avMainVolume * avInactiveInstrumentVolume;
+        };
+        float GetMuteVolume() const {
+            return avMainVolume * avMuteVolume;
+        };;
+        float GetVocalsVolume() const {
+            return avMainVolume * avInactiveVocalsVolume;
+        };;
+        float GetCrowdVolume() const {
+            return avMainVolume * avCrowdVolume;
+        };;
     };
 
     NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(

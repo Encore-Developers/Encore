@@ -9,7 +9,7 @@
 #include "song/songlist.h"
 
 
-void Encore::Jukebox::TogglePlayback() {
+void Jukebox::TogglePlayback() {
     if (streamsLoaded) {
         if (playing) {
             TheAudioManager.pauseStreams();
@@ -21,7 +21,7 @@ void Encore::Jukebox::TogglePlayback() {
     }
 }
 
-void Encore::Jukebox::UnloadStreams() {
+void Jukebox::UnloadStreams() {
     if (streamsLoaded) {
         TheAudioManager.unloadStreams();
         streamsLoaded = false;
@@ -29,11 +29,12 @@ void Encore::Jukebox::UnloadStreams() {
     }
 }
 
-void Encore::Jukebox::Update() {
+void Jukebox::Update() {
     if (streamsLoaded) {
         float played = TheAudioManager.GetMusicTimePlayed();
         float length = TheAudioManager.GetMusicTimeLength();
         AdjustVolume();
+        TheAudioManager.UpdateAudioStreamVolumes();
         if (played >= length - 0.5) {
             UnloadStreams();
             PickRandomSong();
@@ -47,21 +48,19 @@ void Encore::Jukebox::Update() {
     }
 }
 
-void Encore::Jukebox::AdjustVolume() {
+void Jukebox::AdjustVolume() {
     if (streamsLoaded) {
-        for (int i = 0; i < TheAudioManager.loadedStreams.size(); i++) {
+        for (auto &stream : TheAudioManager.loadedStreams) {
             float Volume =
                 TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
-            if (TheAudioManager.loadedStreams[i].instrument == PartVocals)
+            if (stream.instrument == AudioManager::Stems::Vocals)
                 Volume = 0;
-            TheAudioManager.SetAudioStreamVolume(
-                TheAudioManager.loadedStreams[i].handle, Volume
-            );
+            TheAudioManager.SetAudioStreamVolume(stream.instrument, Volume);
         }
     }
 }
 
-void Encore::Jukebox::PickRandomSong() {
+void Jukebox::PickRandomSong() {
     if (TheSongList.songs.size() > 0) {
         try {
             int my = GetRandomValue(0, (int)TheSongList.songs.size() - 1);
@@ -77,14 +76,14 @@ void Encore::Jukebox::PickRandomSong() {
     }
 }
 
-void Encore::Jukebox::StartStreams() {
+void Jukebox::StartStreams() {
     if (streamsLoaded) {
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         playing = true;
     }
 }
 
-void Encore::Jukebox::LoadStreams() {
+void Jukebox::LoadStreams() {
     if (!streamsLoaded && TheSongList.curSong) {
         TheAudioManager.loadStreams(TheSongList.curSong->LoadAudioINI());
         streamsLoaded = true;

@@ -29,7 +29,7 @@ public:
 
 private:
     // SettingsOld& settings = SettingsOld::getInstance();
-    Keybinds keybinds;
+    // Keybinds keybinds;
     int selectedIndex = 0;
     int bindingOption = -1;
     bool isHovering = false;

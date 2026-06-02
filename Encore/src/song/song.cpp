@@ -8,12 +8,25 @@
 #include "inih/INIReader.h"
 #include <map>
 
-std::map<std::string, int> IniStems = {
-    { "song", Invalid },        { "guitar", PartGuitar },   { "bass", PartBass },
-    { "rhythm", PartBass },     { "keys", PartKeys },       { "vocals", PartVocals },
-    { "vocals_1", PartVocals }, { "vocals_2", PartVocals }, { "drums", PartDrums },
-    { "drums_1", PartDrums },   { "drums_2", PartDrums },   { "drums_3", PartDrums },
-    { "drums_4", PartDrums },   { "crowd", Invalid }
+#include "audio.h"
+
+using namespace Encore;
+
+std::map<std::string, AudioManager::Stems> IniStems = {
+    { "song",       AudioManager::Stems::Background },
+    { "guitar",     AudioManager::Stems::Guitar },
+    { "bass",       AudioManager::Stems::Bass },
+    { "rhythm",     AudioManager::Stems::Bass },
+    { "keys",       AudioManager::Stems::Keys },
+    { "vocals",     AudioManager::Stems::Vocals },
+    { "vocals_1",   AudioManager::Stems::BackingVocals },
+    { "vocals_2",   AudioManager::Stems::Vocals },
+    { "drums",      AudioManager::Stems::Drums1 },
+    { "drums_1",    AudioManager::Stems::Drums1 },
+    { "drums_2",    AudioManager::Stems::Drums2 },
+    { "drums_3",    AudioManager::Stems::Drums3 },
+    { "drums_4",    AudioManager::Stems::Drums4 },
+    { "crowd",      AudioManager::Stems::Crowd }
 };
 
 void Song::LoadInfoINI(std::filesystem::path iniPath) {
@@ -87,13 +100,14 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
     }
     LoadInfoINI(songInfoPath);
 }
+
 void Song::LoadAlbumArt() {
     TheArtLoader.LoadAlbumArt(this);
 }
 
-std::vector<std::pair<std::filesystem::path, int>> Song::LoadAudioINI() {
+std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> Song::LoadAudioINI() {
     ZoneScoped
-    std::vector<std::pair<std::filesystem::path, int>> stemsPath;
+    std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> stemsPath;
     for (const auto &entry : std::filesystem::directory_iterator(songDir)) {
         if (entry.is_regular_file()) {
             for (auto filename : IniStems) {

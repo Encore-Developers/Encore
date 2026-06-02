@@ -457,6 +457,15 @@ void GameplayMenu::Draw() {
     // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     // int flashInterval = (numer * 480) / denom;
     TheLyricRenderer.RenderLyrics();
+
+    for (auto &stream : TheAudioManager.loadedStreams) {
+        float volume = TheGameSettings.GetInactiveVolume();
+        if (stream.instrument == AudioManager::Stems::Vocals)
+            volume = TheGameSettings.GetVocalsVolume();
+        if (stream.instrument == AudioManager::Stems::Crowd)
+            volume = TheGameSettings.GetCrowdVolume();
+        stream.volume = volume;
+    }
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         Player &player = ThePlayerManager.GetActivePlayer(i);
@@ -471,36 +480,12 @@ void GameplayMenu::Draw() {
         }
 
         tracks.at(i)->Draw();
-        // int TopOfScreen = GetRenderHeight(); // width
-        // int FakeStrikeline = (TopOfScreen / 5) * 4;
-        // constexpr int NoteXWidth = 150;
-        // constexpr int NoteHeight = 25;
-
-        // int mospos =
-        //     ((GetRenderWidth() + (ThePlayerManager.PlayersActive * NoteXWidth * 5))
-        //         / (1 + ThePlayerManager.PlayersActive))
-        //     - ((ThePlayerManager.PlayersActive * NoteXWidth * 5) / 2);
-        // int MiddleOfScreen = mospos + (mospos * i); // height
-        // int TrackLeft = MiddleOfScreen - (NoteXWidth / 2) - NoteXWidth - NoteXWidth;
         auto chart = player.engine->chart;
-        // int SidesWidth = 20;
-        // int RailWidth = SidesWidth / 2;
-
+        float volume = TheGameSettings.GetActiveVolume();
         if (player.engine.get()->stats.get()->AudioMuted) {
-            int InstrumentNum =
-                player.Instrument % 5;
-            if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)) {
-                TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
-                    TheGameSettings.avMainVolume * TheGameSettings.avMuteVolume;
-            }
-        } else {
-            int InstrumentNum =
-                player.Instrument % 5;
-            if (TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)) {
-                TheAudioManager.GetAudioStreamByInstrument(InstrumentNum)->volume =
-                    TheGameSettings.avMainVolume * TheGameSettings.avActiveInstrumentVolume;
-            }
+            volume = TheGameSettings.GetMuteVolume();
         }
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), volume);
     }
     TheAudioManager.UpdateAudioStreamVolumes();
 
@@ -620,13 +605,25 @@ void GameplayMenu::Load() {
         trackMaxScale = 1.1;
     }
 
+    for (auto &stream : TheAudioManager.loadedStreams) {
+        float volume = TheGameSettings.GetInactiveVolume();
+        if (stream.instrument == AudioManager::Stems::Vocals)
+            volume = TheGameSettings.GetVocalsVolume();
+        if (stream.instrument == AudioManager::Stems::Crowd)
+            volume = TheGameSettings.GetCrowdVolume();
+        stream.volume = volume;
+    }
+
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
+
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), TheGameSettings.GetActiveVolume());
+
+
         tracks.at(i) = std::make_shared<Encore::Track>(player);
         tracks.at(i)->Load();
-
         tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
         tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
         tracks.at(i)->MaxScale = trackMaxScale;
@@ -669,11 +666,8 @@ void GameplayMenu::Load() {
     if (AudioEnd > LastNote) End = AudioEnd;
     if (EndEvent > LastNote) End = EndEvent;
     TheSongList.curSong->end = End;
-    for (auto &stream : TheAudioManager.loadedStreams) {
-        stream.volume =
-            TheGameSettings.avMainVolume * TheGameSettings.avInactiveInstrumentVolume;
-    }
 
+    TheAudioManager.UpdateAudioStreamVolumes();
 }
 void GameplayMenu::DrawPauseMenu() {
     Assets &assets = Assets::getInstance();
