@@ -210,6 +210,7 @@ int main(int argc, char *argv[]) {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
     // glfwWindowHint(GLFW_SAMPLES, 4);
     // glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 
