@@ -396,6 +396,8 @@ public:
 
     Image icon;
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");
+    NEWTEXASSET(encoreTransLogo, "encore-trans.png");
+    NEWTEXASSET(encorePrideLogo, "encore-pride.png");
     Texture2D songBackground;
 
     // Used as a default background for the menu

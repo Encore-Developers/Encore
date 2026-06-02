@@ -41,10 +41,12 @@ namespace GameMenu {
 class MainMenu : public OvershellMenu {
     
     void ChooseSplashText(std::filesystem::path directory);
+    void DrawMiniMTVOverlay(unsigned char alpha, Vector2 pos);
     void AttractScreen();
     void GotoSongSelect();
     void MainMenuScreen();
 public:
+    static int logoInt;
     // MainMenu() {};
     // drawing helper functions for other menus
 

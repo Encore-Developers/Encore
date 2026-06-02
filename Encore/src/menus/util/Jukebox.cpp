@@ -4,6 +4,8 @@
 
 #include "Jukebox.h"
 
+#include <random>
+
 #include "settings/settings.h"
 #include "song/audio.h"
 #include "song/songlist.h"
@@ -63,8 +65,15 @@ void Jukebox::AdjustVolume() {
 void Jukebox::PickRandomSong() {
     if (TheSongList.songs.size() > 0) {
         try {
-            int my = GetRandomValue(0, (int)TheSongList.songs.size() - 1);
-            TheSongList.curSong = &TheSongList.songs[my];
+
+            std::random_device seed;
+            std::minstd_rand prng(seed());
+            std::uniform_int_distribution<> dist(0, TheSongList.songs.size() - 1);
+            int selectedSong = dist(prng);
+            if (TheSongList.curSong == &TheSongList.songs[selectedSong]) {
+                selectedSong = dist(prng);
+            }
+            TheSongList.curSong = &TheSongList.songs[selectedSong];
             // ChosenSongInt = my;
 
             TheSongList.curSong->LoadAlbumArt();

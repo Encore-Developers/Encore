@@ -53,6 +53,7 @@ SongList &songListMenu = TheSongList;
 Units u = Units::getInstance();
 Encore::Jukebox TheGameJukebox;
 MainMenu TheGameMenu;
+int MainMenu::logoInt = 0;
 
 void GameMenu::DrawTopOvershell(float TopOvershell) {
     DrawRectangleGradientV(
@@ -155,6 +156,12 @@ void MainMenu::ChooseSplashText(std::filesystem::path directory) {
     std::cout << result << std::endl;
 }
 
+int ChooseRandomLogo() {
+    std::random_device seed;
+    std::minstd_rand prng(seed());
+    std::uniform_int_distribution<> dist(0, 3);
+    return dist(prng);
+}
 
 void MainMenu::Load() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
@@ -186,6 +193,7 @@ void MainMenu::Load() {
             break;
         }
     })
+    logoInt = ChooseRandomLogo();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "generic.confirm", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         ControllerSelected -= 1;
@@ -265,6 +273,25 @@ void DrawWarning(Vector2 pos, Vector2 size) {
     ImGui::End();
 }
 
+void MainMenu::DrawMiniMTVOverlay(unsigned char alpha, Vector2 pos)
+{
+    const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+    float TitleFontOffset = (TitleFontSize * 1.25f);
+
+    Encore::Text::DrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
+                           {pos.x, pos.y}, TitleFontSize,
+                           {255, 255, 255, alpha}, RIGHT);
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
+                           {pos.x - TitleFontOffset, pos.y + TitleFontOffset}, TitleFontSize * 0.85f,
+                           {200, 200, 200, alpha}, RIGHT);
+    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
+                   {pos.x - TitleFontSize, pos.y + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0,
+                   {255, 255, 255, alpha}
+
+    );
+}
+
 void MainMenu::AttractScreen() {
     float SplashFontSize = u.hinpct(0.03f);
     float SplashHeight =
@@ -301,26 +328,35 @@ void MainMenu::AttractScreen() {
     float HintWidth = MeasureTextEx(menuAss.rubik, hint.c_str(), SplashFontSize, 0).x;
     Vector2 HintPos = { u.wpct(0.5f) - (HintWidth / 2), u.hpct(0.5f) + LogoHeight };
     DrawTextEx(menuAss.rubik, hint.c_str(), HintPos, SplashFontSize, 0, WHITE);
-
-    DrawTexturePro(
-        menuAss.encoreWhiteLogo,
-        { 0,
-          0,
-          (float)menuAss.encoreWhiteLogo.width,
-          (float)menuAss.encoreWhiteLogo.height },
-        LogoRect,
-        { 0, 0 },
-        0,
-        WHITE
-    );
+    switch (logoInt) {
+        case (1): {
+            ASSET(encorePrideLogo).Draw(LogoRect, WHITE);
+            break;
+        }
+        case (2): {
+            ASSET(encoreTransLogo).Draw(LogoRect, WHITE);
+            break;
+        }
+        case (0):
+        default: {
+            ASSET(encoreWhiteLogo).Draw(LogoRect, WHITE);
+            break;
+        }
+    }
+    //DrawTexturePro(
+    //    menuAss.encoreWhiteLogo,
+    //    { 0,
+    //      0,
+     //     (float)menuAss.encoreWhiteLogo.width,
+    //      (float)menuAss.encoreWhiteLogo.height },
+    //    LogoRect,
+    //    { 0, 0 },
+    //    0,
+    //    WHITE
+    //);
     if (TheGameJukebox.streamsLoaded) {
-        const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
-        float TitleFontSize = u.hinpct(0.0425f * 0.75f);
-        float TitleFontOffset = (TitleFontSize * 1.25f);
-        float SecondaryFontSize = TitleFontSize * 0.85f;
-        float topOfVocalBar = GetRenderHeight() - u.hpct(0.1f) - (TitleFontOffset * 2);
-        auto easeInOut = getEasingFunction(EaseInOutSine);
 
+        auto easeInOut = getEasingFunction(EaseInOutSine);
         if (TheAudioManager.GetMusicTimePlayed() > 5) {
             TitleAnimTimer -= GetFrameTime() * 2;
             if (TitleAnimTimer < 0) TitleAnimTimer = 0;
@@ -329,17 +365,10 @@ void MainMenu::AttractScreen() {
             if (TitleAnimTimer > 1) TitleAnimTimer = 1;
         }
         unsigned char Alpha = 96 + (easeInOut(TitleAnimTimer) * 159);
-        Encore::Text::DrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
-                             {u.wpct(0.99f), topOfVocalBar}, TitleFontSize,
-                             {255, 255, 255, Alpha}, RIGHT);
-        Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
-                             {u.wpct(0.99f) - TitleFontOffset, topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
-                             {200, 200, 200, Alpha}, RIGHT);
-        DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
-            {u.wpct(0.99f) - TitleFontSize, topOfVocalBar + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0,
-                {255, 255, 255, Alpha}
-
-        );
+        float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+        float TitleFontOffset = (TitleFontSize * 1.25f);
+        float topOfVocalBar = GetRenderHeight() - u.hpct(0.1f) - (TitleFontOffset * 2);
+        DrawMiniMTVOverlay(Alpha, {u.wpct(0.99f),topOfVocalBar});
     }
     DrawOvershell();
 
@@ -402,17 +431,21 @@ void MainMenu::MainMenuScreen() {
                                u.winpct(0.5f)
                            ),
                            logoHeight };
-    DrawTexturePro(
-        menuAss.encoreWhiteLogo,
-        { 0,
-          0,
-          (float)menuAss.encoreWhiteLogo.width,
-          (float)menuAss.encoreWhiteLogo.height },
-        LogoRect,
-        { 0, 0 },
-        0,
-        WHITE
-    );
+    switch (logoInt) {
+    case (1): {
+        ASSET(encorePrideLogo).Draw(LogoRect, WHITE);
+        break;
+    }
+    case (2): {
+        ASSET(encoreTransLogo).Draw(LogoRect, WHITE);
+        break;
+    }
+    case (0):
+    default: {
+        ASSET(encoreWhiteLogo).Draw(LogoRect, WHITE);
+        break;
+    }
+    }
     auto DrawButtonGradient =  [](Rectangle _pos, Color _color) {
         DrawRectangle(0, _pos.y, _pos.x, _pos.height, _color);
         DrawRectangleGradientH(
@@ -535,28 +568,27 @@ void MainMenu::MainMenuScreen() {
             menuAss.rubikItalic, TheSongList.curSong->artist.c_str(), SongFontSize, 0
         );
 
-        Vector2 SongTitleBox = { u.RightSide - TitleSize.x - u.winpct(0.01f),
-                                 u.hpct(0.2f) - u.hinpct(0.1f) - (TitleSize.y * 1.1f) };
-        Vector2 SongArtistBox = { u.RightSide - ArtistSize.x - u.winpct(0.01f),
-                                  u.hpct(0.2f) - u.hinpct(0.1f) };
-        SongTitleBox.x = SongTitleBox.x - u.hinpct(0.12f);
-        SongArtistBox.x = SongArtistBox.x - u.hinpct(0.12f);
-        DrawTextEx(
-            menuAss.rubikBoldItalic,
-            TheSongList.curSong->title.c_str(),
-            SongTitleBox,
-            SongFontSize,
-            0,
-            WHITE
-        );
-        DrawTextEx(
-            menuAss.rubikItalic,
-            TheSongList.curSong->artist.c_str(),
-            SongArtistBox,
-            SongFontSize,
-            0,
-            WHITE
-        );
+        Vector2 SongTitleBox = { u.RightSide - u.hinpct(0.13f),
+                                 u.hpct(0.2f) - u.hinpct(0.131f) };
+        DrawMiniMTVOverlay(255, SongTitleBox);
+        // SongTitleBox.x = SongTitleBox.x - u.hinpct(0.12f);
+        // SongArtistBox.x = SongArtistBox.x - u.hinpct(0.12f);
+        // DrawTextEx(
+        //     menuAss.rubikBoldItalic,
+        //     TheSongList.curSong->title.c_str(),
+        //     SongTitleBox,
+        //     SongFontSize,
+        //     0,
+        //     WHITE
+        // );
+        // DrawTextEx(
+        //     menuAss.rubikItalic,
+        //     TheSongList.curSong->artist.c_str(),
+        //     SongArtistBox,
+        //     SongFontSize,
+        //     0,
+        //     WHITE
+        // );
 
         float played = TheAudioManager.GetMusicTimePlayed();
         float length = TheAudioManager.GetMusicTimeLength();

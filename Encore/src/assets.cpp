@@ -325,6 +325,8 @@ void FontAsset::Unload() {
 // title screen. Adding assets to this set will affect boot times (especially fonts)
 AssetSet initialSet = {
     ASSETPTR(encoreWhiteLogo),
+    ASSETPTR(encoreTransLogo),
+    ASSETPTR(encorePrideLogo),
     ASSETPTR(rubik),
     ASSETPTR(favicon),
     ASSETPTR(faviconTex),
