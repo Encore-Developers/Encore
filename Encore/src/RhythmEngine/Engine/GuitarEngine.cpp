@@ -85,9 +85,9 @@ bool Encore::RhythmEngine::GuitarEngine::IsInputTooEarly() {
 }
 
 void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
-    if (!player->BrutalMode) {
-        BaseEngine::CheckMissedNotes(0, CurrentTime);
-    }
+    // if (!player->BrutalMode) {
+    //    BaseEngine::CheckMissedNotes(0, CurrentTime);
+   // }
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
         return;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(0);
