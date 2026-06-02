@@ -99,7 +99,7 @@ Vector2 GetDisplayScale()
 #if defined(__EMSCRIPTEN__)
     return Vector2{ 1,1 };
 #else
-    return GetWindowScaleDPI();
+    return {SDL_GetWindowDisplayScale(GetSDLWindow()), SDL_GetWindowDisplayScale(GetSDLWindow())};
 #endif
 }
 
@@ -236,7 +236,7 @@ static void EnableScissor(float x, float y, float width, float height)
     rlEnableScissorTest();
     ImGuiIO& io = ImGui::GetIO();
 
-    ImVec2 scale = io.DisplayFramebufferScale;
+    ImVec2 scale = {1, 1};
 #if !defined(__APPLE__)
     if (!IsWindowState(FLAG_WINDOW_HIGHDPI))
     {

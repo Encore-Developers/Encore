@@ -225,10 +225,11 @@ int main(int argc, char *argv[]) {
     // Bump only for completely breaking changes to player/settings format
     // Do not bump for cache format changes
     prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
+    Encore::EncoreLog(LOG_INFO, TextFormat("Prefs: %s", prefsPath.c_str()));
     std::filesystem::path directory = prefsPath;
 #ifdef __APPLE__
     CFBundleRef bundle = CFBundleGetMainBundle();
-    if (bundle != NULL) {
+    if (bundle != NULL && !devAssets) {
         // get the Resources directory for our binary for the Assets handling
         CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(bundle);
         if (resourceURL != NULL) {
@@ -385,6 +386,7 @@ int main(int argc, char *argv[]) {
         if (imGuiFontLoaded) {
             ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
         }
+
 
         ClearBackground(DARKGRAY);
         static bool showLoading = true;
