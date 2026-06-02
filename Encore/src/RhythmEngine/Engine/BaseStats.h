@@ -74,12 +74,11 @@ namespace Encore::RhythmEngine {
         Overdrive overdrive;
         void HitNote(int chordSize, int perfect) {
             if (perfect == -1) {
-                MaxCombo = Combo;
                 Combo = 0;
             } else {
                 Combo++;
-                MaxCombo = Combo;
             }
+            if (Combo > MaxCombo) MaxCombo = Combo;
             const double PointsPerNote = BASE_NOTE_POINT * (perfect == 1 ? PERFECT_MULTIPLIER : 1.0);
             Score += (PointsPerNote * chordSize) * multiplier();
             if (perfect == 1) PerfectHits++;
