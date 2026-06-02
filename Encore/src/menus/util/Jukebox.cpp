@@ -7,7 +7,7 @@
 #include "settings/settings.h"
 #include "song/audio.h"
 #include "song/songlist.h"
-
+using namespace Encore;
 
 void Jukebox::TogglePlayback() {
     if (streamsLoaded) {

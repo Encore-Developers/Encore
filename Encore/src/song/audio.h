@@ -8,6 +8,8 @@
 // change this to allow a sound effect to repeat more
 #define MAX_SAMPLE_CHANNELS 8
 
+#define AUDIOSTEM(stem) Encore::AudioManager::Stems::stem
+
 namespace Encore {
     class AudioManager {
     public:

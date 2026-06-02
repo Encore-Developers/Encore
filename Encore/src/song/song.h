@@ -20,7 +20,6 @@
 
 #include "audio.h"
 
-using namespace Encore;
 
 enum PartIcon {
     IconDrum,
@@ -114,18 +113,18 @@ inline SongParts partFromStringINI(const std::string &str) {
 }
 
 // todo: split drums into getting individual stems for proper drum mappings
-inline std::map<SongParts, AudioManager::Stems> InstrumentToStemEnum {
-        { PartDrums, AudioManager::Stems::Drums1 },
-        { PartDrums, AudioManager::Stems::Drums2 },
-        { PartDrums, AudioManager::Stems::Drums3 },
-        { PartDrums, AudioManager::Stems::Drums4 },
-        { PartBass, AudioManager::Stems::Bass },
-        { PartGuitar, AudioManager::Stems::Guitar },
-        { PartVocals, AudioManager::Stems::Vocals },
-        { PartKeys, AudioManager::Stems::Keys },
+inline std::map<SongParts, Encore::AudioManager::Stems> InstrumentToStemEnum {
+        { PartDrums, AUDIOSTEM(Drums1) },
+        { PartDrums, AUDIOSTEM(Drums2) },
+        { PartDrums, AUDIOSTEM(Drums3) },
+        { PartDrums, AUDIOSTEM(Drums4) },
+        { PartBass, AUDIOSTEM(Bass) },
+        { PartGuitar, AUDIOSTEM(Guitar) },
+        { PartVocals, AUDIOSTEM(Vocals) },
+        { PartKeys, AUDIOSTEM(Keys) },
 };
 
-inline AudioManager::Stems GetStemFromInstrument(SongParts part) {
+inline Encore::AudioManager::Stems GetStemFromInstrument(SongParts part) {
     int fuck = part > PartVocals ? part - PlasticDrums : part;
     // I AM A PROGRAMMER! I AM A PROGRAMMER!
     return InstrumentToStemEnum.at(SongParts(fuck));

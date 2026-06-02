@@ -125,7 +125,7 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
     Text::DrawText(ASSET(rubikBold), TextFormat("%i", *value), {slider.x + (slider.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, CENTER);
 }
 
-void SettingDoohickey::goMyScarabs::Draw(Rectangle pos, bool hovered, bool Clickable) {
+void Encore::SettingDoohickey::goMyScarabs::Draw(Rectangle pos, bool hovered, bool Clickable) {
     ImGui::SetNextWindowPos({pos.x, pos.y}, ImGuiCond_Always);
     ImGui::SetNextWindowSize({pos.width, pos.height * height});
     if (ImGui::Begin(name.c_str(), 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {

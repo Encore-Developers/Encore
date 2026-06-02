@@ -462,9 +462,9 @@ void GameplayMenu::Draw() {
 
     for (auto &stream : TheAudioManager.loadedStreams) {
         float volume = TheGameSettings.GetInactiveVolume();
-        if (stream.instrument == AudioManager::Stems::Vocals)
+        if (stream.instrument == AUDIOSTEM(Vocals))
             volume = TheGameSettings.GetVocalsVolume();
-        if (stream.instrument == AudioManager::Stems::Crowd)
+        if (stream.instrument == AUDIOSTEM(Crowd))
             volume = TheGameSettings.GetCrowdVolume();
         stream.volume = volume;
     }
@@ -609,9 +609,9 @@ void GameplayMenu::Load() {
 
     for (auto &stream : TheAudioManager.loadedStreams) {
         float volume = TheGameSettings.GetInactiveVolume();
-        if (stream.instrument == AudioManager::Stems::Vocals)
+        if (stream.instrument == AUDIOSTEM(Vocals))
             volume = TheGameSettings.GetVocalsVolume();
-        if (stream.instrument == AudioManager::Stems::Crowd)
+        if (stream.instrument == AUDIOSTEM(Crowd))
             volume = TheGameSettings.GetCrowdVolume();
         stream.volume = volume;
     }
