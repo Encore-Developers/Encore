@@ -1,5 +1,4 @@
 #pragma once
-#include "GLFW/glfw3.h"
 #include "RhythmEngine/REenums.h"
 #include "users/playerManager.h"
 #include "util/discord.h"

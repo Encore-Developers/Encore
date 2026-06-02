@@ -2,11 +2,9 @@
 
 #include "bass/bass.h"
 #include "bass/bassopus.h"
-#include "GLFW/glfw3.h"
 #include "gameplay/enctime.h"
 #include "tracy/Tracy.hpp"
 
-#include "GLFW/glfw3native.h"
 #include <vector>
 #include <filesystem>
 #include <iostream>

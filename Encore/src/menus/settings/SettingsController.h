@@ -4,7 +4,6 @@
 #pragma once
 
 #include "../overshell/OvershellMenu.h"
-#include "keybinds.h"
 #include <string>
 #include <utility>
 #include <vector>

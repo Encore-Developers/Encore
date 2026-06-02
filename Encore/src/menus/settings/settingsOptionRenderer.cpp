@@ -165,133 +165,133 @@ void settingsOptionRenderer::keybindEntryText(int entryNum, const std::string& l
     );
 }
 
-void settingsOptionRenderer::keybind5kEntry(
-    int value, int entryNum, const std::string& label, Keybinds keybinds, int lane
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(value).c_str()
-        )) {
-        changing4k = false;
-        changingAlt = false;
-        selLane = lane;
-        changingKey = true;
-    }
-}
-void settingsOptionRenderer::keybind5kAltEntry(
-    int altValue, int entryNum, const std::string& label, Keybinds keybinds, int lane
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(altValue).c_str()
-        )) {
-        changing4k = false;
-        changingAlt = true;
-        selLane = lane;
-        changingKey = true;
-    }
-}
-
-void settingsOptionRenderer::keybind4kEntry(
-    int value, int entryNum, const std::string& label, Keybinds keybinds, int lane
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(value).c_str()
-        )) {
-        changing4k = true;
-        changingAlt = false;
-        selLane = lane;
-        changingKey = true;
-    }
-}
-
-void settingsOptionRenderer::keybind4kAltEntry(
-    int altValue, int entryNum, const std::string& label, Keybinds keybinds, int lane
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(altValue).c_str()
-        )) {
-        changing4k = true;
-        changingAlt = true;
-        selLane = lane;
-        changingKey = true;
-    }
-}
-
-void settingsOptionRenderer::keybindOdEntry(
-    int value, int entryNum, const std::string& label, Keybinds keybinds
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(value).c_str()
-        )) {
-        changingAlt = false;
-        changingKey = false;
-        changingOverdrive = true;
-    }
-}
-
-void settingsOptionRenderer::keybindOdAltEntry(
-    int altValue, int entryNum, const std::string& label, Keybinds keybinds
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(altValue).c_str()
-        )) {
-        changingAlt = true;
-        changingKey = false;
-        changingOverdrive = true;
-    }
-}
-
-void settingsOptionRenderer::keybindPauseEntry(
-    int value, int entryNum, const std::string& label, Keybinds keybinds
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(value).c_str()
-        )) {
-        changingPause = true;
-    }
-}
-
-void settingsOptionRenderer::keybindStrumEntry(
-    int strumDirection, int entryNum, int value, Keybinds keybinds
-) {
-    static Layout layout;
-    float valueTop = layout.getEntryTop(entryNum);
-
-    if (GuiButton(
-            { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
-            keybinds.getKeyStr(value).c_str()
-        )) {
-        if (strumDirection == 0) {
-            changingStrumUp = true;
-        } else if (strumDirection == 1) {
-            changingStrumDown = true;
-        }
-    }
-}
+// void settingsOptionRenderer::keybind5kEntry(
+//     int value, int entryNum, const std::string& label, Keybinds keybinds, int lane
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(value).c_str()
+//         )) {
+//         changing4k = false;
+//         changingAlt = false;
+//         selLane = lane;
+//         changingKey = true;
+//     }
+// }
+// void settingsOptionRenderer::keybind5kAltEntry(
+//     int altValue, int entryNum, const std::string& label, Keybinds keybinds, int lane
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(altValue).c_str()
+//         )) {
+//         changing4k = false;
+//         changingAlt = true;
+//         selLane = lane;
+//         changingKey = true;
+//     }
+// }
+//
+// void settingsOptionRenderer::keybind4kEntry(
+//     int value, int entryNum, const std::string& label, Keybinds keybinds, int lane
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(value).c_str()
+//         )) {
+//         changing4k = true;
+//         changingAlt = false;
+//         selLane = lane;
+//         changingKey = true;
+//     }
+// }
+//
+// void settingsOptionRenderer::keybind4kAltEntry(
+//     int altValue, int entryNum, const std::string& label, Keybinds keybinds, int lane
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(altValue).c_str()
+//         )) {
+//         changing4k = true;
+//         changingAlt = true;
+//         selLane = lane;
+//         changingKey = true;
+//     }
+// }
+//
+// void settingsOptionRenderer::keybindOdEntry(
+//     int value, int entryNum, const std::string& label, Keybinds keybinds
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(value).c_str()
+//         )) {
+//         changingAlt = false;
+//         changingKey = false;
+//         changingOverdrive = true;
+//     }
+// }
+//
+// void settingsOptionRenderer::keybindOdAltEntry(
+//     int altValue, int entryNum, const std::string& label, Keybinds keybinds
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft + (layout.optionWidth / 2), valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(altValue).c_str()
+//         )) {
+//         changingAlt = true;
+//         changingKey = false;
+//         changingOverdrive = true;
+//     }
+// }
+//
+// void settingsOptionRenderer::keybindPauseEntry(
+//     int value, int entryNum, const std::string& label, Keybinds keybinds
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(value).c_str()
+//         )) {
+//         changingPause = true;
+//     }
+// }
+//
+// void settingsOptionRenderer::keybindStrumEntry(
+//     int strumDirection, int entryNum, int value, Keybinds keybinds
+// ) {
+//     static Layout layout;
+//     float valueTop = layout.getEntryTop(entryNum);
+//
+//     if (GuiButton(
+//             { layout.optionLeft, valueTop, layout.optionWidth / 2, layout.entryHeight },
+//             keybinds.getKeyStr(value).c_str()
+//         )) {
+//         if (strumDirection == 0) {
+//             changingStrumUp = true;
+//         } else if (strumDirection == 1) {
+//             changingStrumDown = true;
+//         }
+//     }
+// }

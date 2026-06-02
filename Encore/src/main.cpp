@@ -48,7 +48,6 @@
 
 #include "raylib.h"
 #include "raygui.h"
-#include "GLFW/glfw3.h"
 
 #include "arguments.h"
 #include "assets.h"

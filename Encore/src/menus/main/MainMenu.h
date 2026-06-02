@@ -3,7 +3,6 @@
 // Created by marie on 02/05/2024.
 //
 
-#include "GLFW/glfw3.h"
 #include "song/songlist.h"
 #include "assets.h"
 #include "users/player.h"

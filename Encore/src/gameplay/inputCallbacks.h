@@ -4,7 +4,6 @@
 
 #ifndef INPUTCALLBACKS_H
 #define INPUTCALLBACKS_H
-#include "GLFW/glfw3.h"
 #include "RhythmEngine/REenums.h"
 #include "SDL3/SDL_events.h"
 

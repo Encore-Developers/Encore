@@ -8,7 +8,6 @@
 #include <string>
 #include "../uiUnits.h"
 #include "assets.h"
-#include "keybinds.h"
 
 class settingsOptionRenderer {
 public:
@@ -26,23 +25,23 @@ public:
     );
     static bool toggleEntry(bool value, int entryNum, const std::string& Label);
     void keybindEntryText(int entryNum, const std::string& Label);
-    void keybind5kAltEntry(
-        int altValue, int entryNum, const std::string& Label, Keybinds keybinds, int lane
-    );
-    void keybind5kEntry(
-        int value, int entryNum, const std::string& Label, Keybinds keybinds, int lane
-    );
-    void keybind4kAltEntry(
-        int altValue, int entryNum, const std::string& Label, Keybinds keybinds, int lane
-    );
-    void keybind4kEntry(
-        int value, int entryNum, const std::string& Label, Keybinds keybinds, int lane
-    );
-    void keybindOdEntry(int value, int entryNum, const std::string& Label, Keybinds keybinds);
-    void keybindOdAltEntry(int value, int entryNum, const std::string& Label, Keybinds keybinds);
-    void keybindPauseEntry(int value, int entryNum, const std::string& Label, Keybinds keybinds);
-
-    void keybindStrumEntry(int value, int entryNum, int key, Keybinds keybinds);
+    // void keybind5kAltEntry(
+    //     int altValue, int entryNum, const std::string& Label, Keybinds keybinds, int lane
+    // );
+    // void keybind5kEntry(
+    //     int value, int entryNum, const std::string& Label, Keybinds keybinds, int lane
+    // );
+    // void keybind4kAltEntry(
+    //     int altValue, int entryNum, const std::string& Label, Keybinds keybinds, int lane
+    // );
+    // void keybind4kEntry(
+    //     int value, int entryNum, const std::string& Label, Keybinds keybinds, int lane
+    // );
+    // void keybindOdEntry(int value, int entryNum, const std::string& Label, Keybinds keybinds);
+    // void keybindOdAltEntry(int value, int entryNum, const std::string& Label, Keybinds keybinds);
+    // void keybindPauseEntry(int value, int entryNum, const std::string& Label, Keybinds keybinds);
+    //
+    // void keybindStrumEntry(int value, int entryNum, int key, Keybinds keybinds);
 };
 
 #endif // ENCORE_SETTINGSOPTIONRENDERER_H
