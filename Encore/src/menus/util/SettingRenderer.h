@@ -18,7 +18,8 @@ namespace Encore {
             FLOAT_SETTING,
             INT_SETTING,
             BUTTON_SETTING,
-            SEPARATOR
+            SEPARATOR,
+            IMGUIWINDOW
         };
 
         struct settingObject {
@@ -135,6 +136,24 @@ namespace Encore {
                 increment = 0;
             };
         };
+
+        struct goMyScarabs : settingObject {
+            settingType GetType() const override { return settingType::IMGUIWINDOW; }
+            void Draw(Rectangle pos, bool hovered, bool Clickable) override;
+            void Action(bool invert) override {};
+            std::function<void()> *value;
+            ~goMyScarabs() override {value = nullptr;};
+            int height;
+            goMyScarabs(const std::string &_name, std::function<void()> *imguiWindow, int _height = 1) {
+                name = _name;
+                value = imguiWindow;
+                min = 0;
+                max = 0;
+                increment = 0;
+                height = _height;
+            };
+        };
+
         bool isOSOpen = false;
         std::vector<settingObject*> settingsArray;
         ~SettingDoohickey() {

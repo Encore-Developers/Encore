@@ -1,3 +1,4 @@
+#include "imgui.h"
 #include "SettingRenderer.h"
 #include "raygui.h"
 #include "menus/uiUnits.h"
@@ -123,6 +124,16 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
     Text::DrawText(ASSET(rubik), TextFormat("+%i", increment), {rightButton.x + (rightButton.width / 2), TextTop}, EntryFontSize, WHITE, CENTER);
     Text::DrawText(ASSET(rubikBold), TextFormat("%i", *value), {slider.x + (slider.width / 2), TextTop}, EntryFontSize, LIGHTGRAY, CENTER);
 }
+
+void SettingDoohickey::goMyScarabs::Draw(Rectangle pos, bool hovered, bool Clickable) {
+    ImGui::SetNextWindowPos({pos.x, pos.y}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({pos.width, pos.height * height});
+    if (ImGui::Begin(name.c_str(), 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        value->operator()();
+    }
+    ImGui::End();
+}
+
 void Encore::SettingDoohickey::boolSettingObject::Action(bool invert) {
     *value = !*value;
 }

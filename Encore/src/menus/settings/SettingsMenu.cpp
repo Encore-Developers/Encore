@@ -14,6 +14,7 @@
 #include "settings/settings.h"
 #include "../uiUnits.h"
 #include "assets.h"
+#include "SettingsCredits.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellHelper.h"
 #include "menus/locale/Locale.h"
@@ -111,6 +112,7 @@ void SettingsMenu::Draw() {
                     TheMenuManager.CreateAndSwitchMenu<SettingsKeyboard>();
                     break;
                 case CREDITS:
+                    TheMenuManager.CreateAndSwitchMenu<SettingsCredits>();
                     break;
                 }
                 printf("Clicked: %s\n", menuItems[i].c_str());
