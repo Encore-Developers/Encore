@@ -36,6 +36,7 @@ private:
     const float previewPlayDuration = 30.0f;
     const float pauseDuration = 2.5f;
     double phaseStartTime = 0.0;
+    size_t topOflistMenu = -1;
     size_t curSongMenuPos = -1;
     double curTime = 0.0;
     double selectionTime = 0.0;

@@ -489,7 +489,9 @@ void SongSelectMenu::Draw() {
         (u.RightSide - u.winpct(0.25f)),
         songEntryHeight
         }, ColorBrightness(AccentColor, -0.5f));
-    int topOflistMenu = curSongMenuPos <= 4 ? 1 : curSongMenuPos - 4;
+    // Long casts so these are signed
+    topOflistMenu = std::clamp((long)topOflistMenu, (long)curSongMenuPos-6, (long)curSongMenuPos-3);
+    topOflistMenu = std::clamp((long)topOflistMenu, (long)1, (long)TheSongList.listMenuEntries.size()-10);
     Encore::TextDisplay songTitle;
     Encore::TextDisplay songArtist;
     float songXPos = u.LeftSide + u.winpct(0.005f) - 2 + songEntryHeight;
@@ -502,7 +504,7 @@ void SongSelectMenu::Draw() {
 
     for (size_t listMenuPos = topOflistMenu;
          listMenuPos < TheSongList.listMenuEntries.size() &&
-         (listMenuPos < curSongMenuPos + (topOflistMenu <= 4 ? 10 : 6));
+         (listMenuPos < topOflistMenu + 10);
          listMenuPos++) {
         ZoneScopedN("Draw Entry")
         if (TheSongList.listMenuEntries.size() == listMenuPos)
@@ -551,13 +553,13 @@ void SongSelectMenu::Draw() {
                 .songListID];
             Color background = { 128, 128, 128, 128 };
             if (listMenuPos % 2) {
-                background = {128, 128, 128, 64 };
+                background = {160, 160, 160, 128 };
             }
             if (isCurSong) {
                 auto timer = Clamp(curTime - selectionTime, 0, 0.15);
                 background =
                     ColorBrightness(AccentColor,
-                                    Remap(timer, 0, 0.15, 0, -0.25));
+                                    Remap(timer, 0, 0.15, 0.1, -0.2));
             }
             ASSET(AltBackground).Draw(entryRec, background);
 
