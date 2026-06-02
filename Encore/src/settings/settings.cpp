@@ -47,7 +47,7 @@ namespace Encore {
         }
     }
     void Settings::UpdateFullscreen() {
-
+        SDL_SetWindowFullscreen(GetSDLWindow(), Fullscreen);
     }
 
     // SettingsInit methods

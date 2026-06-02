@@ -277,7 +277,12 @@ int main(int argc, char *argv[]) {
     Encore::EncoreLog(LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg));
     {
         ZoneScopedN("Window Init")
-        InitWindow(800, 600, "Encore");
+        SDL_Init(SDL_INIT_VIDEO);
+        SDL_Rect rect;
+        SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &rect);
+        rect.w /= 1.5;
+        rect.h /= 1.5;
+        InitWindow(rect.w, rect.h, "Encore");
     }
     TheGameSettings.UpdateFullscreen();
     bool AudioInitSuccessful = TheAudioManager.Init();
@@ -313,6 +318,7 @@ int main(int argc, char *argv[]) {
     while (!WindowShouldClose()) {
         ZoneScopedN("Main Loop")
         // glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
+        SDL_GL_SetSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
         //PollQueuedInputs(poller);
