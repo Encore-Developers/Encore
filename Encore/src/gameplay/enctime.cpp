@@ -11,7 +11,7 @@
 
 SongTime TheSongTime;
 
-void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
+void SongTime::BeatmapFromMidiTrack(Song* song, smf::MidiFile &midiFile, int songEndTick) {
     ZoneScoped;
     //midiFile.doTimeAnalysis();
     songPPQN = midiFile.getTicksPerQuarterNote();
@@ -40,7 +40,7 @@ void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
                                                     // time sig
         // event isn't found
     }
-    GenerateBeatmap(songEndTick);
+    GenerateBeatmap(song, songEndTick);
 }
 
 /*
@@ -69,12 +69,12 @@ Encore::RhythmEngine::EncLyricPhrase *SongTime::GetPreviousLyric() {
     return nullptr;
 }
 
-void SongTime::ParseSections(smf::MidiFile midiFile) {
+void SongTime::ParseSections(Song* song, smf::MidiFile& midiFile) {
     ZoneScoped;
     Sections.clear();
     for (int track = 0; track < midiFile.getTrackCount(); track++) {
-        SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
-        TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
+        SongParts songPart = song->GetSongPart(midiFile[track]);
+        song->IsPartValid(midiFile[track], songPart, track);
         if (songPart == Events) {
             auto &trackObj = midiFile[track];
             for (int i = 0; i < trackObj.getSize(); i++) {
@@ -213,7 +213,7 @@ int GetBeatlineType(TimeSig curTimeSig, int beatlineCount) {
 }
 
 void SongTime::CreateBeatlines(
-    TimeSig timeSig, int startTick, int endTick, int &curTempo
+    Song* song, TimeSig timeSig, int startTick, int endTick, int &curTempo
 ) {
     // so actually this works fine in 4/4 but i realize in /8 that it gets *weird*
     // maybe have it so that /8 is just It Always?
@@ -235,7 +235,7 @@ void SongTime::CreateBeatlines(
         // and forwards
 
         Beatlines.emplace_back(
-            TheSongList.curSong->midiFile.getTimeInSeconds(curTick),
+            song->midiFile.getTimeInSeconds(curTick),
             // TimeSinceBPMStart(CurBPM, curTick),
             curTick,
             GetBeatlineType(timeSig, BeatlineCount)
@@ -245,7 +245,7 @@ void SongTime::CreateBeatlines(
     }
 }
 
-void SongTime::GenerateBeatmap(int songEndTick) {
+void SongTime::GenerateBeatmap(Song *song, int songEndTick) {
     int curTSidx = 0;
     int curTempo = 0;
     auto &CurTS = TimeSigChanges.at(curTSidx);
@@ -255,11 +255,11 @@ void SongTime::GenerateBeatmap(int songEndTick) {
         const int StartTick = CurTS.tick;
         const int EndTick = NextTS.tick - 1;
 
-        CreateBeatlines(CurTS, StartTick, EndTick, curTempo);
+        CreateBeatlines(song, CurTS, StartTick, EndTick, curTempo);
         CurTS = NextTS;
     }
 
-    CreateBeatlines(CurTS, CurTS.tick, songEndTick, curTempo);
+    CreateBeatlines(song, CurTS, CurTS.tick, songEndTick, curTempo);
 }
 
 void SongTime::SetOffset(double audioCalibration) {

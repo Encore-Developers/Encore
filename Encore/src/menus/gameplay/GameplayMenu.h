@@ -34,7 +34,9 @@ class GameplayMenu : public OvershellMenu {
 public:
     bool streamsPaused = false;
 
-    GameplayMenu();
+    Song* curSong;
+
+    GameplayMenu(Song* song);
     virtual ~GameplayMenu();
     void DrawScorebox(Units &u, Assets &assets, float scoreY);
     void DrawTimerbox(Units &u, Assets &assets, float scoreY);

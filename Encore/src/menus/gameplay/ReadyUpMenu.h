@@ -22,7 +22,10 @@ class ReadyUpMenu : public OvershellMenu {
     Encore::ButtonActionRegistry buttReg;
     std::vector<int> PartsToDisplay = {};
 public:
-    ReadyUpMenu() = default;
+
+    Song* curSong;
+
+    ReadyUpMenu(Song* song) : curSong(song) {}
     ~ReadyUpMenu() override = default;
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
     void DrawDifficulties(float BottomOvershell,

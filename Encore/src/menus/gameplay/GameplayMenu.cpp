@@ -31,7 +31,7 @@
 
 Encore::LyricRenderer TheLyricRenderer;
 
-GameplayMenu::GameplayMenu() {
+GameplayMenu::GameplayMenu(Song* song) : curSong(song) {
     hasOvershell = false;
 }
 
@@ -95,11 +95,11 @@ void GameplayMenu::SetPresence() {
     }
     TheGameRPC.DiscordUpdatePresenceSong(
         "Playing a song",
-        TheSongList.curSong->title + " - " + TheSongList.curSong->artist,
+        curSong->title + " - " + curSong->artist,
         inst,
         ThePlayerManager.PlayersActive
     );
-    TheGameRPC.SteamUpdatePresence("song", (TheSongList.curSong->title + " - " + TheSongList.curSong->artist).c_str());
+    TheGameRPC.SteamUpdatePresence("song", (curSong->title + " - " + curSong->artist).c_str());
     TheGameRPC.SteamUpdatePresence("steam_display", "#StatusPlayingSongNamed");
     TheGameRPC.SteamOverlayPosition(true);
 }
@@ -419,9 +419,9 @@ void GameplayMenu::Draw() {
         GetRenderHeight(),
         Color{ 255, 255, 255, BackgroundColor }
     );
-    double EndTime = TheSongList.curSong->end == 0.0
+    double EndTime = curSong->end == 0.0
         ? TheSongTime.GetSongLength()
-        : TheSongList.curSong->end;
+        : curSong->end;
     if (TheSongTime.GetElapsedTime() > EndTime - 1) {
         // TODO: endgame
         TheSongTime.Reset();
@@ -451,7 +451,7 @@ void GameplayMenu::Draw() {
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
         TheSongTime.CurrentLyricPhrase = 0;
-        TheMenuManager.CreateAndSwitchMenu<resultsMenu>();
+        TheMenuManager.CreateAndSwitchMenu<resultsMenu>(curSong);
         return;
     }
 
@@ -505,13 +505,13 @@ void GameplayMenu::Draw() {
 
     float SongNameWidth = MeasureTextEx(
             assets.rubikBoldItalic,
-            TheSongList.curSong->title.c_str(),
+            curSong->title.c_str(),
             u.hinpct(MediumHeader),
             0
         )
         .x;
     std::string SongArtistString =
-        TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear;
+        curSong->artist + ", " + curSong->releaseYear;
     float SongArtistWidth =
         MeasureTextEx(
             assets.rubikBoldItalic,
@@ -523,7 +523,7 @@ void GameplayMenu::Draw() {
 
     float SongExtrasWidth = MeasureTextEx(
             assets.rubikBoldItalic,
-            TheSongList.curSong->charters[0].c_str(),
+            curSong->charters[0].c_str(),
             u.hinpct(SmallHeader),
             0
         )
@@ -543,21 +543,21 @@ void GameplayMenu::Draw() {
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
 
-    const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
     float topOfVocalBar = u.hpct(0.2f);
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
-    Encore::Text::DrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
+    Encore::Text::DrawText(ASSET(josefinSansBold), curSong->title,
                          {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
                          WHITE, LEFT);
     float TitleFontOffset = (TitleFontSize * 1.25f);
     float SecondaryFontSize = TitleFontSize * 0.85f;
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist + ", " + TheSongList.curSong->releaseYear,
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->artist + ", " + curSong->releaseYear,
                          {u.wpct(0.01f), topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
                          LIGHTGRAY, LEFT);
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->charters[0],
                          {u.wpct(0.01f) + ( TitleFontSize * 1.125f) , topOfVocalBar + (TitleFontOffset + TitleFontSize)}, SecondaryFontSize,
                          LIGHTGRAY, LEFT);
 
@@ -590,13 +590,13 @@ void GameplayMenu::Load() {
             state = OS_ATTRACT;
         }
     })
-    TheSongList.curSong->LoadAlbumArt();
+    curSong->LoadAlbumArt();
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
     dropInDropOut = false;
 
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
     double End = 0.0;
-    double EndEvent = TheSongList.curSong->end;
+    double EndEvent = curSong->end;
     double LastNote = 0.0;
     double AudioEnd = TheAudioManager.GetMusicTimeLength();
     int playerCount = 0;
@@ -667,7 +667,7 @@ void GameplayMenu::Load() {
     if (LastNote > EndEvent) End = LastNote;
     if (AudioEnd > LastNote) End = AudioEnd;
     if (EndEvent > LastNote) End = EndEvent;
-    TheSongList.curSong->end = End;
+    curSong->end = End;
 
     TheAudioManager.UpdateAudioStreamVolumes();
 }
@@ -724,7 +724,7 @@ void GameplayMenu::DrawPauseMenu() {
     float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
     Encore::Text::DrawText(
         ASSET(redHatDisplayItalic),
-        TheSongList.curSong->title.c_str(),
+        curSong->title.c_str(),
         { TextPlacementLR, TextPlacementTB },
         u.hinpct(0.05f),
         WHITE,
@@ -732,20 +732,20 @@ void GameplayMenu::DrawPauseMenu() {
     );
     Encore::Text::DrawText(
         ASSET(rubikItalic),
-        TheSongList.curSong->artist.c_str(),
+        curSong->artist.c_str(),
         { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
         u.hinpct(0.04f),
         WHITE,
         LEFT
     );
-    const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {TextPlacementLR, TextPlacementTB + u.hinpct(0.095f), u.hinpct(0.04f), u.hinpct(0.04f)}, {0,0}, 0, WHITE
     );
-    if (!TheSongList.curSong->charters.empty()) {
+    if (!curSong->charters.empty()) {
         Encore::Text::DrawText(
             ASSET(rubikItalic),
-            TheSongList.curSong->charters[0],
+            curSong->charters[0],
             { TextPlacementLR + u.hinpct(0.05f), TextPlacementTB + u.hinpct(0.095f) },
             u.hinpct(0.04f),
             WHITE,

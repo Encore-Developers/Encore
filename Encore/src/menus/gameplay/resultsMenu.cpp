@@ -20,12 +20,6 @@ void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
 }
 void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {}
 
-resultsMenu::~resultsMenu() {
-    // for (int playerNum = 0; playerNum < ThePlayerManager.PlayersActive; playerNum++) {
-    //     delete ThePlayerManager.GetActivePlayer(playerNum).stats;
-    // }
-}
-resultsMenu::resultsMenu() {}
 
 int FinalScore = 0;
 
@@ -123,24 +117,24 @@ void resultsMenu::Draw() {
     float TitleFontSize = u.hinpct(0.04f);
     float SecondaryFontSize = TitleFontSize * 0.75f;
     float SecondaryFontOffset = TitleFontSize * 1.2f;
-    float TitleSize = MeasureTextEx(ASSET(rubikBold), TheSongList.curSong->title.c_str(), TitleFontSize, 0).x;
-    Encore::Text::DrawText(ASSET(rubikBold), TheSongList.curSong->title,
+    float TitleSize = MeasureTextEx(ASSET(rubikBold), curSong->title.c_str(), TitleFontSize, 0).x;
+    Encore::Text::DrawText(ASSET(rubikBold), curSong->title,
                          { textX, TitleFontOffset },
                          TitleFontSize,
                          WHITE,
                          LEFT
     );
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->artist,
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->artist,
                          { textX + TitleSize + u.hinpct(0.02f), TitleFontOffset + u.hinpct(0.008f) },
                          SecondaryFontSize,
                          LIGHTGRAY,
                          LEFT
     );
-    auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
+    auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {textX, TitleFontOffset + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), TheSongList.curSong->charters[0],
+    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->charters[0],
                          { textX + ( TitleFontSize * 1.125f), TitleFontOffset + SecondaryFontOffset },
                          SecondaryFontSize,
                          LIGHTGRAY,
@@ -196,7 +190,7 @@ void resultsMenu::Draw() {
     //    //for (int PlayersToReset = 0; PlayersToReset < ThePlayerManager.PlayersActive; PlayersToReset++) {
     //    //    Player &player = ThePlayerManager.GetActivePlayer(PlayersToReset);
     //    //    player.ResetGameplayStats();
-    //        // TheSongList.curSong->parts[player.Instrument]
+    //        // curSong->parts[player.Instrument]
     //            // ->charts[player.Difficulty]
     //            // .resetNotes();
     //    //}

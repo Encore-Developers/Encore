@@ -23,28 +23,28 @@
 bool StartLoading = true;
 bool FinishedLoading = false;
 
-void LoadCharts() {
+void ChartLoadingMenu::LoadCharts() {
     ZoneScoped;
-    auto &midiFile = TheSongList.curSong->midiFile;
+    auto &midiFile = curSong->midiFile;
     {
         ZoneScopedN("MIDI Read")
-        midiFile.read(TheSongList.curSong->midiPath.string());
+        midiFile.read(curSong->midiPath.string());
         midiFile.doTimeAnalysis();
         TheSongTime.BeatmapFromMidiTrack(
-            midiFile, TheSongList.curSong->endTick
+            curSong, midiFile, curSong->endTick
         );
         // TheSongTime.GenerateOverdriveTicks(
         //    midiFile, TheSongList.curSong->BeatTrackID
         //);
-        TheSongTime.ParseSections(midiFile);
+        TheSongTime.ParseSections(curSong, midiFile);
         for (int track = 0; track < midiFile.getTrackCount(); track++) {
-            SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
-            TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
+            SongParts songPart = curSong->GetSongPart(midiFile[track]);
+            curSong->IsPartValid(midiFile[track], songPart, track);
             if (songPart == BeatLines) {
-                TheSongList.curSong->BeatTrackID = track;
+                curSong->BeatTrackID = track;
             }
             else if (songPart == Events) {
-                TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
+                curSong->getStartEnd(midiFile, track, midiFile[track]);
             }
             else if (songPart == PitchedVocals) {
                 Encore::RhythmEngine::LyricLoader lyricLoader(&midiFile, track);
@@ -62,10 +62,10 @@ void LoadCharts() {
         int diff = player.Difficulty;
         int inst = player.Instrument;
 
-        int track = TheSongList.curSong->parts[inst].TrackInt;
+        int track = curSong->parts[inst].TrackInt;
         std::string trackName;
 
-        if (TheSongList.curSong->parts[inst].Valid) {
+        if (curSong->parts[inst].Valid) {
             trackName = songPartsList[inst];
             Encore::EncoreLog(
                 LOG_DEBUG,
@@ -75,15 +75,15 @@ void LoadCharts() {
             // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
                 midiFile[track].linkNotePairs();
-                if (TheSongList.curSong->hopoThreshold == -1) {
-                    TheSongList.curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
+                if (curSong->hopoThreshold == -1) {
+                    curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
                 }
                 Encore::EncoreLog(
                     LOG_DEBUG,
-                    TextFormat("Hopo threshold: %01i", TheSongList.curSong->hopoThreshold)
+                    TextFormat("Hopo threshold: %01i", curSong->hopoThreshold)
                 );
                 Encore::RhythmEngine::GuitarLoader chartLoader(
-                    diff, TheSongList.curSong->hopoThreshold, &midiFile
+                    diff, curSong->hopoThreshold, &midiFile
                 );
                 chartLoader.LoadChart(midiFile[track]);
 
@@ -110,16 +110,16 @@ void LoadCharts() {
             } else if (inst < PlasticDrums) {
                 midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::BaseChart chart;
-                if (!TheSongList.curSong->parts[inst].AutoToPad) {
+                if (!curSong->parts[inst].AutoToPad) {
                     Encore::RhythmEngine::PadLoader chartLoader(diff, 170, &midiFile);
                     chartLoader.LoadChart(midiFile[track]);
                     chart = chartLoader.chart;
                 } else {
-                    if (TheSongList.curSong->hopoThreshold == -1) {
-                        TheSongList.curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
+                    if (curSong->hopoThreshold == -1) {
+                        curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
                     }
                     Encore::RhythmEngine::GuitarLoader chartLoader(
-                        diff, TheSongList.curSong->hopoThreshold, &midiFile
+                        diff, curSong->hopoThreshold, &midiFile
                     );
                     chartLoader.LoadChart(midiFile[track]);
                     chart = Encore::RhythmEngine::PadConverters::ConvertGuitarToPad(chartLoader.chart);
@@ -151,7 +151,7 @@ void LoadCharts() {
                         .engine->chart->Lanes.at(i)
                         .begin();
             }
-            ThePlayerManager.GetActivePlayer(playerNum).engine->stats->overdrive.ticks.GenerateOverdriveTicks(midiFile, TheSongList.curSong->BeatTrackID);
+            ThePlayerManager.GetActivePlayer(playerNum).engine->stats->overdrive.ticks.GenerateOverdriveTicks(midiFile, curSong->BeatTrackID);
             // if (!chart.plastic) {
             //     LoadingState = EXTRA_PROCESSING;
             //     int noteIdx = 0;
@@ -167,7 +167,7 @@ void LoadCharts() {
         //}
     }
 
-    TheSongList.curSong->getCodas(midiFile);
+    curSong->getCodas(midiFile);
 
     // LoadingState = READY;
 
@@ -186,11 +186,11 @@ void ChartLoadingMenu::Load() {
     //    );
     // }
     // ThePlayerManager.BandStats = new BandGameplayStats;
-    TheSongList.curSong->LoadAlbumArt();
+    curSong->LoadAlbumArt();
     TheAudioManager.unloadStreams();
 
     TheAudioManager.loadStreams(
-    TheSongList.curSong->LoadAudioINI()
+    curSong->LoadAudioINI()
     );
     LoadCharts();
     // std::thread ChartLoader(LoadCharts);
@@ -216,9 +216,9 @@ void ChartLoadingMenu::Draw() {
     float AfterLoadingTextPos =
         MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
 
-    std::string LoadingPhrase = TheSongList.curSong->loadingPhrase.empty()
+    std::string LoadingPhrase = curSong->loadingPhrase.empty()
         ? LOCALIZE("chartLoading.loadingPhrase").toString()
-        : TheSongList.curSong->loadingPhrase;
+        : curSong->loadingPhrase;
 
     Encore::Text::DrawText(
         assets.rubikBold,
@@ -236,6 +236,6 @@ void ChartLoadingMenu::Draw() {
         // TheGameRenderer.LoadGameplayAssets();
         FinishedLoading = false;
         StartLoading = true;
-        TheMenuManager.CreateAndSwitchMenu<GameplayMenu>();
+        TheMenuManager.CreateAndSwitchMenu<GameplayMenu>(curSong);
     }
 }

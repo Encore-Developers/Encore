@@ -31,7 +31,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
         buttReg.HandleInput(event);
         if (event.action == Encore::RhythmEngine::Action::PRESS) {
             int diffCount = 0;
-            SongPart& part = TheSongList.curSong->parts[player.Instrument];
+            SongPart& part = curSong->parts[player.Instrument];
             for (int d = 0; d < 4; d++) {
                 if (part.ValidDiffs[d]) {
                     diffCount += 1;
@@ -52,7 +52,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                                    float xPosOfMenu) {
     Units &u = Units::getInstance();
     for (int i = 0; i < 4; i++) {
-        SongPart &part = TheSongList.curSong->parts[player.Instrument];
+        SongPart &part = curSong->parts[player.Instrument];
         if (part.ValidDiffs[i]) {
             Color ButtonColor = backgroundColor;
             if (ControllerDiffSlot[playerInt] == i) {
@@ -157,7 +157,7 @@ void ReadyUpMenu::Draw() {
     float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
     DrawTextEx(
         assets.redHatDisplayItalic,
-        TheSongList.curSong->title.c_str(),
+        curSong->title.c_str(),
         { TextPlacementLR, TextPlacementTB },
         u.hinpct(0.05f),
         0,
@@ -165,16 +165,16 @@ void ReadyUpMenu::Draw() {
     );
     DrawTextEx(
         assets.rubikItalic,
-        TheSongList.curSong->artist.c_str(),
+        curSong->artist.c_str(),
         { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
         u.hinpct(0.04f),
         0,
         WHITE
     );
-    if (!TheSongList.curSong->charters.empty()) {
+    if (!curSong->charters.empty()) {
         DrawTextEx(
             assets.rubikItalic,
-            TheSongList.curSong->charters[0].c_str(),
+            curSong->charters[0].c_str(),
             { TextPlacementLR, TextPlacementTB + u.hinpct(0.095f) },
             u.hinpct(0.04f),
             0,
@@ -208,7 +208,7 @@ void ReadyUpMenu::Draw() {
                                u.winpct(0.2f),
                                u.hinpct(0.05f) };
                 std::string PartAndDiff = std::to_string(
-                        TheSongList.curSong->parts[PartsToDisplay[i]].diff + 1) + "/7   ";
+                        curSong->parts[PartsToDisplay[i]].diff + 1) + "/7   ";
                 PartAndDiff += LOCALIZE(songPartsList[PartsToDisplay[i]]).toString();
                 if (GuiButton(pos, "") && !isOSOpen()) {
                     ControllerInstSlot[playerInt] = i;
@@ -340,10 +340,10 @@ void ReadyUpMenu::Draw() {
         }
     }
     if (SwitchMenus) {
-        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>();
+        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
     }
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-        TheSongList.curSong->midiParsed = false;
+        curSong->midiParsed = false;
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     }
 
@@ -376,14 +376,14 @@ void ReadyUpMenu::Load() {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
-            TheSongList.curSong->midiParsed = false;
+            curSong->midiParsed = false;
             TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
             break;
         case DIFFICULTY:
             SlotState[slot] = INSTRUMENT;
             break;
         case READY:
-            TheSongList.curSong->midiParsed = false;
+            curSong->midiParsed = false;
             TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
             ReadyState[slot] = false;
             break;
@@ -429,37 +429,37 @@ void ReadyUpMenu::Load() {
     SlotState = { INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
     ReadyState = { false, false, false, false };
     smf::MidiFile midiFile;
-    TheSongList.curSong->LoadAlbumArt();
-    midiFile.read(TheSongList.curSong->midiPath.string());
+    curSong->LoadAlbumArt();
+    midiFile.read(curSong->midiPath.string());
     for (int track = 0; track < midiFile.getTrackCount(); track++) {
-        SongParts songPart = TheSongList.curSong->GetSongPart(midiFile[track]);
-        TheSongList.curSong->IsPartValid(midiFile[track], songPart, track);
+        SongParts songPart = curSong->GetSongPart(midiFile[track]);
+        curSong->IsPartValid(midiFile[track], songPart, track);
         if (songPart == BeatLines) {
-            TheSongList.curSong->BeatTrackID = track;
+            curSong->BeatTrackID = track;
         }
         if (songPart == Events) {
-            TheSongList.curSong->getStartEnd(midiFile, track, midiFile[track]);
+            curSong->getStartEnd(midiFile, track, midiFile[track]);
         }
     }
-    if (!TheSongList.curSong->parts[PartGuitar].Valid && TheSongList.curSong->parts[
+    if (!curSong->parts[PartGuitar].Valid && curSong->parts[
         PlasticGuitar].Valid) {
-        TheSongList.curSong->parts[PartGuitar] = TheSongList.curSong->parts[
+        curSong->parts[PartGuitar] = curSong->parts[
             PlasticGuitar];
-        TheSongList.curSong->parts[PartGuitar].AutoToPad = true;
+        curSong->parts[PartGuitar].AutoToPad = true;
     }
-    if (!TheSongList.curSong->parts[PartBass].Valid && TheSongList.curSong->parts[
+    if (!curSong->parts[PartBass].Valid && curSong->parts[
         PlasticBass].Valid) {
-        TheSongList.curSong->parts[PartBass] = TheSongList.curSong->parts[PlasticBass];
-        TheSongList.curSong->parts[PartBass].AutoToPad = true;
+        curSong->parts[PartBass] = curSong->parts[PlasticBass];
+        curSong->parts[PartBass].AutoToPad = true;
     }
-    if (!TheSongList.curSong->parts[PartKeys].Valid && TheSongList.curSong->parts[
+    if (!curSong->parts[PartKeys].Valid && curSong->parts[
         PlasticKeys].Valid) {
-        TheSongList.curSong->parts[PartKeys] = TheSongList.curSong->parts[PlasticKeys];
-        TheSongList.curSong->parts[PartKeys].AutoToPad = true;
+        curSong->parts[PartKeys] = curSong->parts[PlasticKeys];
+        curSong->parts[PartKeys].AutoToPad = true;
     }
 
-    for (size_t i = 0; i < TheSongList.curSong->parts.size(); i++) {
-        if (TheSongList.curSong->parts[i].Valid) {
+    for (size_t i = 0; i < curSong->parts.size(); i++) {
+        if (curSong->parts[i].Valid) {
             PartsToDisplay.push_back(i);
         }
     }
@@ -474,10 +474,10 @@ void ReadyUpMenu::Load() {
             }
         }
         ControllerDiffSlot[i] = player.Difficulty;
-        if (!PartsToDisplay.empty() && !TheSongList.curSong->parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
+        if (!PartsToDisplay.empty() && !curSong->parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
             ControllerInstSlot[i] = 0;
         }
-        if (!TheSongList.curSong->parts[player.Instrument].ValidDiffs[player.Difficulty]) {
+        if (!curSong->parts[player.Instrument].ValidDiffs[player.Difficulty]) {
             ControllerDiffSlot[i] = 0;
         }
     }

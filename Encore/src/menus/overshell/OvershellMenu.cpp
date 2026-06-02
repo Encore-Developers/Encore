@@ -282,16 +282,18 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                     ThePlayerManager.SaveSpecificPlayer(i, true);
                 }
                 if (OvershellButton(i, curSlot--, LOCALIZE("overshell.restart"))) {
-                    TheAudioManager.unloadStreams();
-                    for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
-                        Player &player = ThePlayerManager.GetActivePlayer(i);
-                        player.engine->stats.reset();
-                        player.engine->chart.reset();
-                        player.engine.reset();
+                    if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
+                        TheAudioManager.unloadStreams();
+                        for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
+                            Player &player = ThePlayerManager.GetActivePlayer(i);
+                            player.engine->stats.reset();
+                            player.engine->chart.reset();
+                            player.engine.reset();
+                        }
+                        songPlaying = false;
+                        TheSongTime.FullReset();
+                        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(gameplayMenu->curSong);
                     }
-                    songPlaying = false;
-                    TheSongTime.FullReset();
-                    TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>();
                 }
                 if (OvershellButton(i, curSlot--, LOCALIZE("overshell.exitSong"))) {
                     TheAudioManager.unloadStreams();

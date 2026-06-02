@@ -2,8 +2,10 @@
 #include <filesystem>
 #include <vector>
 #include <atomic>
+#include "debug/EncoreDebug.h"
 
 #include "song.h"
+#include "menus/util/Jukebox.h"
 
 #include <deque>
 
@@ -82,6 +84,13 @@ class SongList {
     static bool sortLen(Song *a, Song *b);
     static bool sortYear(Song *a, Song *b);
 
+    Song *curSong = nullptr;
+
+    friend class SongSelectMenu;
+    friend class MainMenu;
+    friend class Encore::Jukebox;
+    friend void EncoreDebug::DrawSongList();
+    friend void EncoreDebug::MenuBar();
 public:
     SongList();
     ~SongList();
@@ -94,7 +103,6 @@ public:
     int songCount = 0;
     int directoryCount = 0;
     int badSongCount = 0;
-    Song *curSong = nullptr;
 
     std::filesystem::path cachePath();
     std::filesystem::path badSongsPath();

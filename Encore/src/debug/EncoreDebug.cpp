@@ -194,7 +194,8 @@ void EncoreDebug::MenuBar() {
         TheSongTime.CurrentTimeSig = 0;
         TheSongTime.CurrentBeatline = 0;
         TheSongTime.CurrentLyricPhrase = 0;
-        TheMenuManager.CreateAndSwitchMenu<resultsMenu>();
+        // TODO fix this
+        //TheMenuManager.CreateAndSwitchMenu<resultsMenu>();
     }
     if (isGameplay) {
         MenuItem("Practice", 0, &showPractice);
@@ -807,7 +808,7 @@ void EncoreDebug::DrawSongList() {
                     }
                     TheSongList.curSong = song;
                     TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-                    TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>();
+                    TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
                 }
 
                 PopID();

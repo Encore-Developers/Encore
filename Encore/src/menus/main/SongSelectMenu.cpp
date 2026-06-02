@@ -197,7 +197,7 @@ void SongSelectMenu::Load() {
                      if (_action != Encore::RhythmEngine::Action::PRESS) return;
                      if (!TheSongList.curSong) return;
                      Unload();
-                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>();
+                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_2,
