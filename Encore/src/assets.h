@@ -229,7 +229,9 @@ class TextureAsset : public FileAsset {
 public:
     int width = 0;
     int height = 0;
-
+    void Draw(Rectangle dest, Color tint) {
+        DrawTexturePro(Fetch(), {0,0,float(tex.width), float(tex.height)}, dest, {0}, 0, tint);
+    };
     TextureAsset(const std::string &id, bool filter)
         : FileAsset(id) {
         this->filter = filter;
@@ -382,6 +384,7 @@ public:
     NEWTEXASSET(Scorebox, "gameplay/ui/Scorebox.png");
     NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");
     NEWTEXASSET(EntryBackground, "gameplay/ui/entry_background.png");
+    NEWTEXASSET(AltBackground, "gameplay/ui/alt_background.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
 
     NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.wav");
