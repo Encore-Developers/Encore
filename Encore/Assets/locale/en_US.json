@@ -48,6 +48,12 @@
 		"prompt": {
 			"exit": "Save and Exit",
 			"exitWithoutSaving":"Exit Without Saving"
+		},
+		"credits": {
+			"maintainers": "Lead Maintainers",
+			"founder": "Founders",
+			"locale": "Localizers",
+			"contributors": "Contributors"
 		}
 	},
 	"mainMenu": {
