@@ -184,8 +184,7 @@ void Encore::Track::DrawSurface() {
                     { 0 },
                     0,
                     { 1, 1, 1 },
-                    ColorAlpha(ColorBrightness(player.AccentColor, -0.25),
-                               ease(SpotlightTimer)));
+                    ColorAlpha(player.AccentColor, ease(SpotlightTimer)));
     }
 
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
