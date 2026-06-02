@@ -128,17 +128,8 @@ static void ImGuiNewFrame(float deltaTime)
     Vector2 resolutionScale = GetDisplayScale();
 
 #ifndef PLATFORM_DRM
-    if (IsWindowFullscreen())
-    {
-        int monitor = GetCurrentMonitor();
-        io.DisplaySize.x = float(GetMonitorWidth(monitor));
-        io.DisplaySize.y = float(GetMonitorHeight(monitor));
-    }
-    else
-    {
-        io.DisplaySize.x = float(GetRenderWidth());
-        io.DisplaySize.y = float(GetRenderHeight());
-    }
+    io.DisplaySize.x = float(GetRenderWidth())/resolutionScale.x;
+    io.DisplaySize.y = float(GetRenderHeight())/resolutionScale.y;
 
 #if !defined(__APPLE__)
     if (!IsWindowState(FLAG_WINDOW_HIGHDPI))
@@ -236,7 +227,7 @@ static void EnableScissor(float x, float y, float width, float height)
     rlEnableScissorTest();
     ImGuiIO& io = ImGui::GetIO();
 
-    ImVec2 scale = {1, 1};
+    ImVec2 scale = {GetDisplayScale().x, GetDisplayScale().y};
 #if !defined(__APPLE__)
     if (!IsWindowState(FLAG_WINDOW_HIGHDPI))
     {
@@ -245,8 +236,8 @@ static void EnableScissor(float x, float y, float width, float height)
     }
 #endif
 
-    rlScissor((int)(x * scale.x),
-        int((io.DisplaySize.y - (int)(y + height)) * scale.y),
+    rlScissor((int)(x)*scale.x,
+        int((io.DisplaySize.y - (int)(y + height))*scale.y),
         (int)(width * scale.x),
         (int)(height * scale.y));
 }
@@ -770,6 +761,9 @@ void ImGui_ImplRaylib_RenderDrawData(ImDrawData* draw_data)
         }
     }
 
+    rlPushMatrix();
+    float scale = SDL_GetWindowDisplayScale(GetSDLWindow());
+    rlScalef(scale, scale, 1);
     rlDrawRenderBatchActive();
     rlDisableBackfaceCulling();
 
@@ -795,6 +789,7 @@ void ImGui_ImplRaylib_RenderDrawData(ImDrawData* draw_data)
     rlSetTexture(0);
     rlDisableScissorTest();
     rlEnableBackfaceCulling();
+    rlPopMatrix();
 }
 
 void HandleGamepadButtonEvent(ImGuiIO& io, GamepadButton button, ImGuiKey key)
@@ -891,12 +886,12 @@ bool ImGui_ImplRaylib_ProcessEvents(void)
 #if defined(RLIMGUI_ALWAYS_TRACK_MOUSE)
     processsMouse = true;
 #endif
-
+    auto scale = GetDisplayScale();
     if (processsMouse)
     {
         if (!io.WantSetMousePos)
         {
-            io.AddMousePosEvent(float(GetMouseX()), float(GetMouseY()));
+            io.AddMousePosEvent(float(GetMouseX()/scale.x), float(GetMouseY()/scale.y));
         }
 
         auto setMouseEvent = [&io](int rayMouse, int imGuiMouse)
