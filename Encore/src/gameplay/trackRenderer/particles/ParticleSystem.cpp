@@ -99,10 +99,7 @@ void Encore::ParticleSystem::Render() {
         if (!particle.active) {
             continue;
         }
-        particle.Update(this);
-        if (!particle.active) {
-            continue;
-        }
         particle.Render(this);
+        particle.Update(this);
     }
 }
