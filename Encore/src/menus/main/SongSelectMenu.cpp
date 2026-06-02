@@ -795,36 +795,7 @@ void SongSelectMenu::Draw() {
         : SongToDisplayInfo->releaseYear;
     std::string albumDisplayText = albumText + ", " + yearText;
 
-    // float albumTextHeight = MeasureTextEx(assets.rubikBold,
-    //                                       albumDisplayText.c_str(),
-    //                                       u.hinpct(0.035f),
-    //                                       0).y;
-    // float albumTextWidth = MeasureTextEx(assets.rubikBold,
-    //                                      albumDisplayText.c_str(),
-    //                                      u.hinpct(0.035f),
-    //                                      0).x;
-    // float albumNameTextCenter = u.RightSide - (AlbumWidth / 2) - AlbumInner;
     float albumTTop = AlbumY + AlbumHeight + AlbumOuter;
-    // float albumNameFontSize = albumTextWidth <= AlbumWidth
-    //    ? fontSize
-    //     : AlbumWidth / (albumTextWidth / albumTextHeight);
-
-    //float albumNameLeft = albumNameTextCenter - (MeasureTextEx(
-    //    assets.rubikBold,
-    //    albumDisplayText.c_str(),
-    //    albumNameFontSize,
-    //    0).x / 2);
-
-    ////float albumNameTextTop = albumTextWidth <= AlbumWidth
-    //    ? albumTTop
-    //    : albumTTop + ((u.hinpct(0.035f) / 2) - (albumNameFontSize / 2));
-
-    //Encore::Text::DrawText(assets.rubikBold,
-    //                     albumDisplayText.c_str(),
-    //                     { albumNameLeft, albumNameTextTop },
-    //                     albumNameFontSize,
-    //                     WHITE,
-    //                     LEFT);
 
     DrawLine(u.RightSide - AlbumHeight - AlbumOuter,
              AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
