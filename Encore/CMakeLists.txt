@@ -11,22 +11,6 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Dependencies
-set(RAYLIB_VERSION 5.5)
-find_package(raylib ${RAYLIB_VERSION} QUIET) # QUIET or REQUIRED
-if (NOT raylib_FOUND) # If there's none, fetch and build raylib
-  include(FetchContent)
-  FetchContent_Declare(
-    raylib
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-          URL https://github.com/Encore-Developers/raylib-Source/archive/refs/heads/master.zip
-  )
-  FetchContent_GetProperties(raylib)
-  if (NOT raylib_POPULATED) # Have we downloaded raylib yet?
-    set(FETCHCONTENT_QUIET NO)
-    FetchContent_MakeAvailable(raylib)
-    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-  endif()
-endif()
 
 find_package(json QUIET)
 if (NOT json_FOUND)
@@ -44,7 +28,6 @@ endif()
 
 option(JSON_Diagnostics "" ON)
 
-option(SUPPORT_FILEFORMAT_JPG "Support loading JPG as textures" ON)
 
 # Place Steamworks SDK headers in thirdparty/steam
 # Place Steamworks API redistributables in lib/steam
@@ -55,6 +38,12 @@ set(SDL_STATIC ON)
 set(SDL_SHARED OFF)
 set(ENABLE_SPIRV_CODEGEN ON)
 add_subdirectory(thirdparty/sdl EXCLUDE_FROM_ALL)
+
+set(CUSTOMIZE_BUILD ON)
+set(SUPPORT_FILEFORMAT_JPG ON)
+set(SUPPORT_MODULE_RAUDIO OFF)
+set(PLATFORM "SDL")
+add_subdirectory(thirdparty/raylib EXCLUDE_FROM_ALL)
 
 string(TIMESTAMP BUILDDATE UTC)
 

@@ -35,7 +35,7 @@ void MenuManager::LoadMenu() {
     ZoneScoped
     TheMenuManager.onNewMenu = false;
     ActiveMenu->Load();
-    glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
+    // glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
     // glfwSetGamepadStateCallback(gamepadStateCallback);
 }
 

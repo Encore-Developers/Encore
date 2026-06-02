@@ -290,11 +290,12 @@ void FontAsset::Load() {
                                    fontSize,
                                    nullptr,
                                    250,
-                                   FONT_SDF);
+                                   FONT_SDF,
+                                   &font.glyphCount);
     }
     {
         ZoneScopedN("GenImageFontAtlas")
-        atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, fontSize, 4, 0);
+        atlas = GenImageFontAtlas(font.glyphs, &font.recs, font.glyphCount, fontSize, 4, 0);
     }
     for (int i = 0; i < font.glyphCount; i++) {
         ZoneScopedN("Glyph Split")

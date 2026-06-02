@@ -55,33 +55,6 @@ Units u = Units::getInstance();
 Encore::Jukebox TheGameJukebox;
 MainMenu TheGameMenu;
 
-Font GameMenu::LoadFontFilter(const std::filesystem::path &fontPath) {
-    int fontSize = 128;
-    Font font = LoadFontEx(fontPath.string().c_str(), fontSize, nullptr, 250);
-    font.baseSize = 128;
-    font.glyphCount = 250;
-    int fileSize = 0;
-    unsigned char *fileData = LoadFileData(fontPath.string().c_str(), &fileSize);
-    font.glyphs = LoadFontData(fileData, fileSize, 128, 0, 250, FONT_SDF);
-    std::filesystem::path atlasFilePath =
-        ((fontPath.parent_path() / fontPath.filename()).string() + ".png");
-    Image atlas = GenImageFontAtlas(font.glyphs, &font.recs, 250, 128, 4, 0);
-    ExportImage(atlas, atlasFilePath.string().c_str());
-    font.texture = LoadTextureFromImage(atlas);
-    UnloadImage(atlas);
-    SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
-    return font;
-}
-
-Texture2D GameMenu::LoadTextureFilter(const std::filesystem::path &texturePath) {
-    Texture2D tex = LoadTexture(texturePath.string().c_str());
-    GenTextureMipmaps(&tex);
-    SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
-    return tex;
-}
-
-
-
 void GameMenu::DrawTopOvershell(float TopOvershell) {
     DrawRectangleGradientV(
         0,

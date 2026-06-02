@@ -211,8 +211,8 @@ int main(int argc, char *argv[]) {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_WINDOW_HIGHDPI);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
+    // glfwWindowHint(GLFW_SAMPLES, 4);
+    // glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 
     bool windowToggle = true;
 
@@ -299,7 +299,7 @@ int main(int argc, char *argv[]) {
         TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     }
 
-    ControllerPoller poller;
+    //ControllerPoller poller;
 
 
     if (TheGameSettings.Framerate > 0)
@@ -313,10 +313,10 @@ int main(int argc, char *argv[]) {
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
     while (!WindowShouldClose()) {
         ZoneScopedN("Main Loop")
-        glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
+        // glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         u.calcUnits();
 
-        PollQueuedInputs(poller);
+        //PollQueuedInputs(poller);
         TheArtLoader.Poll();
 
         if (GetRenderWidth() < minWidth) {
@@ -406,7 +406,7 @@ int main(int argc, char *argv[]) {
         TheFrameManager.WaitForFrame();
         FrameMark;
     }
-    poller.active = false;
+    //poller.active = false;
     CloseWindow();
     return 0;
 }

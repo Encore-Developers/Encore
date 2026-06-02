@@ -4,6 +4,7 @@
 
 #include "Track.h"
 
+#include "external/glad.h"
 #include "GemTrackSlot.h"
 #include "assets.h"
 #include "raylib.h"

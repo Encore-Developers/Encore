@@ -47,33 +47,7 @@ namespace Encore {
         }
     }
     void Settings::UpdateFullscreen() {
-        if (!Fullscreen) {
-            const GLFWvidmode *vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-            int x, y, width, height;
-            glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
-            EncoreLog(LOG_INFO, TextFormat("Workarea of monitor %s: %i %i %i %i", glfwGetMonitorName(glfwGetPrimaryMonitor()), x, y, width, height));
-            int windowWidth = width * 0.75;
-            int windowHeight = height * 0.75;
-            SetWindowPosition(width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y);
-            SetWindowSize(windowWidth, windowHeight);
-            glfwSetWindowMonitor(glfwGetCurrentContext(), NULL, width/2 - windowWidth/2 + x, height/2 - windowHeight/2 + y, windowWidth, windowHeight, vidmode->refreshRate);
-            ClearWindowState(FLAG_WINDOW_UNDECORATED);
-            MaximizeWindow();
-        } else {
-            auto monitor = glfwGetPrimaryMonitor();
-            const GLFWvidmode *vidmode = glfwGetVideoMode(monitor);
-            int x, y, width, height;
-            glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &x, &y, &width, &height);
 
-            SetWindowPosition(x, y);
-            SetWindowSize(vidmode->width, vidmode->height);
-#ifdef __unix__
-            glfwSetWindowMonitor(glfwGetCurrentContext(), monitor, x, y, vidmode->width, vidmode->height, vidmode->refreshRate);
-#elif WIN32
-            SetWindowState(FLAG_WINDOW_UNDECORATED);
-            // todo: make borderless fullscreen togglable on windows
-#endif
-        }
     }
 
     // SettingsInit methods

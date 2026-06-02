@@ -30,8 +30,6 @@ namespace GameMenu {
     }
     void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();
-    Texture2D LoadTextureFilter(const std::filesystem::path &texturePath);
-    Font LoadFontFilter(const std::filesystem::path &fontPath);
     static bool FirstMainMenuBoot = true;
 
     static bool streamsLoaded = false;

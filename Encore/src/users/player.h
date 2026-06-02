@@ -11,7 +11,6 @@
 
 #include "raylib.h"
 #include "timingvalues.h"
-#include "PadHandler/Controller.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
 #include "song/scoring.h"
 

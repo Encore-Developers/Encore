@@ -7,3 +7,6 @@
 [submodule "Encore/thirdparty/opensource"]
 	path = Encore/thirdparty/opensource
 	url = https://github.com/YARC-Official/OpenSource.git
+[submodule "Encore/thirdparty/raylib"]
+	path = Encore/thirdparty/raylib
+	url = https://github.com/Encore-Developers/raylib-Source.git

@@ -3,7 +3,6 @@
 
 #ifndef SETTINGS_H
 #define SETTINGS_H
-#include "GLFW/glfw3.h"
 #include <array>
 #include <filesystem>
 #include <fstream>

@@ -64,11 +64,11 @@ void resultsMenu::Load() {
                                                                               // information
                                                                               // text
                                                                               */
-    GoldStar = GameMenu::LoadTextureFilter(assetsdir / "ui/gold-star.png");
-    Star = GameMenu::LoadTextureFilter(assetsdir / "ui/star.png");
-    EmptyStar = GameMenu::LoadTextureFilter(assetsdir / "ui/empty-star.png");
+    GoldStar = ASSET(goldStar);
+    Star = ASSET(star);
+    EmptyStar = ASSET(emptyStar);
     diffList = { "diff.easy", "diff.medium", "diff.hard", "diff.expert" };
-    sdfShader = LoadShader(0, (assetsdir / "fonts/sdf.fs").string().c_str());
+    sdfShader = ASSET(sdfShader);
     // std::cout << "Band Score: " << ThePlayerManager.BandStats->Score << std::endl;
     // std::cout << "Band Sustain Score: " << ThePlayerManager.BandStats->SustainScore <<
     // std::endl;
