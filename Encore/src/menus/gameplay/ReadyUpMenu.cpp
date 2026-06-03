@@ -339,7 +339,7 @@ void ReadyUpMenu::Draw() {
             SwitchMenus = false;
         }
     }
-    if (SwitchMenus) {
+    if (SwitchMenus && ThePlayerManager.PlayersActive > 0) {
         TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
     }
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {

@@ -47,6 +47,7 @@ ArtLoader::ArtLoader() : semaphore(0) {
     thread.detach();
 }
 void ArtLoader::LoadAlbumArt(Song *song) {
+    assert(song);
     if (currentSongArt == song) {
         return;
     }

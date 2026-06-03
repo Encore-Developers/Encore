@@ -13,6 +13,7 @@
 
 #include "gameplay/inputCallbacks.h"
 #include "SDL3/SDL.h"
+#include "menus/QuickOpen.h"
 #include "menus/locale/Locale.h"
 #include "menus/main/MainMenu.h"
 #include "menus/main/cacheLoadingScreen.h"
@@ -305,6 +306,16 @@ int main(int argc, char *argv[]) {
         TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     }
 
+    std::string quickOpen;
+    for (auto& arg : ArgumentList::arguments) {
+        if (arg.find("=") == std::string::npos) {
+            quickOpen = arg;
+        }
+    }
+    if (!quickOpen.empty()) {
+        QuickOpenSongDir(quickOpen);
+    }
+
     //ControllerPoller poller;
 
 
@@ -339,6 +350,9 @@ int main(int argc, char *argv[]) {
             case SDL_EVENT_GAMEPAD_BUTTON_UP:
             case SDL_EVENT_GAMEPAD_AXIS_MOTION:
                 ProcessControllerEvent(TranslateSDLEvent(&event));
+                break;
+            case SDL_EVENT_DROP_FILE:
+                QuickOpenSongDir(event.drop.data);
                 break;
             default:
                 break;
