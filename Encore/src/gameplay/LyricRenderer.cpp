@@ -87,19 +87,56 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
     unsigned char alpha) {
     Units &u = Units::getInstance();
 
-    float baselineVox = u.hpct(0.0025f) + u.hinpct(pos);
-    float voxHeight = u.hinpct(0.06f);
-    float FontSize = u.hinpct(size);
-    float padding = (voxHeight - FontSize) / 2;
+    const float baselineVox = u.hpct(0.0025f) + u.hinpct(pos);
+    const float voxHeight = u.hinpct(0.06f);
+    const float FontSize = u.hinpct(size);
+    const float padding = (voxHeight - FontSize) / 2;
 
     // god forbid i have a proper ui library
     float LyricLeft = 0;
 
-    std::string playedText;
-    std::string unplayedText;
+    std::string allLyrics;
+    TextDisplay lyricData;
+    for (const auto &lyric : phrase->lyrics) {
+        allLyrics += lyric.Lyric;
+    }
+    lyricData.Size(FontSize);
+    LyricLeft += int(GetRenderWidth() / 2) - (lyricData.TextWidth(allLyrics)/2);
+    lyricData.Pos(LyricLeft,baselineVox + padding);
+    const Color PlayedColor = { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) };
+    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
+    for (int i = 0; i < phrase->lyrics.size(); i++) {
+        RhythmEngine::EncLyric& lyric = phrase->lyrics[i];
+        float EndSec = phrase->EndSec;
 
-    auto font = ASSETPTR(rubik);
+        if (lyric.talkie) lyricData.font = ASSET(rubikItalic);
+        else lyricData.font = ASSET(rubik);
+        if (lyric.StartSec < TheSongTime.GetElapsedTime()) {
+            if (i != phrase->lyrics.size() - 1) {
+                EndSec = phrase->lyrics[i+1].StartSec;
+            }
+            if (EndSec < TheSongTime.GetElapsedTime()) {
+                lyricData.Col( PlayedColor ).DrawText(lyric.Lyric);
+            } else {
+                const float percentage = Remap(TheSongTime.GetElapsedTime(), lyric.StartSec, EndSec, 0, 1);
+                const int playedWidth = float(lyricData.TextWidth(lyric.Lyric)) * percentage;
+                const int y = int(baselineVox + padding);
+                const int x = lyricData.pos.x;
+                BeginScissorMode(x + playedWidth, y, float(lyricData.TextWidth(lyric.Lyric)) * (1 - percentage), FontSize);
+                lyricData.Col( UnplayedColor ).DrawText(lyric.Lyric);
+                EndScissorMode();
 
+                BeginScissorMode(x, y, playedWidth, FontSize);
+                lyricData.Col( PlayedColor ).DrawText(lyric.Lyric);
+                EndScissorMode();
+            }
+        } else {
+            lyricData.Col( {255, 255, 255, remapAlpha(alpha, DisplayAlpha)} );
+            lyricData.DrawText(lyric.Lyric);
+        }
+        lyricData.pos.x += lyricData.TextWidth(lyric.Lyric);
+    }
+/*
     for (const auto &lyric : phrase->lyrics) {
         if (lyric.StartSec < TheSongTime.GetElapsedTime()) {
             playedText += lyric.Lyric;
@@ -131,4 +168,5 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                          FontSize,
                          {255, 255, 255, remapAlpha(alpha, DisplayAlpha)},
                          LEFT);
+                         */
 }
