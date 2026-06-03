@@ -9,6 +9,10 @@
 #include "../menu.h"
 
 class resultsMenu : public OvershellMenu {
+    enum ResultsState {
+        GENERAL,
+        SECTIONS
+    };
     // ok assets go here
     // i forgot which assets i need.
     Texture2D GoldStar;
@@ -16,6 +20,8 @@ class resultsMenu : public OvershellMenu {
     Texture2D EmptyStar;
     Shader sdfShader;
     std::vector<std::string> diffList;
+    std::array<ResultsState, MAX_PLAYERS> resultsState {GENERAL};
+    std::array<int, MAX_PLAYERS> topSectList {0};
     void drawPlayerResults(Player &player, int playerslot);
     void renderPlayerStars(
          Player &stats, float xPos, float yPos, float scale, bool left

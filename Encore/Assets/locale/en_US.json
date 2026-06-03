@@ -227,6 +227,7 @@
 		}
 	},
 	"resultsMenu": {
+		"sections": "Toggle General/Section Stats",
 		"back": "Back to Song Select",
 		"indevWarning": "Scoring is disabled in indev builds",
 		"infoText": {

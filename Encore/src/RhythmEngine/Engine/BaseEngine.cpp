@@ -153,10 +153,13 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     // Encore::EncoreLog(
     //        LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
     //    );
-
+    chart->UpdateSections(startTick);
+    if (!chart->sections.empty())
+        chart->sections.at(chart->CurrentSection).hit++;
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
     if (PerfectHit(startTime - stats->InputOffset)) {
         stats->LastPerfectTime = stats->InputTime;
+        chart->sections.at(chart->CurrentSection).perfects++;
         event.judgement = PERFECT;
     }
     event.offset = (stats->InputTime - stats->InputOffset) - startTime;
@@ -209,6 +212,10 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
+    // should be safe, right?
+    chart->UpdateSections(TheSongTime.GetCurrentTick());
+    if (!chart->sections.empty())
+        chart->sections.at(chart->CurrentSection).overhits++;
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {

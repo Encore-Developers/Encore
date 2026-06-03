@@ -91,7 +91,7 @@ void SongTime::ParseSections(Song* song, smf::MidiFile& midiFile) {
                     std::smatch match;
                     std::regex_match(evt_string, match, practiceRegex);
                     if (match[4].matched) {
-                        Sections.push_back({match[4], event.seconds});
+                        Sections.push_back({match[4], event.seconds, event.tick});
                     }
                 }
             }

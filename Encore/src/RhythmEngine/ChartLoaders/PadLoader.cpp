@@ -43,6 +43,10 @@ void Encore::RhythmEngine::PadLoader::CheckEvents(const smf::MidiEvent &event) {
                 <= event.tick)
             CurrentOverdrive++;
     }
+    if (!chart.sections.empty()) {
+        if (CurrentSection < chart.sections.size() - 1 && event.tick >= chart.sections[CurrentSection+1].tickStart)
+            CurrentSection++;
+    }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 
@@ -89,6 +93,15 @@ void Encore::RhythmEngine::PadLoader::CreateNote(const smf::MidiEvent &event) {
         PlasticFrets[GetEventLane(Difficulty, event)]
 
     );
+
+    if (!chart.sections.empty()) {
+        int end = midiFile->getFileDurationInTicks();
+        if (CurrentSection < chart.sections.size() - 1) {
+            end = chart.sections.at(CurrentSection + 1).tickStart;
+        }
+        if (event.tick >= chart.sections.at(CurrentSection).tickStart && event.tick < end)
+            chart.sections.at(CurrentSection).notes++;
+    }
     // i hate how solos need note counts before entering lol
     if (!chart.solos.empty()) {
         if (event.tick >= chart.solos[CurrentSolo].StartTick  && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {

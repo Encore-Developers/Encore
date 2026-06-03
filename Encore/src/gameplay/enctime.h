@@ -49,6 +49,11 @@ struct Beatline {
 struct Section {
     std::string name;
     double start;
+    int tickStart;
+    int notes = 0;
+    int hit = 0;
+    int perfects = 0;
+    int overhits = 0;
 };
 
 class SongTime {

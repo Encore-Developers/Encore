@@ -66,7 +66,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         float textWidth = ButtonData.lTextWidth(butt.second.Name);
         pos.width = textWidth + (buttonHeight * 1.5);
         if (!OvershellOpen && GuiButton(pos,"")) {
-            butt.second.RunAction(RhythmEngine::Action::PRESS, 0);
+            butt.second.RunAction(RhythmEngine::Action::PRESS, -1);
         };
 
         // todo: replace this with actual controller-dependant icons

@@ -67,6 +67,7 @@ namespace Encore::RhythmEngine {
         size_t CurrentOverdrive = 0;
         size_t CurrentTrill = 0;
         size_t CurrentRoll = 0;
+        size_t CurrentSection = 0;
 
         smf::MidiFile* midiFile;
         BaseChart chart;

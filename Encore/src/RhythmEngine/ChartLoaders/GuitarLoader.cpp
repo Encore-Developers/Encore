@@ -114,6 +114,10 @@ void Encore::RhythmEngine::GuitarLoader::CheckEvents(const smf::MidiEvent &event
             CurrentOverdrive++;
     }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
+    if (!chart.sections.empty()) {
+        if (CurrentSection < chart.sections.size() - 1 && event.tick >= chart.sections[CurrentSection+1].tickStart)
+            CurrentSection++;
+    }
     ITERATE_EVENT_BY_NOTE(trills, CurrentTrill, event)
     ITERATE_EVENT_BY_NOTE(rolls, CurrentRoll, event)
 }
@@ -165,6 +169,14 @@ void Encore::RhythmEngine::GuitarLoader::CreateNote(const smf::MidiEvent &event)
         if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
             chart.solos[CurrentSolo].NoteCount++;
         }
+    }
+    if (!chart.sections.empty()) {
+        int end = midiFile->getFileDurationInTicks();
+        if (CurrentSection < chart.sections.size() - 1) {
+            end = chart.sections.at(CurrentSection + 1).tickStart;
+        }
+        if (event.tick >= chart.sections.at(CurrentSection).tickStart && event.tick < end)
+            chart.sections.at(CurrentSection).notes++;
     }
     if (!chart.trills.empty()) {
         if (event.tick >= chart.trills[CurrentTrill].StartTick) {

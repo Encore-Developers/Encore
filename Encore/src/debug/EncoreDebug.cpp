@@ -965,6 +965,25 @@ void Encore::Track::DrawTrackDebugWindow() {
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
         }
+        if (CollapsingHeader("Section Stats")) {
+
+            if (BeginTable("Sections", 3)) {
+                int i = 0;
+                for (auto& section : player.engine->chart->sections) {
+                    TableNextRow();
+                    TableSetColumnIndex(0);
+                    if (i == player.engine->chart->CurrentSection) {
+                        ImGui::Text("%s", ">");
+                    }
+                    TableSetColumnIndex(1);
+                    ImGui::Text("%s", section.name.c_str());
+                    TableSetColumnIndex(2);
+                    ImGui::Text("%s", TextFormat("%01i/%01i -%01i", section.hit, section.notes, section.overhits));
+                    i++;
+                }
+                EndTable();
+            }
+        }
         if (CollapsingHeader("Track Slots")) {
             if (Button("Configure 5 Lane")) {
                 Configure5Lane();

@@ -112,9 +112,20 @@ namespace Encore::RhythmEngine {
             }
         }
 
+        void UpdateSections(int tick) {
+            if (!sections.empty()) {
+                while (CurrentSection < sections.size() - 1) {
+                    if (tick < sections[CurrentSection+1].tickStart) {
+                        break;
+                    }
+                    CurrentSection++;
+                }
+            }
+        }
+        size_t CurrentSection = 0;
+        std::vector<Section> sections;
         SoloEvents solos;
         ODEvents overdrive;
-        SectionEvents sections;
         TrillEvents trills;
         RollEvents rolls;
     };

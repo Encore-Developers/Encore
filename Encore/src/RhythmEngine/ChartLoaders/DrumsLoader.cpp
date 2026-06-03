@@ -59,6 +59,10 @@ void Encore::RhythmEngine::DrumsLoader::CheckEvents(const smf::MidiEvent &event)
             && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength <= event.tick)
             CurrentOverdrive++;
     }
+    if (!chart.sections.empty()) {
+        if (CurrentSection < chart.sections.size() - 1 && event.tick >= chart.sections[CurrentSection+1].tickStart)
+            CurrentSection++;
+    }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 void Encore::RhythmEngine::DrumsLoader::GetChartEvents(smf::MidiEventList track) {
@@ -96,6 +100,15 @@ void Encore::RhythmEngine::DrumsLoader::CreateNote(const smf::MidiEvent &event) 
     chart[lane].emplace_back(
         event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[lane]
     );
+
+    if (!chart.sections.empty()) {
+        int end = midiFile->getFileDurationInTicks();
+        if (CurrentSection < chart.sections.size() - 1) {
+            end = chart.sections.at(CurrentSection + 1).tickStart;
+        }
+        if (event.tick >= chart.sections.at(CurrentSection).tickStart && event.tick < end)
+            chart.sections.at(CurrentSection).notes++;
+    }
     if (!chart.solos.empty()) {
         if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
             chart.solos[CurrentSolo].NoteCount++;

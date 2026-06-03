@@ -85,6 +85,7 @@ void ChartLoadingMenu::LoadCharts() {
                 Encore::RhythmEngine::GuitarLoader chartLoader(
                     diff, curSong->hopoThreshold, &midiFile
                 );
+                chartLoader.chart.sections = TheSongTime.Sections;
                 chartLoader.LoadChart(midiFile[track]);
 
                 player.engine =
@@ -97,6 +98,7 @@ void ChartLoadingMenu::LoadCharts() {
             } else if (inst == PlasticDrums) {
                 midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::DrumsLoader chartLoader(diff, &midiFile);
+                chartLoader.chart.sections = TheSongTime.Sections;
                 chartLoader.LoadChart(midiFile[track]);
 
                 ThePlayerManager.GetActivePlayer(playerNum)
@@ -112,6 +114,7 @@ void ChartLoadingMenu::LoadCharts() {
                 Encore::RhythmEngine::BaseChart chart;
                 if (!curSong->parts[inst].AutoToPad) {
                     Encore::RhythmEngine::PadLoader chartLoader(diff, 170, &midiFile);
+                    chartLoader.chart.sections = TheSongTime.Sections;
                     chartLoader.LoadChart(midiFile[track]);
                     chart = chartLoader.chart;
                 } else {
@@ -121,6 +124,7 @@ void ChartLoadingMenu::LoadCharts() {
                     Encore::RhythmEngine::GuitarLoader chartLoader(
                         diff, curSong->hopoThreshold, &midiFile
                     );
+                    chartLoader.chart.sections = TheSongTime.Sections;
                     chartLoader.LoadChart(midiFile[track]);
                     chart = Encore::RhythmEngine::PadConverters::ConvertGuitarToPad(chartLoader.chart);
                 }
