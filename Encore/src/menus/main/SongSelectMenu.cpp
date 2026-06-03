@@ -184,7 +184,9 @@ void SongSelectMenu::Load() {
     currentPreviewVolume = 0.0f;
     previewState = PreviewState::Hysteresis;
     selectionTime = 0.0;
-
+    if (!TheSongList.curSong) {
+        TheSongList.curSong = TheSongList.sortedSongs[0];
+    }
     TheSongList.curSong->LoadAlbumArt();
     gameplaySet.StartLoad();
 

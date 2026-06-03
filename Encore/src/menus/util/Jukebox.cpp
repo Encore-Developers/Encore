@@ -24,11 +24,9 @@ void Jukebox::TogglePlayback() {
 }
 
 void Jukebox::UnloadStreams() {
-    if (streamsLoaded) {
-        TheAudioManager.unloadStreams();
-        streamsLoaded = false;
-        playing = false;
-    }
+    TheAudioManager.unloadStreams();
+    streamsLoaded = false;
+    playing = false;
 }
 
 void Jukebox::Update() {
@@ -86,7 +84,7 @@ void Jukebox::PickRandomSong() {
 }
 
 void Jukebox::StartStreams() {
-    if (streamsLoaded) {
+    if (!TheAudioManager.loadedStreams.empty()) {
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         playing = true;
     }
