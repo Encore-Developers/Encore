@@ -336,6 +336,7 @@ AssetSet initialSet = {
     ASSETPTR(josefinSansBold),
     ASSETPTR(josefinSansBoldItalic),
     ASSETPTR(bgShader),
+    ASSETPTR(bgLoadingScreen),
     ASSETPTR(JetBrainsMono),
     ASSETPTR(rubikBold),
     ASSETPTR(EntryBackground)

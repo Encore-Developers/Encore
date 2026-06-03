@@ -36,12 +36,25 @@ void cacheLoadingScreen::Load() {
 
 void cacheLoadingScreen::Draw() {
     Units u = Units::getInstance();
+    float diagonalLength = sqrtf(
+        (float)(GetRenderWidth() * GetRenderWidth())
+        + (float)(GetRenderHeight() * GetRenderHeight())
+    );
+    float RectXPos = GetRenderWidth() / 2;
+    float RectYPos = diagonalLength / 2;
+
+    BeginShaderMode(ASSET(bgShader));
+    DrawTexturePro(
+        ASSET(bgLoadingScreen),
+        Rectangle { 0, 0, (float)ASSET(bgLoadingScreen).width, (float)ASSET(bgLoadingScreen).width },
+        Rectangle { RectXPos, -RectYPos * 2, diagonalLength * 2, diagonalLength * 2 },
+        { 0, 0 },
+        45,
+        WHITE
+    );
+    EndShaderMode();
+
     GameMenu::DrawTopOvershell(0.15f);
-    // float logoHeight = u.hinpct(0.145f);
-    // float logoWidth = Remap(encoreLogo.height, 0, encoreLogo.width / 4.25, 0,
-    // u.winpct(0.5f)); Rectangle LogoRect = { u.RightSide - u.winpct(0.01f) - logoWidth,
-    // u.hpct(0.035f), logoWidth, logoHeight}; DrawTexturePro(encoreLogo,
-    // {0,0,(float)encoreLogo.width,(float)encoreLogo.height}, LogoRect, {0,0}, 0, WHITE);
     DrawRectangle(
         0,
         u.hpct(0.15f),
