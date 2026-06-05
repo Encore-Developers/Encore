@@ -173,6 +173,22 @@ void SongSelectMenu::ScrollToCurrentSong() {
     }
 }
 
+void SongSelectMenu::TogglePlaylistMode() {
+    TheSongList.PlaylistMode = !TheSongList.PlaylistMode;
+    if (TheSongList.PlaylistMode) {
+        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_1).Name = "songSelect.addToPlaylist";
+        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_2).Name = "songSelect.removeFromPlaylist";
+        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_4).Name = "songSelect.disablePlaylist";
+        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::OVERDRIVE).barVisible = true;
+        return;
+    }
+    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_1).Name = "songSelect.playSong";
+    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_2).Name = "generic.back";
+    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_4).Name = "songSelect.createPlaylist";
+    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::OVERDRIVE).barVisible = false;
+    TheSongList.playlist.clear();
+}
+
 void SongSelectMenu::Load() {
     // oh brother, this guy STINKS!
     //if (!IsAudioDeviceReady()) {
@@ -197,18 +213,32 @@ void SongSelectMenu::Load() {
                      "songSelect.playSong",
                      {
                      if (_action != Encore::RhythmEngine::Action::PRESS) return;
-                     if (!TheSongList.curSong) return;
-                     Unload();
-                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
+                         if (TheSongList.PlaylistMode) {
+                             if (TheSongList.curSong) {
+                                 TheSongList.playlist.push_back(TheSongList.curSong);
+                             }
+                             return;
+                         }
+                         if (!TheSongList.curSong) return;
+                         Unload();
+                         TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
+
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_2,
                      "generic.back",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
-                     if (!TheSongList.curSong) return;
-                     Unload();
-                     TheMenuManager.CreateAndSwitchMenu<MainMenu>();
+                         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                         if (TheSongList.PlaylistMode) {
+                             if (!TheSongList.playlist.empty()) {
+                                 TheSongList.playlist.pop_back();
+                                 return;
+                             }
+                             return;
+                         }
+                         if (!TheSongList.curSong) return;
+                         Unload();
+                         TheMenuManager.CreateAndSwitchMenu<MainMenu>();
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_3,
@@ -220,13 +250,33 @@ void SongSelectMenu::Load() {
                      ScrollToCurrentSong();
                      })
     NEWBUTTONACTION2(buttReg,
+                     LANE_4,
+                     "songSelect.createPlaylist",
+                     {
+                         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                         TogglePlaylistMode();
+                     })
+    NEWBUTTONACTION2(buttReg,
                      LANE_5,
                      "songSelect.jumpHeaders",
                      {
                      if (_action == Encore::RhythmEngine::Action::REPEAT) return;
+                         if (slot == -1) return;
                      ControllerOrangeHeld.at(slot) = _action == Encore::RhythmEngine::
                      Action::PRESS;
                      })
+    NEWBUTTONACTION2(buttReg,
+                     OVERDRIVE,
+                     "songSelect.playPlaylist",
+                     {
+                         if (_action == Encore::RhythmEngine::Action::REPEAT) return;
+                         if (TheSongList.playlist.empty()) return;
+                         Unload();
+                         TheSongList.PlaylistSize = TheSongList.playlist.size();
+                         TheSongList.PlaylistIndex = 1;
+                         TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+
+                     }, false)
     NEWBUTTONACTION2(buttReg,
                      INPUT_LEFT,
                      "PgUp",
@@ -464,6 +514,13 @@ void SongSelectMenu::Draw() {
     GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
     encOS::DrawTopOvershell(0.15f);
+    if (TheSongList.PlaylistMode) {
+        DrawRectangleGradientV(
+        0, 0, GetRenderWidth(), u.hpct(0.15f) - u.hinpct(0.005f),
+            Color { 0, 0, 0, 0 },
+            Color { 255, 0, 255, 128 }
+        );
+    }
 
     GameMenu::DrawVersion();
     int AlbumX = u.RightSide - u.winpct(0.25f);
@@ -775,15 +832,25 @@ void SongSelectMenu::Draw() {
     } else {
         DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, DARKGRAY);
     }
-
+    if (TheSongList.PlaylistMode) {
+        Encore::TextDisplay playlistSongs;
+        playlistSongs.Size(u.hinpct(0.035f)).Pos(AlbumX - AlbumInner, AlbumY);
+        for (auto& listSong : TheSongList.playlist) {
+            playlistSongs.DrawText(listSong->title);
+            playlistSongs.pos.y += u.hinpct(0.0375f);
+        }
+    }
     float TextPlacementTB = u.hpct(0.05f);
     float TextPlacementLR = u.LeftSide;
-    Encore::Text::lDrawText(assets.rubik,
-                            "songSelect.quickplay",
-                            { u.LeftSide, u.hpct(0.027f) },
-                            u.hinpct(0.042f),
-                            LIGHTGRAY,
-                            LEFT);
+    Encore::TextDisplay subheader;
+    subheader.Pos(u.LeftSide, u.hpct(0.027f)).Size(u.hinpct(0.042f)).Col(LIGHTGRAY);
+    if (TheSongList.PlaylistMode) {
+        subheader.DrawText(LOCALISE("songSelect.quickplay").toString()
+                         + " > "
+                         + LOCALISE("songSelect.playlistMode").toString());
+    } else {
+        subheader.lDrawText("songSelect.quickplay");
+    }
 
     Encore::TextDisplay header;
     header.Pos(TextPlacementLR, TextPlacementTB)

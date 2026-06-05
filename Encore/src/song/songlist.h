@@ -8,6 +8,7 @@
 #include "menus/util/Jukebox.h"
 
 #include <deque>
+#include <queue>
 
 // Version is formatted as YY_MM_DD_RR, where:
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
@@ -100,6 +101,12 @@ public:
     std::vector<LSection> sectionEntries;
     std::deque<Song> songs;
     std::vector<Song*> sortedSongs;
+    std::deque<Song*> playlist;
+    bool PlaylistMode = false;
+    // only for decorative purposes (i.e. menus/MTV overlay)
+    int PlaylistSize = 0;
+    int PlaylistIndex = 0;
+
     int songCount = 0;
     int directoryCount = 0;
     int badSongCount = 0;

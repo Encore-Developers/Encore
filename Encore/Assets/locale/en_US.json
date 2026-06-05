@@ -206,7 +206,13 @@
 	"songSelect": {
 		"header": "MUSIC LIBRARY",
 		"quickplay": "Quickplay",
+		"playlistMode": "Creating Playlist",
+		"createPlaylist": "Create Playlist",
+		"disablePlaylist": "Delete Playlist",
+		"addToPlaylist": "Add Song",
+		"removeFromPlaylist": "Remove Song",
 		"playSong": "Play Song",
+		"playPlaylist": "Start Playlist",
 		"sort": "Sort",
 		"jumpHeaders": "Jump Headers",
 		"sortedBy": "Sorted by: {}",
@@ -229,6 +235,7 @@
 	"resultsMenu": {
 		"sections": "Toggle General/Section Stats",
 		"back": "Back to Song Select",
+		"next": "Next Song in Playlist",
 		"indevWarning": "Scoring is disabled in indev builds",
 		"infoText": {
 			"fc": "Flawless",
@@ -247,6 +254,7 @@
 		"perfect": "PERFECT",
 		"good": "GOOD",
 		"bad": "BAD",
+		"playlistDisplay": "({} of {})",
 		"autoplay": "(AUTOPLAY)",
 		"trackNotification": {
 			"overdrive": "Overdrive ready",

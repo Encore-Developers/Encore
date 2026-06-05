@@ -5,6 +5,7 @@
 #include "resultsMenu.h"
 #include "../main/MainMenu.h"
 #include "raygui.h"
+#include "ReadyUpMenu.h"
 #include "../styles.h"
 #include "../uiUnits.h"
 #include "users/playerManager.h"
@@ -62,7 +63,11 @@ int FinalScore = 0;
 
 void resultsMenu::Load() {
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, LANE_1, "resultsMenu.back", {
+    std::string l1key = "resultsMenu.back";
+    if (TheSongList.playlist.size() > 1 && TheSongList.PlaylistMode) {
+        l1key = "resultsMenu.next";
+    }
+    NEWBUTTONACTION2(buttReg, LANE_1, l1key, {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1) continue;
@@ -70,6 +75,19 @@ void resultsMenu::Load() {
             player.engine->stats.reset();
             player.engine->chart.reset();
             player.engine.reset();
+        }
+        if (TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
+            TheSongList.playlist.pop_front();
+            TheSongList.PlaylistIndex++;
+            TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+            return;
+        }
+
+        if (TheSongList.playlist.size() == 1) {
+            TheSongList.PlaylistMode = false;
+            TheSongList.PlaylistSize = 0;
+            TheSongList.PlaylistIndex = 0;
+            TheSongList.playlist.pop_front();
         }
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     })

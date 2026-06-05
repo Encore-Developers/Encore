@@ -12,6 +12,7 @@
 #include "menus/locale/Locale.h"
 #include "gameplay/enctime.h"
 #include "menus/gameplay/ChartLoadingMenu.h"
+#include "menus/gameplay/ReadyUpMenu.h"
 #include "menus/main/SongSelectMenu.h"
 #include "users/profiles/ProfileManager.h"
 
@@ -260,7 +261,11 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
             break;
         }
         case OS_OPTIONS: {
+
             int len = dropInDropOut ? 9 : 6;
+            if (!dropInDropOut && TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
+                len++;
+            }
             int curSlot = len-1;
             if (DrawOvershellRectangleHeader(
                     OvershellLeftLoc,
@@ -306,7 +311,29 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                         player.engine->chart.reset();
                         player.engine.reset();
                     }
+
+                    TheSongList.PlaylistMode = false;
+                    TheSongList.playlist.clear();
+                    TheSongList.PlaylistSize = 0;
+                    TheSongList.PlaylistIndex = 0;
                     TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
+                }
+                if (TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
+                    if (OvershellButton(i, curSlot--, LOCALIZE("overshell.nextSong"))) {
+                        TheAudioManager.unloadStreams();
+                        songPlaying = false;
+                        TheSongTime.FullReset();
+                        for (int i = 0; i < MAX_PLAYERS; i++) {
+                            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+                            Player &player = ThePlayerManager.GetActivePlayer(i);
+                            player.engine->stats.reset();
+                            player.engine->chart.reset();
+                            player.engine.reset();
+                        }
+                        TheSongList.playlist.pop_front();
+                        TheSongList.PlaylistIndex++;
+                        TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+                    }
                 }
             }
 

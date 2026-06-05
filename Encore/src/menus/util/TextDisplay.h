@@ -27,6 +27,10 @@ namespace Encore
         TextDisplay& Fnt(const Font &_font);
         TextDisplay& Pos(Vector2 _pos);
         TextDisplay& Pos(float x, float y);
+        TextDisplay& AddPos(float x, float y);
+        TextDisplay& AddPos(Vector2 _pos);
+        TextDisplay& AddX(float x);
+        TextDisplay& AddY(float y);
         TextDisplay& Size(float _fontSize);
         TextDisplay& Col(Color _color);
         TextDisplay& Align(TextAlign _align);

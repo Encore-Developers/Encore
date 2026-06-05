@@ -18,6 +18,29 @@ namespace Encore
         this->pos = {x,y};
         return *this;
     }
+
+    TextDisplay & TextDisplay::AddPos(float x, float y) {
+        this->pos.x += x;
+        this->pos.y += y;
+        return *this;
+    }
+
+    TextDisplay & TextDisplay::AddPos(const Vector2 _pos) {
+        this->pos.x += _pos.x;
+        this->pos.y += _pos.y;
+        return *this;
+    }
+
+    TextDisplay & TextDisplay::AddX(float x) {
+        this->pos.x += x;
+        return *this;
+    }
+
+    TextDisplay & TextDisplay::AddY(float y) {
+        this->pos.y += y;
+        return *this;
+    }
+
     TextDisplay & TextDisplay::Size(float _fontSize) {
         this->fontSize = _fontSize;
         return *this;

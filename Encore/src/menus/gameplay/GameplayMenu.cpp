@@ -544,22 +544,29 @@ void GameplayMenu::Draw() {
     // there's better ways. forgive me for I have sinned
 
     const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
+    Encore::TextDisplay title;
+    Encore::TextDisplay secondary;
     float topOfVocalBar = u.hpct(0.2f);
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
-    Encore::Text::DrawText(ASSET(josefinSansBold), curSong->title,
-                         {u.wpct(0.01f), topOfVocalBar}, TitleFontSize,
-                         WHITE, LEFT);
+    title.Size(TitleFontSize).Pos(u.wpct(0.01f), topOfVocalBar)
+    .Fnt(ASSET(josefinSansBold)).DrawText(curSong->title);
+
+    float TitleWidth = title.TextWidth(curSong->title);
     float TitleFontOffset = (TitleFontSize * 1.25f);
     float SecondaryFontSize = TitleFontSize * 0.85f;
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->artist + ", " + curSong->releaseYear,
-                         {u.wpct(0.01f), topOfVocalBar + TitleFontOffset}, TitleFontSize * 0.85f,
-                         LIGHTGRAY, LEFT);
+    secondary.Size(SecondaryFontSize)
+    .Pos(title.pos.x + TitleWidth + u.winpct(0.005f), topOfVocalBar + (TitleFontSize - SecondaryFontSize))
+    .Fnt(ASSET(josefinSansBoldItalic)).Col(LIGHTGRAY)
+    .DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
+
+    secondary.Pos(u.wpct(0.01f), topOfVocalBar + TitleFontOffset)
+    .DrawText(curSong->artist + ", " + curSong->releaseYear);
+
+    secondary.AddPos(( TitleFontSize * 1.125f), TitleFontSize)
+    .DrawText(curSong->charters[0]);
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->charters[0],
-                         {u.wpct(0.01f) + ( TitleFontSize * 1.125f) , topOfVocalBar + (TitleFontOffset + TitleFontSize)}, SecondaryFontSize,
-                         LIGHTGRAY, LEFT);
 
     GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
     GuiSetStyle(DEFAULT, TEXT_SIZE, static_cast<int>(u.hinpct(0.03f)));
