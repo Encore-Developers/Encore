@@ -21,6 +21,8 @@ class ReadyUpMenu : public OvershellMenu {
     std::array<uint8_t, MAX_PLAYERS> ControllerInstSlot{ 0 };
     Encore::ButtonActionRegistry buttReg;
     std::vector<int> PartsToDisplay = {};
+    void Back(int slot);
+    void Select(int slot);
 public:
 
     Song* curSong;

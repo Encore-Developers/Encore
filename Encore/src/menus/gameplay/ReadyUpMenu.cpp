@@ -43,6 +43,41 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
     }
 }
 
+void ReadyUpMenu::Back(int slot) {
+    switch (SlotState[slot]) {
+    case INSTRUMENT:
+        curSong->midiParsed = false;
+        TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
+        break;
+    case DIFFICULTY:
+        SlotState[slot] = INSTRUMENT;
+        break;
+    case READY:
+        curSong->midiParsed = false;
+        TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
+        ReadyState[slot] = false;
+        break;
+    }
+}
+
+void ReadyUpMenu::Select(int slot) {
+    switch (SlotState[slot]) {
+    case INSTRUMENT:
+        if (!PartsToDisplay.empty()) {
+            SlotState[slot] = DIFFICULTY;
+            ThePlayerManager.GetActivePlayer(slot).Instrument = PartsToDisplay[ControllerInstSlot[slot]];
+        }
+        break;
+    case DIFFICULTY:
+        SlotState[slot] = READY;
+        ThePlayerManager.GetActivePlayer(slot).Difficulty = ControllerDiffSlot[slot];
+        ReadyState[slot] = true;
+        break;
+    default:
+        break;
+    }
+}
+
 void ReadyUpMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
@@ -356,38 +391,27 @@ void ReadyUpMenu::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        switch (SlotState[slot]) {
-                case INSTRUMENT:
-            if (!PartsToDisplay.empty()) {
-                SlotState[slot] = DIFFICULTY;
-                ThePlayerManager.GetActivePlayer(slot).Instrument = PartsToDisplay[ControllerInstSlot[slot]];
+        if (slot == -1) {
+            for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
+                if (ThePlayerManager.ActivePlayers[playerInt] == -1)
+                    continue;
+                Select(playerInt);
             }
-            break;
-        case DIFFICULTY:
-            SlotState[slot] = READY;
-            ThePlayerManager.GetActivePlayer(slot).Difficulty = ControllerDiffSlot[slot];
-            ReadyState[slot] = true;
-            break;
-        default:
-            break;
+            return;
         }
+        Select(slot);
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
-        switch (SlotState[slot]) {
-                case INSTRUMENT:
-            curSong->midiParsed = false;
-            TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
-            break;
-        case DIFFICULTY:
-            SlotState[slot] = INSTRUMENT;
-            break;
-        case READY:
-            curSong->midiParsed = false;
-            TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
-            ReadyState[slot] = false;
-            break;
+        if (slot == -1) {
+            for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
+                if (ThePlayerManager.ActivePlayers[playerInt] == -1)
+                    continue;
+                Back(playerInt);
+            }
+            return;
         }
+        Back(slot);
     })
     NEWBUTTONACTION2(buttReg, STRUM_UP, "Up", {
         if (_action != Encore::RhythmEngine::Action::PRESS) return;
