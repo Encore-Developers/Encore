@@ -27,16 +27,19 @@
 #include "settings/keybinds.h"
 
 void MenuManager::SwitchToMenu(std::shared_ptr<Menu> menu) {
-    ActiveMenu = std::move(menu);
+    ActiveMenu = menu;
     onNewMenu = true;
+    ActiveMenu->SetPresence();
+    menu->selfRef = menu;
 }
 
 void MenuManager::LoadMenu() {
     ZoneScoped
     TheMenuManager.onNewMenu = false;
-    ActiveMenu->Load();
-    // glfwSetKeyCallback(glfwGetCurrentContext(), keyCallback);
-    // glfwSetGamepadStateCallback(gamepadStateCallback);
+    if (!ActiveMenu->AlreadyLoaded) {
+        ActiveMenu->Load();
+        ActiveMenu->AlreadyLoaded = true;
+    }
 }
 
 void MenuManager::DrawMenu() {
