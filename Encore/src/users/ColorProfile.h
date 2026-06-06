@@ -11,17 +11,19 @@ namespace Encore {
     // SLOT_ prefix to prevent name conflicts
     enum ColorSlot : int {
         SLOT_GREEN = 0,
-        SLOT_RED = 1,
-        SLOT_YELLOW = 2,
-        SLOT_BLUE = 3,
-        SLOT_ORANGE = 4,
-        SLOT_OPEN = 5,
-        SLOT_KICK = 6,
-        SLOT_OVERDRIVE = 7,
-        SLOT_HIHAT = 8,
-        SLOT_RIDE = 9,
-        SLOT_CRASH = 10,
-        SLOT_MAX = 11
+        SLOT_RED,
+        SLOT_YELLOW,
+        SLOT_BLUE,
+        SLOT_ORANGE,
+        SLOT_OPEN,
+        SLOT_KICK,
+        SLOT_OVERDRIVE,
+        SLOT_HIHAT,
+        SLOT_RIDE,
+        SLOT_CRASH,
+        SLOT_FRAME,
+        SLOT_FRAME_OVERDRIVE,
+        SLOT_MAX
     };
 
     class ColorProfile {
@@ -39,13 +41,14 @@ namespace Encore {
             LIGHTGRAY, // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
-            GREEN // CRASH
+            GREEN, // CRASH
+            WHITE,
+            GOLD
         };
         bool builtin = false;
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(
             ColorProfile,
-            Name,
-            colors
+            Name
         );
     };
 
@@ -64,7 +67,9 @@ namespace Encore {
             PURPLE , // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
-            GREEN // CRASH
+            GREEN, // CRASH
+            WHITE, // FRAME
+            GOLD // FRAME OVERDRIVE
         }
     };
     static ColorProfile defaultPad {
@@ -79,7 +84,9 @@ namespace Encore {
             LIGHTGRAY , // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
-            GREEN // CRASH
+            GREEN, // CRASH
+            WHITE, // FRAME
+            WHITE // FRAME OVERDRIVE
         }
     };
 }

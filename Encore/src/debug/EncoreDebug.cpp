@@ -138,12 +138,12 @@ void EncoreDebug::DrawDebug() {
 
 void EncoreDebug::MenuBar() {
     ZoneScoped;
-    bool isGameplay = dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()) != nullptr;
+    auto gameplayMenu = TheMenuManager.GetActiveMenu<GameplayMenu>();
     BeginMainMenuBar();
     if (BeginMenu("Windows")) {
         MenuItem("Assets", 0, &showAssets);
         MenuItem("Player Manager", 0, &showPlayerManager);
-        MenuItem("Song List", 0, &showSongList, !dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()));
+        MenuItem("Song List", 0, &showSongList, !gameplayMenu);
         MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         MenuItem("Color Profile Manager", 0, &showColorProfileManager);
         MenuItem("Easings Debug", 0, &showEasings);
@@ -161,47 +161,17 @@ void EncoreDebug::MenuBar() {
 
     }
 
-    if (!isGameplay && MenuItem("End Song")) {
-        TheSongTime.Reset();
+    if (gameplayMenu && MenuItem("End Song")) {
         TheAudioManager.unloadStreams();
         songPlaying = false;
-        TheSongTime.Beatlines.erase(
-            TheSongTime.Beatlines.begin(),
-            TheSongTime.Beatlines.end()
-        );
-        // TheSongTime.OverdriveTicks.erase(
-        //     TheSongTime.OverdriveTicks.begin(),
-        //     TheSongTime.OverdriveTicks.end()
-        // );
-        TheSongTime.TimeSigChanges.erase(
-            TheSongTime.TimeSigChanges.begin(),
-            TheSongTime.TimeSigChanges.end()
-        );
-        TheSongTime.BPMChanges.erase(
-            TheSongTime.BPMChanges.begin(),
-            TheSongTime.BPMChanges.end()
-        );
-        TheSongTime.Lyrics.erase(
-            TheSongTime.Lyrics.begin(),
-            TheSongTime.Lyrics.end()
-        );
-        TheSongTime.LastTick = 0;
-        TheSongTime.CurrentTick = 0;
-        // TheSongTime.LastODTick = 0;
-        // TheSongTime.CurrentODTick = 0;
-        TheSongTime.CurrentBPM = 0;
-        // TheSongTime.CurrentODTickItr = 0;
-        TheSongTime.CurrentTimeSig = 0;
-        TheSongTime.CurrentBeatline = 0;
-        TheSongTime.CurrentLyricPhrase = 0;
-        // TODO fix this
-        //TheMenuManager.CreateAndSwitchMenu<resultsMenu>();
+        TheSongTime.FullReset();
+        TheMenuManager.CreateAndSwitchMenu<resultsMenu>(gameplayMenu->curSong);
     }
-    if (isGameplay) {
+    if (gameplayMenu) {
         MenuItem("Practice", 0, &showPractice);
     }
 
-    if (isGameplay && MenuItem(pauseText.c_str())) {
+    if (gameplayMenu && MenuItem(pauseText.c_str())) {
         paused = !paused;
         for (auto index : ThePlayerManager.ActivePlayers) {
             if (index == -1)
@@ -249,6 +219,12 @@ void EncoreDebug::DrawColorProfileSettings() {
                     InputText("Profile Name", &profile.second.Name);
                     ColorEdit("Overdrive",
                               &profile.second.colors[Encore::SLOT_OVERDRIVE],
+                              0);
+                    ColorEdit("Note Frame",
+                              &profile.second.colors[Encore::SLOT_FRAME],
+                              0);
+                    ColorEdit("Overdrive Note Frame",
+                              &profile.second.colors[Encore::SLOT_FRAME_OVERDRIVE],
                               0);
                     SeparatorText(" ");
                     ColorEdit("Green",

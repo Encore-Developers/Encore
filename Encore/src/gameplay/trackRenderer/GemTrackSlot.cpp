@@ -21,9 +21,9 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     } else {
         if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
-            ASSET(noteShader).SetUniform("frameColor", GOLD);
+            ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, track->ColorProfileType));
         } else {
-            ASSET(noteShader).SetUniform("frameColor", WHITE);
+            ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME, track->ColorProfileType));
         }
         ASSET(noteShader).SetUniform("noteColor", color);
     }
