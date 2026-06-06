@@ -487,8 +487,9 @@ void GameplayMenu::Draw() {
     float SecondaryFontSize = TitleFontSize * 0.85f;
     secondary.Size(SecondaryFontSize)
     .Pos(title.pos.x + TitleWidth + u.winpct(0.005f), topOfVocalBar + (TitleFontSize - SecondaryFontSize))
-    .Fnt(ASSET(josefinSansBoldItalic)).Col(LIGHTGRAY)
-    .DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
+    .Fnt(ASSET(josefinSansBoldItalic)).Col(LIGHTGRAY);
+    if (TheSongList.PlaylistSize > 0)
+        secondary.DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
 
     secondary.Pos(u.wpct(0.01f), topOfVocalBar + TitleFontOffset)
     .DrawText(curSong->artist + ", " + curSong->releaseYear);
