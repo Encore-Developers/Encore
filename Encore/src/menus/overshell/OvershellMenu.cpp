@@ -286,7 +286,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                     OvershellState[i] = OS_ATTRACT;
                     ThePlayerManager.SaveSpecificPlayer(i, true);
                 }
-                if (OvershellButton(i, curSlot--, LOCALIZE("overshell.restart"))) {
+                if (OvershellButton(i, curSlot--, LOCALIZE("generic.restart"))) {
                     if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
                         TheAudioManager.unloadStreams();
                         for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {

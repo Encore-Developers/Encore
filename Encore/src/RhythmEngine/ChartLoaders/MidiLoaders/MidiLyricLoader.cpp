@@ -106,7 +106,6 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
             continue;
 
         switch (lyric.back()) {
-        case '%':
         case '+':
         case '$':
             continue;
@@ -125,7 +124,7 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
                 i--;
             }
         }
-        if (lyric.back() == '-') {
+        if (lyric.back() == '-' || lyric.back() == '%') {
             lyric.pop_back();
         } else if (lyric.back() == '=') {
             lyric.back() = '-';

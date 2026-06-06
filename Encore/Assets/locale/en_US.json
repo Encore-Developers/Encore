@@ -5,6 +5,7 @@
 		"unknown": "Unknown",
 		"select": "Select",
 		"confirm": "Confirm",
+		"restart": "Restart",
 		"back": "Back",
 		"pause": "Pause",
 		"unpause": "Unpause",
@@ -200,7 +201,6 @@
 		"leftyFlip": "Lefty Flip",
 		"dropOut": "Drop Out",
 		"return": "Return",
-		"restart": "Restart",
 		"exitSong": "Exit Song"
 	},
 	"songSelect": {

@@ -3,6 +3,8 @@
 //
 
 #include "resultsMenu.h"
+
+#include "ChartLoadingMenu.h"
 #include "../main/MainMenu.h"
 #include "raygui.h"
 #include "ReadyUpMenu.h"
@@ -91,7 +93,7 @@ void resultsMenu::Load() {
         }
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     })
-    NEWBUTTONACTION2(buttReg, LANE_3, "resultsMenu.sections", {
+    NEWBUTTONACTION2(buttReg, LANE_4, "resultsMenu.sections", {
         if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -119,6 +121,21 @@ void resultsMenu::Load() {
             break;
         }
         }
+    })
+    NEWBUTTONACTION2(buttReg, LANE_3, "generic.restart", {
+        if (_action != Encore::Action::PRESS) return;
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+            Player &player = ThePlayerManager.GetActivePlayer(i);
+            player.engine->stats.reset();
+            player.engine->chart.reset();
+            player.engine.reset();
+        }
+        if (TheSongList.PlaylistMode) {
+            TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+            return;
+        }
+        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
     })
       NEWBUTTONACTION2(buttReg, STRUM_UP, "sectionsup", {
         if (_action != Encore::Action::PRESS) return;

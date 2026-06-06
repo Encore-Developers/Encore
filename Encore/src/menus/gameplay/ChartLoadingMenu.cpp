@@ -24,7 +24,7 @@
 #include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
 
 bool StartLoading = true;
-bool FinishedLoading = false;
+std::atomic_bool FinishedLoading = false;
 
 void ChartLoadingMenu::LoadCharts() {
     ZoneScoped;
@@ -194,12 +194,11 @@ void ChartLoadingMenu::Load() {
     // }
     // ThePlayerManager.BandStats = new BandGameplayStats;
     curSong->LoadAlbumArt();
-    TheAudioManager.unloadStreams();
-
-    TheAudioManager.loadStreams(
-    curSong->LoadAudioINI()
-    );
-    LoadCharts();
+    TheAssets.loadingPool.SubmitTask([this]() {
+        TheAudioManager.unloadStreams();
+        TheAudioManager.loadStreams(curSong->LoadAudioINI());
+        LoadCharts();
+    });
     // std::thread ChartLoader(LoadCharts);
     // ChartLoader.detach();
     gameplaySet.StartLoad();

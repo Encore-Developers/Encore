@@ -104,7 +104,9 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
     LyricLeft += int(GetRenderWidth() / 2) - (lyricData.TextWidth(allLyrics)/2);
     lyricData.Pos(LyricLeft,baselineVox + padding);
     const Color PlayedColor = { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) };
-    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
+    const Color PlayingColor = ColorContrast(ColorBrightness(PlayedColor, 0.25), 0.15);
+    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 128)};
+    const Color UnplayedColor2 = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
     for (int i = 0; i < phrase->lyrics.size(); i++) {
         RhythmEngine::EncLyric& lyric = phrase->lyrics[i];
         float EndSec = phrase->EndSec;
@@ -118,20 +120,22 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
             if (EndSec < TheSongTime.GetElapsedTime()) {
                 lyricData.Col( PlayedColor ).DrawText(lyric.Lyric);
             } else {
+                const int padding2 = u.winpct(0.01f);
                 const float percentage = Remap(TheSongTime.GetElapsedTime(), lyric.StartSec, EndSec, 0, 1);
                 const int playedWidth = float(lyricData.TextWidth(lyric.Lyric)) * percentage;
+                const int unplayedWidth = float(lyricData.TextWidth(lyric.Lyric)) * (1 - percentage);
                 const int y = int(baselineVox + padding);
                 const int x = lyricData.pos.x;
-                BeginScissorMode(x + playedWidth, y, float(lyricData.TextWidth(lyric.Lyric)) * (1 - percentage), FontSize);
+                BeginScissorMode(x + playedWidth, y, unplayedWidth + padding2, FontSize);
                 lyricData.Col( UnplayedColor ).DrawText(lyric.Lyric);
                 EndScissorMode();
 
-                BeginScissorMode(x, y, playedWidth, FontSize);
-                lyricData.Col( PlayedColor ).DrawText(lyric.Lyric);
+                BeginScissorMode(x - padding2, y, playedWidth + padding2, FontSize);
+                lyricData.Col( PlayingColor ).DrawText(lyric.Lyric);
                 EndScissorMode();
             }
         } else {
-            lyricData.Col( {255, 255, 255, remapAlpha(alpha, DisplayAlpha)} );
+            lyricData.Col( UnplayedColor2 );
             lyricData.DrawText(lyric.Lyric);
         }
         lyricData.pos.x += lyricData.TextWidth(lyric.Lyric);

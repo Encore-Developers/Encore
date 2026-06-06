@@ -297,6 +297,12 @@ void Encore::Track::DrawSoloUI() {
 void Encore::Track::DrawUsername() {
     Vector3 worldPos = { 0, 0, -2.0 };
     Vector2 screenPos = GetWorldToScreen(worldPos, AnimCamera);
+
+    auto easeIn = getEasingFunction(EaseInQuint);
+    unsigned char alpha = (easeIn(1-IntroTimer) * 255.0);
+    if (IntroTimer >= 1) {
+        alpha = 0;
+    }
     Color color = WHITE;
     std::string NameText = player.Name;
     if (player.engine->stats->Bot) {
@@ -321,13 +327,13 @@ void Encore::Track::DrawUsername() {
                    icon,
                    { 0, 0 },
                    0,
-                   WHITE);
+                   {255,255,255,alpha});
     left += FontSize;
     Text::DrawText(ASSET(rubik),
                          NameText,
                          { left, screenPos.y },
                          FontSize,
-                         color,
+                         {color.r, color.g, color.b, alpha},
                          LEFT);
 }
 
@@ -905,9 +911,18 @@ void Encore::Track::ProcessAnimation() {
     else {
         KickTimer = 0;
     }
+    if (IntroTimer > 0)
+        IntroTimer -= GetFrameTime();
+    else {
+        IntroTimer = 0;
+    }
     auto ease = getEasingFunction(EaseInQuad);
+    auto easeout = getEasingFunction(EaseInQuart);
     AnimCamera.position.y = BaseCamera.position.y - (ease(KickTimer) * 0.2);
-    AnimCamera.target.y = BaseCamera.target.y - (ease(KickTimer) * 0.1);
+    if (IntroTimer > 0)
+        AnimCamera.target.y = Remap(easeout(IntroTimer), 0, 1, 0, AnimCamera.position.y * 2);
+    else
+        AnimCamera.target.y = BaseCamera.target.y - (ease(KickTimer) * 0.1);
 }
 
 void Encore::Track::AddSlot(TrackSlot *slot) {

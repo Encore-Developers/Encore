@@ -74,6 +74,7 @@ namespace Encore {
         float Scale = 1;
         float MaxScale = 1;
         float NoteHeight = 1;
+        float IntroTimer = 1;
         float KickTimer = 0;
         float KickSpeedMult = 5;
         float SpotlightTimer = 0;

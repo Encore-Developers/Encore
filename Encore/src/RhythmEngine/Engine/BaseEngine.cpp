@@ -208,15 +208,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
-    TextFormat("Player %s overhit", player->Name.c_str());
-    if (stats->Combo > 0) {
-        MultFlashEvent e {true};
-        FireEvent(&e);
-    }
-    // should be safe, right?
-    chart->UpdateSections(TheSongTime.GetCurrentTick());
-    if (!chart->sections.empty())
-        chart->sections.at(chart->CurrentSection).overhits++;
+
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
@@ -229,6 +221,16 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
     }
     if (stats->InputTime < earliestNoteTime)
         return;
+
+    chart->UpdateSections(TheSongTime.GetCurrentTick());
+    // should be safe, right?
+    if (!chart->sections.empty())
+        chart->sections.at(chart->CurrentSection).overhits++;
+    TextFormat("Player %s overhit", player->Name.c_str());
+    if (stats->Combo > 0) {
+        MultFlashEvent e {true};
+        FireEvent(&e);
+    }
     FireEventTemp(OverhitEvent(lane));
     stats->Overhit();
     chart->overdrive.UpdateEventViaNote(

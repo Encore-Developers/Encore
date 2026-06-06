@@ -399,7 +399,7 @@ void GameplayMenu::Draw() {
     TheSongTime.UpdateBeatlines();
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
-    if (!songPlaying) {
+    if (!songPlaying && tracks.back()->IntroTimer==0) {
         TheSongTime.Reset();
         double songEnd = floor(TheAudioManager.GetMusicTimeLength());
         TheAudioManager.UpdateAudioStreamVolumes();
@@ -407,10 +407,7 @@ void GameplayMenu::Draw() {
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         songPlaying = true;
     }
-    // std::array<Color, 5> grybo = { GREEN, RED, YELLOW, BLUE, ORANGE };
-    // std::array<Color, 5> orybg = { ORANGE, RED, YELLOW, BLUE, GREEN };
     GameMenu::DrawAlbumArtBackground();
-    // BackgroundColor = (unsigned char)((1 - TheSongTime.GetBeatlineDelta()) * 255);
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
         0,
@@ -419,45 +416,16 @@ void GameplayMenu::Draw() {
         GetRenderHeight(),
         Color{ 255, 255, 255, BackgroundColor }
     );
-    double EndTime = curSong->end == 0.0
-        ? TheSongTime.GetSongLength()
-        : curSong->end;
-    if (TheSongTime.GetElapsedTime() > EndTime - 1) {
+
+    if (TheSongTime.GetElapsedTime() > curSong->end - 0.1) {
         // TODO: endgame
-        TheSongTime.Reset();
+        TheSongTime.FullReset();
         TheAudioManager.unloadStreams();
         songPlaying = false;
-        TheSongTime.Beatlines.erase(
-            TheSongTime.Beatlines.begin(),
-            TheSongTime.Beatlines.end()
-        );
-        TheSongTime.TimeSigChanges.erase(
-            TheSongTime.TimeSigChanges.begin(),
-            TheSongTime.TimeSigChanges.end()
-        );
-        TheSongTime.BPMChanges.erase(
-            TheSongTime.BPMChanges.begin(),
-            TheSongTime.BPMChanges.end()
-        );
-        TheSongTime.Lyrics.erase(
-            TheSongTime.Lyrics.begin(),
-            TheSongTime.Lyrics.end()
-        );
-        TheSongTime.LastTick = 0;
-        TheSongTime.CurrentTick = 0;
-        // TheSongTime.LastODTick = 0;
-        // TheSongTime.CurrentODTick = 0;
-        TheSongTime.CurrentBPM = 0;
-        TheSongTime.CurrentTimeSig = 0;
-        TheSongTime.CurrentBeatline = 0;
-        TheSongTime.CurrentLyricPhrase = 0;
         TheMenuManager.CreateAndSwitchMenu<resultsMenu>(curSong);
         return;
     }
 
-    // int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
-    // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
-    // int flashInterval = (numer * 480) / denom;
     TheLyricRenderer.RenderLyrics();
 
     for (auto &stream : TheAudioManager.loadedStreams) {
@@ -503,43 +471,6 @@ void GameplayMenu::Draw() {
     // Score Drawing
     DrawScorebox(u, assets, scoreY);
 
-    float SongNameWidth = MeasureTextEx(
-            assets.rubikBoldItalic,
-            curSong->title.c_str(),
-            u.hinpct(MediumHeader),
-            0
-        )
-        .x;
-    std::string SongArtistString =
-        curSong->artist + ", " + curSong->releaseYear;
-    float SongArtistWidth =
-        MeasureTextEx(
-            assets.rubikBoldItalic,
-            SongArtistString.c_str(),
-            u.hinpct(SmallHeader),
-            0
-        )
-        .x;
-
-    float SongExtrasWidth = MeasureTextEx(
-            assets.rubikBoldItalic,
-            curSong->charters[0].c_str(),
-            u.hinpct(SmallHeader),
-            0
-        )
-        .x;
-
-    double SongNameDuration = 0.75f;
-    unsigned char SongNameAlpha = 255;
-    float SongNamePosition = 35;
-    unsigned char SongArtistAlpha = 255;
-    float SongArtistPosition = 35;
-    unsigned char SongExtrasAlpha = 255;
-    float SongExtrasPosition = 35;
-    float SongNameBackgroundWidth =
-        SongNameWidth >= SongArtistWidth ? SongNameWidth : SongArtistWidth;
-    float SongBackgroundWidth = SongNameBackgroundWidth;
-
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
 
@@ -567,11 +498,6 @@ void GameplayMenu::Draw() {
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-
-    GuiSetStyle(PROGRESSBAR, BORDER_WIDTH, 0);
-    GuiSetStyle(DEFAULT, TEXT_SIZE, static_cast<int>(u.hinpct(0.03f)));
-    GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-    GuiSetFont(assets.rubik);
 
     if (IsPaused()) {
         DrawPauseMenu();
@@ -631,11 +557,12 @@ void GameplayMenu::Load() {
         TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), TheGameSettings.GetActiveVolume());
 
 
-        tracks.at(i) = std::make_shared<Encore::Track>(player);
+        tracks.push_back(std::make_shared<Encore::Track>(player));
         tracks.at(i)->Load();
         tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
         tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
         tracks.at(i)->MaxScale = trackMaxScale;
+        tracks.at(i)->IntroTimer += (0.5 * playerCount);
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:

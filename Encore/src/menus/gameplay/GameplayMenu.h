@@ -29,7 +29,7 @@ class GameplayMenu : public OvershellMenu {
         {4,0,-4,0},
         {4,12,-12,-4}
     };
-    std::array<std::shared_ptr<Encore::Track>, MAX_PLAYERS> tracks;
+    std::vector<std::shared_ptr<Encore::Track>> tracks;
     Encore::ButtonActionRegistry buttReg;
 public:
     bool streamsPaused = false;
