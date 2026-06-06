@@ -814,13 +814,13 @@ void SongSelectMenu::Draw() {
         LEFT
     );
 
-    if (IsTextureValid(TheArtLoader.loadedArt)) {
+    if (TheArtLoader.loadedArt) {
         DrawTexturePro(
-            TheArtLoader.loadedArt,
+            *TheArtLoader.loadedArt,
             Rectangle{ 0,
                        0,
-                       (float)TheArtLoader.loadedArt.width,
-                       (float)TheArtLoader.loadedArt.width },
+                       (float)TheArtLoader.loadedArt->GetTexture().width,
+                       (float)TheArtLoader.loadedArt->GetTexture().width },
             Rectangle{ (float)AlbumX - AlbumInner,
                        (float)AlbumY,
                        (float)AlbumHeight,

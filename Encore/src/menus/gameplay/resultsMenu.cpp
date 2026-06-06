@@ -216,8 +216,8 @@ void resultsMenu::Draw() {
     float albumY = u.hpct(0.0225f);
     float albumSize = u.hpct(0.158f) - albumY;
     DrawTexturePro(
-        TheArtLoader.loadedArt,
-        { 0, 0, (float)TheArtLoader.loadedArt.width, (float)TheArtLoader.loadedArt.height },
+        TheArtLoader.loadedArt->GetTexture(),
+        { 0, 0, (float)TheArtLoader.loadedArt->GetTexture().width, (float)TheArtLoader.loadedArt->GetTexture().height },
         { albumX, albumY, albumSize, albumSize },
         { 0, 0 },
         0,

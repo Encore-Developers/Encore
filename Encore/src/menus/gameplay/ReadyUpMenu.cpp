@@ -176,11 +176,11 @@ void ReadyUpMenu::Draw() {
         BLACK
     );
     DrawTexturePro(
-        TheArtLoader.loadedArt,
+        TheArtLoader.loadedArt->GetTexture(),
         Rectangle{ 0,
                    0,
-                   (float)TheArtLoader.loadedArt.width,
-                   (float)TheArtLoader.loadedArt.width },
+                   (float)TheArtLoader.loadedArt->GetTexture().width,
+                   (float)TheArtLoader.loadedArt->GetTexture().width },
         Rectangle{ u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
         { 0, 0 },
         0,

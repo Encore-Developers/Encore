@@ -93,7 +93,7 @@ void GameMenu::DrawBottomOvershell() {
 // todo: replace player with band stats
 
 void GameMenu::DrawAlbumArtBackground() {
-    if (!IsTextureValid(TheArtLoader.loadedArtBlur)) {
+    if (!TheArtLoader.loadedArtBlur) {
         return;
     }
     float diagonalLength = sqrtf(
@@ -105,8 +105,8 @@ void GameMenu::DrawAlbumArtBackground() {
 
     BeginShaderMode(menuAss.bgShader);
     DrawTexturePro(
-        TheArtLoader.loadedArtBlur,
-        Rectangle { 0, 0, (float)TheArtLoader.loadedArtBlur.width, (float)TheArtLoader.loadedArtBlur.width },
+        *TheArtLoader.loadedArtBlur,
+        Rectangle { 0, 0, (float)TheArtLoader.loadedArtBlur->GetTexture().width, (float)TheArtLoader.loadedArtBlur->GetTexture().width },
         Rectangle { RectXPos, -RectYPos * 2, diagonalLength * 2, diagonalLength * 2 },
         { 0, 0 },
         45,

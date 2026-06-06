@@ -1,6 +1,7 @@
 #pragma once
 #include "song.h"
 #include "raylib.h"
+#include "util/ownedtexture.h"
 
 #include <queue>
 #include <mutex>
@@ -34,8 +35,8 @@ public:
 
 
     Song* currentSongArt;
-    Texture2D loadedArt;
-    Texture2D loadedArtBlur;
+    std::shared_ptr<OwnedTexture> loadedArt;
+    std::shared_ptr<OwnedTexture> loadedArtBlur;
 
     ArtLoader();
 

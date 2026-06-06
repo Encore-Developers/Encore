@@ -39,8 +39,7 @@ void ArtLoader::SendResult(LoadResult result) {
     resultsMutex.unlock();
 }
 ArtLoader::ArtLoader() : semaphore(0) {
-    loadedArt.id = 0;
-    loadedArtBlur.id = 0;
+
     keepAlive = true;
 
     std::thread thread = std::thread([this]() { this->ThreadRun(); });
@@ -73,19 +72,11 @@ void ArtLoader::Poll() {
         resultsMutex.unlock();
 
         if (!result.blur) {
-            if (loadedArt.id != 0) {
-                UnloadTexture(loadedArt);
-            }
-            loadedArt = LoadTextureFromImage(result.loadedImage);
-            SetTextureFilter(loadedArt, TEXTURE_FILTER_BILINEAR);
+            loadedArt = std::make_shared<OwnedTexture>(LoadTextureFromImage(result.loadedImage));
+            SetTextureFilter(*loadedArt, TEXTURE_FILTER_BILINEAR);
         } else {
-            if (loadedArtBlur.id != 0) {
-                UnloadTexture(loadedArtBlur);
-            }
-            loadedArtBlur = LoadTextureFromImage(result.loadedImage);
-            SetTextureFilter(loadedArtBlur, TEXTURE_FILTER_BILINEAR);
-            UnloadImage(result.loadedImage);
-            UnloadImage(result.otherImage);
+            loadedArtBlur = std::make_shared<OwnedTexture>(LoadTextureFromImage(result.loadedImage));
+            SetTextureFilter(*loadedArtBlur, TEXTURE_FILTER_BILINEAR);
         }
 
     }
