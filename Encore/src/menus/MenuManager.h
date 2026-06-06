@@ -15,6 +15,11 @@ public:
     void CreateAndSwitchMenu(_Args&&... __args) {
         SwitchToMenu(std::make_shared<T>(std::forward<_Args>(__args)...));
     }
+
+    template<typename T = Menu>
+    T* GetActiveMenu() {
+        return dynamic_cast<T*>(ActiveMenu.get());
+    }
 };
 
 extern MenuManager TheMenuManager;
