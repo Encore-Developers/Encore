@@ -1,5 +1,5 @@
 #pragma once
-#include "RhythmEngine/NoteVector.h"
+#include "../../Chart/NoteVector.h"
 #include "RhythmEngine/REenums.h"
 
 #include <bit>

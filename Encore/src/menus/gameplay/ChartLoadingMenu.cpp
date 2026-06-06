@@ -7,7 +7,7 @@
 #include "GameplayMenu.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "RhythmEngine/engines.h"
 #include "gameplay/enctime.h"
 #include "tracy/Tracy.hpp"
@@ -16,8 +16,11 @@
 
 #include <thread>
 
-#include "menus/locale/Locale.h"
-#include "RhythmEngine/ChartLoaders/LyricLoader.h"
+#include "menus/util/locale/Locale.h"
+#include "../../RhythmEngine/ChartLoaders/MidiLoaders/MidiLyricLoader.h"
+#include "RhythmEngine/ChartLoaders/MidiLoaders/Drums/MidiDrumsLoader.h"
+#include "RhythmEngine/ChartLoaders/MidiLoaders/Guitar/MidiGuitarLoader.h"
+#include "RhythmEngine/ChartLoaders/MidiLoaders/Pad/MidiPadLoader.h"
 #include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
 
 bool StartLoading = true;
@@ -47,7 +50,7 @@ void ChartLoadingMenu::LoadCharts() {
                 curSong->getStartEnd(midiFile, track, midiFile[track]);
             }
             else if (songPart == PitchedVocals) {
-                Encore::RhythmEngine::LyricLoader lyricLoader(&midiFile, track);
+                Encore::RhythmEngine::MidiLyricLoader lyricLoader(&midiFile, track);
                 lyricLoader.LoadLyrics();
                 TheSongTime.Lyrics = lyricLoader.lyrics;
             }
@@ -82,7 +85,7 @@ void ChartLoadingMenu::LoadCharts() {
                     LOG_DEBUG,
                     TextFormat("Hopo threshold: %01i", curSong->hopoThreshold)
                 );
-                Encore::RhythmEngine::GuitarLoader chartLoader(
+                Encore::RhythmEngine::MidiGuitarLoader chartLoader(
                     diff, curSong->hopoThreshold, &midiFile
                 );
                 chartLoader.chart.sections = TheSongTime.Sections;
@@ -97,7 +100,7 @@ void ChartLoadingMenu::LoadCharts() {
 
             } else if (inst == PlasticDrums) {
                 midiFile[track].linkNotePairs();
-                Encore::RhythmEngine::DrumsLoader chartLoader(diff, &midiFile);
+                Encore::RhythmEngine::MidiDrumsLoader chartLoader(diff, &midiFile);
                 chartLoader.chart.sections = TheSongTime.Sections;
                 chartLoader.LoadChart(midiFile[track]);
 
@@ -113,7 +116,7 @@ void ChartLoadingMenu::LoadCharts() {
                 midiFile[track].linkNotePairs();
                 Encore::RhythmEngine::BaseChart chart;
                 if (!curSong->parts[inst].AutoToPad) {
-                    Encore::RhythmEngine::PadLoader chartLoader(diff, 170, &midiFile);
+                    Encore::RhythmEngine::MidiPadLoader chartLoader(diff, 170, &midiFile);
                     chartLoader.chart.sections = TheSongTime.Sections;
                     chartLoader.LoadChart(midiFile[track]);
                     chart = chartLoader.chart;
@@ -121,7 +124,7 @@ void ChartLoadingMenu::LoadCharts() {
                     if (curSong->hopoThreshold == -1) {
                         curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
                     }
-                    Encore::RhythmEngine::GuitarLoader chartLoader(
+                    Encore::RhythmEngine::MidiGuitarLoader chartLoader(
                         diff, curSong->hopoThreshold, &midiFile
                     );
                     chartLoader.chart.sections = TheSongTime.Sections;

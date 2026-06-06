@@ -8,7 +8,7 @@
 #include "assets.h"
 #include "../overshell/OvershellMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
-#include "menus/util/SettingRenderer.h"
+#include "util/SettingRenderer.h"
 
 #ifndef SETTINGSAUDIOVIDEO_H
 #define SETTINGSAUDIOVIDEO_H
@@ -26,7 +26,7 @@ namespace Encore {
             SettingDoohickey settings;
             void Draw();
             void KeyboardInputCallback(SDL_KeyboardEvent* event);
-            void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
+            void ControllerInputCallback(ControllerEvent event);
             void Load();
             void Save();
         };

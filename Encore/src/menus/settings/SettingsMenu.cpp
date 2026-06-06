@@ -12,12 +12,12 @@
 #include "../main/MainMenu.h"
 #include "raygui.h"
 #include "settings/settings.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "assets.h"
 #include "SettingsCredits.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellHelper.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 
 static int selectedIndex = 0;
 
@@ -137,26 +137,26 @@ void SettingsMenu::Draw() {
 void SettingsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
-void SettingsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+void SettingsMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     buttReg.HandleInput(event);
 }
 
 void SettingsMenu::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         selectedIndex -= 1;
         if (selectedIndex < 0) selectedIndex = 0;
         if (selectedIndex >= menuItems.size()) selectedIndex = menuItems.size() - 1;
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         selectedIndex += 1;
         if (selectedIndex < 0) selectedIndex = 0;
         if (selectedIndex >= menuItems.size()) selectedIndex = menuItems.size() - 1;
     }, false)
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         switch (selectedIndex) {
         case AUDIO_VISUAL:
             TheMenuManager.CreateAndSwitchMenu<Encore::SettingsAudioVideo>();
@@ -175,7 +175,7 @@ void SettingsMenu::Load() {
         }
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         TheMenuManager.CreateAndSwitchMenu<MainMenu>();
     })
 }

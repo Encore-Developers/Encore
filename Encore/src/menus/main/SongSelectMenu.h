@@ -17,7 +17,7 @@ public:
     void ScrollDownHeader();
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
     void LoadPreview(Song& song);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
+    void ControllerInputCallback(Encore::ControllerEvent event) override;
     void ScrollToCurrentSong();
     void TogglePlaylistMode();
     void Draw() override;

@@ -6,15 +6,14 @@
 #define BASEENGINE_H
 #include "BaseStats.h"
 #include "RhythmTimer.h"
-#include "timingvalues.h"
-#include "RhythmEngine/NoteVector.h"
+#include "../Chart/NoteVector.h"
 #include "events/Event.h"
 
 #include <memory>
-#include <span>
 #include <unordered_map>
 
 #include "users/player.h"
+#include "util/Input.h"
 
 class Player;
 

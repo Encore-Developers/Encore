@@ -9,7 +9,7 @@
 #include "assets.h"
 #include "settings/settings.h"
 #include "song/audio.h"
-#include "song/scoring.h"
+#include "../scoring.h"
 
 namespace Encore::RhythmEngine {
 

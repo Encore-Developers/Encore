@@ -6,7 +6,7 @@
 #include "../overshell/OvershellMenu.h"
 #include "assets.h"
 #include "../menu.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 
 #include <vector>
 
@@ -42,11 +42,11 @@ public:
     void DrawTimerbox(Units &u, Assets &assets, float scoreY);
     void DrawGameplayStars(Units &u, Assets &assets, float scorePos, float starY);
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
+    void ControllerInputCallback(Encore::ControllerEvent event);
     void Draw() override;
     void Load() override;
     void DrawPauseMenu();
-    bool CheckPauseInput(Encore::RhythmEngine::ControllerEvent event);
+    bool CheckPauseInput(Encore::ControllerEvent event);
     void UpdatePauseState();
     bool IsPaused();
 

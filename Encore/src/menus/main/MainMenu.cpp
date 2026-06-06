@@ -20,8 +20,8 @@
 #include "imgui.h"
 #include "../menu.h"
 #include "../overshell/overshellRenderer.h"
-#include "../uiUnits.h"
-#include "../locale/Locale.h"
+#include "../util/uiUnits.h"
+#include "../util/locale/Locale.h"
 #include "../../song/songlist.h"
 #include "menus/util/ButtonActionRegistry.h"
 #include "menus/util/Jukebox.h"
@@ -177,7 +177,7 @@ void MainMenu::Load() {
     }
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.confirm", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         switch (ControllerSelected) {
         case 0:
             GotoSongSelect();
@@ -195,12 +195,12 @@ void MainMenu::Load() {
     })
     logoInt = ChooseRandomLogo();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "generic.confirm", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         ControllerSelected -= 1;
         if (ControllerSelected < 0) ControllerSelected = 0;
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "generic.confirm", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         ControllerSelected += 1;
         if (ControllerSelected > 2) ControllerSelected = 2;
     }, false)
@@ -221,7 +221,7 @@ void MainMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
         }
     }
 }
-void MainMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+void MainMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     int curSlot = 0;
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;

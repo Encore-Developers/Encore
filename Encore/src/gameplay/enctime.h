@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "RhythmEngine/Notes/EncNote.h"
+#include "RhythmEngine/Chart/EncNote.h"
 #include "song/song.h"
 
 struct BPM {

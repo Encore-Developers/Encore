@@ -34,7 +34,7 @@ public:
                  int playerInt,
                  Player &player,
                  float xPosOfMenu);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
+    void ControllerInputCallback(Encore::ControllerEvent event) override;
     void Draw() override;
     void Load() override;
 };

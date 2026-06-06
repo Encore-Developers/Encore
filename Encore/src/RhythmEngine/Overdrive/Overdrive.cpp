@@ -8,7 +8,7 @@
 #include "settings/settings.h"
 #include "song/audio.h"
 #include "util/enclog.h"
-#include "RhythmEngine/NoteVector.h"
+#include "../Chart/NoteVector.h"
 
 void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
     if (!Active)

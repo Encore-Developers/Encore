@@ -9,7 +9,7 @@
 #include "assets.h"
 #include "../overshell/OvershellMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
-#include "menus/util/SettingRenderer.h"
+#include "util/SettingRenderer.h"
 
 
 class SettingsCredits : public OvershellMenu {
@@ -30,7 +30,7 @@ public:
     SettingsCredits() = default;
     ~SettingsCredits() override = default;
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override {};
+    void ControllerInputCallback(Encore::ControllerEvent event) override {};
     void Load() override;
     void Draw() override;
 };

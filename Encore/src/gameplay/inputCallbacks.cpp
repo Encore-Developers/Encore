@@ -56,7 +56,7 @@ void keyCallback(SDL_KeyboardEvent* event) {
 }
 
 
-void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event) {
+void gamepadStateCallback(Encore::ControllerEvent event) {
     // this is a noop for now TODO remove
 }
 
@@ -82,8 +82,8 @@ double SDLTimeToAudioTime(uint64_t ticks) {
 
 std::unordered_map<SDL_JoystickID, std::pair<bool, bool>> ControllerTriggerState;
 
-Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
-    Encore::RhythmEngine::ControllerEvent outevent = {};
+Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
+    Encore::ControllerEvent outevent = {};
 
 
     Player* player = ThePlayerManager.GetPlayerForJoystick(event->gbutton.which);
@@ -97,28 +97,28 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
 
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-        outevent.channel = Encore::RhythmEngine::InputChannel::INVALID;
+        outevent.channel = Encore::InputChannel::INVALID;
         outevent.timestamp = SDLTimeToAudioTime(event->gbutton.timestamp);
 
         // Generic inputs
         switch (event->gbutton.button) {
         case(SDL_GAMEPAD_BUTTON_DPAD_UP):
-            outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+            outevent.channel = Encore::InputChannel::STRUM_UP;
             break;
         case(SDL_GAMEPAD_BUTTON_DPAD_DOWN):
-            outevent.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+            outevent.channel = Encore::InputChannel::STRUM_DOWN;
             break;
         case(SDL_GAMEPAD_BUTTON_DPAD_RIGHT):
-            outevent.channel = Encore::RhythmEngine::InputChannel::INPUT_RIGHT;
+            outevent.channel = Encore::InputChannel::INPUT_RIGHT;
             break;
         case(SDL_GAMEPAD_BUTTON_DPAD_LEFT):
-            outevent.channel = Encore::RhythmEngine::InputChannel::INPUT_LEFT;
+            outevent.channel = Encore::InputChannel::INPUT_LEFT;
             break;
         case(SDL_GAMEPAD_BUTTON_START):
-            outevent.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            outevent.channel = Encore::InputChannel::PAUSE;
             break;
         case(SDL_GAMEPAD_BUTTON_BACK):
-            outevent.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+            outevent.channel = Encore::InputChannel::OVERDRIVE;
             break;
         }
 
@@ -126,19 +126,19 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
         case GUITAR: {
             switch (event->gbutton.button) {
             case(SDL_GAMEPAD_BUTTON_SOUTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                outevent.channel = Encore::InputChannel::LANE_1;
                 break;
             case(SDL_GAMEPAD_BUTTON_EAST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                outevent.channel = Encore::InputChannel::LANE_2;
                 break;
             case(SDL_GAMEPAD_BUTTON_NORTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                outevent.channel = Encore::InputChannel::LANE_3;
                 break;
             case(SDL_GAMEPAD_BUTTON_WEST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                outevent.channel = Encore::InputChannel::LANE_4;
                 break;
             case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                outevent.channel = Encore::InputChannel::LANE_5;
                 break;
             }
             break;
@@ -146,19 +146,19 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
         case GUITAR_GHPS3: {
             switch (event->gbutton.button) {
             case(SDL_GAMEPAD_BUTTON_SOUTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                outevent.channel = Encore::InputChannel::LANE_1;
                 break;
             case(SDL_GAMEPAD_BUTTON_EAST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                outevent.channel = Encore::InputChannel::LANE_2;
                 break;
             case(SDL_GAMEPAD_BUTTON_NORTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                outevent.channel = Encore::InputChannel::LANE_4;
                 break;
             case(SDL_GAMEPAD_BUTTON_WEST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                outevent.channel = Encore::InputChannel::LANE_3;
                 break;
             case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                outevent.channel = Encore::InputChannel::LANE_5;
                 break;
             }
             break;
@@ -166,19 +166,19 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
         case DRUMS: {
             switch (event->gbutton.button) {
             case(SDL_GAMEPAD_BUTTON_SOUTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                outevent.channel = Encore::InputChannel::LANE_5;
                 break;
             case(SDL_GAMEPAD_BUTTON_EAST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                outevent.channel = Encore::InputChannel::LANE_2;
                 break;
             case(SDL_GAMEPAD_BUTTON_NORTH):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                outevent.channel = Encore::InputChannel::LANE_3;
                 break;
             case(SDL_GAMEPAD_BUTTON_WEST):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                outevent.channel = Encore::InputChannel::LANE_4;
                 break;
             case(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
-                outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                outevent.channel = Encore::InputChannel::LANE_1;
                 break;
             }
             break;
@@ -187,36 +187,36 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
             if (player->Instrument > PartVocals) {
                 switch (event->gbutton.button) {
                 case (SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                    outevent.channel = Encore::InputChannel::LANE_2;
                     break;
                 case (SDL_GAMEPAD_BUTTON_SOUTH):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                    outevent.channel = Encore::InputChannel::LANE_5;
                     break;
                 case (SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                    outevent.channel = Encore::InputChannel::LANE_3;
                     break;
                 }
             }
             else {
                 switch (event->gbutton.button) {
                 case (SDL_GAMEPAD_BUTTON_DPAD_LEFT):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
+                    outevent.channel = Encore::InputChannel::LANE_1;
                     break;
                 case (SDL_GAMEPAD_BUTTON_DPAD_UP):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_2;
+                    outevent.channel = Encore::InputChannel::LANE_2;
                     break;
                 case (SDL_GAMEPAD_BUTTON_DPAD_RIGHT):
                 case (SDL_GAMEPAD_BUTTON_WEST):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_3;
+                    outevent.channel = Encore::InputChannel::LANE_3;
                     break;
                 case (SDL_GAMEPAD_BUTTON_NORTH):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
+                    outevent.channel = Encore::InputChannel::LANE_4;
                     break;
                 case (SDL_GAMEPAD_BUTTON_EAST):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_5;
+                    outevent.channel = Encore::InputChannel::LANE_5;
                     break;
                 case (SDL_GAMEPAD_BUTTON_SOUTH):
-                    outevent.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+                    outevent.channel = Encore::InputChannel::OVERDRIVE;
                     break;
                 }
             }
@@ -225,15 +225,15 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
         }
 
         if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP)
-            outevent.action = Encore::RhythmEngine::Action::RELEASE;
+            outevent.action = Encore::Action::RELEASE;
         else if (event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
-            outevent.action = Encore::RhythmEngine::Action::PRESS;
+            outevent.action = Encore::Action::PRESS;
 
         outevent.slot = event->gdevice.which;
     }
     if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
         if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
-            outevent.channel = Encore::RhythmEngine::InputChannel::WHAMMY;
+            outevent.channel = Encore::InputChannel::WHAMMY;
             outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
             if (bindingType == GUITAR_GHPS3) {
                 outevent.axis = int(((float(event->gaxis.value)) / 32768.0f) * 255.0f);
@@ -247,23 +247,23 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
             if (event->gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER) {
                 if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2 && !ControllerTriggerState[event->gaxis.which].first) {
                     ControllerTriggerState[event->gaxis.which].first = true;
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
-                    outevent.action = Encore::RhythmEngine::Action::PRESS;
+                    outevent.channel = Encore::InputChannel::LANE_1;
+                    outevent.action = Encore::Action::PRESS;
                 } else if (ControllerTriggerState[event->gaxis.which].first){
                     ControllerTriggerState[event->gaxis.which].first = false;
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_1;
-                    outevent.action = Encore::RhythmEngine::Action::RELEASE;
+                    outevent.channel = Encore::InputChannel::LANE_1;
+                    outevent.action = Encore::Action::RELEASE;
                 }
             }
             else if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) {
                 if (event->gaxis.value > SDL_JOYSTICK_AXIS_MAX / 2 && !ControllerTriggerState[event->gaxis.which].second) {
                     ControllerTriggerState[event->gaxis.which].second = true;
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
-                    outevent.action = Encore::RhythmEngine::Action::PRESS;
+                    outevent.channel = Encore::InputChannel::LANE_4;
+                    outevent.action = Encore::Action::PRESS;
                 } else if (ControllerTriggerState[event->gaxis.which].second) {
                     ControllerTriggerState[event->gaxis.which].second = false;
-                    outevent.channel = Encore::RhythmEngine::InputChannel::LANE_4;
-                    outevent.action = Encore::RhythmEngine::Action::RELEASE;
+                    outevent.channel = Encore::InputChannel::LANE_4;
+                    outevent.action = Encore::Action::RELEASE;
                 }
             }
 
@@ -273,7 +273,7 @@ Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
     return outevent;
 }
 
-void ProcessControllerEvent(const Encore::RhythmEngine::ControllerEvent &event) {
+void ProcessControllerEvent(const Encore::ControllerEvent &event) {
     ZoneScoped;
     if (TheMenuManager.ActiveMenu) {
         if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {

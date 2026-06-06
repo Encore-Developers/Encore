@@ -2,8 +2,8 @@
 #include "enctime.h"
 #include "easing/easing.h"
 #include "../menus/main/MainMenu.h"
-#include "menus/uiUnits.h"
-#include "RhythmEngine/Notes/EncNote.h"
+#include "../menus/util/uiUnits.h"
+#include "RhythmEngine/Chart/EncNote.h"
 
 namespace Encore {
     class LyricRenderer {

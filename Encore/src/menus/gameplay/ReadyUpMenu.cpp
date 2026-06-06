@@ -9,15 +9,15 @@
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "raygui.h"
-#include "../styles.h"
-#include "../uiUnits.h"
+#include "../util/styles.h"
+#include "../util/uiUnits.h"
 #include "song/ArtLoader.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "menus/main/SongSelectMenu.h"
 
 #include "users/playerManager.h"
 
-void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         auto playerId = ThePlayerManager.ActivePlayers[i];
         if (playerId == -1)
@@ -29,7 +29,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent 
             return;
 
         buttReg.HandleInput(event);
-        if (event.action == Encore::RhythmEngine::Action::PRESS) {
+        if (event.action == Encore::Action::PRESS) {
             int diffCount = 0;
             SongPart& part = curSong->parts[player.Instrument];
             for (int d = 0; d < 4; d++) {
@@ -390,7 +390,7 @@ void ReadyUpMenu::Draw() {
 void ReadyUpMenu::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
                 if (ThePlayerManager.ActivePlayers[playerInt] == -1)
@@ -402,7 +402,7 @@ void ReadyUpMenu::Load() {
         Select(slot);
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
                 if (ThePlayerManager.ActivePlayers[playerInt] == -1)
@@ -414,7 +414,7 @@ void ReadyUpMenu::Load() {
         Back(slot);
     })
     NEWBUTTONACTION2(buttReg, STRUM_UP, "Up", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
             ControllerInstSlot[slot]++;
@@ -434,7 +434,7 @@ void ReadyUpMenu::Load() {
         }
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "Down", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         switch (SlotState[slot]) {
                 case INSTRUMENT:
             ControllerInstSlot[slot]--;

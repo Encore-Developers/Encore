@@ -11,7 +11,7 @@
 #include "assets.h"
 #include "settings/settings.h"
 #include "settingsOptionRenderer.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "gameplay/enctime.h"
 #include "../overshell/OvershellMenu.h"
 #include "imgui.h"
@@ -20,7 +20,7 @@
 #include "misc/imgui_stdlib.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellHelper.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "song/ArtLoader.h"
 
 using namespace Encore;
@@ -91,24 +91,24 @@ void SettingsGameplay::Draw() {
 void SettingsGameplay::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
-void SettingsGameplay::ControllerInputCallback(RhythmEngine::ControllerEvent event) {
+void SettingsGameplay::ControllerInputCallback(ControllerEvent event) {
     buttReg.HandleInput(event);
 }
 
 void SettingsGameplay::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         settings.IncrementSelected(true);
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         settings.IncrementSelected(false);
     }, false)
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         auto type = settings.settingsArray.at(settings.selectedIndex)->GetType();
         if (type == SettingDoohickey::settingType::BUTTON_SETTING ||
@@ -116,24 +116,24 @@ void SettingsGameplay::Load() {
             settings.Action(false);
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         Save();
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     // might as well take advantage of this copying
     NEWBUTTONACTION2(buttReg, LANE_3, "settings.prompt.exitWithoutSaving", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     NEWBUTTONACTION2(buttReg, INPUT_LEFT, "Lower", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         settings.Action(true);
     }, false)
     NEWBUTTONACTION2(buttReg, INPUT_RIGHT, "Raise", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         settings.Action(false);
     }, false)

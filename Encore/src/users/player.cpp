@@ -6,7 +6,7 @@
 #include "player.h"
 
 #include "uuid.h"
-#include "song/scoring.h"
+#include "../RhythmEngine/scoring.h"
 #include "song/song.h"
 
 #include <random>

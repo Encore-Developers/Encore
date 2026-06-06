@@ -26,7 +26,7 @@ public:
     SettingsMenu() = default;
     ~SettingsMenu() override = default;
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
+    void ControllerInputCallback(Encore::ControllerEvent event) override;
     void Load() override;
     void Draw() override;
 };

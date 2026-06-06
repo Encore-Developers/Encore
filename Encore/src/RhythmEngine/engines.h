@@ -2,9 +2,9 @@
 // Created by maria on 09/07/2025.
 //
 #pragma once
-#include "ChartLoaders/PadLoader.h"
-#include "ChartLoaders/DrumsLoader.h"
-#include "ChartLoaders/GuitarLoader.h"
-#include "Engine/PadEngine.h"
-#include "Engine/GuitarEngine.h"
-#include "Engine/DrumsEngine.h"
+#include "ChartLoaders/MidiLoaders/Pad/MidiPadLoader.h"
+#include "ChartLoaders/MidiLoaders/Drums/MidiDrumsLoader.h"
+#include "ChartLoaders/MidiLoaders/Guitar/MidiGuitarLoader.h"
+#include "Engine/Pad/PadEngine.h"
+#include "Engine/Guitar/GuitarEngine.h"
+#include "Engine/Drums/DrumsEngine.h"

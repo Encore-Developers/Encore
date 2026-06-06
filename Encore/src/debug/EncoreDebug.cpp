@@ -14,7 +14,7 @@
 #include "menus/MenuManager.h"
 #include "menus/gameplay/ReadyUpMenu.h"
 #include "menus/gameplay/resultsMenu.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "song/audio.h"
 #include "song/song.h"
 #include "song/songlist.h"

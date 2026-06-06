@@ -7,12 +7,12 @@
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "assets.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellMenu.h"
 #include "raygui.h"
 #include "../overshell/OvershellHelper.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 
 void SettingsKeyboard::Draw() {
     Units& u = Units::getInstance();
@@ -108,10 +108,10 @@ void SettingsKeyboard::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 
 }
 
-void SettingsKeyboard::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+void SettingsKeyboard::ControllerInputCallback(Encore::ControllerEvent event) {
+    if (event.action == Encore::Action::PRESS) {
         switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::LANE_2: {
+        case Encore::InputChannel::LANE_2: {
             Save();
             TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
             break;

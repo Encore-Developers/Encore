@@ -1,7 +1,7 @@
 #pragma once
 #include "RhythmEngine/REenums.h"
 #include "users/playerManager.h"
-#include "util/discord.h"
+#include "util/Presence.h"
 
 class Menu {
     std::weak_ptr<Menu> selfRef;
@@ -15,7 +15,7 @@ public:
     virtual ~Menu() {}
 
     virtual void KeyboardInputCallback(SDL_KeyboardEvent* event) = 0;
-    virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) = 0;
+    virtual void ControllerInputCallback(Encore::ControllerEvent event) = 0;
 
     std::shared_ptr<Menu> GetRef() {
         return selfRef.lock();

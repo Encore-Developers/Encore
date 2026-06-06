@@ -2,7 +2,7 @@
 #ifndef ENCORE_TRACKSLOT_H
 #define ENCORE_TRACKSLOT_H
 
-#include "RhythmEngine/Notes/EncNote.h"
+#include "RhythmEngine/Chart/EncNote.h"
 #include "raylib.h"
 #include "users/ColorProfile.h"
 

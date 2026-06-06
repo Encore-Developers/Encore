@@ -3,7 +3,7 @@
 #define ENCORE_EVENT_H
 
 #include "RhythmEngine/REenums.h"
-#include "RhythmEngine/Notes/EncNote.h"
+#include "RhythmEngine/Chart/EncNote.h"
 
 #include <unordered_set>
 

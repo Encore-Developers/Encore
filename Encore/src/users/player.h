@@ -10,9 +10,9 @@
 #include <filesystem>
 
 #include "raylib.h"
-#include "timingvalues.h"
+#include "../RhythmEngine/timingvalues.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
-#include "song/scoring.h"
+#include "RhythmEngine/scoring.h"
 
 #include <span>
 

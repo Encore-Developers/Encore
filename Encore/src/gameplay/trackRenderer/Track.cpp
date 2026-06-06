@@ -17,7 +17,7 @@
 #include "easing/easing.h"
 #include "events/Event.h"
 #include "../../menus/main/MainMenu.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
 #include "users/playerManager.h"

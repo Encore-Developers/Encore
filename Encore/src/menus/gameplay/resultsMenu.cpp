@@ -6,17 +6,17 @@
 #include "../main/MainMenu.h"
 #include "raygui.h"
 #include "ReadyUpMenu.h"
-#include "../styles.h"
-#include "../uiUnits.h"
+#include "../util/styles.h"
+#include "../util/uiUnits.h"
 #include "users/playerManager.h"
 #include "../overshell/OvershellHelper.h"
 #include "../MenuManager.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "menus/main/SongSelectMenu.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 
-void resultsMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+void resultsMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     buttReg.HandleInput(event);
 }
 
@@ -68,7 +68,7 @@ void resultsMenu::Load() {
         l1key = "resultsMenu.next";
     }
     NEWBUTTONACTION2(buttReg, LANE_1, l1key, {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
@@ -92,7 +92,7 @@ void resultsMenu::Load() {
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     })
     NEWBUTTONACTION2(buttReg, LANE_3, "resultsMenu.sections", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int i = 0; i < MAX_PLAYERS; i++) {
                 if (ThePlayerManager.ActivePlayers[i] == -1) continue;
@@ -121,7 +121,7 @@ void resultsMenu::Load() {
         }
     })
       NEWBUTTONACTION2(buttReg, STRUM_UP, "sectionsup", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         switch (resultsState.at(slot)) {
         case (GENERAL): {
             break;
@@ -135,7 +135,7 @@ void resultsMenu::Load() {
         }
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "sectionsdown", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         switch (resultsState.at(slot)) {
         case (GENERAL): {
             break;

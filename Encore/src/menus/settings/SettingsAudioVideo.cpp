@@ -11,12 +11,12 @@
 #include "assets.h"
 #include "settings/settings.h"
 #include "settingsOptionRenderer.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "gameplay/enctime.h"
 #include "../overshell/OvershellMenu.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellHelper.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 
 bool ShowAudioVisualSettings = true;
 bool showVolumeSettings = false;
@@ -64,7 +64,7 @@ void SettingsAudioVideo::Draw() {
 void SettingsAudioVideo::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
-void SettingsAudioVideo::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+void SettingsAudioVideo::ControllerInputCallback(ControllerEvent event) {
     buttReg.HandleInput(event);
     // if (state.buttons[GLFW_GAMEPAD_BUTTON_B] == GLFW_PRESS) {
     //    Save();
@@ -75,32 +75,32 @@ void SettingsAudioVideo::ControllerInputCallback(Encore::RhythmEngine::Controlle
 void SettingsAudioVideo::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         settings.IncrementSelected(true);
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         settings.IncrementSelected(false);
     }, false)
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "settings.prompt.exit", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         Save();
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     // might as well take advantage of this copying
     NEWBUTTONACTION2(buttReg, LANE_3, "settings.prompt.exitWithoutSaving", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     })
     NEWBUTTONACTION2(buttReg, INPUT_LEFT, "Lower", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         settings.Action(true);
     }, false)
     NEWBUTTONACTION2(buttReg, INPUT_RIGHT, "Raise", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         settings.Action(false);
     }, false)
 

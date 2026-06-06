@@ -1,7 +1,7 @@
 ﻿#define JSON_DIAGNOSTICS 1
 #include "song/songlist.h"
 #include "users/playerManager.h"
-#include "util/discord.h"
+#include "util/Presence.h"
 #include "util/enclog.h"
 #include "gameplay/enctime.h"
 #include "rlImGui.h"
@@ -13,8 +13,8 @@
 
 #include "gameplay/inputCallbacks.h"
 #include "SDL3/SDL.h"
-#include "menus/QuickOpen.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/QuickOpen.h"
+#include "menus/util/locale/Locale.h"
 #include "menus/main/MainMenu.h"
 #include "menus/main/cacheLoadingScreen.h"
 
@@ -55,7 +55,7 @@
 #include "song/audio.h"
 
 
-#include "menus/uiUnits.h"
+#include "menus/util/uiUnits.h"
 
 #include "settings/settings.h"
 #include "menus/settings/SettingsAudioVideo.h"
@@ -64,7 +64,7 @@
 #include "menus/settings/SettingsGameplay.h"
 #include "menus/settings/SettingsKeyboard.h"
 
-#include "menus/styles.h"
+#include "menus/util/styles.h"
 #include "util/frame-manager.h"
 
 #include <menus/MenuManager.h>
@@ -81,7 +81,7 @@ Encore::ProfileManager TheProfileManager;
 Encore::Keybinds TheGameKeybinds;
 Encore::SettingsGameplay TheGameplaySettings;
 Encore::SettingsAudioVideo TheAudioVideoSettings;
-Encore::Discord TheGameRPC;
+Encore::Presence TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
 std::filesystem::path prefsPath;

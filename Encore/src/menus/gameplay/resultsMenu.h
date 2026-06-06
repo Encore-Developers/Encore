@@ -35,7 +35,7 @@ public:
 
     resultsMenu(Song* song) : curSong(song) {}
     virtual void KeyboardInputCallback(SDL_KeyboardEvent* event);
-    virtual void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
+    virtual void ControllerInputCallback(Encore::ControllerEvent event);
     //~resultsMenu() override;
     void Draw() override;
     void Load() override;

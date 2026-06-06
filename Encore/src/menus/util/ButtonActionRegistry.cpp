@@ -5,38 +5,48 @@
 #include "ButtonActionRegistry.h"
 
 #include "raygui.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "menus/MenuManager.h"
-#include "menus/uiUnits.h"
+#include "uiUnits.h"
 #include "menus/main/MainMenu.h"
 
 // these funcs below are temp before a proper binding/icon library is implemented
 
-std::string tempLaneToButtonLabel(Encore::RhythmEngine::InputChannel channel) {
+std::string tempLaneToButtonLabel(Encore::InputChannel channel) {
     switch (channel) {
-    case Encore::RhythmEngine::InputChannel::LANE_1: return "A";
-    case Encore::RhythmEngine::InputChannel::LANE_2: return "B";
-    case Encore::RhythmEngine::InputChannel::LANE_3: return "Y";
-    case Encore::RhythmEngine::InputChannel::LANE_4: return "X";
-    case Encore::RhythmEngine::InputChannel::LANE_5: return "LB";
-    case Encore::RhythmEngine::InputChannel::STRUM_UP: return "^";
-    case Encore::RhythmEngine::InputChannel::STRUM_DOWN: return "v";
-    case Encore::RhythmEngine::InputChannel::PAUSE: return "+";
-    case Encore::RhythmEngine::InputChannel::OVERDRIVE: return "-";
-    case Encore::RhythmEngine::InputChannel::INPUT_LEFT: return "<";
-    case Encore::RhythmEngine::InputChannel::INPUT_RIGHT: return ">";
+    case Encore::InputChannel::LANE_1: return "A";
+    case Encore::InputChannel::LANE_2: return "B";
+    case Encore::InputChannel::LANE_3: return "Y";
+    case Encore::InputChannel::LANE_4: return "X";
+    case Encore::InputChannel::LANE_5: return "LB";
+    case Encore::InputChannel::STRUM_UP: return "^";
+    case Encore::InputChannel::STRUM_DOWN: return "v";
+    case Encore::InputChannel::PAUSE: return "+";
+    case Encore::InputChannel::OVERDRIVE: return "-";
+    case Encore::InputChannel::INPUT_LEFT: return "<";
+    case Encore::InputChannel::INPUT_RIGHT: return ">";
     default: return "";
     }
 }
 
-Color tempColorToButtonLabel(Encore::RhythmEngine::InputChannel channel) {
+Color tempColorToButtonLabel(Encore::InputChannel channel) {
     switch (channel) {
-    case Encore::RhythmEngine::InputChannel::LANE_1: return GREEN;
-    case Encore::RhythmEngine::InputChannel::LANE_2: return RED;
-    case Encore::RhythmEngine::InputChannel::LANE_3: return YELLOW;
-    case Encore::RhythmEngine::InputChannel::LANE_4: return BLUE;
-    case Encore::RhythmEngine::InputChannel::LANE_5: return ORANGE;
+    case Encore::InputChannel::LANE_1: return GREEN;
+    case Encore::InputChannel::LANE_2: return RED;
+    case Encore::InputChannel::LANE_3: return YELLOW;
+    case Encore::InputChannel::LANE_4: return BLUE;
+    case Encore::InputChannel::LANE_5: return ORANGE;
     default: return LIGHTGRAY;
+    }
+}
+
+void Encore::ButtonActionRegistry::HandleInput(const ControllerEvent &event) {
+    int curSlot = 0;
+    if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
+        curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
+    }
+    if (buttMap.contains(event.channel)) {
+        buttMap.at(event.channel).RunAction(event.action, curSlot);
     }
 }
 
@@ -66,7 +76,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         float textWidth = ButtonData.lTextWidth(butt.second.Name);
         pos.width = textWidth + (buttonHeight * 1.5);
         if (!OvershellOpen && GuiButton(pos,"")) {
-            butt.second.RunAction(RhythmEngine::Action::PRESS, -1);
+            butt.second.RunAction(Action::PRESS, -1);
         };
 
         // todo: replace this with actual controller-dependant icons

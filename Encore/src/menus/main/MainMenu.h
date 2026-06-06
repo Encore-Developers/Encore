@@ -7,7 +7,7 @@
 #include "assets.h"
 #include "users/player.h"
 #include "../overshell/OvershellMenu.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "menus/util/ButtonActionRegistry.h"
 #include "menus/util/TextDisplay.h"
 #include "song/ArtLoader.h"
@@ -58,7 +58,7 @@ public:
     void Draw();
     void Load();
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event);
+    void ControllerInputCallback(Encore::ControllerEvent event);
     std::string SplashString;
     float TitleAnimTimer = 1;
     int ControllerSelected = 0;

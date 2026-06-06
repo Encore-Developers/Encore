@@ -8,7 +8,7 @@
 #include "../overshell/OvershellMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
 #include "menus/util/Jukebox.h"
-#include "menus/util/SettingRenderer.h"
+#include "util/SettingRenderer.h"
 #include "song/cacheload.h"
 #include "song/songlist.h"
 
@@ -46,7 +46,7 @@ namespace Encore {
         std::thread ScanSongsThread;
         void Draw();
         void KeyboardInputCallback(SDL_KeyboardEvent* event);
-        void ControllerInputCallback(RhythmEngine::ControllerEvent event);
+        void ControllerInputCallback(ControllerEvent event);
         void Load();
         void Save();
         SettingDoohickey settings;

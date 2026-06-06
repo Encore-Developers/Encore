@@ -67,28 +67,28 @@ namespace encOS {
             return 0;
         }
 
-        void ControllerInput(Encore::RhythmEngine::ControllerEvent event) {
-            if (event.action != Encore::RhythmEngine::Action::PRESS) {
+        void ControllerInput(Encore::ControllerEvent event) {
+            if (event.action != Encore::Action::PRESS) {
                 return;
             }
 
             switch (event.channel) {
-            case Encore::RhythmEngine::InputChannel::STRUM_UP:
+            case Encore::InputChannel::STRUM_UP:
                 if (!blockNav) {
                     focusedItem++;
                 }
                 upPressed = true;
                 break;
-            case Encore::RhythmEngine::InputChannel::STRUM_DOWN:
+            case Encore::InputChannel::STRUM_DOWN:
                 if (!blockNav) {
                     focusedItem--;
                 }
                 downPressed = true;
                 break;
-            case Encore::RhythmEngine::InputChannel::LANE_1:
+            case Encore::InputChannel::LANE_1:
                 selectPressed = true;
                 break;
-            case Encore::RhythmEngine::InputChannel::LANE_2:
+            case Encore::InputChannel::LANE_2:
                 backPressed = true;
                 break;
             default:;

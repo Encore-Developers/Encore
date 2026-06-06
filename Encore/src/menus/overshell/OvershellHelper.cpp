@@ -1,8 +1,8 @@
 #include "OvershellHelper.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "raygui.h"
 #include "assets.h"
-#include "../styles.h"
+#include "../util/styles.h"
 #include "../main/MainMenu.h"
 #include "users/playerManager.h"
 

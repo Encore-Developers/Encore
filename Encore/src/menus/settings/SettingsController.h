@@ -21,7 +21,7 @@ public:
     void Draw() override;
     static std::pair<std::string, int> getBindTypeAndIndex(size_t optionIndex);
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override;
+    void ControllerInputCallback(Encore::ControllerEvent event) override;
     void Load();
     void Save();
 

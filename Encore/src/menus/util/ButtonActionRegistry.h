@@ -8,17 +8,9 @@ namespace Encore {
     class ButtonActionRegistry
     {
     public:
-        std::map<RhythmEngine::InputChannel, ButtonAction> buttMap;
+        std::map<InputChannel, ButtonAction> buttMap;
 
-        void HandleInput(const RhythmEngine::ControllerEvent &event) {
-            int curSlot = 0;
-            if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
-                curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
-            }
-            if (buttMap.contains(event.channel)) {
-                buttMap.at(event.channel).RunAction(event.action, curSlot);
-            }
-        }
+        void HandleInput(const ControllerEvent &event);
 
         // run after drawing GameMenu::BottomOvershell()
         void DrawPrompts(bool OvershellOpen, float top = -1, float left = -1);
@@ -26,7 +18,7 @@ namespace Encore {
 }
 
 // write lambdas yourself
-#define NEWBUTTONACTION(reg, lane, name, ...) reg.buttMap.emplace(Encore::RhythmEngine::InputChannel::lane, Encore::ButtonAction{name, __VA_ARGS__});
+#define NEWBUTTONACTION(reg, lane, name, ...) reg.buttMap.emplace(Encore::InputChannel::lane, Encore::ButtonAction{name, __VA_ARGS__});
 
 // autofills most lambda information, _action for action, slot for slot int
-#define NEWBUTTONACTION2(reg, lane, name, ...) reg.buttMap.emplace(Encore::RhythmEngine::InputChannel::lane, Encore::ButtonAction{name, [this](Encore::RhythmEngine::Action _action, int slot)__VA_ARGS__});
+#define NEWBUTTONACTION2(reg, lane, name, ...) reg.buttMap.emplace(Encore::InputChannel::lane, Encore::ButtonAction{name, [this](Encore::Action _action, int slot)__VA_ARGS__});

@@ -14,7 +14,7 @@ public:
     cacheLoadingScreen();
     virtual ~cacheLoadingScreen();
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
-    void ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) override {};
+    void ControllerInputCallback(Encore::ControllerEvent event) override {};
     void Draw() override;
     void Load() override;
 };

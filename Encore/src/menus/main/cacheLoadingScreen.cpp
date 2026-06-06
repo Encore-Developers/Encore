@@ -10,11 +10,11 @@
 
 #include "MainMenu.h"
 #include "raymath.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "song/songlist.h"
 #include "raygui.h"
 #include "../MenuManager.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "settings/settings.h"
 #include "song/cacheload.h"
 

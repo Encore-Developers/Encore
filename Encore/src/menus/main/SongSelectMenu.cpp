@@ -10,7 +10,7 @@
 #include "MainMenu.h"
 #include "raygui.h"
 #include "settings/settings.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "../overshell/OvershellHelper.h"
 
 #include "song/audio.h"
@@ -19,7 +19,7 @@
 #include "imgui.h"
 #include "raymath.h"
 #include "menus/gameplay/ReadyUpMenu.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 
@@ -102,7 +102,7 @@ void SongSelectMenu::ScrollSongSelect(int val) {
 }
 
 void SongSelectMenu::ControllerInputCallback(
-    Encore::RhythmEngine::ControllerEvent event) {
+    Encore::ControllerEvent event) {
     int curSlot = 0;
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
@@ -176,16 +176,16 @@ void SongSelectMenu::ScrollToCurrentSong() {
 void SongSelectMenu::TogglePlaylistMode() {
     TheSongList.PlaylistMode = !TheSongList.PlaylistMode;
     if (TheSongList.PlaylistMode) {
-        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_1).Name = "songSelect.addToPlaylist";
-        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_2).Name = "songSelect.removeFromPlaylist";
-        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_4).Name = "songSelect.disablePlaylist";
-        buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::OVERDRIVE).barVisible = true;
+        buttReg.buttMap.at(Encore::InputChannel::LANE_1).Name = "songSelect.addToPlaylist";
+        buttReg.buttMap.at(Encore::InputChannel::LANE_2).Name = "songSelect.removeFromPlaylist";
+        buttReg.buttMap.at(Encore::InputChannel::LANE_4).Name = "songSelect.disablePlaylist";
+        buttReg.buttMap.at(Encore::InputChannel::OVERDRIVE).barVisible = true;
         return;
     }
-    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_1).Name = "songSelect.playSong";
-    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_2).Name = "generic.back";
-    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::LANE_4).Name = "songSelect.createPlaylist";
-    buttReg.buttMap.at(Encore::RhythmEngine::InputChannel::OVERDRIVE).barVisible = false;
+    buttReg.buttMap.at(Encore::InputChannel::LANE_1).Name = "songSelect.playSong";
+    buttReg.buttMap.at(Encore::InputChannel::LANE_2).Name = "generic.back";
+    buttReg.buttMap.at(Encore::InputChannel::LANE_4).Name = "songSelect.createPlaylist";
+    buttReg.buttMap.at(Encore::InputChannel::OVERDRIVE).barVisible = false;
     TheSongList.playlist.clear();
 }
 
@@ -212,7 +212,7 @@ void SongSelectMenu::Load() {
                      LANE_1,
                      "songSelect.playSong",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                     if (_action != Encore::Action::PRESS) return;
                          if (TheSongList.PlaylistMode) {
                              if (TheSongList.curSong) {
                                  TheSongList.playlist.push_back(TheSongList.curSong);
@@ -228,7 +228,7 @@ void SongSelectMenu::Load() {
                      LANE_2,
                      "generic.back",
                      {
-                         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                         if (_action != Encore::Action::PRESS) return;
                          if (TheSongList.PlaylistMode) {
                              if (!TheSongList.playlist.empty()) {
                                  TheSongList.playlist.pop_back();
@@ -244,7 +244,7 @@ void SongSelectMenu::Load() {
                      LANE_3,
                      "songSelect.sort",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                     if (_action != Encore::Action::PRESS) return;
                      currentSortValue = NextSortType(currentSortValue);
                      TheSongList.sortList(currentSortValue);
                      ScrollToCurrentSong();
@@ -253,23 +253,22 @@ void SongSelectMenu::Load() {
                      LANE_4,
                      "songSelect.createPlaylist",
                      {
-                         if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                         if (_action != Encore::Action::PRESS) return;
                          TogglePlaylistMode();
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_5,
                      "songSelect.jumpHeaders",
                      {
-                     if (_action == Encore::RhythmEngine::Action::REPEAT) return;
+                     if (_action == Encore::Action::REPEAT) return;
                          if (slot == -1) return;
-                     ControllerOrangeHeld.at(slot) = _action == Encore::RhythmEngine::
-                     Action::PRESS;
+                     ControllerOrangeHeld.at(slot) = _action == Encore::Action::PRESS;
                      })
     NEWBUTTONACTION2(buttReg,
                      OVERDRIVE,
                      "songSelect.playPlaylist",
                      {
-                         if (_action == Encore::RhythmEngine::Action::REPEAT) return;
+                         if (_action == Encore::Action::REPEAT) return;
                          if (TheSongList.playlist.empty()) return;
                          Unload();
                          TheSongList.PlaylistSize = TheSongList.playlist.size();
@@ -281,7 +280,7 @@ void SongSelectMenu::Load() {
                      INPUT_LEFT,
                      "PgUp",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                     if (_action != Encore::Action::PRESS) return;
                      ScrollSongSelect(5);
                      },
                      false)
@@ -289,7 +288,7 @@ void SongSelectMenu::Load() {
                      INPUT_RIGHT,
                      "PgDn",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                     if (_action != Encore::Action::PRESS) return;
                      ScrollSongSelect(-5);
                      },
                      false)
@@ -297,7 +296,7 @@ void SongSelectMenu::Load() {
                      STRUM_UP,
                      "Up",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                     if (_action != Encore::Action::PRESS) return;
                      if (ControllerOrangeHeld.at(slot)) {
                      ScrollUpHeader();
                      } else {
@@ -309,7 +308,7 @@ void SongSelectMenu::Load() {
                      STRUM_DOWN,
                      "Down",
                      {
-                     if (_action != Encore::RhythmEngine::Action::PRESS) return;
+                     if (_action != Encore::Action::PRESS) return;
                      if (ControllerOrangeHeld.at(slot)) {
                      ScrollDownHeader();
                      } else {

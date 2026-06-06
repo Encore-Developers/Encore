@@ -5,10 +5,10 @@
 #include "overshellRenderer.h"
 #include "raylib.h"
 #include "raygui.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "assets.h"
 #include "../main/MainMenu.h"
-#include "../styles.h"
+#include "../util/styles.h"
 #include "users/playerManager.h"
 
 /// std::vector<bool> SlotSelectingState = { false, false, false, false };

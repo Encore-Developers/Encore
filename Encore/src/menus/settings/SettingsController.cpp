@@ -9,10 +9,10 @@
 #include "../main/MainMenu.h"
 #include "assets.h"
 #include "raygui.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellHelper.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 
 static const std::vector<std::string> presets = {
     "Thumb", "Thumb & Index", "Index & Middle"
@@ -126,10 +126,10 @@ void SettingsController::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 
 }
 
-void SettingsController::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
-    if (event.action == Encore::RhythmEngine::Action::PRESS) {
+void SettingsController::ControllerInputCallback(Encore::ControllerEvent event) {
+    if (event.action == Encore::Action::PRESS) {
         switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::LANE_2: {
+        case Encore::InputChannel::LANE_2: {
             Save();
             TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
             break;

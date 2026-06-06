@@ -15,10 +15,9 @@
 #include "raygui.h"
 #include "gameplay/resultsMenu.h"
 #include "settings/settings.h"
-#include "sndTestMenu.h"
 #include "gameplay/inputCallbacks.h"
 #include "users/playerManager.h"
-#include "util/discord.h"
+#include "util/Presence.h"
 #include "tracy/Tracy.hpp"
 
 #include <cstddef>

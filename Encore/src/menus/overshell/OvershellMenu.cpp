@@ -3,13 +3,13 @@
 #include "../gameplay/GameplayMenu.h"
 #include "../MenuManager.h"
 #include "assets.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "../main/MainMenu.h"
 #include "users/playerManager.h"
 #include "OvershellHelper.h"
 #include "raygui.h"
 #include "raylib.h"
-#include "menus/locale/Locale.h"
+#include "menus/util/locale/Locale.h"
 #include "gameplay/enctime.h"
 #include "menus/gameplay/ChartLoadingMenu.h"
 #include "menus/gameplay/ReadyUpMenu.h"
@@ -64,11 +64,11 @@ void DetectControllerType(Player& player) {
 OvershellInputState encOS::inputStates[] = {0, 1, 2, 3 };
 OvershellInputState* OvershellInputState::currentState = nullptr;
 
-bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event) {
-    if (event.channel == InputChannel::WHAMMY || event.channel == InputChannel::INVALID) {
+bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::ControllerEvent event) {
+    if (event.channel == Encore::InputChannel::WHAMMY || event.channel == Encore::InputChannel::INVALID) {
         return false;
     }
-    if (event.action == Action::RELEASE) {
+    if (event.action == Encore::Action::RELEASE) {
         return false;
     }
     bool controllerSignedIn = false;
@@ -95,7 +95,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
             thisSlotIsController = true;
         }
         if (thisSlotIsController) {
-            if (event.channel == InputChannel::PAUSE) {
+            if (event.channel == Encore::InputChannel::PAUSE) {
                 switch (menu->OvershellState[i]) {
                 case OS_ATTRACT:
                     menu->OvershellState[i] = OS_OPTIONS;
@@ -112,7 +112,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, ControllerEvent event
         }
 
     }
-    if (menu->dropInDropOut && (event.channel == InputChannel::PAUSE || event.channel == InputChannel::LANE_1) && !controllerSignedIn) {
+    if (menu->dropInDropOut && (event.channel == Encore::InputChannel::PAUSE || event.channel == Encore::InputChannel::LANE_1) && !controllerSignedIn) {
         for (int i = 0; i < 4; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1 && menu->ControllersToAssign[i] == 0) {
                 menu->ControllersToAssign[i] = event.slot;

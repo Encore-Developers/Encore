@@ -4,7 +4,6 @@
 
 #ifndef INPUTCALLBACKS_H
 #define INPUTCALLBACKS_H
-#include "RhythmEngine/REenums.h"
 #include "SDL3/SDL_events.h"
 
 #include <functional>
@@ -12,10 +11,12 @@
 #include <vector>
 #include <mutex>
 
+#include "util/Input.h"
+
 // what to check when a key changes states (what was the change? was it pressed? or
 // released? what time? what window? were any modifiers pressed?)
 void keyCallback(SDL_KeyboardEvent* event);
-void gamepadStateCallback(Encore::RhythmEngine::ControllerEvent event);
+void gamepadStateCallback(Encore::ControllerEvent event);
 void SyncSDLWithAudio();
 double SDLTimeToAudioTime(uint64_t ticks);
 
@@ -26,6 +27,6 @@ extern double lastTranslatedTime;
 
 #define MAX_EVENTS 2000
 
-void ProcessControllerEvent(const Encore::RhythmEngine::ControllerEvent &event);
-Encore::RhythmEngine::ControllerEvent TranslateSDLEvent(SDL_Event *event);
+void ProcessControllerEvent(const Encore::ControllerEvent &event);
+Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event);
 #endif //INPUTCALLBACKS_H

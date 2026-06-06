@@ -5,14 +5,14 @@
 #include "GameplayMenu.h"
 
 #include "../main/MainMenu.h"
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "song/audio.h"
 #include "song/songlist.h"
 #include "raymath.h"
 #include "raygui.h"
 #include "resultsMenu.h"
 #include "gameplay/enctime.h"
-#include "../styles.h"
+#include "../util/styles.h"
 #include "easing/easing.h"
 
 #include "users/playerManager.h"
@@ -39,12 +39,12 @@ GameplayMenu::~GameplayMenu() {
     ShowCursor();
 }
 
-bool GameplayMenu::CheckPauseInput(Encore::RhythmEngine::ControllerEvent event) {
+bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
     if (IsPaused()) {
         OvershellControllerInputCallback(this, event);
         return true;
     }
-    if (event.channel == Encore::RhythmEngine::InputChannel::PAUSE && event.action == Encore::RhythmEngine::Action::PRESS) {
+    if (event.channel == Encore::InputChannel::PAUSE && event.action == Encore::Action::PRESS) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (ThePlayerManager.ActivePlayers[i] == -1) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
@@ -117,24 +117,24 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
 
         if (sdlEvent->repeat)
             return;
-        Encore::RhythmEngine::ControllerEvent event;
+        Encore::ControllerEvent event;
         event.slot = -1;
         if (sdlEvent->down) {
-            event.action = Encore::RhythmEngine::Action::PRESS;
+            event.action = Encore::Action::PRESS;
         } else {
-            event.action = Encore::RhythmEngine::Action::RELEASE;
+            event.action = Encore::Action::RELEASE;
         }
         SDL_Keycode sdlKeycode = sdlEvent->key;
         if (sdlKeycode == TheGameKeybinds.overdriveBinds.first || sdlKeycode == TheGameKeybinds.
             overdriveBinds.second) {
-            event.channel = Encore::RhythmEngine::InputChannel::OVERDRIVE;
+            event.channel = Encore::InputChannel::OVERDRIVE;
         }
         if (!player.Bot) {
             if (player.bindingType != PAD) {
                 if (sdlKeycode == TheGameKeybinds.strumBinds.first) {
-                    event.channel = Encore::RhythmEngine::InputChannel::STRUM_UP;
+                    event.channel = Encore::InputChannel::STRUM_UP;
                 } else if (sdlKeycode == TheGameKeybinds.strumBinds.second) {
-                    event.channel = Encore::RhythmEngine::InputChannel::STRUM_DOWN;
+                    event.channel = Encore::InputChannel::STRUM_DOWN;
                 }
             }
             int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals)
@@ -145,21 +145,21 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
                 if (sdlKeycode == TheGameKeybinds.keybinds5k[i] || sdlKeycode == TheGameKeybinds.
                     keybinds5kalt[
                         i]) {
-                    event.channel = Encore::RhythmEngine::IntIC(i);
+                    event.channel = Encore::IntIC(i);
                 }
             }
         }
         if (sdlKeycode == SDLK_ESCAPE && sdlEvent->down) {
-            event.channel = Encore::RhythmEngine::InputChannel::PAUSE;
+            event.channel = Encore::InputChannel::PAUSE;
         }
         event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
         if (!CheckPauseInput(event))
-            if (event.channel != Encore::RhythmEngine::InputChannel::INVALID)
+            if (event.channel != Encore::InputChannel::INVALID)
                 engine->ProcessInput(event);
     }
 };
 
-void GameplayMenu::ControllerInputCallback(Encore::RhythmEngine::ControllerEvent event) {
+void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     for (auto track : tracks) {
         if (!track) {
             continue;
@@ -584,15 +584,15 @@ void GameplayMenu::Draw() {
 void GameplayMenu::Load() {
     ZoneScoped;
     buttReg.buttMap.clear();
-    NEWBUTTONACTION(buttReg, LANE_1, "generic.confirm", [](Encore::RhythmEngine::Action action, int slot){})
-    NEWBUTTONACTION(buttReg, PAUSE, "generic.unpause", [this](Encore::RhythmEngine::Action action, int slot) {
-        if (action != Encore::RhythmEngine::Action::PRESS) return;
+    NEWBUTTONACTION2(buttReg, LANE_1, "generic.confirm", {});
+    NEWBUTTONACTION2(buttReg, PAUSE, "generic.unpause", {
+        if (_action != Encore::Action::PRESS) return;
         for (auto &state : OvershellState) {
             state = OS_ATTRACT;
         }
     })
-    NEWBUTTONACTION(buttReg, LANE_2, "generic.back", [this](Encore::RhythmEngine::Action action, int slot){
-        if (action != Encore::RhythmEngine::Action::PRESS) return;
+    NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
+        if (_action != Encore::Action::PRESS) return;
         for (auto &state : OvershellState) {
             state = OS_ATTRACT;
         }

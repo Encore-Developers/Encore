@@ -4,7 +4,7 @@
 //
 
 #include "player.h"
-#include "util/discord.h"
+#include "util/Presence.h"
 #include "util/enclog.h"
 
 #define MAX_PLAYERS 4

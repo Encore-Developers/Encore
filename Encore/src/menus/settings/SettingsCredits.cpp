@@ -7,7 +7,7 @@
 #include "imgui.h"
 #include "SettingsMenu.h"
 #include "menus/MenuManager.h"
-#include "menus/uiUnits.h"
+#include "../util/uiUnits.h"
 #include "menus/main/MainMenu.h"
 #include "menus/overshell/OvershellHelper.h"
 
@@ -84,11 +84,11 @@ void SettingsCredits::Load() {
     settings.Add(new SettingDoohickey::goMyScarabs("Contributors", &contributorFunc, 4));
 
     NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     });
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.back", {
-        if (_action != Encore::RhythmEngine::Action::PRESS) return;
+        if (_action != Encore::Action::PRESS) return;
         TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
     });
 }

@@ -6,7 +6,7 @@
 #define ENCORE_SETTINGSOPTIONRENDERER_H
 
 #include <string>
-#include "../uiUnits.h"
+#include "../util/uiUnits.h"
 #include "assets.h"
 
 class settingsOptionRenderer {
