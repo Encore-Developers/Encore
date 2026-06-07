@@ -194,6 +194,7 @@ void ChartLoadingMenu::Load() {
     //    );
     // }
     // ThePlayerManager.BandStats = new BandGameplayStats;
+    TheSongTime.FullReset();
     curSong->LoadAlbumArt();
     TheAssets.loadingPool.SubmitTask([this]() {
         TheAudioManager.unloadStreams();

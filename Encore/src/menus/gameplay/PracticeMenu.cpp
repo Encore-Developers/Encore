@@ -32,6 +32,9 @@ void PracticeMenu::ControllerInputCallback(Encore::ControllerEvent event) {
 }
 void PracticeMenu::Load() {
     GameplayMenu::Load();
+    for (auto& track : tracks) {
+        track->IntroTimer = 0;
+    }
     optionsMenu.displayParams.Fnt(ASSET(rubik));
     sectionsMenu.displayParams.Fnt(ASSET(rubik));
     sectionsMenu.inputWrapping = false;
@@ -52,7 +55,7 @@ void PracticeMenu::Load() {
     PopulateSections();
 }
 bool PracticeMenu::IsPaused() {
-    return false;
+    return state != GAMEPLAY;
 }
 void PracticeMenu::UpdatePauseState() {
     if (IsPaused()) {
@@ -79,8 +82,11 @@ bool PracticeMenu::CheckPauseInput(Encore::ControllerEvent event) {
 void PracticeMenu::PopulateSections() {
     sectionsMenu.options.clear();
 
+    sectionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("generic.back"), [this]() {
+        state = OPTIONS;
+    });
     sectionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("practice.wholeSong"), [this]() {
-        sectionsMenu.rangeStart = 1;
+        sectionsMenu.rangeStart = 2;
         sectionsMenu.rangeEnd = sectionsMenu.options.size()-1;
     });
     for (auto& section : TheSongTime.Sections) {

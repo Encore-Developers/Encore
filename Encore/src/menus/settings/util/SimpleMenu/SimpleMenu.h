@@ -9,7 +9,15 @@
 namespace SimpleMenu {
     class Instance;
 
+    enum MouseState {
+        NONE,
+        HOVERED,
+        ACTIVE
+    };
+
     class Option {
+        bool mouseClicked = false;
+        friend class Instance;
     public:
         virtual ~Option() = default;
         Instance * instance;
@@ -19,7 +27,7 @@ namespace SimpleMenu {
         Option(Instance* instance, const std::string& text);
 
         virtual bool Input(Encore::ControllerEvent event);
-        virtual void Draw(Encore::TextDisplay display, size_t index);
+        virtual void Draw(Encore::TextDisplay display, size_t index, MouseState mouseState);
         void SetBackOption() {
             isBackOption = true;
         }
@@ -45,6 +53,8 @@ namespace SimpleMenu {
         bool autoScroll = true;
         size_t selectedIndex = 0;
         bool inputWrapping = true;
+        bool mouseInput = true;
+        bool lastInteractionWasMouse = false;
 
         int rangeStart = -1;
         int rangeEnd = -1;
@@ -57,6 +67,7 @@ namespace SimpleMenu {
 
         void SetRangeStart(int start);
         void SetRangeEnd(int end);
+        void ExpandRange(int target);
         void StartRangeSelect();
         void EndRangeSelect();
 

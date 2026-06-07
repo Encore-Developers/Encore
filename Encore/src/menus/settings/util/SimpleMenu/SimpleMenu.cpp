@@ -7,16 +7,31 @@ Option::Option(Instance* instance, const std::string &text) : instance(instance)
 bool Option::Input(ControllerEvent event) {
     return false;
 }
-void Option::Draw(TextDisplay display, size_t index) {
+void Option::Draw(TextDisplay display, size_t index, MouseState mouseState) {
     auto bgColor = instance->bgColor;
     if (index >= instance->rangeStart && index <= instance->rangeEnd) {
         bgColor = {80, 0, 80, 255};
     }
-    if (instance->selectedIndex == index) {
+    if (mouseState == HOVERED) {
+        bgColor = ColorLerp(bgColor, display.color, 0.1);
+        if (mouseClicked) {
+            ControllerEvent fakeEvent;
+            fakeEvent.channel = InputChannel::LANE_1;
+            fakeEvent.action = Action::PRESS;
+            fakeEvent.slot = -1;
+            fakeEvent.timestamp = 0;
+            fakeEvent.axis = 0;
+
+            instance->Select((int)index - instance->selectedIndex);
+            Input(fakeEvent);
+        }
+    }
+    if ((!instance->lastInteractionWasMouse && instance->selectedIndex == index) || mouseState == ACTIVE) {
         auto swap = display.color;
         display.color = bgColor;
         bgColor = swap;
     }
+    mouseClicked = mouseState == ACTIVE;
     DrawRectangle(display.pos.x, display.pos.y, display.width, display.height, bgColor);
     display.DrawText(text);
 }
@@ -54,7 +69,7 @@ void Instance::Select(int amount) {
 
     selectedIndex = selectedIndexSigned;
     if (selectingRange) {
-        SetRangeEnd(selectedIndex);
+        ExpandRange(selectedIndex);
     }
 }
 void Instance::Input(ControllerEvent event) {
@@ -88,13 +103,14 @@ void Instance::Input(ControllerEvent event) {
             }
         }
     default:
-        break;
+        return;
     }
+    lastInteractionWasMouse = false;
 }
 void Instance::Draw() {
     int itemHeight = ItemHeight();
 
-    if (autoScroll) {
+    if (autoScroll && !lastInteractionWasMouse) {
         float selectedPos = selectedIndex * itemHeight;
         float marginSize = scrollMargin * itemHeight;
 
@@ -117,14 +133,47 @@ void Instance::Draw() {
 
     }
 
+    bool isInstanceHovered = displayParams.CollidesPoint(GetMousePosition());
+    if (isInstanceHovered) {
+        if (GetMouseWheelMove() != 0) {
+            lastInteractionWasMouse = true;
+        }
+        scroll -= GetMouseWheelMove() * itemHeight;
+
+        if (scroll > options.size()*itemHeight - displayParams.height) {
+            scroll = options.size()*itemHeight - displayParams.height;
+        }
+        if (scroll < 0) {
+            scroll = 0;
+        }
+    }
+
     float cursor = -scroll;
     BeginScissorMode(displayParams.pos.x, displayParams.pos.y, displayParams.width, displayParams.height);
     for (size_t i = 0; i < options.size(); ++i) {
-        auto& option = options[i];
-        TextDisplay thisDisplay = displayParams;
-        thisDisplay.pos.y = displayParams.pos.y + cursor;
-        thisDisplay.height = itemHeight;
-        option->Draw(thisDisplay, i);
+        if (cursor > -itemHeight && cursor <= options.size() * itemHeight) {
+            auto option = options[i];
+            TextDisplay thisDisplay = displayParams;
+            thisDisplay.pos.y = displayParams.pos.y + cursor;
+            thisDisplay.height = itemHeight;
+            MouseState mouseState = NONE;
+            if (isInstanceHovered && thisDisplay.CollidesPoint(GetMousePosition())) {
+                if (lastInteractionWasMouse) {
+                    if (selectedIndex != i) {
+                        Select(i - selectedIndex);
+                        // Known issue: range selection will act odd because of the mouse hover
+                        // Hovering items will expand the range but never shrink it
+                    }
+                }
+                if (IsMouseButtonDown(0)) {
+                    mouseState = ACTIVE;
+                    lastInteractionWasMouse = true;
+                } else {
+                    mouseState = HOVERED;
+                }
+            }
+            option->Draw(thisDisplay, i, mouseState);
+        }
         cursor += itemHeight + itemSpacing;
     }
     EndScissorMode();
@@ -148,6 +197,18 @@ void Instance::SetRangeEnd(int end) {
     rangeEnd = end;
     if (rangeEnd < rangeStart) {
         rangeStart = rangeEnd;
+    }
+}
+void Instance::ExpandRange(int target) {
+    if (rangeStart == -1 || rangeEnd == -1) {
+        rangeStart = target;
+        rangeEnd = target;
+    }
+    if (target < rangeStart) {
+        rangeStart = target;
+    }
+    if (target > rangeEnd) {
+        rangeEnd = target;
     }
 }
 void Instance::StartRangeSelect() {

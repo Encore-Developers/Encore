@@ -281,22 +281,10 @@ void SongTime::Reset() {
 // Bad.
 void SongTime::FullReset() {
     Reset();
-    Beatlines.erase(
-        Beatlines.begin(),
-        Beatlines.end()
-    );
-    TimeSigChanges.erase(
-        TimeSigChanges.begin(),
-        TimeSigChanges.end()
-    );
-    BPMChanges.erase(
-        BPMChanges.begin(),
-        BPMChanges.end()
-    );
-    Lyrics.erase(
-        Lyrics.begin(),
-        Lyrics.end()
-    );
+    Beatlines.clear();
+    TimeSigChanges.clear();
+    BPMChanges.clear();
+    Lyrics.clear();
     LastTick = 0;
     CurrentTick = 0;
     CurrentBPM = 0;

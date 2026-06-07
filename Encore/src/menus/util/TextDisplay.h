@@ -47,6 +47,8 @@ namespace Encore
         float TextWidth(const std::string &text) const;
         float lTextHeight(const std::string &localeKey) const;
         float TextHeight(const std::string &text) const;
+
+        bool CollidesPoint(Vector2 point);
     };
 
     namespace Text {
