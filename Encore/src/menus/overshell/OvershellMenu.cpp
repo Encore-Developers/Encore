@@ -12,6 +12,7 @@
 #include "menus/util/locale/Locale.h"
 #include "gameplay/enctime.h"
 #include "menus/gameplay/ChartLoadingMenu.h"
+#include "menus/gameplay/PracticeMenu.h"
 #include "menus/gameplay/ReadyUpMenu.h"
 #include "menus/main/SongSelectMenu.h"
 #include "users/profiles/ProfileManager.h"
@@ -333,6 +334,11 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                         TheSongList.playlist.pop_front();
                         TheSongList.PlaylistIndex++;
                         TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+                    }
+                }
+                if (OvershellButton(i, curSlot--, LOCALIZE("generic.practice"))) {
+                    if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
+                        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(gameplayMenu->curSong, ChartLoadingMenu::PRACTICE);
                     }
                 }
             }

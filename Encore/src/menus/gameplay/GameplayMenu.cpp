@@ -105,6 +105,8 @@ void GameplayMenu::SetPresence() {
 }
 
 void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
+    if (sdlEvent->repeat)
+        return;
     for (auto track : tracks) {
         if (!track) {
             continue;
@@ -115,8 +117,6 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
         }
         Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
-        if (sdlEvent->repeat)
-            return;
         Encore::ControllerEvent event;
         event.slot = -1;
         if (sdlEvent->down) {
@@ -168,12 +168,12 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         if (player.joypadID != -2 && player.joypadID != event.slot) {
             continue;
         }
-        if (player.Bot)
-            continue;
 
         Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
 
         if (!CheckPauseInput(event)) {
+            if (player.Bot)
+                continue;
             if (engine->allowTimestampedInputs) {
                 if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
                     engine->UpdateOnFrame(event.timestamp);
@@ -406,6 +406,9 @@ void GameplayMenu::Draw() {
         TheSongTime.Start(songEnd);
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         songPlaying = true;
+        if (IsPaused()) {
+            TheAudioManager.pauseStreams();
+        }
     }
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });

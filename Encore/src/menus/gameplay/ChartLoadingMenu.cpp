@@ -5,6 +5,7 @@
 #include "ChartLoadingMenu.h"
 
 #include "GameplayMenu.h"
+#include "PracticeMenu.h"
 #include "../MenuManager.h"
 #include "../main/MainMenu.h"
 #include "../util/uiUnits.h"
@@ -236,12 +237,20 @@ void ChartLoadingMenu::Draw() {
     );
 
     GameMenu::DrawBottomOvershell();
-    DrawOvershell();
+    //DrawOvershell();
 
     if (FinishedLoading) {
         // TheGameRenderer.LoadGameplayAssets();
         FinishedLoading = false;
         StartLoading = true;
-        TheMenuManager.CreateAndSwitchMenu<GameplayMenu>(curSong);
+        switch (gamemode) {
+        case GAMEPLAY:
+            TheMenuManager.CreateAndSwitchMenu<GameplayMenu>(curSong);
+            break;
+        case PRACTICE:
+            TheMenuManager.CreateAndSwitchMenu<PracticeMenu>(curSong);
+            break;
+        }
+
     }
 }

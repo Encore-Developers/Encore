@@ -17,6 +17,7 @@ extern bool songPlaying;
 
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
+protected:
     int CameraSelectionPerPlayer[4][4] {
         {0,0,0,0},
         {1,0,0,0},
@@ -46,9 +47,9 @@ public:
     void Draw() override;
     void Load() override;
     void DrawPauseMenu();
-    bool CheckPauseInput(Encore::ControllerEvent event);
-    void UpdatePauseState();
-    bool IsPaused();
+    virtual bool CheckPauseInput(Encore::ControllerEvent event);
+    virtual void UpdatePauseState();
+    virtual bool IsPaused();
 
     virtual void SetPresence() override;
 };

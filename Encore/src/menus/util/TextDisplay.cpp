@@ -58,6 +58,15 @@ namespace Encore
         this->height = _height;
         return *this;
     }
+    TextDisplay &TextDisplay::Padding(float x, float y) {
+        padding.x = x;
+        padding.y = y;
+        return *this;
+    }
+    TextDisplay &TextDisplay::Padding(Vector2 _padding) {
+        padding = _padding;
+        return *this;
+    }
     TextDisplay & TextDisplay::Bounds(const Vector2 _wh) {
         this->width = _wh.x;
         this->height = _wh.y;
@@ -69,32 +78,36 @@ namespace Encore
     }
 
     void TextDisplay::DrawText(const std::string &text) const {
-        float textLeftPos = pos.x;
+        float textLeftPos = pos.x+padding.x;
         float textWidth = TextWidth(text); //MeasureTextEx(font, text.c_str(), fontSize, 0).x;
         float textHeight = TextHeight(text);
 
         // bro
         float size = fontSize;
-        float top = pos.y;
-        float left = pos.x;
+        float top = pos.y+padding.y;
+        float left = pos.x+padding.x;
         if (width != 0 && height != 0) {
-            if (textWidth > width) {
-                size = width / (textWidth / textHeight);
+            if (textWidth > width-padding.x*2) {
+                size = (width - padding.x*2) / (textWidth / textHeight);
                 textWidth = MeasureTextEx(font, text.c_str(), size, 0).x;
                 top += (fontSize/2) - (size/2);
-
-            }
-            if (align != LEFT) {
-                left += width / 2;
             }
         }
         switch (align) {
         case CENTER: {
-            textLeftPos = left - (textWidth / 2);
+            if (width != 0) {
+                textLeftPos = pos.x + width/2 - textWidth/2;
+            } else {
+                textLeftPos = left - (textWidth / 2);
+            }
             break;
         }
         case RIGHT: {
-            textLeftPos = left - (textWidth);
+            if (width != 0) {
+                textLeftPos = pos.x + width - textWidth - padding.x;
+            } else {
+                textLeftPos = left - (textWidth);
+            }
             break;
         }
         }

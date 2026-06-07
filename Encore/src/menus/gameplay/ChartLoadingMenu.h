@@ -8,9 +8,15 @@
 
 class ChartLoadingMenu : public OvershellMenu {
 public:
-    Song* curSong;
+    enum Gamemode {
+        GAMEPLAY,
+        PRACTICE
+    };
 
-    ChartLoadingMenu(Song* song) : curSong(song) {};
+    Song* curSong;
+    Gamemode gamemode;
+
+    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode) {};
     ~ChartLoadingMenu() {};
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
     void ControllerInputCallback(Encore::ControllerEvent event) override {};

@@ -64,5 +64,9 @@ namespace Encore {
         unsigned int axis : 8;
         SDL_JoystickID slot;
         double timestamp;
+
+        bool IsAccept() {
+            return action == Action::PRESS && channel == InputChannel::LANE_1;
+        }
     };
 }

@@ -23,6 +23,7 @@ namespace Encore
         TextAlign align = LEFT;
         float width = 0;
         float height = 0;
+        Vector2 padding {0,0};
 
         TextDisplay& Fnt(const Font &_font);
         TextDisplay& Pos(Vector2 _pos);
@@ -36,6 +37,8 @@ namespace Encore
         TextDisplay& Align(TextAlign _align);
         TextDisplay& Bounds(Vector2 _wh);
         TextDisplay& Bounds(float _width, float _height);
+        TextDisplay& Padding(float x, float y);
+        TextDisplay& Padding(Vector2 _padding);
 
         void lDrawText(const std::string &localizeKey) const;
         void DrawText(const std::string &text) const;
