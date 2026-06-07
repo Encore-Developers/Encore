@@ -28,6 +28,7 @@ namespace Encore {
         void DrawSolo();
         void DrawSoloUI();
         void DrawUsername();
+        void DrawOffsetWindow();
         void DrawMultiplier();
 
         void DrawTrackNotifications();

@@ -157,6 +157,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).hit++;
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
+
     if (PerfectHit(startTime - stats->InputOffset)) {
         stats->LastPerfectTime = stats->InputTime;
         if (!chart->sections.empty())
@@ -164,6 +165,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         event.judgement = PERFECT;
     }
     event.offset = (stats->InputTime - stats->InputOffset) - startTime;
+    stats->TotalOffset += event.offset;
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;

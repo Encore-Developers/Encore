@@ -485,6 +485,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
     RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
     if (resultsState.at(playerslot) == GENERAL) {
+        RightStatData.Fnt(ASSET(rubik));
         LeftStatData.lDrawText("resultsMenu.statline.perfect");
         LeftStatData.pos.y += ActualStatsHeight;
         LeftStatData.lDrawText("resultsMenu.statline.good");
@@ -531,6 +532,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         RightStatData.pos.y += ActualStatsHeight;
         RightStatData.DrawText(NotesDisplay);
     } else if (resultsState.at(playerslot) == SECTIONS) {
+        RightStatData.Fnt(ASSET(JetBrainsMono));
         int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->sections.size()
                             ? player.engine->chart->sections.size()
                             : topSectList.at(playerslot) + MAX_LIST_LENGTH ;
@@ -548,13 +550,13 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
             float percentWidth = RightStatData.TextWidth("0000%");
             RightStatData.pos.x -= percentWidth;
 
-            float perfectWidth = RightStatData.TextWidth(std::to_string(sect.perfects));
+            float perfectWidth = RightStatData.TextWidth("000");
             RightStatData.Col(GOLD).DrawText(std::to_string(sect.perfects));
-            RightStatData.pos.x -= perfectWidth * 1.5;
+            RightStatData.pos.x -= perfectWidth * 1.2;
 
-            float goodWidth = RightStatData.TextWidth(std::to_string(sect.hit - sect.perfects));
+            float goodWidth = RightStatData.TextWidth("000");
             RightStatData.Col(LIGHTGRAY).DrawText(std::to_string(sect.hit - sect.perfects));
-            RightStatData.pos.x -= goodWidth * 1.5;
+            RightStatData.pos.x -= goodWidth * 1.125;
 
             float overhitWidth = 0;
             if (sect.hit == sect.notes && sect.overhits > 0) {

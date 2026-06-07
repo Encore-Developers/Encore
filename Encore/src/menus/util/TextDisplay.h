@@ -40,8 +40,8 @@ namespace Encore
         TextDisplay& Padding(float x, float y);
         TextDisplay& Padding(Vector2 _padding);
 
-        void lDrawText(const std::string &localizeKey) const;
-        void DrawText(const std::string &text) const;
+        TextDisplay& lDrawText(const std::string &localizeKey);
+        TextDisplay& DrawText(const std::string &text);
 
         float lTextWidth(const std::string &localeKey) const;
         float TextWidth(const std::string &text) const;

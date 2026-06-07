@@ -56,6 +56,7 @@ namespace Encore::RhythmEngine {
         int AttemptedNotes = 0;
         int Overhits = 0;
         int MaxCombo = 0;
+        double TotalOffset = 0;
         bool AudioMuted = false;
         int StarCalcBaseScore;
         double InputTime = -1;

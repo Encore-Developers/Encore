@@ -64,12 +64,12 @@ namespace Encore {
             SKYBLUE,
             PURPLE, // OPEN
             ORANGE, // KICK
-            PURPLE , // OVERDRIVE
+            WHITE , // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
             GREEN, // CRASH
             WHITE, // FRAME
-            GOLD // FRAME OVERDRIVE
+            PURPLE // FRAME OVERDRIVE
         }
     };
     static ColorProfile defaultPad {
@@ -81,12 +81,12 @@ namespace Encore {
             PURPLE,
             PURPLE, // OPEN
             ORANGE, // KICK
-            LIGHTGRAY , // OVERDRIVE
+            GOLD , // OVERDRIVE
             YELLOW, // HIHAT
             BLUE, // RIDE
             GREEN, // CRASH
             WHITE, // FRAME
-            WHITE // FRAME OVERDRIVE
+            GOLD // FRAME OVERDRIVE
         }
     };
 }

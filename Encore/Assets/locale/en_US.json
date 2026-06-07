@@ -256,6 +256,8 @@
 		"bad": "BAD",
 		"playlistDisplay": "({} of {})",
 		"autoplay": "(AUTOPLAY)",
+		"avgOffset": "Average Offset: {: 7.2f}ms",
+		"lastOffset": "Last Hit Offset: {: 7.2f}ms",
 		"trackNotification": {
 			"overdrive": "Overdrive ready",
 			"combo": "{} Note Combo",

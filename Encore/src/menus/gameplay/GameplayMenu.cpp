@@ -454,6 +454,9 @@ void GameplayMenu::Draw() {
         }
 
         tracks.at(i)->Draw();
+        // double offset = player.engine->stats->TotalOffset / player.engine->stats->NotesHit;
+        // if (player.engine->stats->NotesHit == 0) offset = 0;
+        // TheSongTime.SetOffset(offset);
         auto chart = player.engine->chart;
         float volume = TheGameSettings.GetActiveVolume();
         if (player.engine.get()->stats.get()->AudioMuted) {

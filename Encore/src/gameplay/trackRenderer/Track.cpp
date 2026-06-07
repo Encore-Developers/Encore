@@ -109,8 +109,11 @@ void Encore::Track::Draw() {
         ZoneScopedN("Track UI")
         DrawJudgement();
         DrawCombo();
-        DrawTrackNotifications();
-        DrawSoloUI();
+        DrawOffsetWindow();
+        if (false) {
+            DrawTrackNotifications();
+            DrawSoloUI();
+        }
         DrawUsername();
         EndMode2D();
 
@@ -357,6 +360,26 @@ Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
     return curPos;
 }
 
+void Encore::Track::DrawOffsetWindow() {
+    Vector3 NotificationPoint = { 0, 0, (BaseLength + 5) * player.HighwayLength };
+    Vector2 ScreenPos = GetWorldToScreen(
+        NotificationPoint,
+        AnimCamera);
+    float FontPct = 0.0225f;
+    float FontSize = GetRenderHeight() * FontPct;
+
+    TextDisplay calib;
+    try {
+        double avgOffset = player.engine->stats->TotalOffset / player.engine->stats->NotesHit * 1000;
+        double lastOffset = LastHitOffset * 1000;
+        calib.Fnt(ASSET(JetBrainsMono)).Pos(ScreenPos.x, ScreenPos.y - FontSize)
+            .Align(CENTER).Size(FontSize)
+            .lDrawText(LOCALISE_FMT("gameplay.avgOffset", avgOffset))
+            .AddY(FontSize).DrawText(LOCALISE_FMT("gameplay.lastOffset", lastOffset));
+    } catch (const std::exception &e) {
+        std::cout << e.what() << std::endl;
+    }
+}
 
 void Encore::Track::DrawMultiplier() {
     ZoneScoped;
