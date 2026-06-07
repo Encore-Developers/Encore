@@ -1,5 +1,6 @@
 #include "PracticeMenu.h"
 
+#include "ChartLoadingMenu.h"
 #include "resultsMenu.h"
 #include "debug/EncoreDebug.h"
 #include "menus/MenuManager.h"
@@ -35,13 +36,16 @@ void PracticeMenu::Load() {
     sectionsMenu.displayParams.Fnt(ASSET(rubik));
     sectionsMenu.inputWrapping = false;
 
-    optionsMenu.CreateOption<SimpleMenu::FuncOption>("Play", [this]() {
+    optionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("overshell.return"), [this]() {
         state = GAMEPLAY;
     });
-    optionsMenu.CreateOption<SimpleMenu::FuncOption>("Select Sections", [this]() {
+    optionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("practice.selectSections"), [this]() {
         state = SECTIONLIST;
     });
-    optionsMenu.CreateOption<SimpleMenu::FuncOption>("Exit", [this]() {
+    optionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("practice.exit"), [this]() {
+        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
+    });
+    optionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("overshell.exitSong"), [this]() {
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     });
 
@@ -75,7 +79,7 @@ bool PracticeMenu::CheckPauseInput(Encore::ControllerEvent event) {
 void PracticeMenu::PopulateSections() {
     sectionsMenu.options.clear();
 
-    sectionsMenu.CreateOption<SimpleMenu::FuncOption>("Entire Song", [this]() {
+    sectionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("practice.wholeSong"), [this]() {
         sectionsMenu.rangeStart = 1;
         sectionsMenu.rangeEnd = sectionsMenu.options.size()-1;
     });
@@ -108,7 +112,7 @@ void PracticeMenu::Draw() {
     Units& u = Units::getInstance();
     if (state == OPTIONS) {
         optionsMenu.displayParams
-        .Pos(u.hinpct(0.015), u.hinpct(0.015))
+        .Pos(u.wpct(0.015), u.hpct(0.015))
         .Bounds(u.winpct(0.3), u.hinpct(0.9))
         .Padding(u.hinpct(0.010), u.hinpct(0.005))
         .Size(u.hinpct(0.03))
@@ -117,7 +121,7 @@ void PracticeMenu::Draw() {
     }
     if (state == SECTIONLIST) {
         sectionsMenu.displayParams
-        .Pos(u.hinpct(0.015), u.hinpct(0.015))
+        .Pos(u.wpct(0.015), u.hpct(0.015))
         .Bounds(u.winpct(0.3), u.hinpct(0.9))
         .Padding(u.hinpct(0.010), u.hinpct(0.005))
         .Size(u.hinpct(0.03))

@@ -296,14 +296,12 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                             player.engine->chart.reset();
                             player.engine.reset();
                         }
-                        songPlaying = false;
                         TheSongTime.FullReset();
                         TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(gameplayMenu->curSong);
                     }
                 }
                 if (OvershellButton(i, curSlot--, LOCALIZE("overshell.exitSong"))) {
                     TheAudioManager.unloadStreams();
-                    songPlaying = false;
                     TheSongTime.FullReset();
                     for (int i = 0; i < MAX_PLAYERS; i++) {
                         if (ThePlayerManager.ActivePlayers[i] == -1) continue;
@@ -322,7 +320,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                 if (TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
                     if (OvershellButton(i, curSlot--, LOCALIZE("overshell.nextSong"))) {
                         TheAudioManager.unloadStreams();
-                        songPlaying = false;
                         TheSongTime.FullReset();
                         for (int i = 0; i < MAX_PLAYERS; i++) {
                             if (ThePlayerManager.ActivePlayers[i] == -1) continue;

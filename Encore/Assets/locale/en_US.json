@@ -297,5 +297,10 @@
 		"medium": "Medium",
 		"hard": "Hard",
 		"expert": "Expert"
+	},
+	"practice": {
+		"selectSections": "Select Sections",
+		"exit": "Exit Practice",
+		"wholeSong": "Whole Song"
 	}
 }

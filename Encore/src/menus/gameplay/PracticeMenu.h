@@ -11,7 +11,7 @@ public:
         SECTIONLIST
     };
 
-    State state = OPTIONS;
+    State state = SECTIONLIST;
     SimpleMenu::Instance optionsMenu;
     SimpleMenu::Instance sectionsMenu;
 

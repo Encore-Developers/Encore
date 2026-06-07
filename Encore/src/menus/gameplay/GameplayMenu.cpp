@@ -379,7 +379,7 @@ unsigned char BeatToCharViaTickThing(
     );
 }
 
-bool songPlaying = false;
+
 
 double GetNotePos(double noteTime, double songTime, float length, float end) {
     return ((noteTime - songTime) * (length * 2.5)) - end;
@@ -408,6 +408,7 @@ void GameplayMenu::Draw() {
         songPlaying = true;
         if (IsPaused()) {
             TheAudioManager.pauseStreams();
+            streamsPaused = true;
         }
     }
     GameMenu::DrawAlbumArtBackground();

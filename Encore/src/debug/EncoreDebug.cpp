@@ -163,7 +163,6 @@ void EncoreDebug::MenuBar() {
 
     if (gameplayMenu && MenuItem("End Song")) {
         TheAudioManager.unloadStreams();
-        songPlaying = false;
         TheSongTime.FullReset();
         TheMenuManager.CreateAndSwitchMenu<resultsMenu>(gameplayMenu->curSong);
     }

@@ -13,7 +13,6 @@
 #include "gameplay/trackRenderer/Track.h"
 #include "menus/util/ButtonActionRegistry.h"
 
-extern bool songPlaying;
 
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
@@ -34,6 +33,7 @@ protected:
     Encore::ButtonActionRegistry buttReg;
 public:
     bool streamsPaused = false;
+    bool songPlaying = false;
 
     Song* curSong;
 
