@@ -27,20 +27,20 @@ namespace Encore {
             FolderCount = 0;
             SongsHashed = 0;
             if (TheGameSettings.SongPaths.empty()) {
-                TraceLog(LOG_ERROR, "SongPaths is empty. Cannot scan songs.");
+                TraceLog(LOG_INFO, "Scanning default path");
             } else {
                 for (const auto& path : TheGameSettings.SongPaths) {
                     TraceLog(LOG_INFO, "Scanning path: %s", path.string().c_str());
                 }
-                ScanSongsThread = std::thread([]() {
-                    TheSongList.ScanSongs(TheGameSettings.SongPaths);
-                    SongCount = 0;
-                    BadSongCount = 0;
-                    FolderCount = 0;
-                    SongsHashed = 0;
-                });
-                ScanSongsThread.detach();
             }
+            ScanSongsThread = std::thread([]() {
+                TheSongList.ScanSongs(TheGameSettings.SongPaths);
+                SongCount = 0;
+                BadSongCount = 0;
+                FolderCount = 0;
+                SongsHashed = 0;
+            });
+            ScanSongsThread.detach();
         }
     public:
         std::thread ScanSongsThread;

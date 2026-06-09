@@ -230,7 +230,10 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     ZoneScoped
     ScanningSongs = true;
     Clear();
-
+    std::vector<std::filesystem::path> folders {"./Songs"};
+    for (const auto& folder : songsFolder) {
+        folders.push_back(folder);
+    }
     scanPool = new ThreadPool(std::thread::hardware_concurrency()-1);
 
     std::wofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc | std::ios::binary);
@@ -238,7 +241,7 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     badSongs.imbue(std::locale(badSongs.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>));
     badSongs << "Please open in Notepad++ or any editor that detects UTF16" << std::endl << std::endl;
 
-    for (const auto &folder : songsFolder) {
+    for (const auto &folder : folders) {
         if (!is_directory(folder)) {
             continue;
         }
