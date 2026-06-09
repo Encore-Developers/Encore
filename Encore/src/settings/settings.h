@@ -26,7 +26,7 @@
     OPTION(bool, DiscordRichPresence, true)                                              \
     OPTION(int, Framerate, 1000)                                                         \
     OPTION(bool, VerticalSync, true)                                                     \
-    OPTION(bool, BackgroundBeatFlash, true)                                              \
+    OPTION(bool, ShowCalibrationInfo, false)                                              \
     OPTION(std::string, Language, "en_US")
 namespace Encore {
     inline void WriteJsonFile(const std::filesystem::path &FileToWrite, const nlohmann::json &JSONobject) {
@@ -80,7 +80,7 @@ namespace Encore {
         VideoOffset,
         DiscordRichPresence,
         SongPaths,
-        BackgroundBeatFlash,
+        ShowCalibrationInfo,
         Language
     );
 

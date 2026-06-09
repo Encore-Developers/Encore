@@ -49,7 +49,7 @@ void SettingsGameplay::Draw() {
     Rectangle rect = {EntryLeft, EntryTop, EntryWidth, EntryHeight   };
 
     ImGui::SetNextWindowPos({rect.x, rect.y}, ImGuiCond_Always);
-    ImGui::SetNextWindowSize({rect.width, rect.height*4});
+    ImGui::SetNextWindowSize({rect.width, rect.height*3});
     if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         const std::filesystem::path* toDelete = nullptr;
         for (const auto& path : TheGameSettings.SongPaths) {
@@ -143,6 +143,7 @@ void SettingsGameplay::Load() {
     Fullscreen = TheGameSettings.Fullscreen;
     AudioOffset = TheGameSettings.AudioOffset;
     VideoOffset = TheGameSettings.VideoOffset;
+    ShowCalibrationInfo = TheGameSettings.ShowCalibrationInfo;
 
     scanSongsFunc = [this] {
         ScanSongs();
@@ -151,6 +152,7 @@ void SettingsGameplay::Load() {
     settings.Add(new SettingDoohickey::separatorObject("settings.separator.calibration"));
     settings.Add(new SettingDoohickey::intSettingObject("settings.audioOffset", &AudioOffset, -100, 400, 5));
     settings.Add(new SettingDoohickey::intSettingObject("settings.videoOffset", &VideoOffset, -100, 400, 5));
+    settings.Add(new SettingDoohickey::boolSettingObject("settings.calibrationInfo", &ShowCalibrationInfo, 0, 1, 1));
 
     settings.Add(new SettingDoohickey::separatorObject("settings.separator.video"));
     settings.Add(new SettingDoohickey::intSettingObject("settings.framerate", &Framerate, 5, 2000, 5));
@@ -168,5 +170,6 @@ void SettingsGameplay::Save() {
     TheGameSettings.Framerate = Framerate;
     TheGameSettings.VerticalSync = VerticalSync;
     TheGameSettings.Fullscreen = Fullscreen;
+    TheGameSettings.ShowCalibrationInfo = ShowCalibrationInfo;
     TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
 }

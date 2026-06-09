@@ -109,8 +109,9 @@ void Encore::Track::Draw() {
         ZoneScopedN("Track UI")
         DrawJudgement();
         DrawCombo();
-        DrawOffsetWindow();
-        if (false) {
+        if (TheGameSettings.ShowCalibrationInfo) {
+            DrawOffsetWindow();
+        } else {
             DrawTrackNotifications();
             DrawSoloUI();
         }

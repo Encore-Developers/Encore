@@ -115,7 +115,6 @@ void SettingsAudioVideo::Load() {
     avSoundEffectVolume = TheGameSettings.avSoundEffectVolume;
     avCrowdVolume = TheGameSettings.avCrowdVolume;
     avInactiveVocalsVolume = TheGameSettings.avInactiveVocalsVolume;
-    BackgroundBeatFlash = TheGameSettings.BackgroundBeatFlash;
 
     settings.Add(new SettingDoohickey::separatorObject("settings.separator.volume"));
     settings.Add(new SettingDoohickey::floatSettingObject("settings.volume.global", &avMainVolume, 0, 1, 0.05f));
@@ -140,7 +139,6 @@ void SettingsAudioVideo::Save() {
     TheGameSettings.avMuteVolume = avMuteVolume;
     TheGameSettings.avMenuMusicVolume = avMenuMusicVolume;
     TheGameSettings.avSoundEffectVolume = avSoundEffectVolume;
-    TheGameSettings.BackgroundBeatFlash = BackgroundBeatFlash;
     TheGameSettings.avCrowdVolume = avCrowdVolume;
     TheGameSettings.avInactiveVocalsVolume = avInactiveVocalsVolume;
 
