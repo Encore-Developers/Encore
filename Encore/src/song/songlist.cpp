@@ -77,6 +77,21 @@ bool SongList::sortTitle(Song *a, Song *b) {
     return removeArticle(lower(a->title)) < removeArticle(lower(b->title));
 }
 
+bool SongList::sortPlaylist(Song *a, Song *b) {
+    ZoneScoped
+    // i just made some BUUUUULLLLLLLLLSHIIIIIIIIIIT.
+    // this gets the end iter of the path,
+    // then goes back THREE path segments to get playlist name
+    // then sorts like usual, like how sortTitle works.
+    // i tried to bring this to its own function but for some reason it didnt work
+    // and it works like this (sorta) and im so fucking scared #tbh
+    // they made mental hospitals for the people who could concieve such a thing
+    // /Path/To/SongFolder/SongName/notes.mid/ (end)
+    // ..............^-------|--------|---------|
+    // return *------a->midiPath.end() < *------b->midiPath.end();
+    return a->GetPlaylistPath() < b->GetPlaylistPath();
+}
+
 bool SongList::sortSource(Song *a, Song *b) {
     ZoneScoped;
     std::string aLower = TextToLower(a->source.c_str());
@@ -133,6 +148,10 @@ void SongList::sortList(SortType sortType) {
         // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortYear);
         break;
+    case SortType::Playlist:
+        // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortPlaylist);
+        break;
     default: ;
     }
     GenerateSongEntriesWithHeaders(sortType);
@@ -161,7 +180,6 @@ void SongList::WriteCache() {
         sstr << songInfo.rdbuf();
         SongCache << sstr.str();
 
-
         //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
         //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
         //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
@@ -172,7 +190,7 @@ void SongList::WriteCache() {
     SongCache.close();
 }
 
-ThreadPool* scanPool;
+ThreadPool *scanPool;
 
 void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &badSongs) {
     ZoneScoped
@@ -197,7 +215,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 scanPool->SubmitTask([folder, placedSong]() {
                     ZoneScopedN("Hash Song")
                     std::ifstream hashStream(folder / "notes.mid", std::ios::binary);
-                    unsigned char hash[picosha2::k_digest_size] = {0};
+                    unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
                     memcpy(placedSong->chartHash, hash, picosha2::k_digest_size);
                     ++SongsHashed;
@@ -207,7 +225,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 badSongs << folder << std::endl << std::endl;
                 ++BadSongCount;
             }
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             // I give up. If your song includes any fucked up characters and can't,
             // for some reason, be scanned, we're just putting you on the bad songs list.
             // God. I fucking hate C actually. Both C and C++. Both ends.
@@ -230,16 +248,20 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     ZoneScoped
     ScanningSongs = true;
     Clear();
-    std::vector<std::filesystem::path> folders {"./Songs"};
-    for (const auto& folder : songsFolder) {
+    std::vector<std::filesystem::path> folders{ "./Songs" };
+    for (const auto &folder : songsFolder) {
         folders.push_back(folder);
     }
-    scanPool = new ThreadPool(std::thread::hardware_concurrency()-1);
+    scanPool = new ThreadPool(std::thread::hardware_concurrency() - 1);
 
-    std::wofstream badSongs(badSongsPath(), std::ios::out | std::ios::trunc | std::ios::binary);
+    std::wofstream badSongs(badSongsPath(),
+                            std::ios::out | std::ios::trunc | std::ios::binary);
 
-    badSongs.imbue(std::locale(badSongs.getloc(), new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>));
-    badSongs << "Please open in Notepad++ or any editor that detects UTF16" << std::endl << std::endl;
+    badSongs.imbue(std::locale(badSongs.getloc(),
+                               new std::codecvt_utf16<
+                                   wchar_t, 0x10FFFF, std::little_endian>));
+    badSongs << "Please open in Notepad++ or any editor that detects UTF16" << std::endl
+        << std::endl;
 
     for (const auto &folder : folders) {
         if (!is_directory(folder)) {
@@ -302,6 +324,13 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
         }
         case SortType::Year: {
             header = song->releaseYear.empty() ? "Unknown Year" : song->releaseYear;
+            break;
+        }
+        case SortType::Playlist: {
+            // What.
+            // /Path/To/SongFolder/SongName/notes.mid/ (end)
+            // ..............^-------|--------|---------|
+            header = song->GetPlaylistPath(); // (------song->midiPath.end())->string();
             break;
         }
         default:
@@ -420,12 +449,10 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
             loadedSongs.insert(song.songDir);
             this->songs.emplace_back(song);
         }
-
     }
 
     SongCacheIn.close();
     // size_t loadedSongCount = songs.size();
-
 
     //if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
     //    Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");

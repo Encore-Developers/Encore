@@ -17,6 +17,7 @@ public:
     void ScrollDownHeader();
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
     void LoadPreview(Song& song);
+    std::string GetHeader();
     void ControllerInputCallback(Encore::ControllerEvent event) override;
     void ScrollToCurrentSong();
     void TogglePlaylistMode();

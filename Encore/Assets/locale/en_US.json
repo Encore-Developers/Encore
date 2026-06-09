@@ -222,7 +222,8 @@
 			"artist": "Artist",
 			"source": "Source",
 			"length": "Length",
-			"year": "Year"
+			"year": "Year",
+			"playlist": "Playlist"
 		},
 		"options": {
 			"audiovisual": "Audio/Visual",

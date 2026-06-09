@@ -161,7 +161,6 @@ public:
     std::vector<Beat> beatLines; // double time, bool downbeat
 
     std::filesystem::path midiPath = "";
-
     std::filesystem::path songDir = "";
     std::filesystem::path albumArtPath = "";
     std::filesystem::path songInfoPath = "";
@@ -174,6 +173,9 @@ public:
     std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> LoadAudioINI();
     float previewStartTime = 0.0f;
 
+    std::string GetPlaylistPath() const {
+        return midiPath.parent_path().parent_path().filename().string();
+    }
     SongParts GetSongPart(smf::MidiEventList track) {
         for (int events = 0; events < track.getSize(); events++) {
             std::string trackName;

@@ -465,6 +465,19 @@ void SongSelectMenu::LoadPreview(Song &song) {
     }
 }
 
+std::string SongSelectMenu::GetHeader()
+{
+    for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size(); sectInt
+         ++) {
+        auto sect = TheSongList.sectionEntries[sectInt];
+        if (topOflistMenu - 1 >= sect.firstListID && topOflistMenu - 1 <= sect
+            .lastListID) {
+            return TheSongList.listMenuEntries[sect.firstListID].headerChar;
+        }
+    }
+    return "pee";
+}
+
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
     Units u = Units::getInstance();
@@ -586,9 +599,7 @@ void SongSelectMenu::Draw() {
                 headerText = TheSourceIcons.GetSourceName(
                     TheSongList.listMenuEntries[listMenuPos].headerChar);
 
-                auto SourceTex = TheSourceIcons.GetIcon(
-                    TheSongList.sortedSongs[TheSongList.listMenuEntries[
-                        topOflistMenu].songListID]->source);
+                auto SourceTex = TheSourceIcons.GetIcon(TheSongList.listMenuEntries[listMenuPos].headerChar);
                 Rectangle source = { 0, 0, float(SourceTex->GetTexture().width),
                                      float(SourceTex->GetTexture().height) };
                 Rectangle dest = { songXPos - songEntryHeight, songYPos + padding,
@@ -696,70 +707,10 @@ void SongSelectMenu::Draw() {
     }
     if (curSongMenuPos > 0 && curSongMenuPos < TheSongList.
                                                listMenuEntries.size()) {
-        std::string categoryHeaderText = "";
-        size_t songIndex = curSongMenuPos;
-
-        if (TheSongList.listMenuEntries[songIndex].isHeader && songIndex > 0 && !
-            TheSongList.listMenuEntries[songIndex - 1].isHeader) {
-            songIndex--;
-        } else if (!TheSongList.listMenuEntries[songIndex].isHeader) {
-        } else if (songIndex + 1 < TheSongList.listMenuEntries.size() && !TheSongList.
-            listMenuEntries[songIndex + 1].isHeader) {
-            songIndex++;
-        }
-        Song &repSong = *TheSongList.sortedSongs[TheSongList.listMenuEntries[
-            topOflistMenu].songListID];
-        if (TheSongList.listMenuEntries[topOflistMenu].isHeader) {
-            repSong = *TheSongList.sortedSongs[TheSongList.listMenuEntries[
-                topOflistMenu - 1].songListID];
-        }
-        if (songIndex < TheSongList.listMenuEntries.size() && !TheSongList.listMenuEntries
-            [songIndex].isHeader) {
-            switch (currentSortValue) {
-            case SortType::Title:
-                for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size(); sectInt
-                     ++) {
-                    auto sect = TheSongList.sectionEntries[sectInt];
-                    if (topOflistMenu - 1 >= sect.firstListID && topOflistMenu - 1 <= sect
-                        .lastListID) {
-                        categoryHeaderText = TheSongList.listMenuEntries[sect.firstListID]
-                            .headerChar;
-                        break;
-                    }
-                }
-                // categoryHeaderText = repSong.title.empty()
-                //    ? "#"
-                //    : std::string(1, toupper(repSong.title[0]));
-                break;
-            case SortType::Artist:
-                categoryHeaderText = repSong.artist.empty()
-                    ? "Unknown Artist"
-                    : repSong.artist;
-                break;
-            case SortType::Source:
-                categoryHeaderText = TheSourceIcons.GetSourceName(repSong.source);
-                break;
-            case SortType::Length:
-                categoryHeaderText = TheSongList.listMenuEntries[curSongMenuPos].
-                    headerChar;
-                break;
-            case SortType::Year:
-                categoryHeaderText = repSong.releaseYear.empty()
-                    ? "Unknown Year"
-                    : repSong.releaseYear;
-                break;
-            default:
-                categoryHeaderText = "";
-                break;
-            }
-        }
-
-        if (categoryHeaderText.empty()) {
-            categoryHeaderText = TheSongList.listMenuEntries[curSongMenuPos]
-                .headerChar;
-        }
+        std::string categoryHeaderText = GetHeader();
         if (currentSortValue == SortType::Source) {
-            auto SourceTex = TheSourceIcons.GetIcon(repSong.source);
+            categoryHeaderText = TheSourceIcons.GetSourceName(GetHeader());
+            auto SourceTex = TheSourceIcons.GetIcon(GetHeader());
             Rectangle source = { 0, 0, float(SourceTex->GetTexture().width),
                                  float(SourceTex->GetTexture().height) };
             Rectangle dest = { songXPos - songEntryHeight, u.hpct(0.2075f) + padding,
