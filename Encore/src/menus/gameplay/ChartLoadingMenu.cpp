@@ -86,8 +86,12 @@ void ChartLoadingMenu::LoadCharts() {
                     LOG_DEBUG,
                     TextFormat("Hopo threshold: %01i", curSong->hopoThreshold)
                 );
+                int maxMult = 4;
+                if (inst == PlasticBass) {
+                    maxMult = 6;
+                }
                 Encore::RhythmEngine::MidiGuitarLoader chartLoader(
-                    diff, curSong->hopoThreshold, &midiFile
+                    diff, curSong->hopoThreshold, &midiFile, maxMult
                 );
                 chartLoader.chart.sections = TheSongTime.Sections;
                 chartLoader.LoadChart(midiFile[track]);
@@ -125,8 +129,12 @@ void ChartLoadingMenu::LoadCharts() {
                     if (curSong->hopoThreshold == -1) {
                         curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
                     }
+                    int maxMult = 4;
+                    if (inst == PartBass || inst == PartVocals) {
+                        maxMult = 6;
+                    }
                     Encore::RhythmEngine::MidiGuitarLoader chartLoader(
-                        diff, curSong->hopoThreshold, &midiFile
+                        diff, curSong->hopoThreshold, &midiFile, maxMult
                     );
                     chartLoader.chart.sections = TheSongTime.Sections;
                     chartLoader.LoadChart(midiFile[track]);
@@ -139,6 +147,13 @@ void ChartLoadingMenu::LoadCharts() {
                         std::make_shared<Encore::RhythmEngine::BaseChart>(chart),
                     std::make_shared<Encore::RhythmEngine::PadStats>(0),
                     &player
+                    );
+                int maxMult = 4;
+                if (inst == PartBass || inst == PartVocals) {
+                    maxMult = 6;
+                }
+                Encore::RhythmEngine::MidiGuitarLoader chartLoader(
+                    diff, curSong->hopoThreshold, &midiFile, maxMult
                 );
                 ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Type =
                     Encore::RhythmEngine::Pad;

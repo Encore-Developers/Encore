@@ -104,8 +104,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
     LyricLeft += int(GetRenderWidth() / 2) - (lyricData.TextWidth(allLyrics)/2);
     lyricData.Pos(LyricLeft,baselineVox + padding);
     const Color PlayedColor = { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) };
-    const Color PlayingColor = ColorContrast(ColorBrightness(PlayedColor, 0.25), 0.15);
-    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 128)};
+    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 148)};
     const Color UnplayedColor2 = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
     for (int i = 0; i < phrase->lyrics.size(); i++) {
         RhythmEngine::EncLyric& lyric = phrase->lyrics[i];
@@ -131,7 +130,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                 EndScissorMode();
 
                 BeginScissorMode(x - padding2, y, playedWidth + padding2, FontSize);
-                lyricData.Col( PlayingColor ).DrawText(lyric.Lyric);
+                lyricData.Col( PlayedColor ).DrawText(lyric.Lyric);
                 EndScissorMode();
             }
         } else {

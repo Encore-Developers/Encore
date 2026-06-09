@@ -96,7 +96,7 @@ void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &eve
             }
         }
     }
-    chart.BaseScore += BASE_SCORE_NOTE_POINT;
+    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;;
     chart[lane].emplace_back(
         event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[lane]
     );

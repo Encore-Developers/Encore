@@ -23,8 +23,8 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList track) override;
 
     public:
-        MidiPadLoader(int diff_, int thresh_, smf::MidiFile* midiFile_)
-            : BaseLoader(diff_, thresh_, midiFile_)  {
+        MidiPadLoader(int diff_, int thresh_, smf::MidiFile* midiFile_, int _maxMult = 4)
+            : BaseLoader(diff_, thresh_, midiFile_, _maxMult)  {
             Resolution = midiFile_->getTPQ();
         }
     };

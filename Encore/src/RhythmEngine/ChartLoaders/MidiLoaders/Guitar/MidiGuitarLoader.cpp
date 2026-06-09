@@ -225,10 +225,12 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList track) 
         CheckModifiers(event);
         if (IsInPitchRangeGB(Difficulty, event) && event.isNoteOn()) {
             if (chart[0].empty()) {
-                chart.BaseScore += BASE_SCORE_NOTE_POINT;
+                chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
                 CreateNote(event);
-            } else if (chart[0].back().StartTicks == event.tick) {
-                chart.BaseScore += BASE_SCORE_NOTE_POINT;
+                continue;
+            }
+            if (chart[0].back().StartTicks == event.tick) {
+                chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
                 chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
                 if (chart[0].back().NoteType == 1) {
                     chart[0].back().NoteType = 0;
@@ -241,18 +243,17 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList track) 
                     }
                 }
                 if (chart[0].back().LengthTicks > 0) {
-                    chart.BaseScore += (chart[0].back().LengthTicks / 480.0f) * (SUSTAIN_POINTS_PER_BEAT * BASE_SCORE_NOTE_MULT);
+                    chart.BaseScore += (chart[0].back().LengthTicks / 480.0f) * (SUSTAIN_POINTS_PER_BEAT * BASE_SCORE_NOTE_MULT) * maxMult;;
                 }
                 if (!ForceHopoOn.empty()) {
                     if (ForceHopoOn.front().first <= event.tick) {
                         chart[0].back().NoteType = 1;
                     }
                 }
-
-            } else {
-                chart.BaseScore += BASE_SCORE_NOTE_POINT;
-                CreateNote(event);
+                continue;
             }
+            chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;;
+            CreateNote(event);
         }
     }
 }

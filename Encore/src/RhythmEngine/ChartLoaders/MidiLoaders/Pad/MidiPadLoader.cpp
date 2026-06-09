@@ -78,10 +78,10 @@ void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event
         lengthTicks = 0;
         lengthSec = 0;
     }
-    chart.BaseScore += BASE_SCORE_NOTE_POINT;
+    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;;
 
     if (lengthTicks > 0) {
-        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS;
+        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS * maxMult;;
     }
     chart[GetEventLane(Difficulty, event)].emplace_back(
 
