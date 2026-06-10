@@ -69,6 +69,8 @@ void Instance::Select(int amount) {
 
     selectedIndex = selectedIndexSigned;
     if (selectingRange) {
+        rangeStart = rangeAnchor;
+        rangeEnd = rangeAnchor;
         ExpandRange(selectedIndex);
     }
 }
@@ -109,10 +111,11 @@ void Instance::Input(ControllerEvent event) {
 }
 void Instance::Draw() {
     int itemHeight = ItemHeight();
+    int itemEffectiveHeight = itemHeight + itemSpacing;
 
     if (autoScroll && !lastInteractionWasMouse) {
-        float selectedPos = selectedIndex * itemHeight;
-        float marginSize = scrollMargin * itemHeight;
+        float selectedPos = selectedIndex * itemEffectiveHeight;
+        float marginSize = scrollMargin * itemEffectiveHeight;
 
         float safeAreaStart = scroll + marginSize;
         float safeAreaEnd = scroll + displayParams.height - marginSize;
@@ -124,8 +127,8 @@ void Instance::Draw() {
             scroll = selectedPos - marginSize;
         }
 
-        if (scroll > options.size()*itemHeight - displayParams.height) {
-            scroll = options.size()*itemHeight - displayParams.height;
+        if (scroll > InternalMaxHeight() - displayParams.height) {
+            scroll = InternalMaxHeight() - displayParams.height;
         }
         if (scroll < 0) {
             scroll = 0;
@@ -133,15 +136,15 @@ void Instance::Draw() {
 
     }
 
-    bool isInstanceHovered = displayParams.CollidesPoint(GetMousePosition());
+    bool isInstanceHovered = displayParams.CollidesPoint(GetMousePosition()) && !ImGui::GetIO().WantCaptureMouse;
     if (isInstanceHovered) {
         if (GetMouseWheelMove() != 0) {
             lastInteractionWasMouse = true;
         }
-        scroll -= GetMouseWheelMove() * itemHeight;
+        scroll -= GetMouseWheelMove() * itemEffectiveHeight;
 
-        if (scroll > options.size()*itemHeight - displayParams.height) {
-            scroll = options.size()*itemHeight - displayParams.height;
+        if (scroll > InternalMaxHeight() - displayParams.height) {
+            scroll = InternalMaxHeight() - displayParams.height;
         }
         if (scroll < 0) {
             scroll = 0;
@@ -174,12 +177,18 @@ void Instance::Draw() {
             }
             option->Draw(thisDisplay, i, mouseState);
         }
-        cursor += itemHeight + itemSpacing;
+        cursor += itemEffectiveHeight;
     }
     EndScissorMode();
 }
-float Instance::ItemHeight() {
+float Instance::ItemHeight() const {
     return displayParams.fontSize + displayParams.padding.y*2;
+}
+float Instance::TotalSpacingHeight() const {
+    return (static_cast<float>(options.size()) - 1) * itemSpacing;
+}
+float Instance::InternalMaxHeight() const {
+     return (int)ItemHeight()*static_cast<float>(options.size()) + TotalSpacingHeight();
 }
 void Instance::SetRangeStart(int start) {
     if (rangeEnd == -1) {
@@ -215,6 +224,7 @@ void Instance::StartRangeSelect() {
     selectingRange = true;
     rangeStart = selectedIndex;
     rangeEnd = selectedIndex;
+    rangeAnchor = selectedIndex;
 }
 void Instance::EndRangeSelect() {
     selectingRange = false;

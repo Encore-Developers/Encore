@@ -22,8 +22,8 @@ void PracticeMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         optionsMenu.Input(event);
     } else if (state == SECTIONLIST) {
         sectionsMenu.Input(event);
-        if (sectionsMenu.selectingRange && sectionsMenu.rangeStart < 1) {
-            sectionsMenu.rangeStart = 1;
+        if (sectionsMenu.selectingRange && sectionsMenu.rangeStart < 2) {
+            sectionsMenu.rangeStart = 2;
         }
         if (!sectionsMenu.selectingRange && event.action == Encore::Action::PRESS && event.channel == Encore::InputChannel::LANE_2) {
             state = OPTIONS;
@@ -126,6 +126,9 @@ void PracticeMenu::Draw() {
         optionsMenu.Draw();
     }
     if (state == SECTIONLIST) {
+        if (sectionsMenu.selectingRange && sectionsMenu.rangeStart < 2) {
+            sectionsMenu.rangeStart = 2;
+        }
         sectionsMenu.displayParams
         .Pos(u.wpct(0.015), u.hpct(0.015))
         .Bounds(u.winpct(0.3), u.hinpct(0.9))

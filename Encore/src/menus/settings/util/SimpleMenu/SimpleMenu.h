@@ -58,12 +58,15 @@ namespace SimpleMenu {
 
         int rangeStart = -1;
         int rangeEnd = -1;
+        int rangeAnchor = -1;
         bool selectingRange = false;
 
         void Select(int amount);
         void Input(Encore::ControllerEvent event);
         void Draw();
-        float ItemHeight();
+        float ItemHeight() const;
+        float TotalSpacingHeight() const;
+        float InternalMaxHeight() const;
 
         void SetRangeStart(int start);
         void SetRangeEnd(int end);
