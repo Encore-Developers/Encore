@@ -333,11 +333,11 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.1f);
                         TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
                     }
                 }
-                if (OvershellButton(i, curSlot--, LOCALIZE("generic.practice"))) {
-                    if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
-                        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(gameplayMenu->curSong, ChartLoadingMenu::PRACTICE);
-                    }
-                }
+                // if (OvershellButton(i, curSlot--, LOCALIZE("generic.practice"))) {
+                //     if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
+                //         TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(gameplayMenu->curSong, ChartLoadingMenu::PRACTICE);
+                //     }
+                // }
             }
 
             auto bnsString = LOCALIZE_FMT("overshell.breakneckSpeed", playerManager.GetActivePlayer(i).NoteSpeed);
