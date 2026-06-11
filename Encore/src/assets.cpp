@@ -41,33 +41,27 @@ void Asset::CheckForFetch() {
     case UNLOADED: {
         ZoneScopedN("Asset Main Thread Load")
         Load();
-        Encore::EncoreLog(LOG_WARNING,
-                          TextFormat(
-                              "Asset %s was fetched before it was loaded. Loading immediately on main thread...",
-                              id.c_str()));
+        Encore::Log::Warn("Asset {} was fetched before it was loaded. Loading immediately on main thread...", id);
         if (state == PREFINALIZED) {
             // TODO: Don't duplicate this logic
-            Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+            Encore::Log::Info("Finalizing asset {}...", id);
             Finalize();
         }
     }
     break;
     case LOADING: {
             ZoneScopedN("Asset Finalize Waiting")
-            Encore::EncoreLog(LOG_WARNING,
-                             TextFormat(
-                                 "Asset %s was fetched while it is being loaded. Blocking until it is loaded...",
-                                 id.c_str()));
+            Encore::Log::Warn("Asset {} was fetched before it was loaded. Blocking until it is loaded...", id);
             while (state == LOADING) {
             } // spin spin spin
             if (state == PREFINALIZED) {
-                Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+                Encore::Log::Info("Finalizing asset {}...", id);
                 Finalize();
             }
         }
         break;
     case PREFINALIZED:
-        Encore::EncoreLog(LOG_INFO, TextFormat("Finalizing asset %s...", id.c_str()));
+        Encore::Log::Info("Finalizing asset {}...", id);
         Finalize();
         break;
     default: ;

@@ -144,6 +144,6 @@ void SettingsAudioVideo::Save() {
 
     TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
 
-    TraceLog(LOG_INFO, "Saved audio/video settings: AudioOffset=%d, VideoOffset=%d, Framerate=%d, avMainVolume=%.2f",
+    Log::Info("Saved audio/video settings: AudioOffset={}, VideoOffset={}, Framerate={}, avMainVolume={}",
              AudioOffset, VideoOffset, Framerate, avMainVolume);
 }

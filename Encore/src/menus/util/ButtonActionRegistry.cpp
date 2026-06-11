@@ -46,6 +46,7 @@ void Encore::ButtonActionRegistry::HandleInput(const ControllerEvent &event) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
     }
     if (buttMap.contains(event.channel)) {
+        Log::Trace("Button Action {} (channel: {}) pressed by slot {}", LOCALISE(buttMap.at(event.channel).Name).toString(), ICInt(event.channel), curSlot);
         buttMap.at(event.channel).RunAction(event.action, curSlot);
     }
 }

@@ -24,7 +24,7 @@ void PlayerManager::LoadPlayerList() {
     try {
         std::ifstream f(PlayerListSaveFile);
         json PlayerListJson = json::parse(f);
-        TraceLog(LOG_INFO, "Loading player list");
+        Encore::Log::Info("Loading player list");
         for (auto &jsonObject : PlayerListJson.items()) {
             Player newPlayer;
             newPlayer.playerJsonObjectName = jsonObject.key();
@@ -62,26 +62,12 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
             if (newPlayer.PlayerID == "3" || newPlayer.PlayerID == "6"
                 || newPlayer.PlayerID == "1") {
                 // FOR GOOD MEASURE SO PEOPLE DONT HAVE TO ASK
-                Encore::EncoreLog(
-                    LOG_ERROR,
-                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR,
-                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR,
-                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR,
-                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
-                Encore::EncoreLog(
-                    LOG_ERROR,
-                    "WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS."
-                );
+
+                Encore::Log::Error("WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::Log::Error("WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::Log::Error("WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::Log::Error("WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
+                Encore::Log::Error("WE'RE DELETING YOUR PLAYER FILE. MAKE YOUR OWN PLAYERS.");
 
                 remove(PlayerListSaveFile);
             } else {
@@ -89,10 +75,8 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
             }
         };
     } catch (const std::exception &e) {
-        Encore::EncoreLog(
-            LOG_ERROR,
-            TextFormat("Failed to load players. Reason: %s", e.what())
-        );
+
+        Encore::Log::Error("Failed to load players. Reason: {}", e.what());
     }
 }; // make player, load player stuff to PlayerList
 
@@ -158,6 +142,7 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
             player->AccentColor.b;
     }
 
+    Encore::Log::Info("Saved player {}", player->Name);
     Encore::WriteJsonFile(PlayerListSaveFile, PlayerListJson);
 }
 

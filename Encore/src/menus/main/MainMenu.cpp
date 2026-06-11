@@ -217,6 +217,7 @@ void MainMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
             OvershellState[0] = OS_PLAYER_SELECTION;
         }
         if (event->key == SDLK_ESCAPE) {
+            Encore::Log::Exit();
             exit(0);
         }
     }

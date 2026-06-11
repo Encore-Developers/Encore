@@ -7,6 +7,7 @@
 #include "util/enclog.h"
 
 void Encore::RhythmEngine::MidiLyricLoader::LoadLyrics() {
+    Log::Info("Loading lyrics...");
     if (midiFile) {
         midiFile->doTimeAnalysis();
         GetPhrases(&midiFile->operator[](trackIdx));
@@ -131,7 +132,6 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
         } else {
             lyric.push_back(' ');
         }
-        EncoreLog(LOG_DEBUG, lyric.c_str());
         currentPhrase.lyrics.emplace_back(event.seconds, lyric, talkie);
     }
 };

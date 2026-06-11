@@ -121,11 +121,11 @@ void SettingsKeyboard::ControllerInputCallback(Encore::ControllerEvent event) {
 }
 
 void SettingsKeyboard::Load() {
-    TraceLog(LOG_INFO, "SettingsKeyboard: Loaded keybinds from settings-old.json");
+    // Encore::Log::Debug("Loaded keybinds from settings-old.json");
 }
 
 void SettingsKeyboard::Save() {
    //  settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
     // settings.syncKeybindsToGame();
-    TraceLog(LOG_INFO, "SettingsKeyboard: Saved keybinds to settings-old.json");
+    // Encore::Log::Debug("Saved keybinds to settings-old.json");
 }

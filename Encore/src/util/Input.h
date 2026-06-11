@@ -45,6 +45,20 @@ namespace Encore {
             return 3;
         case InputChannel::LANE_5:
             return 4;
+        case InputChannel::STRUM_UP:
+            return 7;
+        case InputChannel::STRUM_DOWN:
+            return 8;
+        case InputChannel::PAUSE:
+            return 9;
+        case InputChannel::OVERDRIVE:
+            return 10;
+        case InputChannel::WHAMMY:
+            return 11;
+        case InputChannel::INPUT_LEFT:
+            return 12;
+        case InputChannel::INPUT_RIGHT:
+            return 13;
         default:
             return 0;
         }

@@ -137,10 +137,8 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
         GhostCount = 0;
         MissNote(Lane);
-        Encore::EncoreLog(
-            LOG_DEBUG, TextFormat("Player %s missed note %01i : %01i", player->Name.c_str(), Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)))
-        );
-        }
+        Log::Debug("Player {} missed note {} : {}", player->Name, Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)));
+    }
 }
 
 void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {

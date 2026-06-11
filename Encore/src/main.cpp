@@ -22,6 +22,7 @@
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 #include "song/cacheload.h"
+// #include "spdlog/spdlog.h"
 #include "tracy/TracyC.h"
 #include "users/profiles/ProfileManager.h"
 
@@ -172,7 +173,7 @@ void LocateDevAssets() {
         //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
         if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
             execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
-            Encore::EncoreLog(LOG_INFO, TextFormat("Found dev directory: %s", execPath.c_str()));
+            Encore::Log::Info("Found dev directory: {}", execPath.string());
             devAssets = true;
             TheAssets.setDirectory(execPath);
             break;
@@ -195,7 +196,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 #endif
+
+    prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
+    std::filesystem::path directory = prefsPath;
+    if (!Encore::Log::InitializeLogger(prefsPath.string())) {
+        return 0;
+    };
     LocateDevAssets();
+
 
     ArgumentList::InitArguments(argc, argv);
     AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).StartLoad();
@@ -205,7 +213,7 @@ int main(int argc, char *argv[]) {
 
     std::string discordOff = ArgumentList::GetArgValue("discord");
     TheGameRPC.Initialize(discordOff);
-    SetTraceLogCallback(Encore::EncoreLog);
+    SetTraceLogCallback(Encore::RaylibLogWrapper);
     Units u = Units::getInstance();
     commitHash.erase(7);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -225,9 +233,9 @@ int main(int argc, char *argv[]) {
     std::filesystem::path executablePath(GetApplicationDirectory());
     // Bump only for completely breaking changes to player/settings format
     // Do not bump for cache format changes
-    prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
-    Encore::EncoreLog(LOG_INFO, TextFormat("Prefs: %s", prefsPath.c_str()));
-    std::filesystem::path directory = prefsPath;
+    Encore::Log::Info("Prefs Path: {}", prefsPath.string());
+
+    // spdlog::debug("Hi i am logging lol");
 #ifdef __APPLE__
     CFBundleRef bundle = CFBundleGetMainBundle();
     if (bundle != NULL && !devAssets) {
@@ -277,7 +285,7 @@ int main(int argc, char *argv[]) {
     if (TheGameSettings.VerticalSync) {
         SetConfigFlags(FLAG_VSYNC_HINT);
     }
-    Encore::EncoreLog(LOG_INFO, TextFormat("Vertical sync: %d", vsyncArg));
+    Encore::Log::Info("Vertical sync: {}", vsyncArg);
     {
         ZoneScopedN("Window Init")
         SDL_Init(SDL_INIT_VIDEO);
@@ -290,7 +298,6 @@ int main(int argc, char *argv[]) {
     TheGameSettings.UpdateFullscreen();
     bool AudioInitSuccessful = TheAudioManager.Init();
     assert(AudioInitSuccessful == true);
-    Encore::EncoreLog(LOG_INFO, "Audio successfully initialized");
 
     SetExitKey(0);
     TheFrameManager.InitFrameManager();
@@ -320,11 +327,9 @@ int main(int argc, char *argv[]) {
 
 
     if (TheGameSettings.Framerate > 0)
-        Encore::EncoreLog(
-            LOG_INFO, TextFormat("Target FPS: %d", TheGameSettings.Framerate)
-        );
+        Encore::Log::Info("Framerate: {}", TheGameSettings.Framerate);
     else {
-        Encore::EncoreLog(LOG_INFO, TextFormat("Unlocked framerate."));
+        Encore::Log::Info("Framerate: unlimited");
         TheFrameManager.removeFPSLimit = true;
     }
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
@@ -451,6 +456,7 @@ int main(int argc, char *argv[]) {
     }
     //poller.active = false;
     CloseWindow();
+    Encore::Log::Exit();
     return 0;
 }
 

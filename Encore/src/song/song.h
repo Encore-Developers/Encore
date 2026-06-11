@@ -281,18 +281,13 @@ public:
 
                 if (evt_string == "[music_start]") {
                     music_start = time;
-                    Encore::EncoreLog(
-                        LOG_DEBUG,
-                        TextFormat("SONG: Song start: %5.4f", time)
-                    );
+                    Encore::Log::Debug("SONG: Song start: {:5.4f}", time);
                 }
                 if (evt_string == "[end]") {
                     end = time;
                     endTick = events[i].tick;
-                    Encore::EncoreLog(
-                        LOG_DEBUG,
-                        TextFormat("SONG: Song end: %5.4f", time)
-                    );
+
+                    Encore::Log::Debug("SONG: Song end: {:5.4f}", time);
                 }
             }
         }

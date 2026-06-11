@@ -29,13 +29,8 @@ void Encore::RhythmEngine::SoloEvents::UpdateEventViaNote(bool hit, int tick) {
     }
     if (hit) {
         this->at(CurrentEvent).NotesHit++;
-        Encore::EncoreLog(
-            LOG_DEBUG,
-            TextFormat(
-                "Solo note hit: %01i/%01i",
+        Log::Debug("Solo note hit: {}/{}",
                 this->at(CurrentEvent).NotesHit,
-                this->at(CurrentEvent).NoteCount
-            )
-        );
+                this->at(CurrentEvent).NoteCount);
     }
 }

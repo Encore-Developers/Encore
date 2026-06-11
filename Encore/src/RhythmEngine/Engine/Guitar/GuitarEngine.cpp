@@ -57,7 +57,6 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &even
             FireEvent(&HBevent);
             // TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
         }
-        EncoreLog(LOG_DEBUG, TextFormat("Instrument: %i", inst));
         return true;
     }
     return false;
@@ -263,7 +262,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     if (StrumInput) {
         if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
             Timers["SAH"].ResetTimer();
-            TraceLog(LOG_DEBUG, "SAH Disabled");
+            Log::Trace("SAH Disabled");
             return CheckNextInput;
         }/*
         // commented out for the sake of this not overriding the miss checks
@@ -297,7 +296,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         // if frets match, continue and try to hit
         if (!MaskMatch(CurrentNote->Lane, pMask)) {
             Timers["FAS"].ActivateTimer(stats->InputTime);
-            EncoreLog(LOG_DEBUG, "FAS Enabled");
+            Log::Trace("FAS Enabled");
             return CheckNextInput;
         }
 
@@ -341,12 +340,12 @@ void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
             }
             Timers["SAH"].Duration = duration;
             Timers["SAH"].ActivateTimer(stats->InputTime);
-            EncoreLog(LOG_DEBUG, "SAH Enabled");
+            Log::Trace("SAH Enabled");
         }
     }
     if (Timers["FAS"].CanBeUsedUp(stats->InputTime)) {
         Timers["FAS"].ResetTimer();
-        EncoreLog(LOG_DEBUG, "FAS Disabled");
+        Log::Trace("FAS Disabled");
     }
     if (chart->CurrentNoteIterators.at(0)->LengthTicks > 0) {
         if (chart->IsHeldNotePresent(0)) {

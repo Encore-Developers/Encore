@@ -6,9 +6,12 @@
 
 #include <fstream>
 
+#include "util/enclog.h"
+
 using namespace nlohmann;
 
 void Encore::ProfileManager::LoadColorProfiles() {
+    Log::Info("Loading color presets");
     for (const auto& file : std::filesystem::directory_iterator(ColorProfilesPath)) {
         if (file.exists() && file.path().extension() == ".json") {
             std::ifstream f(file.path());
@@ -27,7 +30,9 @@ void Encore::ProfileManager::LoadColorProfiles() {
 }
 
 void Encore::ProfileManager::SaveColorProfiles() {
+    Log::Info("Saving color presets");
     for (const auto& profile : ColorProfiles) {
+
         if (profile.second.builtin) {
             continue;
         }
@@ -38,6 +43,8 @@ void Encore::ProfileManager::SaveColorProfiles() {
         }
         std::ofstream f(ColorProfilesPath / (profile.second.Name + ".json"), std::ios::out | std::ios::trunc);
         f << outJson.dump(2, ' ', false, detail::error_handler_t::strict);
+
         f.close();
+        Log::Info("Color preset {} saved", profile.second.Name);
     }
 }

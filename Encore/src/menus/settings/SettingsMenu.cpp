@@ -115,7 +115,7 @@ void SettingsMenu::Draw() {
                     TheMenuManager.CreateAndSwitchMenu<SettingsCredits>();
                     break;
                 }
-                printf("Clicked: %s\n", menuItems[i].c_str());
+                Encore::Log::Trace("Clicked: {}", menuItems[i]);
             }
         }
         if (i == selectedIndex) {

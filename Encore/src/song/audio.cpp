@@ -8,13 +8,15 @@
 #include <filesystem>
 #include <iostream>
 
+#include "util/enclog.h"
+
 // Error checking macro
 #define CHECK_BASS_ERROR()                                                               \
     {                                                                                    \
         int errorCode = BASS_ErrorGetCode();                                             \
         if (errorCode != BASS_OK) {                                                      \
-            std::cerr << "BASS error " << errorCode << " at line " << __LINE__           \
-                      << std::endl;                                                      \
+            Encore::Log::Error("BASS error {} at line {}", errorCode, __LINE__);           \
+                                                                            \
             return false;                                                                \
         }                                                                                \
     }
@@ -23,14 +25,15 @@
     {                                                                                    \
         int errorCode = BASS_ErrorGetCode();                                             \
         if (errorCode != BASS_OK) {                                                      \
-            std::cerr << "BASS error " << errorCode << " at line " << __LINE__           \
-                      << std::endl;                                                      \
+            Encore::Log::Error("BASS error {} at line {}", errorCode, __LINE__);           \
+                                                                            \
         }                                                                                \
     }
 
 bool Encore::AudioManager::Init() {
 #ifdef WIN32
     if (!BASS_Init(-1, 44100, 0, 0, NULL)) {
+
         CHECK_BASS_ERROR();
         return false;
     }
@@ -48,7 +51,7 @@ bool Encore::AudioManager::Init() {
 #endif
     CHECK_BASS_ERROR();
 #endif
-
+    Log::Debug("BASS Initialized");
     return true;
 }
 

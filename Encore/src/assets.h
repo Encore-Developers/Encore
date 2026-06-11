@@ -196,11 +196,9 @@ public:
 
     int GetUniformLoc(const std::string &uniformName) {
         if (!uniformPositions.contains(uniformName)) {
-            Encore::EncoreLog(LOG_ERROR,
-                              TextFormat(
-                                  "Attempted to get unknown uniform %s on asset %s",
-                                  uniformName.c_str(),
-                                  id.c_str()));
+            Encore::Log::Error("Attempted to get unknown uniform {} on asset {}",
+                                  uniformName,
+                                  id);
             return -1;
         }
         auto found = uniformPositions.find(uniformName);

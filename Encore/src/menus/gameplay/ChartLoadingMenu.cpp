@@ -71,10 +71,7 @@ void ChartLoadingMenu::LoadCharts() {
 
         if (curSong->parts[inst].Valid) {
             trackName = songPartsList[inst];
-            Encore::EncoreLog(
-                LOG_DEBUG,
-                TextFormat("Loading part %s, diff %01i", trackName.c_str(), diff)
-            );
+            Encore::Log::Debug("Loading part {}, diff {}", trackName, diff);
             // LoadingState = NOTE_PARSING;
             // if plastic
             if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
@@ -82,10 +79,7 @@ void ChartLoadingMenu::LoadCharts() {
                 if (curSong->hopoThreshold == -1) {
                     curSong->hopoThreshold = (midiFile.getTicksPerQuarterNote() / 3) + 1;
                 }
-                Encore::EncoreLog(
-                    LOG_DEBUG,
-                    TextFormat("Hopo threshold: %01i", curSong->hopoThreshold)
-                );
+                Encore::Log::Debug("Hopo threshold: {}", curSong->hopoThreshold);
                 int maxMult = 4;
                 if (inst == PlasticBass) {
                     maxMult = 6;

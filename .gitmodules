@@ -10,3 +10,6 @@
 [submodule "Encore/thirdparty/raylib"]
 	path = Encore/thirdparty/raylib
 	url = https://github.com/Encore-Developers/raylib-Source.git
+[submodule "Encore/thirdparty/spdlog"]
+	path = Encore/thirdparty/spdlog
+	url = https://github.com/gabime/spdlog.git
