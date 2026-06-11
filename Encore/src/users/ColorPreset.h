@@ -1,6 +1,5 @@
+#pragma once
 
-#ifndef ENCORE_COLORPROFILE_H
-#define ENCORE_COLORPROFILE_H
 #include <string>
 #include <nlohmann/json.hpp>
 #include "raylib.h"
@@ -26,7 +25,7 @@ namespace Encore {
         SLOT_MAX
     };
 
-    class ColorProfile {
+    class ColorPreset {
     public:
         std::string Name = "Default Profile";
         std::array<Color, SLOT_MAX> colors = {
@@ -47,15 +46,15 @@ namespace Encore {
         };
         bool builtin = false;
         NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(
-            ColorProfile,
+            ColorPreset,
             Name
         );
     };
 
 
 
-    static ColorProfile defaultPlastic;
-    static ColorProfile transgender {
+    static ColorPreset defaultPlastic;
+    static ColorPreset transgender {
         "transgender",
         { SKYBLUE,
             PINK,
@@ -72,7 +71,7 @@ namespace Encore {
             PURPLE // FRAME OVERDRIVE
         }
     };
-    static ColorProfile defaultPad {
+    static ColorPreset defaultPad {
         "Default Pad Profile",
         { SKYBLUE,
             SKYBLUE,
@@ -90,6 +89,3 @@ namespace Encore {
         }
     };
 }
-
-
-#endif // ENCORE_COLORPROFILE_H

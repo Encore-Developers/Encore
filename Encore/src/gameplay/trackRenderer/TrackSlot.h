@@ -4,7 +4,7 @@
 
 #include "RhythmEngine/Chart/EncNote.h"
 #include "raylib.h"
-#include "users/ColorProfile.h"
+#include "users/ColorPreset.h"
 
 namespace Encore {
     class Track;

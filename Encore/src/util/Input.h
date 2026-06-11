@@ -48,8 +48,37 @@ namespace Encore {
         default:
             return 0;
         }
-
     }
+
+    // Temporary stopgap to let people do things on this old version
+    enum ControllerBindingType {
+        GUITAR,
+        GUITAR_GHPS3,
+        PAD,
+        DRUMS
+    };
+
+    enum class ControllerType : int {
+        NONE = 0,
+        KEYBOARD,
+        SDL,
+        MIDI,
+        REMOTE
+    };
+
+    struct ControllerIdentity {
+        ControllerType type = ControllerType::SDL;
+        union {
+            unsigned int raw;
+            SDL_JoystickID sdlJoystickId;
+            // MIDI isn't implemented yet, putting this in the union for future-proofing
+            unsigned int midiDeviceId;
+        };
+
+        ControllerIdentity(SDL_JoystickID id) : type(ControllerType::SDL), sdlJoystickId(id) {}
+        ControllerIdentity() : raw(0) {}
+    };
+
     enum class Action : int8_t {
         INVALID = -1,
         PRESS = 1,
@@ -61,9 +90,9 @@ namespace Encore {
     public:
         InputChannel channel : 8 = InputChannel::INVALID;
         Action action : 8 = Action::INVALID;
-        unsigned int axis : 8;
-        SDL_JoystickID slot;
-        double timestamp;
+        unsigned int axis : 8 = 0;
+        ControllerIdentity controller;
+        double timestamp = 0;
 
         bool IsAccept() {
             return action == Action::PRESS && channel == InputChannel::LANE_1;
