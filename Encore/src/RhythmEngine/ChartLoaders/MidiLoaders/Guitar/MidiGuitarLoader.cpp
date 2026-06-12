@@ -60,13 +60,15 @@ void Encore::RhythmEngine::MidiGuitarLoader::CheckSysEx(const smf::MidiEvent &ev
 }
 
 void Encore::RhythmEngine::MidiGuitarLoader::CheckHopos(const smf::MidiEvent &event) {
-    if (event.isNoteOn()) {
-        if (event[1] == 101) {
-            ForceHopoOn.emplace(event.tick, event.getLinkedEvent()->tick);
-        } else if (event[1] == 102) {
-            ForceHopoOff.emplace(event.tick, event.getLinkedEvent()->tick);
-        };
+    if (!event.isNoteOn()) return;
+    assert("Difficulty is too high for hopo check" && Difficulty < 4 && Difficulty > -1);
+    if (event[1] == HopoFlags[Difficulty].second) {
+        ForceHopoOn.emplace(event.tick, event.getLinkedEvent()->tick);
+        return;
     }
+    if (event[1] == HopoFlags[Difficulty].first) {
+        ForceHopoOff.emplace(event.tick, event.getLinkedEvent()->tick);
+    };
 }
 void Encore::RhythmEngine::MidiGuitarLoader::CheckTaps(const smf::MidiEvent &event) {
     if (event.isNoteOn()) {

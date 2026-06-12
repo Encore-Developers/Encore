@@ -11,6 +11,8 @@
 namespace Encore::RhythmEngine {
     class MidiGuitarLoader final : public BaseLoader {
         // start, end
+        std::pair<int, int>HopoFlags[4] { {66, 65}, {78, 77}, {90, 89}, {102, 101} };
+
         std::queue<std::pair<int, int> > ForceHopoOn = {};
         std::queue<std::pair<int, int> > ForceHopoOff = {};
         std::queue<std::pair<int, int> > TapMarker = {};
