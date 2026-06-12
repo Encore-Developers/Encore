@@ -9,6 +9,8 @@
 #include <unordered_set>
 #include <nlohmann/json.hpp>
 
+#include "util/enclog.h"
+
 namespace Encore {
 
     class LocalizedString {
@@ -101,7 +103,23 @@ namespace Encore {
         static LocalizedString LocalizeFormat(const std::string& token, std::format_args args) {
             ZoneScoped
             std::string value = Localize(token);
-            return LocalizedString::MoveStr(std::vformat((const std::string &)value, args));
+            try {
+                return LocalizedString::MoveStr(std::vformat((const std::string &)value, args));
+            } catch (const std::exception &e) {
+                std::string layerName;
+                for (auto &layer : layers) {
+                    if (layer.FetchValue(token)) {
+                        layerName = layer.name;
+                        if (layer.fallback) {
+                            layerName = "fallback";
+                        }
+                        break;
+                    }
+                }
+
+                Log::Error("Localization of token \"{}\" in language \"{}\" failed: {}", token, layerName, e.what());
+            }
+            return "!!!! FIX ME " + token;
         }
     };
 }
