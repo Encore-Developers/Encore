@@ -11,9 +11,10 @@
 #include <filesystem>
 #include "RhythmEngine/Engine/BaseEngine.h"
 #include "SDL3/SDL_gamepad.h"
+#include "session/client.h"
 #include "util/Input.h"
 
-
+typedef unsigned int PlayerID;
 
 enum NoteHitType {
     STANDARD, // strums/ptaps
@@ -24,6 +25,11 @@ namespace Encore::RhythmEngine {
     class BaseEngine;
 }
 
+enum class SignalState {
+    UNSIGNALED = 0,
+    SIGNALED,
+    CANCELLED
+};
 
 class Player {
 public:
@@ -35,9 +41,14 @@ public:
             engine = nullptr;
     std::shared_ptr<Profile> profile = nullptr;
 
-    // to be properly filled out later™
     class Session* session = nullptr;
-    int clientId = 0;
+    SignalState signal = SignalState::UNSIGNALED;
+    ClientID client = 0;
+    PlayerID index = 0;
     int difficulty = 0;
     int instrument = 0;
+
+    operator PlayerID() const {
+        return index;
+    }
 };

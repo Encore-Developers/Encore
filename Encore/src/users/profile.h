@@ -56,16 +56,23 @@ public:
         value ^= toToggle;
     }
 
+    bool IsModifierActive(Index toCheck) const {
+        return value & toCheck;
+    }
+
+    Modifiers(Index value) : value(value) {}
+    Modifiers() : value(none) {}
+
     u_int32_t value = 0;
 };
 
 class Profile {
 public:
-    std::string name;
+    std::string name = "Guest";
     float noteSpeed = 1;
     float trackLength = 1;
 
-    Modifiers modifiers;
+    Modifiers modifiers = Modifiers::none;
 
     Profile() = default;
     Profile(std::string name) : name(std::move(name)) {}

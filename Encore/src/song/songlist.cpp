@@ -29,9 +29,17 @@ std::filesystem::path SongList::badSongsPath() {
 void SongList::Clear() {
     listMenuEntries.clear();
     songs.clear();
+    sortedSongs.clear();
+    songHashIndex.clear();
     songCount = 0;
     directoryCount = 0;
     badSongCount = 0;
+}
+void SongList::PopulateHashIndex() {
+    songHashIndex.clear();
+    for (auto& song : songs) {
+        songHashIndex.emplace(song.hash, &song);
+    }
 }
 
 std::string lower(std::string string) {
@@ -175,6 +183,7 @@ void SongList::WriteCache() {
         SongCache << song.albumArtPath.string();
         SongCache << song.songInfoPath.string();
         SongCache << song.midiPath.string();
+        SongCache << song.hash;
         std::ifstream songInfo(song.songInfoPath);
         std::ostringstream sstr;
         sstr << songInfo.rdbuf();
@@ -217,7 +226,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                     std::ifstream hashStream(folder / "notes.mid", std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
-                    memcpy(placedSong->chartHash, hash, picosha2::k_digest_size);
+                    memcpy(&placedSong->hash, hash, picosha2::k_digest_size);
                     ++SongsHashed;
                 });
             } else {
@@ -273,6 +282,7 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
 
     delete scanPool;
 
+    PopulateHashIndex();
     Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
     WriteCache();
     sortList(SortType::Title);
@@ -430,6 +440,8 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         std::string midiPath;
         SongCacheIn >> midiPath;
         song.midiPath = midiPath;
+        
+        SongCacheIn >> song.hash;
 
         {
             ZoneScopedN("INI Parse")
@@ -460,5 +472,6 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     //}
 
     // ScanSongs(songsFolder);
+    PopulateHashIndex();
     sortList(SortType::Title);
 }

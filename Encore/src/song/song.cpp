@@ -9,6 +9,7 @@
 #include <map>
 
 #include "audio.h"
+#include "songlist.h"
 
 using namespace Encore;
 
@@ -103,6 +104,21 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
 
 void Song::LoadAlbumArt() {
     TheArtLoader.LoadAlbumArt(this);
+}
+Song *SyncedSongRef::GetLocal() const {
+    if (isRemote) {
+        return TheSongList.songHashIndex[remote];
+    } else {
+        return local;
+    }
+}
+SongHash SyncedSongRef::GetRemote() const {
+    if (isRemote) {
+        return remote;
+    } else {
+        assert(local != nullptr);
+        return local->hash;
+    }
 }
 
 std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> Song::LoadAudioINI() {
