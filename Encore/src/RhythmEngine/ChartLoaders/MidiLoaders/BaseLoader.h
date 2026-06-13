@@ -43,7 +43,7 @@ namespace Encore::RhythmEngine {
     public:
         virtual ~BaseLoader() = default;
 
-        [[nodiscard]] static bool IsInPitchRange(int diff, const smf::MidiEvent &event) {
+        [[nodiscard]] virtual bool IsInPitchRange(int diff, const smf::MidiEvent &event) {
             return event[1] >= MinMaxDiff[diff].first
                 && event[1] <= MinMaxDiff[diff].second;
         }
@@ -53,7 +53,7 @@ namespace Encore::RhythmEngine {
                 && event[1] <= GuitarMinMaxDiff[diff].second;
         }
 
-        [[nodiscard]] static int GetEventLane(int diff, const smf::MidiEvent &event) {
+        [[nodiscard]] virtual int GetEventLane(int diff, const smf::MidiEvent &event) {
             return event[1] - MinMaxDiff[diff].first;
         }
 

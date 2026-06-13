@@ -28,7 +28,11 @@ namespace Encore::RhythmEngine {
         Player* player;
         DrumsEngine(auto _chart, auto _stats, Player* _player)
             : BaseEngine(_chart, _stats, _player), chart(_chart), stats(_stats), player(_player) {
-            Timers = { {"debounce", RhythmTimer(0.01)} };
+                Timers = {{"debounce", RhythmTimer(0.01)}};
+                if (chart->size == 6) {
+                    stats->HeldFrets.resize(6, false);
+                };
+
         };
         ~DrumsEngine() override {};
     };

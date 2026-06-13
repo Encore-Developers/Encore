@@ -256,6 +256,7 @@
 		"good": "GOOD",
 		"bad": "BAD",
 		"playlistDisplay": "({} of {})",
+		"sectionDisplay": "Section: {}",
 		"autoplay": "(AUTOPLAY)",
 		"avgOffset": "Average Offset: {: 7.2f}ms",
 		"lastOffset": "Last Hit Offset: {: 7.2f}ms",

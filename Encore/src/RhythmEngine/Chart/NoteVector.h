@@ -43,19 +43,25 @@ namespace Encore::RhythmEngine {
 
     class BaseChart {
     public:
-        explicit BaseChart(int _size) : size(_size) {
-            Lanes.resize(_size);
-            CurrentNoteIterators.resize(_size);
-            HeldNotePointers.resize(_size);
+        explicit BaseChart(const size_t _size) : size(_size) {
+            Lanes.resize(size);
+            CurrentNoteIterators.resize(size);
+            HeldNotePointers.resize(size);
         };
         BaseChart() : size(5) {
-            Lanes.resize(5);
-            CurrentNoteIterators.resize(5);
-            HeldNotePointers.resize(5);
+            Lanes.resize(size);
+            CurrentNoteIterators.resize(size);
+            HeldNotePointers.resize(size);
         };
         uint8_t size;
         NoteVector &operator[](const int i) { return this->Lanes.at(i); }
         NoteVector &at(const int i) { return this->Lanes.at(i); }
+        void resize(const size_t _size) {
+            size = _size;
+            Lanes.resize(_size);
+            CurrentNoteIterators.resize(_size);
+            HeldNotePointers.resize(_size);
+        }
         std::vector<NoteVector> Lanes;
         std::vector<NoteVector::iterator> CurrentNoteIterators;
         // todo: please fix extended sustains, i really dont wanna do this right now

@@ -790,9 +790,9 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote &note) 
         curIndex++;
     };
     auto lane = note.Lane;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
         if (lane & RhythmEngine::PlasticFrets[i]) {
-            if (player.Instrument == PlasticDrums && note.NoteType == 1) {
+            if (player.Instrument == PlasticDrums && note.NoteType == 1 && player.engine->chart->size == 5) {
                 append_slot(i + 3);
             } else {
                 append_slot(i);
@@ -1011,6 +1011,18 @@ void Encore::Track::ConfigureDrums() {
     AddSlot(new GemTrackSlot(this, 0.625, 1.25, 0.75, SLOT_HIHAT, slots[2].get()));
     AddSlot(new GemTrackSlot(this, -0.625, 1.25, 0.75, SLOT_RIDE, slots[3].get()));
     AddSlot(new GemTrackSlot(this, -1.875, 1.25, 0.75, SLOT_CRASH, slots[4].get()));
+}
+
+void Encore::Track::Configure5LaneDrums() {
+    NoteHeight = 1;
+    slots.clear();
+    float xMult = player.LeftyFlip ? -1 : 1;
+    AddSlot(new KickTrackSlot(this, 0 * xMult, 5, SLOT_OPEN));
+    AddSlot(new GemTrackSlot(this, 2 * xMult, 1, 0.75, SLOT_RED));
+    AddSlot(new GemTrackSlot(this, 1 * xMult, 1, 0.75, SLOT_YELLOW));
+    AddSlot(new GemTrackSlot(this, 0 * xMult, 1, 0.75, SLOT_BLUE));
+    AddSlot(new GemTrackSlot(this, -1 * xMult, 1, 0.75, SLOT_ORANGE));
+    AddSlot(new GemTrackSlot(this, -2 * xMult, 1, 0.75, SLOT_GREEN));
 }
 
 void Encore::Track::ConfigurePSDrums() {

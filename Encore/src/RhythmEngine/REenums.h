@@ -10,7 +10,7 @@
 
 
 namespace Encore::RhythmEngine {
-    constexpr uint8_t PlasticFrets[6] { // open			0		     0| technically not a
+    constexpr uint8_t PlasticFrets[7] { // open			0		     0| technically not a
                                         // "fretted note" so i put it on
                                         // the empty space
                                         0b000001,
@@ -49,6 +49,7 @@ namespace Encore::RhythmEngine {
                                         // gybo chord	29		|000_0|
                                         // rybo chord	30		|0000_|
                                         // grybo chord	31		|00000|
+                                        0b100000, // The horrors.
                                         0b000000
     };
 

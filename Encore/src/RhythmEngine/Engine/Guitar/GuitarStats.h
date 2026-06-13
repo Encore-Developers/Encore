@@ -7,10 +7,10 @@
 #include "../BaseStats.h"
 
 namespace Encore::RhythmEngine {
-    class GuitarStats final : public BaseStats<5> {
+    class GuitarStats final : public BaseStats {
     public:
         int Type = 0;
-        explicit GuitarStats(int BaseScore) : BaseStats<5>(BaseScore) {}
+        explicit GuitarStats(int BaseScore) : BaseStats(BaseScore) {}
         [[nodiscard]] uint8_t HeldFretsArrayToMask() const;
     };
 }

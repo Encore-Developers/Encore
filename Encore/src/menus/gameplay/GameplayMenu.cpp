@@ -138,7 +138,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
                 }
             }
             int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals)
-                ? 5
+                ? 6
                 : 4;
 
             for (int i = 0; i < DiffMax; i++) {
@@ -507,6 +507,19 @@ void GameplayMenu::Draw() {
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
 
+    std::string CurrentSectionName = "None";
+    if (!TheSongTime.Sections.empty()) {
+        for (int i = 0; i < TheSongTime.Sections.size() - 1; i++) {
+            if (TheSongTime.Sections.at(i).start <= TheSongTime.GetElapsedTime()
+                && TheSongTime.Sections.at(i+1).start > TheSongTime.GetElapsedTime()) {
+                CurrentSectionName = TheSongTime.Sections.at(i).name;
+                break;
+            }
+        }
+    }
+
+    secondary.AddPos(-( TitleFontSize * 1.125f), TitleFontSize).DrawText(LOCALISE_FMT("gameplay.sectionDisplay", CurrentSectionName));
+
     if (IsPaused()) {
         DrawPauseMenu();
     }
@@ -579,7 +592,11 @@ void GameplayMenu::Load() {
             tracks.at(i)->ColorProfileType = Encore::ProfileManager::PLASTIC;
             break;
         case PlasticDrums:
-            tracks.at(i)->ConfigureDrums();
+            if (player.engine->chart->size == 5) {
+                tracks.at(i)->ConfigureDrums();
+            } else {
+                tracks.at(i)->Configure5LaneDrums();
+            }
             tracks.at(i)->ColorProfileType = Encore::ProfileManager::DRUMS;
             break;
         default:
