@@ -14,10 +14,12 @@
 #include "song/ArtLoader.h"
 #include "menus/util/locale/Locale.h"
 #include "menus/main/SongSelectMenu.h"
+#include "RhythmEngine/ChartLoaders/ChartLoader.h"
 
 #include "users/playerManager.h"
 
 void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
+    auto &Parts = chartLoader.GetSongParts();
     for (int i = 0; i < MAX_PLAYERS; i++) {
         auto playerId = ThePlayerManager.ActivePlayers[i];
         if (playerId == -1)
@@ -31,7 +33,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         buttReg.HandleInput(event);
         if (event.action == Encore::Action::PRESS) {
             int diffCount = 0;
-            SongPart& part = curSong->parts[player.Instrument];
+            TrackInformation& part = Parts[player.Instrument];
             for (int d = 0; d < 4; d++) {
                 if (part.ValidDiffs[d]) {
                     diffCount += 1;
@@ -86,8 +88,9 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                                    Player &player,
                                    float xPosOfMenu) {
     Units &u = Units::getInstance();
+    auto& Parts = chartLoader.GetSongParts();
     for (int i = 0; i < 4; i++) {
-        SongPart &part = curSong->parts[player.Instrument];
+        TrackInformation &part = Parts[player.Instrument];
         if (part.ValidDiffs[i]) {
             Color ButtonColor = backgroundColor;
             if (ControllerDiffSlot[playerInt] == i) {
@@ -123,7 +126,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             GuiButton(
                 { xPosOfMenu,
                   BottomOvershell - u.hinpct(0.05f)
-                  - (u.hinpct(0.05f) * part.diff),
+                  - (u.hinpct(0.05f) * i),
                   u.winpct(0.2f),
                   u.hinpct(0.05f) },
                 ""
@@ -131,7 +134,7 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             DrawRectangle(
                 xPosOfMenu + 2,
                 BottomOvershell + 2 - u.hinpct(0.05f)
-                - (u.hinpct(0.05f) * part.diff),
+                - (u.hinpct(0.05f) * i),
                 u.winpct(0.2f) - 4,
                 u.hinpct(0.05f) - 4,
                 Color{ 0, 0, 0, 128 }
@@ -219,7 +222,7 @@ void ReadyUpMenu::Draw() {
     // todo: allow this to be run per player
     // load midi
     GameMenu::DrawBottomOvershell();
-
+    auto &Parts = chartLoader.GetSongParts();
     for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
         if (ThePlayerManager.ActivePlayers[playerInt] == -1)
             continue;
@@ -243,7 +246,7 @@ void ReadyUpMenu::Draw() {
                                u.winpct(0.2f),
                                u.hinpct(0.05f) };
                 std::string PartAndDiff = std::to_string(
-                        curSong->parts[PartsToDisplay[i]].diff + 1) + "/7   ";
+                        curSong->Difficulties.at(PartsToDisplay[i]) + 1) + "/7   ";
                 PartAndDiff += LOCALIZE(songPartsList[PartsToDisplay[i]]).toString();
                 if (GuiButton(pos, "") && !isOSOpen()) {
                     ControllerInstSlot[playerInt] = i;
@@ -452,38 +455,9 @@ void ReadyUpMenu::Load() {
     }, false)
     SlotState = { INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
     ReadyState = { false, false, false, false };
-    smf::MidiFile midiFile;
-    curSong->LoadAlbumArt();
-    midiFile.read(curSong->midiPath.string());
-    for (int track = 0; track < midiFile.getTrackCount(); track++) {
-        SongParts songPart = curSong->GetSongPart(midiFile[track]);
-        curSong->IsPartValid(midiFile[track], songPart, track);
-        if (songPart == BeatLines) {
-            curSong->BeatTrackID = track;
-        }
-        if (songPart == Events) {
-            curSong->getStartEnd(midiFile, track, midiFile[track]);
-        }
-    }
-    if (!curSong->parts[PartGuitar].Valid && curSong->parts[
-        PlasticGuitar].Valid) {
-        curSong->parts[PartGuitar] = curSong->parts[
-            PlasticGuitar];
-        curSong->parts[PartGuitar].AutoToPad = true;
-    }
-    if (!curSong->parts[PartBass].Valid && curSong->parts[
-        PlasticBass].Valid) {
-        curSong->parts[PartBass] = curSong->parts[PlasticBass];
-        curSong->parts[PartBass].AutoToPad = true;
-    }
-    if (!curSong->parts[PartKeys].Valid && curSong->parts[
-        PlasticKeys].Valid) {
-        curSong->parts[PartKeys] = curSong->parts[PlasticKeys];
-        curSong->parts[PartKeys].AutoToPad = true;
-    }
-
-    for (size_t i = 0; i < curSong->parts.size(); i++) {
-        if (curSong->parts[i].Valid) {
+    auto& Parts = chartLoader.GetSongParts();
+    for (size_t i = 0; i < Parts.size(); i++) {
+        if (Parts[i].Valid) {
             PartsToDisplay.push_back(i);
         }
     }
@@ -498,10 +472,10 @@ void ReadyUpMenu::Load() {
             }
         }
         ControllerDiffSlot[i] = player.Difficulty;
-        if (!PartsToDisplay.empty() && !curSong->parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
+        if (!PartsToDisplay.empty() && !Parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
             ControllerInstSlot[i] = 0;
         }
-        if (!curSong->parts[player.Instrument].ValidDiffs[player.Difficulty]) {
+        if (!Parts[player.Instrument].ValidDiffs[player.Difficulty]) {
             ControllerDiffSlot[i] = 0;
         }
     }

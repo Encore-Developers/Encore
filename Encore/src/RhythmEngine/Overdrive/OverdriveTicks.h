@@ -17,11 +17,10 @@ namespace Encore::RhythmEngine {
             return a.tick == b.tick;
         }
 
-        std::vector<OverdriveTick> ticks {};
         size_t CurrentODTickItr = 0;
 
     public:
-        void GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID);
+        std::vector<OverdriveTick> ticks {};
         void UpdateOverdriveTick();
         double LastODTick = 0;
         double CurrentODTick = 0;

@@ -28,9 +28,9 @@ namespace Encore::RhythmEngine {
         void CreateNote(const smf::MidiEvent &event);
         int GetNoteType(const smf::MidiEvent &event) override;
 
-        void GetChartEvents(smf::MidiEventList track) override;
-        void GetNoteModifiers(smf::MidiEventList track) override;
-        void GetNotes(smf::MidiEventList track) override;
+        void GetChartEvents(smf::MidiEventList &track) override;
+        void GetNoteModifiers(smf::MidiEventList &track) override;
+        void GetNotes(smf::MidiEventList &track) override;
     public:
         MidiGuitarLoader(int diff_, int thresh_, smf::MidiFile* midiFile_, const int _maxMult = 4)
             : BaseLoader(diff_, thresh_, midiFile_, _maxMult)  {

@@ -34,13 +34,12 @@ namespace Encore::RhythmEngine {
         void CreateNote(const smf::MidiEvent &event);
         int GetNoteType(const smf::MidiEvent &event) override;
 
-        void GetChartEvents(smf::MidiEventList track) override;
-        void GetNoteModifiers(smf::MidiEventList track) override;
-        void GetNotes(smf::MidiEventList track) override;
+        void GetChartEvents(smf::MidiEventList &track) override;
+        void GetNoteModifiers(smf::MidiEventList &track) override;
+        void GetNotes(smf::MidiEventList &track) override;
 
     public:
-        void LoadChart(smf::MidiEventList track) override {
-            track.linkNotePairs();
+        void LoadChart(smf::MidiEventList &track) override {
             // first get events, hopos, taps, lifts, the likes
             GetChartEvents(track);
             GetNoteModifiers(track);

@@ -66,25 +66,25 @@ void Song::PullInfoFromINI(INIReader &ini) {
 
     previewStartTime = ini.GetInteger("song", "preview_start_time", 0);
 
-    parts[PlasticGuitar].diff = ini.GetInteger("song", "diff_guitar", -1);
+    Difficulties[PlasticGuitar] = ini.GetInteger("song", "diff_guitar", -1);
 
-    parts[PlasticBass].diff = ini.GetInteger("song", "diff_bass", -1);
+    Difficulties[PlasticBass] = ini.GetInteger("song", "diff_bass", -1);
 
-    parts[PlasticDrums].diff = ini.GetInteger("song", "diff_drums", -1);
+    Difficulties[PlasticDrums] = ini.GetInteger("song", "diff_drums", -1);
 
-    parts[PlasticKeys].diff = ini.GetInteger("song", "diff_keys", -1);
+    Difficulties[PlasticKeys] = ini.GetInteger("song", "diff_keys", -1);
 
-    parts[PitchedVocals].diff = ini.GetInteger("song", "diff_vocals", -1);
+    Difficulties[PitchedVocals] = ini.GetInteger("song", "diff_vocals", -1);
 
-    parts[PartGuitar].diff = ini.GetInteger("song", "diff_guitar_pad", -1);
+    Difficulties[PartGuitar] = ini.GetInteger("song", "diff_guitar_pad", -1);
 
-    parts[PartBass].diff = ini.GetInteger("song", "diff_bass_pad", -1);
+    Difficulties[PartBass] = ini.GetInteger("song", "diff_bass_pad", -1);
 
-    parts[PartKeys].diff = ini.GetInteger("song", "diff_keys_pad", -1);
+    Difficulties[PartKeys] = ini.GetInteger("song", "diff_keys_pad", -1);
 
-    parts[PartDrums].diff = ini.GetInteger("song", "diff_drums_pad", -1);
+    Difficulties[PartDrums] = ini.GetInteger("song", "diff_drums_pad", -1);
 
-    parts[PartVocals].diff = ini.GetInteger("song", "diff_vocals_pad", -1);
+    Difficulties[PartVocals] = ini.GetInteger("song", "diff_vocals_pad", -1);
 }
 
 void Song::LoadSongIni(const std::filesystem::path& songPath) {

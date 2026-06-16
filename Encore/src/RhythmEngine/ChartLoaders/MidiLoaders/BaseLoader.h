@@ -35,9 +35,9 @@
 namespace Encore::RhythmEngine {
     class BaseLoader {
         // returns -1 for no event, good for plastic guitar i think
-        virtual void GetChartEvents(smf::MidiEventList track) {};
-        virtual void GetNoteModifiers(smf::MidiEventList track) {};
-        virtual void GetNotes(smf::MidiEventList track) {};
+        virtual void GetChartEvents(smf::MidiEventList &track) {};
+        virtual void GetNoteModifiers(smf::MidiEventList &track) {};
+        virtual void GetNotes(smf::MidiEventList &track) {};
         virtual int GetNoteType(const smf::MidiEvent &event) { return 0; };
 
     public:
@@ -75,8 +75,7 @@ namespace Encore::RhythmEngine {
         int Threshold; // shouldnt be here but who care
         int Resolution = 480;
         int maxMult;
-        virtual void LoadChart(smf::MidiEventList track) {
-            track.linkNotePairs();
+        virtual void LoadChart(smf::MidiEventList &track) {
             // first get events, hopos, taps, lifts, the likes
             GetChartEvents(track);
             GetNoteModifiers(track);

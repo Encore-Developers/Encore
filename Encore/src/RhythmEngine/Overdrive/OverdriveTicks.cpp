@@ -9,27 +9,6 @@
 
 
 
-void Encore::RhythmEngine::OverdriveTicks::GenerateOverdriveTicks(smf::MidiFile &midiFile, int TrackID) {
-    ZoneScoped;
-    //midiFile.doTimeAnalysis();
-    smf::MidiEventList &track = midiFile[TrackID];
-    track.linkEventPairs();
-    // 12 and 13 are the beats
-    for (int i = 0; i < track.getSize(); i++) {
-        if (track[i].isNoteOn() && (track[i][1] == 12 || track[i][1] == 13)) {
-            ticks.emplace_back(track[i].seconds, track[i].tick);
-        }
-    }
-
-    // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
-    if (ticks.size() == 0) {
-        int overdriveTickCount = midiFile.getFileDurationInTicks() / TheSongTime.songPPQN;
-        for (int i = 0; i < overdriveTickCount; i++) {
-            ticks.emplace_back(midiFile.getTimeInSeconds(TheSongTime.songPPQN * i), TheSongTime.songPPQN * i);
-        }
-    }
-};
-
 void Encore::RhythmEngine::OverdriveTicks::UpdateOverdriveTick() {
     // this is the overdrive code right here
     double CurrentTime = TheSongTime.GetElapsedTime();

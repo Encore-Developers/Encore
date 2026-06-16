@@ -65,8 +65,7 @@ void Encore::RhythmEngine::MidiDrumsLoader::CheckEvents(const smf::MidiEvent &ev
     }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
-void Encore::RhythmEngine::MidiDrumsLoader::GetChartEvents(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiDrumsLoader::GetChartEvents(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         ATTEMPT_TO_ADD_CHART_EVENT(116, overdrive, event);
@@ -121,8 +120,7 @@ void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &eve
     }
 }
 
-void Encore::RhythmEngine::MidiDrumsLoader::GetNoteModifiers(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiDrumsLoader::GetNoteModifiers(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         CheckToms(event);
@@ -159,8 +157,7 @@ void Encore::RhythmEngine::MidiDrumsLoader::CheckModifiers(const smf::MidiEvent 
     ITERATE_MODIFIER_BY_NOTE(DiscoFlip, event)
 }
 
-void Encore::RhythmEngine::MidiDrumsLoader::GetNotes(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiDrumsLoader::GetNotes(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         // im tired boss

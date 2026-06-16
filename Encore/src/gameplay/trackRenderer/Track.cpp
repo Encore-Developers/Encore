@@ -749,6 +749,7 @@ void Encore::Track::DrawBeatlines() {
             float ScrollPos = GetNotePos3D(
                 beatline.time
             )-0.24;
+            if (ScrollPos > Length) break;
             float Size = 0;
             Color beatlineColor = WHITE;
             switch (beatline.type) {

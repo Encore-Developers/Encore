@@ -17,8 +17,7 @@
 void Encore::RhythmEngine::MidiPadLoader::CreateLiftMarker(const smf::MidiEvent &event) {
     LiftMarkers[GetLiftLane(Difficulty, event)].emplace(event.tick);
 }
-void Encore::RhythmEngine::MidiPadLoader::GetNoteModifiers(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiPadLoader::GetNoteModifiers(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         if (IsInLiftMarkerRange(Difficulty, event) && event.isNoteOn()) {
@@ -59,8 +58,7 @@ Encore::RhythmEngine::MidiPadLoader::GetNoteType(const smf::MidiEvent &event) {
     }
     return 0;
 }
-void Encore::RhythmEngine::MidiPadLoader::GetChartEvents(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiPadLoader::GetChartEvents(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         ATTEMPT_TO_ADD_CHART_EVENT(116, overdrive, event);
@@ -115,8 +113,7 @@ void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event
     }
 }
 
-void Encore::RhythmEngine::MidiPadLoader::GetNotes(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiPadLoader::GetNotes(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         if (event[0] == 255)

@@ -13,34 +13,42 @@ inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
 
 void Encore::LyricRenderer::RenderLyrics() {
     ProcessAnimation();
-    if (!TheSongTime.Lyrics.empty()
+    if (!TheSongTime.Lyrics.empty() || displayState != HIDDEN
     ) {
         ZoneScopedN("Lyrics Display")
         auto easeInOut = getEasingFunction(EaseInOutSine);
         auto easeIn = getEasingFunction(EaseInQuad);
         auto easeOut = getEasingFunction(EaseOutQuad);
         DisplayAlpha = static_cast<unsigned char>(easeInOut(ShowHideTimer) * 255.0);
-        DrawPhraseBackground(1, 0.11f, 0.06f * 0.75f);
-        if (TheSongTime.GetNextLyric()) {
-            DrawPhrase(
-                TheSongTime.GetNextLyric(),
-                0.10f,
-                0.0425f * 0.75f,
-                (200 - (easeOut(AnimTimer) * 200)));
+        {
+            ZoneScopedN("Draw Next Lyric Phrase")
+            DrawPhraseBackground(1, 0.11f, 0.06f * 0.75f);
+            if (TheSongTime.GetNextLyric()) {
+                DrawPhrase(
+                    TheSongTime.GetNextLyric(),
+                    0.10f,
+                    0.0425f * 0.75f,
+                    (200 - (easeOut(AnimTimer) * 200)));
+            }
         }
-        DrawPhraseBackground(0, 0.05, 0.06f);
-        DrawPhrase(
-            &TheSongTime.GetCurrentLyric(),
-            0.05f + (easeInOut(AnimTimer) * 0.05f),
-            0.0425f - (easeInOut(AnimTimer) * (0.0425f * 0.25f)),
-            255 - (easeInOut(AnimTimer) * 55));
-
-        if (TheSongTime.GetPreviousLyric()) {
+        {
+            ZoneScopedN("Draw Current Lyric Phrase")
+            DrawPhraseBackground(0, 0.05, 0.06f);
             DrawPhrase(
-                TheSongTime.GetPreviousLyric(),
-                0.05f, // + (AnimTimer * 0.05f),
-                (0.0425f), // + (AnimTimer * (0.0425f * 0.25f)),
-                0 + (easeIn(AnimTimer) * 200));
+                &TheSongTime.GetCurrentLyric(),
+                0.05f + (easeInOut(AnimTimer) * 0.05f),
+                0.0425f - (easeInOut(AnimTimer) * (0.0425f * 0.25f)),
+                255 - (easeInOut(AnimTimer) * 55));
+        }
+        {
+            ZoneScopedN("Animate Out Last Lyric Phrase")
+            if (TheSongTime.GetPreviousLyric()) {
+                DrawPhrase(
+                    TheSongTime.GetPreviousLyric(),
+                    0.05f, // + (AnimTimer * 0.05f),
+                    (0.0425f), // + (AnimTimer * (0.0425f * 0.25f)),
+                    0 + (easeIn(AnimTimer) * 200));
+            }
         }
         if (TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).EndSec <
             TheSongTime.GetElapsedTime()) {
@@ -67,6 +75,7 @@ void Encore::LyricRenderer::RenderLyrics() {
 }
 
 void Encore::LyricRenderer::DrawPhraseBackground(int type, float pos, float size) {
+    ZoneScopedN("Draw Phrase Background")
     Units &u = Units::getInstance();
     float baselineVox = u.hpct(0.0025f) + u.hinpct(pos);
     float voxHeight = u.hinpct(size);
@@ -85,6 +94,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
     float pos,
     float size,
     unsigned char alpha) {
+    ZoneScopedN("Draw Lyric Phrase")
     Units &u = Units::getInstance();
 
     const float baselineVox = u.hpct(0.0025f) + u.hinpct(pos);

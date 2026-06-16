@@ -850,7 +850,7 @@ void SongSelectMenu::Draw() {
             ResetToLeftPos;
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        int diffNumber = SongToDisplayInfo->parts[i].diff;
+        int diffNumber = SongToDisplayInfo->Difficulties[i];
         if (diffNumber == -1)
             TintColor = DARKGRAY;
         auto instIcon = assets.InstIcons[asdasd];

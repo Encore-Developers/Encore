@@ -462,7 +462,7 @@ void GameplayMenu::Draw() {
         if (player.engine.get()->stats.get()->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), volume);
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
     }
     TheAudioManager.UpdateAudioStreamVolumes();
 
@@ -575,7 +575,7 @@ void GameplayMenu::Load() {
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), TheGameSettings.GetActiveVolume());
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), TheGameSettings.GetActiveVolume());
 
 
         tracks.push_back(std::make_shared<Encore::Track>(player));
