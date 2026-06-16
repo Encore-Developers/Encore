@@ -3,11 +3,13 @@
 #include "song/song.h"
 
 namespace Encore {
+    class SongSelectEvent : public Event {};
+
     class ReadyUpEvent : public Event {
     public:
         Song* song;
 
-        GotoReadyUpEvent(Song* song) : song(song) {};
+        ReadyUpEvent(Song* song) : song(song) {};
     };
 
     class LoadSongEvent : public Event {

@@ -12,7 +12,7 @@ namespace Encore {
     class Session : public EventSource {
     public:
         Session() = default;
-        virtual ~Session() = default;
+        ~Session() override = default;
         std::vector<std::shared_ptr<Player>> players;
         std::vector<std::shared_ptr<Client>> clients;
         std::vector<SyncedSongRef> playlist;
@@ -46,6 +46,7 @@ namespace Encore {
 
         virtual void AddPlayer(ClientID id, ControllerIdentity controller);
         virtual void RemovePlayer(unsigned int playerId);
+        virtual size_t FindOrCreateEmptyPlayerSlot();
 
         virtual void SetPlayerProfile(PlayerID player, std::shared_ptr<Profile> profile);
 

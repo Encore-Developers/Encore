@@ -38,9 +38,9 @@ void Encore::Track::Draw() {
             FitToColumn(ColumnLeft, ColumnRight, BaseCamera);
         }
 
-        NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
-        Length = BaseLength * player.HighwayLength;
-        player.engine->UpdateCalibration(player.InputCalibration);
+        NoteSpeed = player.profile->noteSpeed; // TODO: should probably find a better way to do this
+        Length = BaseLength * player.profile->trackLength;
+        player.engine->UpdateCalibration(player.profile->inputCalibration);
 
 
         ProcessAnimation();
@@ -164,7 +164,7 @@ void Encore::Track::DrawSurface() {
                 { 0 },
                 0,
                 { 1, 1, 1 },
-                ColorBrightness(player.AccentColor, -0.25));
+                ColorBrightness(player.profile->accentColor, -0.25));
 
     OverdriveTimer = Lerp(OverdriveTimer,
                           (int)player.engine->stats->overdrive.Active,
@@ -189,7 +189,7 @@ void Encore::Track::DrawSurface() {
                     { 0 },
                     0,
                     { 1, 1, 1 },
-                    ColorAlpha(player.AccentColor, ease(SpotlightTimer)));
+                    ColorAlpha(player.profile->accentColor, ease(SpotlightTimer)));
     }
 
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
@@ -218,14 +218,14 @@ void Encore::Track::DrawOverdriveMeter() {
     ASSET(overdriveShader).SetUniform("FillPct",
                                       1.0f - player.engine->stats->overdrive.Fill);
     ASSET(overdriveShader).SetUniform("BaseColor",
-                                      ColorBrightness(player.AccentColor, 0.75));
+                                      ColorBrightness(player.profile->accentColor, 0.75));
 
     DrawModelEx(ASSET(overdriveMeter),
                 { 0, -0.1, -0.85 },
                 { 1, 0, 0 },
                 60,
                 { 0.95, 0.8, 0.95 },
-                player.AccentColor);
+                player.profile->accentColor);
 
     return;
 
@@ -308,12 +308,12 @@ void Encore::Track::DrawUsername() {
         alpha = 0;
     }
     Color color = WHITE;
-    std::string NameText = player.Name;
+    std::string NameText = player.profile->name;
     if (player.engine->stats->Bot) {
         color = SKYBLUE;
         NameText += " " + LOCALISE("gameplay.autoplay").toString();
     }
-    if (player.BrutalMode) {
+    if (player.IsModifierActive(Modifiers::brutalMode)) {
         color = RED;
     }
     screenPos.x += Offset * GetRenderWidth() * 0.5;
@@ -322,9 +322,9 @@ void Encore::Track::DrawUsername() {
     float width = MeasureTextEx(ASSET(rubik), NameText.c_str(), FontSize, 0).x + FontSize;
     float left = screenPos.x - (width / 2);
     Rectangle icon = { left, screenPos.y, FontSize, FontSize };
-    int num = player.Instrument > PartVocals
-        ? player.Instrument - PartVocals - 1
-        : player.Instrument;
+    int num = player.instrument > PartVocals
+        ? player.instrument - PartVocals - 1
+        : player.instrument;
     auto iconA = TheAssets.InstIcons.at(num);
     DrawTexturePro(iconA->Fetch(),
                    { 0, 0, float(iconA->width), float(iconA->height) },
@@ -362,7 +362,7 @@ Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
 }
 
 void Encore::Track::DrawOffsetWindow() {
-    Vector3 NotificationPoint = { 0, 0, (BaseLength + 5) * player.HighwayLength };
+    Vector3 NotificationPoint = { 0, 0, (BaseLength + 5) * player.profile->trackLength };
     Vector2 ScreenPos = GetWorldToScreen(
         NotificationPoint,
         AnimCamera);
@@ -388,13 +388,13 @@ void Encore::Track::DrawMultiplier() {
     Vector3 scale = { 1.1, 1.1, 1.1 };
     Color indColor = player.engine->stats->Bot
         ? SKYBLUE
-        : ColorBrightness(player.AccentColor, -0.3);
+        : ColorBrightness(player.profile->accentColor, -0.3);
     ASSET(indicatorRingShader).SetUniform("BaseColor",
                                           indColor);
     ASSET(indicatorRingShader).SetUniform("FCColor", GOLD);
     ASSET(indicatorRingShader).SetUniform("time", GetTime());
     ASSET(multiplierFillShader).SetUniform("BaseColor",
-                                           ColorBrightness(player.AccentColor, -0.85));
+                                           ColorBrightness(player.profile->accentColor, -0.85));
     int MaxMult = player.engine->stats->SixMultiplier ? 6 : 4;
     Color fillColor;
     if (player.engine->stats->multNoOD() == MaxMult) {
@@ -431,7 +431,7 @@ void Encore::Track::DrawMultiplier() {
                 { 0 },
                 0,
                 scale,
-                ColorBrightness(player.AccentColor, -0.5));
+                ColorBrightness(player.profile->accentColor, -0.5));
     DrawModelEx(ASSET(multNumPlane), position, { 0 }, 0, scale, WHITE);
 }
 
@@ -835,11 +835,11 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
 
 void Encore::Track::UpdateControllerLED() {
     ZoneScoped
-    if (player.joypadID > 0) {
-        auto joystick = SDL_GetJoystickFromID(player.joypadID);
+    if (player.controller.type == ControllerType::SDL) {
+        auto joystick = SDL_GetJoystickFromID(player.controller.sdlJoystickId);
         if (joystick) {
             float beatFrac = TheSongTime.GetBeatlineDelta();
-            Color baseColor = ColorLerp(player.AccentColor, { 0, 0, 0, 0 }, beatFrac);
+            Color baseColor = ColorLerp(player.profile->accentColor, { 0, 0, 0, 0 }, beatFrac);
             Color overdriveColor = ColorLerp({ 255, 255, 0, 255 }, baseColor, beatFrac);
             baseColor = ColorLerp(baseColor, overdriveColor, OverdriveTimer);
             SDL_SetJoystickLED(joystick, baseColor.r, baseColor.g, baseColor.b);
@@ -853,7 +853,7 @@ void Encore::Track::HandleEvent(Event *event) {
         KickSpeedMult = bounceEvent->mult;
     }
     if (auto multiplierIncrease = event->GetTyped<MultFlashEvent>()) {
-        Color color = multiplierIncrease->comboBreak ? RED : ColorBrightness(player.AccentColor, 0.2);
+        Color color = multiplierIncrease->comboBreak ? RED : ColorBrightness(player.profile->accentColor, 0.2);
         Particle flash;
         flash.setActive(true)
              .setType(MARKIPLIER_FLASH)
@@ -957,7 +957,7 @@ void Encore::Track::AddSlot(TrackSlot *slot) {
 void Encore::Track::Configure5Lane() {
     NoteHeight = 1;
     slots.clear();
-    float xMult = player.LeftyFlip ? -1 : 1;
+    float xMult = player.IsModifierActive(Modifiers::leftyFlip) ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 2 * xMult, 1, SLOT_GREEN));
     AddSlot(new GemTrackSlot(this, 1 * xMult, 1, SLOT_RED));
     AddSlot(new GemTrackSlot(this, 0 * xMult, 1, SLOT_YELLOW));
@@ -969,7 +969,7 @@ void Encore::Track::Configure5Lane() {
 void Encore::Track::Configure5LaneKickOpen() {
     NoteHeight = 1;
     slots.clear();
-    float xMult = player.LeftyFlip ? -1 : 1;
+    float xMult = player.IsModifierActive(Modifiers::leftyFlip) ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 2 * xMult, 1, 0.75, SLOT_GREEN));
     AddSlot(new GemTrackSlot(this, 1 * xMult, 1, 0.75, SLOT_RED));
     AddSlot(new GemTrackSlot(this, 0 * xMult, 1, 0.75, SLOT_YELLOW));
@@ -981,7 +981,7 @@ void Encore::Track::Configure5LaneKickOpen() {
 void Encore::Track::Configure5LaneGemOpen() {
     NoteHeight = 1;
     slots.clear();
-    float xMult = player.LeftyFlip ? -1 : 1;
+    float xMult = player.IsModifierActive(Modifiers::leftyFlip) ? -1 : 1;
     AddSlot(new GemTrackSlot(this, 1.25 * xMult, 5.0 / 6.0, SLOT_GREEN));
     AddSlot(new GemTrackSlot(this, 0.41666 * xMult, 5.0 / 6.0, SLOT_RED));
     AddSlot(new GemTrackSlot(this, -0.41666 * xMult, 5.0 / 6.0, SLOT_YELLOW));

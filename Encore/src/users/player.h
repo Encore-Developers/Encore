@@ -48,6 +48,8 @@ public:
     int difficulty = 0;
     int instrument = 0;
 
+    bool IsModifierActive(Modifiers::Index modifier);
+
     operator PlayerID() const {
         return index;
     }

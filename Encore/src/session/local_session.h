@@ -6,29 +6,32 @@ namespace Encore {
     class LocalSession : public Session {
     public:
 
-        virtual bool IsOnline() {return false;};
+        GameplayFlow currentFlow;
+        SignalWait currentWait;
 
-        virtual void AddPlayer(ClientID id, ControllerIdentity controller);
-        virtual void RemovePlayer(unsigned int playerId);
+        bool IsOnline() override {return false;};
 
-        virtual void SetPlayerProfile(PlayerID player, std::shared_ptr<Profile> profile);
+        void AddPlayer(ClientID id, ControllerIdentity controller) override;
+        void RemovePlayer(unsigned int playerId) override;
 
-        virtual void PushPlaylistSong(SyncedSongRef song);
-        virtual void PopPlaylistSong();
-        virtual void ClearPlaylist();
+        void SetPlayerProfile(PlayerID player, std::shared_ptr<Profile> profile) override;
 
-        virtual void ToSongSelect();
+        void PushPlaylistSong(SyncedSongRef song) override;
+        void PopPlaylistSong() override;
+        void ClearPlaylist() override;
 
-        virtual void ReadyUpForSong(SyncedSongRef song);
-        virtual void LoadSong(SyncedSongRef song);
-        virtual void PlaySong(SyncedSongRef song);
-        virtual void ShowResults();
+        void ToSongSelect() override;
 
-        virtual void ResetSignals();
-        virtual void SignalPlayer(PlayerID player, SignalState state);
-        virtual void SignalClient();
-        virtual void CheckSignals();
+        void ReadyUpForSong(SyncedSongRef song) override;
+        void LoadSong(SyncedSongRef song) override;
+        void PlaySong(SyncedSongRef song) override;
+        void ShowResults() override;
 
-        virtual SignalWait WaitForSignal();
+        void ResetSignals() override;
+        void SignalPlayer(PlayerID player, SignalState state) override;
+        void SignalClient() override;
+        void CheckSignals() override;
+
+        SignalWait WaitForSignal() override;
     };
 }

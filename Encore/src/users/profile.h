@@ -1,4 +1,6 @@
 #pragma once
+#include "raylib.h"
+
 #include <cassert>
 #include <memory>
 #include <string>
@@ -71,6 +73,8 @@ public:
     std::string name = "Guest";
     float noteSpeed = 1;
     float trackLength = 1;
+    float inputCalibration = 0;
+    Color accentColor = {255, 0, 255, 255};
 
     Modifiers modifiers = Modifiers::none;
 

@@ -15,4 +15,7 @@
 
 Player::Player() {
 
+}
+bool Player::IsModifierActive(Modifiers::Index modifier) {
+    return profile->modifiers.IsModifierActive(modifier);
 };

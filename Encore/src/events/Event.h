@@ -88,8 +88,7 @@ namespace Encore {
             FireEvent(&event);
         }
 
-
-        ~EventSource();
+        virtual ~EventSource();
     };
 
     class EventSink {
@@ -98,7 +97,7 @@ namespace Encore {
 
         virtual void HandleEvent(Event *) {};
 
-        ~EventSink();
+        virtual ~EventSink();
     };
 }
 
