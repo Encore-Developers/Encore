@@ -16,6 +16,7 @@
 #include "gameplay/resultsMenu.h"
 #include "settings/settings.h"
 #include "gameplay/inputCallbacks.h"
+#include "session/session_events.h"
 #include "users/playerManager.h"
 #include "util/Presence.h"
 #include "tracy/Tracy.hpp"
@@ -75,5 +76,11 @@ void MenuManager::DrawMenu() {
         count.pos.y += fontSize;
         data.lDrawText("songScanning.badSongs");
         count.DrawText(std::to_string(BadSongCount));
+    }
+}
+
+void MenuManager::HandleEvent(Encore::Event* event) {
+    if (auto readyUp = event->GetTyped<Encore::ReadyUpEvent>()) {
+        CreateAndSwitchMenu<ReadyUpMenu>(readyUp->song);
     }
 }

@@ -2,19 +2,45 @@
 #include "client.h"
 #include "users/player.h"
 
+#include <coroutine>
 #include <memory>
 #include <vector>
 
 namespace Encore {
 
     // Unified interface for both local and online
-    class Session {
+    class Session : public EventSource {
     public:
         Session() = default;
         virtual ~Session() = default;
         std::vector<std::shared_ptr<Player>> players;
         std::vector<std::shared_ptr<Client>> clients;
         std::vector<SyncedSongRef> playlist;
+
+        struct GameplayFlow {
+            struct promise_type {
+                GameplayFlow get_return_object() {return {.handle = std::coroutine_handle<promise_type>::from_promise(*this)};}
+                std::suspend_always initial_suspend() {return {};}
+                std::suspend_always final_suspend() noexcept {return {};}
+                void return_void() {}
+                void unhandled_exception() {}
+            };
+
+            std::coroutine_handle<promise_type> handle;
+            operator std::coroutine_handle<promise_type>() const { return handle; }
+            operator std::coroutine_handle<>() const { return handle; }
+        };
+
+        struct SignalWait {
+            bool signal_result = false;
+
+            constexpr bool await_ready() { return false; }
+            bool await_suspend(std::coroutine_handle<> handle) {
+
+                return false;
+            }
+            constexpr bool await_resume() {return signal_result;}
+        };
 
         virtual bool IsOnline();
 
@@ -27,8 +53,33 @@ namespace Encore {
         virtual void PopPlaylistSong();
         virtual void ClearPlaylist();
 
+        virtual void ToSongSelect();
 
-        virtual TEMP_coroutine GameplayFlow();
+        GameplayFlow StartGameplayFlow() {
+            for (auto& song : playlist) {
+                ReadyUpForSong(song);
+                if (!co_await WaitForSignal()) {
+                    break;
+                }
+
+                LoadSong(song);
+                if (!co_await WaitForSignal()) {
+                    break;
+                }
+
+                PlaySong(song);
+                if (!co_await WaitForSignal()) {
+                    break;
+                }
+
+                ShowResults();
+                co_await WaitForSignal();
+            }
+            ClearPlaylist();
+
+            ToSongSelect();
+            co_return;
+        }
 
         virtual void ReadyUpForSong(SyncedSongRef song);
         virtual void LoadSong(SyncedSongRef song);
@@ -49,6 +100,6 @@ namespace Encore {
         virtual void CheckSignals();
 
         // Returns true once all players have signaled, returns false if any player cancels
-        virtual TEMP_coroutine<bool> WaitForSignal();
+        virtual SignalWait WaitForSignal();
     };
 }
