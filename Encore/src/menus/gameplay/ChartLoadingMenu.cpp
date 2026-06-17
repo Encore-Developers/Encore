@@ -83,9 +83,10 @@ void ChartLoadingMenu::LoadCharts() {
                                  resize(4);
         }
         for (int i = 0; i < player.engine->chart->Lanes.size(); i++) {
-            player.engine->chart->Lanes.at(i).shrink_to_fit();
+
+            player.engine->chart->at(i).shrink_to_fit();
             player.engine->chart->CurrentNoteIterators.at(i) =
-                player.engine->chart->Lanes.at(i).begin();
+                player.engine->chart->at(i).begin();
         }
         player.engine->stats->overdrive.ticks = chartLoader.GenerateOverdriveTicks();
     }

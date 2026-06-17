@@ -54,8 +54,8 @@ namespace Encore::RhythmEngine {
             HeldNotePointers.resize(size);
         };
         uint8_t size;
-        NoteVector &operator[](const int i) { return this->Lanes.at(i); }
-        NoteVector &at(const int i) { return this->Lanes.at(i); }
+        NoteVector &operator[](const size_t i) { return this->Lanes.at(i); }
+        NoteVector &at(const size_t i) { return this->Lanes.at(i); }
         void resize(const size_t _size) {
             size = _size;
             Lanes.resize(_size);

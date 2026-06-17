@@ -80,6 +80,9 @@ GetValidParts() {
         Parts[PartKeys] = Parts[PlasticKeys];
         Parts[PartKeys].AutoToPad = true;
     }
+    if (Parts[PitchedVocals].Valid) {
+        Parts[PitchedVocals].Valid = false;
+    }
     processed = true;
     return Parts;
 }
@@ -117,9 +120,15 @@ Encore::RhythmEngine::MidiChartHandler::GetLyricPhrases() {
 }
 
 void Encore::RhythmEngine::MidiChartHandler::LoadCharts() {
-    ThreadPool threads = std::thread::hardware_concurrency()-1;
+    ThreadPool threads = std::thread::hardware_concurrency() - 1;
+
+    for (auto & Part : Parts) {
+        if (Part.TrackInt == -1)
+            continue;
+        midifile[Part.TrackInt].linkEventPairs();
+    }
     for (int part = 0; part < Parts.size(); part++) {
-        if (!Parts[part].Valid)
+        if (Parts[part].TrackInt == -1)
             continue;
         if (threshold == -1) {
             threshold = (tpq / 3) + 1;
@@ -128,75 +137,61 @@ void Encore::RhythmEngine::MidiChartHandler::LoadCharts() {
         if (part == PartBass || part == PartVocals) {
             maxMult = 6;
         }
-        midifile.doTimeAnalysis();
-        midifile.linkEventPairs();
-        midifile[Parts[part].TrackInt].linkEventPairs();
         switch (part) {
         case PartDrums:
         case PartBass:
         case PartGuitar:
         case PartKeys:
         case PartVocals: {
-            threads.SubmitTask([this, part, maxMult]() {
-                ZoneScopedN("Pad loader")
-                for (int diff = 0; diff < 4; diff++) {
-                    if (!Parts[part].ValidDiffs[diff])
-                        continue;
-                    if (!Parts[part].AutoToPad) {
-                        MidiPadLoader loader(diff, tpq, &midifile);
-                        loader.LoadChart(midifile[Parts[part].TrackInt]);
-                        Charts.at(part).first.at(diff) = loader.chart;
-                    } else {
-                        MidiGuitarLoader chartLoader(diff, threshold, &midifile, maxMult);
-                        chartLoader.chart.sections = TheSongTime.Sections;
-                        chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
-                        Charts.at(part).first.at(diff) =
-                            PadConverters::ConvertGuitarToPad(chartLoader.chart);
-                    }
+            ZoneScopedN("Pad loader")
+            for (int diff = 0; diff < 4; diff++) {
+                if (!Parts[part].ValidDiffs[diff])
+                    continue;
+                if (!Parts[part].AutoToPad) {
+                    MidiPadLoader loader(diff, tpq, &midifile);
+                    loader.LoadChart(midifile[Parts[part].TrackInt]);
+                    Charts.at(part).first.at(diff) = loader.chart;
+                } else {
+                    MidiGuitarLoader chartLoader(diff, threshold, &midifile, maxMult);
+                    chartLoader.chart.sections = TheSongTime.Sections;
+                    chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
+                    Charts.at(part).first.at(diff) =
+                        PadConverters::ConvertGuitarToPad(chartLoader.chart);
                 }
-                Charts.at(part).second = true;
-            });
+            }
             break;
         }
         case PlasticDrums: {
-            threads.SubmitTask([this, part]() {
-                ZoneScopedN("Drums loader")
-                for (int diff = 0; diff < 4; diff++) {
-                    if (!Parts[part].ValidDiffs[diff])
-                        continue;
-                    MidiDrumsLoader chartLoader(diff, &midifile);
-                    chartLoader.chart.sections = TheSongTime.Sections;
-                    chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
-                    Charts.at(part).first.at(diff) = chartLoader.chart;
-                }
-                Charts.at(part).second = true;
-            });
+            ZoneScopedN("Drums loader")
+            for (int diff = 0; diff < 4; diff++) {
+                if (!Parts[part].ValidDiffs[diff])
+                    continue;
+                MidiDrumsLoader chartLoader(diff, &midifile);
+                chartLoader.chart.sections = TheSongTime.Sections;
+                chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
+                Charts.at(part).first.at(diff) = chartLoader.chart;
+            }
             break;
         }
         case PlasticBass:
         case PlasticGuitar:
         case PlasticKeys: {
-            threads.SubmitTask([this, part, maxMult]() {
-                ZoneScopedN("Classic loader")
-                for (int diff = 0; diff < 4; diff++) {
-                    if (!Parts[part].ValidDiffs[diff])
-                        continue;
-                    MidiGuitarLoader chartLoader(diff, threshold, &midifile, maxMult);
-                    chartLoader.chart.sections = TheSongTime.Sections;
-                    chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
-                    Charts.at(part).first.at(diff) = chartLoader.chart;
-                }
-                Charts.at(part).second = true;
-            });
+            ZoneScopedN("Classic loader")
+            for (int diff = 0; diff < 4; diff++) {
+                if (!Parts[part].ValidDiffs[diff])
+                    continue;
+                MidiGuitarLoader chartLoader(diff, threshold, &midifile, maxMult);
+                chartLoader.chart.sections = TheSongTime.Sections;
+                chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
+                Charts.at(part).first.at(diff) = chartLoader.chart;
+            }
             break;
         }
         case PitchedVocals: {
-            threads.SubmitTask([this, part]() {
-                ZoneScopedN("Lyric loader")
-                MidiLyricLoader lyricLoader(&midifile, Parts[part].TrackInt);
-                lyricLoader.LoadLyrics();
-                Lyrics = lyricLoader.lyrics;
-            });
+            ZoneScopedN("Lyric loader")
+            MidiLyricLoader lyricLoader(&midifile, Parts[part].TrackInt);
+            lyricLoader.LoadLyrics();
+            Lyrics = lyricLoader.lyrics;
             break;
         }
         default:
@@ -250,15 +245,5 @@ Encore::RhythmEngine::BaseChart Encore::RhythmEngine::MidiChartHandler::GetChart
 }
 
 bool Encore::RhythmEngine::MidiChartHandler::IsLoaded() {
-    int ValidCharts = 0;
-    int LoadedCharts = 0;
-    for (int part = 0; part < Charts.size(); part++) {
-        if (!Parts[part].Valid)
-            continue;
-        ValidCharts++;
-        if (Charts.at(part).second)
-            LoadedCharts++;
-    }
-    if (ValidCharts == LoadedCharts) return true;
-    return false;
+return true;
 }

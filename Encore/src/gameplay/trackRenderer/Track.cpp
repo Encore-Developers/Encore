@@ -501,37 +501,29 @@ void Encore::Track::DrawTrackNotifications() {
 }
 
 void Encore::Track::DrawCombo() {
-    if (player.engine->stats->Combo == 0)
-        return;
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
-    float FontSize = GetRenderHeight()*0.025f;
-    // float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
-    float TextHeight = MeasureTextEx(ASSET(rubikBold),
-                                     std::to_string(player.engine->stats->Combo).c_str(),
-                                     FontSize,
-                                     0).
-        y;
+    TextDisplay comboDisplay;
     float POffset = GetRenderHeight()*0.05f;
-    // perfect in
 
     Vector2 ScreenMultiplierPosition = GetWorldToScreen(
         WorldMultiplierPosition,
         AnimCamera);
-    // float subtractStuff = (TextWidth * 0.25);
-    // float xPos = ScreenMultiplierPosition.x - subtractStuff - POffset - (TextWidth *
-    pos = { ScreenMultiplierPosition.x + POffset,
-            ScreenMultiplierPosition.y - (TextHeight / 2) };
-    pos.x += Offset * GetRenderWidth() * 0.5;
+    std::string comboNum = std::to_string(player.engine->stats->Combo);
+    comboDisplay.Fnt(ASSET(rubikBold))
+    .Col(ColorAlpha(WHITE, 0.75))
+    .Size(GetRenderHeight()*0.025f)
+    .Pos({ ScreenMultiplierPosition.x + POffset,
+            ScreenMultiplierPosition.y - (comboDisplay.fontSize / 2) })
+    .AddX(Offset * GetRenderWidth() * 0.5);
 
-    Text::DrawText(
-        ASSET(rubikBold),
-        std::to_string(player.engine->stats->Combo),
-        pos,
-        FontSize,
-        ColorAlpha(WHITE, 0.75),
-        LEFT
-    );
+    if (player.engine->stats->Combo > 0) {
+        comboDisplay.DrawText(comboNum);
+    }
+
+    comboDisplay.AddX(comboDisplay.TextWidth("00000"))
+    .Col(ColorAlpha(GREEN, 0.75))
+    .DrawText(std::to_string(int((Length / GetZPerSecond()) * 1000)));
 }
 
 void Encore::Track::DrawJudgement() {
