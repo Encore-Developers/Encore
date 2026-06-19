@@ -459,6 +459,8 @@ int TheGame::Run(int argc, char *argv[]) {
         TheFrameManager.WaitForFrame();
         FrameMark;
     }
+    // prevents owned textures from attempting to load the texture after the opengl context has been destroyed (caused segfaults)
+    OwnedTexture::allowDispose = false;
     //poller.active = false;
     CloseWindow();
     Encore::Log::Exit();

@@ -14,16 +14,20 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/ringbuffer_sink.h"
 
 static bool active = false;
+static std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> ringSink;
 
 bool Encore::Log::InitializeLogger(std::string prefsPath) {
     try {
         std::vector<spdlog::sink_ptr> sinks;
         auto rotatingSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(prefsPath + "/log", 1048576 * 1024, 3);
         auto stdoutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        ringSink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(128);
         sinks.push_back(rotatingSink);
         sinks.push_back(stdoutSink);
+        sinks.push_back(ringSink);
         auto encoreLogger = std::make_shared<spdlog::logger>("Encore", begin(sinks), end(sinks));
         auto raylibLogger = std::make_shared<spdlog::logger>("raylib", begin(sinks), end(sinks));
         spdlog::register_logger(raylibLogger);
@@ -48,12 +52,15 @@ void Encore::Log::Debug(const std::string& msg) {
 void Encore::Log::Info(const std::string& msg) {
     spdlog::info(msg);
 }
-
 void Encore::Log::Warn(const std::string& msg) {
     spdlog::warn(msg);
 }
 void Encore::Log::Error(const std::string& msg) {
     spdlog::error(msg);
+}
+
+std::vector<std::string> Encore::Log::GetRecentMessages() {
+    return ringSink->last_formatted();
 }
 
 void Encore::Log::Exit() {

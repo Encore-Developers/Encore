@@ -5,6 +5,8 @@ class OwnedTexture {
     Texture texture;
 public:
 
+    static bool allowDispose;
+
     OwnedTexture(Texture texture);
     ~OwnedTexture();
 
