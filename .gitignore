@@ -26,6 +26,8 @@ Encore/build/*
 /html/
 .clangd
 desktop.ini
+/Encore/lib/libspdlog.a
+/Encore/lib/libspdlogd.a
 /Encore/lib/spdlogd.lib
 /Encore/lib/pkgconfig/spdlog.pc
 /Encore/lib/cmake/spdlog/
