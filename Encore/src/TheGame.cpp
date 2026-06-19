@@ -223,6 +223,7 @@ int TheGame::Run(int argc, char *argv[]) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_WINDOW_HIGHDPI);
     SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0");
     // glfwWindowHint(GLFW_SAMPLES, 4);
     // glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
 
@@ -298,6 +299,7 @@ int TheGame::Run(int argc, char *argv[]) {
         rect.h /= 1.5;
         InitWindow(rect.w, rect.h, "Encore");
     }
+    std::jthread controllerPoller(PollControllers);
     TheGameSettings.UpdateFullscreen();
     bool AudioInitSuccessful = TheAudioManager.Init();
     assert(AudioInitSuccessful == true);

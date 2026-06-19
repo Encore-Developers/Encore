@@ -287,6 +287,7 @@ void EncoreDebug::DrawQuickSettings() {
         Checkbox("VSync", &TheGameSettings.VerticalSync);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
+        SliderInt("Controller Poll Rate", &controllerPollRate, 10, 1000, "%dhz");
         if (DragInt("Audio Calibration", &TheGameSettings.AudioOffset, 1, 0, 0, "%dms")) {
             TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
         }
