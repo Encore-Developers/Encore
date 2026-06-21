@@ -19,8 +19,8 @@ void SettingsKeyboard::Draw() {
     Assets& assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
-    encOS::DrawTopOvershell(0.15f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.15f);
+    GameMenu::DrawTopBarText();
     GameMenu::DrawBottomOvershell();
 
     float TextPlacementTB = u.hpct(0.05f);

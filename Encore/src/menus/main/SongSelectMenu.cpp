@@ -525,7 +525,7 @@ void SongSelectMenu::Draw() {
     BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f), u.hinpct(0.7f));
     GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
-    encOS::DrawTopOvershell(0.15f);
+    GameMenu::DrawTopOvershell(0.15f);
     if (TheSongList.PlaylistMode) {
         DrawRectangleGradientV(
         0, 0, GetRenderWidth(), u.hpct(0.15f) - u.hinpct(0.005f),
@@ -534,7 +534,7 @@ void SongSelectMenu::Draw() {
         );
     }
 
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText();
     int AlbumX = u.RightSide - u.winpct(0.25f);
     int AlbumY = u.hpct(0.075f);
     int AlbumHeight = u.winpct(0.25f);

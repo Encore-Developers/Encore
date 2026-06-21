@@ -226,8 +226,8 @@ void resultsMenu::Draw() {
         if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
     }
-    encOS::DrawTopOvershell(0.2f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.2f);
+    GameMenu::DrawTopBarText();
     // Draw album cover to the left of track info
     float albumX = u.LeftSide;
     float albumY = u.hpct(0.0225f);

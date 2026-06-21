@@ -524,8 +524,7 @@ void GameplayMenu::Draw() {
         DrawPauseMenu();
     }
 
-    GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText(true);
 }
 
 void GameplayMenu::Load() {
@@ -648,8 +647,8 @@ void GameplayMenu::DrawPauseMenu() {
         GetColor(0x00000080)
     );
 
-    encOS::DrawTopOvershell(0.2f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.2f);
+    GameMenu::DrawTopBarText(true);
 
     DrawRectangle(
         (int)u.LeftSide,

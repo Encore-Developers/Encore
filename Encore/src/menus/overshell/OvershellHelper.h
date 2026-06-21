@@ -110,7 +110,6 @@ namespace encOS {
         int slot, int x, std::string string, float *value, float step, float min, float max
     );
     void DrawBeacon(int slot, float x, float y, float width, float height, bool top, Color playerColor);
-    void DrawTopOvershell(double height);
     bool DrawOvershellRectangleHeader(
         float x,
         float y,

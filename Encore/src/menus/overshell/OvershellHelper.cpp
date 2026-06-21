@@ -25,46 +25,6 @@ void encOS::DrawBeacon(int slot, float x, float y, float width, float height, bo
     }
 }
 
-void encOS::DrawTopOvershell(double height) {
-    BeginBlendMode(BLEND_ALPHA);
-    Units &unit = Units::getInstance();
-    DrawRectangleGradientV(
-        0,
-        unit.hpct(height) - 2,
-        GetRenderWidth(),
-        unit.hinpct(0.025f),
-        Color { 0, 0, 0, 128 },
-        Color { 0, 0, 0, 0 }
-    );
-    DrawRectangle(0, 0, (int)GetRenderWidth(), unit.hpct(height), WHITE);
-    DrawRectangle(
-        0,
-        0,
-        (int)GetRenderWidth(),
-        unit.hpct(height) - unit.hinpct(0.005f),
-        ColorBrightness(GetColor(0x181827FF), -0.25f)
-    );
-
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        float OvershellTopLoc = unit.hpct(1.0f) - unit.winpct(0.05f);
-        float OvershellLeftLoc =
-            (unit.wpct(0.125) + (unit.winpct(0.25) * i)) - unit.winpct(0.1);
-        float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25) * i));
-        float HalfWidth = OvershellCenterLoc - OvershellLeftLoc;
-        if (ThePlayerManager.ActivePlayers[i] != -1) {
-            DrawBeacon(
-                i,
-                OvershellLeftLoc,
-                0,
-                HalfWidth * 2,
-                unit.hpct(height) - unit.hinpct(0.005f),
-                true,
-                ThePlayerManager.GetActivePlayer(i).AccentColor
-            );
-        }
-    }
-}
-
 bool encOS::DrawOvershellRectangleHeader(
     float x,
     float y,

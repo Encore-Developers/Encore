@@ -210,6 +210,5 @@ void PracticeMenu::DrawGameplay() {
     }
     TheAudioManager.UpdateAudioStreamVolumes();
 
-    GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText(true);
 }

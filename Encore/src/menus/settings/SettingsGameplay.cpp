@@ -34,8 +34,8 @@ void SettingsGameplay::Draw() {
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
-    encOS::DrawTopOvershell(0.15f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.15f);
+    GameMenu::DrawTopBarText();
 
     float TextPlacementTB = u.hpct(0.05f);
     Text::lDrawText(assets.rubik, "settings.header.gameplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);

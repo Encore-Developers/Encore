@@ -56,22 +56,67 @@ MainMenu TheGameMenu;
 int MainMenu::logoInt = 0;
 
 void GameMenu::DrawTopOvershell(float TopOvershell) {
+    float OvershellBottom = u.hpct(TopOvershell);
+    float OvershellHeight = u.hinpct(TopOvershell);
+    float TopBarPos = u.hpct(0);
+    float TopBarHeight = u.hinpct(0.04);
+
     DrawRectangleGradientV(
         0,
-        u.hpct(TopOvershell) - 2,
+        OvershellBottom - 2,
         GetRenderWidth(),
         u.hinpct(0.025f),
         Color { 0, 0, 0, 128 },
         Color { 0, 0, 0, 0 }
     );
-    DrawRectangle(0, 0, (int)GetRenderWidth(), u.hpct(TopOvershell), WHITE);
-    DrawRectangle(
+    DrawRectangleGradientV(
         0,
-        0,
-        (int)GetRenderWidth(),
-        u.hpct(TopOvershell) - u.hinpct(0.005f),
-        ColorBrightness(GetColor(0x181827FF), -0.25f)
+        TopBarPos - u.hinpct(0.025f),
+        GetRenderWidth(),
+        u.hinpct(0.025f),
+        Color { 0, 0, 0, 0 },
+        Color { 0, 0, 0, 128 }
     );
+    DrawRectangle(0, TopBarPos, (int)GetRenderWidth(), OvershellHeight, WHITE);
+    DrawRectangleGradientV(
+        0,
+        TopBarPos,
+        GetRenderWidth(),
+        TopBarHeight,
+        GetColor(0x332033FF),
+        GetColor(0x271827FF)
+    );
+    DrawRectangleGradientV(
+        0,
+        TopBarPos + TopBarHeight,
+        GetRenderWidth(),
+        OvershellHeight - TopBarHeight - u.hinpct(0.005f),
+        Color { 32, 32, 51, 255 },
+        Color { 24, 24, 39, 255 }
+    );
+    DrawRectangleGradientV(
+        0,
+        TopBarPos + TopBarHeight,
+        GetRenderWidth(),
+        u.hinpct(0.0075f),
+        Color { 0, 0, 0, 128 },
+        Color { 0, 0, 0, 0 }
+    );
+    DrawRectangleGradientV(
+        0,
+        TopBarPos,
+        GetRenderWidth(),
+        u.hinpct(0.005f),
+        Color { 0, 0, 0, 128 },
+        Color { 0, 0, 0, 0 }
+    );
+    //DrawRectangle(
+    //    0,
+    //    0,
+    //    (int)GetRenderWidth(),
+    //    u.hpct(TopOvershell) - u.hinpct(0.005f),
+    //   ColorBrightness(GetColor(0x181827FF), -0.25f)
+    // );
 }
 
 void GameMenu::DrawBottomOvershell() {
@@ -115,17 +160,35 @@ void GameMenu::DrawAlbumArtBackground() {
     EndShaderMode();
 };
 
-void GameMenu::DrawVersion() {
-    DrawTextEx(
-        menuAss.josefinSansItalic,
-        TextFormat(
-            "%s-%s:%s", menuVersion.c_str(), gitBranch.c_str(), menuCommitHash.c_str()
-        ),
-        { u.wpct(0.0025f), u.hpct(0.0025f) },
-        u.hinpct(0.025f),
-        0,
-        WHITE
-    );
+
+void GameMenu::DrawTopBarText(bool ShowFPS, bool ShowLogo) {
+    float Size = u.hinpct(0.025f);
+    float Top = u.hpct(00);
+    float Offset = 0;
+
+    if (ShowLogo) {
+        Encore::TextDisplay logo;
+        logo.Pos(u.wpct(0.0025f), Top - u.hinpct(0.003))
+            .Size(Size*1.75)
+            .Col(WHITE)
+            .Fnt(ASSET(rubikExtraBold))
+            .DrawText("encore");
+        Offset = logo.TextWidth("encore");
+    }
+
+    Encore::TextDisplay vers;
+    std::string VersionText = menuVersion + "-" + gitBranch + ":" + menuCommitHash.substr(0, 6);
+    vers.Pos(u.wpct(0.0025f) + (Offset * 1.125), Top + (u.hinpct(0.0225) - (Size /2)))
+        .Size(Size)
+        .Col(GetColor(0x807F7FFF))
+        .Fnt(ASSET(josefinSansBold))
+        .DrawText(VersionText);
+
+    if (!ShowFPS) return;
+
+    vers.AddX(vers.TextWidth(VersionText) * 1.125)
+        .Col(LIME)
+        .DrawText(std::format("FPS: {}", GetFPS()));
 };
 
 
@@ -405,8 +468,7 @@ void MainMenu::MainMenuScreen() {
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
     GameMenu::DrawTopOvershell(0.2f);
-
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText(false, false);
     float logoHeight = u.hinpct(0.15f);
     DrawRectangle(0, u.hpct(0.2f), u.LeftSide, u.hinpct(0.05f), accentColor);
     DrawRectangleGradientH(

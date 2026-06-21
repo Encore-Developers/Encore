@@ -161,8 +161,8 @@ void ReadyUpMenu::Draw() {
         GetColor(0x00000080)
     );
 
-    encOS::DrawTopOvershell(0.2f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.2f);
+    GameMenu::DrawTopBarText(false);
 
     DrawRectangle(
         (int)u.LeftSide,
