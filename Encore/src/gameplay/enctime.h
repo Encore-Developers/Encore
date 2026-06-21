@@ -11,7 +11,7 @@
 #include "song/song.h"
 
 struct BPM {
-    BPM(double _time, int _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
+    BPM(double _time, double _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
     double time;
     double bpm;
     int tick;
