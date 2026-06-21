@@ -1,23 +1,23 @@
 #pragma once
-
 #include "RhythmEngine/ChartLoaders/ChartLoader.h"
-#include "RhythmEngine/Overdrive/OverdriveTicks.h"
 //
-// Created by maria on 15/06/2026.
+// Created by maria on 18/06/2026.
 //
+
 
 namespace Encore::RhythmEngine {
-    class MidiChartHandler final : public ChartHandler
+    class DotChartHandler final : public ChartHandler
     {
-        smf::MidiFile midifile;
-        static SongPart GetSongPart(smf::MidiEventList& track);
+        std::ifstream chart;
         int EventsTrack = -1;
-        int tpq = 480;
+        int tpq = 192;
         bool processed = false;
         bool FinishedLoading = false;
+        std::vector<TimeSig> TS;
+        std::vector<BPM> bpms;
     public:
-        explicit MidiChartHandler(std::filesystem::path fileName);
-        ~MidiChartHandler() = default;
+        explicit DotChartHandler(std::filesystem::path fileName);;
+        ~DotChartHandler() override;
         int GetResolution() override { return tpq; };
         std::vector<BPM> GetBPMChanges() override;
         std::vector<TimeSig> GetTimeSigChanges() override;

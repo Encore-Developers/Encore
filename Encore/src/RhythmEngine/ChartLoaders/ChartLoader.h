@@ -1,6 +1,7 @@
 #pragma once
 #include "RhythmEngine/Chart/NoteVector.h"
 #include "RhythmEngine/Overdrive/OverdriveTicks.h"
+#include "gameplay/enctime.h"
 
 struct TrackInformation {
     int TrackInt = -1;
@@ -32,7 +33,9 @@ namespace Encore::RhythmEngine {
         virtual std::pair<int, double> GetEndEvent() = 0;
         virtual void GetSections() = 0;
         virtual OverdriveTicks GenerateOverdriveTicks() = 0;
-
+        virtual int GetResolution() = 0;
+        virtual std::vector<BPM> GetBPMChanges() = 0;
+        virtual std::vector<TimeSig> GetTimeSigChanges() = 0;
         virtual BaseChart GetChart(int part, int diff) = 0;
         virtual bool IsLoaded() = 0;
     };
@@ -47,6 +50,9 @@ namespace Encore::RhythmEngine {
         std::vector<EncLyricPhrase> GetLyricPhrases() const;
         OverdriveTicks GenerateOverdriveTicks() const;
         std::pair<int, double> GetEndEvent() const;
+        std::vector<BPM> GetBPMChanges() const;
+        int GetResolution();
+        std::vector<TimeSig> GetTimeSigChanges() const;
 
         BaseChart GetChart(SongPart part, int difficulty) const;
         bool IsLoaded() {return chartHandler->IsLoaded();};

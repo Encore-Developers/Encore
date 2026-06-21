@@ -206,22 +206,22 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
     if (std::filesystem::exists(infoPath)) {
         ++SongCount;
         try {
-            if (std::filesystem::exists(folder / "notes.mid")) {
+            if (std::filesystem::exists(folder / "notes.mid")) { // || std::filesystem::exists(folder / "notes.chart")) {
                 Song song;
                 song.songInfoPath = infoPath;
                 song.songDir = folder;
                 song.LoadSongIni(folder);
                 auto placedSong = &songs.emplace_back(std::move(song));
-                scanPool->SubmitTask([folder, placedSong]() {
+                scanPool->SubmitTask([placedSong, &song]() {
                     ZoneScopedN("Hash Song")
-                    std::ifstream hashStream(folder / "notes.mid", std::ios::binary);
+                    std::ifstream hashStream(song.midiPath, std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
                     memcpy(placedSong->chartHash, hash, picosha2::k_digest_size);
                     ++SongsHashed;
                 });
             } else {
-                badSongs << "Song does not have notes.mid" << std::endl;
+                badSongs << "Song does not have note chart file" << std::endl;
                 badSongs << folder << std::endl << std::endl;
                 ++BadSongCount;
             }

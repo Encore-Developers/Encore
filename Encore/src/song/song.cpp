@@ -93,7 +93,7 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
             if (entry.path().stem() == "album") {
                 albumArtPath = entry.path();
             }
-            if (entry.path().filename() == "notes.mid") {
+            if (entry.path().filename() == "notes.mid" || entry.path().filename() == "notes.chart") {
                 midiPath = entry.path();
             }
         }

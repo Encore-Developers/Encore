@@ -33,8 +33,10 @@ void ChartLoadingMenu::LoadCharts() {
     // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     {
         ZoneScopedN("Loading Beatmap")
-        smf::MidiFile file(curSong->midiPath.string());
-        TheSongTime.BeatmapFromMidiTrack(file, chartLoader.GetEndEvent().first);
+        TheSongTime.BPMChanges = chartLoader.GetBPMChanges();
+        TheSongTime.TimeSigChanges = chartLoader.GetTimeSigChanges();
+        TheSongTime.songPPQN = chartLoader.GetResolution();
+        TheSongTime.GenerateBeatmap(chartLoader.GetEndEvent().first);
     }
     chartLoader.LoadCharts();
 
@@ -124,7 +126,7 @@ void ChartLoadingMenu::Draw() {
 
     ClearBackground(BLACK);
     GameMenu::DrawAlbumArtBackground();
-    encOS::DrawTopOvershell(0.15f);
+    GameMenu::DrawTopOvershell(0.15f);
     Encore::Text::lDrawText(
         assets.redHatDisplayBlack,
         "chartLoading.header",

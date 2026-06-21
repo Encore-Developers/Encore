@@ -3,11 +3,15 @@
 //
 
 #include "ChartLoader.h"
+
+#include "DotChartLoader/DotChartHandler.h"
 #include "MidiLoaders/MidiChartHandler.h"
 
 Encore::RhythmEngine::ChartLoader::ChartLoader(const std::filesystem::path &chartPath) {
     if (chartPath.filename() == "notes.mid") {
         chartHandler = new MidiChartHandler(chartPath);
+    } else if (chartPath.filename() == "notes.chart") {
+        chartHandler = new DotChartHandler(chartPath);
     }
 }
 
@@ -28,6 +32,18 @@ GenerateOverdriveTicks() const {
 
 std::pair<int, double> Encore::RhythmEngine::ChartLoader::GetEndEvent() const {
     return chartHandler->GetEndEvent();
+}
+
+std::vector<BPM> Encore::RhythmEngine::ChartLoader::GetBPMChanges() const {
+    return chartHandler->GetBPMChanges();
+}
+
+int Encore::RhythmEngine::ChartLoader::GetResolution() {
+    return chartHandler->GetResolution();
+}
+
+std::vector<TimeSig> Encore::RhythmEngine::ChartLoader::GetTimeSigChanges() const {
+    return chartHandler->GetTimeSigChanges();
 }
 
 Encore::RhythmEngine::BaseChart Encore::RhythmEngine::ChartLoader::GetChart(const SongPart part,

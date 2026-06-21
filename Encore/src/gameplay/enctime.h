@@ -99,10 +99,10 @@ public:
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
     double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);
-    void GenerateBeatmap(smf::MidiFile& midifile, int songEndTick);
+    void GenerateBeatmap(int songEndTick);
     static double TickRangeToTimeDelta(int tickStart, int tickEnd, const BPM &currentBPM);
     static double TimeSinceBPMStart(BPM bpm, int endTick);
-    void CreateBeatlines(smf::MidiFile& midifile, TimeSig timeSig, int tickStart, int tickEnd, int &curTempo);
+    void CreateBeatlines(TimeSig timeSig, int tickStart, int tickEnd, int &curTempo);
     // Start the timer
     void SetOffset(double audioCalibration);
 

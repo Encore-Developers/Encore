@@ -42,6 +42,43 @@ Encore::RhythmEngine::MidiChartHandler::MidiChartHandler(std::filesystem::path f
     MidiChartHandler::GetValidParts();
 }
 
+std::vector<BPM> Encore::RhythmEngine::MidiChartHandler::GetBPMChanges() {
+    std::vector<BPM> bpms;
+    tpq = midifile.getTicksPerQuarterNote();
+    smf::MidiEventList &track = midifile[0];
+    for (int i = 0; i < track.getSize(); i++) {
+        if (track[i].isTempo()) {
+            bpms.emplace_back(
+                track[i].seconds, track[i].getTempoBPM()*TheAudioManager.songSpeed, track[i].tick
+            );
+        }
+
+    }
+
+    return bpms;
+}
+
+std::vector<TimeSig> Encore::RhythmEngine::MidiChartHandler::GetTimeSigChanges() {
+    std::vector<TimeSig> ts;
+    tpq = midifile.getTicksPerQuarterNote();
+    smf::MidiEventList &track = midifile[0];
+    for (int i = 0; i < track.getSize(); i++) {
+        if (track[i].isMeta() && track[i][1] == 0x58) {
+            int numer = (int)track[i][3];
+            int denom = pow(2, track[i][4]);
+            ts.emplace_back(
+                track[i].seconds, numer, denom, track[i][4], track[i].tick
+            );
+        }
+    }
+    if (ts.empty()) {
+        ts.emplace_back(0, 4, 4, 2, 0); // midi always assumed to be 4/4 if
+        // time sig
+        // event isn't found
+    }
+    return ts;
+}
+
 std::array<TrackInformation, PlasticVocals> &Encore::RhythmEngine::MidiChartHandler::
 GetValidParts() {
     if (processed) {
@@ -214,7 +251,7 @@ std::pair<int, double> Encore::RhythmEngine::MidiChartHandler::GetEndEvent() {
             }
         }
     }
-    return { 0, 0 };
+    return { midifile.getFileDurationInTicks(), midifile.getFileDurationInSeconds() };
 }
 
 void Encore::RhythmEngine::MidiChartHandler::GetSections() {
