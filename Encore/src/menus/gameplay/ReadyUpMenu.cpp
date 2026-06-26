@@ -89,6 +89,8 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                                    float xPosOfMenu) {
     Units &u = Units::getInstance();
     auto& Parts = chartLoader.GetSongParts();
+    float width = GetOvershellSlotWidth();
+    float left = GetOvershellSlotLeft(playerInt);
     for (int i = 0; i < 4; i++) {
         TrackInformation &part = Parts[player.Instrument];
         if (part.ValidDiffs[i]) {
@@ -97,10 +99,10 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                 ButtonColor = ColorBrightness(AccentColor, -0.25);
             }
             Rectangle pos{
-                xPosOfMenu,
+                left,
                 BottomOvershell - u.hinpct(0.05f)
                 - (u.hinpct(0.05f) * (float)i),
-                u.winpct(0.2f),
+                width,
                 u.hinpct(0.05f)
             };
 
@@ -124,18 +126,18 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             );
         } else {
             GuiButton(
-                { xPosOfMenu,
+                { left,
                   BottomOvershell - u.hinpct(0.05f)
                   - (u.hinpct(0.05f) * i),
-                  u.winpct(0.2f),
+                  width,
                   u.hinpct(0.05f) },
                 ""
             );
             DrawRectangle(
-                xPosOfMenu + 2,
+                left + 2,
                 BottomOvershell + 2 - u.hinpct(0.05f)
                 - (u.hinpct(0.05f) * i),
-                u.winpct(0.2f) - 4,
+                width - 4,
                 u.hinpct(0.05f) - 4,
                 Color{ 0, 0, 0, 128 }
             );
@@ -190,7 +192,7 @@ void ReadyUpMenu::Draw() {
         WHITE
     );
 
-    float BottomOvershell = u.hpct(1) - u.hinpct(0.15f);
+    float BottomOvershell = u.hpct(1) - u.hinpct(0.18f);
     float TextPlacementTB = AlbumArtTop;
     float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
     DrawTextEx(
@@ -240,10 +242,10 @@ void ReadyUpMenu::Draw() {
                 if (ControllerInstSlot[playerInt] >= PartsToDisplay.size()) {
                     ControllerInstSlot[playerInt] = PartsToDisplay.size() - 1;
                 }
-                Rectangle pos{ xPosOfMenu,
+                Rectangle pos{ GetOvershellSlotLeft(playerInt),
                                BottomOvershell - u.hinpct(0.05f)
                                - (u.hinpct(0.05f) * (float)i),
-                               u.winpct(0.2f),
+                               GetOvershellSlotWidth(),
                                u.hinpct(0.05f) };
                 std::string PartAndDiff = std::to_string(
                         curSong->Difficulties.at(PartsToDisplay[i]) + 1) + "/7   ";

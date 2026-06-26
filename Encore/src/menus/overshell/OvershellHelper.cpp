@@ -46,7 +46,7 @@ bool encOS::DrawOvershellRectangleHeader(
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0);
     GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0);
-    bool toReturn = GuiButton({ x, y, width, height }, "");
+    bool toReturn = GuiButton({ x, y, width, UpperPortion }, "");
     SETDEFAULTSTYLE();
     // float Inset = unit.winpct(0.001f);
     // float InsetDouble = Inset * 2;
@@ -81,9 +81,18 @@ bool encOS::DrawOvershellBottomCover(float x,
     Color accentColor) {
     Units &u = Units::getInstance();
     float height = u.hinpct(0.11f * 0.4f);
+
+    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
+    GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
+    GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0);
+    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0);
+    bool toReturn = GuiButton({ x, GetYPos(), width, height }, "");
     DrawRectangleGradientV(x, GetYPos(), width, height, ColorBrightness(accentColor, -0.6f), ColorBrightness(accentColor, -0.76f));
     DrawRectangleGradientV(x, GetYPos(), width, u.hinpct(0.004f), Color { 0, 0, 0, 64 }, Color { 0, 0, 0, 0 });
-    return true;
+    return toReturn;
 }
 
 float encOS::GetYPos() {
@@ -186,11 +195,11 @@ bool encOS::OvershellSlider(
     float speedTextWidth = u.winpct(0.04f);
     float widthNoHeight = u.winpct(0.2f) - height;
     Rectangle bounds = { osLeft + speedTextWidth,
-                         u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
+                         GetYPos() - (u.winpct(0.03f) * (x + 1)),
                          osWidth - speedTextWidth - height,
                          height };
     Rectangle confirmBounds = { osLeft + osWidth - height,
-                                u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
+                                GetYPos() - (u.winpct(0.03f) * (x + 1)),
                                 height,
                                 height };
     Assets &assets = Assets::getInstance();
@@ -198,7 +207,7 @@ bool encOS::OvershellSlider(
     GuiSlider(bounds, "", "", value, min, max);
     GuiButton(
         { osLeft,
-          u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
+          GetYPos() - (u.winpct(0.03f) * (x + 1)),
           speedTextWidth,
           height },
         TextFormat("%1.2f", *value)
