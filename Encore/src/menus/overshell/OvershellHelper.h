@@ -103,6 +103,9 @@ namespace encOS {
         }
     };
 
+    inline float osLeft = 0;
+    inline float osWidth = 0;
+
     bool OvershellButton(int slot, int x, std::string string);
     void OvershellText(int slot, int x, std::string string);
 
@@ -120,7 +123,8 @@ namespace encOS {
         Color usernameColor,
         bool drawBG = true
     );
-
+    bool DrawOvershellBottomCover(float x, float width, int state, Color accentColor);
+    float GetYPos();
     bool OvershellCheckbox(int slot, int x, std::string string, bool initialVal);
 
     extern OvershellInputState inputStates[MAX_PLAYERS];

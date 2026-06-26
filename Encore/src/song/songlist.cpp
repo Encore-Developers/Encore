@@ -206,7 +206,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
     if (std::filesystem::exists(infoPath)) {
         ++SongCount;
         try {
-            if (std::filesystem::exists(folder / "notes.mid")) { // || std::filesystem::exists(folder / "notes.chart")) {
+            if (std::filesystem::exists(folder / "notes.mid") || std::filesystem::exists(folder / "notes.chart")) {
                 Song song;
                 song.songInfoPath = infoPath;
                 song.songDir = folder;

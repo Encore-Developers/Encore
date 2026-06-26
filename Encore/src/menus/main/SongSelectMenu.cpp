@@ -176,9 +176,12 @@ void SongSelectMenu::ScrollToCurrentSong() {
 void SongSelectMenu::TogglePlaylistMode() {
     TheSongList.PlaylistMode = !TheSongList.PlaylistMode;
     if (TheSongList.PlaylistMode) {
-        buttReg.buttMap.at(Encore::InputChannel::LANE_1).Name = "songSelect.addToPlaylist";
-        buttReg.buttMap.at(Encore::InputChannel::LANE_2).Name = "songSelect.removeFromPlaylist";
-        buttReg.buttMap.at(Encore::InputChannel::LANE_4).Name = "songSelect.disablePlaylist";
+        buttReg.buttMap.at(Encore::InputChannel::LANE_1).Name =
+            "songSelect.addToPlaylist";
+        buttReg.buttMap.at(Encore::InputChannel::LANE_2).Name =
+            "songSelect.removeFromPlaylist";
+        buttReg.buttMap.at(Encore::InputChannel::LANE_4).Name =
+            "songSelect.disablePlaylist";
         buttReg.buttMap.at(Encore::InputChannel::OVERDRIVE).barVisible = true;
         return;
     }
@@ -213,32 +216,32 @@ void SongSelectMenu::Load() {
                      "songSelect.playSong",
                      {
                      if (_action != Encore::Action::PRESS) return;
-                         if (TheSongList.PlaylistMode) {
-                             if (TheSongList.curSong) {
-                                 TheSongList.playlist.push_back(TheSongList.curSong);
-                             }
-                             return;
-                         }
-                         if (!TheSongList.curSong) return;
-                         Unload();
-                         TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
+                     if (TheSongList.PlaylistMode) {
+                     if (TheSongList.curSong) {
+                     TheSongList.playlist.push_back(TheSongList.curSong);
+                     }
+                     return;
+                     }
+                     if (!TheSongList.curSong) return;
+                     Unload();
+                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
 
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_2,
                      "generic.back",
                      {
-                         if (_action != Encore::Action::PRESS) return;
-                         if (TheSongList.PlaylistMode) {
-                             if (!TheSongList.playlist.empty()) {
-                                 TheSongList.playlist.pop_back();
-                                 return;
-                             }
-                             return;
-                         }
-                         if (!TheSongList.curSong) return;
-                         Unload();
-                         TheMenuManager.CreateAndSwitchMenu<MainMenu>();
+                     if (_action != Encore::Action::PRESS) return;
+                     if (TheSongList.PlaylistMode) {
+                     if (!TheSongList.playlist.empty()) {
+                     TheSongList.playlist.pop_back();
+                     return;
+                     }
+                     return;
+                     }
+                     if (!TheSongList.curSong) return;
+                     Unload();
+                     TheMenuManager.CreateAndSwitchMenu<MainMenu>();
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_3,
@@ -253,29 +256,31 @@ void SongSelectMenu::Load() {
                      LANE_4,
                      "songSelect.createPlaylist",
                      {
-                         if (_action != Encore::Action::PRESS) return;
-                         TogglePlaylistMode();
+                     if (_action != Encore::Action::PRESS) return;
+                     TogglePlaylistMode();
                      })
     NEWBUTTONACTION2(buttReg,
                      LANE_5,
                      "songSelect.jumpHeaders",
                      {
                      if (_action == Encore::Action::REPEAT) return;
-                         if (slot == -1) return;
+                     if (slot == -1) return;
                      ControllerOrangeHeld.at(slot) = _action == Encore::Action::PRESS;
                      })
     NEWBUTTONACTION2(buttReg,
                      OVERDRIVE,
                      "songSelect.playPlaylist",
                      {
-                         if (_action == Encore::Action::REPEAT) return;
-                         if (TheSongList.playlist.empty()) return;
-                         Unload();
-                         TheSongList.PlaylistSize = TheSongList.playlist.size();
-                         TheSongList.PlaylistIndex = 1;
-                         TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+                     if (_action == Encore::Action::REPEAT) return;
+                     if (TheSongList.playlist.empty()) return;
+                     Unload();
+                     TheSongList.PlaylistSize = TheSongList.playlist.size();
+                     TheSongList.PlaylistIndex = 1;
+                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.
+                         front());
 
-                     }, false)
+                     },
+                     false)
     NEWBUTTONACTION2(buttReg,
                      INPUT_LEFT,
                      "PgUp",
@@ -465,8 +470,7 @@ void SongSelectMenu::LoadPreview(Song &song) {
     }
 }
 
-std::string SongSelectMenu::GetHeader()
-{
+std::string SongSelectMenu::GetHeader() {
     for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size(); sectInt
          ++) {
         auto sect = TheSongList.sectionEntries[sectInt];
@@ -499,8 +503,8 @@ void SongSelectMenu::Draw() {
                         *TheSongList.sortedSongs[TheSongList.listMenuEntries[
                                 curSongMenuPos].
                             songListID]);
-                    }
                 }
+            }
         }
     }
 
@@ -523,15 +527,32 @@ void SongSelectMenu::Draw() {
         GetColor(0x00000080)
     );
     BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f), u.hinpct(0.7f));
-    GameMenu::DrawTopOvershell(0.208333f);
+    // GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
-    GameMenu::DrawTopOvershell(0.15f);
+    float OvershellTop = u.hpct(0.18f);
+    float songEntryHeight = u.hinpct(0.67f / 11);
+    GameMenu::DrawTopOvershell(0.18f);
     if (TheSongList.PlaylistMode) {
         DrawRectangleGradientV(
-        0, 0, GetRenderWidth(), u.hpct(0.15f) - u.hinpct(0.005f),
-            Color { 0, 0, 0, 0 },
-            Color { 255, 0, 255, 128 }
+            0,
+            0,
+            GetRenderWidth(),
+            u.hpct(0.15f) - u.hinpct(0.005f),
+            Color{ 0, 0, 0, 0 },
+            Color{ 255, 0, 255, 128 }
         );
+    }
+    float TextPlacementTB = u.hpct(0.08f);
+    float TextPlacementLR = u.LeftSide;
+    Encore::TextDisplay subheader;
+    subheader.Pos(u.LeftSide, u.hpct(0.06f)).Size(u.hinpct(0.035f)).Col(LIGHTGRAY).Fnt(
+        ASSET(josefinSansBold));
+    if (TheSongList.PlaylistMode) {
+        subheader.DrawText(LOCALISE("songSelect.quickplay").toString()
+            + " > "
+            + LOCALISE("songSelect.playlistMode").toString());
+    } else {
+        subheader.lDrawText("songSelect.quickplay");
     }
 
     GameMenu::DrawTopBarText();
@@ -543,30 +564,41 @@ void SongSelectMenu::Draw() {
 
     std::string sortType = LOCALIZE(
         "songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
-    Encore::TextDisplay sortData;
-    sortData.Fnt(ASSET(josefinSansItalic)).Size(u.hinpct(0.03f))
-            .Pos(u.LeftSide, u.hpct(0.165f))
-            .DrawText(LOCALISE_FMT("songSelect.sortedBy", sortType));
+    Encore::TextDisplay sortTypeD;
+    float SortFontSize = u.hinpct(0.03f);
+    sortTypeD.Pos(AlbumX - (AlbumOuter * 2), OvershellTop - SortFontSize - AlbumOuter).Size(SortFontSize).
+              Fnt(ASSET(josefinSansItalic)).Col(LIGHTGRAY).Align(RIGHT).
+              DrawText(LOCALISE_FMT("songSelect.sortedBy", sortType));
+    float sortWidth = sortTypeD.TextWidth(LOCALISE_FMT("songSelect.sortedBy", sortType));
 
-    sortData.pos.x = AlbumX - (AlbumOuter * 2);
-    std::size_t sortCount = TheSongList.sortedSongs.size();
-    sortData.Align(RIGHT).DrawText(LOCALISE_FMT("songSelect.songsLoaded", sortCount));
+    Encore::TextDisplay header;
+    header.Pos(TextPlacementLR, TextPlacementTB)
+          .Bounds(u.winpct(0.73) - sortWidth, u.hinpct(0.125f))
+          .Size(u.hinpct(0.125f)).Fnt(ASSET(redHatDisplayBlack)).lDrawText(
+              "songSelect.header");
+    //sortData.pos.x = AlbumX - (AlbumOuter * 2);
+    //std::size_t sortCount = TheSongList.sortedSongs.size();
+    //sortData.Align(RIGHT).DrawText(LOCALISE_FMT("songSelect.songsLoaded", sortCount));
 
     float songTitleWidth = u.winpct(0.3f);
     float songArtistWidth = u.winpct(0.5f);
-    float songEntryHeight = u.hinpct(0.058333f);
-    ASSET(AltBackground).Draw({0,
-        u.hpct(0.266666f) - songEntryHeight,
-        (u.RightSide - u.winpct(0.25f)),
-        songEntryHeight
-        }, ColorBrightness(AccentColor, -0.5f));
+    ASSET(AltBackground).Draw({ 0,
+                                OvershellTop,
+                                (u.RightSide - u.winpct(0.25f)),
+                                songEntryHeight
+                              },
+                              ColorBrightness(AccentColor, -0.5f));
     // Long casts so these are signed
-    topOflistMenu = std::clamp((long)topOflistMenu, (long)curSongMenuPos-6, (long)curSongMenuPos-3);
-    topOflistMenu = std::clamp((long)topOflistMenu, (long)1, (long)TheSongList.listMenuEntries.size()-10);
+    topOflistMenu = std::clamp((long)topOflistMenu,
+                               (long)curSongMenuPos - 6,
+                               (long)curSongMenuPos - 3);
+    topOflistMenu = std::clamp((long)topOflistMenu,
+                               (long)1,
+                               (long)TheSongList.listMenuEntries.size() - 10);
     Encore::TextDisplay songTitle;
     Encore::TextDisplay songArtist;
     float songXPos = u.LeftSide + u.winpct(0.005f) - 2 + songEntryHeight;
-    float songYPos = std::floor(u.hpct(0.266666f));
+    float songYPos = std::floor(OvershellTop + songEntryHeight);
     songTitle.Fnt(ASSET(rubikBold)).Size(u.hinpct(0.035f))
              .Pos(songXPos, songYPos + u.hinpct(0.0125f));
     auto padding = u.hinpct(0.01f);
@@ -599,7 +631,8 @@ void SongSelectMenu::Draw() {
                 headerText = TheSourceIcons.GetSourceName(
                     TheSongList.listMenuEntries[listMenuPos].headerChar);
 
-                auto SourceTex = TheSourceIcons.GetIcon(TheSongList.listMenuEntries[listMenuPos].headerChar);
+                auto SourceTex = TheSourceIcons.GetIcon(
+                    TheSongList.listMenuEntries[listMenuPos].headerChar);
                 Rectangle source = { 0, 0, float(SourceTex->GetTexture().width),
                                      float(SourceTex->GetTexture().height) };
                 Rectangle dest = { songXPos - songEntryHeight, songYPos + padding,
@@ -622,7 +655,7 @@ void SongSelectMenu::Draw() {
                 .songListID];
             Color background = { 128, 128, 128, 128 };
             if (listMenuPos % 2) {
-                background = {160, 160, 160, 128 };
+                background = { 160, 160, 160, 128 };
             }
             if (isCurSong) {
                 auto timer = Clamp(curTime - selectionTime, 0, 0.15);
@@ -713,12 +746,13 @@ void SongSelectMenu::Draw() {
             auto SourceTex = TheSourceIcons.GetIcon(GetHeader());
             Rectangle source = { 0, 0, float(SourceTex->GetTexture().width),
                                  float(SourceTex->GetTexture().height) };
-            Rectangle dest = { songXPos - songEntryHeight, u.hpct(0.2075f) + padding,
+            Rectangle dest = { songXPos - songEntryHeight, OvershellTop + padding,
                                songEntryHeight - padding * 2,
                                songEntryHeight - padding * 2 };
             DrawTexturePro(SourceTex->GetTexture(), source, dest, { 0 }, 0, WHITE);
         }
-        songTitle.Pos(songXPos, u.hpct(0.218333f));
+        songTitle.Pos(songXPos,
+                      OvershellTop + ((songEntryHeight - songTitle.fontSize) / 2));
         songTitle.Col(WHITE);
         songTitle.DrawText(categoryHeaderText);
     }
@@ -785,28 +819,11 @@ void SongSelectMenu::Draw() {
     if (TheSongList.PlaylistMode) {
         Encore::TextDisplay playlistSongs;
         playlistSongs.Size(u.hinpct(0.035f)).Pos(AlbumX - AlbumInner, AlbumY);
-        for (auto& listSong : TheSongList.playlist) {
+        for (auto &listSong : TheSongList.playlist) {
             playlistSongs.DrawText(listSong->title);
             playlistSongs.pos.y += u.hinpct(0.0375f);
         }
     }
-    float TextPlacementTB = u.hpct(0.05f);
-    float TextPlacementLR = u.LeftSide;
-    Encore::TextDisplay subheader;
-    subheader.Pos(u.LeftSide, u.hpct(0.027f)).Size(u.hinpct(0.042f)).Col(LIGHTGRAY);
-    if (TheSongList.PlaylistMode) {
-        subheader.DrawText(LOCALISE("songSelect.quickplay").toString()
-                         + " > "
-                         + LOCALISE("songSelect.playlistMode").toString());
-    } else {
-        subheader.lDrawText("songSelect.quickplay");
-    }
-
-    Encore::TextDisplay header;
-    header.Pos(TextPlacementLR, TextPlacementTB)
-          .Bounds(u.winpct(0.74), u.hinpct(0.125f))
-          .Size(u.hinpct(0.125f)).Fnt(ASSET(redHatDisplayBlack)).lDrawText(
-              "songSelect.header");
 
     std::string albumText = SongToDisplayInfo->album.empty()
         ? "No Album Listed"
@@ -883,7 +900,7 @@ void SongSelectMenu::Draw() {
         }
     }
 
-    GameMenu::DrawBottomOvershell();
+    // GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
 
     Encore::TextDisplay albumData;

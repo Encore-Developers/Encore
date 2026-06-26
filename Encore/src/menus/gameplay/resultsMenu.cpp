@@ -228,20 +228,8 @@ void resultsMenu::Draw() {
     }
     GameMenu::DrawTopOvershell(0.2f);
     GameMenu::DrawTopBarText();
-    // Draw album cover to the left of track info
-    float albumX = u.LeftSide;
-    float albumY = u.hpct(0.0225f);
-    float albumSize = u.hpct(0.158f) - albumY;
-    DrawTexturePro(
-        TheArtLoader.loadedArt->GetTexture(),
-        { 0, 0, (float)TheArtLoader.loadedArt->GetTexture().width, (float)TheArtLoader.loadedArt->GetTexture().height },
-        { albumX, albumY, albumSize, albumSize },
-        { 0, 0 },
-        0,
-        WHITE
-    );
     // Shift track info text to the right of the album cover
-    float textX = u.LeftSide + albumSize + u.winpct(0.01f);
+    float textX = u.LeftSide + u.winpct(0.01f);
     float TitleFontOffset = u.hpct(0.045f);
     float TitleFontSize = u.hinpct(0.04f);
     float SecondaryFontSize = TitleFontSize * 0.75f;
@@ -332,10 +320,8 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     auto& stats = player.engine->stats;
-    float cardPos =
-            (u.wpct(0.125) + (u.winpct(0.25) * playerslot)) - u.winpct(0.11);
-    // float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
-    float cardWidth = u.winpct(0.22f);
+    float cardPos = GetOvershellSlotLeft(playerslot);
+    float cardWidth = GetOvershellSlotWidth();
     float cardHalfWidth = cardWidth/2;
     float cardTop = u.hpct(0.2f);
     DrawRectangle(cardPos - 6, cardTop, cardWidth + 12, u.hpct(0.85f), WHITE);
@@ -479,7 +465,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float statsHeight = cardTop + u.hinpct(0.415f);
     float ActualStatsHeight = u.hinpct(0.03f);
     float statsLeft = cardPos + u.winpct(0.01f);
-    float statsRight = cardPos + u.winpct(0.21f);
+    float statsRight = cardPos + cardWidth - u.winpct(0.01f);
     Encore::TextDisplay LeftStatData;
     Encore::TextDisplay RightStatData;
     LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));

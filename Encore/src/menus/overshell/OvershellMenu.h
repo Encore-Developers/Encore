@@ -76,6 +76,10 @@ public:
     virtual void Draw() = 0;
     virtual void Load() = 0;
     virtual void DrawOvershell();
+
+    float GetOvershellSlotLeft(size_t slot);
+    float GetOvershellSlotWidth();
+
     bool CancelButtonActivation;
     bool onNewMenu;
     bool BNSetting = false;

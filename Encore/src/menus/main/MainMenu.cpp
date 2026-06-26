@@ -120,7 +120,7 @@ void GameMenu::DrawTopOvershell(float TopOvershell) {
 }
 
 void GameMenu::DrawBottomOvershell() {
-    float BottomOvershell = GetRenderHeight() - u.hpct(0.15f);
+    float BottomOvershell = GetRenderHeight() - u.hpct(0.18f);
     DrawRectangle(
         0, BottomOvershell, (float)(GetRenderWidth()), (float)GetRenderHeight(), WHITE
     );

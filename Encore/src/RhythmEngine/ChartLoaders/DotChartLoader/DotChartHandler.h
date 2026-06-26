@@ -15,6 +15,7 @@ namespace Encore::RhythmEngine {
         bool FinishedLoading = false;
         std::vector<TimeSig> TS;
         std::vector<BPM> bpms;
+        std::pair<int, double> EndEvent;
     public:
         explicit DotChartHandler(std::filesystem::path fileName);;
         ~DotChartHandler() override;

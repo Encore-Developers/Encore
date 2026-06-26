@@ -32,21 +32,25 @@ std::array<std::pair<std::string, int>, PitchedVocals> insts
 };
 
 double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double lastTime) {
-    return (60.0/bpm*(double(tickDelta)/resolution))+lastTime;
+    // using https://thenathannator.github.io/GuitarGame_ChartFormats/Implementation-Info/Time-Conversions/ as a reference
+    double secondsPerBeat = 60.0 / bpm;
+    double beatDelta = tickDelta / resolution;
+    double secondDelta = secondsPerBeat * beatDelta;
+    return secondDelta + lastTime;
 };
 Encore::RhythmEngine::DotChartHandler::DotChartHandler(std::filesystem::path fileName)
     : ChartHandler(std::move(fileName)) {
-    static const std::regex event("  ([0-9]+) = ([A-Z]+) ([0-9]+) ?(\\d?)");
+    static const std::regex event("  ([0-9]+) = ([A-Z]+) (.+) ?(\\d?)");
     chart.open(file);
-    double LastTime = 0;
-    int LastTick = 0;
-    double CurBPM = 0;
     for (std::string line; std::getline(chart, line);) {
         if (line.empty()) continue;
         if (line.starts_with('[') && line.ends_with(']')) {
             line.pop_back();
             line.erase(0, 1);
             if (line == "SyncTrack") {
+                double LastTime = 0;
+                int LastTick = 0;
+                double CurBPM = 0;
                 for (std::string sectLine; std::getline(chart, sectLine);) {
                     if (sectLine.starts_with('{')) continue;
                     std::smatch syncMatch;
@@ -71,17 +75,30 @@ Encore::RhythmEngine::DotChartHandler::DotChartHandler(std::filesystem::path fil
                         int denom = pow(2, powr);
                         TS.emplace_back(time, numer, denom, powr, tick);
                     }
+                    if (sectLine.starts_with('}')) break;
                 }
-                break;
+                if (bpms.empty()) {
+                    bpms.emplace_back(0, 120, 0);
+                }
+                if (TS.empty()) {
+                    TS.emplace_back(0, 4, 4, 2, 0);
+                }
+            }
+            if (line == "Events") {
+                for (std::string sectLine; std::getline(chart, sectLine);) {
+                    if (sectLine.starts_with('{')) continue;
+                    std::smatch syncMatch;
+                    std::regex_match(sectLine, syncMatch, event);
+                    if (syncMatch[2] == "E" && syncMatch[3] == "end") {
+                        int tick = std::stoi(syncMatch[1]);
+                        double time = 0;
+                        EndEvent = {tick, time};
+                    }
+                }
             }
         }
     }
-    if (bpms.empty()) {
-        bpms.emplace_back(0, 120, 0);
-    }
-    if (TS.empty()) {
-        TS.emplace_back(0, 4, 4, 2, 0);
-    }
+    // todo: time analysis after parsing beatlines
     chart.close();
 }
 
@@ -143,7 +160,8 @@ void Encore::RhythmEngine::DotChartHandler::LoadCharts() {
 }
 
 std::pair<int, double> Encore::RhythmEngine::DotChartHandler::GetEndEvent() {
-    return std::pair<int, double>{};
+    if (EndEvent.first) return {10000000000000000, 100000000000000000};
+    return EndEvent;
 }
 
 void Encore::RhythmEngine::DotChartHandler::GetSections() {
