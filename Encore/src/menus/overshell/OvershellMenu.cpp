@@ -187,45 +187,42 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
         }
         switch (OvershellState[i]) {
         case CREATION: {
+            DrawOvershellRectangleHeader(
+                osLeft,
+                0,
+                osWidth,
+                osCoverHeight,
+                "Enter player name",
+                Color { 255, 0, 255, 255 },
+                WHITE,
+                true
+            );
             static char name[32] = { 0 };
             Rectangle textBoxPosition { osLeft,
-                                        osBottom - (ButtonHeight * 3),
+                                        GetYPos(0),
                                         SlotWidth,
                                         float(ButtonHeight) };
             GuiTextBox(textBoxPosition, name, 32, true);
-            input.SetLength(2);
             if (OvershellButton(i, 1, "Confirm")) {
                 playerManager.CreatePlayer(name);
                 playerManager.AddActivePlayer(playerManager.PlayerList.size() - 1, i);
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
                 *name = 0;
-                continue;
             }
-            if (OvershellButton(i, 0, "Cancel")) {
+            if (OvershellButton(i, 2, "Cancel")) {
                 OvershellState[i] = OS_ATTRACT;
                 *name = 0;
-                continue;
             }
+            input.SetLength(3);
+
+            // 0 is "none"   1 is "join"   2 is "open"   3 is "close"   cba to make enum
+            DrawOvershellBottomCover(osLeft, osWidth, 3, Color{255,0,255,255});
             break;
         }
         case OS_PLAYER_SELECTION: {
             // for selecting players
             float InfoLoc = (playerManager.PlayerList.size() + 2);
-            if (OvershellButton(i, 0, "Cancel")) {
-                CancelButtonActivation = true;
-                OvershellState[i] = OS_ATTRACT;
-                ControllersToAssign[i] = 0;
-            }
-            BeginBlendMode(BLEND_MULTIPLIED);
-            DrawRectangleRec(
-                { osLeft,
-                  osBottom - ButtonHeight,
-                  SlotWidth,
-                  ButtonHeight },
-                Color { 255, 0, 0, 128 }
-            );
-            EndBlendMode();
             int pos = 0;
             if (!playerManager.PlayerList.empty()) {
                 for (int x = 0; x < playerManager.PlayerList.size(); x++) {
@@ -240,7 +237,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                         continue;
                     }
                     if (OvershellButton(
-                        i, pos + 2, playerManager.PlayerList[x].Name.c_str()
+                        i, pos, playerManager.PlayerList[x].Name.c_str()
                     )) {
                         playerManager.AddActivePlayer(x, i);
 
@@ -256,7 +253,33 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     pos++;
                 }
             }
-            input.SetLength(pos + 2);
+            if (OvershellButton(i, pos++, "New Profile")) {
+                OvershellState[i] = CREATION;
+            }
+            BeginBlendMode(BLEND_MULTIPLIED);
+            DrawRectangleRec(
+                { osLeft,
+                  GetYPos(pos-1),
+                  SlotWidth,
+                  ButtonHeight },
+                Color { 50, 50, 255, 128 }
+            );
+            EndBlendMode();
+            if (OvershellButton(i, pos++, "Cancel")) {
+                CancelButtonActivation = true;
+                OvershellState[i] = OS_ATTRACT;
+                ControllersToAssign[i] = 0;
+            }
+            BeginBlendMode(BLEND_MULTIPLIED);
+            DrawRectangleRec(
+                { osLeft,
+                  GetYPos(pos-1),
+                  SlotWidth,
+                  ButtonHeight },
+                Color { 255, 0, 0, 128 }
+            );
+            EndBlendMode();
+            input.SetLength(pos);
             DrawOvershellRectangleHeader(
                 osLeft,
                 OvershellTopLoc - (ButtonHeight * (pos+2)),
@@ -267,9 +290,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 WHITE,
                 false
             );
-            if (OvershellButton(i, 1, "New Profile")) {
-                OvershellState[i] = CREATION;
-            }
+
             // 0 is "none"   1 is "join"   2 is "open"   3 is "close"   cba to make enum
             DrawOvershellBottomCover(osLeft, osWidth, 3, Color{255,0,255,255});
             break;
@@ -477,7 +498,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 int joysticks;
                 SDL_GetJoysticks(&joysticks);
                 if (i <= joysticks || i == 0) {
-                    DrawOvershellBottomCover(osLeft, osWidth, 1, LIGHTGRAY);
                     if (DrawOvershellRectangleHeader(
                             osLeft,
                             OvershellTopLoc,
@@ -489,8 +509,8 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                         )) {
                         CancelButtonActivation = false;
                         OvershellState[i] = OS_PLAYER_SELECTION;
-                        continue;
                     };
+                    DrawOvershellBottomCover(osLeft, osWidth, 1, LIGHTGRAY);
                 } else {
                     float asdfsdf = unit.hinpct(0.11f * 0.4f);
                     if (DrawOvershellRectangleHeader(
@@ -523,7 +543,8 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 osCoverHeight,
                 playerManager.GetActivePlayer(i).Name,
                 playerManager.GetActivePlayer(i).AccentColor,
-                headerUsernameColor
+                headerUsernameColor,
+                true
             );
             input.SetLength(4);
 
@@ -554,11 +575,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             break;
         }
         case OS_COLOR_PROFILE_TYPE_SELECTOR: {
-            if (OvershellButton(i, 0,LOCALISE("generic.cancel")) || input.backPressed) {
-                CancelButtonActivation = true;
-                OvershellState[i] = OS_OPTIONS;
-                ControllersToAssign[i] = 0;
-            }
             BeginBlendMode(BLEND_MULTIPLIED);
             DrawRectangleRec(
                 { osLeft,
@@ -568,6 +584,21 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 Color { 255, 0, 0, 128 }
             );
             EndBlendMode();
+            DrawOvershellRectangleHeader(
+                osLeft,
+                OvershellTopLoc - (ButtonHeight * 4),
+                osWidth,
+                osCoverHeight,
+                playerManager.GetActivePlayer(i).Name,
+                playerManager.GetActivePlayer(i).AccentColor,
+                WHITE,
+                true
+            );
+            if (OvershellButton(i, 0,LOCALISE("generic.cancel")) || input.backPressed) {
+                CancelButtonActivation = true;
+                OvershellState[i] = OS_OPTIONS;
+                ControllersToAssign[i] = 0;
+            }
             if (OvershellButton(i, 1,LOCALISE("overshell.types.drums"))) {
                 ColorProfileType[i] = Encore::ProfileManager::DRUMS;
                 OvershellState[i] = OS_COLOR_PROFILE_SELECTION;
@@ -582,27 +613,12 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             }
 
             input.SetLength(4);
-            DrawOvershellRectangleHeader(
-                osLeft,
-                OvershellTopLoc - (ButtonHeight * 4),
-                osWidth,
-                osCoverHeight,
-                playerManager.GetActivePlayer(i).Name,
-                playerManager.GetActivePlayer(i).AccentColor,
-                WHITE,
-                false
-            );
 
             DrawOvershellBottomCover(osLeft, osWidth, 3, playerManager.GetActivePlayer(i).AccentColor);
             break;
         }
         case OS_COLOR_PROFILE_SELECTION: {
             float InfoLoc = (TheProfileManager.ColorProfiles.size() + 1);
-            if (OvershellButton(i, 0, "Cancel")) {
-                CancelButtonActivation = true;
-                OvershellState[i] = OS_COLOR_PROFILE_TYPE_SELECTOR;
-                ControllersToAssign[i] = 0;
-            }
 
             DrawOvershellRectangleHeader(
                 osLeft,
@@ -612,12 +628,17 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 playerManager.GetActivePlayer(i).Name,
                 playerManager.GetActivePlayer(i).AccentColor,
                 WHITE,
-                false
+                true
             );
+            if (OvershellButton(i, 0, "Cancel")) {
+                CancelButtonActivation = true;
+                OvershellState[i] = OS_COLOR_PROFILE_TYPE_SELECTOR;
+                ControllersToAssign[i] = 0;
+            }
             BeginBlendMode(BLEND_MULTIPLIED);
             DrawRectangleRec(
                 { osLeft,
-                  osBottom - ButtonHeight,
+                  GetYPos(0),
                   osWidth,
                   ButtonHeight },
                 Color { 255, 0, 0, 128 }
@@ -634,8 +655,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 }
             }
             input.SetLength(pos + 1);
-
-            //if (OvershellButton(i, pos + 1, "Select a profile")) {}
 
             DrawOvershellBottomCover(osLeft, osWidth, 3, playerManager.GetActivePlayer(i).AccentColor);
             break;

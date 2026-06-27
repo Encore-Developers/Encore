@@ -29,7 +29,7 @@ namespace encOS {
         int menuLength;
         int focusedItem;
 
-        Encore::ContinuousTween<float> raise = {0, 0.5, Encore::Easing::EASE_IN_OUT};
+        Encore::ContinuousTween<float> raise = {0, 0.35, Encore::Easing::EASE_IN_OUT};
 
         OvershellInputState(int index) : i(index) {}
 

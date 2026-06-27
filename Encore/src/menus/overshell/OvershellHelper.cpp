@@ -24,6 +24,7 @@ void encOS::DrawBeacon(int slot, float x, float y, float width, float height, bo
     }
 }
 
+// TODO remove these damn parameters we don't need y, width, or height
 bool encOS::DrawOvershellRectangleHeader(
     float x,
     float y,
@@ -62,7 +63,7 @@ bool encOS::DrawOvershellRectangleHeader(
     DrawRectangleRounded(RectPos, 0.25f, 8, ColorBrightness(accentColor, -0.5f));
     EndScissorMode();
     if (drawBG) {
-        DrawRectangleRec({x, y+height, width, GetRenderHeight()-y}, {0x18, 0x18, 0x27, 0xFF});
+        DrawRectangleRec({x, y+UpperPortion, width, GetRenderHeight()-y}, {0x18, 0x18, 0x27, 0xFF});
     }
 
     float centerPos = x + (width / 2);
