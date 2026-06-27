@@ -361,7 +361,9 @@ AssetSet mainMenuSet = {
     ASSETPTR(regularMaskTex),
     ASSETPTR(fcindtex1),
     ASSETPTR(fcindtex2),
-    ASSETPTR(fcindtex3)
+    ASSETPTR(fcindtex3),
+    ASSETPTR(rubikExtraBold),
+    ASSETPTR(AltBackground)
 };
 
 AssetSet gameplaySet = {

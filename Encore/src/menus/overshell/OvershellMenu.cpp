@@ -210,7 +210,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 OvershellState[i] = OS_ATTRACT;
                 *name = 0;
             }
-            if (OvershellButton(i, 2, "Cancel")) {
+            if (OvershellButton(i, 2, "Cancel") || input.backPressed) {
                 OvershellState[i] = OS_ATTRACT;
                 *name = 0;
             }
@@ -265,7 +265,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 Color { 50, 50, 255, 128 }
             );
             EndBlendMode();
-            if (OvershellButton(i, pos++, "Cancel")) {
+            if (OvershellButton(i, pos++, "Cancel") || input.backPressed) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
                 ControllersToAssign[i] = 0;
@@ -446,6 +446,15 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                 }
+                BeginBlendMode(BLEND_MULTIPLIED);
+                DrawRectangleRec(
+                    { osLeft,
+                      GetYPos(curSlot-1),
+                      SlotWidth,
+                      ButtonHeight },
+                    Color { 255, 0, 0, 128 }
+                );
+                EndBlendMode();
             }
 
             input.SetLength(curSlot);
