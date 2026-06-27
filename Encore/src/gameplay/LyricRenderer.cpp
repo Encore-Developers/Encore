@@ -13,34 +13,55 @@ inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
 
 void Encore::LyricRenderer::RenderLyrics() {
     ProcessAnimation();
-    if (!TheSongTime.Lyrics.empty()
+    Units& u = Units::getInstance();
+    if (!TheSongTime.Lyrics.empty() || displayState != HIDDEN
     ) {
         ZoneScopedN("Lyrics Display")
         auto easeInOut = getEasingFunction(EaseInOutSine);
         auto easeIn = getEasingFunction(EaseInQuad);
         auto easeOut = getEasingFunction(EaseOutQuad);
         DisplayAlpha = static_cast<unsigned char>(easeInOut(ShowHideTimer) * 255.0);
-        DrawPhraseBackground(1, 0.11f, 0.06f * 0.75f);
-        if (TheSongTime.GetNextLyric()) {
-            DrawPhrase(
-                TheSongTime.GetNextLyric(),
-                0.10f,
-                0.0425f * 0.75f,
-                (200 - (easeOut(AnimTimer) * 200)));
+        {
+            ZoneScopedN("Draw Next Lyric Phrase")
+            DrawPhraseBackground(1, 0.06f, 0.06f * 0.75f);
+            DrawPhraseBackground(0, 0, 0.06f);
+            float iconWidth = u.hinpct(0.4);
+            Rectangle rect {u.RightSide - iconWidth, u.hpct(0) - (iconWidth/2), iconWidth*1.25f, iconWidth*1.25f};
+            Rectangle source {0,0,float(ASSET(InstIcons).at(4)->width), float(ASSET(InstIcons).at(4)->height)};
+            //
+            BeginScissorMode(0,u.hpct(0)+u.hinpct(0.04f)+1, GetRenderWidth(), u.hinpct(0.06f * 0.75f) + u.hinpct(0.06f));
+            BeginBlendMode(BLEND_ADDITIVE);
+            unsigned char c = static_cast<unsigned char>(easeInOut(ShowHideTimer) * 48.0);
+            // if (ShowHideTimer > 0.5)
+            DrawTexturePro(*ASSET(InstIcons).at(4), source, rect, {0,0}, 25, {c,c,c,c});
+            EndBlendMode();
+            EndScissorMode();
+            //
+            if (TheSongTime.GetNextLyric()) {
+                DrawPhrase(
+                    TheSongTime.GetNextLyric(),
+                    0.05f,
+                    0.0425f * 0.75f,
+                    (200 - (easeOut(AnimTimer) * 200)));
+            }
         }
-        DrawPhraseBackground(0, 0.05, 0.06f);
-        DrawPhrase(
-            &TheSongTime.GetCurrentLyric(),
-            0.05f + (easeInOut(AnimTimer) * 0.05f),
-            0.0425f - (easeInOut(AnimTimer) * (0.0425f * 0.25f)),
-            255 - (easeInOut(AnimTimer) * 55));
-
-        if (TheSongTime.GetPreviousLyric()) {
+        {
+            ZoneScopedN("Draw Current Lyric Phrase")
             DrawPhrase(
-                TheSongTime.GetPreviousLyric(),
-                0.05f, // + (AnimTimer * 0.05f),
-                (0.0425f), // + (AnimTimer * (0.0425f * 0.25f)),
-                0 + (easeIn(AnimTimer) * 200));
+                &TheSongTime.GetCurrentLyric(),
+                0.00f + (easeInOut(AnimTimer) * 0.05f),
+                0.0425f - (easeInOut(AnimTimer) * (0.0425f * 0.25f)),
+                255 - (easeInOut(AnimTimer) * 55));
+        }
+        {
+            ZoneScopedN("Animate Out Last Lyric Phrase")
+            if (TheSongTime.GetPreviousLyric()) {
+                DrawPhrase(
+                    TheSongTime.GetPreviousLyric(),
+                    0.00f, // + (AnimTimer * 0.05f),
+                    (0.0425f), // + (AnimTimer * (0.0425f * 0.25f)),
+                    0 + (easeIn(AnimTimer) * 200));
+            }
         }
         if (TheSongTime.Lyrics.at(TheSongTime.CurrentLyricPhrase).EndSec <
             TheSongTime.GetElapsedTime()) {
@@ -67,8 +88,9 @@ void Encore::LyricRenderer::RenderLyrics() {
 }
 
 void Encore::LyricRenderer::DrawPhraseBackground(int type, float pos, float size) {
+    ZoneScopedN("Draw Phrase Background")
     Units &u = Units::getInstance();
-    float baselineVox = u.hpct(0.0025f) + u.hinpct(pos);
+    float baselineVox = u.hpct(0) + u.hinpct(0.04) + u.hinpct(pos);
     float voxHeight = u.hinpct(size);
     Rectangle imageRec{ 0, 0, float(ASSET(mainLyricBar).width),
                         float(ASSET(mainLyricBar).height) };
@@ -85,9 +107,10 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
     float pos,
     float size,
     unsigned char alpha) {
+    ZoneScopedN("Draw Lyric Phrase")
     Units &u = Units::getInstance();
 
-    const float baselineVox = u.hpct(0.0025f) + u.hinpct(pos);
+    const float baselineVox = u.hpct(0) + u.hinpct(0.04) + u.hinpct(pos);
     const float voxHeight = u.hinpct(0.06f);
     const float FontSize = u.hinpct(size);
     const float padding = (voxHeight - FontSize) / 2;
@@ -104,8 +127,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
     LyricLeft += int(GetRenderWidth() / 2) - (lyricData.TextWidth(allLyrics)/2);
     lyricData.Pos(LyricLeft,baselineVox + padding);
     const Color PlayedColor = { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) };
-    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 148)};
-    const Color UnplayedColor2 = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
+    const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
     for (int i = 0; i < phrase->lyrics.size(); i++) {
         RhythmEngine::EncLyric& lyric = phrase->lyrics[i];
         float EndSec = phrase->EndSec;
@@ -134,7 +156,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
                 EndScissorMode();
             }
         } else {
-            lyricData.Col( UnplayedColor2 );
+            lyricData.Col( UnplayedColor );
             lyricData.DrawText(lyric.Lyric);
         }
         lyricData.pos.x += lyricData.TextWidth(lyric.Lyric);

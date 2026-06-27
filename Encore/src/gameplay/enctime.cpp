@@ -11,36 +11,14 @@
 
 SongTime TheSongTime;
 
-void SongTime::BeatmapFromMidiTrack(Song* song, smf::MidiFile &midiFile, int songEndTick) {
+void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
     ZoneScoped;
-    //midiFile.doTimeAnalysis();
-    songPPQN = midiFile.getTicksPerQuarterNote();
-    smf::MidiEventList &track = midiFile[0];
-    track.linkEventPairs();
-    for (int i = 0; i < track.getSize(); i++) {
-        if (track[i].isTempo()) {
-            BPMChanges.emplace_back(
-                track[i].seconds, track[i].getTempoBPM()*TheAudioManager.songSpeed, track[i].tick
-            );
-            // std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
-            //           << events[i].getTempoBPM() << std::endl;
-        } else if (track[i].isMeta() && track[i][1] == 0x58) {
-            int numer = (int)track[i][3];
-            int denom = pow(2, track[i][4]);
-            TimeSigChanges.emplace_back(
-                track[i].seconds, numer, denom, track[i][4], track[i].tick
-            );
-            // std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ":
-            // "
-            //           << numer << "/" << denom << std::endl;
-        }
-    }
     if (TimeSigChanges.empty()) {
         TimeSigChanges.emplace_back(0, 4, 4, 2, 0); // midi always assumed to be 4/4 if
                                                     // time sig
         // event isn't found
     }
-    GenerateBeatmap(song, songEndTick);
+    GenerateBeatmap(songEndTick);
 }
 
 /*
@@ -69,35 +47,6 @@ Encore::RhythmEngine::EncLyricPhrase *SongTime::GetPreviousLyric() {
     return nullptr;
 }
 
-void SongTime::ParseSections(Song* song, smf::MidiFile& midiFile) {
-    ZoneScoped;
-    Sections.clear();
-    for (int track = 0; track < midiFile.getTrackCount(); track++) {
-        SongParts songPart = song->GetSongPart(midiFile[track]);
-        song->IsPartValid(midiFile[track], songPart, track);
-        if (songPart == Events) {
-            auto &trackObj = midiFile[track];
-            for (int i = 0; i < trackObj.getSize(); i++) {
-                auto &event = trackObj[i];
-                std::string evt_string;
-                evt_string.reserve(event.getSize());
-                for (int k = 3; k < event.getSize(); k++) {
-                    evt_string += event[k];
-                }
-                {
-                    ZoneScopedN("Regex");
-                    // I'm sorry.
-                    static const std::regex practiceRegex("\\[((prc_)|(section ))(.+?)\\]");
-                    std::smatch match;
-                    std::regex_match(evt_string, match, practiceRegex);
-                    if (match[4].matched) {
-                        Sections.push_back({match[4], event.seconds, event.tick});
-                    }
-                }
-            }
-        }
-    }
-}
 
 void SongTime::UpdateTick() {
     while (CurrentBPM < BPMChanges.size() - 1) {
@@ -212,9 +161,16 @@ int GetBeatlineType(TimeSig curTimeSig, int beatlineCount) {
     return Minor;
 }
 
-void SongTime::CreateBeatlines(
-    Song* song, TimeSig timeSig, int startTick, int endTick, int &curTempo
-) {
+double GetTimeFromTick(const BPM& tempo, int resolution, int currentTick) {
+    // using https://thenathannator.github.io/GuitarGame_ChartFormats/Implementation-Info/Time-Conversions/ as a reference
+    double secondsPerBeat = 60.0 / tempo.bpm;
+    double tickDelta = currentTick - tempo.tick;
+    double beatDelta = tickDelta / resolution;
+    double secondDelta = secondsPerBeat * beatDelta;
+    return secondDelta + tempo.time;
+};
+
+void SongTime::CreateBeatlines(TimeSig timeSig, int startTick, int endTick, int &curTempo) {
     // so actually this works fine in 4/4 but i realize in /8 that it gets *weird*
     // maybe have it so that /8 is just It Always?
     const int ThingForBeatSubdiv = timeSig.denom == 4 ? 8 : timeSig.denom;
@@ -235,7 +191,7 @@ void SongTime::CreateBeatlines(
         // and forwards
 
         Beatlines.emplace_back(
-            song->midiFile.getTimeInSeconds(curTick),
+            GetTimeFromTick(CurBPM, songPPQN, curTick),
             // TimeSinceBPMStart(CurBPM, curTick),
             curTick,
             GetBeatlineType(timeSig, BeatlineCount)
@@ -245,7 +201,7 @@ void SongTime::CreateBeatlines(
     }
 }
 
-void SongTime::GenerateBeatmap(Song *song, int songEndTick) {
+void SongTime::GenerateBeatmap(int songEndTick) {
     int curTSidx = 0;
     int curTempo = 0;
     auto &CurTS = TimeSigChanges.at(curTSidx);
@@ -255,11 +211,11 @@ void SongTime::GenerateBeatmap(Song *song, int songEndTick) {
         const int StartTick = CurTS.tick;
         const int EndTick = NextTS.tick - 1;
 
-        CreateBeatlines(song, CurTS, StartTick, EndTick, curTempo);
+        CreateBeatlines(CurTS, StartTick, EndTick, curTempo);
         CurTS = NextTS;
     }
 
-    CreateBeatlines(song, CurTS, CurTS.tick, songEndTick, curTempo);
+    CreateBeatlines(CurTS, CurTS.tick, songEndTick, curTempo);
 }
 
 void SongTime::SetOffset(double audioCalibration) {

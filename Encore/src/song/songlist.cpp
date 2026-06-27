@@ -215,7 +215,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
     if (std::filesystem::exists(infoPath)) {
         ++SongCount;
         try {
-            if (std::filesystem::exists(folder / "notes.mid")) {
+            if (std::filesystem::exists(folder / "notes.mid") || std::filesystem::exists(folder / "notes.chart")) {
                 Song song;
                 song.songInfoPath = infoPath;
                 song.songDir = folder;
@@ -223,6 +223,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 auto placedSong = &songs.emplace_back(std::move(song));
                 scanPool->SubmitTask([folder, placedSong]() {
                     ZoneScopedN("Hash Song")
+                    // TODO: this should handle .chart too
                     std::ifstream hashStream(folder / "notes.mid", std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
@@ -230,7 +231,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                     ++SongsHashed;
                 });
             } else {
-                badSongs << "Song does not have notes.mid" << std::endl;
+                badSongs << "Song does not have note chart file" << std::endl;
                 badSongs << folder << std::endl << std::endl;
                 ++BadSongCount;
             }
@@ -283,7 +284,7 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
     delete scanPool;
 
     PopulateHashIndex();
-    Encore::EncoreLog(LOG_INFO, "CACHE: Rewriting song cache");
+    Encore::Log::Info("Rewriting song cache");
     WriteCache();
     sortList(SortType::Title);
     curSong = nullptr;
@@ -372,12 +373,11 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
 
 void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) {
     ZoneScoped;
-    Encore::EncoreLog(LOG_INFO,
-                      TextFormat("CACHE: Loading cache from %s",
-                                 cachePath().generic_u8string().c_str()));
+    Encore::Log::Info("Loading cache from {}", cachePath().string());
     encore::bin_ifstream_native SongCacheIn(cachePath(), std::ios::binary);
     if (!SongCacheIn) {
-        Encore::EncoreLog(LOG_WARNING, "CACHE: Failed to load song cache!");
+
+        Encore::Log::Warn("Failed to load song cache!");
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -387,7 +387,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     uint32_t header;
     SongCacheIn >> header;
     if (header != SONG_CACHE_HEADER) {
-        Encore::EncoreLog(LOG_WARNING, "CACHE: Invalid song cache format, rescanning");
+        Encore::Log::Warn("Invalid song cache format, rescanning");
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -396,14 +396,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     uint32_t version;
     SongCacheIn >> version;
     if (version != SONG_CACHE_VERSION) {
-        Encore::EncoreLog(
-            LOG_WARNING,
-            TextFormat(
-                "CACHE: Cache version %01i, but current version is %01i",
-                version,
-                SONG_CACHE_VERSION
-            )
-        );
+        Encore::Log::Warn("Cache version {01i}, but current version is {01i}", version, SONG_CACHE_VERSION);
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -414,7 +407,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     ListLoadingState = LOADING_CACHE;
     // Load cached songs
     Clear();
-    Encore::EncoreLog(LOG_INFO, "CACHE: Loading song cache");
+    Encore::Log::Info("Loading song cache");
     std::set<std::filesystem::path> loadedSongs;
     // To track loaded songs and avoid duplicates
     //songs.reserve(cachedSongCount);
@@ -440,7 +433,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         std::string midiPath;
         SongCacheIn >> midiPath;
         song.midiPath = midiPath;
-        
+
         SongCacheIn >> song.hash;
 
         {

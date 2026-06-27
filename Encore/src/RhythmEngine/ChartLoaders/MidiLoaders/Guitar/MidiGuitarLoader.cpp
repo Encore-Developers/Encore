@@ -60,13 +60,19 @@ void Encore::RhythmEngine::MidiGuitarLoader::CheckSysEx(const smf::MidiEvent &ev
 }
 
 void Encore::RhythmEngine::MidiGuitarLoader::CheckHopos(const smf::MidiEvent &event) {
-    if (event.isNoteOn()) {
-        if (event[1] == 101) {
-            ForceHopoOn.emplace(event.tick, event.getLinkedEvent()->tick);
-        } else if (event[1] == 102) {
-            ForceHopoOff.emplace(event.tick, event.getLinkedEvent()->tick);
-        };
+    if (!event.isNoteOn()) return;
+    assert("Difficulty is too high for hopo check" && Difficulty < 4 && Difficulty > -1);
+    if (event[1] == HopoFlags[Difficulty].second) {
+        int endTick = event.tick;
+        if (event.getLinkedEvent()) endTick = event.getLinkedEvent()->tick;
+        ForceHopoOn.emplace(event.tick, endTick);
+        return;
     }
+    if (event[1] == HopoFlags[Difficulty].first) {
+        int endTick = event.tick;
+        if (event.getLinkedEvent()) endTick = event.getLinkedEvent()->tick;
+        ForceHopoOff.emplace(event.tick, endTick);
+    };
 }
 void Encore::RhythmEngine::MidiGuitarLoader::CheckTaps(const smf::MidiEvent &event) {
     if (event.isNoteOn()) {
@@ -121,8 +127,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::CheckEvents(const smf::MidiEvent &e
     ITERATE_EVENT_BY_NOTE(trills, CurrentTrill, event)
     ITERATE_EVENT_BY_NOTE(rolls, CurrentRoll, event)
 }
-void Encore::RhythmEngine::MidiGuitarLoader::GetChartEvents(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiGuitarLoader::GetChartEvents(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         ATTEMPT_TO_ADD_CHART_EVENT(116, overdrive, event);
@@ -196,8 +201,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
     }
 }
 
-void Encore::RhythmEngine::MidiGuitarLoader::GetNoteModifiers(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiGuitarLoader::GetNoteModifiers(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         CheckSysEx(event);
@@ -216,8 +220,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::CheckModifiers(const smf::MidiEvent
     ITERATE_MODIFIER_BY_NOTE(OpenMarker, event)
 }
 
-void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList track) {
-    track.linkNotePairs();
+void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
         // im tired boss

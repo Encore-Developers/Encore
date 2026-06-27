@@ -17,6 +17,8 @@
 #include <iostream>
 #include <chrono>
 
+#include "enclog.h"
+
 
 discord::Core* core{};
 
@@ -36,8 +38,7 @@ void Encore::Presence::Initialize(std::string discordBoot) {
     if (discordBoot != "false") {
         auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_NoRequireDiscord, &core);
         if (!core) {
-            std::cout << "Failed to instantiate discord core! (err " << static_cast<int>(result)
-                      << ")\n";
+            Log::Info("Failed to instantiate discord core! (err {})", static_cast<int>(result));
             Initialized = false;
             return;
         }
@@ -62,7 +63,9 @@ Encore::Presence::~Presence() {
     if (!Initialized)
         return;
     Initialized = false;
-    core->ActivityManager().ClearActivity([](discord::Result result){ });
+    core->ActivityManager().ClearActivity([](discord::Result result){
+        Log::Info("{} clearing activity", (result == discord::Result::Ok) ? "Succeeded" : "Failed");
+    });
     core = nullptr;
 }
 void Encore::Presence::Update() {
@@ -181,8 +184,7 @@ void Encore::Presence::DiscordUpdatePresence(const std::string &title, const std
     activity.SetType(discord::ActivityType::Playing);
     activity.GetTimestamps().SetStart(startTime);
     core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-        std::cout << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-                  << " updating activity!\n";
+        Log::Info("{} updating activity!", (result == discord::Result::Ok) ? "Succeeded" : "Failed");
     });
 }
 
@@ -225,7 +227,6 @@ void Encore::Presence::DiscordUpdatePresenceSong(
     //int64_t endTime = std::chrono::duration_cast<std::chrono::seconds>(end.time_since_epoch()).count();
     //int64_t sStartTime = std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
     core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
-        std::cout << ((result == discord::Result::Ok) ? "Succeeded" : "Failed")
-                  << " updating activity!\n";
+        Log::Info("{} updating activity!", (result == discord::Result::Ok) ? "Succeeded" : "Failed");
     });
 }

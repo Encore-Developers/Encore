@@ -259,5 +259,5 @@ void SettingsController::Load() {
 void SettingsController::Save() {
     // settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
     // settings.syncKeybindsToGame();
-    TraceLog(LOG_INFO, "SettingsController: Saved controller binds to settings-old.json");
+    // Encore::Log::Debug("Saved controller binds to settings-old.json");
 }

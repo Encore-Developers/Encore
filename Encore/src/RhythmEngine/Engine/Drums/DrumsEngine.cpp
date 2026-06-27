@@ -34,6 +34,11 @@ ControllerEvent &event
             stats->HeldFrets.at(ICInt(event.channel)) = true;
             break;
         }
+        case InputChannel::LANE_6: {
+            if (chart->size == 6)
+                stats->HeldFrets.at(ICInt(event.channel)) = true;
+            break;
+        }
         default:
             break;
         }
@@ -48,6 +53,11 @@ ControllerEvent &event
             stats->HeldFrets.at(ICInt(event.channel)) = false;
             break;
         }
+        case InputChannel::LANE_6: {
+            if (chart->size == 6)
+                stats->HeldFrets.at(ICInt(event.channel)) = false;
+            break;
+        }
         default:
             break;
         }
@@ -56,7 +66,7 @@ ControllerEvent &event
 
 int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
 ) {
-    if (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN)
+    if (event.channel > IntIC(chart->size-1))
         return CheckNextInput;
     int lane = ICInt(event.channel);
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())

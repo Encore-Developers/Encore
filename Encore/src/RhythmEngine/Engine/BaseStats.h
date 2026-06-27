@@ -38,11 +38,11 @@ namespace Encore::RhythmEngine {
      * needed for the instrument being played. Guitar, despite being 1 lane, NEEDS 5
      * buttons.
      */
-    template <size_t LaneCount>
     class BaseStats {
     public:
-        explicit BaseStats(const int BaseScore) {
+        explicit BaseStats(const int BaseScore, const size_t laneCount = 5) {
             StarCalcBaseScore = BaseScore;
+            HeldFrets.resize(laneCount, false);
         };
         virtual ~BaseStats() = default;
 
@@ -141,9 +141,11 @@ namespace Encore::RhythmEngine {
             if (Combo >= MaxMultCombo || ComboMod == 0) {
                 return 1.0f;
             }
+
             return (static_cast<float>(ComboMod) / 10.0f);
+
         }
-        std::array<bool, LaneCount> HeldFrets = {};
+        std::vector<bool> HeldFrets = {};
     };
 
 }

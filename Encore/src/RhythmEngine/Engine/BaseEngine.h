@@ -49,7 +49,7 @@ namespace Encore::RhythmEngine {
 
         int inst = 0;
         std::shared_ptr<BaseChart> chart;
-        std::shared_ptr<BaseStats<5>> stats;
+        std::shared_ptr<BaseStats> stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
         double LastUpdateTime;
         bool allowTimestampedInputs = true;

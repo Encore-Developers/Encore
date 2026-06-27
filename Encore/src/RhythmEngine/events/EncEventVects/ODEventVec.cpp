@@ -22,35 +22,19 @@ void Encore::RhythmEngine::ODEvents::UpdateEventViaNote(bool hit, int tick) {
     }
     if (hit) {
         this->at(CurrentEvent).NotesHit++;
-        Encore::EncoreLog(
-            LOG_DEBUG,
-            TextFormat(
-                "Overdrive note hit: %01i/%01i",
-                this->at(CurrentEvent).NotesHit,
-                this->at(CurrentEvent).NoteCount
-            )
-        );
+        Log::Trace("Overdrive note hit: {}/{}", this->at(CurrentEvent).NotesHit, this->at(CurrentEvent).NoteCount);
     }
     if (!hit && !this->at(CurrentEvent).missed) {
         this->at(CurrentEvent).missed = true;
-        Encore::EncoreLog(
-            LOG_DEBUG,
-            TextFormat(
-                "Overdrive note missed: %01i/%01i",
-                this->at(CurrentEvent).NotesHit,
-                this->at(CurrentEvent).NoteCount
-            )
-        );
+
+        Log::Trace("Overdrive note missed: {}/{}", this->at(CurrentEvent).NotesHit + 1, this->at(CurrentEvent).NoteCount);
     }
 }
 
 void Encore::RhythmEngine::ODEvents::CheckEvents(int tick) {
     if (this->empty())
         return;
-    Encore::EncoreLog(
-        LOG_ERROR,
-        "MARIA WHY THE FUCK ARE YOU USING CheckEvents(int) ON OVERDRIVE?????"
-    );
+    Log::Error("MARIA WHY THE FUCK ARE YOU USING CheckEvents(int) ON OVERDRIVE?????");
     /*
     if (CurrentEvent < this->size() - 1 && tick >= this->at(CurrentEvent).TickLength) {
         CurrentEvent++;
@@ -111,8 +95,8 @@ float Encore::RhythmEngine::ODEvents::CheckOverdrive(double sec) {
     if (this->Perfect() && !this->at(CurrentEvent).missed && !this->at(CurrentEvent).added) {
         // add overdrive
         valueToReturn = 0.25f;
-        Encore::EncoreLog(LOG_DEBUG, "Perfect Overdrive phrase");
-        Encore::EncoreLog(LOG_DEBUG, "Removing Overdrive phrase");
+        Log::Trace("Perfect Overdrive phrase");
+        Log::Trace("Removing Overdrive phrase");
         // increment if possible, make sure that the last overdrive gets added
         this->at(CurrentEvent).added = true;
         if (CurrentEvent < this->size())
@@ -120,7 +104,7 @@ float Encore::RhythmEngine::ODEvents::CheckOverdrive(double sec) {
         return valueToReturn;
     }
     if (this->at(CurrentEvent).missed) {
-        Encore::EncoreLog(LOG_DEBUG, "Removing Overdrive phrase");
+        Log::Trace("Removing Overdrive phrase");
         // increment if possible, make sure that the last overdrive gets added
         if (CurrentEvent < this->size())
             CurrentEvent++;

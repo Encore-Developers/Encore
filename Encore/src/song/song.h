@@ -30,7 +30,7 @@ enum PartIcon {
     IconNone
 };
 
-enum SongParts : int {
+enum SongPart : int {
     PartDrums = 0,
     PartBass,
     PartGuitar,
@@ -40,8 +40,8 @@ enum SongParts : int {
     PlasticBass,
     PlasticGuitar,
     PlasticKeys,
-    PlasticVocals,
     PitchedVocals,
+    PlasticVocals,
     Invalid,
     BeatLines,
     Events
@@ -54,13 +54,6 @@ enum Difficulty {
     Expert
 };
 
-struct SongPart {
-    int diff = -1;
-    int TrackInt = -1;
-    bool Valid = false;
-    std::array<bool, 4> ValidDiffs{ false, false, false, false };
-    bool AutoToPad = false;
-};
 
 struct Beat {
     double Time;
@@ -79,23 +72,14 @@ inline std::vector<std::string> songPartsList{
 };
 
 
-inline std::unordered_map<std::string, SongParts> midiNameToEnumINI = {
-    { "PAD DRUMS", SongParts::PartDrums }, { "PAD BASS", SongParts::PartBass },
-    { "PAD GUITAR", SongParts::PartGuitar }, { "PAD VOCALS", SongParts::PartVocals },
-    { "PAD KEYS", SongParts::PartKeys }, { "PART DRUMS", SongParts::PlasticDrums },
-    { "PART BASS", SongParts::PlasticBass }, { "PART GUITAR", SongParts::PlasticGuitar },
-    { "PART VOCALS", SongParts::PitchedVocals }, { "PART KEYS", SongParts::PlasticKeys },
-    { "PLASTIC VOCALS", SongParts::Invalid }, { "BEAT", SongParts::BeatLines },
-    { "EVENTS", SongParts::Events }
-};
-
-inline std::unordered_map<std::string, SongParts> stemEnumToPart = {
-    { "drums", SongParts::PartDrums },
-    { "bass", SongParts::PartBass },
-    { "lead", SongParts::PartGuitar },
-    { "vocals", SongParts::PartVocals },
-    { "backing", SongParts::Invalid },
-    { "keys", SongParts::PartKeys }
+inline std::unordered_map<std::string, SongPart> midiNameToEnumINI = {
+    { "PAD DRUMS", PartDrums }, { "PAD BASS", PartBass },
+    { "PAD GUITAR", PartGuitar }, { "PAD VOCALS", PartVocals },
+    { "PAD KEYS", PartKeys }, { "PART DRUMS", PlasticDrums },
+    { "PART BASS", PlasticBass }, { "PART GUITAR", PlasticGuitar },
+    { "PART VOCALS", PitchedVocals }, { "PART KEYS", PlasticKeys },
+    { "PLASTIC VOCALS", Invalid }, { "BEAT", BeatLines },
+    { "EVENTS", Events }
 };
 
 inline std::vector<int> PlasticToPadEnumConverter = { PartDrums, PartBass, PartGuitar,
@@ -103,17 +87,17 @@ inline std::vector<int> PlasticToPadEnumConverter = { PartDrums, PartBass, PartG
                                                       PartBass, PartGuitar, PartVocals,
                                                       PartKeys, PartVocals, Invalid };
 
-inline SongParts partFromStringINI(const std::string &str) {
+inline SongPart partFromStringINI(const std::string &str) {
     auto it = midiNameToEnumINI.find(str);
     if (it != midiNameToEnumINI.end()) {
         return it->second;
     } else {
-        return SongParts::Invalid;
+        return SongPart::Invalid;
     }
 }
 
 // todo: split drums into getting individual stems for proper drum mappings
-inline std::map<SongParts, Encore::AudioManager::Stems> InstrumentToStemEnum {
+inline std::map<SongPart, Encore::AudioManager::Stems> InstrumentToStemEnum {
         { PartDrums, AUDIOSTEM(Drums1) },
         { PartDrums, AUDIOSTEM(Drums2) },
         { PartDrums, AUDIOSTEM(Drums3) },
@@ -124,10 +108,10 @@ inline std::map<SongParts, Encore::AudioManager::Stems> InstrumentToStemEnum {
         { PartKeys, AUDIOSTEM(Keys) },
 };
 
-inline Encore::AudioManager::Stems GetStemFromInstrument(SongParts part) {
+inline Encore::AudioManager::Stems GetStemFromInstrument(SongPart part) {
     int fuck = part > PartVocals ? part - PlasticDrums : part;
     // I AM A PROGRAMMER! I AM A PROGRAMMER!
-    return InstrumentToStemEnum.at(SongParts(fuck));
+    return InstrumentToStemEnum.at(SongPart(fuck));
 }
 
 struct SongHash {
@@ -171,12 +155,7 @@ public:
     };
     // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
     // Bass, Plastic Guitar
-    std::vector<SongPart> parts { SongPart(), SongPart(), SongPart(),
-                                   SongPart(), SongPart(), SongPart(),
-                                   SongPart(), SongPart(), SongPart(),
-                                   SongPart(), SongPart() };
-
-    std::vector<Beat> beatLines; // double time, bool downbeat
+    std::array<int, PlasticVocals> Difficulties {-1};
 
     std::filesystem::path midiPath = "";
     std::filesystem::path songDir = "";
@@ -187,50 +166,12 @@ public:
     std::vector<std::string> charters{};
     std::string jsonHash = "";
     int hopoThreshold = -1;
-    smf::MidiFile midiFile;
     std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> LoadAudioINI();
     float previewStartTime = 0.0f;
 
     std::string GetPlaylistPath() const {
         return midiPath.parent_path().parent_path().filename().string();
     }
-    SongParts GetSongPart(smf::MidiEventList track) {
-        for (int events = 0; events < track.getSize(); events++) {
-            std::string trackName;
-            if (!track[events].isMeta())
-                continue;
-            if ((int)track[events][1] == 3) {
-                for (int k = 3; k < track[events].getSize(); k++) {
-                    trackName += track[events][k];
-                }
-                return partFromStringINI(trackName);
-            }
-        }
-        return Invalid;
-    }
-
-    std::vector<std::vector<int> > pDiffRangeNotes = {
-        { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
-    };
-
-    void IsPartValid(smf::MidiEventList track, SongParts songPart, int trackNumber) {
-        if (songPart == Invalid || songPart == PitchedVocals || songPart == BeatLines) {
-            return;
-        }
-        for (int diff = 0; diff < 4; diff++) {
-            for (int i = 0; i < track.getSize(); i++) {
-                if (track[i].isNoteOn() && !track[i].isMeta()
-                    && track[i][1] >= pDiffRangeNotes[diff][0]
-                    && track[i][1] <= pDiffRangeNotes[diff][1]) {
-                    parts[songPart].ValidDiffs.at(diff) = true;
-                    parts[songPart].TrackInt = trackNumber;
-                    parts[songPart].Valid = true;
-                    break;
-                    }
-            }
-        }
-    }
-
 
     void LoadInfoINI(std::filesystem::path iniPath);
     void PullInfoFromINI(INIReader &ini);
@@ -239,53 +180,6 @@ public:
 
     using json = nlohmann::json;
 
-    void parseBeatLines(smf::MidiFile &midiFile, int trkidx) {
-        int MaxTick = midiFile[trkidx].last().tick;
-        for (int i = 0; i < MaxTick; i += 240) {
-            beatLines.push_back({ midiFile.getTimeInSeconds(i), false, false, i });
-        }
-
-        /*
-        for (int i = 0; i < midiFile[trkidx].getSize(); i++) {
-            if (midiFile[trkidx][i].isNoteOn()) {
-                beatLines.push_back(
-                    { midiFile.getTimeInSeconds(trkidx, i),
-                      (int)midiFile[trkidx][i][1] == 12,
-                      false,
-                      midiFile[trkidx][i].tick }
-                );
-            }
-        }
-        */
-    }
-
-    /*
-    void getTiming(smf::MidiFile &midiFile, int trkidx, smf::MidiEventList events) {
-        for (int i = 0; i < events.getSize(); i++) {
-            if (events[i].isTempo()) {
-                bpms.push_back(
-                    { midiFile.getTimeInSeconds(trkidx, i),
-                      events[i].getTempoBPM(),
-                      events[i].tick }
-                );
-                // std::cout << "BPM @" << midiFile.getTimeInSeconds(trkidx, i) << ": "
-                //           << events[i].getTempoBPM() << std::endl;
-            } else if (events[i].isMeta() && events[i][1] == 0x58) {
-                int numer = (int)events[i][3];
-                int denom = pow(2, (int)events[i][4]);
-                timesigs.push_back({ midiFile.getTimeInSeconds(trkidx, i), numer, denom
-    });
-                // std::cout << "TIMESIG @" << midiFile.getTimeInSeconds(trkidx, i) << ":
-                // "
-                //           << numer << "/" << denom << std::endl;
-            }
-        }
-        if (timesigs.size() == 0) {
-            timesigs.push_back({ 4, 4 }); // midi always assumed to be 4/4 if time sig
-                                          // event isn't found
-        }
-    }
-*/
     int endTick = 0;
 
     void getStartEnd(smf::MidiFile &midiFile, int trkidx, smf::MidiEventList events) {
@@ -299,18 +193,13 @@ public:
 
                 if (evt_string == "[music_start]") {
                     music_start = time;
-                    Encore::EncoreLog(
-                        LOG_DEBUG,
-                        TextFormat("SONG: Song start: %5.4f", time)
-                    );
+                    Encore::Log::Debug("SONG: Song start: {:5.4f}", time);
                 }
                 if (evt_string == "[end]") {
                     end = time;
                     endTick = events[i].tick;
-                    Encore::EncoreLog(
-                        LOG_DEBUG,
-                        TextFormat("SONG: Song end: %5.4f", time)
-                    );
+
+                    Encore::Log::Debug("SONG: Song end: {:5.4f}", time);
                 }
             }
         }
@@ -329,7 +218,7 @@ public:
                         for (int k = 3; k < midiFile[track][events].getSize(); k++) {
                             trackName += midiFile[track][events][k];
                         }
-                        SongParts songPart;
+                        SongPart songPart;
                         songPart = partFromStringINI(trackName);
                         if (songPart > PlasticDrums && songPart <= PlasticGuitar) {
                             int codaNote = 120; // i dont wanna bother with checking all

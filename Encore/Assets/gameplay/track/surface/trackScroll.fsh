@@ -17,7 +17,7 @@ void main()
     vec2 push = vec2(fragTexCoord.x, fragTexCoord.y-time);
 
     vec4 baseColor = texture(texture0, push) * fragColor * colDiffuse;
-    float strikelineGlow = clamp((fragPosition.z)/3.5, 0, 1);
+    float strikelineGlow = clamp(smoothstep(0, trackLength*0.25, fragPosition.z), 0.4, 1);
     if (fragPosition.z < 0) {
         strikelineGlow = 0.7;
     }

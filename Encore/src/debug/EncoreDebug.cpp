@@ -2,6 +2,7 @@
 
 #include "assets.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "raymath.h"
 #include "easing/easing.h"
 #include "gameplay/inputCallbacks.h"
@@ -34,6 +35,7 @@ bool showPractice = false;
 bool showEasings = false;
 bool showJoystickTools = false;
 bool showLocaleDebug = false;
+bool showLog = false;
 
 bool paused = false;
 std::string pauseText = "Pause";
@@ -105,7 +107,6 @@ void EncoreDebug::DrawDebug() {
     if (showAssets) {
         DrawAssetViewer();
     }
-
     if (showDemoWindow) {
         ShowDemoWindow(&showDemoWindow);
     }
@@ -134,6 +135,9 @@ void EncoreDebug::DrawDebug() {
     if (showLocaleDebug) {
         DrawLocaleDebug();
     }
+    if (showLog) {
+        DrawLog();
+    }
 }
 
 void EncoreDebug::MenuBar() {
@@ -148,6 +152,7 @@ void EncoreDebug::MenuBar() {
         MenuItem("Color Profile Manager", 0, &showColorProfileManager);
         MenuItem("Easings Debug", 0, &showEasings);
         MenuItem("Joystick Tools", 0, &showJoystickTools);
+        MenuItem("Log", 0, &showLog);
         if (Encore::Locale::unlocalizedTokens.empty()) {
             MenuItem("Locale Debug", 0, &showLocaleDebug);
         } else {
@@ -280,13 +285,14 @@ void EncoreDebug::DrawColorProfileSettings() {
 
 void EncoreDebug::DrawQuickSettings() {
     ZoneScoped;
-    if (Begin("Quick Settings")) {
+    if (Begin("Quick Settings", &showQuickSettings)) {
         SliderFloat("Song Speed", &TheAudioManager.songSpeed, 0, 3);
         SliderFloat("Debug Song Speed", &TheAudioManager.debugSpeed, 0, 3);
         Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
         Checkbox("VSync", &TheGameSettings.VerticalSync);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
+        SliderInt("Controller Poll Rate", &controllerPollRate, 10, 1000, "%dhz");
         if (DragInt("Audio Calibration", &TheGameSettings.AudioOffset, 1, 0, 0, "%dms")) {
             TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
         }
@@ -875,6 +881,23 @@ void EncoreDebug::DrawAssetViewer() {
             PopFont();
             EndTable();
         }
+    }
+    End();
+}
+
+void EncoreDebug::DrawLog() {
+    SetNextWindowSize({1000, 500}, ImGuiCond_Once);
+    if (Begin("Log", &showLog)) {
+        if (BeginChild("messages", GetContentRegionAvail(), ImGuiChildFlags_Borders)) {
+            PushFont(GetIO().FontDefault, 14);
+            auto messages = Encore::Log::GetRecentMessages();
+            for (auto& message : messages) {
+                Text("%s", message.c_str());
+            }
+            ScrollToItem();
+            PopFont();
+        }
+        EndChild();
     }
     End();
 }

@@ -170,7 +170,10 @@
 			"Per Fidem Ad Ludos Rhythmicos!",
 			"0.2—More than one year in the making!",
 			"Would you mind if a white boy spoke a little español?",
-			"[Encore] build-macos failure on main… but it’s not like i care or anything~! hmmph!"
+			"[Encore] build-macos failure on main… but it’s not like i care or anything~! hmmph!",
+			"Isn't she lovely?",
+			"Isn't she wonderful?",
+			"Isn't she precious?"
 		],
 		"steamOnlySplashes": [
 			"Hello ",
@@ -256,6 +259,7 @@
 		"good": "GOOD",
 		"bad": "BAD",
 		"playlistDisplay": "({} of {})",
+		"sectionDisplay": "Section: {}",
 		"autoplay": "(AUTOPLAY)",
 		"avgOffset": "Average Offset: {: 7.2f}ms",
 		"lastOffset": "Last Hit Offset: {: 7.2f}ms",

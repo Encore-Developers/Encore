@@ -11,7 +11,7 @@
 #include "song/song.h"
 
 struct BPM {
-    BPM(double _time, int _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
+    BPM(double _time, double _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
     double time;
     double bpm;
     int tick;
@@ -90,7 +90,7 @@ public:
     void ParseSections(Song* song, smf::MidiFile&);
     double LastTick = 0;
     double CurrentTick = 0;
-    void BeatmapFromMidiTrack(Song* song, smf::MidiFile &midiFile, int songEndTick);
+    void BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick);
 
     double GetBeatlineDelta();
     void UpdateBeatlines();
@@ -99,10 +99,10 @@ public:
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
     double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);
-    void GenerateBeatmap(Song *song, int songEndTick);
+    void GenerateBeatmap(int songEndTick);
     static double TickRangeToTimeDelta(int tickStart, int tickEnd, const BPM &currentBPM);
     static double TimeSinceBPMStart(BPM bpm, int endTick);
-    void CreateBeatlines(Song* song, TimeSig timeSig, int tickStart, int tickEnd, int &curTempo);
+    void CreateBeatlines(TimeSig timeSig, int tickStart, int tickEnd, int &curTempo);
     // Start the timer
     void SetOffset(double audioCalibration);
 

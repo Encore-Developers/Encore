@@ -5,6 +5,7 @@
 #ifndef CHARTLOADINGMENU_H
 #define CHARTLOADINGMENU_H
 #include "../overshell/OvershellMenu.h"
+#include "RhythmEngine/ChartLoaders/ChartLoader.h"
 
 class ChartLoadingMenu : public OvershellMenu {
 public:
@@ -15,8 +16,9 @@ public:
 
     Song* curSong;
     Gamemode gamemode;
+    Encore::RhythmEngine::ChartLoader chartLoader;
 
-    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode) {};
+    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode), chartLoader(song->midiPath)  {};
     ~ChartLoadingMenu() {};
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
     void ControllerInputCallback(Encore::ControllerEvent event) override {};

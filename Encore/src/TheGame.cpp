@@ -1,0 +1,487 @@
+//
+// Created by maria on 10/06/2026.
+//
+
+#include "TheGame.h"
+
+#define JSON_DIAGNOSTICS 1
+#include "song/songlist.h"
+#include "users/playerManager.h"
+#include "util/Presence.h"
+#include "util/enclog.h"
+#include "gameplay/enctime.h"
+#include "rlImGui.h"
+#include "imgui.h"
+#include "imgui_internal.h"
+#include "tracy/Tracy.hpp"
+
+#include <cassert>
+
+#include "gameplay/inputCallbacks.h"
+#include "SDL3/SDL.h"
+#include "menus/util/QuickOpen.h"
+#include "menus/util/locale/Locale.h"
+#include "menus/main/MainMenu.h"
+#include "menus/main/cacheLoadingScreen.h"
+
+#include "settings/keybinds.h"
+#include "song/ArtLoader.h"
+#include "song/OpenSource.h"
+#include "song/cacheload.h"
+// #include "spdlog/spdlog.h"
+#include "tracy/TracyC.h"
+#include "users/profiles/ProfileManager.h"
+
+#ifdef STEAM
+#include "steam_api.h"
+#endif
+#define assertm(exp, msg) assert((void(msg), exp))
+
+#define RAYGUI_IMPLEMENTATION
+
+/* not needed for debug purposes, change in release
+#if defined(WIN32) && defined(NDEBUG)
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
+*/
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+#endif
+
+#define JSON_DIAGNOSTICS 1
+
+#include <filesystem>
+#include <vector>
+#include <thread>
+
+#include "raylib.h"
+#include "raygui.h"
+
+#include "arguments.h"
+#include "assets.h"
+#include "song/audio.h"
+
+
+#include "menus/util/uiUnits.h"
+
+#include "settings/settings.h"
+#include "menus/settings/SettingsAudioVideo.h"
+#include "menus/settings/SettingsController.h"
+#include "menus/settings/SettingsCredits.h"
+#include "menus/settings/SettingsGameplay.h"
+#include "menus/settings/SettingsKeyboard.h"
+
+#include "menus/util/styles.h"
+#include "util/frame-manager.h"
+
+#include <menus/MenuManager.h>
+#include "debug/EncoreDebug.h"
+
+MenuManager TheMenuManager;
+// gameplayRenderer TheGameRenderer;
+SongList TheSongList;
+PlayerManager ThePlayerManager;
+Assets &assets = Assets::getInstance();
+Encore::AudioManager TheAudioManager;
+Encore::Settings TheGameSettings;
+Encore::ProfileManager TheProfileManager;
+Encore::Keybinds TheGameKeybinds;
+Encore::SettingsGameplay TheGameplaySettings;
+Encore::SettingsAudioVideo TheAudioVideoSettings;
+Encore::Presence TheGameRPC;
+Encore::SettingsInit TheSettingsInitializer;
+Encore::FrameManager TheFrameManager;
+std::filesystem::path prefsPath;
+OpenSource TheSourceIcons;
+
+// OvershellRenderer overshellRenderer;
+
+vector<std::string> ArgumentList::arguments;
+bool devAssets = false;
+
+
+#ifndef GIT_COMMIT_HASH
+#define GIT_COMMIT_HASH
+#endif
+
+#ifndef ENCORE_VERSION
+#define ENCORE_VERSION
+#endif
+
+std::string encoreVersion = ENCORE_VERSION;
+std::string commitHash = GIT_COMMIT_HASH;
+
+int minWidth = 640;
+int minHeight = 480;
+
+void DrawLoadingScreen(unsigned char alpha, float progress) {
+    Texture icon = ASSET(faviconTex);
+    float fade = (1.0 - (alpha/255.0));
+    fade *= fade;
+    unsigned char quadAlpha = 255*(1.0-fade);
+    float scale = (GetRenderHeight() / 1080.0f) * 0.3;
+    float iconScale = scale + fade * 0.5;
+    int iconSize = (icon.height * iconScale)/2; // Dividing by 2 for centering
+    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), {0, 0, 0, quadAlpha});
+
+    Vector2 screenCenter = {GetRenderWidth()/2.0f, GetRenderHeight()/2.0f};
+    DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360-90, 64, {255, 255, 255, (unsigned char)(alpha/3)});
+    DrawRing(screenCenter, scale*300.0f, scale*320.0f, -90, 360*progress-90, 64, {255, 255, 255, alpha});
+    DrawTextureEx(icon, {GetRenderWidth()/2.0f-iconSize, GetRenderHeight()/2.0f-iconSize}, 0, iconScale, {255, 255, 255, alpha});
+}
+
+ImVec4 HueShiftColor(ImVec4 color, float shift) {
+    Color rlCol = {(unsigned char)(color.x * 255),  (unsigned char)(color.y * 255), (unsigned char)(color.z * 255), (unsigned char)(color.w * 255)};
+    auto hsv = ColorToHSV(rlCol);
+    hsv.x += shift;
+    rlCol = ColorFromHSV(hsv.x, hsv.y, hsv.z);
+    return {rlCol.r / 255.0f, rlCol.g / 255.0f, rlCol.b / 255.0f, color.w};
+}
+
+void SetImGuiTheme() {
+    ImVec4* colors = ImGui::GetStyle().Colors;
+    const float shift = 60;
+    std::vector<int> colorsToShift = {
+        ImGuiCol_FrameBg,
+        ImGuiCol_FrameBgHovered,
+        ImGuiCol_FrameBgActive,
+        ImGuiCol_TitleBgActive,
+        ImGuiCol_CheckMark,
+        ImGuiCol_SliderGrab,
+        ImGuiCol_SliderGrabActive,
+        ImGuiCol_Button,
+        ImGuiCol_ButtonHovered,
+        ImGuiCol_ButtonActive,
+        ImGuiCol_Header,
+        ImGuiCol_HeaderHovered,
+        ImGuiCol_HeaderActive,
+        ImGuiCol_SeparatorHovered,
+        ImGuiCol_SeparatorActive,
+        ImGuiCol_ResizeGripHovered,
+        ImGuiCol_ResizeGripActive,
+        ImGuiCol_TabHovered,
+        ImGuiCol_Tab,
+        ImGuiCol_TabSelected,
+        ImGuiCol_TabSelectedOverline,
+        ImGuiCol_TabDimmedSelected,
+        ImGuiCol_ResizeGrip
+    };
+    for (auto col : colorsToShift) {
+        colors[col] = HueShiftColor(colors[col], shift);
+    }
+}
+
+void LocateDevAssets() {
+    auto execPath = std::filesystem::path(GetApplicationDirectory());
+    for (int i = 0; i < 5; i++) {
+        execPath /= "..";
+        execPath = std::filesystem::canonical(execPath);
+        //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
+        if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
+            execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
+            Encore::Log::Info("Found dev directory: {}", execPath.string());
+            devAssets = true;
+            TheAssets.setDirectory(execPath);
+            break;
+        }
+    }
+}
+
+bool imGuiLoaded = false;
+ImFont *imGuiFont;
+
+int TheGame::Run(int argc, char *argv[]) {
+    //std::locale::global(std::locale{"en_US.utf-8"});
+#ifdef STEAM
+    if (SteamAPI_RestartAppIfNecessary(4691230)) {
+        return 1;
+    }
+
+    if (!SteamAPI_Init()) {
+        printf("This is a Steam build of Encore - Steam must be running\n");
+        return 1;
+    }
+#endif
+
+    prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
+    std::filesystem::path directory = prefsPath;
+    LocateDevAssets();
+
+
+    ArgumentList::InitArguments(argc, argv);
+    AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).StartLoad();
+    initialSet.StartLoad();
+    TheAssets.AddRingsAndInstruments();
+    mainMenuSet.StartLoad();
+
+    std::string discordOff = ArgumentList::GetArgValue("discord");
+    TheGameRPC.Initialize(discordOff);
+    SetTraceLogCallback(Encore::RaylibLogWrapper);
+    Units u = Units::getInstance();
+    commitHash.erase(7);
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_HIGHDPI);
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    SDL_SetHint(SDL_HINT_AUTO_UPDATE_JOYSTICKS, "0");
+    // glfwWindowHint(GLFW_SAMPLES, 4);
+    // glfwWindowHint(GLFW_SCALE_TO_MONITOR, true);
+
+    bool windowToggle = true;
+
+    std::string FPSCapStringVal = ArgumentList::GetArgValue("fpscap");
+    std::string vSyncOn = ArgumentList::GetArgValue("vsync");
+    int targetFPSArg = -1;
+    int vsyncArg = 1;
+
+    std::filesystem::path executablePath(GetApplicationDirectory());
+    // Bump only for completely breaking changes to player/settings format
+    // Do not bump for cache format changes
+    Encore::Log::Info("Prefs Path: {}", prefsPath.string());
+
+    // spdlog::debug("Hi i am logging lol");
+#ifdef __APPLE__
+    CFBundleRef bundle = CFBundleGetMainBundle();
+    if (bundle != NULL && !devAssets) {
+        // get the Resources directory for our binary for the Assets handling
+        CFURLRef resourceURL = CFBundleCopyResourcesDirectoryURL(bundle);
+        if (resourceURL != NULL) {
+            char resourcePath[PATH_MAX];
+            if (CFURLGetFileSystemRepresentation(
+                    resourceURL, true, (UInt8 *)resourcePath, PATH_MAX
+                ))
+                assets.setDirectory(std::filesystem::path(resourcePath) / "Assets");
+            CFRelease(resourceURL);
+        }
+        // do the next step manually (settings/config handling)
+        // "directory" is our executable directory here, hop up to the external dir
+        if (directory.filename().compare("MacOS") == 0)
+            directory = directory.parent_path().parent_path().parent_path(); // hops
+        // "MacOS",
+        // "Contents",
+        // "Encore.app"
+        // into
+        // containing
+        // folder
+
+        CFRelease(bundle);
+    }
+#endif
+    TheSettingsInitializer.InitSettings(directory);
+    CacheLoad::StartLoad();
+    TheProfileManager.SetColorProfilesPath(directory / "Color Profiles");
+    TheProfileManager.LoadColorProfiles();
+
+    ThePlayerManager.SetPlayerListSaveFileLocation(directory / "players.json");
+    ThePlayerManager.LoadPlayerList();
+
+    Encore::Locale::Init();
+
+    if (devAssets) {
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "../thirdparty/opensource/base");
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "../thirdparty/opensource/extra");
+    } else {
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "opensource/base");
+        TheSourceIcons.InitIcons(TheAssets.getDirectory() / "opensource/extra");
+    }
+
+
+    if (TheGameSettings.VerticalSync) {
+        SetConfigFlags(FLAG_VSYNC_HINT);
+    }
+    Encore::Log::Info("Vertical sync: {}", vsyncArg);
+    {
+        ZoneScopedN("Window Init")
+        SDL_Init(SDL_INIT_VIDEO);
+        SDL_Rect rect;
+        SDL_GetDisplayBounds(SDL_GetPrimaryDisplay(), &rect);
+        rect.w /= 1.5;
+        rect.h /= 1.5;
+        InitWindow(rect.w, rect.h, "Encore");
+    }
+    std::jthread controllerPoller(PollControllers);
+    TheGameSettings.UpdateFullscreen();
+    bool AudioInitSuccessful = TheAudioManager.Init();
+    assert(AudioInitSuccessful == true);
+
+    SetExitKey(0);
+    TheFrameManager.InitFrameManager();
+    ChangeDirectory(GetApplicationDirectory());
+
+    SETDEFAULTSTYLE();
+
+    SetRandomSeed(std::chrono::system_clock::now().time_since_epoch().count());
+    SetWindowIcon(LoadImageFromMemory(".png", ASSET(favicon), ASSET(favicon).GetFileSize()));
+    if (!CacheLoad::finished) {
+        TheMenuManager.CreateAndSwitchMenu<cacheLoadingScreen>();
+    } else {
+        TheMenuManager.CreateAndSwitchMenu<MainMenu>();
+    }
+
+    std::string quickOpen;
+    for (auto& arg : ArgumentList::arguments) {
+        if (arg.find("=") == std::string::npos) {
+            quickOpen = arg;
+        }
+    }
+    if (!quickOpen.empty()) {
+        QuickOpenSongDir(quickOpen);
+    }
+
+    //ControllerPoller poller;
+
+
+    if (TheGameSettings.Framerate > 0)
+        Encore::Log::Info("Framerate: {}", TheGameSettings.Framerate);
+    else {
+        Encore::Log::Info("Framerate: unlimited");
+        TheFrameManager.removeFPSLimit = true;
+    }
+    // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
+    while (!WindowShouldClose() && !shouldQuit) {
+        ZoneScopedN("Main Loop")
+        // glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
+        SDL_GL_SetSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
+        u.calcUnits();
+
+        //PollQueuedInputs(poller);
+        SyncSDLWithAudio();
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+
+            switch (event.type) {
+            case SDL_EVENT_KEY_DOWN:
+            case SDL_EVENT_KEY_UP:
+                keyCallback((SDL_KeyboardEvent*)&event);
+                break;
+            case SDL_EVENT_GAMEPAD_ADDED:
+                SDL_OpenGamepad(event.gdevice.which);
+            case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+            case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                ProcessControllerEvent(TranslateSDLEvent(&event));
+                break;
+            case SDL_EVENT_DROP_FILE:
+                QuickOpenSongDir(event.drop.data);
+                break;
+            default:
+                break;
+            }
+            ProcessSDLEvent(event);
+        }
+        TheArtLoader.Poll();
+
+        if (GetRenderWidth() < minWidth) {
+            if (GetRenderHeight() < minHeight)
+                SetWindowSize(minWidth, minHeight);
+            else
+                SetWindowSize(minWidth, GetRenderHeight());
+        }
+        if (GetRenderHeight() < minHeight) {
+            if (GetRenderWidth() < minWidth)
+                SetWindowSize(minWidth, minHeight);
+            else
+                SetWindowSize(GetRenderWidth(), minHeight);
+        }
+
+        if (!imGuiLoaded) {
+            rlImGuiSetup(true);
+            ImGui::GetCurrentContext()->FontSizeBase = 20;
+            ImGui::GetStyle().FontSizeBase = 20;
+            SetImGuiTheme();
+            imGuiLoaded = true;
+        }
+        BeginDrawing();
+        rlImGuiBegin();
+        if (ImGui::GetIO().WantCaptureMouse) {
+            GuiLock();
+        } else {
+            GuiUnlock();
+        }
+        static bool imGuiFontLoaded = false;
+
+        if (!imGuiFontLoaded && ASSET(JetBrainsMono).state == LOADED) {
+            auto io = ImGui::GetIO();
+            imGuiFont = io.Fonts->AddFontFromMemoryTTF(ASSET(JetBrainsMono).RawData(), ASSET(JetBrainsMono).RawDataSize());
+            io.FontDefault = imGuiFont;
+            imGuiFontLoaded = true;
+        }
+
+        if (imGuiFontLoaded) {
+            ImGui::PushFont(imGuiFont, ImGui::GetStyle().FontSizeBase);
+        }
+
+
+        ClearBackground(DARKGRAY);
+        static bool showLoading = true;
+        static float loadingScreenFade = 1.0f;
+        if (showLoading && !initialSet.PollLoaded(true)) {
+            DrawLoadingScreen(255, initialSet.GetProgress());
+        } else {
+            double curTime = GetTime();
+            float bgTime = curTime / 5.0f;
+            SetShaderValue(ASSET(bgShader), ASSET(bgShader).GetUniformLoc("time"), &bgTime, SHADER_UNIFORM_FLOAT);
+            showLoading = false;
+            if (TheMenuManager.onNewMenu) {
+                TheMenuManager.LoadMenu();
+            }
+            TheGameRPC.Update();
+            TheMenuManager.DrawMenu();
+            if (loadingScreenFade > 0) {
+                DrawLoadingScreen(255*loadingScreenFade, 1);
+                float frameTime = GetFrameTime();
+                // Cap the frame time here so the fade animation doesn't get skipped by the stutter caused by loading the song preview
+                if (frameTime > 0.032) {
+                    frameTime = 0.032;
+                }
+                loadingScreenFade -= frameTime*5.0f;
+            }
+        }
+
+        if (EncoreDebug::showDebug) {
+            EncoreDebug::DrawDebug();
+        }
+
+        if (imGuiFontLoaded) {
+            ImGui::PopFont();
+        }
+        {
+            ZoneScopedN("End Drawing")
+            rlImGuiEnd();
+            EndDrawing();
+        }
+
+        if (EncoreDebug::reloadQueued) {
+            EncoreDebug::StartReloadAssets();
+            showLoading = true;
+            loadingScreenFade = 1.0f;
+        }
+        TheFrameManager.WaitForFrame();
+        FrameMark;
+    }
+    // prevents owned textures from attempting to load the texture after the opengl context has been destroyed (caused segfaults)
+    OwnedTexture::allowDispose = false;
+    //poller.active = false;
+    CloseWindow();
+    Encore::Log::Exit();
+    return 0;
+}
+
+TheGame::TheGame() {
+    Encore::Log::InitializeLogger(SDL_GetPrefPath("Encore", "v0.2.0"));
+}
+
+TheGame::~TheGame() {
+    Encore::Log::Exit();
+}
+
+// void * operator new(std::size_t count) {
+//     auto ptr = std::malloc(count);
+//     TracyCAlloc(ptr, count);
+//     return ptr;
+// }
+//
+// void operator delete(void* ptr) noexcept {
+//     TracyCFree(ptr);
+//     free(ptr);
+// }

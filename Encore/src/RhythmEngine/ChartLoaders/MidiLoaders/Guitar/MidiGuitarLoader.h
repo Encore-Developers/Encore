@@ -11,6 +11,8 @@
 namespace Encore::RhythmEngine {
     class MidiGuitarLoader final : public BaseLoader {
         // start, end
+        std::pair<int, int>HopoFlags[4] { {66, 65}, {78, 77}, {90, 89}, {102, 101} };
+
         std::queue<std::pair<int, int> > ForceHopoOn = {};
         std::queue<std::pair<int, int> > ForceHopoOff = {};
         std::queue<std::pair<int, int> > TapMarker = {};
@@ -26,9 +28,9 @@ namespace Encore::RhythmEngine {
         void CreateNote(const smf::MidiEvent &event);
         int GetNoteType(const smf::MidiEvent &event) override;
 
-        void GetChartEvents(smf::MidiEventList track) override;
-        void GetNoteModifiers(smf::MidiEventList track) override;
-        void GetNotes(smf::MidiEventList track) override;
+        void GetChartEvents(smf::MidiEventList &track) override;
+        void GetNoteModifiers(smf::MidiEventList &track) override;
+        void GetNotes(smf::MidiEventList &track) override;
     public:
         MidiGuitarLoader(int diff_, int thresh_, smf::MidiFile* midiFile_, const int _maxMult = 4)
             : BaseLoader(diff_, thresh_, midiFile_, _maxMult)  {

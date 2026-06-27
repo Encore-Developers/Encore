@@ -1,8 +1,12 @@
 #include "ownedtexture.h"
+bool OwnedTexture::allowDispose = true;
+
 OwnedTexture::OwnedTexture(Texture texture) : texture(texture) {
 }
 OwnedTexture::~OwnedTexture() {
-    UnloadTexture(texture);
+    if (allowDispose) {
+        UnloadTexture(texture);
+    }
 }
 Texture OwnedTexture::GetTexture() {
     return texture;

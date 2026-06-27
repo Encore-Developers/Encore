@@ -46,7 +46,7 @@ void PracticeMenu::Load() {
         state = SECTIONLIST;
     });
     optionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("practice.exit"), [this]() {
-        TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
+       TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
     });
     optionsMenu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("overshell.exitSong"), [this]() {
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
@@ -206,10 +206,9 @@ void PracticeMenu::DrawGameplay() {
         if (player.engine.get()->stats.get()->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), volume);
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
     }
     TheAudioManager.UpdateAudioStreamVolumes();
 
-    GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText(true);
 }

@@ -7,15 +7,14 @@
 #include "util/enclog.h"
 
 void Encore::RhythmEngine::MidiLyricLoader::LoadLyrics() {
+    Log::Info("Loading lyrics...");
     if (midiFile) {
-        midiFile->doTimeAnalysis();
         GetPhrases(&midiFile->operator[](trackIdx));
         GetNotes(&midiFile->operator[](trackIdx));
     }
 };
 
 void Encore::RhythmEngine::MidiLyricLoader::GetPhrases(smf::MidiEventList *midiEventList) {
-    midiEventList->linkNotePairs();
     EncLyricPhrase fakefirst;
     lyrics.emplace_back(fakefirst);
     for (int eventInt = 0; eventInt < midiEventList->size(); eventInt++) {
@@ -73,7 +72,6 @@ void Encore::RhythmEngine::MidiLyricLoader::IteratePhrases(int tick) {
 };
 
 void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEventList) {
-    midiEventList->linkNotePairs();
     for (int eventInt = 0; eventInt < midiEventList->size(); eventInt++) {
         if (!(*midiEventList)[eventInt].isMeta())
             continue;
@@ -131,7 +129,6 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
         } else {
             lyric.push_back(' ');
         }
-        EncoreLog(LOG_DEBUG, lyric.c_str());
         currentPhrase.lyrics.emplace_back(event.seconds, lyric, talkie);
     }
 };

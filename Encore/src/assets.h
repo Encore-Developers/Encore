@@ -196,11 +196,9 @@ public:
 
     int GetUniformLoc(const std::string &uniformName) {
         if (!uniformPositions.contains(uniformName)) {
-            Encore::EncoreLog(LOG_ERROR,
-                              TextFormat(
-                                  "Attempted to get unknown uniform %s on asset %s",
-                                  uniformName.c_str(),
-                                  id.c_str()));
+            Encore::Log::Error("Attempted to get unknown uniform {} on asset {}",
+                                  uniformName,
+                                  id);
             return -1;
         }
         auto found = uniformPositions.find(uniformName);
@@ -419,6 +417,7 @@ public:
     NEWFONTASSET(rubikItalic, "fonts/Rubik-Italic.ttf", FONT_LARGE);
     NEWFONTASSET_KEEPRAW(JetBrainsMono, "fonts/JetBrainsMonoNL-Regular.ttf", FONT_SMALL);
     NEWFONTASSET(rubikBoldItalic, "fonts/Rubik-BoldItalic.ttf", FONT_SMALL);
+    NEWFONTASSET(rubikExtraBold, "fonts/Rubik-ExtraBold.ttf", FONT_SMALL);
 
     NEWFONTASSET(rubikBold, "fonts/Rubik-Bold.ttf", FONT_MEDIUM);
 

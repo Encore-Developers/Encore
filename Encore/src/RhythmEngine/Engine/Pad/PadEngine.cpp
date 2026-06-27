@@ -131,13 +131,13 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(double CurrentTime) {
     LastUpdateTime = CurrentTime;
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
-            if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
+            if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
                 continue;
             stats->InputTime = CurrentTime;
             while (chart->CurrentNoteIterators.at(Lane)->StartSeconds <= CurrentTime) {
-                if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
-                    break;
                 HitNote(Lane);
+                if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
+                    break;
             }
         }
         if (chart->HeldNotePointers.at(Lane) != nullptr

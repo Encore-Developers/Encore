@@ -226,84 +226,43 @@ void resultsMenu::Draw() {
         if (ThePlayerManager.ActivePlayers[i] == -1) continue;
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
     }
-    encOS::DrawTopOvershell(0.2f);
-    GameMenu::DrawVersion();
-    // Draw album cover to the left of track info
-    float albumX = u.LeftSide;
-    float albumY = u.hpct(0.0225f);
-    float albumSize = u.hpct(0.158f) - albumY;
-    DrawTexturePro(
-        TheArtLoader.loadedArt->GetTexture(),
-        { 0, 0, (float)TheArtLoader.loadedArt->GetTexture().width, (float)TheArtLoader.loadedArt->GetTexture().height },
-        { albumX, albumY, albumSize, albumSize },
-        { 0, 0 },
-        0,
-        WHITE
-    );
+    GameMenu::DrawTopOvershell(0.18f);
+    GameMenu::DrawTopBarText();
     // Shift track info text to the right of the album cover
-    float textX = u.LeftSide + albumSize + u.winpct(0.01f);
-    float TitleFontOffset = u.hpct(0.045f);
+    float textX = u.LeftSide + u.winpct(0.01f);
+    float TitleY = u.hpct(0.05125f);
     float TitleFontSize = u.hinpct(0.04f);
     float SecondaryFontSize = TitleFontSize * 0.75f;
     float SecondaryFontOffset = TitleFontSize * 1.2f;
-    float TitleSize = MeasureTextEx(ASSET(rubikBold), curSong->title.c_str(), TitleFontSize, 0).x;
-    Encore::Text::DrawText(ASSET(rubikBold), curSong->title,
-                         { textX, TitleFontOffset },
-                         TitleFontSize,
-                         WHITE,
-                         LEFT
-    );
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->artist,
-                         { textX + TitleSize + u.hinpct(0.02f), TitleFontOffset + u.hinpct(0.008f) },
-                         SecondaryFontSize,
-                         LIGHTGRAY,
-                         LEFT
-    );
+    Encore::TextDisplay SongTitle;
     auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
-        {textX, TitleFontOffset + TitleFontSize, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
+        {textX, TitleY, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
-    Encore::Text::DrawText(ASSET(josefinSansBoldItalic), curSong->charters[0],
-                         { textX + ( TitleFontSize * 1.125f), TitleFontOffset + SecondaryFontOffset },
-                         SecondaryFontSize,
-                         LIGHTGRAY,
-                         LEFT
-    );
-    Color accentColor =
-        ColorBrightness(ColorContrast(RED, -0.125f), -0.25f);
-    float warningTextSize = u.hinpct(0.038f);
-    auto warning = LOCALIZE("resultsMenu.indevWarning");
-    float textWidth = MeasureTextEx(assets.josefinSansItalic, warning, warningTextSize, 0).x;
-    Vector2 TopLeft = { u.LeftSide, u.hpct(0.158f) };
-    DrawRectangle(0, TopLeft.y, u.LeftSide, warningTextSize, accentColor);
+    float TitleSize =
+        SongTitle.Pos(textX + SecondaryFontOffset, TitleY)
+                 .Fnt(ASSET(rubikBold))
+                 .Size(TitleFontSize)
+                 .DrawText(curSong->title)
+                 .TextWidth(curSong->title);
 
-    DrawRectangleGradientH(
-        TopLeft.x,
-        TopLeft.y,
-        textWidth + u.winpct(0.1f),
-        warningTextSize,
-        accentColor,
-        Color { 0, 0, 0, 0 }
-    );
-    Encore::Text::lDrawText(
-        assets.josefinSansItalic,
-        "resultsMenu.indevWarning",
-        { TopLeft.x, TopLeft.y + u.hinpct(0.008f) },
-        u.hinpct(0.025f),
-        WHITE,
-        LEFT
-    );
+    Encore::TextDisplay SongArtist;
+    SongArtist.Pos(textX + SecondaryFontOffset + TitleSize + u.hinpct(0.02f), TitleY + u.hinpct(0.008f))
+              .Fnt(ASSET(josefinSansBoldItalic))
+              .Size(SecondaryFontSize)
+              .Col(LIGHTGRAY)
+              .DrawText(curSong->artist);
 
     // renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f),
     // u.hinpct(0.05f), false);
-    float ScoreFontSize = u.hinpct(0.075f);
+    float ScoreFontSize = u.hinpct(0.08f);
     Encore::Text::DrawText(
-        assets.redHatDisplayItalic,
+        assets.redHatMono,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
-        { u.RightSide, u.hpct(0.02125f) },
+        { textX, TitleY + TitleFontSize },
         ScoreFontSize,
-        GetColor(0x00adffFF),
-        RIGHT
+        GetColor(0x4FC6F9FF),
+        LEFT
     );
     GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
@@ -332,12 +291,10 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     auto& stats = player.engine->stats;
-    float cardPos =
-            (u.wpct(0.125) + (u.winpct(0.25) * playerslot)) - u.winpct(0.11);
-    // float cardPos = u.LeftSide + (u.winpct(0.26f) * ((float)playerslot));
-    float cardWidth = u.winpct(0.22f);
+    float cardPos = GetOvershellSlotLeft(playerslot);
+    float cardWidth = GetOvershellSlotWidth();
     float cardHalfWidth = cardWidth/2;
-    float cardTop = u.hpct(0.2f);
+    float cardTop = u.hpct(0.18f);
     DrawRectangle(cardPos - 6, cardTop, cardWidth + 12, u.hpct(0.85f), WHITE);
     DrawRectangle(
         cardPos, cardTop, cardWidth, u.hpct(0.85f), backgroundColor
@@ -479,7 +436,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float statsHeight = cardTop + u.hinpct(0.415f);
     float ActualStatsHeight = u.hinpct(0.03f);
     float statsLeft = cardPos + u.winpct(0.01f);
-    float statsRight = cardPos + u.winpct(0.21f);
+    float statsRight = cardPos + cardWidth - u.winpct(0.01f);
     Encore::TextDisplay LeftStatData;
     Encore::TextDisplay RightStatData;
     LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));

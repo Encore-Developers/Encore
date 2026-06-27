@@ -14,9 +14,9 @@ namespace Encore {
     {
     public:
         std::array<SDL_Keycode, 4> keybinds4k = {SDLK_D, SDLK_F, SDLK_J, SDLK_K};
-        std::array<SDL_Keycode, 5> keybinds5k = {SDLK_D, SDLK_F, SDLK_J, SDLK_K, SDLK_L};
+        std::array<SDL_Keycode, 6> keybinds5k = {SDLK_D, SDLK_F, SDLK_J, SDLK_K, SDLK_L, SDLK_SEMICOLON};
         std::array<SDL_Keycode, 4> keybinds4kalt = {SDLK_1, SDLK_2, SDLK_3, SDLK_4};
-        std::array<SDL_Keycode, 5> keybinds5kalt = {SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5};
+        std::array<SDL_Keycode, 6> keybinds5kalt = {SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6};
         std::pair<SDL_Keycode, SDL_Keycode> strumBinds = {SDLK_RSHIFT, SDLK_RCTRL}; // first is up, second is down
         std::pair<SDL_Keycode, SDL_Keycode> overdriveBinds = {SDLK_SPACE, SDLK_TAB}; // first is main, second is alt
 

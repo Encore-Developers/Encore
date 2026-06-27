@@ -32,7 +32,6 @@ enum OptionsCategories {
 void SettingsMenu::Draw() {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
-    encOS::DrawTopOvershell(0.15f);
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
@@ -45,7 +44,7 @@ void SettingsMenu::Draw() {
     float TextTop = u.hpct(0.31f);
     float EntryTextLeft = u.wpct(0.03f);
 
-    encOS::DrawTopOvershell(0.15f);
+    GameMenu::DrawTopOvershell(0.15f);
 
     // find a better name for this than Main Menu
     Encore::Text::lDrawText(assets.rubik, "settings.header.categorySel",
@@ -115,7 +114,7 @@ void SettingsMenu::Draw() {
                     TheMenuManager.CreateAndSwitchMenu<SettingsCredits>();
                     break;
                 }
-                printf("Clicked: %s\n", menuItems[i].c_str());
+                Encore::Log::Trace("Clicked: {}", menuItems[i]);
             }
         }
         if (i == selectedIndex) {
@@ -128,7 +127,7 @@ void SettingsMenu::Draw() {
     }
 
     Units::getInstance();
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText();
     GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();

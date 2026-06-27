@@ -74,7 +74,7 @@ public:
         // WE'RE GONNA CRASH
         // WE'RE GONNA CRASH
         // WE'RE GONNA CRASH
-        Encore::EncoreLog(LOG_ERROR, "GetPlayerGamepad called. Get ready to have a headache.");
+        Encore::Log::Error("GetPlayerGamepad called. Get ready to have a headache.");
         return *PlayerList.data();
     }
 

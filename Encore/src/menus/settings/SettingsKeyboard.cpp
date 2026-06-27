@@ -19,8 +19,8 @@ void SettingsKeyboard::Draw() {
     Assets& assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
-    encOS::DrawTopOvershell(0.15f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.15f);
+    GameMenu::DrawTopBarText();
     GameMenu::DrawBottomOvershell();
 
     float TextPlacementTB = u.hpct(0.05f);
@@ -121,11 +121,11 @@ void SettingsKeyboard::ControllerInputCallback(Encore::ControllerEvent event) {
 }
 
 void SettingsKeyboard::Load() {
-    TraceLog(LOG_INFO, "SettingsKeyboard: Loaded keybinds from settings-old.json");
+    // Encore::Log::Debug("Loaded keybinds from settings-old.json");
 }
 
 void SettingsKeyboard::Save() {
    //  settings.saveOldSettings(settings.getDirectory() / "settings-old.json");
     // settings.syncKeybindsToGame();
-    TraceLog(LOG_INFO, "SettingsKeyboard: Saved keybinds to settings-old.json");
+    // Encore::Log::Debug("Saved keybinds to settings-old.json");
 }

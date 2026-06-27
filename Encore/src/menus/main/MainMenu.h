@@ -33,7 +33,7 @@ namespace GameMenu {
 
     static bool streamsLoaded = false;
     void DrawFPS(int posX, int posY);
-    void DrawVersion();
+    void DrawTopBarText(bool ShowFPS = false, bool ShowLogo = true);
 
     void DrawAlbumArtBackground();
 }

@@ -8,10 +8,10 @@
 
 
 namespace Encore::RhythmEngine {
-    class DrumsStats final : public BaseStats<5> {
+    class DrumsStats final : public BaseStats {
         int Type = 0;
     public:
-        explicit DrumsStats(int BaseScore) : BaseStats<5>(BaseScore) {}
+        explicit DrumsStats(int BaseScore) : BaseStats(BaseScore) {}
     };
 }
 

@@ -8,6 +8,7 @@ namespace Encore {
         LANE_3 = 2,
         LANE_4 = 3,
         LANE_5 = 4,
+        LANE_6 = 5,
         STRUM_UP = 7,
         STRUM_DOWN = 8,
         PAUSE = 9,
@@ -29,6 +30,8 @@ namespace Encore {
             return InputChannel::LANE_4;
         case 4:
             return InputChannel::LANE_5;
+        case 5:
+            return InputChannel::LANE_6;
         default:
             return InputChannel::INVALID;
         }
@@ -45,6 +48,22 @@ namespace Encore {
             return 3;
         case InputChannel::LANE_5:
             return 4;
+        case InputChannel::LANE_6:
+            return 5;
+        case InputChannel::STRUM_UP:
+            return 7;
+        case InputChannel::STRUM_DOWN:
+            return 8;
+        case InputChannel::PAUSE:
+            return 9;
+        case InputChannel::OVERDRIVE:
+            return 10;
+        case InputChannel::WHAMMY:
+            return 11;
+        case InputChannel::INPUT_LEFT:
+            return 12;
+        case InputChannel::INPUT_RIGHT:
+            return 13;
         default:
             return 0;
         }

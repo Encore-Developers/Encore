@@ -38,7 +38,7 @@ void Encore::KickTrackSlot::DrawSmasher(bool held) {
     Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
 
     if (animTimer < 1) {
-        animTimer += GetFrameTime() * 2.5f;
+        animTimer += GetFrameTime() * 2.2f;
     } else {
         animTimer = 1;
     }
@@ -49,7 +49,7 @@ void Encore::KickTrackSlot::DrawSmasher(bool held) {
         overhitTimer = 0;
     }
 
-    float bounce = (1 - getEasingFunction(EaseOutBounce)(animTimer)) * 0.9;
+    float bounce = (1 - getEasingFunction(EaseOutBounce)(animTimer)) * 1.9;
 
 
 
@@ -63,10 +63,10 @@ void Encore::KickTrackSlot::AnimateHit(bool perfect, Color color) {
     Particle part;
     part.active = true;
     part.type = KICKFLARE;
-    part.position = { xPos, 0.15, 0.39 };
+    part.position = { xPos, 0.12, 0.39 };
     part.color = color;
     track->particleSystem->SpawnParticle(part);
-    part.position = { xPos, 0.15, -0.39 };
+    part.position = { xPos, 0.12, -0.39 };
     track->particleSystem->SpawnParticle(part);
 }
 void Encore::KickTrackSlot::AnimateOverhit() {

@@ -49,6 +49,7 @@ namespace Encore {
         void Configure5LaneGemOpen();
         void Configure4Lane();
         void ConfigureDrums();
+        void Configure5LaneDrums();
         void ConfigurePSDrums();
         void ConfigureFuckYoyDrums();
         void ConfigureDrumsGemKick();

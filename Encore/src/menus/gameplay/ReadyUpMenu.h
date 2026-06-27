@@ -6,6 +6,7 @@
 #define READYUPMENU_H
 #include "../overshell/OvershellMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
+#include "RhythmEngine/ChartLoaders/ChartLoader.h"
 #include "users/player.h"
 
 class ReadyUpMenu : public OvershellMenu {
@@ -26,8 +27,10 @@ class ReadyUpMenu : public OvershellMenu {
 public:
 
     Song* curSong;
+    Encore::RhythmEngine::ChartLoader chartLoader;
+    ReadyUpMenu(Song* song)
+        : curSong(song), chartLoader(song->midiPath) {}
 
-    ReadyUpMenu(Song* song) : curSong(song) {}
     ~ReadyUpMenu() override = default;
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;
     void DrawDifficulties(float BottomOvershell,

@@ -53,7 +53,7 @@ const LocaleList *LocaleLayer::FetchList(const std::string &token) const {
 void Locale::Init() {
     layers.clear();
     unlocalizedTokens.clear();
-    EncoreLog(LOG_WARNING, TextFormat("Loading locale. Using locale from settings: ", TheGameSettings.Language.c_str()));
+    Log::Warn("Loading locale. Using locale from settings: {}", TheGameSettings.Language);
     AddLayer(TheGameSettings.Language, false);
     AddLayer("en_US", true); // Fall back to English
 }
@@ -68,7 +68,7 @@ void Locale::AddLayer(const std::string &name, bool fallback) {
     if (std::filesystem::exists(path)) {
         layers.emplace_back(name, fallback);
     } else {
-        EncoreLog(LOG_WARNING, TextFormat("Error: Could not find locale file for %s", name.c_str()));
+        Log::Error("Could not find locale file for {}", name);
     }
 }
 LocalizedString Locale::Localize(const std::string &token) {

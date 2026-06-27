@@ -25,7 +25,7 @@ void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
 
     if (Fill <= 0) {
         Fill = 0;
-        EncoreLog(LOG_DEBUG, TextFormat("Last OD Tick: %4.4f", ticks.CurrentODTick));
+        Log::Trace("Last OD Tick: {:4.4f}", ticks.CurrentODTick);
         Active = false;
     }
 }
@@ -37,7 +37,8 @@ bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
     ActivationTime = CurrentTime;
     ActivationTick = ticks.CurrentODTick;
     TheAudioManager.playSample(ASSET(activateSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
-    EncoreLog(LOG_DEBUG, TextFormat("First OD Tick: %4.4f", ticks.CurrentODTick));
+
+    Log::Trace("First OD Tick: {:4.4f}", ticks.CurrentODTick);
     return true;
 }
 

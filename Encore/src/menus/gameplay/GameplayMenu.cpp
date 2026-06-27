@@ -138,7 +138,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
                 }
             }
             int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals)
-                ? 5
+                ? 6
                 : 4;
 
             for (int i = 0; i < DiffMax; i++) {
@@ -440,29 +440,29 @@ void GameplayMenu::Draw() {
             volume = TheGameSettings.GetCrowdVolume();
         stream.volume = volume;
     }
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
-        Player &player = ThePlayerManager.GetActivePlayer(i);
+
+    for (auto& track : tracks) {
+        Player &player = track->player;
 
         if (!IsPaused()) {
             ZoneScopedN("Engine Update")
             if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
                 player.engine->practice) {
-            }
+                }
             player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }
 
-        tracks.at(i)->Draw();
+        track->Draw();
         // double offset = player.engine->stats->TotalOffset / player.engine->stats->NotesHit;
         // if (player.engine->stats->NotesHit == 0) offset = 0;
         // TheSongTime.SetOffset(offset);
         auto chart = player.engine->chart;
         float volume = TheGameSettings.GetActiveVolume();
-        if (player.engine.get()->stats.get()->AudioMuted) {
+        if (player.engine->stats->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), volume);
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
     }
     TheAudioManager.UpdateAudioStreamVolumes();
 
@@ -507,12 +507,24 @@ void GameplayMenu::Draw() {
         {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
     );
 
+    std::string CurrentSectionName = "None";
+    if (!TheSongTime.Sections.empty()) {
+        for (int i = 0; i < TheSongTime.Sections.size() - 1; i++) {
+            if (TheSongTime.Sections.at(i).start <= TheSongTime.GetElapsedTime()
+                && TheSongTime.Sections.at(i+1).start > TheSongTime.GetElapsedTime()) {
+                CurrentSectionName = TheSongTime.Sections.at(i).name;
+                break;
+            }
+        }
+    }
+
+    secondary.AddPos(-( TitleFontSize * 1.125f), TitleFontSize).DrawText(LOCALISE_FMT("gameplay.sectionDisplay", CurrentSectionName));
+
     if (IsPaused()) {
         DrawPauseMenu();
     }
 
-    GameMenu::DrawFPS(u.LeftSide, u.hpct(0.0025f) + u.hinpct(0.025f));
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopBarText(true);
 }
 
 void GameplayMenu::Load() {
@@ -562,33 +574,36 @@ void GameplayMenu::Load() {
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongParts(player.Instrument)), TheGameSettings.GetActiveVolume());
+        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), TheGameSettings.GetActiveVolume());
 
-
-        tracks.push_back(std::make_shared<Encore::Track>(player));
-        tracks.at(i)->Load();
-        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
-        tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
-        tracks.at(i)->MaxScale = trackMaxScale;
-        tracks.at(i)->IntroTimer += (0.5 * playerCount);
+        auto track = std::make_shared<Encore::Track>(player);
+        track->Load();
+        track->ColumnLeft = -1 + widthPerPlayer * playerCount;
+        track->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
+        track->MaxScale = trackMaxScale;
+        track->IntroTimer += (0.5 * playerCount);
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:
         case PlasticKeys:
-            tracks.at(i)->Configure5Lane();
-            tracks.at(i)->ColorProfileType = Encore::ProfileManager::PLASTIC;
+            track->Configure5Lane();
+            track->ColorProfileType = Encore::ProfileManager::PLASTIC;
             break;
         case PlasticDrums:
-            tracks.at(i)->ConfigureDrums();
-            tracks.at(i)->ColorProfileType = Encore::ProfileManager::DRUMS;
+            if (player.engine->chart->size == 5) {
+                track->ConfigureDrums();
+            } else {
+                track->Configure5LaneDrums();
+            }
+            track->ColorProfileType = Encore::ProfileManager::DRUMS;
             break;
         default:
             if (player.Difficulty == 3) {
-                tracks.at(i)->Configure5Lane();
+                track->Configure5Lane();
             } else {
-                tracks.at(i)->Configure4Lane();
+                track->Configure4Lane();
             }
-            tracks.at(i)->ColorProfileType = Encore::ProfileManager::PAD;
+            track->ColorProfileType = Encore::ProfileManager::PAD;
         }
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals
             || player.Instrument == PartBass) {
@@ -603,6 +618,7 @@ void GameplayMenu::Load() {
                 LastNote = lane.back().StartSeconds + lane.back().LengthSeconds + 1;
             }
         }
+        tracks.push_back(track);
         playerCount++;
     }
 
@@ -631,8 +647,8 @@ void GameplayMenu::DrawPauseMenu() {
         GetColor(0x00000080)
     );
 
-    encOS::DrawTopOvershell(0.2f);
-    GameMenu::DrawVersion();
+    GameMenu::DrawTopOvershell(0.2f);
+    GameMenu::DrawTopBarText(true);
 
     DrawRectangle(
         (int)u.LeftSide,
