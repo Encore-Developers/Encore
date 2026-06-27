@@ -162,7 +162,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
 
     float OvershellTopLoc = BottomBottomOvershell + unit.hinpct(0.02f);
     float osCoverHeight = unit.hinpct(0.11f);
-    float osBottom = GetYPos();
+    float osBottom = GetYPos(-1, true);
     PlayerManager &playerManager = ThePlayerManager;
     for (int i = 0; i < MAX_PLAYERS; i++) {
         osLeft = GetOvershellSlotLeft(i);
@@ -275,15 +275,10 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             break;
         }
         case OS_OPTIONS: {
-
-            int len = dropInDropOut ? 9 : 6;
-            if (!dropInDropOut && TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
-                len++;
-            }
-            int curSlot = len-1;
+            int curSlot = 0;
             if (DrawOvershellRectangleHeader(
                     osLeft,
-                    OvershellTopLoc - (ButtonHeight * len),
+                    0,
                     osWidth,
                     osCoverHeight,
                     playerManager.GetActivePlayer(i).Name,
@@ -292,15 +287,13 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 )) {
                 OvershellState[i] = OS_ATTRACT;
                 CancelButtonActivation = true;
-                continue;
             }
-            input.SetLength(len);
             if (!dropInDropOut) {
-                if (OvershellButton(i, curSlot--,LOCALIZE("overshell.return")) || input.backPressed) {
+                if (OvershellButton(i, curSlot++,LOCALIZE("overshell.return")) || input.backPressed) {
                     OvershellState[i] = OS_ATTRACT;
                     ThePlayerManager.SaveSpecificPlayer(i, true);
                 }
-                if (OvershellButton(i, curSlot--,LOCALIZE("generic.restart"))) {
+                if (OvershellButton(i, curSlot++,LOCALIZE("generic.restart"))) {
                     if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
                         TheAudioManager.unloadStreams();
                         for (int i = 0; i < ThePlayerManager.PlayersActive; i++) {
@@ -313,7 +306,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                         TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(gameplayMenu->curSong);
                     }
                 }
-                if (OvershellButton(i, curSlot--,LOCALIZE("overshell.exitSong"))) {
+                if (OvershellButton(i, curSlot++,LOCALIZE("overshell.exitSong"))) {
                     TheAudioManager.unloadStreams();
                     TheSongTime.FullReset();
                     for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -331,7 +324,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
                 }
                 if (TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
-                    if (OvershellButton(i, curSlot--,LOCALIZE("overshell.nextSong"))) {
+                    if (OvershellButton(i, curSlot++,LOCALIZE("overshell.nextSong"))) {
                         TheAudioManager.unloadStreams();
                         TheSongTime.FullReset();
                         for (int i = 0; i < MAX_PLAYERS; i++) {
@@ -355,13 +348,13 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
 
             auto bnsString = LOCALIZE_FMT("overshell.breakneckSpeed", playerManager.GetActivePlayer(i).NoteSpeed);
             if (!BNSetting) {
-                if (OvershellButton(i, curSlot--, bnsString)) {
+                if (OvershellButton(i, curSlot++, bnsString)) {
                     BNSetting = true;
                 }
             } else {
                 if (OvershellSlider(
                     i,
-                    curSlot--,
+                    curSlot++,
                     bnsString,
                     &playerManager.GetActivePlayer(i).NoteSpeed,
                     0.05,
@@ -371,7 +364,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     BNSetting = false;
                 };
             }
-            if (OvershellButton(i, curSlot--,LOCALIZE("overshell.colorProfiles"))) {
+            if (OvershellButton(i, curSlot++,LOCALIZE("overshell.colorProfiles"))) {
                 OvershellState[i] = OS_COLOR_PROFILE_TYPE_SELECTOR;
             }
             if (dropInDropOut) {
@@ -390,7 +383,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 default:
                     typeString = LOCALIZE("generic.unknown");
                 }
-                if (OvershellButton(i, curSlot--,LOCALIZE_FMT("overshell.instrumentType", typeString))) {
+                if (OvershellButton(i, curSlot++,LOCALIZE_FMT("overshell.instrumentType", typeString))) {
                     OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
                 }
                 auto padId = playerManager.GetActivePlayer(i).joypadID;
@@ -405,35 +398,36 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     padName = SDL_GetJoystickNameForID(padId);
                 }
                 GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.018f));
-                if (OvershellButton(i, curSlot--,LOCALIZE_FMT("overshell.currentController", padName))) {
+                if (OvershellButton(i, curSlot++,LOCALIZE_FMT("overshell.currentController", padName))) {
                     OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
                     break;
                 }
                 GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.03f));
 
                 playerManager.GetActivePlayer(i).BrutalMode =
-                OvershellCheckbox(i, curSlot--,LOCALIZE("overshell.brutalMode"), playerManager.GetActivePlayer(i).BrutalMode);
+                OvershellCheckbox(i, curSlot++,LOCALIZE("overshell.brutalMode"), playerManager.GetActivePlayer(i).BrutalMode);
                 playerManager.GetActivePlayer(i).Bot =
-                    OvershellCheckbox(i, curSlot--,LOCALIZE("overshell.autoplay"), playerManager.GetActivePlayer(i).Bot);
+                    OvershellCheckbox(i, curSlot++,LOCALIZE("overshell.autoplay"), playerManager.GetActivePlayer(i).Bot);
             }
             playerManager.GetActivePlayer(i).LeftyFlip = OvershellCheckbox(
-                i, curSlot--,LOCALIZE("overshell.leftyFlip"), playerManager.GetActivePlayer(i).LeftyFlip
+                i, curSlot++,LOCALIZE("overshell.leftyFlip"), playerManager.GetActivePlayer(i).LeftyFlip
             );
             if (dropInDropOut) {
-                if (OvershellButton(i, curSlot--,LOCALIZE("overshell.dropOut"))) {
+                if (OvershellButton(i, curSlot++,LOCALIZE("overshell.dropOut"))) {
                     playerManager.SaveSpecificPlayer(i, true);;
                     playerManager.RemoveActivePlayer(i);
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                     continue;
                 }
-                if (OvershellButton(i, curSlot--,LOCALIZE("generic.cancel")) || input.backPressed) {
+                if (OvershellButton(i, curSlot++,LOCALIZE("generic.cancel")) || input.backPressed) {
                     playerManager.SaveSpecificPlayer(i, true);
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                 }
             }
 
+            input.SetLength(curSlot);
             DrawOvershellBottomCover(osLeft, osWidth, 3, playerManager.GetActivePlayer(i).AccentColor);
             break;
         }
@@ -456,12 +450,11 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             break;
         }
         case OS_ATTRACT: {
-            input.menuLength = 0;
+            input.SetLength(0);
             if (playerManager.ActivePlayers[i] != -1) {
                 // player active
                 Color headerUsernameColor =
                     playerManager.GetActivePlayer(i).Bot ? SKYBLUE : WHITE;
-                DrawOvershellBottomCover(osLeft, osWidth, 2, playerManager.GetActivePlayer(i).AccentColor);
                 if (DrawOvershellRectangleHeader(
                         osLeft,
                         OvershellTopLoc,
@@ -473,9 +466,9 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     )) {
                     OvershellState[i] = OS_OPTIONS;
                     CancelButtonActivation = false;
-                    continue;
                     // playerManager.RemoveActivePlayer(i);
                 };
+                DrawOvershellBottomCover(osLeft, osWidth, 2, playerManager.GetActivePlayer(i).AccentColor);
             } else { // no active players
                 // if its the first slot, keyboard can join ALWAYS
                 if (!dropInDropOut) {

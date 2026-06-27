@@ -5623,16 +5623,16 @@ static void GuiDrawRectangle(Rectangle rec, int borderWidth, Color borderColor, 
     if (color.a > 0)
     {
         // Draw rectangle filled with color
-        DrawRectangle((int)rec.x, (int)rec.y, (int)rec.width, (int)rec.height, GuiFade(color, guiAlpha));
+        DrawRectangle(rec.x, rec.y, rec.width, rec.height, GuiFade(color, guiAlpha));
     }
 
     if (borderWidth > 0)
     {
         // Draw rectangle border lines with color
-        DrawRectangle((int)rec.x, (int)rec.y, (int)rec.width, borderWidth, GuiFade(borderColor, guiAlpha));
-        DrawRectangle((int)rec.x, (int)rec.y + borderWidth, borderWidth, (int)rec.height - 2*borderWidth, GuiFade(borderColor, guiAlpha));
-        DrawRectangle((int)rec.x + (int)rec.width - borderWidth, (int)rec.y + borderWidth, borderWidth, (int)rec.height - 2*borderWidth, GuiFade(borderColor, guiAlpha));
-        DrawRectangle((int)rec.x, (int)rec.y + (int)rec.height - borderWidth, (int)rec.width, borderWidth, GuiFade(borderColor, guiAlpha));
+        DrawRectangle(rec.x, rec.y, rec.width, borderWidth, GuiFade(borderColor, guiAlpha));
+        DrawRectangle(rec.x, rec.y + borderWidth, borderWidth, rec.height - 2*borderWidth, GuiFade(borderColor, guiAlpha));
+        DrawRectangle(rec.x + rec.width - borderWidth, rec.y + borderWidth, borderWidth, rec.height - 2*borderWidth, GuiFade(borderColor, guiAlpha));
+        DrawRectangle(rec.x, rec.y + rec.height - borderWidth, rec.width, borderWidth, GuiFade(borderColor, guiAlpha));
     }
 
 #if defined(RAYGUI_DEBUG_RECS_BOUNDS)

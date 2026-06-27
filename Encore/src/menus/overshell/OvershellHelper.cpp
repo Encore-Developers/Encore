@@ -34,8 +34,10 @@ bool encOS::DrawOvershellRectangleHeader(
     Color usernameColor,
     bool drawBG
 ) {
-    Assets &assets = Assets::getInstance();
     Units &u = Units::getInstance();
+    height = u.hinpct(0.11f);
+    y = GetYPos(1) - height;
+    Assets &assets = Assets::getInstance();
     float UpperPortion = height * 0.6f;
     float LowerPortion = height * 0.4f;
     Rectangle RectPos = { x, y, width, height * 2 };
@@ -46,7 +48,7 @@ bool encOS::DrawOvershellRectangleHeader(
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
     GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0);
     GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0);
-    bool toReturn = GuiButton({ x, y, width, UpperPortion }, "");
+    bool toReturn = GuiButton({ x, y, width, height }, "");
     SETDEFAULTSTYLE();
     // float Inset = unit.winpct(0.001f);
     // float InsetDouble = Inset * 2;
@@ -81,23 +83,19 @@ bool encOS::DrawOvershellBottomCover(float x,
     Color accentColor) {
     Units &u = Units::getInstance();
     float height = u.hinpct(0.11f * 0.4f);
-
-    GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
-    GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
-    GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
-    GuiSetStyle(BUTTON, BACKGROUND_COLOR, 0);
-    GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0);
-    GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0);
-    GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0);
-    bool toReturn = GuiButton({ x, GetYPos(), width, height }, "");
-    DrawRectangleGradientV(x, GetYPos(), width, height, ColorBrightness(accentColor, -0.6f), ColorBrightness(accentColor, -0.76f));
-    DrawRectangleGradientV(x, GetYPos(), width, u.hinpct(0.004f), Color { 0, 0, 0, 64 }, Color { 0, 0, 0, 0 });
-    return toReturn;
+    DrawRectangleGradientV(x, GetYPos(0, true), width, height, ColorBrightness(accentColor, -0.6f), ColorBrightness(accentColor, -0.76f));
+    DrawRectangleGradientV(x, GetYPos(0, true), width, u.hinpct(0.004f), Color { 0, 0, 0, 64 }, Color { 0, 0, 0, 0 });
+    return true;
 }
 
-float encOS::GetYPos() {
+float encOS::GetYPos(int buttonIndex, bool ignoreRaise) {
     Units &u = Units::getInstance();
-    return u.hpct(1.0) - u.hinpct(0.11f * 0.4f);
+    float baseline = u.hpct(1.0) - u.hinpct(0.11f * 0.4f);
+    auto out = baseline + (u.winpct(0.03f) * (buttonIndex));
+    if (OvershellInputState::currentState && !ignoreRaise) {
+        out -= OvershellInputState::currentState->raise * u.winpct(0.03f);
+    }
+    return out;
 }
 
 bool encOS::OvershellButton(int slot, int x, std::string string) {
@@ -108,14 +106,14 @@ bool encOS::OvershellButton(int slot, int x, std::string string) {
     float y = u.hpct(1.0f) - u.hinpct(0.11f * 0.4f);
     bool selected = GuiButton(
         { osLeft,
-          y - (u.winpct(0.03f) * (x + 1)),
+          GetYPos(x),
           osWidth,
           u.winpct(0.03f) },
         string.c_str()
     );
     SETDEFAULTSTYLE();
     if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
-        DrawRectangle(osLeft, y - (u.winpct(0.03f) * (x + 1)), osWidth, u.winpct(0.03f), {255, 0, 255, 80});
+        DrawRectangle(osLeft, GetYPos(x), osWidth, u.winpct(0.03f), {255, 0, 255, 80});
         if (OvershellInputState::currentState->selectPressed) {
             selected = true;
         }
@@ -151,7 +149,7 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
                          u.winpct(0.2f) - height - height,
                          height };
     Rectangle confirmBounds = { osLeft + osWidth - height,
-                                y - (u.winpct(0.03f) * (x + 1)),
+                                GetYPos(x),
                                 height,
                                 height };
     Assets &assets = Assets::getInstance();
@@ -162,7 +160,7 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
 
     if (GuiButton(
             { osLeft,
-              y - (u.winpct(0.03f) * (x + 1)),
+              GetYPos(x),
               osWidth,
               height },
             string.c_str()
@@ -173,7 +171,7 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
     SETDEFAULTSTYLE();
 
     if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
-        DrawRectangle(osLeft, y - (u.winpct(0.03f) * (x + 1)), osWidth, u.winpct(0.03f), {255, 0, 255, 80});
+        DrawRectangle(osLeft, GetYPos(x), osWidth, u.winpct(0.03f), {255, 0, 255, 80});
         if (OvershellInputState::currentState->selectPressed) {
             initialVal = !initialVal;
         }
@@ -195,11 +193,11 @@ bool encOS::OvershellSlider(
     float speedTextWidth = u.winpct(0.04f);
     float widthNoHeight = u.winpct(0.2f) - height;
     Rectangle bounds = { osLeft + speedTextWidth,
-                         GetYPos() - (u.winpct(0.03f) * (x + 1)),
+                         GetYPos(x),
                          osWidth - speedTextWidth - height,
                          height };
     Rectangle confirmBounds = { osLeft + osWidth - height,
-                                GetYPos() - (u.winpct(0.03f) * (x + 1)),
+                                GetYPos(x),
                                 height,
                                 height };
     Assets &assets = Assets::getInstance();
@@ -207,7 +205,7 @@ bool encOS::OvershellSlider(
     GuiSlider(bounds, "", "", value, min, max);
     GuiButton(
         { osLeft,
-          GetYPos() - (u.winpct(0.03f) * (x + 1)),
+          GetYPos(x),
           speedTextWidth,
           height },
         TextFormat("%1.2f", *value)

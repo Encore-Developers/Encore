@@ -4,6 +4,8 @@
 #include "users/player.h"
 #include "users/playerManager.h"
 #include "OvershellMenu.h"
+#include "raymath.h"
+#include "menus/util/ContinuousTween.h"
 
 namespace encOS {
 
@@ -27,12 +29,15 @@ namespace encOS {
         int menuLength;
         int focusedItem;
 
+        Encore::ContinuousTween<float> raise = {0, 0.5, Encore::Easing::EASE_IN_OUT};
+
         OvershellInputState(int index) : i(index) {}
 
         void Begin(OvershellMenu *menu) {
             this->menu = menu;
             currentState = this;
             blockNav = false;
+            raise.Update(GetFrameTime());
         }
 
         void Reset() {
@@ -46,9 +51,10 @@ namespace encOS {
         void SetLength(int length) {
             if (menuLength != length || lastState != menu->OvershellState[i]) {
                 menuLength = length;
-                focusedItem = length-1;
+                focusedItem = 0;
                 lastState = (OSState)menu->OvershellState[i];
             }
+            raise = length;
         }
 
         Player* GetPlayer() {
@@ -75,13 +81,13 @@ namespace encOS {
             switch (event.channel) {
             case Encore::InputChannel::STRUM_UP:
                 if (!blockNav) {
-                    focusedItem++;
+                    focusedItem--;
                 }
                 upPressed = true;
                 break;
             case Encore::InputChannel::STRUM_DOWN:
                 if (!blockNav) {
-                    focusedItem--;
+                    focusedItem++;
                 }
                 downPressed = true;
                 break;
@@ -124,7 +130,7 @@ namespace encOS {
         bool drawBG = true
     );
     bool DrawOvershellBottomCover(float x, float width, int state, Color accentColor);
-    float GetYPos();
+    float GetYPos(int buttonIndex, bool ignoreRaise = false);
     bool OvershellCheckbox(int slot, int x, std::string string, bool initialVal);
 
     extern OvershellInputState inputStates[MAX_PLAYERS];
