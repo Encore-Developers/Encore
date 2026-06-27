@@ -431,7 +431,7 @@ void MainMenu::AttractScreen() {
         unsigned char Alpha = 96 + (easeInOut(TitleAnimTimer) * 159);
         float TitleFontSize = u.hinpct(0.0425f * 0.75f);
         float TitleFontOffset = (TitleFontSize * 1.25f);
-        float topOfVocalBar = GetRenderHeight() - u.hpct(0.1f) - (TitleFontOffset * 2);
+        float topOfVocalBar = GetRenderHeight() - u.hpct(0.13f) - (TitleFontOffset * 2);
         DrawMiniMTVOverlay(Alpha, {u.wpct(0.99f),topOfVocalBar});
     }
     DrawOvershell();

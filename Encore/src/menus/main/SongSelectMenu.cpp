@@ -444,6 +444,7 @@ void SongSelectMenu::LoadPreview(Song &song) {
             song
             .LoadAudioINI()
         );
+        if (TheAudioManager.loadedStreams.empty()) return;
         float previewStartTimeSec =
             song
             .previewStartTime
@@ -530,7 +531,7 @@ void SongSelectMenu::Draw() {
     // GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
     float OvershellTop = u.hpct(0.18f);
-    float songEntryHeight = u.hinpct(0.67f / 11);
+    float songEntryHeight = u.hinpct(0.64f / 11);
     GameMenu::DrawTopOvershell(0.18f);
     if (TheSongList.PlaylistMode) {
         DrawRectangleGradientV(

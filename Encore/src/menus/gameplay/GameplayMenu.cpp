@@ -440,26 +440,26 @@ void GameplayMenu::Draw() {
             volume = TheGameSettings.GetCrowdVolume();
         stream.volume = volume;
     }
-    for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
-        Player &player = ThePlayerManager.GetActivePlayer(i);
+
+    for (auto& track : tracks) {
+        Player &player = track->player;
 
         if (!IsPaused()) {
             ZoneScopedN("Engine Update")
             if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
                 player.engine->practice) {
-            }
+                }
             player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }
 
-        tracks.at(i)->Draw();
+        track->Draw();
         // double offset = player.engine->stats->TotalOffset / player.engine->stats->NotesHit;
         // if (player.engine->stats->NotesHit == 0) offset = 0;
         // TheSongTime.SetOffset(offset);
         auto chart = player.engine->chart;
         float volume = TheGameSettings.GetActiveVolume();
-        if (player.engine.get()->stats.get()->AudioMuted) {
+        if (player.engine->stats->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
         TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
@@ -576,35 +576,34 @@ void GameplayMenu::Load() {
 
         TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), TheGameSettings.GetActiveVolume());
 
-
-        tracks.push_back(std::make_shared<Encore::Track>(player));
-        tracks.at(i)->Load();
-        tracks.at(i)->ColumnLeft = -1 + widthPerPlayer * playerCount;
-        tracks.at(i)->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
-        tracks.at(i)->MaxScale = trackMaxScale;
-        tracks.at(i)->IntroTimer += (0.5 * playerCount);
+        auto track = std::make_shared<Encore::Track>(player);
+        track->Load();
+        track->ColumnLeft = -1 + widthPerPlayer * playerCount;
+        track->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
+        track->MaxScale = trackMaxScale;
+        track->IntroTimer += (0.5 * playerCount);
         switch (player.Instrument) {
         case PlasticGuitar:
         case PlasticBass:
         case PlasticKeys:
-            tracks.at(i)->Configure5Lane();
-            tracks.at(i)->ColorProfileType = Encore::ProfileManager::PLASTIC;
+            track->Configure5Lane();
+            track->ColorProfileType = Encore::ProfileManager::PLASTIC;
             break;
         case PlasticDrums:
             if (player.engine->chart->size == 5) {
-                tracks.at(i)->ConfigureDrums();
+                track->ConfigureDrums();
             } else {
-                tracks.at(i)->Configure5LaneDrums();
+                track->Configure5LaneDrums();
             }
-            tracks.at(i)->ColorProfileType = Encore::ProfileManager::DRUMS;
+            track->ColorProfileType = Encore::ProfileManager::DRUMS;
             break;
         default:
             if (player.Difficulty == 3) {
-                tracks.at(i)->Configure5Lane();
+                track->Configure5Lane();
             } else {
-                tracks.at(i)->Configure4Lane();
+                track->Configure4Lane();
             }
-            tracks.at(i)->ColorProfileType = Encore::ProfileManager::PAD;
+            track->ColorProfileType = Encore::ProfileManager::PAD;
         }
         if (player.Instrument == PlasticBass || player.Instrument == PartVocals
             || player.Instrument == PartBass) {
@@ -619,6 +618,7 @@ void GameplayMenu::Load() {
                 LastNote = lane.back().StartSeconds + lane.back().LengthSeconds + 1;
             }
         }
+        tracks.push_back(track);
         playerCount++;
     }
 
