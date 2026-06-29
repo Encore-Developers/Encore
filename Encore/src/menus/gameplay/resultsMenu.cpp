@@ -320,7 +320,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         }
         else if (accuracy >= 0.85) {
             bgToDraw = assets.GradeBackgrounds[3];
-            ResultsShit = "B!";
+            ResultsShit = "B";
         }
         else if (accuracy >= 0.77) {
             bgToDraw = assets.GradeBackgrounds[4];
