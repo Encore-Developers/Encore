@@ -75,18 +75,16 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::ControllerEve
     bool controllerSignedIn = false;
     for (int i = 0; i < MAX_PLAYERS; i++) {
         bool thisSlotIsController = false;
-        auto playerId = ThePlayerManager.ActivePlayers[i];
+        auto player = ThePlayerManager.ActivePlayers[i];
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
-            auto &player = ThePlayerManager.GetActivePlayer(i);
-            player.joypadID = event.slot;
-            player.ActiveSlot = i;
-            DetectControllerType(player);
+            player->joypadID = event.slot;
+            player->ActiveSlot = i;
+            DetectControllerType(*player);
             menu->OvershellState[i] = OS_OPTIONS;
             return true;
         }
-        if (playerId != -1) {
-            auto &player = ThePlayerManager.GetActivePlayer(i);
-            if (player.joypadID == event.slot) {
+        if (player) {
+            if (player->joypadID == event.slot) {
                 controllerSignedIn = true;
                 thisSlotIsController = true;
             }
@@ -115,7 +113,7 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::ControllerEve
     }
     if (menu->dropInDropOut && (event.channel == Encore::InputChannel::PAUSE || event.channel == Encore::InputChannel::LANE_1) && !controllerSignedIn) {
         for (int i = 0; i < 4; i++) {
-            if (ThePlayerManager.ActivePlayers[i] == -1 && menu->ControllersToAssign[i] == 0) {
+            if (!ThePlayerManager.ActivePlayers[i] && menu->ControllersToAssign[i] == 0) {
                 menu->ControllersToAssign[i] = event.slot;
                 menu->OvershellState[i] = OS_PLAYER_SELECTION;
                 return true;
@@ -175,7 +173,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
         float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25) * i));
         float HalfWidth = OvershellCenterLoc - osLeft;
         Color headerUsernameColor;
-        if (playerManager.ActivePlayers.at(i) != -1) {
+        if (playerManager.ActivePlayers.at(i)) {
             if (playerManager.GetActivePlayer(i).Bot)
                 headerUsernameColor = SKYBLUE;
             else {
@@ -205,7 +203,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             GuiTextBox(textBoxPosition, name, 32, true);
             if (OvershellButton(i, 1, "Confirm")) {
                 playerManager.CreatePlayer(name);
-                playerManager.AddActivePlayer(playerManager.PlayerList.size() - 1, i);
+                playerManager.AddActivePlayer(ThePlayerManager.PlayerList[playerManager.PlayerList.size() - 1], i);
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
                 *name = 0;
@@ -228,7 +226,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 for (int x = 0; x < playerManager.PlayerList.size(); x++) {
                     bool playerAlreadyLoggedIn = false;
                     for (int s = 0; s < playerManager.ActivePlayers.size(); s++) {
-                        if (playerManager.ActivePlayers[s] == x) {
+                        if (playerManager.ActivePlayers[s] == playerManager.PlayerList[x]) {
                             playerAlreadyLoggedIn = true;
                             break;
                         }
@@ -237,9 +235,9 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                         continue;
                     }
                     if (OvershellButton(
-                        i, pos, playerManager.PlayerList[x].Name.c_str()
+                        i, pos, playerManager.PlayerList[x]->Name.c_str()
                     )) {
-                        playerManager.AddActivePlayer(x, i);
+                        playerManager.AddActivePlayer(playerManager.PlayerList[x], i);
 
                         if (ControllersToAssign[i] != 0) {
                             playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
@@ -312,7 +310,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             if (!dropInDropOut) {
                 if (OvershellButton(i, curSlot++,LOCALIZE("overshell.return")) || input.backPressed) {
                     OvershellState[i] = OS_ATTRACT;
-                    ThePlayerManager.SaveSpecificPlayer(i, true);
+                    ThePlayerManager.SaveSpecificPlayer(playerManager.PlayerList[i], true);
                 }
                 if (OvershellButton(i, curSlot++,LOCALIZE("generic.restart"))) {
                     if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
@@ -331,7 +329,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     TheAudioManager.unloadStreams();
                     TheSongTime.FullReset();
                     for (int i = 0; i < MAX_PLAYERS; i++) {
-                        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+                        if (!ThePlayerManager.ActivePlayers[i]) continue;
                         Player &player = ThePlayerManager.GetActivePlayer(i);
                         player.engine->stats.reset();
                         player.engine->chart.reset();
@@ -349,7 +347,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                         TheAudioManager.unloadStreams();
                         TheSongTime.FullReset();
                         for (int i = 0; i < MAX_PLAYERS; i++) {
-                            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+                            if (!ThePlayerManager.ActivePlayers[i]) continue;
                             Player &player = ThePlayerManager.GetActivePlayer(i);
                             player.engine->stats.reset();
                             player.engine->chart.reset();
@@ -435,14 +433,14 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             );
             if (dropInDropOut) {
                 if (OvershellButton(i, curSlot++,LOCALIZE("overshell.dropOut"))) {
-                    playerManager.SaveSpecificPlayer(i, true);;
+                    playerManager.SaveSpecificPlayer(playerManager.ActivePlayers[i], true);;
                     playerManager.RemoveActivePlayer(i);
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                     continue;
                 }
                 if (OvershellButton(i, curSlot++,LOCALIZE("generic.cancel")) || input.backPressed) {
-                    playerManager.SaveSpecificPlayer(i, true);
+                    playerManager.SaveSpecificPlayer(playerManager.ActivePlayers[i], true);
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                 }
@@ -481,7 +479,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
         }
         case OS_ATTRACT: {
             input.SetLength(0);
-            if (playerManager.ActivePlayers[i] != -1) {
+            if (playerManager.ActivePlayers[i]) {
                 // player active
                 Color headerUsernameColor =
                     playerManager.GetActivePlayer(i).Bot ? SKYBLUE : WHITE;

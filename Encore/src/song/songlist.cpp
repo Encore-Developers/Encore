@@ -29,9 +29,17 @@ std::filesystem::path SongList::badSongsPath() {
 void SongList::Clear() {
     listMenuEntries.clear();
     songs.clear();
+    sortedSongs.clear();
+    songHashIndex.clear();
     songCount = 0;
     directoryCount = 0;
     badSongCount = 0;
+}
+void SongList::PopulateHashIndex() {
+    songHashIndex.clear();
+    for (auto& song : songs) {
+        songHashIndex.emplace(song.hash, &song);
+    }
 }
 
 std::string lower(std::string string) {
@@ -175,6 +183,7 @@ void SongList::WriteCache() {
         SongCache << song.albumArtPath.string();
         SongCache << song.songInfoPath.string();
         SongCache << song.midiPath.string();
+        SongCache << song.hash;
         std::ifstream songInfo(song.songInfoPath);
         std::ostringstream sstr;
         sstr << songInfo.rdbuf();
@@ -217,7 +226,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                     std::ifstream hashStream(song.midiPath, std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
-                    memcpy(placedSong->chartHash, hash, picosha2::k_digest_size);
+                    memcpy(&placedSong->hash, hash, picosha2::k_digest_size);
                     ++SongsHashed;
                 });
             } else {
@@ -273,6 +282,7 @@ void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) 
 
     delete scanPool;
 
+    PopulateHashIndex();
     Encore::Log::Info("Rewriting song cache");
     WriteCache();
     sortList(SortType::Title);
@@ -385,7 +395,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     uint32_t version;
     SongCacheIn >> version;
     if (version != SONG_CACHE_VERSION) {
-        Encore::Log::Warn("Cache version {01i}, but current version is {01i}", version, SONG_CACHE_VERSION);
+        Encore::Log::Warn("Cache version {:01}, but current version is {:01}", version, SONG_CACHE_VERSION);
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -423,6 +433,8 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> midiPath;
         song.midiPath = midiPath;
 
+        SongCacheIn >> song.hash;
+
         {
             ZoneScopedN("INI Parse")
             std::string iniData;
@@ -452,5 +464,6 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     //}
 
     // ScanSongs(songsFolder);
+    PopulateHashIndex();
     sortList(SortType::Title);
 }

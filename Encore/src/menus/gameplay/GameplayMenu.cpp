@@ -19,6 +19,7 @@
 #include "../MenuManager.h"
 #include "../overshell/OvershellHelper.h"
 #include "../../settings/settings.h"
+#include "SDL3/SDL_filesystem.h"
 #include "debug/EncoreDebug.h"
 
 #include <raylib.h>
@@ -46,7 +47,7 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
     }
     if (event.channel == Encore::InputChannel::PAUSE && event.action == Encore::Action::PRESS) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+            if (!ThePlayerManager.ActivePlayers[i]) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
             if (player.joypadID == event.slot) {
                 OvershellState[i] = OS_OPTIONS;
@@ -69,7 +70,7 @@ void GameplayMenu::UpdatePauseState() {
         if (streamsPaused) {
             TheAudioManager.unpauseStreams();
             for (int i = 0; i < MAX_PLAYERS; i++) {
-                if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+                if (!ThePlayerManager.ActivePlayers[i]) continue;
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 player.engine->chart->MissedNotePointers.clear();
             }
@@ -89,7 +90,7 @@ void GameplayMenu::SetPresence() {
     int inst = 0;
     if (ThePlayerManager.PlayersActive == 1) {
         for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
-            if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+            if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
             inst = ThePlayerManager.GetActivePlayer(playerNum).Instrument;
         }
     }
@@ -154,8 +155,12 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
         }
         event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
         if (!CheckPauseInput(event))
-            if (event.channel != Encore::InputChannel::INVALID)
+            if (event.channel != Encore::InputChannel::INVALID) {
+                engine->UpdateOnFrame(event.timestamp);
                 engine->ProcessInput(event);
+                event.slot = player.ActiveSlot;
+                recordingReplay.inputs.push_back(event);
+            }
     }
 };
 
@@ -179,6 +184,8 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
                     engine->UpdateOnFrame(event.timestamp);
             }
             engine->ProcessInput(event);
+            event.slot = player.ActiveSlot;
+            recordingReplay.inputs.push_back(event);
         }
     }
 };
@@ -189,7 +196,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
     };
     double score = 0;
     for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
-        if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
     }
     // not optimized at all LMAO
@@ -290,7 +297,7 @@ void GameplayMenu::DrawGameplayStars(
     double score = 0;
     double baseScore = 0;
     for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
-        if (ThePlayerManager.ActivePlayers[playerNum] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
         baseScore += ThePlayerManager.GetActivePlayer(playerNum).engine->chart->BaseScore;
     }
@@ -426,6 +433,12 @@ void GameplayMenu::Draw() {
         TheSongTime.FullReset();
         TheAudioManager.unloadStreams();
         songPlaying = false;
+        std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
+        // TODO: date+time filename
+        replayPath /= (curSong->title + ".encrReplay");
+        encore::bin_ofstream_le replayOut(replayPath);
+        recordingReplay.Save(replayOut);
+        replayOut.close();
         TheMenuManager.CreateAndSwitchMenu<resultsMenu>(curSong);
         return;
     }
@@ -570,7 +583,7 @@ void GameplayMenu::Load() {
     }
 
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[i]) continue;
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
 

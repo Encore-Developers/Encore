@@ -20,34 +20,34 @@ public:
     // player stuff to
     // PlayerList
     void SavePlayerList();
-    void SaveSpecificPlayer(int slot, bool active);
+    void SaveSpecificPlayer(std::shared_ptr<Player> player, bool active);
     // BandGameplayStats *BandStats;
     std::filesystem::path PlayerListSaveFile;
-    std::vector<Player> PlayerList;
-    std::array<int, MAX_PLAYERS> ActivePlayers;
+    std::vector<std::shared_ptr<Player>> PlayerList;
+    std::array<std::shared_ptr<Player>, MAX_PLAYERS> ActivePlayers;
     int PlayersActive = 0;
 
     Player* GetPlayerForJoystick(SDL_JoystickID id);
 
     Player &GetActivePlayer(int slot) {
-        auto profileIndex = ActivePlayers.at(slot);
-        assert(profileIndex >= 0);
-        return PlayerList.at(profileIndex);
+        auto player = ActivePlayers.at(slot);
+        assert(player >= 0);
+        return *player;
     }
 
     void SetPlayerListSaveFileLocation(std::filesystem::path file) {
         PlayerListSaveFile = file;
     }
 
-    void AddActivePlayer(int playerNum, int slot) {
-        ActivePlayers.at(slot) = playerNum;
+    void AddActivePlayer(std::shared_ptr<Player> player, int slot) {
+        ActivePlayers.at(slot) = player;
         // GetActivePlayer(slot).joypadID = slot;
         PlayersActive += 1;
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
     }
 
     void RemoveActivePlayer(int slot) {
-        ActivePlayers.at(slot) = -1;
+        ActivePlayers.at(slot) = nullptr;
         PlayersActive -= 1;
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
     }
@@ -59,23 +59,6 @@ public:
             // }
         }
         return false;
-    }
-
-    Player &GetPlayerGamepad(int joystickID) {
-        for (int playesr = 0; playesr < PlayersActive; playesr++) {
-            // if (GetActivePlayer(playesr).joypadID == joystickID) {
-            //     return GetActivePlayer(playesr);
-            // }
-        }
-
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        // WE'RE GONNA CRASH
-        Encore::Log::Error("GetPlayerGamepad called. Get ready to have a headache.");
-        return *PlayerList.data();
     }
 
     void CreatePlayer(const std::string &name);

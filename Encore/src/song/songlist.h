@@ -15,7 +15,7 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
-#define SONG_CACHE_VERSION 26052204
+#define SONG_CACHE_VERSION 26062801
 #define SONG_CACHE_HEADER 0x52434E45 // "ENCR"
 
 struct ListMenuEntry {
@@ -104,6 +104,9 @@ public:
     std::deque<Song> songs;
     std::vector<Song*> sortedSongs;
     std::deque<Song*> playlist;
+
+    std::unordered_map<SongHash, Song*> songHashIndex;
+
     bool PlaylistMode = false;
     // only for decorative purposes (i.e. menus/MTV overlay)
     int PlaylistSize = 0;
@@ -117,6 +120,8 @@ public:
     std::filesystem::path badSongsPath();
 
     void Clear();
+
+    void PopulateHashIndex();
 
     // for when you dont have a song selected
     void sortList(SortType sortType);

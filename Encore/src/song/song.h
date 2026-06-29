@@ -113,6 +113,24 @@ inline Encore::AudioManager::Stems GetStemFromInstrument(SongPart part) {
     // I AM A PROGRAMMER! I AM A PROGRAMMER!
     return InstrumentToStemEnum.at(SongPart(fuck));
 }
+
+struct SongHash {
+    unsigned char hash[picosha2::k_digest_size];
+
+    bool operator==(const SongHash rhs) const {
+        return std::memcmp(hash, rhs.hash, picosha2::k_digest_size) == 0;
+    }
+};
+
+
+// bring on the hash collisions
+template<>
+struct std::hash<SongHash> {
+    std::size_t operator()(const SongHash& hash) const noexcept {
+        return *(size_t*)(&hash.hash);
+    }
+};
+
 class Song {
 public:
     bool midiParsed = false;
@@ -131,7 +149,7 @@ public:
     int BeatTrackID = 0;
     double music_start = 0.0;
     double end = 0.0;
-    unsigned char chartHash[picosha2::k_digest_size];
+    SongHash hash;
     std::vector<PartIcon> partIcons{
         PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone
     };

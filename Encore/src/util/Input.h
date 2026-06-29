@@ -78,9 +78,9 @@ namespace Encore {
 
     class ControllerEvent {
     public:
-        InputChannel channel : 8 = InputChannel::INVALID;
-        Action action : 8 = Action::INVALID;
-        unsigned int axis : 8;
+        InputChannel channel = InputChannel::INVALID;
+        Action action = Action::INVALID;
+        unsigned char axis;
         SDL_JoystickID slot;
         double timestamp;
 

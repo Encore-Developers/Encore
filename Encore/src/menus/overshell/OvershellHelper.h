@@ -58,7 +58,7 @@ namespace encOS {
         }
 
         Player* GetPlayer() {
-            if (ThePlayerManager.ActivePlayers[i] != -1) {
+            if (ThePlayerManager.ActivePlayers[i]) {
                 return &ThePlayerManager.GetActivePlayer(i);
             }
         }

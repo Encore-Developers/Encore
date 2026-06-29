@@ -21,11 +21,10 @@
 void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     auto &Parts = chartLoader.GetSongParts();
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        auto playerId = ThePlayerManager.ActivePlayers[i];
-        if (playerId == -1)
+        auto player = ThePlayerManager.ActivePlayers[i];
+        if (!player)
             continue;
-        auto &player = ThePlayerManager.GetActivePlayer(i);
-        if (player.joypadID != event.slot)
+        if (player->joypadID != event.slot)
             continue;
         if (event.slot == std::numeric_limits<unsigned int>::max())
             return;
@@ -33,7 +32,7 @@ void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         buttReg.HandleInput(event);
         if (event.action == Encore::Action::PRESS) {
             int diffCount = 0;
-            TrackInformation& part = Parts[player.Instrument];
+            TrackInformation& part = Parts[player->Instrument];
             for (int d = 0; d < 4; d++) {
                 if (part.ValidDiffs[d]) {
                     diffCount += 1;
@@ -226,7 +225,7 @@ void ReadyUpMenu::Draw() {
     GameMenu::DrawBottomOvershell();
     auto &Parts = chartLoader.GetSongParts();
     for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
-        if (ThePlayerManager.ActivePlayers[playerInt] == -1)
+        if (!ThePlayerManager.ActivePlayers[playerInt])
             continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
 
@@ -398,7 +397,7 @@ void ReadyUpMenu::Load() {
         if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
-                if (ThePlayerManager.ActivePlayers[playerInt] == -1)
+                if (!ThePlayerManager.ActivePlayers[playerInt])
                     continue;
                 Select(playerInt);
             }
@@ -410,7 +409,7 @@ void ReadyUpMenu::Load() {
         if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
-                if (ThePlayerManager.ActivePlayers[playerInt] == -1)
+                if (!ThePlayerManager.ActivePlayers[playerInt])
                     continue;
                 Back(playerInt);
             }
@@ -465,7 +464,7 @@ void ReadyUpMenu::Load() {
     }
 
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[i]) continue;
         auto& player = ThePlayerManager.GetActivePlayer(i);
         for (int g = 0; g < PartsToDisplay.size(); g++) {
             if (player.Instrument == PartsToDisplay[g]) {

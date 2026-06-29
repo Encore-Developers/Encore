@@ -29,7 +29,7 @@ void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
     if (event->down == false) return;
     if (event->key == SDLK_UP) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (ThePlayerManager.ActivePlayers.at(i) == -1) continue;
+            if (!ThePlayerManager.ActivePlayers[i]) continue;
             switch (resultsState.at(i)) {
             case (GENERAL): {
                 break;
@@ -44,7 +44,7 @@ void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
         }
     } else if (event->key == SDLK_DOWN) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (ThePlayerManager.ActivePlayers.at(i) == -1) continue;
+            if (!ThePlayerManager.ActivePlayers[i]) continue;
             switch (resultsState.at(i)) {
             case (GENERAL): {
                 break;
@@ -72,7 +72,7 @@ void resultsMenu::Load() {
     NEWBUTTONACTION2(buttReg, LANE_1, l1key, {
         if (_action != Encore::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+            if (!ThePlayerManager.ActivePlayers[i]) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
             player.engine->stats.reset();
             player.engine->chart.reset();
@@ -97,7 +97,7 @@ void resultsMenu::Load() {
         if (_action != Encore::Action::PRESS) return;
         if (slot == -1) {
             for (int i = 0; i < MAX_PLAYERS; i++) {
-                if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+                if (!ThePlayerManager.ActivePlayers[i]) continue;
                 switch (resultsState.at(i)) {
                 case (GENERAL): {
                     resultsState.at(i) = SECTIONS;
@@ -125,7 +125,7 @@ void resultsMenu::Load() {
     NEWBUTTONACTION2(buttReg, LANE_3, "generic.restart", {
         if (_action != Encore::Action::PRESS) return;
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+            if (!ThePlayerManager.ActivePlayers[i]) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
             player.engine->stats.reset();
             player.engine->chart.reset();
@@ -203,7 +203,7 @@ void resultsMenu::Load() {
     // Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
     for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
-        if (ThePlayerManager.ActivePlayers[playerInt] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[playerInt]) continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
         FinalScore += player.engine->stats->Score;
         //   PlayerGameplayStats *&stats =
@@ -223,7 +223,7 @@ void resultsMenu::Draw() {
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[i]) continue;
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
     }
     GameMenu::DrawTopOvershell(0.18f);
@@ -269,7 +269,7 @@ void resultsMenu::Draw() {
     //if (GuiButton({ 0, 0, 60, 60 }, "<")) {
     //    // delete ThePlayerManager.BandStats;
     //    for (int i = 0; i < MAX_PLAYERS; i++) {
-    //        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+    //        if (!ThePlayerManager.ActivePlayers[i]) continue;
     //        Player &player = ThePlayerManager.GetActivePlayer(i);
     //        player.engine->stats.reset();
     //        player.engine->chart.reset();

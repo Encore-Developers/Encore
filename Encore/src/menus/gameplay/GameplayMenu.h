@@ -7,6 +7,7 @@
 #include "assets.h"
 #include "../menu.h"
 #include "../util/uiUnits.h"
+#include "RhythmEngine/Replay.h"
 
 #include <vector>
 
@@ -36,6 +37,7 @@ public:
     bool songPlaying = false;
 
     Song* curSong;
+    Encore::RhythmEngine::Replay recordingReplay;
 
     GameplayMenu(Song* song);
     virtual ~GameplayMenu();

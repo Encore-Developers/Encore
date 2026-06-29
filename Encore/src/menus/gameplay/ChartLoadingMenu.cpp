@@ -42,7 +42,7 @@ void ChartLoadingMenu::LoadCharts() {
 
 
     for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
-        if (ThePlayerManager.ActivePlayers[playerNum] == -1)
+        if (!ThePlayerManager.ActivePlayers[playerNum])
             continue;
         ZoneScopedN("RhythmEngine ctors")
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);

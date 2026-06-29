@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 PlayerManager::PlayerManager() {
     for (auto &p : ActivePlayers) {
-        p = -1;
+        p = nullptr;
     }
 };
 PlayerManager::~PlayerManager() = default;
@@ -71,7 +71,7 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
 
                 remove(PlayerListSaveFile);
             } else {
-                PlayerList.push_back(std::move(newPlayer));
+                PlayerList.push_back(std::make_shared<Player>(newPlayer));
             }
         };
     } catch (const std::exception &e) {
@@ -82,22 +82,16 @@ newPlayer.name = jsonObject.value().at(key).get<type>();
 
 void PlayerManager::SavePlayerList() {
     for (size_t i = 0; i < PlayerList.size(); i++) {
-        SaveSpecificPlayer(i, false);
+        SaveSpecificPlayer(PlayerList[i], false);
     }
 }; // ough this is gonna be complicated
 
-void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
+void PlayerManager::SaveSpecificPlayer(std::shared_ptr<Player> player, bool active) {
     json PlayerListJson;
     if (exists(PlayerListSaveFile)) {
         std::ifstream f(PlayerListSaveFile);
         PlayerListJson = json::parse(f);
         f.close();
-    }
-    Player *player;
-    if (active) {
-        player = &GetActivePlayer(slot);
-    } else {
-        player = &PlayerList.at(slot);
     }
     if (!PlayerListJson.contains(player->playerJsonObjectName)) {
         PlayerListJson[player->playerJsonObjectName] = {
@@ -149,11 +143,11 @@ void PlayerManager::SaveSpecificPlayer(const int slot, bool active) {
 Player *PlayerManager::GetPlayerForJoystick(SDL_JoystickID id) {
     for (size_t i = 0; i < MAX_PLAYERS; i++) {
         auto player = ActivePlayers[i];
-        if (player == -1) {
+        if (!player) {
             continue;
         }
-        if (GetActivePlayer(i).joypadID == id) {
-            return &GetActivePlayer(i);
+        if (player->joypadID == id) {
+            return player.get();
         }
     }
     return nullptr;
@@ -163,23 +157,22 @@ void PlayerManager::CreatePlayer(const std::string &name) {
     Player newPlayer;
     newPlayer.Name = name;
     newPlayer.playerJsonObjectName = name;
-    PlayerList.push_back(std::move(newPlayer));
+    PlayerList.push_back(std::make_shared<Player>(newPlayer));
 }; // set it as the next one in PlayerList
 
 void PlayerManager::DeletePlayer(const Player &PlayerToDelete) {
     for (size_t i = 0; i < MAX_PLAYERS; i++) {
         auto player = ActivePlayers[i];
-        if (player == -1) {
+        if (!player) {
             continue;
         }
-        if (&PlayerList[player] == &PlayerToDelete) {
-            RemoveActivePlayer(player);
-            ActivePlayers[i] = -1;
+        if (player.get() == &PlayerToDelete) {
+            RemoveActivePlayer(i);
             // HACK: force the slot to -1 in case the player was assigned more than once
         }
     }
     for (auto iter = PlayerList.begin(); iter != PlayerList.end(); iter++) {
-        if (&*iter == &PlayerToDelete) {
+        if (iter->get() == &PlayerToDelete) {
             PlayerList.erase(iter++);
             break;
         }

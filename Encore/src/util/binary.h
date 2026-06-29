@@ -241,6 +241,7 @@ namespace encore {
         BINSTREAM_READ_OP(float)
         BINSTREAM_READ_OP(double)
         BINSTREAM_READ_OP(long double)
+        BINSTREAM_READ_OP(SongHash)
 
         [[maybe_unused]]
         bin_istream &operator>>(bool &value) {
@@ -325,6 +326,7 @@ namespace encore {
         BINSTREAM_WRITE_OP(float)
         BINSTREAM_WRITE_OP(double)
         BINSTREAM_WRITE_OP(long double)
+        BINSTREAM_WRITE_OP(SongHash)
 
         [[maybe_unused]]
         bin_ostream &operator<<(const bool value) {

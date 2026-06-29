@@ -177,11 +177,9 @@ void EncoreDebug::MenuBar() {
 
     if (gameplayMenu && MenuItem(pauseText.c_str())) {
         paused = !paused;
-        for (auto index : ThePlayerManager.ActivePlayers) {
-            if (index == -1)
-                continue;
-            auto player = ThePlayerManager.PlayerList[index];
-            player.engine->stats->Paused = paused;
+        for (auto player : ThePlayerManager.ActivePlayers) {
+            if (!player) continue;
+            player->engine->stats->Paused = paused;
         }
         if (paused) {
             pauseText = "Play";
@@ -318,12 +316,9 @@ void EncoreDebug::DrawQuickSettings() {
 
 void DebugSeek(float time, float audioTime) {
     TheAudioManager.seekStreams(audioTime);
-    for (auto index : ThePlayerManager.ActivePlayers) {
-        if (index == -1) {
-            continue;
-        }
-        auto player = ThePlayerManager.PlayerList[index];
-        auto engine = player.engine.get();
+    for (auto player : ThePlayerManager.ActivePlayers) {
+        if (!player) continue;
+        auto engine = player->engine.get();
         engine->chart->MissedNotePointers.clear();
         for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
             if (i >= engine->chart->Lanes.size()) {
@@ -355,52 +350,43 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 PushID(sectionInt);
                 if (Button("whole")) {
                     double startTime;
-                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
-                        if (playerInt == -1) {
-                            continue;
-                        }
-                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                    for (auto player : ThePlayerManager.ActivePlayers) {
+                        if (!player) continue;
                         double endTime = 0.0;
                         startTime = TheSongTime.Sections.at(sectionInt).start;
                         if (sectionInt == TheSongTime.Sections.size() - 1)
                             endTime = TheSongTime.GetSongLength();
                         else
                             endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player.engine->pStartTime = startTime - 0.1;
-                        player.engine->pStopTime = endTime;
-                        player.engine->practice = true;
+                        player->engine->pStartTime = startTime - 0.1;
+                        player->engine->pStopTime = endTime;
+                        player->engine->practice = true;
                     }
                     DebugSeek(startTime, startTime - 2);
                 }
                 SameLine();
                 if (Button("start")) {
                     double startTime;
-                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
-                        if (playerInt == -1) {
-                            continue;
-                        }
-                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                    for (auto player : ThePlayerManager.ActivePlayers) {
+                        if (!player) continue;
                         startTime = TheSongTime.Sections.at(sectionInt).start;
-                        player.engine->pStartTime = startTime - 0.1;
-                        player.engine->pStopTime = TheSongTime.GetSongLength();
-                        player.engine->practice = true;
+                        player->engine->pStartTime = startTime - 0.1;
+                        player->engine->pStopTime = TheSongTime.GetSongLength();
+                        player->engine->practice = true;
                     }
                     DebugSeek(startTime, startTime - 2);
                 }
                 SameLine();
                 if (Button("end")) {
-                    for (auto &playerInt : ThePlayerManager.ActivePlayers) {
-                        if (playerInt == -1) {
-                            continue;
-                        }
-                        auto &player = ThePlayerManager.PlayerList.at(playerInt);
+                    for (auto player : ThePlayerManager.ActivePlayers) {
+                        if (!player) continue;
                         double endTime = 0.0;
                         if (sectionInt == TheSongTime.Sections.size() - 1)
                             endTime = TheSongTime.GetSongLength();
                         else
                             endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player.engine->pStopTime = endTime;
-                        player.engine->practice = true;
+                        player->engine->pStopTime = endTime;
+                        player->engine->practice = true;
                     }
                 }
                 PopID();
@@ -502,58 +488,58 @@ void EncoreDebug::DrawPlayerManager() {
         }
 
         if (BeginTabBar("Players")) {
-            for (auto &player : ThePlayerManager.PlayerList) {
+            for (auto player : ThePlayerManager.PlayerList) {
                 if (BeginTabItem(
-                    (player.Name + TextFormat("###%x", &player)).c_str())) {
-                    InputText("Username", &player.Name);
+                    (player->Name + TextFormat("###%x", &player)).c_str())) {
+                    InputText("Username", &player->Name);
                     SeparatorText("Color Profile");
                     // for some reason, when creating a new profile, player.GetColorProfile() eats shit and dies
                     // it doesnt get set to a nullptr??? but it gets set to some fucking random memory address and eugh
                     // close this when making a new color profile
-                    if (BeginCombo("Plastic Color Profile", player.GetColorProfile(Encore::ProfileManager::PLASTIC)->Name.c_str())) {
+                    if (BeginCombo("Plastic Color Profile", player->GetColorProfile(Encore::ProfileManager::PLASTIC)->Name.c_str())) {
                         for (auto i : TheProfileManager.ColorProfiles) {
                             if (Selectable(i.second.Name.c_str())) {
-                                player.SetColorProfile(i.second.Name, Encore::ProfileManager::PLASTIC);
+                                player->SetColorProfile(i.second.Name, Encore::ProfileManager::PLASTIC);
                             }
                         }
                         EndCombo();
                     }
-                    if (BeginCombo("Pad Color Profile", player.GetColorProfile(Encore::ProfileManager::PAD)->Name.c_str())) {
+                    if (BeginCombo("Pad Color Profile", player->GetColorProfile(Encore::ProfileManager::PAD)->Name.c_str())) {
                         for (auto i : TheProfileManager.ColorProfiles) {
                             if (Selectable(i.second.Name.c_str())) {
-                                player.SetColorProfile(i.second.Name, Encore::ProfileManager::PAD);
+                                player->SetColorProfile(i.second.Name, Encore::ProfileManager::PAD);
                             }
                         }
                         EndCombo();
                     }
-                    if (BeginCombo("Drums Color Profile", player.GetColorProfile(Encore::ProfileManager::DRUMS)->Name.c_str())) {
+                    if (BeginCombo("Drums Color Profile", player->GetColorProfile(Encore::ProfileManager::DRUMS)->Name.c_str())) {
                         for (auto i : TheProfileManager.ColorProfiles) {
                             if (Selectable(i.second.Name.c_str())) {
-                                player.SetColorProfile(i.second.Name, Encore::ProfileManager::DRUMS);
+                                player->SetColorProfile(i.second.Name, Encore::ProfileManager::DRUMS);
                             }
                         }
                         EndCombo();
                     }
 
-                    SeparatorText(std::string("Player: " + player.Name).c_str());
-                    SliderFloat("Note Speed", &player.NoteSpeed, 0, 3);
-                    SliderFloat("Track Length", &player.HighwayLength, 0, 5);
-                    int inputOffset = player.InputCalibration * 1000;
+                    SeparatorText(std::string("Player: " + player->Name).c_str());
+                    SliderFloat("Note Speed", &player->NoteSpeed, 0, 3);
+                    SliderFloat("Track Length", &player->HighwayLength, 0, 5);
+                    int inputOffset = player->InputCalibration * 1000;
                     DragInt("Input Calibration",
                                    &inputOffset,
                                    1,
                                    -1000,
                                    1000,
                                    "%dms");
-                    player.InputCalibration = inputOffset / 1000.0;
-                    ColorEdit("Accent Color", &player.AccentColor, 0);
-                    Checkbox("Bot", &player.Bot);
-                    Checkbox("Lefty Flip", &player.LeftyFlip);
-                    Checkbox("Brutal Mode", &player.BrutalMode);
+                    player->InputCalibration = inputOffset / 1000.0;
+                    ColorEdit("Accent Color", &player->AccentColor, 0);
+                    Checkbox("Bot", &player->Bot);
+                    Checkbox("Lefty Flip", &player->LeftyFlip);
+                    Checkbox("Brutal Mode", &player->BrutalMode);
                     EndTabItem();
 
                     if (Button("Delete Player")) {
-                        ThePlayerManager.DeletePlayer(player);
+                        ThePlayerManager.DeletePlayer(*player);
                         ThePlayerManager.SavePlayerList();
                     }
                 }

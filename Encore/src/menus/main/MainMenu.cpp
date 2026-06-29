@@ -250,7 +250,7 @@ void MainMenu::Load() {
             break;
         case 2:
             for (int p = 0; p < ThePlayerManager.ActivePlayers.size(); p++) {
-                if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p) != -1)
+                if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p))
                     ThePlayerManager.RemoveActivePlayer(p);
             }
             break;
@@ -580,7 +580,7 @@ void MainMenu::MainMenuScreen() {
                 // but it's better than a crash
                 // TODO: can we kill this button?
                 // Yes.
-                if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p) != -1)
+                if (OvershellState[p] == OS_ATTRACT && ThePlayerManager.ActivePlayers.at(p))
                     ThePlayerManager.RemoveActivePlayer(p);
             }
             TitleAnimTimer = 1;

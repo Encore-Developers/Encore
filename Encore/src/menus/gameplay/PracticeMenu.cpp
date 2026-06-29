@@ -188,7 +188,7 @@ void PracticeMenu::DrawGameplay() {
         stream.volume = volume;
     }
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (ThePlayerManager.ActivePlayers[i] == -1) continue;
+        if (!ThePlayerManager.ActivePlayers[i]) continue;
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
         if (!IsPaused()) {
