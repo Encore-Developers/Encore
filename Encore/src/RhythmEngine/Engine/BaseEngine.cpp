@@ -174,7 +174,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
         stats->Accuracy += 1;
         Log::Debug("Accuracy: {}", 1);
     } else {
-        double acc = (goodFrontend - abs(offset)) / goodFrontend;
+        double acc = (goodFrontend - std::abs(offset)) / goodFrontend;
         if (acc < 0) acc = 0;
         stats->Accuracy += acc;
 

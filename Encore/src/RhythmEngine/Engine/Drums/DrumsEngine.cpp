@@ -22,7 +22,7 @@ ControllerEvent &event
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
 ControllerEvent &event
 ) {
-    stats->InputTime = TheSongTime.GetElapsedTime(); // todo: REPLACE WITH ACTUAL SONG
+    stats->InputTime = event.timestamp; // todo: REPLACE WITH ACTUAL SONG
     // TIME (IN SECONDS)
     if (event.action == Action::PRESS) {
         switch (event.channel) {

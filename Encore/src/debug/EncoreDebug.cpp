@@ -424,8 +424,11 @@ void EncoreDebug::DrawSongScrubber() {
             auto GetMouseLocalPos = [&]() {
                 return GetMousePos().x - pos.x;
             };
-            if (IsItemActive()) {
+            if (IsItemHovered() && IsMouseButtonDown(ImGuiMouseButton_Left)) {
                 DebugSeek(GetTimeAtPos(GetMouseLocalPos()), GetTimeAtPos(GetMouseLocalPos()));
+            }
+            if (IsItemHovered() && IsMouseButtonDown(ImGuiMouseButton_Right)) {
+                TheAudioManager.seekStreams(GetTimeAtPos(GetMouseLocalPos()));
             }
             auto drawlist = GetWindowDrawList();
             drawlist->AddRectFilled(pos, pos + size, ColorConvertFloat4ToU32(GetStyle().Colors[IsItemHovered() && !IsItemActive() ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg]));
