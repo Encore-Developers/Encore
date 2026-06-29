@@ -164,7 +164,8 @@ std::pair<int, double> Encore::RhythmEngine::DotChartHandler::GetEndEvent() {
     return EndEvent;
 }
 
-void Encore::RhythmEngine::DotChartHandler::GetSections() {
+std::vector<Section> Encore::RhythmEngine::DotChartHandler::GetSections() {
+    return {};
 }
 
 Encore::RhythmEngine::BaseChart Encore::RhythmEngine::DotChartHandler::GetChart(int part,

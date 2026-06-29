@@ -254,7 +254,8 @@ std::pair<int, double> Encore::RhythmEngine::MidiChartHandler::GetEndEvent() {
     return { midifile.getFileDurationInTicks(), midifile.getFileDurationInSeconds() };
 }
 
-void Encore::RhythmEngine::MidiChartHandler::GetSections() {
+std::vector<Section> Encore::RhythmEngine::MidiChartHandler::GetSections() {
+    std::vector<Section> sections;
     auto &events = midifile[EventsTrack];
     for (int i = 0; i < events.getSize(); i++) {
         auto &event = events[i];
@@ -270,10 +271,11 @@ void Encore::RhythmEngine::MidiChartHandler::GetSections() {
             std::smatch match;
             std::regex_match(evt_string, match, practiceRegex);
             if (match[4].matched) {
-                TheSongTime.Sections.push_back({ match[4], event.seconds, event.tick });
+                sections.push_back({ match[4], event.seconds, event.tick });
             }
         }
     }
+    return sections;
 }
 
 Encore::RhythmEngine::BaseChart Encore::RhythmEngine::MidiChartHandler::GetChart(int part,

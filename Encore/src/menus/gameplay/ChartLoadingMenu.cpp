@@ -39,7 +39,7 @@ void ChartLoadingMenu::LoadCharts() {
         TheSongTime.GenerateBeatmap(chartLoader.GetEndEvent().first);
     }
     chartLoader.LoadCharts();
-
+    TheSongTime.Sections = chartLoader.GetSections();
 
     for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum])
@@ -91,6 +91,7 @@ void ChartLoadingMenu::LoadCharts() {
                 player.engine->chart->at(i).begin();
         }
         player.engine->stats->overdrive.ticks = chartLoader.GenerateOverdriveTicks();
+        player.engine->chart->sections = chartLoader.GetSections();
     }
     TheSongTime.Lyrics = chartLoader.GetLyricPhrases();
     FinishedLoading = true;

@@ -26,7 +26,7 @@ namespace Encore::RhythmEngine {
         std::vector<EncLyricPhrase> GetLyricPhrases() override;
         void LoadCharts() override;
         std::pair<int, double> GetEndEvent() override;
-        void GetSections() override;
+        std::vector<Section> GetSections() override;
         BaseChart GetChart(int part, int diff) override;
         bool IsLoaded() override;
     };

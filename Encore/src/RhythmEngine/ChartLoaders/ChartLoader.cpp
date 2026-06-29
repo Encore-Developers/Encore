@@ -38,6 +38,10 @@ std::vector<BPM> Encore::RhythmEngine::ChartLoader::GetBPMChanges() const {
     return chartHandler->GetBPMChanges();
 }
 
+std::vector<Section> Encore::RhythmEngine::ChartLoader::GetSections() const {
+    return chartHandler->GetSections();
+}
+
 int Encore::RhythmEngine::ChartLoader::GetResolution() {
     return chartHandler->GetResolution();
 }
