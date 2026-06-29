@@ -36,7 +36,7 @@ enum NoteHitType {
 };
 
 // Temporary stopgap to let people do things on this old version
-enum ControllerBindingType : u_int8_t {
+enum ControllerBindingType : uint8_t {
     GUITAR = 0,
     GUITAR_GHPS3,
     PAD,
