@@ -114,11 +114,13 @@ inline Encore::AudioManager::Stems GetStemFromInstrument(SongPart part) {
     return InstrumentToStemEnum.at(SongPart(fuck));
 }
 
+constexpr size_t songHashSize = picosha2::k_digest_size;
+
 struct SongHash {
-    unsigned char hash[picosha2::k_digest_size];
+    unsigned char hash[songHashSize];
 
     bool operator==(const SongHash rhs) const {
-        return std::memcmp(hash, rhs.hash, picosha2::k_digest_size) == 0;
+        return std::memcmp(hash, rhs.hash, songHashSize) == 0;
     }
 };
 
@@ -127,7 +129,11 @@ struct SongHash {
 template<>
 struct std::hash<SongHash> {
     std::size_t operator()(const SongHash& hash) const noexcept {
-        return *(size_t*)(&hash.hash);
+        // oough this is gonna hurt but WHATEVER
+        char data[songHashSize+1];
+        data[songHashSize] = 0;
+        memcpy(data, hash.hash, songHashSize);
+        return std::hash<std::string_view>()(std::string_view(data));
     }
 };
 

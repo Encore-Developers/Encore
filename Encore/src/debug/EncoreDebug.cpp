@@ -743,12 +743,13 @@ void EncoreDebug::DrawSongList() {
         const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
 
-        if (BeginTable("Song List", 4, flags, GetContentRegionAvail())) {
+        if (BeginTable("Song List", 5, flags, GetContentRegionAvail())) {
             TableSetupScrollFreeze(0, 1);
             TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoSort);
             TableSetupColumn("Title", ImGuiTableColumnFlags_WidthStretch);
             TableSetupColumn("Artist", ImGuiTableColumnFlags_WidthFixed);
             TableSetupColumn("Source", ImGuiTableColumnFlags_WidthFixed);
+            TableSetupColumn("Hash", ImGuiTableColumnFlags_WidthFixed);
             TableHeadersRow();
 
             for (size_t i = 0; i < songs.size(); i++) {
@@ -764,6 +765,15 @@ void EncoreDebug::DrawSongList() {
 
                 TableSetColumnIndex(3);
                 ImGui::Text("%s", song->source.c_str());
+
+                TableSetColumnIndex(4);
+                /// WARNING: SLOW AS FUCK!!!!!!
+                std::stringstream hashStr;
+                hashStr << std::hex;
+                for (size_t x = 0; x < sizeof(SongHash::hash); x++) {
+                    hashStr << std::setw(2) << std::setfill('0') << (int)song->hash.hash[x];
+                }
+                ImGui::Text("%s", hashStr.str().c_str());
 
                 TableSetColumnIndex(0);
                 if (SmallButton("Play")) {

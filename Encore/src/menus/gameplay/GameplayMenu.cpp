@@ -54,6 +54,7 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
                 for (int g = 0; g < player.engine->chart->Lanes.size(); g++) {
                     player.engine->chart->DropSustain(g);
                 }
+                break;
             }
         }
         return true;
@@ -392,6 +393,26 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
     return ((noteTime - songTime) * (length * 2.5)) - end;
 }
 
+void GameplayMenu::SaveReplay() {
+    std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
+    bool playback = false;
+    for (auto track : tracks) {
+        if (track->player.PlaybackReplay) {
+            playback = true;
+            break;
+        }
+    }
+    if (!playback) {
+        // TODO: date+time filename
+        replayPath /= (curSong->title + ".encrReplay");
+        encore::bin_ofstream_le replayOut(replayPath);
+        for (auto &track : tracks) {
+            recordingReplay.participants.emplace_back(track->player);
+        }
+        recordingReplay.Save(replayOut);
+        replayOut.close();
+    }
+}
 void GameplayMenu::Draw() {
     UpdatePauseState();
     UIInput = IsPaused();
@@ -433,12 +454,7 @@ void GameplayMenu::Draw() {
         TheSongTime.FullReset();
         TheAudioManager.unloadStreams();
         songPlaying = false;
-        std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
-        // TODO: date+time filename
-        replayPath /= (curSong->title + ".encrReplay");
-        encore::bin_ofstream_le replayOut(replayPath);
-        recordingReplay.Save(replayOut);
-        replayOut.close();
+        SaveReplay();
         TheMenuManager.CreateAndSwitchMenu<resultsMenu>(curSong);
         return;
     }
@@ -456,6 +472,15 @@ void GameplayMenu::Draw() {
 
     for (auto& track : tracks) {
         Player &player = track->player;
+
+        if (player.PlaybackReplay) {
+            player.ReplayPlayer->Advance(TheSongTime.GetElapsedTime());
+            while (player.ReplayPlayer->HasNextInput()) {
+                auto input = player.ReplayPlayer->GetNextInput();
+                player.engine->UpdateOnFrame(input->timestamp);
+                player.engine->ProcessInput(*input);
+            }
+        }
 
         if (!IsPaused()) {
             ZoneScopedN("Engine Update")
@@ -639,6 +664,8 @@ void GameplayMenu::Load() {
     if (AudioEnd > LastNote) End = AudioEnd;
     if (EndEvent > LastNote) End = EndEvent;
     curSong->end = End;
+
+    recordingReplay.song = curSong->hash;
 
     TheAudioManager.UpdateAudioStreamVolumes();
 }

@@ -36,12 +36,17 @@ enum NoteHitType {
 };
 
 // Temporary stopgap to let people do things on this old version
-enum ControllerBindingType {
-    GUITAR,
+enum ControllerBindingType : u_int8_t {
+    GUITAR = 0,
     GUITAR_GHPS3,
     PAD,
     DRUMS
 };
+namespace Encore::RhythmEngine {
+    class Replay;
+    class ReplayPlayer;
+}
+
 namespace Encore::RhythmEngine {
     class BaseEngine;
 }
@@ -88,6 +93,12 @@ public:
 #undef SETTING_ACTION
     std::string playerJsonObjectName;
     int SongsPlayed;
+
+    // If this is nonnull, this player is playing a replay back and should be considered
+    // temporary
+    std::shared_ptr<Encore::RhythmEngine::Replay> PlaybackReplay = nullptr;
+    std::shared_ptr<Encore::RhythmEngine::ReplayPlayer> ReplayPlayer = nullptr;
+    int ReplaySlot;
 
     ControllerBindingType bindingType = GUITAR;
     // -1 == keyboard

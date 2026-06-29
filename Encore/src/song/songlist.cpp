@@ -221,9 +221,9 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 song.songDir = folder;
                 song.LoadSongIni(folder);
                 auto placedSong = &songs.emplace_back(std::move(song));
-                scanPool->SubmitTask([placedSong, &song]() {
+                scanPool->SubmitTask([placedSong]() {
                     ZoneScopedN("Hash Song")
-                    std::ifstream hashStream(song.midiPath, std::ios::binary);
+                    std::ifstream hashStream(placedSong->midiPath, std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
                     memcpy(&placedSong->hash, hash, picosha2::k_digest_size);

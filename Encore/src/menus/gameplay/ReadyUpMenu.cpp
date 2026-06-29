@@ -479,5 +479,9 @@ void ReadyUpMenu::Load() {
         if (!Parts[player.Instrument].ValidDiffs[player.Difficulty]) {
             ControllerDiffSlot[i] = 0;
         }
+        if (player.ReplayPlayer) {
+            SlotState[i] = READY;
+            ReadyState[i] = true;
+        }
     }
 }

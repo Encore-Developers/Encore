@@ -46,6 +46,7 @@ public:
     void DrawGameplayStars(Units &u, Assets &assets, float scorePos, float starY);
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::ControllerEvent event);
+    void SaveReplay();
     void Draw() override;
     void Load() override;
     void DrawPauseMenu();
