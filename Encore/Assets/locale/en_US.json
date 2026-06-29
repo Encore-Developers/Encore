@@ -241,6 +241,8 @@
 		"back": "Back to Song Select",
 		"next": "Next Song in Playlist",
 		"indevWarning": "Scoring is disabled in indev builds",
+		"statisticsHeader": "Statistics",
+		"sectionHeader": "Sections",
 		"infoText": {
 			"fc": "Flawless",
 			"autoplay": "Autoplay"
@@ -251,7 +253,8 @@
 			"missed": "Missed:",
 			"overhit": "Strikes:",
 			"streak": "Max Streak:",
-			"noteCount": "Notes:"
+			"noteCount": "Notes:",
+			"accRating": "Accuracy Rating:"
 		}
 	},
 	"gameplay": {

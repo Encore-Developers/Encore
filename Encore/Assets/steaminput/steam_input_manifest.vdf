@@ -1,0 +1,146 @@
+"In Game Actions"
+{
+	"actions"
+	{
+		"MenuControls"
+		{
+			"title"		"#Set_Menu"
+			"Button"
+			{
+				"menu_up"			"#Menu_Up"
+				"menu_down"			"#Menu_Down"
+				"menu_left"			"#Menu_Left"
+				"menu_right"		"#Menu_Right"
+				"menu_confirm"		"#Menu_Confirm"
+				"menu_back"			"#Menu_Back"
+				"menu_secondary" 	"#Menu_Secondary"
+				"menu_tertiary"		"#Menu_Tertiary"
+				"menu_modifier"		"#Menu_Modifier"
+				"menu_overshell"	"#Menu_Overshell"
+			}
+		}
+		"InGameControls"
+		{
+			"title"		"#Set_InGame"
+			"Button"
+			{
+				"game_strumup"		"#Game_StrumUp"
+				"game_strumdown"	"#Game_StrumDown"
+				"game_lane1"		"#Game_Lane1"
+				"game_lane2"		"#Game_Lane2"
+				"game_lane3" 		"#Game_Lane3"
+				"game_lane41"		"#Game_Lane4"
+				"game_lane5"		"#Game_Lane5"
+				"game_overdrive"	"#Game_Overdrive"
+				"game_pause"		"#Game_Pause"
+			}
+			"StickPadGyro"
+			{
+				"game_whammy"
+				{
+					"title" 		"#Game_Whammy"
+					"input_mode"	"joystick_move"
+				}
+			}
+		}
+		"DualshockControls"
+		{
+			"title"		"#Set_InGameDS"
+			"Button"
+			{
+				"game_strumup"		"#Game_StrumUp"
+				"game_strumdown"	"#Game_StrumDown"
+				"game_lane1"		"#Game_Lane1"
+				"game_lane2"		"#Game_Lane2"
+				"game_lane3" 		"#Game_Lane3"
+				"game_lane41"		"#Game_Lane4"
+				"game_lane5"		"#Game_Lane5"
+				"game_overdrive"	"#Game_Overdrive"
+				"game_pause"		"#Game_Pause"
+			}
+			"StickPadGyro"
+			{
+				"game_whammy"
+				{
+					"title" 		"#Game_Whammy"
+					"input_mode"	"joystick_move"
+				}
+			}
+		}
+	}
+	"localization"
+	{
+		"english"
+		{
+			"Set_Menu"				"Menu Controls"
+			"Menu_Up"				"Up"
+			"Menu_Down"				"Down"
+			"Menu_Left"				"Left"
+			"Menu_Right"			"Right"
+			"Menu_Confirm"			"Confirm"
+			"Menu_Back"				"Back"
+			"Menu_Secondary"		"Secondary"
+			"Menu_Tertiary"			"Tertiary"
+			"Menu_Modifier"			"Modifier"
+			"Menu_Overshell"		"Open Overshell"
+			"Set_InGame"			"Pad Controls"
+			"Set_InGameDS"			"Legacy Pad Controls"
+			"Game_StrumUp"			"Strum Up"
+			"Game_StrumDown"		"Strum Down"
+			"Game_Lane1"			"Lane 1"
+			"Game_Lane2"			"Lane 2"
+			"Game_Lane3"			"Lane 3"
+			"Game_Lane4"			"Lane 4"
+			"Game_Lane5"			"Lane 5"
+			"Game_Overdrive"		"Overdrive Activation"
+			"Game_Pause"			"Pause"
+			"Game_Whammy"			"Whammy"
+			"Game_Pause"			"Pause"
+		}
+	}
+	"configurations"
+	{
+		"controller_xboxone"
+		{
+			"0"
+			{
+				"path" "xboxone.vdf"
+			}
+		}
+		"controller_xbox360"
+		{
+			"0"
+			{
+				"path" "xbox360.vdf"
+			}
+		}
+		"controller_switch_pro"
+		{
+			"0"
+			{
+				"path" "switchpro.vdf"
+			}
+		}
+		"controller_neptune"
+		{
+			"0"
+			{
+				"path" "steamdeck.vdf"
+			}
+		}
+		"controller_ps4"
+		{
+			"0"
+			{
+				"path" "dualshock4.vdf"
+			}
+		}
+		"controller_8bitdo"
+		{
+			"0"
+			{
+				"path" "8bitdopro2.vdf"
+			}
+		}
+	}
+}

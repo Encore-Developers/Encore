@@ -86,8 +86,6 @@ Encore::AudioManager TheAudioManager;
 Encore::Settings TheGameSettings;
 Encore::ProfileManager TheProfileManager;
 Encore::Keybinds TheGameKeybinds;
-Encore::SettingsGameplay TheGameplaySettings;
-Encore::SettingsAudioVideo TheAudioVideoSettings;
 Encore::Presence TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;

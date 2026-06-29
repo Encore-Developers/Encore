@@ -432,4 +432,12 @@ void Assets::AddRingsAndInstruments() {
     for (auto icon : InstIcons) {
         mainMenuSet.AddAsset(icon);
     }
+
+    for (int i = 0; i <= 7; i++) {
+        TextureAsset *tex = new TextureAsset(TextFormat("gameplay/ui/grade_bg/0%i.png", i),
+                                             true);
+        GradeBackgrounds.push_back(tex);
+        // Grabbing from the vec because it moved
+        mainMenuSet.AddAsset(tex);
+    }
 }

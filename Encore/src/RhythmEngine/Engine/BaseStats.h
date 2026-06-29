@@ -66,6 +66,7 @@ namespace Encore::RhythmEngine {
         bool CanHitHopo = true;
         bool Paused = false;
         bool Bot = false;
+        bool Quit = false;
         double Health = 1.0;
         double Accuracy = -1;
         double LastHitAccuracy = -1;

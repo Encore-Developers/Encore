@@ -384,6 +384,8 @@ public:
     NEWTEXASSET(EntryBackground, "gameplay/ui/entry_background.png");
     NEWTEXASSET(AltBackground, "gameplay/ui/alt_background.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
+    NEWTEXASSET(borderShadow, "gameplay/ui/shadow.png");
+    NEWTEXASSET(resultsBox, "gameplay/ui/resultsBox.png");
 
     NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.wav");
     NEWSAMPLEASSET(activateSound, "gameplay/sfx/od_activate.mp3");
@@ -391,6 +393,7 @@ public:
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
     std::vector<TextureAsset *> YargRings;
     std::vector<TextureAsset *> InstIcons;
+    std::vector<TextureAsset *> GradeBackgrounds;
 
     Image icon;
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");

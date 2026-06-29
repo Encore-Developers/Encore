@@ -155,20 +155,31 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).hit++;
     NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
-
-    if (PerfectHit(startTime - stats->InputOffset)) {
+    double offset = (stats->InputTime - stats->InputOffset) - startTime;
+    if (PerfectHit(startTime)) {
         stats->LastPerfectTime = stats->InputTime;
         if (!chart->sections.empty())
             chart->sections.at(chart->CurrentSection).perfects++;
         event.judgement = PERFECT;
     }
-    event.offset = (stats->InputTime - stats->InputOffset) - startTime;
+    event.offset = offset;
     stats->TotalOffset += event.offset;
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
     stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
     stats->HitNote(chordSize, event.judgement);
+
+    if (PerfectHit(startTime)) {
+        stats->Accuracy += 1;
+        Log::Debug("Accuracy: {}", 1);
+    } else {
+        double acc = (goodFrontend - abs(offset)) / goodFrontend;
+        if (acc < 0) acc = 0;
+        stats->Accuracy += acc;
+
+        Log::Debug("Accuracy: {}", acc);
+    }
 
     if (stats->Combo == 25 && stats->Overhits == 0 && stats->Misses == 0) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
