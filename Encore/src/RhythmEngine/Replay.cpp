@@ -67,12 +67,12 @@ namespace Encore::RhythmEngine {
         stream << (uint32_t)REPLAY_VERSION;
         stream << song;
 
-        stream << (u_int64_t)participants.size();
+        stream << (uint64_t)participants.size();
         for (auto& participant : participants) {
             participant.Write(stream);
         }
 
-        stream << (u_int64_t)inputs.size();
+        stream << (uint64_t)inputs.size();
         for (auto& input : inputs) {
             stream << (int8_t)input.channel;
             stream << (int8_t)input.action;
@@ -103,17 +103,17 @@ namespace Encore::RhythmEngine {
         }
         stream >> song;
 
-        u_int64_t participantCount;
+        uint64_t participantCount;
         stream >> participantCount;
         for (uint32_t i = 0; i < participantCount; i++) {
             auto part = &participants.emplace_back();
             part->Load(stream);
         }
 
-        u_int64_t inputCount;
+        uint64_t inputCount;
         stream >> inputCount;
 
-        for (u_int64_t i = 0; i < inputCount; i++) {
+        for (uint64_t i = 0; i < inputCount; i++) {
             ControllerEvent newInput;
             LOAD_VALUE_TYPE(int8_t, newInput.channel)
             LOAD_VALUE_TYPE(int8_t, newInput.action)
