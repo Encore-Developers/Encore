@@ -22,7 +22,7 @@ namespace Encore::RhythmEngine {
     void Replay::Save(encore::bin_ofstream_le& stream) {
         stream << song;
 
-        stream << (u_int64_t)inputs.size();
+        stream << (uint64_t)inputs.size();
         for (auto& input : inputs) {
             stream << (int8_t)input.channel;
             stream << (int8_t)input.action;
@@ -40,10 +40,10 @@ namespace Encore::RhythmEngine {
     void Replay::Load(encore::bin_ifstream_le& stream) {
         stream >> song;
 
-        u_int64_t inputCount;
+        uint64_t inputCount;
         stream >> inputCount;
 
-        for (u_int64_t i = 0; i < inputCount; i++) {
+        for (uint64_t i = 0; i < inputCount; i++) {
             ControllerEvent newInput;
             LOAD_VALUE_TYPE(int8_t, newInput.channel)
             LOAD_VALUE_TYPE(int8_t, newInput.action)

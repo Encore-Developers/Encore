@@ -304,13 +304,32 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
        floorf(((float)stats->NotesHit / (float)stats->AttemptedNotes) * 100.0f);
     double accuracy = stats->Accuracy / stats->AttemptedNotes;
 
+    std::string ResultsShit = "F";
     if (!stats->Bot) {
-        if (accuracy == 1.0) bgToDraw = assets.GradeBackgrounds[0];
-        else if (accuracy >= 0.99) bgToDraw = assets.GradeBackgrounds[1];
-        else if (accuracy >= 0.92) bgToDraw = assets.GradeBackgrounds[2];
-        else if (accuracy >= 0.85) bgToDraw = assets.GradeBackgrounds[3];
-        else if (accuracy >= 0.77) bgToDraw = assets.GradeBackgrounds[4];
-        else if (accuracy >= 0.60) bgToDraw = assets.GradeBackgrounds[5];
+        if (accuracy == 1.0) {
+            bgToDraw = assets.GradeBackgrounds[0];
+            ResultsShit = "P";
+        }
+        else if (accuracy >= 0.99) {
+            bgToDraw = assets.GradeBackgrounds[1];
+            ResultsShit = "S";
+        }
+        else if (accuracy >= 0.92) {
+            bgToDraw = assets.GradeBackgrounds[2];
+            ResultsShit = "A";
+        }
+        else if (accuracy >= 0.85) {
+            bgToDraw = assets.GradeBackgrounds[3];
+            ResultsShit = "B!";
+        }
+        else if (accuracy >= 0.77) {
+            bgToDraw = assets.GradeBackgrounds[4];
+            ResultsShit = "C";
+        }
+        else if (accuracy >= 0.60) {
+            bgToDraw = assets.GradeBackgrounds[5];
+            ResultsShit = "D";
+        }
     }
     bgToDraw->Draw({cardPos, cardTop, cardWidth, topCardHeight}, WHITE);
 
@@ -354,12 +373,9 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
     float gsodif = BannerSize / 6;
     cursor += gsodif;
-    std::string ResultsShit;
-    if (stats->Bot) ResultsShit = "Autoplay";
-    // else if (player.engine->stats) ResultsShit = "Quit Song";
-    else if (rendAsFC) ResultsShit = "Flawless!";
+    if (stats->Bot) ResultsShit = "autoplay";
     Encore::TextDisplay infoDisplay;
-    infoDisplay.Pos(left, cursor).Fnt(ASSET(rubik)).Size(gsodif * 4).DrawText(ResultsShit);
+    infoDisplay.Pos(left, cursor).Fnt(ASSET(rubik)).Size(gsodif * 4).lDrawText("resultsMenu.splash." + ResultsShit);
 
     NPatchInfo shadowOverlay;
     shadowOverlay.source = {0,0,128,128};

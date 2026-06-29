@@ -255,6 +255,16 @@
 			"streak": "Max Streak:",
 			"noteCount": "Notes:",
 			"accRating": "Accuracy Rating:"
+		},
+		"splash": {
+			"P": "Flawless!",
+			"S": "Spectacular!",
+			"A": "Amazing!",
+			"B": "SuperB!",
+			"C": "Could be better...",
+			"D": "Don't give up!",
+			"F": "Failed",
+			"autoplay": "Autoplay"
 		}
 	},
 	"gameplay": {
