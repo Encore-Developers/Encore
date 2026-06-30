@@ -405,7 +405,7 @@ void GameplayMenu::SaveReplay() {
     if (!playback) {
         // TODO: date+time filename
         replayPath /= (curSong->title + ".encrReplay");
-        encore::bin_ofstream_le replayOut(replayPath);
+        encore::bin_ofstream_le replayOut(replayPath, std::ios::binary);
         for (auto &track : tracks) {
             recordingReplay.participants.emplace_back(track->player);
         }

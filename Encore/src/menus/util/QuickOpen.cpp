@@ -9,7 +9,7 @@ void QuickOpenSongDir(std::filesystem::path dir) {
     if (std::filesystem::is_regular_file(dir)) {
         if (dir.extension() == ".encrReplay") {
             std::shared_ptr<Encore::RhythmEngine::Replay> replay = std::make_shared<Encore::RhythmEngine::Replay>();
-            encore::bin_ifstream_le stream(dir);
+            encore::bin_ifstream_le stream(dir, std::ios::binary);
             replay->Load(stream);
             stream.close();
             if (!replay->loaded) return;

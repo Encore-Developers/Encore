@@ -76,7 +76,7 @@ namespace Encore::RhythmEngine {
         for (auto& input : inputs) {
             stream << (int8_t)input.channel;
             stream << (int8_t)input.action;
-            stream << (int8_t)input.axis;
+            stream << input.axis;
             // Yes, this is smaller than SDL_JoystickID, slots in replays represent player numbers
             // so even 8 bits is overkill
             stream << (int8_t)input.slot;

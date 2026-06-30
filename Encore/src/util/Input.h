@@ -81,9 +81,9 @@ namespace Encore {
     public:
         InputChannel channel = InputChannel::INVALID;
         Action action = Action::INVALID;
-        unsigned char axis;
-        SDL_JoystickID slot;
-        double timestamp;
+        unsigned char axis = 0;
+        SDL_JoystickID slot = 0;
+        double timestamp = 0;
 
         bool IsAccept() {
             return action == Action::PRESS && channel == InputChannel::LANE_1;

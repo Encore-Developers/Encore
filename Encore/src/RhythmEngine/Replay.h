@@ -11,7 +11,7 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
-#define REPLAY_VERSION 26062902
+#define REPLAY_VERSION 26062904
 #define REPLAY_HEADER 0x52434E45 // "ENCR"
 
 namespace Encore::RhythmEngine {
