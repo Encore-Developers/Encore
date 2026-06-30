@@ -461,7 +461,6 @@ int TheGame::Run(int argc, char *argv[]) {
     OwnedTexture::allowDispose = false;
     //poller.active = false;
     CloseWindow();
-    Encore::Log::Exit();
     return 0;
 }
 
@@ -470,6 +469,8 @@ TheGame::TheGame() {
 }
 
 TheGame::~TheGame() {
+    TheMenuManager.~MenuManager();
+    SteamAPI_Shutdown();
     Encore::Log::Exit();
 }
 

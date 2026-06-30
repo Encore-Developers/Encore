@@ -41,7 +41,7 @@ bool encOS::DrawOvershellRectangleHeader(
     Assets &assets = Assets::getInstance();
     float UpperPortion = height * 0.6f;
     float LowerPortion = height * 0.4f;
-    Rectangle RectPos = { x, y, width, height * 2 };
+    Rectangle RectPos = { x, y, width, height };
     GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
     GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
     GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
@@ -51,17 +51,22 @@ bool encOS::DrawOvershellRectangleHeader(
     GuiSetStyle(BUTTON, BASE_COLOR_PRESSED, 0);
     bool toReturn = GuiButton({ x, y, width, height }, "");
     SETDEFAULTSTYLE();
+    float patchWidth = (UpperPortion / 3) * 2;
+    float asdfasdfas = width - (patchWidth * 2);
+    DrawTexturePro(ASSET(overshellTip), {0,0,85,128}, {x,y,patchWidth,UpperPortion}, {0}, 0, accentColor);
+    DrawTexturePro(ASSET(overshellTip), {85,0,85,128}, {x+patchWidth,y,asdfasdfas,UpperPortion}, {0}, 0, accentColor);
+    DrawTexturePro(ASSET(overshellTip), {255-85,0,85,128}, {x+asdfasdfas+patchWidth,y,patchWidth,UpperPortion}, {0}, 0, accentColor);
     // float Inset = unit.winpct(0.001f);
     // float InsetDouble = Inset * 2;
     // DrawRectangleRounded(
     //     {RectPos.x + Inset, RectPos.y + Inset, RectPos.width - (InsetDouble*1.25f),
     //     RectPos.height - InsetDouble}, 0.40f, 5, ColorBrightness(accentColor, -0.75f)
     //);
-    int fgasdf = UpperPortion;
-    int g = y;
-    BeginScissorMode(x, g, width + 2, fgasdf);
-    DrawRectangleRounded(RectPos, 0.25f, 8, ColorBrightness(accentColor, -0.5f));
-    EndScissorMode();
+    //int fgasdf = UpperPortion;
+    //int g = y;
+    //BeginScissorMode(x, g, width + 2, fgasdf);
+    //DrawRectangleRounded(RectPos, 0.25f, 8, ColorBrightness(accentColor, -0.5f));
+    //EndScissorMode();
     if (drawBG) {
         DrawRectangleRec({x, y+UpperPortion, width, GetRenderHeight()-y}, {0x18, 0x18, 0x27, 0xFF});
     }

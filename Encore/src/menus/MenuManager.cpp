@@ -51,8 +51,17 @@ void MenuManager::DrawMenu() {
     menu->Draw();
     if (ScanningSongs) {
         Units &u = Units::getInstance();
+        DrawRectangle(0, u.TopSide, GetRenderWidth(), u.hinpct(1.0), {0,0,0,128});
+        NPatchInfo info = { {0,0,128,128},
+            int(u.winpct(0.025)),
+            int(u.winpct(0.025)),
+            int(u.winpct(0.025)),
+            int(u.winpct(0.025)), 0};
         Rectangle warningBox{ u.wpct(0.30 ), u.hpct(0.35), u.winpct(0.4), u.hinpct(0.3) };
-        DrawRectangleRec(warningBox, { 0, 0, 0, 158 });
+        DrawTextureNPatch(ASSET(resultsBox), info, warningBox, {0}, 0, WHITE);
+
+
+        // DrawRectangleRec(warningBox, { 0, 0, 0, 158 });
         float fontSize = u.hinpct(0.05f);
 
         Encore::TextDisplay data;

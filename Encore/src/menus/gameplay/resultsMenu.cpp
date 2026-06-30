@@ -297,7 +297,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float cardHalfWidth = cardWidth/2;
     float cardTop = u.hpct(0.18f);
     float topCardHeight = (float(assets.GradeBackgrounds[0]->height) / float(assets.GradeBackgrounds[0]->width)) * cardWidth;
-    auto bgToDraw = assets.GradeBackgrounds[6];
+    auto bgToDraw = ASSETPTR(cheese);
 
     float scorePos = (cardPos + cardHalfWidth);
     int Percent =
@@ -329,6 +329,8 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         else if (accuracy >= 0.60) {
             bgToDraw = assets.GradeBackgrounds[5];
             ResultsShit = "D";
+        } else if (accuracy < 0.60) {
+            bgToDraw = assets.GradeBackgrounds[6];
         }
     }
     bgToDraw->Draw({cardPos, cardTop, cardWidth, topCardHeight}, WHITE);

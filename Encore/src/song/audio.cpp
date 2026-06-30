@@ -57,6 +57,7 @@ std::string BASSErrNoToString(int err) {
         case 49: return "BASS_ERROR_DENIED";
         case 50: return "BASS_ERROR_FREEING";
         case 51: return "BASS_ERROR_CANCEL";
+        default: return "How the fuck did you do that";
     }
 }
 

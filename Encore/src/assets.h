@@ -394,6 +394,8 @@ public:
     std::vector<TextureAsset *> YargRings;
     std::vector<TextureAsset *> InstIcons;
     std::vector<TextureAsset *> GradeBackgrounds;
+    NEWTEXASSET(cheese, "gameplay/ui/grade_bg/cheese.png");
+    NEWTEXASSET(overshellTip, "gameplay/ui/overshellTip.png");
 
     Image icon;
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");

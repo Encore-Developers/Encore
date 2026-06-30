@@ -99,7 +99,7 @@ void GameMenu::DrawTopOvershell(float TopOvershell) {
         TopBarPos + TopBarHeight,
         GetRenderWidth(),
         u.hinpct(0.0075f),
-        Color { 0, 0, 0, 128 },
+        Color { 0, 0, 0, 64 },
         Color { 0, 0, 0, 0 }
     );
     DrawRectangleGradientV(
@@ -107,7 +107,7 @@ void GameMenu::DrawTopOvershell(float TopOvershell) {
         TopBarPos,
         GetRenderWidth(),
         u.hinpct(0.005f),
-        Color { 0, 0, 0, 128 },
+        Color { 0, 0, 0, 64 },
         Color { 0, 0, 0, 0 }
     );
     //DrawRectangle(

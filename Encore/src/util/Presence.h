@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <string>
-
+#include <cstdint>
 
 #ifdef STEAM
 #include "isteamfriends.h"
