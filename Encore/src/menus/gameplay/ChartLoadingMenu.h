@@ -25,5 +25,7 @@ public:
     void Draw() override;
     void Load() override;
     void LoadCharts();
+
+    bool AllowsTempPlayers() override { return true; };
 };
 #endif //CHARTLOADINGMENU_H

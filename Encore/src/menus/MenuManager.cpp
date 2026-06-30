@@ -26,6 +26,9 @@
 #include "settings/keybinds.h"
 
 void MenuManager::SwitchToMenu(std::shared_ptr<Menu> menu) {
+    if (!menu->AllowsTempPlayers()) {
+        ThePlayerManager.CullTempPlayers();
+    }
     ActiveMenu = menu;
     onNewMenu = true;
     ActiveMenu->SetPresence();

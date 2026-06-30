@@ -313,6 +313,10 @@ void Encore::Track::DrawUsername() {
         color = SKYBLUE;
         NameText += " " + LOCALISE("gameplay.autoplay").toString();
     }
+    if (player.PlaybackReplay) {
+        color = GREEN;
+        NameText += " " + LOCALISE("gameplay.replay").toString();
+    }
     if (player.BrutalMode) {
         color = RED;
     }

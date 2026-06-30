@@ -52,6 +52,16 @@ public:
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus",PlayersActive);
     }
 
+    void CullTempPlayers() {
+        for (auto &player : ActivePlayers) {
+            if (!player) continue;
+            if (player->PlaybackReplay) {
+                player = nullptr;
+                PlayersActive --;
+            }
+        }
+    }
+
     bool IsGamepadActive(int joystickID) {
         for (int playesr = 0; playesr < PlayersActive; playesr++) {
             // if (GetActivePlayer(playesr).joypadID == joystickID) {

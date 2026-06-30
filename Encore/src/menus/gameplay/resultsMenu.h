@@ -39,6 +39,8 @@ public:
     //~resultsMenu() override;
     void Draw() override;
     void Load() override;
+
+    bool AllowsTempPlayers() override { return true; };
 };
 
 #endif // RESULTSMENU_H

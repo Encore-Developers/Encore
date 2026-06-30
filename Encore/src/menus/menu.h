@@ -29,6 +29,10 @@ public:
         TheGameRPC.DiscordUpdatePresence("In the menus", "In the menus", ThePlayerManager.PlayersActive);
         TheGameRPC.SteamUpdatePresence("steam_display", "#StatusInMenus");
     }
+
+    virtual bool AllowsTempPlayers() {
+        return false;
+    }
 };
 
 extern Menu *ActiveMenu;

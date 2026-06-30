@@ -118,7 +118,7 @@ namespace Encore::RhythmEngine {
             LOAD_VALUE_TYPE(int8_t, newInput.channel)
             assert(newInput.channel < InputChannel::CHANNEL_MAX);
             LOAD_VALUE_TYPE(int8_t, newInput.action)
-            assert(newInput.action <= Action::REPEAT && newInput.action != Action::INVALID);
+            assert(newInput.action <= Action::REPEAT);
             stream >> newInput.axis;
             int8_t slot;
             stream >> slot;

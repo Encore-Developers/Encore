@@ -40,6 +40,8 @@ public:
     void ControllerInputCallback(Encore::ControllerEvent event) override;
     void Draw() override;
     void Load() override;
+
+    bool AllowsTempPlayers() override { return true; };
 };
 
 

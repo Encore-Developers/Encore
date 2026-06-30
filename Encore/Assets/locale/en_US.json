@@ -274,6 +274,7 @@
 		"playlistDisplay": "({} of {})",
 		"sectionDisplay": "Section: {}",
 		"autoplay": "(AUTOPLAY)",
+		"replay": "(REPLAY)",
 		"avgOffset": "Average Offset: {: 7.2f}ms",
 		"lastOffset": "Last Hit Offset: {: 7.2f}ms",
 		"trackNotification": {

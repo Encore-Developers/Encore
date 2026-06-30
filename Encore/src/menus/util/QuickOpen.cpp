@@ -8,6 +8,7 @@
 void QuickOpenSongDir(std::filesystem::path dir) {
     if (std::filesystem::is_regular_file(dir)) {
         if (dir.extension() == ".encrReplay") {
+            ThePlayerManager.CullTempPlayers();
             std::shared_ptr<Encore::RhythmEngine::Replay> replay = std::make_shared<Encore::RhythmEngine::Replay>();
             encore::bin_ifstream_le stream(dir, std::ios::binary);
             replay->Load(stream);
@@ -37,6 +38,7 @@ void QuickOpenSongDir(std::filesystem::path dir) {
             auto song = TheSongList.songHashIndex[replay->song];
 
             if (!song) {
+                ThePlayerManager.CullTempPlayers();
                 Encore::Log::Error("Error: Replay song not found!");
                 return;
             }

@@ -55,4 +55,5 @@ public:
     virtual bool IsPaused();
 
     virtual void SetPresence() override;
+    bool AllowsTempPlayers() override { return true; };
 };
