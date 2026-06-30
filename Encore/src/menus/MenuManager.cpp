@@ -48,15 +48,15 @@ void MenuManager::DrawMenu() {
     menu->Draw();
     if (ScanningSongs) {
         Units &u = Units::getInstance();
-        Rectangle warningBox{ u.wpct(0.35), u.hpct(0.35), u.winpct(0.3), u.hinpct(0.3) };
-        DrawRectangleRec(warningBox, { 64, 64, 64, 196 });
+        Rectangle warningBox{ u.wpct(0.30 ), u.hpct(0.35), u.winpct(0.4), u.hinpct(0.3) };
+        DrawRectangleRec(warningBox, { 0, 0, 0, 158 });
         float fontSize = u.hinpct(0.05f);
 
         Encore::TextDisplay data;
-        data.Fnt(ASSET(rubik)).Size(fontSize).Pos(warningBox.x, warningBox.y);
+        data.Fnt(ASSET(rubik)).Size(fontSize).Pos(warningBox.x + u.winpct(0.02), warningBox.y + u.winpct(0.01));
         Encore::TextDisplay count;
         count.Fnt(ASSET(redHatMono)).Size(fontSize)
-             .Pos(warningBox.x + warningBox.width, warningBox.y).Align(RIGHT);
+             .Pos(warningBox.x + warningBox.width - u.winpct(0.02), warningBox.y + u.winpct(0.01)).Align(RIGHT);
 
         data.lDrawText("songScanning.header");
         data.pos.y += fontSize;

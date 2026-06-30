@@ -379,10 +379,10 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
     NPatchInfo shadowOverlay;
     shadowOverlay.source = {0,0,128,128};
-    shadowOverlay.top = 42;
-    shadowOverlay.bottom = 42;
-    shadowOverlay.left = 42;
-    shadowOverlay.right = 42;
+    shadowOverlay.top = cardWidth*0.1;
+    shadowOverlay.bottom = cardWidth*0.1;
+    shadowOverlay.left = cardWidth*0.1;
+    shadowOverlay.right = cardWidth*0.1;
     shadowOverlay.layout = 0;
 
     BeginBlendMode(BLEND_MULTIPLIED);
@@ -392,7 +392,15 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float scoreBoxY = cardTop + topCardHeight + (lowerCardBottom * 0.05);
     float scoreBoxWidth = cardWidth * 0.8;
     float scoreBoxHeight = lowerCardBottom * 0.3;
-    DrawTextureNPatch(ASSET(resultsBox), shadowOverlay, {scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight}, {0}, 0, WHITE);
+
+    NPatchInfo scoreBoxPatch;
+    scoreBoxPatch.source = {0,0,128,128};
+    scoreBoxPatch.top = scoreBoxWidth*0.1;
+    scoreBoxPatch.bottom = scoreBoxWidth*0.1;
+    scoreBoxPatch.left = scoreBoxWidth*0.1;
+    scoreBoxPatch.right = scoreBoxWidth*0.1;
+    scoreBoxPatch.layout = 0;
+    DrawTextureNPatch(ASSET(resultsBox), scoreBoxPatch, {scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight}, {0}, 0, WHITE);
 
     std::string scoreString = GameMenu::scoreCommaFormatter(stats->Score);
 

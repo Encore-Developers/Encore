@@ -4,18 +4,19 @@
 namespace Encore {
     enum class InputChannel : int8_t {
         LANE_1 = 0,
-        LANE_2 = 1,
-        LANE_3 = 2,
-        LANE_4 = 3,
-        LANE_5 = 4,
-        LANE_6 = 5,
-        STRUM_UP = 7,
-        STRUM_DOWN = 8,
-        PAUSE = 9,
-        OVERDRIVE = 10,
-        WHAMMY = 11,
-        INPUT_LEFT = 12,
-        INPUT_RIGHT = 13,
+        LANE_2,
+        LANE_3,
+        LANE_4,
+        LANE_5,
+        LANE_6,
+        STRUM_UP,
+        STRUM_DOWN,
+        PAUSE,
+        OVERDRIVE,
+        WHAMMY,
+        INPUT_LEFT,
+        INPUT_RIGHT,
+        CHANNEL_MAX,
         INVALID = -1
     };
     inline InputChannel IntIC(int lane) {
