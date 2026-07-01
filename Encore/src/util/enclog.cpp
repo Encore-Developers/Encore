@@ -11,6 +11,10 @@
 #include <cstring>
 #include <vector>
 #define FMT_UNICODE 0
+#include <filesystem>
+
+#include "../../thirdparty/spdlog/include/spdlog/sinks/basic_file_sink.h"
+#include "../../thirdparty/spdlog/include/spdlog/sinks/daily_file_sink.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -19,10 +23,41 @@
 static bool active = false;
 static std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> ringSink;
 
+#define CHR_TO_I_STR(value) std::to_string(static_cast<int>(value))
+#define CHR_TO_U_STR(value) std::to_string(static_cast<unsigned>(value))
+
+
 bool Encore::Log::InitializeLogger(std::string prefsPath) {
     try {
         std::vector<spdlog::sink_ptr> sinks;
-        auto rotatingSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(prefsPath + "/log", 1048576 * 1024, 3);
+
+        // const auto now = ;
+        prefsPath += "logs/";
+        auto zonedTime = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now());
+        const auto date = std::chrono::floor<std::chrono::days>(zonedTime.get_local_time());
+        const auto nowSec = std::chrono::floor<std::chrono::seconds>(zonedTime.get_local_time().time_since_epoch());
+        const auto time = std::chrono::hh_mm_ss(nowSec);
+
+        long long hour = time.hours().count() % 24;
+        long long min = time.minutes().count();
+        long long sec = time.seconds().count();
+        std::string filename = std::vformat("{} {:02d}-{:02d}-{:02d}", std::make_format_args(date, hour, min, sec));
+        int fileNameCount = 0;
+        if (std::filesystem::exists(prefsPath)) {
+            for (auto& file : std::filesystem::directory_iterator(prefsPath)) {
+                if (file.is_regular_file()) {
+                    if (file.path().filename().string().starts_with(filename)) {
+                        fileNameCount++;
+                    };
+                }
+            }
+        } else {
+            std::filesystem::create_directory(prefsPath);
+        }
+
+        if (fileNameCount > 0) prefsPath += filename + " (" + std::to_string(fileNameCount) + ").log";
+        else prefsPath += filename + ".log";
+        auto rotatingSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(prefsPath, false);
         auto stdoutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         ringSink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(128);
         sinks.push_back(rotatingSink);
