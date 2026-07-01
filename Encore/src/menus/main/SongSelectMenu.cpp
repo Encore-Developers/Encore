@@ -515,7 +515,6 @@ void SongSelectMenu::Draw() {
     static Song blankSong = Song();
     Song *SongToDisplayInfo = TheSongList.curSong ? TheSongList.curSong : &blankSong;
 
-    BeginDrawing();
     ClearBackground(DARKGRAY);
     GameMenu::DrawAlbumArtBackground();
 
