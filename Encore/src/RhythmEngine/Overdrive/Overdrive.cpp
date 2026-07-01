@@ -9,6 +9,7 @@
 #include "song/audio.h"
 #include "util/enclog.h"
 #include "../Chart/NoteVector.h"
+#include "util/OverlayHook.h"
 
 void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
     if (!Active)
@@ -25,6 +26,7 @@ void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
 
     if (Fill <= 0) {
         Fill = 0;
+        if (TheGameSettings.EnableCHEAPOverlayPackets) OverlayEmit(0, false, Fill);
         Log::Trace("Last OD Tick: {:4.4f}", ticks.CurrentODTick);
         Active = false;
     }
@@ -36,6 +38,7 @@ bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
     UseOverdriveLift = true;
     ActivationTime = CurrentTime;
     ActivationTick = ticks.CurrentODTick;
+    if (TheGameSettings.EnableCHEAPOverlayPackets) OverlayEmit(0, true, Fill);
     TheAudioManager.playSample(ASSET(activateSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
 
     Log::Trace("First OD Tick: {:4.4f}", ticks.CurrentODTick);
