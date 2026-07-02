@@ -888,6 +888,9 @@ void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
     // grits teeth
     // please Yoshi give me a proper UI library
     // please rockstar hide it again
+    // dear gaben please save me
+    // i do not want to be in this cursed world anymore.
+    // this problem was solved entirely by html why do i torture myself
     float IconWidth = InfoBoxWidth / 5.125f;
     float IconPadding = (infoBoxPadding * 0.5f) / 5.0f;
     float InfoBoxBottom = AlbumY + AlbumWidth + InfoBoxGradientHeight;

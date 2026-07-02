@@ -162,6 +162,9 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
             chart->sections.at(chart->CurrentSection).perfects++;
         event.judgement = PERFECT;
     }
+
+    if (!chart->sections.empty())
+        chart->sections.at(chart->CurrentSection).notes++;
     event.offset = offset;
     stats->TotalOffset += event.offset;
     FireEvent(&event);
@@ -209,6 +212,8 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
+    if (!chart->sections.empty())
+        chart->sections.at(chart->CurrentSection).notes++;
     stats->MissNote();
     chart->overdrive.MissCurrentEvent(chart->CurrentNoteIterators.at(lane)->StartTicks);
     chart->overdrive.UpdateEventViaNote(
