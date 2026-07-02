@@ -356,6 +356,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     Grade curGrade(WHITE, "", {0,0});
     if (!stats->Bot) {
         bgToDraw = assets.GradeBackgrounds[GetGrade(accuracy, curGrade)];
+        ResultsShit = curGrade.Letter;
     } else {
         curGrade = Grades.back();
     }
