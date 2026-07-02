@@ -458,7 +458,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
 
     Encore::TextDisplay Header;
-    Header.Pos(cardPos + cardHalfWidth, scoreBoxY + (scoreBoxHeight * 1.25)).Align(CENTER).Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(lowerCardBottom * 0.05);
+    Header.Pos(cardPos + cardHalfWidth, scoreBoxY + (scoreBoxHeight * 1.125)).Align(CENTER).Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(lowerCardBottom * 0.05);
 
     float statsHeight = scoreBoxY + (scoreBoxHeight * 1.25) + (lowerCardBottom * 0.05);
     float ActualStatsHeight = u.hinpct(0.03f);
