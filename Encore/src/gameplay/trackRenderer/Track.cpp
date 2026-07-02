@@ -507,6 +507,11 @@ void Encore::Track::DrawTrackNotifications() {
 void Encore::Track::DrawCombo() {
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
+
+    Vector3 TrackEndPoint = { 0, 0, Length };
+    Vector3 TrackStartPoint = { 0, 0, 0 };
+    Vector2 ScreenTrackEndPoint = GetWorldToScreen(TrackEndPoint, AnimCamera);
+    Vector2 ScreenTrackStartPoint = GetWorldToScreen(TrackStartPoint, AnimCamera);
     TextDisplay comboDisplay;
     float POffset = GetRenderHeight()*0.05f;
 
@@ -524,10 +529,16 @@ void Encore::Track::DrawCombo() {
     if (player.engine->stats->Combo > 0) {
         comboDisplay.DrawText(comboNum);
     }
-
+    float HighwayPixelsOnScreen = (ScreenTrackStartPoint.y - ScreenTrackEndPoint.y) * Scale;
+    float NotHighwayPixelsOnScreen = GetRenderHeight() - HighwayPixelsOnScreen;
+    std::string gn = std::to_string(int((Length / GetZPerSecond()) * 1000));
+    std::string wn = std::to_string(std::abs(int((NotHighwayPixelsOnScreen / float(GetRenderHeight())) * 1000)));
     comboDisplay.AddX(comboDisplay.TextWidth("00000"))
+    .Col(ColorAlpha(RAYWHITE, 0.75))
+    .DrawText(wn)
+    .AddX(comboDisplay.TextWidth(wn) * 1.25f)
     .Col(ColorAlpha(GREEN, 0.75))
-    .DrawText(std::to_string(int((Length / GetZPerSecond()) * 1000)));
+    .DrawText(gn);
 }
 
 void Encore::Track::DrawJudgement() {
