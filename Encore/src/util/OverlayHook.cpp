@@ -19,7 +19,7 @@
   #include <unistd.h>            // close()
 #endif
 #include <cstdio>               // snprintf
-#include "overlayHook.h"
+#include "OverlayHook.h"
 
 void OverlayEmit(int player, bool sp, double fill) {
     // On Windows, the socket system needs a one-time startup call before first use.
