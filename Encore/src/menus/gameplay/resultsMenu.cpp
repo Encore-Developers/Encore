@@ -288,6 +288,53 @@ void resultsMenu::Draw() {
     DrawOvershell();
 }
 
+struct Grade {
+    struct Range {
+        double bottom;
+        double top;
+    };
+    Color color = WHITE;
+    const char *Letter;
+    Range range = {0,0};
+    explicit Grade(const Color _color, const char _letter[1], const Range _range)
+        : color(_color), Letter(_letter), range(_range) {}
+
+    // 0 is lower, 1 is normal, 2 is upper
+    int GetSubdiv(double acc) {
+        if (acc >= range.top - (range.top - range.bottom) * 0.3) return 2;
+        if (acc < range.bottom + (range.bottom - range.top) * 0.3) return 0;
+        return 1;
+    }
+};
+
+std::array<Grade, 7> Grades {
+    {
+        Grade(MAGENTA,          "P", {1.00, 1.00}),
+        Grade(GOLD,             "S", {0.99, 1.00}),
+        Grade(GREEN,            "A", {0.92, 0.99}),
+        Grade(SKYBLUE,          "B", {0.85, 0.92}),
+        Grade(ORANGE,           "C", {0.77, 0.85}),
+        Grade(RED,              "D", {0.60, 0.77}),
+        Grade(backgroundColor,  "F", {0.00, 0.60}),
+    }
+};
+
+double GetThreshold(Grade *grade) {
+    return (grade->range.top - grade->range.bottom) * 0.3;
+}
+
+int GetGrade(double acc, Grade &grade) {
+    int i = 0;
+    for (const auto &g : Grades) {
+        if (acc >= g.range.bottom) {
+            grade = g;
+            return i;
+        }
+        i++;
+    }
+    return 0;
+}
+
 void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
@@ -304,35 +351,21 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
        floorf(((float)stats->NotesHit / (float)stats->AttemptedNotes) * 100.0f);
     double accuracy = stats->Accuracy / stats->AttemptedNotes;
 
+    std::string Modifier;
     std::string ResultsShit = "F";
+    Grade curGrade(WHITE, "", {0,0});
     if (!stats->Bot) {
-        if (accuracy == 1.0) {
-            bgToDraw = assets.GradeBackgrounds[0];
-            ResultsShit = "P";
-        }
-        else if (accuracy >= 0.99) {
-            bgToDraw = assets.GradeBackgrounds[1];
-            ResultsShit = "S";
-        }
-        else if (accuracy >= 0.92) {
-            bgToDraw = assets.GradeBackgrounds[2];
-            ResultsShit = "A";
-        }
-        else if (accuracy >= 0.85) {
-            bgToDraw = assets.GradeBackgrounds[3];
-            ResultsShit = "B";
-        }
-        else if (accuracy >= 0.77) {
-            bgToDraw = assets.GradeBackgrounds[4];
-            ResultsShit = "C";
-        }
-        else if (accuracy >= 0.60) {
-            bgToDraw = assets.GradeBackgrounds[5];
-            ResultsShit = "D";
-        } else if (accuracy < 0.60) {
-            bgToDraw = assets.GradeBackgrounds[6];
-        }
+        bgToDraw = assets.GradeBackgrounds[GetGrade(accuracy, curGrade)];
+    } else {
+        curGrade = Grades.back();
     }
+
+    switch (curGrade.GetSubdiv(accuracy)) {
+        case 0: Modifier = "-"; break;
+        case 2: Modifier = "+"; break;
+        default: break;
+    }
+
     bgToDraw->Draw({cardPos, cardTop, cardWidth, topCardHeight}, WHITE);
 
     bool rendAsFC = stats->AttemptedNotes == stats->NotesHit && !stats->Bot && stats->Overhits == 0;
@@ -471,7 +504,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
             TextFormat("%01i (%3.0f%%)", stats->Misses, mHitPercent);
 
         std::string NotesDisplay = TextFormat("%01i", stats->AttemptedNotes);
-
+        std::string AccRatingDisplay = TextFormat("%2.2f", accuracy * 100);
         // int MaxNotes =
         //    song.parts[player.Instrument]->charts[player.Difficulty].notes.size();
         RightStatData.DrawText(PerfectDisplay);
@@ -486,7 +519,9 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         RightStatData.pos.y += ActualStatsHeight;
         RightStatData.DrawText(NotesDisplay);
         RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(TextFormat("%2.2f", accuracy * 100));
+        RightStatData.DrawText(AccRatingDisplay);
+        RightStatData.pos.x -= RightStatData.TextWidth(AccRatingDisplay) * 1.25f;
+        RightStatData.Fnt(ASSET(redHatDisplayItalic)).Col(curGrade.color).DrawText(curGrade.Letter + Modifier);
     } else if (resultsState.at(playerslot) == SECTIONS) {
         Header.lDrawText("resultsMenu.sectionHeader");
         RightStatData.Fnt(ASSET(JetBrainsMono));
