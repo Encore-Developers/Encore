@@ -40,6 +40,7 @@ SongSelectMenu::~SongSelectMenu() {
     Unload();
 }
 
+
 void SongSelectMenu::ScrollUpHeader() {
     for (int sectInt = 0; sectInt < TheSongList.sectionEntries.size(); sectInt++) {
         auto sect = TheSongList.sectionEntries[sectInt];
@@ -444,7 +445,8 @@ void SongSelectMenu::LoadPreview(Song &song) {
             song
             .LoadAudioINI()
         );
-        if (TheAudioManager.loadedStreams.empty()) return;
+        if (TheAudioManager.loadedStreams.empty())
+            return;
         float previewStartTimeSec =
             song
             .previewStartTime
@@ -557,7 +559,7 @@ void SongSelectMenu::Draw() {
 
     GameMenu::DrawTopBarText();
     int AlbumX = u.RightSide - u.winpct(0.25f);
-    int AlbumY = u.hpct(0.075f);
+    int AlbumY = u.hpct(0.04f);
     int AlbumHeight = u.winpct(0.25f);
     int AlbumOuter = u.hinpct(0.01f);
     int AlbumInner = u.hinpct(0.005f);
@@ -566,7 +568,8 @@ void SongSelectMenu::Draw() {
         "songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
     Encore::TextDisplay sortTypeD;
     float SortFontSize = u.hinpct(0.03f);
-    sortTypeD.Pos(AlbumX - (AlbumOuter * 2), OvershellTop - SortFontSize - AlbumOuter).Size(SortFontSize).
+    sortTypeD.Pos(AlbumX - (AlbumOuter * 2), OvershellTop - SortFontSize - AlbumOuter).
+              Size(SortFontSize).
               Fnt(ASSET(josefinSansItalic)).Col(LIGHTGRAY).Align(RIGHT).
               DrawText(LOCALISE_FMT("songSelect.sortedBy", sortType));
     float sortWidth = sortTypeD.TextWidth(LOCALISE_FMT("songSelect.sortedBy", sortType));
@@ -738,6 +741,7 @@ void SongSelectMenu::Draw() {
             songYPos += songEntryHeight;
         }
     }
+    DrawSongInformation(u.RightSide - u.winpct(0.25f), SongToDisplayInfo);
     if (curSongMenuPos > 0 && curSongMenuPos < TheSongList.
                                                listMenuEntries.size()) {
         std::string categoryHeaderText = GetHeader();
@@ -757,129 +761,169 @@ void SongSelectMenu::Draw() {
         songTitle.DrawText(categoryHeaderText);
     }
 
-    DrawRectangle(
-        AlbumX - AlbumOuter,
-        AlbumY + AlbumHeight,
-        AlbumHeight + AlbumOuter,
-        AlbumHeight + u.hinpct(0.01f),
-        WHITE
-    );
-    DrawRectangle(
-        AlbumX - AlbumInner,
-        AlbumY + AlbumHeight,
-        AlbumHeight,
-        u.hinpct(0.075f) + AlbumHeight,
-        GetColor(0x181827FF)
-    );
-    DrawRectangle(
-        AlbumX - AlbumOuter,
-        AlbumY - AlbumInner,
-        AlbumHeight + AlbumOuter,
-        AlbumHeight + AlbumOuter,
-        WHITE
-    );
-    DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, BLACK);
+    if (TheSongList.PlaylistMode) {
+        Encore::TextDisplay playlistSongs;
+        playlistSongs.Size(u.hinpct(0.035f)).Pos(AlbumX, AlbumY);
+        for (auto &listSong : TheSongList.playlist) {
+            playlistSongs.DrawText(listSong->title);
+            playlistSongs.pos.y += u.hinpct(0.0375f);
+        }
+    }
+    buttReg.DrawPrompts(isOSOpen());
+    DrawOvershell();
+}
 
-    std::string titleText = TheSourceIcons.GetSourceName(SongToDisplayInfo->source);
-    float titleFontSize = u.hinpct(0.035f);
-    float titleTextWidth = MeasureTextEx(assets.rubikBold,
-                                         titleText.c_str(),
-                                         titleFontSize,
-                                         0).x;
-    float titleTextX = AlbumX - AlbumInner + (AlbumHeight / 2.0f) - (titleTextWidth /
-        2.0f);
-    float titleTextY = AlbumY - u.hinpct(0.045f);
-    Encore::Text::DrawText(
-        assets.rubikBold,
-        titleText.c_str(),
-        { titleTextX, titleTextY },
-        titleFontSize,
-        WHITE,
-        LEFT
-    );
 
-    if (TheArtLoader.loadedArt) {
+void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
+    Units &u = Units::getInstance();
+
+    float AlbumX = leftPos;
+    float AlbumY = u.hpct(0.04f);
+    float AlbumWidth = u.winpct(0.25f);
+    float InfoBoxHeight = u.hpct(1.0) - u.hinpct(0.36);
+    Rectangle albumRect{ AlbumX, AlbumY, AlbumWidth, AlbumWidth };
+    NPatchInfo shadowOverlay;
+    shadowOverlay.source = {0,0,128,128};
+    shadowOverlay.top = AlbumWidth*0.1;
+    shadowOverlay.bottom = AlbumWidth*0.1;
+    shadowOverlay.left = AlbumWidth*0.1;
+    shadowOverlay.right = AlbumWidth*0.1;
+    shadowOverlay.layout = 0;
+    if (TheArtLoader.loadedArt->GetTexture().id != 0) {
         DrawTexturePro(
             *TheArtLoader.loadedArt,
             Rectangle{ 0,
                        0,
                        (float)TheArtLoader.loadedArt->GetTexture().width,
                        (float)TheArtLoader.loadedArt->GetTexture().width },
-            Rectangle{ (float)AlbumX - AlbumInner,
-                       (float)AlbumY,
-                       (float)AlbumHeight,
-                       (float)AlbumHeight },
+            albumRect,
             { 0, 0 },
             0,
             WHITE
         );
     } else {
-        DrawRectangle(AlbumX - AlbumInner, AlbumY, AlbumHeight, AlbumHeight, DARKGRAY);
+        DrawTexturePro(
+            ASSET(missingAlbumArt),
+            Rectangle{ 0,
+                       0,
+                       (float)ASSET(missingAlbumArt).width,
+                       (float)ASSET(missingAlbumArt).width },
+            albumRect,
+            { 0, 0 },
+            0,
+            WHITE
+        );
     }
-    if (TheSongList.PlaylistMode) {
-        Encore::TextDisplay playlistSongs;
-        playlistSongs.Size(u.hinpct(0.035f)).Pos(AlbumX - AlbumInner, AlbumY);
-        for (auto &listSong : TheSongList.playlist) {
-            playlistSongs.DrawText(listSong->title);
-            playlistSongs.pos.y += u.hinpct(0.0375f);
-        }
-    }
+    DrawTextureNPatch(ASSET(borderShadowLight), shadowOverlay, albumRect, {0}, 0, {255,255,255,128});
 
-    std::string albumText = SongToDisplayInfo->album.empty()
-        ? "No Album Listed"
-        : SongToDisplayInfo->album;
-    std::string yearText = SongToDisplayInfo->releaseYear.empty()
-        ? "67"
-        : SongToDisplayInfo->releaseYear;
-    std::string albumDisplayText = albumText + ", " + yearText;
+    float patchShit = albumRect.width * 0.075f;
+    float infoBoxPadding = albumRect.width * 0.05f;
+    NPatchInfo scoreBoxPatch;
+    scoreBoxPatch.source = { 0, 0, 128, 128 };
+    scoreBoxPatch.top = patchShit;
+    scoreBoxPatch.bottom = patchShit;
+    scoreBoxPatch.left = patchShit;
+    scoreBoxPatch.right = patchShit;
+    scoreBoxPatch.layout = 0;
 
-    float albumTTop = AlbumY + AlbumHeight + AlbumOuter;
+    float InfoBoxGradientHeight = albumRect.width * 0.35f;
+    float InfoBoxWidth = albumRect.width - (infoBoxPadding * 2);
+    DrawRectangleGradientV(
+        albumRect.x,
+        albumRect.y + albumRect.width,
+        albumRect.width,
+        InfoBoxGradientHeight,
+        GetColor(0x202033FF),
+        GetColor(0x181827FF)
+    );
+    DrawRectangleGradientV(
+        albumRect.x,
+        albumRect.y + albumRect.width,
+        albumRect.width,
+        albumRect.height * 0.025f,
+        {0,0,0,64},
+        {0}
+    );
+    DrawRectangle(albumRect.x, albumRect.y+InfoBoxGradientHeight+albumRect.height, albumRect.width, InfoBoxHeight, GetColor(0x181827FF));
+    Rectangle infoBoxRect{ albumRect.x + infoBoxPadding,
+                           albumRect.y + infoBoxPadding + albumRect.width,
+                           albumRect.width - (infoBoxPadding * 2),
+                           InfoBoxGradientHeight - (infoBoxPadding * 2) };
+    DrawTextureNPatch(ASSET(resultsBox), scoreBoxPatch, infoBoxRect, { 0 }, 0, {255,255,255,128});
+    float AlbumFontHeight = (InfoBoxGradientHeight - (infoBoxPadding * 2) )/5;
+    Encore::TextDisplay BoxDisplay;
+    // this sucks can we start scripting it or writing it to a file to reload it yet
+    BoxDisplay.Pos(AlbumX+(infoBoxPadding*1.3f), AlbumY+AlbumWidth+(infoBoxPadding*1.55f))
+    .Bounds(albumRect.width - ((infoBoxPadding*1.3f) * 2), AlbumFontHeight)
+    .Size(AlbumFontHeight)
+    .Align(CENTER)
+    .Fnt(ASSET(josefinSansBold))
+    .DrawText(curSong->album)
+    .AddY(AlbumFontHeight * 1.3f)
+    .Fnt(ASSET(josefinSansNormal))
+    .Col(LIGHTGRAY)
+    .Size(AlbumFontHeight * 0.85f)
+    .DrawText(curSong->charters[0]);
 
-    DrawLine(u.RightSide - AlbumHeight - AlbumOuter,
-             AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
-             u.RightSide,
-             AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.04f)),
-             WHITE);
+    // the more i work on this the more i wanna blow my brains out holy shit
+    float Midpoint = AlbumX + (AlbumWidth / 2);
+    auto SourceTex = TheSourceIcons.GetIcon(curSong->source);
+    Encore::TextDisplay sourceName;
+    sourceName.Size(AlbumFontHeight*0.9f).Fnt(ASSET(josefinSansNormal));
+    float SourceTop = BoxDisplay.pos.y + (AlbumFontHeight * 0.25f);
+    float IconSize = AlbumFontHeight * 1.25f;
+    float IconSpace = AlbumFontHeight * 1.5f;
+    float TextWidth = sourceName.TextWidth(SourceTex->name);
+    float LeftPos = Midpoint - ((TextWidth + IconSpace) / 2);
 
-    float DiffTop = AlbumY + AlbumHeight + AlbumOuter + (u.hinpct(0.045f));
-    float IconWidth = float(AlbumHeight - AlbumOuter) / 5.0f;
-    Encore::Text::lDrawText(assets.rubikItalic,
-                            "parts.pad",
-                            { (u.RightSide - AlbumHeight + AlbumInner), DiffTop },
-                            AlbumOuter * 3,
-                            WHITE,
-                            LEFT);
-    Encore::Text::lDrawText(assets.rubikItalic,
-                            "parts.classic",
-                            { (u.RightSide - AlbumHeight + AlbumInner),
-                              DiffTop + IconWidth + (AlbumOuter * 3) },
-                            AlbumOuter * 3,
-                            WHITE,
-                            LEFT);
+    Rectangle source = { 0, 0, float(SourceTex->GetTexture().width),
+                         float(SourceTex->GetTexture().height) };
+    Rectangle dest = { LeftPos, SourceTop + AlbumFontHeight,
+                       IconSize,
+                       IconSize };
+    DrawTexturePro(SourceTex->GetTexture(), source, dest, { 0 }, 0, WHITE);
+    sourceName.Pos(LeftPos + IconSpace, SourceTop + (IconSize)).Bounds(BoxDisplay.width - IconSpace, 1).DrawText(SourceTex->name);
+
+
+    // grits teeth
+    // please Yoshi give me a proper UI library
+    // please rockstar hide it again
+    float IconWidth = InfoBoxWidth / 5.125f;
+    float IconPadding = (infoBoxPadding * 0.5f) / 5.0f;
+    float InfoBoxBottom = AlbumY + AlbumWidth + InfoBoxGradientHeight;
+    Encore::TextDisplay partType;
+    partType.Size(infoBoxPadding)
+    .Fnt(ASSET(rubikBold))
+    .Pos(leftPos + infoBoxPadding, InfoBoxBottom)
+    .lDrawText("parts.pad")
+    .AddY(IconWidth + IconPadding + (infoBoxPadding * 1.5f))
+    .lDrawText("parts.classic");
+    DrawRectangleGradientH(leftPos+infoBoxPadding, InfoBoxBottom + infoBoxPadding, InfoBoxWidth, 2, WHITE, {255,255,255,32});
+    DrawRectangleGradientH(leftPos+infoBoxPadding, partType.pos.y + infoBoxPadding, InfoBoxWidth, 2, WHITE, {255,255,255,32});
     for (int i = 0; i < 10; i++) {
         bool RowTwo = i < 5;
         int RowTwoInt = i - 5;
-        float PosTopAddition = RowTwo ? AlbumOuter * 3 : AlbumOuter * 6;
-        float BoxTopPos = DiffTop + PosTopAddition + float(IconWidth * (RowTwo ? 0 : 1));
+        float PosTopAddition = RowTwo ? infoBoxPadding * 1.25f : infoBoxPadding * 3;
+        float BoxTopPos = InfoBoxBottom + PosTopAddition + (IconWidth * (RowTwo ? 0 : 1));
         float ResetToLeftPos = (float)(RowTwo ? i : RowTwoInt);
         int asdasd = (float)(RowTwo ? i : RowTwoInt);
-        float IconLeftPos = (float)(u.RightSide - AlbumHeight) + IconWidth *
-            ResetToLeftPos;
+        float IconLeftPos = leftPos + infoBoxPadding + ((IconWidth + IconPadding)*
+            ResetToLeftPos);
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        int diffNumber = SongToDisplayInfo->Difficulties[i];
+        int diffNumber = curSong->Difficulties[i];
         if (diffNumber == -1)
             TintColor = DARKGRAY;
-        auto instIcon = assets.InstIcons[asdasd];
+        auto instIcon = TheAssets.InstIcons[asdasd];
         DrawTexturePro(*instIcon,
                        { 0, 0, (float)instIcon->width, (float)instIcon->height },
                        Placement,
                        { 0, 0 },
                        0,
                        TintColor);
-        DrawTexturePro(assets.BaseRingTexture,
-                       { 0, 0, (float)assets.BaseRingTexture.width,
-                         (float)assets.BaseRingTexture.height },
+        DrawTexturePro(TheAssets.BaseRingTexture,
+                       { 0, 0, (float)TheAssets.BaseRingTexture.width,
+                         (float)TheAssets.BaseRingTexture.height },
                        Placement,
                        { 0, 0 },
                        0,
@@ -888,7 +932,7 @@ void SongSelectMenu::Draw() {
             if (diffNumber > 6) {
                 diffNumber = 6;
             }
-            auto ring = assets.YargRings[diffNumber - 1];
+            auto ring = TheAssets.YargRings[diffNumber - 1];
             DrawTexturePro(
                 *ring,
                 { 0, 0, (float)ring->width, (float)ring->height },
@@ -899,58 +943,4 @@ void SongSelectMenu::Draw() {
             );
         }
     }
-
-    // GameMenu::DrawBottomOvershell();
-    buttReg.DrawPrompts(isOSOpen());
-
-    Encore::TextDisplay albumData;
-    albumData.Bounds(AlbumHeight - AlbumOuter, u.hinpct(0.04f))
-             .Pos(AlbumX, albumTTop).Size(u.hinpct(0.035f)).Align(CENTER)
-             .Fnt(ASSET(rubik));
-    albumData.DrawText(albumDisplayText);
-    /*if (GuiButton(Rectangle{ ButtonStart, ButtonTop,
-                             ButtonWidth, u.hinpct(0.05f) },
-                  "       Play Song")) {
-        if (TheSongList.curSong) {
-            Unload();
-            //TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-            TheMenuManager.SwitchScreen(READY_UP);
-        }
-    }
-    GameMenu::mhDrawText(ASSET(rubikBold), "A", {LabelStart, LabelTop}, u.hinpct(0.03f), GREEN, ASSET(sdfShader), LEFT);
-
-    if (GuiButton(
-        Rectangle{ ButtonStart + ButtonWidth * 2,
-                   ButtonTop,
-                   ButtonWidth,
-                   u.hinpct(0.05f) },
-        "      Sort"
-    )) {
-        //todo: I BROKE THE SORT BUTTON LMFAO
-        // no i didnt
-        currentSortValue = NextSortType(currentSortValue);
-        TheSongList.sortList(currentSortValue);
-        ScrollToCurrentSong();
-    }
-    if (GuiButton(Rectangle{ ButtonStart + (ButtonWidth),
-                             ButtonTop, ButtonWidth,
-                             u.hinpct(0.05f) },
-                  "       Back")) {
-        if (!TheAudioManager.loadedStreams.empty()) {
-            for (auto &stream : TheAudioManager.loadedStreams) {
-                TheAudioManager.StopPlayback(stream.handle);
-            }
-            TheAudioManager.loadedStreams.clear();
-        }
-        Unload();
-        TheMenuManager.SwitchScreen(MAIN_MENU);
-    }
-    GameMenu::mhDrawText(ASSET(rubikBold), "B", {LabelStart + ButtonWidth, LabelTop}, u.hinpct(0.03f), RED, ASSET(sdfShader), LEFT);
-    GuiButton(Rectangle{ ButtonStart + (ButtonWidth * 3),
-                             ButtonTop, ButtonWidth * 2,
-                             u.hinpct(0.05f) },
-                  "        (Hold) Jump Sections");
-    GameMenu::mhDrawText(ASSET(rubikBold), "LB", {LabelStart + (ButtonWidth * 3), LabelTop}, u.hinpct(0.03f), ORANGE, ASSET(sdfShader), LEFT);
-*/
-    DrawOvershell();
 }

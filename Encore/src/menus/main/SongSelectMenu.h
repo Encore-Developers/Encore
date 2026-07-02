@@ -13,6 +13,7 @@ class SongSelectMenu : public OvershellMenu {
 public:
     SongSelectMenu() = default;
     ~SongSelectMenu() override;
+    void DrawSongInformation(float leftPos, Song* curSong);
     void ScrollUpHeader();
     void ScrollDownHeader();
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;

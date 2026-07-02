@@ -385,7 +385,9 @@ public:
     NEWTEXASSET(AltBackground, "gameplay/ui/alt_background.png");
     NEWTEXASSET(TimerboxOutline, "gameplay/ui/TimerboxOutline.png");
     NEWTEXASSET(borderShadow, "gameplay/ui/shadow.png");
+    NEWTEXASSET(borderShadowLight, "gameplay/ui/shadowLight.png");
     NEWTEXASSET(resultsBox, "gameplay/ui/resultsBox.png");
+    NEWTEXASSET(missingAlbumArt, "ui/missing.png");
 
     NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.wav");
     NEWSAMPLEASSET(activateSound, "gameplay/sfx/od_activate.mp3");

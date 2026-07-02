@@ -18,6 +18,7 @@
 #include <array>
 #include <nlohmann/json.hpp>
 
+#include "assets.h"
 #include "audio.h"
 
 
@@ -139,6 +140,9 @@ struct std::hash<SongHash> {
 
 class Song {
 public:
+    Song() {
+        albumArtPath = TheAssets.getDirectory() / "ui" / "missing.png";
+    }
     bool midiParsed = false;
     std::string title = "";
     float titleXOffset = 0;
@@ -165,7 +169,7 @@ public:
 
     std::filesystem::path midiPath = "";
     std::filesystem::path songDir = "";
-    std::filesystem::path albumArtPath = "";
+    std::filesystem::path albumArtPath;
     std::filesystem::path songInfoPath = "";
     std::string releaseYear = "";
     std::string loadingPhrase = "";
