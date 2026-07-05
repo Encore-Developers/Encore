@@ -35,7 +35,7 @@ SongPart Encore::RhythmEngine::MidiChartHandler::GetSongPart(smf::MidiEventList 
 
 Encore::RhythmEngine::MidiChartHandler::MidiChartHandler(std::filesystem::path fileName)
     : ChartHandler(std::move(fileName)) {
-    midifile.read(file.string());
+    midifile.read(file);
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
     tpq = midifile.getTPQ();

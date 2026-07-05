@@ -25,12 +25,27 @@ void ArtLoader::ThreadRun() {
         auto request = requests.front();
         requests.pop();
         requestsMutex.unlock();
-        auto image = LoadImage(request.song->albumArtPath.string().c_str());
+
+        // Delusional. All this just to support Windows.
+        std::ifstream file(request.song->albumArtPath, std::ios::binary | std::ios::ate);
+        int fileSize = file.tellg();
+        int realFileSize = fileSize;
+        file.seekg(0, std::ios::beg);
+
+        char* fileBuffer = (char *)malloc(fileSize);
+        file.read(fileBuffer, realFileSize);
+        file.close();
+        auto image = LoadImageFromMemory(reinterpret_cast<const char *>(request.song->albumArtPath.extension().generic_u8string().c_str()), (const unsigned char*)fileBuffer, fileSize);
+        // LoadImage(request.song->albumArtPath.string().c_str());
         SendResult({image, false, {0}});
         auto blurred = ImageCopy(image);
         ImageResize(&blurred, 512, 512);
         ImageBlurGaussian(&blurred, 10);
         SendResult({blurred, true, image});
+        if (fileBuffer != nullptr) {
+            free(fileBuffer);
+            fileBuffer = nullptr;
+        }
     }
 }
 void ArtLoader::SendResult(LoadResult result) {

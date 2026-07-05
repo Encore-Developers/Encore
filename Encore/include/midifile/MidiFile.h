@@ -14,6 +14,8 @@
 #ifndef _MIDIFILE_H_INCLUDED
 #define _MIDIFILE_H_INCLUDED
 
+#include <filesystem>
+
 #include "MidiEventList.h"
 
 #include <vector>
@@ -53,6 +55,7 @@ class MidiFile {
 
 		// Auto-detected SMF or ASCII-encoded SMF (decoded with Binasc class):
 		bool           read                        (const std::string& filename);
+		bool           read                        (const std::filesystem::path& filename);
 		bool           read                        (std::istream& instream);
 		bool           readBase64                  (const std::string& base64data);
 		bool           readBase64                  (std::istream& instream);

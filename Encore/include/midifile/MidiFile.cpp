@@ -210,6 +210,24 @@ bool MidiFile::read(const std::string& filename) {
 	return m_rwstatus;
 }
 
+
+bool MidiFile::read(const std::filesystem::path& filename) {
+    m_timemapvalid = 0;
+    setFilename(filename.generic_string());
+    m_rwstatus = true;
+
+    std::fstream input;
+    input.open(filename, std::ios::binary | std::ios::in);
+
+    if (!input.is_open()) {
+        m_rwstatus = false;
+        return m_rwstatus;
+    }
+
+    m_rwstatus = read(input);
+    return m_rwstatus;
+}
+
 //
 // istream version of read().
 //
