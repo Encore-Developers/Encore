@@ -64,8 +64,9 @@ void DrawEasingsWindow() {
         if (BeginCombo("Function", getEasingFunctionName(func), 0)) {
             for (unsigned int iter = Linear; iter <= EaseInOutBounce; iter++) {
                 if (Selectable(
-                        getEasingFunctionName((easing_functions)iter), func == iter
-                    )) {
+                    getEasingFunctionName((easing_functions)iter),
+                    func == iter
+                )) {
                     func = (easing_functions)iter;
                 }
             }
@@ -88,11 +89,19 @@ void DrawEasingsWindow() {
             }
         }
         PlotLines(
-            "Values", values, count, 0, 0, min, max, { 0.0f, GetContentRegionAvail().y }
+            "Values",
+            values,
+            count,
+            0,
+            0,
+            min,
+            max,
+            { 0.0f, GetContentRegionAvail().y }
         );
     }
     End();
 }
+
 void EncoreDebug::DrawDebug() {
     ZoneScoped;
     if (debugVersionHash.empty()) {
@@ -113,7 +122,7 @@ void EncoreDebug::DrawDebug() {
     if (showPlayerManager) {
         DrawPlayerManager();
     }
-    if (showSongList && !dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get())) {
+    if (showSongList && !dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get())) {
         DrawSongList();
     }
     if (showQuickSettings) {
@@ -157,13 +166,17 @@ void EncoreDebug::MenuBar() {
             MenuItem("Locale Debug", 0, &showLocaleDebug);
         } else {
             std::size_t localeErrors = Encore::Locale::unlocalizedTokens.size();
-            MenuItem(std::vformat("Locale Debug (!!! {} unlocalized tokens)", std::make_format_args(localeErrors)).c_str(), 0, &showLocaleDebug);
+            MenuItem(std::vformat("Locale Debug (!!! {} unlocalized tokens)",
+                                  std::make_format_args(localeErrors)).c_str(),
+                     0,
+                     &showLocaleDebug);
         }
 
         EndMenu();
     }
-    if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()), 0, &showQuickSettings)) {
-
+    if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()),
+                 0,
+                 &showQuickSettings)) {
     }
 
     if (gameplayMenu && MenuItem("End Song")) {
@@ -178,14 +191,14 @@ void EncoreDebug::MenuBar() {
     if (gameplayMenu && MenuItem(pauseText.c_str())) {
         paused = !paused;
         for (auto player : ThePlayerManager.ActivePlayers) {
-            if (!player) continue;
+            if (!player)
+                continue;
             player->engine->stats->Paused = paused;
         }
         if (paused) {
             pauseText = "Play";
             TheAudioManager.pauseStreams();
-        }
-        else{
+        } else {
             pauseText = "Pause";
             TheAudioManager.unpauseStreams();
         }
@@ -208,10 +221,9 @@ void EncoreDebug::DrawColorProfileSettings() {
 
         if (BeginTabBar("Profiles")) {
             for (auto &profile : TheProfileManager.ColorProfiles) {
-
-
                 if (BeginTabItem(
-                    (profile.second.Name + TextFormat("###%x", &profile.second.Name)).c_str())) {
+                    (profile.second.Name + TextFormat("###%x", &profile.second.Name)).
+                    c_str())) {
                     bool disabled = false;
                     if (profile.second.builtin) {
                         ImGui::Text("%s", "Cannot edit default color profile.");
@@ -268,9 +280,7 @@ void EncoreDebug::DrawColorProfileSettings() {
                     // if (Button("Delete Player")) {
                     //    ThePlayerManager.SavePlayerList();
                     // }
-
                 }
-
             }
             if (TabItemButton("New", ImGuiTabItemFlags_Trailing)) {
                 TheProfileManager.CreateColorProfile();
@@ -299,16 +309,29 @@ void EncoreDebug::DrawQuickSettings() {
         ImGui::Text("Audio Settings");
         SliderFloat("Main Volume", &TheGameSettings.avMainVolume, 0.0, 1.0);
         if (CollapsingHeader("Advanced")) {
-            SliderFloat("Active Inst Volume", &TheGameSettings.avActiveInstrumentVolume, 0.0, 1.0);
+            SliderFloat("Active Inst Volume",
+                        &TheGameSettings.avActiveInstrumentVolume,
+                        0.0,
+                        1.0);
             SliderFloat("Track Mute Volume", &TheGameSettings.avMuteVolume, 0.0, 1.0);
-            SliderFloat("Inactive Inst Volume", &TheGameSettings.avInactiveInstrumentVolume, 0.0, 1.0);
-            SliderFloat("Inactive Vocals Volume", &TheGameSettings.avInactiveVocalsVolume, 0.0, 1.0);
+            SliderFloat("Inactive Inst Volume",
+                        &TheGameSettings.avInactiveInstrumentVolume,
+                        0.0,
+                        1.0);
+            SliderFloat("Inactive Vocals Volume",
+                        &TheGameSettings.avInactiveVocalsVolume,
+                        0.0,
+                        1.0);
             SliderFloat("Crowd Volume", &TheGameSettings.avCrowdVolume, 0.0, 1.0);
             SliderFloat("SFX Volume", &TheGameSettings.avSoundEffectVolume, 0.0, 1.0);
-            SliderFloat("Menu Music Volume", &TheGameSettings.avMenuMusicVolume, 0.0, 1.0);
+            SliderFloat("Menu Music Volume",
+                        &TheGameSettings.avMenuMusicVolume,
+                        0.0,
+                        1.0);
         }
         if (Button("Save Settings")) {
-            TheGameSettings.SaveToFile((TheGameSettings.directory / "settings.json").string());
+            TheGameSettings.SaveToFile(
+                (TheGameSettings.directory / "settings.json").string());
         }
     }
     End();
@@ -317,14 +340,16 @@ void EncoreDebug::DrawQuickSettings() {
 void DebugSeek(float time, float audioTime) {
     TheAudioManager.seekStreams(audioTime);
     for (auto player : ThePlayerManager.ActivePlayers) {
-        if (!player) continue;
+        if (!player)
+            continue;
         auto engine = player->engine.get();
         engine->chart->MissedNotePointers.clear();
         for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
             if (i >= engine->chart->Lanes.size()) {
                 break;
             }
-            for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[i].end(); ++iter) {
+            for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[
+                     i].end(); ++iter) {
                 if (iter->StartSeconds > time) {
                     engine->chart->CurrentNoteIterators[i] = iter;
                     break;
@@ -339,10 +364,12 @@ void DebugSeek(float time, float audioTime) {
 
 void EncoreDebug::DrawPracticeSectionSelector() {
     ZoneScoped;
-    bool isGameplay = dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()) != nullptr;
+    bool isGameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get()) !=
+        nullptr;
     if (isGameplay) {
         if (Begin("Practice Section Selector")) {
-            for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size(); sectionInt++) {
+            for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size();
+                 sectionInt++) {
                 ImGui::Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
                 SameLine();
                 float buttWidth = CalcTextSize(" whole").x;
@@ -351,7 +378,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 if (Button("whole")) {
                     double startTime;
                     for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player) continue;
+                        if (!player)
+                            continue;
                         double endTime = 0.0;
                         startTime = TheSongTime.Sections.at(sectionInt).start;
                         if (sectionInt == TheSongTime.Sections.size() - 1)
@@ -368,7 +396,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 if (Button("start")) {
                     double startTime;
                     for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player) continue;
+                        if (!player)
+                            continue;
                         startTime = TheSongTime.Sections.at(sectionInt).start;
                         player->engine->pStartTime = startTime - 0.1;
                         player->engine->pStopTime = TheSongTime.GetSongLength();
@@ -379,7 +408,8 @@ void EncoreDebug::DrawPracticeSectionSelector() {
                 SameLine();
                 if (Button("end")) {
                     for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player) continue;
+                        if (!player)
+                            continue;
                         double endTime = 0.0;
                         if (sectionInt == TheSongTime.Sections.size() - 1)
                             endTime = TheSongTime.GetSongLength();
@@ -404,11 +434,15 @@ struct TimelineTextSpacer {
 
 void EncoreDebug::DrawSongScrubber() {
     ZoneScoped;
-    bool isGameplay = dynamic_cast<GameplayMenu*>(TheMenuManager.ActiveMenu.get()) != nullptr;
+    bool isGameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get()) !=
+        nullptr;
     if (isGameplay) {
-        SetNextWindowPos({0, GetFrameHeight()+4}, ImGuiCond_Always);
-        SetNextWindowSize({ImGui::GetIO().DisplaySize.x, 0}, ImGuiCond_Always);
-        if (Begin("Song Scrubber", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+        SetNextWindowPos({ 0, GetFrameHeight() + 4 }, ImGuiCond_Always);
+        SetNextWindowSize({ ImGui::GetIO().DisplaySize.x, 0 }, ImGuiCond_Always);
+        if (Begin("Song Scrubber",
+                  0,
+                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize |
+                  ImGuiWindowFlags_NoMove)) {
             PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
             float time = TheSongTime.GetElapsedTime();
             auto size = GetContentRegionAvail();
@@ -425,14 +459,24 @@ void EncoreDebug::DrawSongScrubber() {
                 return GetMousePos().x - pos.x;
             };
             if (IsItemHovered() && IsMouseButtonDown(ImGuiMouseButton_Left)) {
-                DebugSeek(GetTimeAtPos(GetMouseLocalPos()), GetTimeAtPos(GetMouseLocalPos()));
+                DebugSeek(GetTimeAtPos(GetMouseLocalPos()),
+                          GetTimeAtPos(GetMouseLocalPos()));
             }
             if (IsItemHovered() && IsMouseButtonDown(ImGuiMouseButton_Right)) {
                 TheAudioManager.seekStreams(GetTimeAtPos(GetMouseLocalPos()));
             }
             auto drawlist = GetWindowDrawList();
-            drawlist->AddRectFilled(pos, pos + size, ColorConvertFloat4ToU32(GetStyle().Colors[IsItemHovered() && !IsItemActive() ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg]));
-            drawlist->AddLine(pos + ImVec2(TimeToPos(time), 0), pos + ImVec2(TimeToPos(time), size.y), ColorConvertFloat4ToU32({1, 0, 1, 1}), 2);
+            drawlist->AddRectFilled(pos,
+                                    pos + size,
+                                    ColorConvertFloat4ToU32(
+                                        GetStyle().Colors[
+                                            IsItemHovered() && !IsItemActive()
+                                            ? ImGuiCol_FrameBgHovered
+                                            : ImGuiCol_FrameBg]));
+            drawlist->AddLine(pos + ImVec2(TimeToPos(time), 0),
+                              pos + ImVec2(TimeToPos(time), size.y),
+                              ColorConvertFloat4ToU32({ 1, 0, 1, 1 }),
+                              2);
 
             static std::vector<TimelineTextSpacer> texts = {};
             texts.clear();
@@ -440,8 +484,9 @@ void EncoreDebug::DrawSongScrubber() {
                 if (layer < 0) {
                     return true;
                 }
-                for (auto& spacer : texts) {
-                    if (x > spacer.startPos && x < spacer.endPos && spacer.layer == layer) {
+                for (auto &spacer : texts) {
+                    if (x > spacer.startPos && x < spacer.endPos && spacer.layer ==
+                        layer) {
                         return true;
                     }
                 }
@@ -450,38 +495,112 @@ void EncoreDebug::DrawSongScrubber() {
             size_t layer = 0;
             size_t maxlayer = 0;
             for (size_t i = 0; i < TheSongTime.Sections.size(); i++) {
-                auto& section = TheSongTime.Sections[i];
+                auto &section = TheSongTime.Sections[i];
                 float endTime = TheSongTime.GetSongLength();
                 if (i < TheSongTime.Sections.size() - 1) {
-                    endTime = TheSongTime.Sections[i+1].start;
+                    endTime = TheSongTime.Sections[i + 1].start;
                 }
                 float rectPos = TimeToPos(section.start);
                 float startPos = TimeToPos(section.start);
                 float textWide = MeasureText(section.name.c_str(), GetFontSize());
-                if (startPos+textWide > size.x) {
-                    startPos = size.x-textWide;
+                if (startPos + textWide > size.x) {
+                    startPos = size.x - textWide;
                 }
-                drawlist->AddRectFilled(pos + ImVec2(rectPos, 0), pos + ImVec2(TimeToPos(endTime), size.y), ColorConvertFloat4ToU32(i % 2 == 0 ? ImVec4 {1, 1, 1, 0.2} : ImVec4 {1, 1, 1, 0.1}));
-                drawlist->AddLine(pos + ImVec2(rectPos, 0), pos + ImVec2(rectPos, size.y), ColorConvertFloat4ToU32({1, 1, 1, 0.9}));
+                drawlist->AddRectFilled(pos + ImVec2(rectPos, 0),
+                                        pos + ImVec2(TimeToPos(endTime), size.y),
+                                        ColorConvertFloat4ToU32(i % 2 == 0
+                                            ? ImVec4{ 1, 1, 1, 0.2 }
+                                            : ImVec4{ 1, 1, 1, 0.1 }));
+                drawlist->AddLine(pos + ImVec2(rectPos, 0),
+                                  pos + ImVec2(rectPos, size.y),
+                                  ColorConvertFloat4ToU32({ 1, 1, 1, 0.9 }));
                 layer = 0;
                 while (occupied(startPos, layer)) {
                     layer++;
                 }
                 float textY = pos.y + size.y + layer * GetFontSize();
-                drawlist->AddText(ImVec2(startPos+pos.x, textY), 0xffffffff, section.name.c_str());
-                texts.push_back({startPos, startPos+textWide, static_cast<int>(layer)});
+                drawlist->AddText(ImVec2(startPos + pos.x, textY),
+                                  0xffffffff,
+                                  section.name.c_str());
+                texts.push_back(
+                    { startPos, startPos + textWide, static_cast<int>(layer) });
                 if (layer > maxlayer) {
                     maxlayer = layer;
                 }
             }
 
-            Dummy(ImVec2{0, GetFontSize()*(maxlayer+1)});
+            Dummy(ImVec2{ 0, GetFontSize() * (maxlayer + 1) });
             PopStyleVar();
         }
         End();
     }
-
 }
+
+void DrawPlayer(std::shared_ptr<Player> &player) {
+    if (BeginTabItem(
+        (player->Name + "###" + TextFormat("%x", &player)).c_str())) {
+        InputText("Username", &player->Name);
+        SeparatorText("Color Profile");
+        // for some reason, when creating a new profile, player.GetColorProfile() eats shit and dies
+        // it doesnt get set to a nullptr??? but it gets set to some fucking random memory address and eugh
+        // close this when making a new color profile
+        if (BeginCombo("Plastic Color Profile",
+                       player->GetColorProfile(Encore::ProfileManager::PLASTIC)->Name.
+                               c_str())) {
+            for (auto i : TheProfileManager.ColorProfiles) {
+                if (Selectable(i.second.Name.c_str())) {
+                    player->SetColorProfile(i.second.Name,
+                                            Encore::ProfileManager::PLASTIC);
+                }
+            }
+            EndCombo();
+        }
+        if (BeginCombo("Pad Color Profile",
+                       player->GetColorProfile(
+                           Encore::ProfileManager::PAD)->Name.c_str())) {
+            for (auto i : TheProfileManager.ColorProfiles) {
+                if (Selectable(i.second.Name.c_str())) {
+                    player->SetColorProfile(i.second.Name, Encore::ProfileManager::PAD);
+                }
+            }
+            EndCombo();
+        }
+        if (BeginCombo("Drums Color Profile",
+                       player->GetColorProfile(Encore::ProfileManager::DRUMS)->Name.
+                               c_str())) {
+            for (auto i : TheProfileManager.ColorProfiles) {
+                if (Selectable(i.second.Name.c_str())) {
+                    player->SetColorProfile(i.second.Name, Encore::ProfileManager::DRUMS);
+                }
+            }
+            EndCombo();
+        }
+
+        SeparatorText(std::string("Player: " + player->Name).c_str());
+        SliderFloat("Note Speed", &player->NoteSpeed, 0, 3);
+        SliderFloat("Track Length", &player->HighwayLength, 0, 5);
+        int inputOffset = player->InputCalibration * 1000;
+        DragInt("Input Calibration",
+                &inputOffset,
+                1,
+                -1000,
+                1000,
+                "%dms");
+        player->InputCalibration = inputOffset / 1000.0;
+        ColorEdit("Accent Color", &player->AccentColor, 0);
+        Checkbox("Bot", &player->Bot);
+        Checkbox("Lefty Flip", &player->LeftyFlip);
+        Checkbox("Brutal Mode", &player->BrutalMode);
+        EndTabItem();
+
+        if (Button("Delete Player")) {
+            ThePlayerManager.DeletePlayer(*player);
+            ThePlayerManager.SavePlayerList();
+        }
+    }
+}
+
+bool showActive = true;
 
 void EncoreDebug::DrawPlayerManager() {
     ZoneScoped;
@@ -489,62 +608,27 @@ void EncoreDebug::DrawPlayerManager() {
         if (Button("Save All")) {
             ThePlayerManager.SavePlayerList();
         }
+        Checkbox("Show Only Active Players", &showActive);
 
         if (BeginTabBar("Players")) {
-            for (auto player : ThePlayerManager.PlayerList) {
-                if (BeginTabItem(
-                    (player->Name + TextFormat("###%x", &player)).c_str())) {
-                    InputText("Username", &player->Name);
-                    SeparatorText("Color Profile");
-                    // for some reason, when creating a new profile, player.GetColorProfile() eats shit and dies
-                    // it doesnt get set to a nullptr??? but it gets set to some fucking random memory address and eugh
-                    // close this when making a new color profile
-                    if (BeginCombo("Plastic Color Profile", player->GetColorProfile(Encore::ProfileManager::PLASTIC)->Name.c_str())) {
-                        for (auto i : TheProfileManager.ColorProfiles) {
-                            if (Selectable(i.second.Name.c_str())) {
-                                player->SetColorProfile(i.second.Name, Encore::ProfileManager::PLASTIC);
-                            }
-                        }
-                        EndCombo();
+            if (showActive) {
+                for (int i = 0; i < MAX_PLAYERS; i++) {
+                    if (ThePlayerManager.ActivePlayers[i] == nullptr) {
+                        if (i == 0)
+                            Text("%s",
+                             "No players are available. Please consider having players join, or disable \"Show Only Active Players\"");
+                        break;
                     }
-                    if (BeginCombo("Pad Color Profile", player->GetColorProfile(Encore::ProfileManager::PAD)->Name.c_str())) {
-                        for (auto i : TheProfileManager.ColorProfiles) {
-                            if (Selectable(i.second.Name.c_str())) {
-                                player->SetColorProfile(i.second.Name, Encore::ProfileManager::PAD);
-                            }
-                        }
-                        EndCombo();
+                    DrawPlayer(ThePlayerManager.ActivePlayers[i]);
+                }
+            } else {
+                for (auto &player : ThePlayerManager.PlayerList) {
+                    if (player == nullptr) {
+                        Text("%s",
+                             "No players are available. Please add players using the New button.");
+                        break;
                     }
-                    if (BeginCombo("Drums Color Profile", player->GetColorProfile(Encore::ProfileManager::DRUMS)->Name.c_str())) {
-                        for (auto i : TheProfileManager.ColorProfiles) {
-                            if (Selectable(i.second.Name.c_str())) {
-                                player->SetColorProfile(i.second.Name, Encore::ProfileManager::DRUMS);
-                            }
-                        }
-                        EndCombo();
-                    }
-
-                    SeparatorText(std::string("Player: " + player->Name).c_str());
-                    SliderFloat("Note Speed", &player->NoteSpeed, 0, 3);
-                    SliderFloat("Track Length", &player->HighwayLength, 0, 5);
-                    int inputOffset = player->InputCalibration * 1000;
-                    DragInt("Input Calibration",
-                                   &inputOffset,
-                                   1,
-                                   -1000,
-                                   1000,
-                                   "%dms");
-                    player->InputCalibration = inputOffset / 1000.0;
-                    ColorEdit("Accent Color", &player->AccentColor, 0);
-                    Checkbox("Bot", &player->Bot);
-                    Checkbox("Lefty Flip", &player->LeftyFlip);
-                    Checkbox("Brutal Mode", &player->BrutalMode);
-                    EndTabItem();
-
-                    if (Button("Delete Player")) {
-                        ThePlayerManager.DeletePlayer(*player);
-                        ThePlayerManager.SavePlayerList();
-                    }
+                    DrawPlayer(player);
                 }
             }
             if (TabItemButton("New", ImGuiTabItemFlags_Trailing)) {
@@ -595,7 +679,7 @@ void EncoreDebug::DrawJoystickTools() {
             TableHeadersRow();
 
             int joystickCount = 0;
-            SDL_JoystickID* joysticks = SDL_GetJoysticks(&joystickCount);
+            SDL_JoystickID *joysticks = SDL_GetJoysticks(&joystickCount);
 
             for (int i = 0; i < joystickCount; i++) {
                 SDL_JoystickID joyId = joysticks[i];
@@ -623,7 +707,6 @@ void EncoreDebug::DrawJoystickTools() {
                     mappingStr = "";
                 }
                 if (BeginPopupModal(joystickName)) {
-
                     InputText("Paste mapping", &mappingStr);
                     if (Button("Apply")) {
                         CloseCurrentPopup();
@@ -637,7 +720,6 @@ void EncoreDebug::DrawJoystickTools() {
                     EndPopup();
                 }
 
-
                 PopID();
             }
             EndTable();
@@ -646,6 +728,7 @@ void EncoreDebug::DrawJoystickTools() {
 
     End();
 }
+
 void EncoreDebug::DrawLocaleDebug() {
     if (Begin("Locale Debug", &showLocaleDebug)) {
         InputText("Current Locale", &TheGameSettings.Language);
@@ -661,22 +744,27 @@ void EncoreDebug::DrawLocaleDebug() {
 
         if (BeginTabBar("localeTabs")) {
             if (BeginTabItem("Locale Layers")) {
-                for (auto& layer : Encore::Locale::layers) {
+                for (auto &layer : Encore::Locale::layers) {
                     if (CollapsingHeader(layer.name.c_str())) {
                         if (layer.fallback) {
                             ImGui::Text("Fallback layer, will report unlocalized tokens");
                         }
 
-                        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                        const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY |
+                            ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
 
-                        if (BeginTable((std::string("Tokens##") + layer.name).c_str(), 2, flags, GetContentRegionAvail())) {
+                        if (BeginTable((std::string("Tokens##") + layer.name).c_str(),
+                                       2,
+                                       flags,
+                                       GetContentRegionAvail())) {
                             TableSetupScrollFreeze(0, 1);
                             TableSetupColumn("Token", ImGuiTableColumnFlags_WidthFixed);
-                            TableSetupColumn("String", ImGuiTableColumnFlags_WidthStretch);
+                            TableSetupColumn("String",
+                                             ImGuiTableColumnFlags_WidthStretch);
                             TableHeadersRow();
 
-                            for (auto& [key, value] : layer.entries) {
+                            for (auto &[key, value] : layer.entries) {
                                 TableNextRow();
 
                                 TableSetColumnIndex(0);
@@ -695,15 +783,13 @@ void EncoreDebug::DrawLocaleDebug() {
             }
 
             if (BeginTabItem("Unlocalized Tokens")) {
-                for (auto& token : Encore::Locale::unlocalizedTokens) {
+                for (auto &token : Encore::Locale::unlocalizedTokens) {
                     ImGui::Text("%s", token.c_str());
                 }
                 EndTabItem();
             }
             EndTabBar();
         }
-
-
     }
     End();
 }
@@ -731,7 +817,6 @@ void EncoreDebug::DrawSongList() {
                     continue;
                 }
             }
-
         }
     };
 
@@ -748,7 +833,10 @@ void EncoreDebug::DrawSongList() {
 
         if (BeginTable("Song List", 5, flags, GetContentRegionAvail())) {
             TableSetupScrollFreeze(0, 1);
-            TableSetupColumn("##Actions", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoSort);
+            TableSetupColumn("##Actions",
+                             ImGuiTableColumnFlags_WidthFixed |
+                             ImGuiTableColumnFlags_NoResize |
+                             ImGuiTableColumnFlags_NoSort);
             TableSetupColumn("Title", ImGuiTableColumnFlags_WidthStretch);
             TableSetupColumn("Artist", ImGuiTableColumnFlags_WidthFixed);
             TableSetupColumn("Source", ImGuiTableColumnFlags_WidthFixed);
@@ -774,14 +862,15 @@ void EncoreDebug::DrawSongList() {
                 std::stringstream hashStr;
                 hashStr << std::hex;
                 for (size_t x = 0; x < sizeof(SongHash::hash); x++) {
-                    hashStr << std::setw(2) << std::setfill('0') << (int)song->hash.hash[x];
+                    hashStr << std::setw(2) << std::setfill('0') << (int)song->hash.hash[
+                        x];
                 }
                 ImGui::Text("%s", hashStr.str().c_str());
 
                 TableSetColumnIndex(0);
                 if (SmallButton("Play")) {
                     if (!TheAudioManager.loadedStreams.empty()) {
-                        for (auto& stream : TheAudioManager.loadedStreams) {
+                        for (auto &stream : TheAudioManager.loadedStreams) {
                             TheAudioManager.StopPlayback(stream.handle);
                         }
                         TheAudioManager.loadedStreams.clear();
@@ -801,7 +890,7 @@ void EncoreDebug::DrawSongList() {
 
 void EncoreDebug::StartReloadAssets() {
     for (auto asset : TheAssets.assets) {
-        if (dynamic_cast<FontAsset*>(asset)) {
+        if (dynamic_cast<FontAsset *>(asset)) {
             if (!reloadFonts) {
                 continue;
             }
@@ -824,7 +913,7 @@ void EncoreDebug::DrawAssetViewer() {
     SetNextWindowSize({ 200, 300 }, ImGuiCond_FirstUseEver);
     if (Begin("Assets", &showAssets, 0)) {
         TextWrapped("Base Path: %s",
-                           TheAssets.getDirectory().generic_string().c_str());
+                    TheAssets.getDirectory().generic_string().c_str());
         if (Button("Reload All")) {
             reloadQueued = true;
         }
@@ -848,7 +937,8 @@ void EncoreDebug::DrawAssetViewer() {
                 PushID(i);
                 TableSetColumnIndex(1);
                 ImGui::Text("%s",
-                    std::filesystem::path(asset->id).filename().generic_string().c_str());
+                            std::filesystem::path(asset->id).filename().generic_string().
+                            c_str());
                 TableSetColumnIndex(2);
                 ImGui::Text("%s", typeid(*asset).name());
                 TableSetColumnIndex(3);
@@ -885,12 +975,12 @@ void EncoreDebug::DrawAssetViewer() {
 }
 
 void EncoreDebug::DrawLog() {
-    SetNextWindowSize({1000, 500}, ImGuiCond_Once);
+    SetNextWindowSize({ 1000, 500 }, ImGuiCond_Once);
     if (Begin("Log", &showLog)) {
         if (BeginChild("messages", GetContentRegionAvail(), ImGuiChildFlags_Borders)) {
             PushFont(GetIO().FontDefault, 14);
             auto messages = Encore::Log::GetRecentMessages();
-            for (auto& message : messages) {
+            for (auto &message : messages) {
                 Text("%s", message.c_str());
             }
             ScrollToItem();
@@ -925,8 +1015,6 @@ void Encore::Track::DrawTrackDebugWindow() {
                 DragFloat("Column Right", &ColumnRight, 0.01);
             }
             DragFloat("Note Height", &NoteHeight, 0.01);
-
-
         }
         if (CollapsingHeader("Engine State")) {
             SeparatorText("Timers");
@@ -938,35 +1026,39 @@ void Encore::Track::DrawTrackDebugWindow() {
                     timer.second.Duration
                 );
                 ProgressBar(countdown / timer.second.Duration,
-                                   { -FLT_MIN, 0 },
-                                   TextFormat("%s: %4.4f",
-                                              timer.first.c_str(),
-                                              countdown));
+                            { -FLT_MIN, 0 },
+                            TextFormat("%s: %4.4f",
+                                       timer.first.c_str(),
+                                       countdown));
             };
             SeparatorText("Stats");
             ImGui::Text("%s", TextFormat("Combo: %i", player.engine->stats->Combo));
             ImGui::Text("%s", TextFormat("Ghost Count: %i", player.engine->GhostCount));
-            ImGui::Text("%s", TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
             ImGui::Text("%s",
-                TextFormat("Attempted notes: %i", player.engine->stats->AttemptedNotes)
+                        TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
+            ImGui::Text("%s",
+                        TextFormat("Attempted notes: %i",
+                                   player.engine->stats->AttemptedNotes)
             );
             ImGui::Text("%s", TextFormat("Misses: %i", player.engine->stats->Misses));
-            ImGui::Text("%s", TextFormat("Notes hit: %i (%.0f%)",
+            ImGui::Text("%s",
+                        TextFormat("Notes hit: %i (%.0f%)",
                                    player.engine->stats->NotesHit,
                                    (float)player.engine->stats->NotesHit / player.engine->
                                    stats->AttemptedNotes * 100));
             ImGui::Text("%s", TextFormat("Score: %4.2f", player.engine->stats->Score));
-            ImGui::Text("%s", TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
+            ImGui::Text("%s",
+                        TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
             ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
-            ImGui::Text("%s", TextFormat("Multiplier: %ix",
+            ImGui::Text("%s",
+                        TextFormat("Multiplier: %ix",
                                    player.engine->stats->multiplier()));
             Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
         }
         if (CollapsingHeader("Section Stats")) {
-
             if (BeginTable("Sections", 3)) {
                 int i = 0;
-                for (auto& section : player.engine->chart->sections) {
+                for (auto &section : player.engine->chart->sections) {
                     TableNextRow();
                     TableSetColumnIndex(0);
                     if (i == player.engine->chart->CurrentSection) {
@@ -975,7 +1067,11 @@ void Encore::Track::DrawTrackDebugWindow() {
                     TableSetColumnIndex(1);
                     ImGui::Text("%s", section.name.c_str());
                     TableSetColumnIndex(2);
-                    ImGui::Text("%s", TextFormat("%01i/%01i -%01i", section.hit, section.notes, section.overhits));
+                    ImGui::Text("%s",
+                                TextFormat("%01i/%01i -%01i",
+                                           section.hit,
+                                           section.notes,
+                                           section.overhits));
                     i++;
                 }
                 EndTable();
@@ -1006,11 +1102,18 @@ void Encore::Track::DrawTrackDebugWindow() {
             if (Button("Configure Drums (Gem Kick)")) {
                 ConfigureDrumsGemKick();
             }
-            for (auto& slot : slots) {
+            for (auto &slot : slots) {
                 Separator();
                 PushID(slot->index);
-                if (ColorButton("Hit", ImGuiColor(player.QueryColorProfile(slot->colorSlot, ColorProfileType)))) {
-                    slot->AnimateHit(false, player.QueryColorProfile(slot->colorSlot, ColorProfileType));
+                if (ColorButton("Hit",
+                                ImGuiColor(
+                                    player.QueryColorProfile(
+                                        slot->colorSlot,
+                                        ColorProfileType)))) {
+                    slot->AnimateHit(false,
+                                     player.QueryColorProfile(
+                                         slot->colorSlot,
+                                         ColorProfileType));
                 }
                 DragFloat("X Position", &slot->xPos, 0.01);
                 DragFloat("Width", &slot->width, 0.01);
