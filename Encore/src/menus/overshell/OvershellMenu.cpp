@@ -162,6 +162,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
     float osCoverHeight = unit.hinpct(0.11f);
     float osBottom = GetYPos(-1, true);
     PlayerManager &playerManager = ThePlayerManager;
+    BeginScissorMode(0,0,GetRenderWidth(),unit.hpct(1.0f));
     for (int i = 0; i < MAX_PLAYERS; i++) {
         osLeft = GetOvershellSlotLeft(i);
         osWidth = GetOvershellSlotWidth();
@@ -512,7 +513,8 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                             osCoverHeight,
                             LOCALIZE("overshell.pressStart"),
                             LIGHTGRAY,
-                            RAYWHITE
+                            RAYWHITE,
+                            false
                         )) {
                         CancelButtonActivation = false;
                         OvershellState[i] = OS_PLAYER_SELECTION;
@@ -527,7 +529,8 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                             osCoverHeight,
                             LOCALIZE("overshell.connectController"),
                             { 255,255,255,32 },
-                            LIGHTGRAY
+                            LIGHTGRAY,
+                            false
                         )) {
                         CancelButtonActivation = false;
                         OvershellState[i] = OS_PLAYER_SELECTION;
@@ -669,6 +672,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
         }
         input.Reset();
     }
+    EndScissorMode();
 }
 float padding = 0.1f;
 
