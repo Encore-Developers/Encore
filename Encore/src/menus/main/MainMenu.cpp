@@ -470,6 +470,7 @@ void MainMenu::MainMenuScreen() {
     GameMenu::DrawTopOvershell(0.2f);
     GameMenu::DrawTopBarText(false, false);
     float logoHeight = u.hinpct(0.15f);
+    float logoWidth = (float(ASSET(encoreWhiteLogo).width) / float(ASSET(encoreWhiteLogo).height)) * logoHeight;
     DrawRectangle(0, u.hpct(0.2f), u.LeftSide, u.hinpct(0.05f), accentColor);
     DrawRectangleGradientH(
         u.LeftSide,
@@ -484,16 +485,7 @@ void MainMenu::MainMenuScreen() {
         menuAss.josefinSansItalic, SplashString.c_str(), StringBox, SplashFontSize, 0, WHITE
     );
 
-    Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f),
-                           u.hpct(0.035f),
-                           Remap(
-                               menuAss.encoreWhiteLogo.height,
-                               0,
-                               menuAss.encoreWhiteLogo.width / 4.25,
-                               0,
-                               u.winpct(0.5f)
-                           ),
-                           logoHeight };
+    Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.035f), logoWidth, logoHeight };
     switch (logoInt) {
     case (1): {
         ASSET(encorePrideLogo).Draw(LogoRect, WHITE);
@@ -698,7 +690,6 @@ void MainMenu::MainMenuScreen() {
         );
         DrawTextEx(menuAss.rubikItalic, "", SongArtistBox, SongFontSize, 0, WHITE);
     }
-    GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();
 
