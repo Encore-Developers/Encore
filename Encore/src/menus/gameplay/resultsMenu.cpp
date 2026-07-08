@@ -265,7 +265,6 @@ void resultsMenu::Draw() {
         GetColor(0x4FC6F9FF),
         LEFT
     );
-    GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());
     //if (GuiButton({ 0, 0, 60, 60 }, "<")) {
     //    // delete ThePlayerManager.BandStats;
@@ -300,7 +299,7 @@ struct Grade {
         : color(_color), Letter(_letter), range(_range) {}
 
     // 0 is lower, 1 is normal, 2 is upper
-    int GetSubdiv(double acc) {
+    [[nodiscard]] int GetSubdiv(double acc) const {
         if (acc >= range.top - (range.top - range.bottom) * 0.3) return 2;
         if (acc < range.bottom + (range.bottom - range.top) * 0.3) return 0;
         return 1;
@@ -310,18 +309,14 @@ struct Grade {
 std::array<Grade, 7> Grades {
     {
         Grade(MAGENTA,          "P", {1.00, 1.00}),
-        Grade(GOLD,             "S", {0.99, 1.00}),
-        Grade(GREEN,            "A", {0.92, 0.99}),
-        Grade(SKYBLUE,          "B", {0.85, 0.92}),
+        Grade(GOLD,             "S", {0.96, 1.00}),
+        Grade(GREEN,            "A", {0.90, 0.96}),
+        Grade(SKYBLUE,          "B", {0.85, 0.90}),
         Grade(ORANGE,           "C", {0.77, 0.85}),
         Grade(RED,              "D", {0.60, 0.77}),
         Grade(backgroundColor,  "F", {0.00, 0.60}),
     }
 };
-
-double GetThreshold(Grade *grade) {
-    return (grade->range.top - grade->range.bottom) * 0.3;
-}
 
 int GetGrade(double acc, Grade &grade) {
     int i = 0;
@@ -403,7 +398,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     cursor += DiffSize;
 
     DrawRectangleGradientH(cardPos, cursor, cardWidth, BannerSize, ColorAlpha(player.AccentColor, 0.25), ColorAlpha(player.AccentColor, 0));
-    float totalSpace = GetRenderHeight() - u.hpct(0.36f);
+    float totalSpace = u.hpct(1.0f) - u.hpct(0.36f);
     float lowerCardBottom = totalSpace - topCardHeight;
     DrawRectangleGradientV(cardPos, cardTop + topCardHeight, cardWidth, lowerCardBottom, GetColor(0x202033FF), GetColor(0x181827FF));
 
@@ -424,17 +419,17 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     BeginBlendMode(BLEND_MULTIPLIED);
     DrawTextureNPatch(ASSET(borderShadow), shadowOverlay, {cardPos, cardTop + topCardHeight, cardWidth, lowerCardBottom}, {0}, 0, WHITE);
     EndBlendMode();
-    float scoreBoxX = cardPos + (cardWidth * 0.1);
-    float scoreBoxY = cardTop + topCardHeight + (lowerCardBottom * 0.05);
-    float scoreBoxWidth = cardWidth * 0.8;
-    float scoreBoxHeight = lowerCardBottom * 0.3;
+    float scoreBoxX = cardPos + (cardWidth * 0.1f);
+    float scoreBoxY = cardTop + topCardHeight + (lowerCardBottom * 0.05f);
+    float scoreBoxWidth = cardWidth * 0.8f;
+    float scoreBoxHeight = lowerCardBottom * 0.3f;
 
     NPatchInfo scoreBoxPatch;
     scoreBoxPatch.source = {0,0,128,128};
-    scoreBoxPatch.top = scoreBoxWidth*0.1;
-    scoreBoxPatch.bottom = scoreBoxWidth*0.1;
-    scoreBoxPatch.left = scoreBoxWidth*0.1;
-    scoreBoxPatch.right = scoreBoxWidth*0.1;
+    scoreBoxPatch.top = scoreBoxWidth*0.1f;
+    scoreBoxPatch.bottom = scoreBoxWidth*0.1f;
+    scoreBoxPatch.left = scoreBoxWidth*0.1f;
+    scoreBoxPatch.right = scoreBoxWidth*0.1f;
     scoreBoxPatch.layout = 0;
     DrawTextureNPatch(ASSET(resultsBox), scoreBoxPatch, {scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight}, {0}, 0, WHITE);
 
