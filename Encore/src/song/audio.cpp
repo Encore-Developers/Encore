@@ -249,6 +249,8 @@ double Encore::AudioManager::GetMusicTimeLength() const {
 
 void Encore::AudioManager::SetAudioStreamVolume(Stems stem, float volume) {
     for (auto &stream : loadedStreams) {
+        if (stem == Stems::Drums1 && (stream.instrument == Stems::Drums1 || stream.instrument == Stems::Drums2 || stream.instrument == Stems::Drums3 || stream.instrument == Stems::Drums4))
+            stream.volume = volume;
         if (stem == stream.instrument)
             stream.volume = volume;
     }
