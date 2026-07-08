@@ -321,34 +321,37 @@ AssetSet initialSet = {
     ASSETPTR(encoreWhiteLogo),
     ASSETPTR(encoreTransLogo),
     ASSETPTR(encorePrideLogo),
-    ASSETPTR(rubik),
     ASSETPTR(favicon),
     ASSETPTR(faviconTex),
-    ASSETPTR(redHatDisplayBlack),
     ASSETPTR(sdfShader),
+    ASSETPTR(redHatDisplayBlack),
+    ASSETPTR(redHatMono),
+    ASSETPTR(redHatDisplayItalic),
+    ASSETPTR(redHatDisplayItalicLarge),
+    ASSETPTR(JetBrainsMono),
     ASSETPTR(josefinSansItalic),
+    ASSETPTR(josefinSansNormal),
     ASSETPTR(josefinSansBold),
     ASSETPTR(josefinSansBoldItalic),
+    ASSETPTR(rubik),
+    ASSETPTR(rubikItalic),
+    ASSETPTR(rubikBoldItalic),
+    ASSETPTR(rubikExtraBold),
+    ASSETPTR(rubikBold),
     ASSETPTR(bgShader),
     ASSETPTR(bgLoadingScreen),
-    ASSETPTR(JetBrainsMono),
-    ASSETPTR(rubikBold),
     ASSETPTR(EntryBackground)
 };
 // Assets that are queued to load at boot but aren't critical for displaying the title
 // screen. Adding assets to this set results in a smaller impact on boot times
 AssetSet mainMenuSet = {
-    ASSETPTR(redHatDisplayItalic),
     ASSETPTR(BaseRingTexture),
-    ASSETPTR(rubikBoldItalic),
-    ASSETPTR(rubikItalic),
     ASSETPTR(discord),
     ASSETPTR(github),
     ASSETPTR(emptyStar),
     ASSETPTR(star),
     ASSETPTR(goldStar),
     ASSETPTR(goldStarUnfilled),
-    ASSETPTR(redHatMono),
     ASSETPTR(Timerbox),
     ASSETPTR(TimerboxOutline),
     ASSETPTR(Scorebox),
@@ -362,7 +365,6 @@ AssetSet mainMenuSet = {
     ASSETPTR(fcindtex1),
     ASSETPTR(fcindtex2),
     ASSETPTR(fcindtex3),
-    ASSETPTR(rubikExtraBold),
     ASSETPTR(AltBackground)
 };
 
