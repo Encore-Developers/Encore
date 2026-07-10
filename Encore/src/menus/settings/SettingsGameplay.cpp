@@ -47,9 +47,9 @@ void SettingsGameplay::Draw() {
     float EntryLeft = ((u.winpct(1.0) - EntryWidth) / 2) + u.LeftSide;
     float EntryTop = u.hpct(0.15f) + (EntryHeight * settings.settingsArray.size());
     Rectangle rect = {EntryLeft, EntryTop, EntryWidth, EntryHeight   };
-
-    ImGui::SetNextWindowPos({rect.x, rect.y}, ImGuiCond_Always);
-    ImGui::SetNextWindowSize({rect.width, rect.height*3});
+    float scale = SDL_GetWindowDisplayScale(GetSDLWindow());
+    ImGui::SetNextWindowPos({rect.x/scale, rect.y/scale}, ImGuiCond_Always);
+    ImGui::SetNextWindowSize({rect.width/scale, rect.height*2.5f/scale});
     if (ImGui::Begin("Song Paths", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
         const std::filesystem::path* toDelete = nullptr;
         for (const auto& path : TheGameSettings.SongPaths) {
