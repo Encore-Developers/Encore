@@ -8,17 +8,17 @@ Details about these files and the format will be noted below.
 
 ## notes.mid
 
-This is a regular CH/RB midi file. Any 5-fret/Classic chart should be in a track named `PART_<inst>`. All `PAD_<inst>` tracks should be formatted for Encore pad gameplay.
+This is a regular CH/RB midi file. Any 5-fret/Classic chart should be in a track named `PART <inst>`. All `PAD <inst>` tracks should be formatted for Encore pad gameplay.
 
 *Note, `<inst>` is a placeholder for the instrument being charted. All acceptable instrument track names at this time are*
 
-| Instrument  | Plastic      | Pad         |
-|-------------|--------------|-------------|
-| Guitar/Lead | `PART_GUITAR` | `PAD_GUITAR` |
-| Bass/Groove | `PART_BASS`  | `PAD_BASS`  |
-| Vocals*     | `PART_VOCALS` | `PAD_VOCALS` |
-| Keys        | `PART_KEYS`  | `PAD_KEYS`  |
-| Drums**     | `PART_DRUMS`  | `PAD_DRUMS`   |  
+| Instrument  | Plastic       | Pad          |
+|-------------|---------------|--------------|
+| Guitar/Lead | `PART GUITAR` | `PAD GUITAR` |
+| Bass/Groove | `PART BASS`   | `PAD BASS`   |
+| Vocals*     | `PART VOCALS` | `PAD VOCALS` |
+| Keys        | `PART KEYS`   | `PAD KEYS`   |
+| Drums**     | `PART DRUMS`  | `PAD DRUMS`  |  
 *Only supports lyrics display at the moment  
 **Only supports 4 lane/Pro drums
 
