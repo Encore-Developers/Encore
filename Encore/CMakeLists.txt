@@ -26,6 +26,11 @@ if (NOT json_FOUND)
   endif()
 endif()
 
+find_library(AVCODEC_LIBRARY avcodec)
+find_library(AVFORMAT_LIBRARY avformat)
+find_library(AVUTIL_LIBRARY avutil)
+find_library(SWSCALE_LIBRARY swscale)
+
 option(JSON_Diagnostics "" ON)
 
 
@@ -200,5 +205,5 @@ set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 #target_include_directories(SDL3-static PUBLIC "include/gameinput")
-target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} ${STEAMAPI} SDL3::SDL3 Tracy::TracyClient)
+target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${DISCORD_GAME_SDK} ${STEAMAPI} SDL3::SDL3 Tracy::TracyClient ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
 

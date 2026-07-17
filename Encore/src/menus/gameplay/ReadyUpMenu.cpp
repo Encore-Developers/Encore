@@ -484,4 +484,6 @@ void ReadyUpMenu::Load() {
             ReadyState[i] = true;
         }
     }
+
+    curSong->LoadAlbumArt();
 }

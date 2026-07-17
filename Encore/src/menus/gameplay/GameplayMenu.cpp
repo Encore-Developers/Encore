@@ -24,6 +24,8 @@
 
 #include <raylib.h>
 
+#include <utility>
+
 #include "gameplay/LyricRenderer.h"
 #include "gameplay/inputCallbacks.h"
 #include "settings/keybinds.h"
@@ -32,7 +34,7 @@
 
 Encore::LyricRenderer TheLyricRenderer;
 
-GameplayMenu::GameplayMenu(Song* song) : curSong(song) {
+GameplayMenu::GameplayMenu(Song* song, std::shared_ptr<VideoBackground> videoBackground) : curSong(song), videoBackground(std::move(videoBackground)) {
     hasOvershell = false;
 }
 
@@ -439,7 +441,12 @@ void GameplayMenu::Draw() {
             streamsPaused = true;
         }
     }
-    GameMenu::DrawAlbumArtBackground();
+    auto video = videoBackground->GetTexture(TheAudioManager.GetMusicTimePlayed() + curSong->videoStartTime);
+    if (video) {
+        DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {0, 0, (float)GetRenderWidth(), (float)GetRenderHeight()}, Vector2(0, 0), 0, WHITE);
+    } else {
+        GameMenu::DrawAlbumArtBackground();
+    }
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
     DrawRectangle(
         0,

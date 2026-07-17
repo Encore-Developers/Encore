@@ -159,12 +159,14 @@ void Encore::Track::DrawSurface() {
                    SHADER_UNIFORM_FLOAT);
 
     ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(highwayTexture);
+    auto accentColor = player.AccentColor;
+    accentColor.a /= 1.2;
     DrawModelEx(ASSET(trackSurface),
                 { 0 },
                 { 0 },
                 0,
                 { 1, 1, 1 },
-                ColorBrightness(player.AccentColor, -0.25));
+                ColorBrightness(accentColor, -0.25));
 
     OverdriveTimer = Lerp(OverdriveTimer,
                           (int)player.engine->stats->overdrive.Active,
@@ -189,7 +191,7 @@ void Encore::Track::DrawSurface() {
                     { 0 },
                     0,
                     { 1, 1, 1 },
-                    ColorAlpha(player.AccentColor, ease(SpotlightTimer)));
+                    ColorAlpha(accentColor, ease(SpotlightTimer)));
     }
 
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
