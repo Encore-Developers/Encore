@@ -711,7 +711,7 @@ void Encore::Track::DrawNotes() {
                 auto slot = slots[i];
                 slot->DrawSustainTail(note->StartSeconds,
                                       note->StartSeconds + note->LengthSeconds,
-                                      GRAY,
+                                      ColorBrightness(player.QueryColorProfile(slot->colorSlot, ColorProfileType), -0.75),
                                       0);
             } else
                 break;

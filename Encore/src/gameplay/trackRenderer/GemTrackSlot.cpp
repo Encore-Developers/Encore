@@ -33,7 +33,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     }
 
     if (note->LengthSeconds > 0) {
-        Color sustainColor = missed ? GRAY : color;
+        Color sustainColor = missed ? ColorBrightness(color, -0.75) : color;
         DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, ColorBrightness(sustainColor, -0.5), 0);
     }
 

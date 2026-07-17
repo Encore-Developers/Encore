@@ -27,7 +27,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     ASSET(noteShader).SetUniform("noteColor", color);
 
     if (note->LengthSeconds > 0) {
-        Color sustainColor = missed ? GRAY : color;
+        Color sustainColor = missed ? ColorBrightness(color, -0.75) : color;
         DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, sustainColor, 0);
     }
     rlDrawRenderBatchActive();
