@@ -24,21 +24,21 @@ namespace Encore {
     public:
         RhythmEngine::EncNote* note;
         RhythmEngine::Judgement judgement = RhythmEngine::GOOD;
-        float offset = 0;
-        NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
-        NoteHitEvent(RhythmEngine::EncNote* note, RhythmEngine::Judgement _judgement, float offset) : note(note), judgement(_judgement), offset(offset) {}
+        double offset = 0;
+        explicit NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
+        NoteHitEvent(RhythmEngine::EncNote* note, const RhythmEngine::Judgement _judgement, const float offset) : note(note), judgement(_judgement), offset(offset) {}
     };
 
     class OverhitEvent : public Event {
     public:
-        int lane;
-        OverhitEvent(int lane) : lane(lane) {}
+        size_t lane;
+        explicit OverhitEvent(const size_t lane) : lane(lane) {}
     };
 
     class MultFlashEvent : public Event {
         public:
         bool comboBreak = false;
-        MultFlashEvent(bool comboBreak) : comboBreak(comboBreak) {};
+        explicit MultFlashEvent(const bool comboBreak) : comboBreak(comboBreak) {};
     };
 
     class TrackNotificationEvent : public Event {
@@ -89,7 +89,7 @@ namespace Encore {
         }
 
 
-        ~EventSource();
+        virtual ~EventSource();
     };
 
     class EventSink {

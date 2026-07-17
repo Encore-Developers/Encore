@@ -1,9 +1,8 @@
+#pragma once
 //
 // Created by maria on 01/06/2025.
 //
 
-#ifndef BASEENGINE_H
-#define BASEENGINE_H
 #include "BaseStats.h"
 #include "RhythmTimer.h"
 #include "../Chart/NoteVector.h"
@@ -30,14 +29,13 @@ namespace Encore::RhythmEngine {
             : chart(_chart), stats(_stats), player(_player) {
         };
 
-        virtual ~BaseEngine() {
-        };
+        ~BaseEngine() override = default;
 
         virtual void SetStatsInputState(ControllerEvent &event) {
         };
-        bool EarlyStrike(double noteStartTime);
-        bool InHitwindow(double noteStartTime);
-        bool PerfectHit(double noteStartTime);
+        bool EarlyStrike(double noteStartTime) const;
+        bool InHitwindow(double noteStartTime) const;
+        bool PerfectHit(double noteStartTime) const;
         void ProcessInput(ControllerEvent &event);
         /*
          * Before hitting the note,
@@ -66,13 +64,13 @@ namespace Encore::RhythmEngine {
         bool IsWithinPracticeSection(double time) const;
         virtual void UpdateOnFrame(double CurrentTime) {};
         void BaseUpdateOnFrame(double CurrentTime);
-        void CheckMissedNotes(int Lane, double SongTime);
-        void HitNote(int lane);
-        void MissNote(int lane);
-        void Overhit(int lane);
+        void CheckMissedNotes(size_t Lane, double SongTime);
+        virtual void HitNote(size_t lane);
+        void MissNote(size_t lane);
+        void Overhit(size_t lane);
         void UpdateStats(int instrument, int difficulty);
         virtual bool UsesNoteMasks() { return false; };
-        void UpdateCalibration(double playerInputOffset);
+        void UpdateCalibration(double playerInputOffset) const;
         int GhostCount;
 
     private:
@@ -82,8 +80,7 @@ namespace Encore::RhythmEngine {
         virtual int RunHitStateCheck(ControllerEvent &event) = 0;
         virtual bool ActivateOverdrive(ControllerEvent &event) = 0;
 
-        bool PauseGame(ControllerEvent &event);
+        bool PauseGame(const ControllerEvent &event);
     };
 }
 
-#endif // BASEENGINE_H

@@ -1,9 +1,8 @@
+#pragma once
 //
 // Created by maria on 01/06/2025.
 //
 
-#ifndef GUITARENGINE_H
-#define GUITARENGINE_H
 #include "../BaseEngine.h"
 #include "GuitarStats.h"
 
@@ -11,7 +10,7 @@ namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
         bool ActivateOverdrive(ControllerEvent &event) override;
         void CheckMissedNotes(double CurrentTime);
-        bool IsInputTooEarly();
+        bool IsInputTooEarly() const;
         /*
          * STRUM PATH: ___________________________________________________________________
          * Check to see if the player overstrummed.
@@ -42,7 +41,7 @@ namespace Encore::RhythmEngine {
         // std::unordered_map<std::string, RhythmTimer> Timers {
         //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
         // };
-        void UpdateOnFrame(double CurrentTime);
+        void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(ControllerEvent &event) override;
         // bool CanNoteBeHit() override;
         void Overhit();
@@ -53,9 +52,7 @@ namespace Encore::RhythmEngine {
             : BaseEngine(_chart, _stats, _player), chart(_chart), stats(_stats), player(_player) {
             Timers = { { "FAS", RhythmTimer(0.125) }, { "SAH", RhythmTimer(goodBackend + goodFrontend) } };
         };
-        ~GuitarEngine() override {};
-        virtual bool UsesNoteMasks() override {return true;};
+        ~GuitarEngine() override = default;
+        bool UsesNoteMasks() override {return true;};
     };
 }
-
-#endif // GUITARENGINE_H

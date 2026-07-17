@@ -133,7 +133,7 @@ namespace Encore::RhythmEngine {
             }
             return Multiplier;
         };
-        float ComboFillCalc() {
+        float ComboFillCalc() const {
             if (Combo == 0) {
                 return 0;
             }

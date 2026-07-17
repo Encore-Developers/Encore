@@ -74,7 +74,7 @@ namespace Encore::RhythmEngine {
          * this DOES NOT CARE about timing or ANYTHING.
          * it simply just gets the next note in said lane
          */
-        bool UpdateCurrentNote(int lane) {
+        bool UpdateCurrentNote(const size_t lane) {
             // if (std::distance(Lanes.at(lane).begin(), CurrentNoteIterators.at(lane))
             //     >= Lanes.at(lane).size()) {
             //     // bounds check
@@ -89,15 +89,15 @@ namespace Encore::RhythmEngine {
         /**
          * sustains
          */
-        void SetCurrentNoteAsHeldNote(int lane) {
+        void SetCurrentNoteAsHeldNote(const size_t lane) {
             HeldNotePointers.at(lane) = &*CurrentNoteIterators.at(lane);
         }
 
-        bool IsHeldNotePresent(int lane) {
+        bool IsHeldNotePresent(const size_t lane) const {
             return HeldNotePointers.at(lane);
         }
 
-        void DropSustain(int lane) {
+        void DropSustain(size_t lane) {
             if (IsHeldNotePresent(lane)) {
                 if (HeldNotePointers.at(lane)->StartSeconds + HeldNotePointers.at(lane)->LengthSeconds - 0.075 > TheSongTime.GetElapsedTime() ) {
                     DroppedSustainPointers.push_back(HeldNotePointers.at(lane));
@@ -109,7 +109,7 @@ namespace Encore::RhythmEngine {
         /**
          * reset notes
          */
-        void Reset(int lane) {
+        void Reset(size_t lane) {
             for (size_t i = 0; i < CurrentNoteIterators.size(); i++) {
                 CurrentNoteIterators.at(i) = Lanes.at(i).begin();
             }
@@ -118,7 +118,7 @@ namespace Encore::RhythmEngine {
             }
         }
 
-        void UpdateSections(int tick) {
+        void UpdateSections(const int tick) {
             if (!sections.empty()) {
                 while (CurrentSection < sections.size() - 1) {
                     if (tick < sections[CurrentSection+1].tickStart) {

@@ -7,8 +7,6 @@
 // Created by maria on 01/06/2025.
 //
 
-#include "gameplay/enctime.h"
-
 bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
 ControllerEvent &event
 ) {
@@ -22,7 +20,7 @@ ControllerEvent &event
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
 ControllerEvent &event
 ) {
-    stats->InputTime = event.timestamp; // todo: REPLACE WITH ACTUAL SONG
+    stats->InputTime = event.timestamp - stats->InputOffset; // todo: REPLACE WITH ACTUAL SONG
     // TIME (IN SECONDS)
     if (event.action == Action::PRESS) {
         switch (event.channel) {
@@ -104,7 +102,7 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
     return CheckNextInput;
 }
 
-void Encore::RhythmEngine::DrumsEngine::HitNote(int lane) {
+void Encore::RhythmEngine::DrumsEngine::HitNote(const size_t lane) {
     if (lane == 0) {
         HighwayBounceEvent event;
         FireEvent(&event);
@@ -113,18 +111,19 @@ void Encore::RhythmEngine::DrumsEngine::HitNote(int lane) {
 }
 
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
+    LastUpdateTime = CurrentTime - stats->InputOffset;
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {
                 EncNote *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
-                if (CurrentNote->StartSeconds <= CurrentTime) {
-                    stats->InputTime = CurrentTime;
+                if (CurrentNote->StartSeconds <= LastUpdateTime) {
+                    stats->InputTime = LastUpdateTime;
                     HitNote(Lane);
                 }
             }
         } else {
-            CheckMissedNotes(Lane, CurrentTime);
+            CheckMissedNotes(Lane, LastUpdateTime);
         }
     }
-    BaseUpdateOnFrame(CurrentTime);
+    BaseUpdateOnFrame(LastUpdateTime);
 }

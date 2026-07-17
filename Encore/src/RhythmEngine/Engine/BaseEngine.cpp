@@ -10,23 +10,22 @@
 #include "users/player.h"
 
 #include <bit>
-#include <memory>
 
 #include "song/audio.h"
 
 bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
     double noteStartTime
-) {
-    if (noteStartTime - goodFrontend > stats->InputTime - stats->InputOffset) {
+) const {
+    if (noteStartTime - goodFrontend > stats->InputTime) {
         return true;
     }
     return false;
 }
 bool Encore::RhythmEngine::BaseEngine::InHitwindow(
     double noteStartTime
-) {
-    if ((noteStartTime - goodFrontend < stats->InputTime - stats->InputOffset)
-        && (noteStartTime + goodBackend > stats->InputTime - stats->InputOffset)) {
+) const {
+    if ((noteStartTime - goodFrontend < stats->InputTime)
+        && (noteStartTime + goodBackend > stats->InputTime)) {
         return true;
         }
     return false;
@@ -34,9 +33,9 @@ bool Encore::RhythmEngine::BaseEngine::InHitwindow(
 
 bool Encore::RhythmEngine::BaseEngine::PerfectHit(
     double noteStartTime
-) {
-    if ((noteStartTime - perfectFrontend < stats->InputTime - stats->InputOffset)
-        && (noteStartTime + perfectBackend > stats->InputTime - stats->InputOffset)) {
+) const {
+    if ((noteStartTime - perfectFrontend < stats->InputTime)
+        && (noteStartTime + perfectBackend > stats->InputTime)) {
         return true;
         }
     return false;
@@ -83,7 +82,7 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     return true;
 }*/
 
-bool Encore::RhythmEngine::BaseEngine::PauseGame(ControllerEvent &event) {
+bool Encore::RhythmEngine::BaseEngine::PauseGame(const ControllerEvent &event) {
     if (event.channel == InputChannel::PAUSE && event.action == Action::PRESS) {
         TogglePause();
         // TODO: make this work depending on player count and probably not in here
@@ -97,13 +96,12 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(ControllerEvent &event) {
 }
 
 std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) const {
-    int NotePoolStart =
+    size_t NotePoolStart =
             std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
-    int NotePoolEnd = NOTE_POOL_SIZE
+    size_t NotePoolEnd = NOTE_POOL_SIZE
         + std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
     NotePoolEnd =
                     chart->at(lane).size() > NotePoolEnd ? NotePoolEnd : chart->at(lane).size();
-    int NotePoolSize = NotePoolEnd - NotePoolStart;
 
     return std::pair<int, int> {NotePoolStart, NotePoolEnd};
 }
@@ -129,11 +127,11 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
     }
 }
 
-void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTime) {
+void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, double SongTime) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;
     EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
-    if (CurrentNote.StartSeconds + goodBackend < SongTime - stats->InputOffset
+    if (CurrentNote.StartSeconds + goodBackend < SongTime
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
         GhostCount = 0;
         MissNote(Lane);
@@ -141,7 +139,7 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(int Lane, double SongTim
     }
 }
 
-void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
+void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
     if (chordSize == 0) chordSize = 1;
 
@@ -154,8 +152,8 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     chart->UpdateSections(startTick);
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).hit++;
-    NoteHitEvent event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
-    double offset = (stats->InputTime - stats->InputOffset) - startTime;
+    auto event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
+    const double offset = (stats->InputTime) - startTime;
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = stats->InputTime;
         if (!chart->sections.empty())
@@ -170,7 +168,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
-    stats->LastHitAccuracy = (stats->InputTime - stats->InputOffset) - startTime;
+    stats->LastHitAccuracy = (stats->InputTime) - startTime;
     stats->HitNote(chordSize, event.judgement);
 
     if (PerfectHit(startTime)) {
@@ -207,7 +205,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(int lane) {
     chart->solos.UpdateEventViaNote(true, startTick);
 }
 
-void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
+void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
     if (stats->Combo >= 10) {
         MultFlashEvent e {true};
         FireEvent(&e);
@@ -223,7 +221,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(int lane) {
     chart->UpdateCurrentNote(lane);
 }
 
-void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
+void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
 
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
@@ -253,7 +251,7 @@ void Encore::RhythmEngine::BaseEngine::Overhit(int lane) {
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
 }
-void Encore::RhythmEngine::BaseEngine::UpdateStats(int instrument, int difficulty) {
+void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int difficulty) {
 
     inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
     stats->StarThresholdValue = stats->Score / chart->BaseScore;
@@ -266,7 +264,7 @@ void Encore::RhythmEngine::BaseEngine::UpdateStats(int instrument, int difficult
     stats->Stars = 5;
 
 }
-void Encore::RhythmEngine::BaseEngine::UpdateCalibration(double playerInputOffset) {
+void Encore::RhythmEngine::BaseEngine::UpdateCalibration(const double playerInputOffset) const {
     // stats->InputOffset is in seconds, our settings values are in ms
     stats->InputOffset = (playerInputOffset + TheGameSettings.VideoOffset)/1000.0; // TODO: this isn't the right way to calculate this
 }

@@ -1,9 +1,8 @@
+#pragma once
 //
 // Created by maria on 13/06/2025.
 //
 
-#ifndef DRUMSENGINE_H
-#define DRUMSENGINE_H
 #include "../BaseEngine.h"
 #include "DrumsStats.h"
 
@@ -20,8 +19,8 @@ namespace Encore::RhythmEngine {
         void TogglePause() override { stats->Paused = !stats->Paused; };
 
     public:
-        void HitNote(int lane);
-        void UpdateOnFrame(double CurrentTime);
+        void HitNote(size_t lane) override;
+        void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(ControllerEvent &event) override;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<DrumsStats> stats;
@@ -34,8 +33,6 @@ namespace Encore::RhythmEngine {
                 };
 
         };
-        ~DrumsEngine() override {};
+        ~DrumsEngine() override = default;
     };
 };
-
-#endif // DRUMSENGINE_H
