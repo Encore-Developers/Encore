@@ -43,6 +43,7 @@ void VideoBackground::OpenFile() {
 }
 
 Texture2D *VideoBackground::GetTexture(double time) {
+    ZoneScoped
     if (!active) {
         return nullptr;
     }
@@ -96,44 +97,58 @@ void VideoBackground::ReadAndDecodeFrame() {
         auto frame = managedFrame.frame;
 
         int recvResult = -1;
-        while (recvResult < 0) {
-            AVPacket* packet = av_packet_alloc();
-            auto result = av_read_frame(fmtCtx, packet);
-            if (result != 0) {
-                Encore::Log::Error("Failed to read packet: {}", result);
-                return;
-            }
-            if (packet->stream_index != streamIndex) {
-                av_packet_free(&packet);
-                continue;
-            }
+        {
+            ZoneScopedN("Send Frame to Decoder")
+            while (recvResult < 0) {
+                AVPacket* packet = av_packet_alloc();
+                auto result = av_read_frame(fmtCtx, packet);
+                if (result != 0) {
+                    Encore::Log::Error("Failed to read packet: {}", result);
+                    return;
+                }
+                if (packet->stream_index != streamIndex) {
+                    av_packet_free(&packet);
+                    continue;
+                }
 
-            // TODO EOF handling
-            auto sendResult = avcodec_send_packet(codecCtx, packet);
-            if (sendResult < 0) {
-                Encore::Log::Error("Failed to send packet: {}", sendResult);
+                // TODO EOF handling
+                auto sendResult = avcodec_send_packet(codecCtx, packet);
+                if (sendResult < 0) {
+                    Encore::Log::Error("Failed to send packet: {}", sendResult);
+                    av_packet_free(&packet);
+                    return;
+                }
                 av_packet_free(&packet);
-                return;
-            }
-            av_packet_free(&packet);
-            recvResult = avcodec_receive_frame_flags(codecCtx, frame, AV_CODEC_RECEIVE_FRAME_FLAG_SYNCHRONOUS);
-            if (recvResult < 0) {
-                Encore::Log::Error("Failed to receive frame: {}", recvResult);
+                {
+                    ZoneScopedN("Receive Frame")
+                    recvResult = avcodec_receive_frame_flags(codecCtx, frame, AV_CODEC_RECEIVE_FRAME_FLAG_SYNCHRONOUS);
+                    if (recvResult < 0) {
+                        Encore::Log::Error("Failed to receive frame: {}", recvResult);
+                    }
+                }
+
             }
         }
-        SwsContext* swsCtx = sws_getContext(frame->width, frame->height, codecCtx->pix_fmt, frame->width, frame->height, AV_PIX_FMT_RGB24, 0, nullptr, nullptr, nullptr);
-        AVFrame* outFrame = av_frame_alloc();
-        auto scaleResult = sws_scale_frame(swsCtx, outFrame, frame);
-        outFrame->pts = frame->pts;
-        outFrame->time_base = fmtCtx->streams[streamIndex]->time_base;
-        decodedTime = PtsToAudioTime(frame->pts, frame->time_base);
-        frameQueueMutex.lock();
-        frameQueue.push_back(std::make_shared<ManagedFrame>(outFrame));
-        frameQueueMutex.unlock();
-        active = true;
+        {
+            ZoneScopedN("Color conversion + scaling")
+            SwsContext* swsCtx = sws_getContext(frame->width, frame->height, codecCtx->pix_fmt, frame->width, frame->height, AV_PIX_FMT_RGB24, 0, nullptr, nullptr, nullptr);
+            AVFrame* outFrame = av_frame_alloc();
+            auto scaleResult = sws_scale_frame(swsCtx, outFrame, frame);
+            outFrame->pts = frame->pts;
+            outFrame->time_base = fmtCtx->streams[streamIndex]->time_base;
+            decodedTime = PtsToAudioTime(frame->pts, frame->time_base);
+            {
+                ZoneScopedN("Enqueue frame")
+                frameQueueMutex.lock();
+                frameQueue.push_back(std::make_shared<ManagedFrame>(outFrame));
+                frameQueueMutex.unlock();
+            }
+            active = true;
 
-        bufferCount -= 1;
-        sws_free_context(&swsCtx);
+            bufferCount -= 1;
+            sws_free_context(&swsCtx);
+        }
+
     }
 }
 double VideoBackground::PtsToAudioTime(int64_t pts, AVRational timeBase) {

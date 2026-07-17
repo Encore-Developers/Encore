@@ -441,7 +441,10 @@ void GameplayMenu::Draw() {
             streamsPaused = true;
         }
     }
-    auto video = videoBackground->GetTexture(TheAudioManager.GetMusicTimePlayed() + curSong->videoStartTime);
+    Texture2D* video = nullptr;
+    if (videoBackground) {
+        video = videoBackground->GetTexture(TheAudioManager.GetMusicTimePlayed() + curSong->videoStartTime);
+    }
     if (video) {
         DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {0, 0, (float)GetRenderWidth(), (float)GetRenderHeight()}, Vector2(0, 0), 0, WHITE);
     } else {
