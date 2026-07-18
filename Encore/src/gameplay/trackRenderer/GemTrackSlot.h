@@ -13,8 +13,10 @@ namespace Encore {
         float animTimer = 1;
         Particle* hitFlare = nullptr;
         Particle* shockwaveParticle;
+        Particle* sparkleParticle = nullptr;
         unsigned int hitFlareId;
         unsigned int shockwaveId;
+        unsigned int sparkleId;
 
         virtual void DrawNote(RhythmEngine::EncNote *note, bool missed);
         virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy);

@@ -2,6 +2,7 @@
 #include "ParticleSystem.h"
 
 #include "assets.h"
+#include "easing/easing.h"
 #include "gameplay/trackRenderer/Track.h"
 
 void Encore::Particle::Update(ParticleSystem* system) {
@@ -20,6 +21,11 @@ void Encore::Particle::Update(ParticleSystem* system) {
         break;
     case MARKIPLIER_FLASH:
         if (time > MARKIPLIER_LIFETIME) {
+            active = false;
+        }
+        break;
+    case SPARKLE:
+        if (time > SPARK_LIFETIME) {
             active = false;
         }
         break;
@@ -81,6 +87,22 @@ void Encore::Particle::Render(ParticleSystem* system) {
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             DrawBillboardRec(system->billboardCamera, ASSET(markiplierFlash), source, position, {size, size}, color);
             EndBlendMode();
+            break;
+        }
+        case SPARKLE: {
+            float lifetime = SPARK_LIFETIME-time;
+            float frac = (lifetime/SPARK_LIFETIME);
+            auto ease = getEasingFunction(EaseInOutQuad);
+            color.a = (frac*frac)*128;
+            Rectangle source = { 0.0f, 0.0f, (float)ASSET(sparkle).width, (float)ASSET(sparkle).height };
+            float size = 6.5f*ease(frac);
+
+            DrawBillboardPro(system->billboardCamera, ASSET(sparkle), source, position, {0,1,0}, {size,size}, {size/2,size/2}, rotation, color);
+            BeginBlendMode(BlendMode::BLEND_ADDITIVE);
+            DrawBillboardPro(system->billboardCamera, ASSET(sparkleGlow), source, position, {0,1,0}, {size,size}, {size/2,size/2}, rotation, {color.r, color.g, color.b, (unsigned char)(color.a/3)});
+            EndBlendMode();
+
+
             break;
         }
         default:

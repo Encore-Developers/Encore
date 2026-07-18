@@ -388,6 +388,8 @@ public:
     NEWTEXASSET(borderShadowLight, "gameplay/ui/shadowLight.png");
     NEWTEXASSET(resultsBox, "gameplay/ui/resultsBox.png");
     NEWTEXASSET(missingAlbumArt, "ui/missing.png");
+    NEWTEXASSET(sparkleGlow, "gameplay/track/particles/sparkle_glow.png");
+    NEWTEXASSET(sparkle, "gameplay/track/particles/sparkle_inner.png");
 
     NEWSAMPLEASSET(missSound, "gameplay/sfx/combobreak.wav");
     NEWSAMPLEASSET(activateSound, "gameplay/sfx/od_activate.mp3");
