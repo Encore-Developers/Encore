@@ -6,7 +6,6 @@
 #define FLARE_LIFETIME 0.18f
 #define SHOCKWAVE_LIFETIME 0.3f
 #define MARKIPLIER_LIFETIME 0.75f
-#define SPARK_LIFETIME 0.35f
 
 #include "raylib.h"
 
@@ -20,7 +19,6 @@ namespace Encore {
         SMOKE,
         SHOCKWAVE,
         KICKFLARE,
-        SPARKLE,
         MARKIPLIER_FLASH
     };
 
@@ -30,7 +28,6 @@ namespace Encore {
         unsigned int id = 0;
         ParticleType type : 31;
         float time = 0.0;
-        float rotation = 0;
         Vector3 position;
         Vector3 velocity;
         Color color;
@@ -47,11 +44,6 @@ namespace Encore {
 
         Particle& col(Color _color) {
             color = _color;
-            return *this;
-        }
-
-        Particle& rot(float _rot) {
-            rotation = _rot;
             return *this;
         }
 

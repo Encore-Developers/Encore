@@ -1,8 +1,6 @@
 
 #include "GemTrackSlot.h"
 
-#include <random>
-
 #include "assets.h"
 #include "easing/easing.h"
 #include "rlgl.h"
@@ -222,9 +220,9 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
     if (track->player.engine->chart->overdrive.RenderNotesAsOD(TheSongTime.GetElapsedTime())) {
         colorg = ColorBrightness(WHITE, -0.3);
     }
-    //if (!perfect) {
-    //    colorg = ColorBrightness(colorg, -0.3);
-    //}
+    if (!perfect) {
+        colorg = ColorBrightness(colorg, -0.7);
+    }
     animTimer = 0;
     overhitTimer = 0;
     Particle part;
@@ -237,25 +235,11 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
 
     Particle shockwave;
     Color color = WHITE;
-    color.a = 96;
+    color.a = 32;
 
     if (perfect) {
         color = GOLD;
-        color.a = 128;
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distr(5, 85);
-
-        Particle sparkle;
-        sparkle.setActive(true)
-        .setType(SPARKLE)
-        .pos({ xPos, 0.125, 0 })
-        .col(GOLD)
-        .rot(distr(gen));
-
-        sparkleParticle = track->particleSystem->SpawnParticle(sparkle);
-        sparkleId = sparkleParticle->id;
+        color.a = 196;
     }
 
     shockwave.setActive(true)
@@ -264,8 +248,6 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
              .col(color);
     shockwaveParticle = track->particleSystem->SpawnParticle(shockwave);
     shockwaveId = shockwaveParticle->id;
-
-
 }
 void Encore::GemTrackSlot::AnimateOverhit() {
     if (parentSlot) {
