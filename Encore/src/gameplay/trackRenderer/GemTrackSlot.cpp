@@ -147,7 +147,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     }
 
     if (animTimer < 1) {
-        animTimer += GetFrameTime() * 4;
+        animTimer += GetFrameTime() * 3.5;
     } else {
         animTimer = 1;
     }
@@ -160,7 +160,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
 
     static auto easeOutBounce = getEasingFunction(EaseOutBounce);
     double ease = easeOutBounce(animTimer);
-    float bounce = (1 - ease) * 0.32;
+    float bounce = (1 - ease) * 0.33;
 
     DrawModelEx(ASSET(smasherFrame),
                 { xPos, 0.025, 0 },
@@ -218,7 +218,10 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
         return;
     }
     if (track->player.engine->chart->overdrive.RenderNotesAsOD(TheSongTime.GetElapsedTime())) {
-        colorg = WHITE;
+        colorg = ColorBrightness(WHITE, -0.3);
+    }
+    if (!perfect) {
+        colorg = ColorBrightness(colorg, -0.7);
     }
     animTimer = 0;
     overhitTimer = 0;

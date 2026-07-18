@@ -32,20 +32,20 @@ void Encore::Particle::Render(ParticleSystem* system) {
         case FLARE: {
             float lifetime = FLARE_LIFETIME-time;
             float frac = (lifetime/FLARE_LIFETIME);
-            color.a = (frac*frac)*255;
+            color.a = (frac*frac)*250;
             Color white = {255, 255, 255, color.a};
             Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
-            float size = 2.4-time*0.5;
+            float size = 2.1-time*0.5;
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
-            DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorLerp(color, white, 0));
-            DrawBillboardRec(system->billboardCamera, ASSET(hitFlareInnerTex), source, position, {size*0.7f, size}, ColorLerp(color, white, 0.9));
+            DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorBrightness(ColorLerp(color, white, 0), -0.1));
+            DrawBillboardRec(system->billboardCamera, ASSET(hitFlareInnerTex), source, position, {size*0.7f, size}, ColorBrightness(ColorLerp(color, white, 0.9), -0.1));
             EndBlendMode();
             break;
         }
         case KICKFLARE: {
             float lifetime = FLARE_LIFETIME-time;
             float frac = (lifetime/FLARE_LIFETIME);
-            color.a = (frac*frac)*255;
+            color.a = (frac*frac)*200;
             Color white = {255, 255, 255, color.a};
             // Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
             float size = 2.4-time*0.5;
