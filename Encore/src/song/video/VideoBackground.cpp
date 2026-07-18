@@ -110,6 +110,7 @@ Texture2D *VideoBackground::GetTexture(double time) {
     return &currentTexture;
 }
 VideoBackground::~VideoBackground() {
+    // TODO free texture and pbo
     if (fmtCtx) {
         avformat_close_input(&fmtCtx);
     }
