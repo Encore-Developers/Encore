@@ -73,7 +73,7 @@ namespace Encore::RhythmEngine {
         bool Bot = false;
         bool Quit = false;
         double Health = 1.0;
-        double Accuracy = -1;
+        double Accuracy = 0;
         double LastHitAccuracy = -1;
         int Stars = 0;
         double StarThresholdValue = 0.0;
