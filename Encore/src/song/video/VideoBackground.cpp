@@ -1,5 +1,6 @@
 #include "VideoBackground.h"
 
+#include "external/glad.h"
 #include "tracy/Tracy.hpp"
 #include "util/enclog.h"
 
@@ -72,10 +73,38 @@ Texture2D *VideoBackground::GetTexture(double time) {
             UnloadTexture(currentTexture);
         }
         currentTexture = LoadTextureFromImage(nextFrame->GetRaylibImage());
+        SetTextureFilter(currentTexture, TEXTURE_FILTER_BILINEAR);
+        if (pbo != 0) {
+            glDeleteBuffers(1, &pbo);
+            pbo = 0;
+        }
+        glGenBuffers(1, &pbo);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, nextFrame->frame->width*nextFrame->frame->height*3, nullptr, GL_STREAM_DRAW);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
         frameQueue.pop_front();
+        if (!frameQueue.empty()) {
+            QueueFrameUpload(frameQueue.front());
+        }
     } else if (time >= PtsToAudioTime(nextFrame->frame->pts, nextFrame->frame->time_base)) {
-        UpdateTexture(currentTexture, nextFrame->frame->data[0]);
-        frameQueue.pop_front();
+        if (uploadState == DONE) {
+            {
+                ZoneScopedN("Upload")
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+                glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+                glBindTexture(GL_TEXTURE_2D, currentTexture.id);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, currentTexture.width, currentTexture.height, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+                glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+            }
+            uploadState = IDLE;
+            //UpdateTexture()
+            frameQueue.pop_front();
+            if (!frameQueue.empty()) {
+                QueueFrameUpload(frameQueue.front());
+            }
+        } else if (uploadState == IDLE) {
+            QueueFrameUpload(nextFrame);
+        }
     }
     frameQueueMutex.unlock();
     return &currentTexture;
@@ -89,6 +118,24 @@ VideoBackground::~VideoBackground() {
     }
 }
 
+void VideoBackground::QueueFrameUpload(const std::shared_ptr<ManagedFrame>& frame) {
+    ZoneScoped
+    if (uploadState != IDLE) return;
+    uploadState = UPLOADING;
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+    {
+        ZoneScopedN("Map Upload Buffer")
+        mappedUploadBuffer = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    }
+    workers.SubmitTask([this, frame](){UploadToPBO(frame);});
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+void VideoBackground::UploadToPBO(const std::shared_ptr<ManagedFrame>& frame) {
+    ZoneScoped
+    memcpy(mappedUploadBuffer, frame->frame->data[0], frame->frame->width*frame->frame->height*3);
+    uploadState = DONE;
+}
 
 void VideoBackground::ReadAndDecodeFrame() {
     ZoneScoped

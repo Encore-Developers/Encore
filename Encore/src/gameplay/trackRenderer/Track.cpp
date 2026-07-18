@@ -160,7 +160,7 @@ void Encore::Track::DrawSurface() {
 
     ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(highwayTexture);
     auto accentColor = player.AccentColor;
-    accentColor.a /= 1.2;
+    //accentColor.a /= 1.2;
     DrawModelEx(ASSET(trackSurface),
                 { 0 },
                 { 0 },

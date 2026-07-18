@@ -40,7 +40,19 @@ public:
     std::atomic_uint64_t bufferCount = 0;
     Texture2D currentTexture;
 
+    unsigned int pbo = 0;
+    void* mappedUploadBuffer = nullptr;
+
+    enum UploadState {
+        IDLE,
+        UPLOADING,
+        DONE
+    };
+
+    std::atomic<UploadState> uploadState = IDLE;
+
     VideoBackground(std::filesystem::path videoPath) : videoPath(std::move(videoPath)) {
+        currentTexture.id = 0;
         currentTexture.width = 0;
         currentTexture.height = 0;
         OpenFile();
@@ -50,6 +62,8 @@ public:
     Texture2D* GetTexture(double time);
 
     ~VideoBackground();
+    void QueueFrameUpload(const std::shared_ptr<ManagedFrame> &frame);
+    void UploadToPBO(const std::shared_ptr<ManagedFrame>& frame);
 
 protected:
     AVFormatContext *fmtCtx = nullptr;
