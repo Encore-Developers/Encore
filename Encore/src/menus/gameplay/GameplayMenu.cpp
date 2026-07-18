@@ -430,10 +430,7 @@ void GameplayMenu::Draw() {
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     if (!songPlaying && tracks.back()->IntroTimer==0) {
-        TheSongTime.Reset();
-        double songEnd = floor(TheAudioManager.GetMusicTimeLength());
         TheAudioManager.UpdateAudioStreamVolumes();
-        TheSongTime.Start(songEnd);
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
         songPlaying = true;
         if (IsPaused()) {
@@ -443,7 +440,7 @@ void GameplayMenu::Draw() {
     }
     Texture2D* video = nullptr;
     if (videoBackground) {
-        video = videoBackground->GetTexture(TheAudioManager.GetMusicTimePlayed() + curSong->videoStartTime);
+        video = videoBackground->GetTexture(TheSongTime.GetElapsedTime() + curSong->videoStartTime);
     }
     if (video) {
         DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {0, 0, (float)GetRenderWidth(), (float)GetRenderHeight()}, Vector2(0, 0), 0, WHITE);
@@ -592,7 +589,10 @@ void GameplayMenu::Load() {
         }
     })
     curSong->LoadAlbumArt();
+    TheSongTime.Reset();
     TheSongTime.SetOffset(TheGameSettings.AudioOffset / 1000.0);
+    double songEnd = floor(TheAudioManager.GetMusicTimeLength());
+    TheSongTime.Start(songEnd);
     dropInDropOut = false;
 
     float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;

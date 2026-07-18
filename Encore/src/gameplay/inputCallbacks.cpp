@@ -70,7 +70,7 @@ void SyncSDLWithAudio() {
         syncSDLTicks = 0;
     }
     syncSDLTicks = SDL_GetTicksNS();
-    syncAudioTime = TheAudioManager.GetMusicTimePlayed();
+    syncAudioTime = TheSongTime.GetElapsedTime();
 }
 
 double SDLTimeToAudioTime(uint64_t ticks) {

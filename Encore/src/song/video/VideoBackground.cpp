@@ -110,7 +110,12 @@ Texture2D *VideoBackground::GetTexture(double time) {
     return &currentTexture;
 }
 VideoBackground::~VideoBackground() {
-    // TODO free texture and pbo
+    if (pbo != 0) {
+        glDeleteBuffers(1, &pbo);
+    }
+    if (currentTexture.id != 0) {
+        UnloadTexture(currentTexture);
+    }
     if (fmtCtx) {
         avformat_close_input(&fmtCtx);
     }
