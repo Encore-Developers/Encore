@@ -15,7 +15,8 @@ namespace Encore::RhythmEngine {
     struct NoteAccuracy {
         double time;
         double offset;
-        explicit NoteAccuracy(const double time, const double offset) : time(time), offset(offset) {}
+        bool miss;
+        explicit NoteAccuracy(const double time, const double offset, const bool miss) : time(time), offset(offset), miss(miss) {}
     };
     enum class StrumState {
         Default = 0,

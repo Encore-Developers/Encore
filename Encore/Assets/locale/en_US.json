@@ -242,6 +242,7 @@
 		"next": "Next Song in Playlist",
 		"indevWarning": "Scoring is disabled in indev builds",
 		"statisticsHeader": "Statistics",
+		"histogramHeader": "Accuracy Histogram",
 		"sectionHeader": "Sections",
 		"infoText": {
 			"fc": "Flawless",

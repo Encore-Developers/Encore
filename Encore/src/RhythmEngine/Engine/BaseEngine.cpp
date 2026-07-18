@@ -146,7 +146,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     double startTime = chart->CurrentNoteIterators.at(lane)->StartSeconds;
     const double offset = (stats->InputTime) - startTime;
 
-    stats->accuracies.emplace_back(startTime, offset);
+    stats->accuracies.emplace_back(startTime, offset, false);
 
     // you REALLY dont need to be firing every few seconds
     // Encore::EncoreLog(
@@ -212,6 +212,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
+    stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->StartSeconds, 0, true);
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).notes++;
     stats->MissNote();
@@ -220,6 +221,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
         false, chart->CurrentNoteIterators.at(lane)->StartTicks
     );
     chart->MissedNotePointers.push_back(&*chart->CurrentNoteIterators.at(lane));
+
     chart->UpdateCurrentNote(lane);
 }
 

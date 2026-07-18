@@ -25,11 +25,13 @@ void resultsMenu::ControllerInputCallback(Encore::ControllerEvent event) {
 
 inline int MAX_LIST_LENGTH = 7;
 
-void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
-    if (event->down == false) return;
+void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent *event) {
+    if (event->down == false)
+        return;
     if (event->key == SDLK_UP) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (!ThePlayerManager.ActivePlayers[i]) continue;
+            if (!ThePlayerManager.ActivePlayers[i])
+                continue;
             switch (resultsState.at(i)) {
             case (GENERAL): {
                 break;
@@ -39,22 +41,27 @@ void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
                 if (topSectList.at(i) < 0)
                     topSectList.at(i) = 0;
             }
-                break;
+            break;
             }
         }
     } else if (event->key == SDLK_DOWN) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (!ThePlayerManager.ActivePlayers[i]) continue;
+            if (!ThePlayerManager.ActivePlayers[i])
+                continue;
             switch (resultsState.at(i)) {
             case (GENERAL): {
                 break;
             }
             case (SECTIONS): {
                 topSectList.at(i)++;
-                if (topSectList.at(i) > ThePlayerManager.GetActivePlayer(i).engine->chart->sections.size() - 1 - MAX_LIST_LENGTH + 2)
-                    topSectList.at(i) = ThePlayerManager.GetActivePlayer(i).engine->chart->sections.size() - 1 - MAX_LIST_LENGTH + 2;
+                if (topSectList.at(i) > ThePlayerManager.GetActivePlayer(i).engine->chart
+                                                        ->sections.size() - 1 -
+                    MAX_LIST_LENGTH + 2)
+                    topSectList.at(i) = ThePlayerManager.GetActivePlayer(i).engine->chart
+                                                        ->sections.size() - 1 -
+                        MAX_LIST_LENGTH + 2;
             }
-                break;
+            break;
             }
         }
     }
@@ -69,21 +76,25 @@ void resultsMenu::Load() {
     if (TheSongList.playlist.size() > 1 && TheSongList.PlaylistMode) {
         l1key = "resultsMenu.next";
     }
-    NEWBUTTONACTION2(buttReg, LANE_1, l1key, {
-        if (_action != Encore::Action::PRESS) return;
-        for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (!ThePlayerManager.ActivePlayers[i]) continue;
-            Player &player = ThePlayerManager.GetActivePlayer(i);
-            player.engine->stats.reset();
-            player.engine->chart.reset();
-            player.engine.reset();
-        }
-        if (TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
-            TheSongList.playlist.pop_front();
-            TheSongList.PlaylistIndex++;
-            TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
-            return;
-        }
+    NEWBUTTONACTION2(buttReg,
+                     LANE_1,
+                     l1key,
+                     {
+                     if (_action != Encore::Action::PRESS) return;
+                     for (int i = 0; i < MAX_PLAYERS; i++) {
+                     if (!ThePlayerManager.ActivePlayers[i]) continue;
+                     Player &player = ThePlayerManager.GetActivePlayer(i);
+                     player.engine->stats.reset();
+                     player.engine->chart.reset();
+                     player.engine.reset();
+                     }
+                     if (TheSongList.PlaylistMode && TheSongList.playlist.size() > 1) {
+                     TheSongList.playlist.pop_front();
+                     TheSongList.PlaylistIndex++;
+                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.
+                         front());
+                     return;
+                     }
 
         if (TheSongList.playlist.size() == 1) {
             TheSongList.PlaylistMode = false;
@@ -99,27 +110,17 @@ void resultsMenu::Load() {
             for (int i = 0; i < MAX_PLAYERS; i++) {
                 if (!ThePlayerManager.ActivePlayers[i]) continue;
                 switch (resultsState.at(i)) {
-                case (GENERAL): {
-                    resultsState.at(i) = SECTIONS;
-                    break;
-                }
-                case (SECTIONS): {
-                    resultsState.at(i) = GENERAL;
-                    break;
-                }
+                case GENERAL: resultsState.at(i) = SECTIONS; break;
+                case SECTIONS: resultsState.at(i) = HISTOGRAM; break;
+                case HISTOGRAM: resultsState.at(i) = GENERAL; break;
                 }
             }
             return;
         }
         switch (resultsState.at(slot)) {
-        case (GENERAL): {
-            resultsState.at(slot) = SECTIONS;
-            break;
-        }
-        case (SECTIONS): {
-            resultsState.at(slot) = GENERAL;
-            break;
-        }
+        case GENERAL: resultsState.at(slot) = SECTIONS; break;
+        case SECTIONS: resultsState.at(slot) = HISTOGRAM; break;
+        case HISTOGRAM: resultsState.at(slot) = GENERAL; break;
         }
     })
     NEWBUTTONACTION2(buttReg, LANE_3, "generic.restart", {
@@ -140,6 +141,7 @@ void resultsMenu::Load() {
       NEWBUTTONACTION2(buttReg, STRUM_UP, "sectionsup", {
         if (_action != Encore::Action::PRESS) return;
         switch (resultsState.at(slot)) {
+        case (HISTOGRAM):
         case (GENERAL): {
             break;
         }
@@ -154,6 +156,7 @@ void resultsMenu::Load() {
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "sectionsdown", {
         if (_action != Encore::Action::PRESS) return;
         switch (resultsState.at(slot)) {
+        case (HISTOGRAM):
         case (GENERAL): {
             break;
         }
@@ -203,7 +206,8 @@ void resultsMenu::Load() {
     // Score: " << ThePlayerManager.BandStats->NoteScore << std::endl;
 
     for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
-        if (!ThePlayerManager.ActivePlayers[playerInt]) continue;
+        if (!ThePlayerManager.ActivePlayers[playerInt])
+            continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
         FinalScore += player.engine->stats->Score;
         //   PlayerGameplayStats *&stats =
@@ -226,8 +230,9 @@ void resultsMenu::Draw() {
     GameMenu::DrawTopOvershell(0.18f);
     GameMenu::DrawTopBarText();
     for (int i = 0; i < MAX_PLAYERS; i++) {
-        if (!ThePlayerManager.ActivePlayers[i]) continue;
-        drawPlayerResults(ThePlayerManager.GetActivePlayer(i),  i);
+        if (!ThePlayerManager.ActivePlayers[i])
+            continue;
+        drawPlayerResults(ThePlayerManager.GetActivePlayer(i), i);
     }
     // Shift track info text to the right of the album cover
     float textX = u.LeftSide + u.winpct(0.01f);
@@ -237,8 +242,12 @@ void resultsMenu::Draw() {
     float SecondaryFontOffset = TitleFontSize * 1.2f;
     Encore::TextDisplay SongTitle;
     auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
-    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
-        {textX, TitleY, TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
+    DrawTexturePro(sourceTex,
+                   { 0, 0, (float)sourceTex.width, (float)sourceTex.height },
+                   { textX, TitleY, TitleFontSize, TitleFontSize },
+                   { 0, 0 },
+                   0,
+                   WHITE
     );
     float TitleSize =
         SongTitle.Pos(textX + SecondaryFontOffset, TitleY)
@@ -248,7 +257,8 @@ void resultsMenu::Draw() {
                  .TextWidth(curSong->title);
 
     Encore::TextDisplay SongArtist;
-    SongArtist.Pos(textX + SecondaryFontOffset + TitleSize + u.hinpct(0.02f), TitleY + u.hinpct(0.008f))
+    SongArtist.Pos(textX + SecondaryFontOffset + TitleSize + u.hinpct(0.02f),
+                   TitleY + u.hinpct(0.008f))
               .Fnt(ASSET(josefinSansBoldItalic))
               .Size(SecondaryFontSize)
               .Col(LIGHTGRAY)
@@ -287,34 +297,16 @@ void resultsMenu::Draw() {
     DrawOvershell();
 }
 
-struct Grade {
-    struct Range {
-        double bottom;
-        double top;
-    };
-    Color color = WHITE;
-    const char *Letter;
-    Range range = {0,0};
-    explicit Grade(const Color _color, const char _letter[1], const Range _range)
-        : color(_color), Letter(_letter), range(_range) {}
 
-    // 0 is lower, 1 is normal, 2 is upper
-    [[nodiscard]] int GetSubdiv(double acc) const {
-        if (acc >= range.top - (range.top - range.bottom) * 0.3) return 2;
-        if (acc < range.bottom + (range.bottom - range.top) * 0.3) return 0;
-        return 1;
-    }
-};
-
-std::array<Grade, 7> Grades {
+std::array<Grade, 7> Grades{
     {
-        Grade(MAGENTA,          "P", {1.00, 1.00}),
-        Grade(GOLD,             "S", {0.96, 1.00}),
-        Grade(GREEN,            "A", {0.90, 0.96}),
-        Grade(SKYBLUE,          "B", {0.85, 0.90}),
-        Grade(ORANGE,           "C", {0.77, 0.85}),
-        Grade(RED,              "D", {0.60, 0.77}),
-        Grade(backgroundColor,  "F", {0.00, 0.60}),
+        Grade(MAGENTA, "P", { 1.00, 1.00 }),
+        Grade(GOLD, "S", { 0.96, 1.00 }),
+        Grade(GREEN, "A", { 0.90, 0.96 }),
+        Grade(SKYBLUE, "B", { 0.85, 0.90 }),
+        Grade(ORANGE, "C", { 0.77, 0.85 }),
+        Grade(RED, "D", { 0.60, 0.77 }),
+        Grade(backgroundColor, "F", { 0.00, 0.60 }),
     }
 };
 
@@ -330,25 +322,283 @@ int GetGrade(double acc, Grade &grade) {
     return 0;
 }
 
+void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats> &stats,
+                                 Grade curGrade,
+                                 Rectangle rect,
+                                 float cardHeight) {
+    std::string grade = curGrade.Letter;
+    switch (curGrade.GetSubdiv(stats->Accuracy / stats->AttemptedNotes)) {
+    case 0:
+        grade += "-";
+        break;
+    case 2:
+        grade += "+";
+        break;
+    default:
+        break;
+    }
+    Units &u = Units::getInstance();
+    float ActualStatsHeight = u.hinpct(0.03f);
+    float statsHeight = rect.y;
+    float statsLeft = rect.x + u.winpct(0.01f);
+    float statsRight = rect.x + rect.width - u.winpct(0.01f);
+
+    Encore::TextDisplay Header;
+    Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
+           Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(cardHeight * 0.05f);
+
+    Encore::TextDisplay LeftStatData;
+    Encore::TextDisplay RightStatData;
+
+    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+
+    Header.lDrawText("resultsMenu.statisticsHeader");
+    RightStatData.Fnt(ASSET(rubik));
+    LeftStatData.lDrawText("resultsMenu.statline.perfect");
+    LeftStatData.pos.y += ActualStatsHeight;
+    LeftStatData.lDrawText("resultsMenu.statline.good");
+    LeftStatData.pos.y += ActualStatsHeight;
+    LeftStatData.lDrawText("resultsMenu.statline.missed");
+    LeftStatData.pos.y += ActualStatsHeight;
+    LeftStatData.lDrawText("resultsMenu.statline.overhit");
+    LeftStatData.pos.y += ActualStatsHeight;
+    LeftStatData.lDrawText("resultsMenu.statline.streak");
+    LeftStatData.pos.y += ActualStatsHeight;
+    LeftStatData.lDrawText("resultsMenu.statline.noteCount");
+    LeftStatData.pos.y += ActualStatsHeight;
+    LeftStatData.lDrawText("resultsMenu.statline.accRating");
+
+    float hitpct = ((float)stats->PerfectHits / (float)stats->AttemptedNotes);
+    float pHitPercent = floorf(hitpct * 100.0f);
+    std::string PerfectDisplay =
+        TextFormat("%01i (%3.0f%%)", stats->PerfectHits, pHitPercent);
+
+    float gpct =
+    ((float)(stats->NotesHit - stats->PerfectHits)
+        / (float)stats->AttemptedNotes);
+    float gHitPercent = floorf(gpct * 100.0f);
+    std::string GoodDisplay = TextFormat(
+        "%01i (%3.0f%%)",
+        stats->NotesHit - stats->PerfectHits,
+        gHitPercent
+    );
+
+    float mpct = ((float)stats->Misses / (float)stats->AttemptedNotes);
+    float mHitPercent = floorf(mpct * 100.0f);
+    std::string MissDisplay =
+        TextFormat("%01i (%3.0f%%)", stats->Misses, mHitPercent);
+
+    std::string NotesDisplay = TextFormat("%01i", stats->AttemptedNotes);
+    std::string AccRatingDisplay = TextFormat("%2.2f",
+                                              (stats->Accuracy / stats->AttemptedNotes) *
+                                              100);
+    // int MaxNotes =
+    //    song.parts[player.Instrument]->charts[player.Difficulty].notes.size();
+    RightStatData.DrawText(PerfectDisplay);
+    RightStatData.pos.y += ActualStatsHeight;
+    RightStatData.DrawText(GoodDisplay);
+    RightStatData.pos.y += ActualStatsHeight;
+    RightStatData.DrawText(MissDisplay);
+    RightStatData.pos.y += ActualStatsHeight;
+    RightStatData.DrawText(TextFormat("%01i", stats->Overhits, stats->AttemptedNotes));
+    RightStatData.pos.y += ActualStatsHeight;
+    RightStatData.DrawText(
+        TextFormat("%01i/%01i", stats->MaxCombo, stats->AttemptedNotes));
+    RightStatData.pos.y += ActualStatsHeight;
+    RightStatData.DrawText(NotesDisplay);
+    RightStatData.pos.y += ActualStatsHeight;
+    RightStatData.DrawText(AccRatingDisplay);
+    RightStatData.pos.x -= RightStatData.TextWidth(AccRatingDisplay) * 1.25f;
+    RightStatData.Fnt(ASSET(redHatDisplayItalic)).Col(curGrade.color).DrawText(grade);
+}
+
+void resultsMenu::DrawSections(Player &player, Rectangle rect, float cardHeight, int playerslot) {
+    Units &u = Units::getInstance();
+    float ActualStatsHeight = u.hinpct(0.03f);
+    float statsHeight = rect.y;
+    float statsLeft = rect.x + u.winpct(0.01f);
+    float statsRight = rect.x + rect.width - u.winpct(0.01f);
+
+    Encore::TextDisplay Header;
+    Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
+           Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(cardHeight * 0.05f);
+
+    Encore::TextDisplay LeftStatData;
+    Encore::TextDisplay RightStatData;
+
+    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+    Header.lDrawText("resultsMenu.sectionHeader");
+    RightStatData.Fnt(ASSET(JetBrainsMono));
+    int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->
+        sections.size()
+        ? player.engine->chart->sections.size()
+        : topSectList.at(playerslot) + MAX_LIST_LENGTH;
+    for (int i = topSectList.at(playerslot); i < bottom; i++) {
+        Section &sect = player.engine->chart->sections.at(i);
+
+        RightStatData.Col(WHITE).pos.x = statsRight;
+        std::string percentage;
+        if (sect.notes == 0) {
+            percentage = "";
+        } else {
+            percentage = std::to_string(
+                int((float(sect.hit) / float(sect.notes)) * 100.0f)) + "%";
+        }
+        RightStatData.DrawText(percentage);
+        float percentWidth = RightStatData.TextWidth("0000%");
+        RightStatData.pos.x -= percentWidth;
+
+        float perfectWidth = RightStatData.TextWidth("000");
+        RightStatData.Col(GOLD).DrawText(std::to_string(sect.perfects));
+        RightStatData.pos.x -= perfectWidth * 1.2;
+
+        float goodWidth = RightStatData.TextWidth("000");
+        RightStatData.Col(LIGHTGRAY).DrawText(std::to_string(sect.hit - sect.perfects));
+        RightStatData.pos.x -= goodWidth * 1.125;
+
+        float overhitWidth = 0;
+        if (sect.hit == sect.notes && sect.overhits > 0) {
+            RightStatData.Col(GRAY).DrawText("+" + std::to_string(sect.overhits));
+            overhitWidth = RightStatData.TextWidth("+" + std::to_string(sect.overhits));
+        } else if (sect.hit != sect.notes) {
+            RightStatData.Col(RED).DrawText("-" + std::to_string(sect.notes - sect.hit));
+            overhitWidth = RightStatData.TextWidth(
+                "-" + std::to_string(sect.notes - sect.hit));
+        }
+        LeftStatData.Bounds(RightStatData.pos.x - (overhitWidth * 1.5) - statsLeft,
+                            ActualStatsHeight);
+        LeftStatData.DrawText(sect.name);
+        LeftStatData.pos.y += u.hinpct(0.03f);
+        RightStatData.pos.y += u.hinpct(0.03f);
+    }
+}
+
+void resultsMenu::DrawHistogram(Player &player, Rectangle rect, float cardHeight, int playerslot) {
+    Units &u = Units::getInstance();
+    float ActualStatsHeight = u.hinpct(0.03f);
+    float statsHeight = rect.y;
+    float statsLeft = rect.x + u.winpct(0.01f);
+    float statsRight = rect.x + rect.width - u.winpct(0.01f);
+
+    Encore::TextDisplay Header;
+    Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
+           Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(cardHeight * 0.05f);
+
+    Encore::TextDisplay LeftStatData;
+    Encore::TextDisplay RightStatData;
+
+    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+    Header.lDrawText("resultsMenu.histogramHeader");
+    RightStatData.Fnt(ASSET(JetBrainsMono));
+    int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->
+        sections.size()
+        ? player.engine->chart->sections.size()
+        : topSectList.at(playerslot) + MAX_LIST_LENGTH;
+
+    float xPad = (rect.width * 0.05f);
+    float yPad = (rect.height * 0.05f);
+    Rectangle HistogramBox {rect.x + xPad, rect.y, rect.width - (xPad*2), (rect.height/2) - (yPad*2)};
+    NPatchInfo scoreBoxPatch;
+    scoreBoxPatch.source = { 0, 0, 128, 128 };
+    scoreBoxPatch.top = HistogramBox.width * 0.1f;
+    scoreBoxPatch.bottom = HistogramBox.width * 0.1f;
+    scoreBoxPatch.left = HistogramBox.width * 0.1f;
+    scoreBoxPatch.right = HistogramBox.width * 0.1f;
+    scoreBoxPatch.layout = 0;
+    BeginBlendMode(BLEND_MULTIPLIED);
+    DrawRectangleRec(HistogramBox, LIGHTGRAY);
+    EndBlendMode();
+
+    float xOffset = HistogramBox.width / player.engine->stats->accuracies.size();
+    float boxHalf = HistogramBox.height/2;
+    float middle = HistogramBox.y+boxHalf;
+    Vector2 pos {HistogramBox.x, middle};
+    // augh i gotta figure out how to make this time dependant instead of.
+    // you know. count dependant
+    float songLength = curSong->end;
+    float perfectNormalized = (perfectBackend/goodBackend)*1;
+
+    for (auto& solo : player.engine->chart->solos) {
+        float leftPos = HistogramBox.x + (HistogramBox.width * (solo.StartSec / songLength));
+        float rightPos = HistogramBox.width * (solo.EndSec / songLength);
+        Rectangle solorec {leftPos, HistogramBox.y, rightPos, HistogramBox.height};
+
+        DrawRectangleRec(solorec, ColorAlpha(SKYBLUE, 0.5));
+
+        BeginBlendMode(BLEND_MULTIPLIED);
+        DrawTextureNPatch(ASSET(borderShadow),
+                          scoreBoxPatch,
+                          solorec,
+                          { 0 },
+                          0,
+                          WHITE);
+        EndBlendMode();
+    }
+
+    for (auto &sect : player.engine->chart->sections) {
+        float leftPos = HistogramBox.x + (HistogramBox.width * (sect.start / songLength));
+        float fontSize = cardHeight * 0.04;
+        Vector2 top {leftPos, HistogramBox.y};
+        Vector2 bot {leftPos, HistogramBox.y+HistogramBox.height + (fontSize/2)};
+        DrawLineEx(top, bot, 1.5, ColorAlpha(LIGHTGRAY, 0.5));
+        DrawTextPro(ASSET(rubik), sect.name.c_str(), bot, {0,fontSize/2}, 90, fontSize, 0, LIGHTGRAY);
+    }
+    DrawRectangle(pos.x, middle - (boxHalf * perfectNormalized), HistogramBox.width, (boxHalf * perfectNormalized) * 2, ColorAlpha(GOLD, 0.25f));
+    DrawLineEx(pos, {pos.x + HistogramBox.width, middle}, 2, LIGHTGRAY);
+    // I apologise.
+
+    for (auto& acc : player.engine->stats->accuracies) {
+        if (acc.miss) {
+            float leftPos = HistogramBox.x + (HistogramBox.width * (acc.time / songLength));
+            Vector2 top {leftPos, HistogramBox.y};
+            Vector2 bot {leftPos, HistogramBox.y+HistogramBox.height};
+            DrawLineEx(top, bot, 3, ColorAlpha(RED, 0.25));
+        }
+    }
+    for (auto& acc : player.engine->stats->accuracies) {
+        if (acc.miss) continue;
+        float normalized = acc.offset/goodBackend;
+        float leftPos = HistogramBox.x + (HistogramBox.width * (acc.time / songLength));
+        pos.y = middle - (boxHalf * normalized);
+        pos.x = leftPos;
+        Color accColor = LIGHTGRAY;
+        if (acc.offset < perfectBackend && acc.offset > -perfectBackend) accColor = GOLD;
+        DrawRectangle(pos.x - 1, pos.y - 1, 2, 2, accColor);
+        // pos.x += xOffset;
+    }
+
+    BeginBlendMode(BLEND_MULTIPLIED);
+    DrawTextureNPatch(ASSET(borderShadow),
+                      scoreBoxPatch,
+                      HistogramBox,
+                      { 0 },
+                      0,
+                      WHITE);
+    EndBlendMode();
+}
+
 void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
-    auto& stats = player.engine->stats;
+    auto &stats = player.engine->stats;
     float cardPos = GetOvershellSlotLeft(playerslot);
     float cardWidth = GetOvershellSlotWidth();
-    float cardHalfWidth = cardWidth/2;
+    float cardHalfWidth = cardWidth / 2;
     float cardTop = u.hpct(0.18f);
-    float topCardHeight = (float(assets.GradeBackgrounds[0]->height) / float(assets.GradeBackgrounds[0]->width)) * cardWidth;
+    float topCardHeight = (float(assets.GradeBackgrounds[0]->height) / float(
+        assets.GradeBackgrounds[0]->width)) * cardWidth;
     auto bgToDraw = ASSETPTR(cheese);
 
     float scorePos = (cardPos + cardHalfWidth);
     int Percent =
-       floorf(((float)stats->NotesHit / (float)stats->AttemptedNotes) * 100.0f);
+        floorf(((float)stats->NotesHit / (float)stats->AttemptedNotes) * 100.0f);
     double accuracy = stats->Accuracy / stats->AttemptedNotes;
 
-    std::string Modifier;
     std::string ResultsShit = "F";
-    Grade curGrade(WHITE, "", {0,0});
+    Grade curGrade(WHITE, "", { 0, 0 });
     if (!stats->Bot) {
         bgToDraw = assets.GradeBackgrounds[GetGrade(accuracy, curGrade)];
         ResultsShit = curGrade.Letter;
@@ -356,15 +606,10 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
         curGrade = Grades.back();
     }
 
-    switch (curGrade.GetSubdiv(accuracy)) {
-        case 0: Modifier = "-"; break;
-        case 2: Modifier = "+"; break;
-        default: break;
-    }
+    bgToDraw->Draw({ cardPos, cardTop, cardWidth, topCardHeight }, WHITE);
 
-    bgToDraw->Draw({cardPos, cardTop, cardWidth, topCardHeight}, WHITE);
-
-    bool rendAsFC = stats->AttemptedNotes == stats->NotesHit && !stats->Bot && stats->Overhits == 0;
+    bool rendAsFC = stats->AttemptedNotes == stats->NotesHit && !stats->Bot && stats->
+        Overhits == 0;
 
     float PercentSize = topCardHeight * 0.4;
     float InstIconSize = topCardHeight * 0.25;
@@ -375,12 +620,18 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
     std::string percentText = std::to_string(Percent) + "%";
     std::string accText = std::to_string(accuracy * 100) + "%";
-    int inst = player.Instrument < PlasticDrums ? player.Instrument : player.Instrument - PlasticDrums;
-    assets.InstIcons[inst]->Draw({cardPos + (cardWidth * 0.02f), cursor + (topCardHeight * 0.015f), InstIconSize, InstIconSize}, WHITE);
+    int inst = player.Instrument < PlasticDrums
+        ? player.Instrument
+        : player.Instrument - PlasticDrums;
+    assets.InstIcons[inst]->Draw({ cardPos + (cardWidth * 0.02f),
+                                   cursor + (topCardHeight * 0.015f), InstIconSize,
+                                   InstIconSize },
+                                 WHITE);
 
     float asda = InstIconSize / 4;
     Encore::TextDisplay a;
-    a.Pos(left + InstIconSize, cursor + asda + (topCardHeight * 0.0175f)).Fnt(ASSET(rubik)).Size(asda * 2).lDrawText(songPartsList[player.Instrument]);
+    a.Pos(left + InstIconSize, cursor + asda + (topCardHeight * 0.0175f)).
+      Fnt(ASSET(rubik)).Size(asda * 2).lDrawText(songPartsList[player.Instrument]);
 
     cursor += InstIconSize * 0.85;
     Encore::TextDisplay notesHitPercent;
@@ -397,27 +648,44 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
                    .DrawText(diffString);
     cursor += DiffSize;
 
-    DrawRectangleGradientH(cardPos, cursor, cardWidth, BannerSize, ColorAlpha(player.AccentColor, 0.25), ColorAlpha(player.AccentColor, 0));
+    DrawRectangleGradientH(cardPos,
+                           cursor,
+                           cardWidth,
+                           BannerSize,
+                           ColorAlpha(player.AccentColor, 0.25),
+                           ColorAlpha(player.AccentColor, 0));
     float totalSpace = u.hpct(1.0f) - u.hpct(0.36f);
     float lowerCardBottom = totalSpace - topCardHeight;
-    DrawRectangleGradientV(cardPos, cardTop + topCardHeight, cardWidth, lowerCardBottom, GetColor(0x202033FF), GetColor(0x181827FF));
+    DrawRectangleGradientV(cardPos,
+                           cardTop + topCardHeight,
+                           cardWidth,
+                           lowerCardBottom,
+                           GetColor(0x202033FF),
+                           GetColor(0x181827FF));
 
     float gsodif = BannerSize / 6;
     cursor += gsodif;
-    if (stats->Bot) ResultsShit = "autoplay";
+    if (stats->Bot)
+        ResultsShit = "autoplay";
     Encore::TextDisplay infoDisplay;
-    infoDisplay.Pos(left, cursor).Fnt(ASSET(rubik)).Size(gsodif * 4).lDrawText("resultsMenu.splash." + ResultsShit);
+    infoDisplay.Pos(left, cursor).Fnt(ASSET(rubik)).Size(gsodif * 4).lDrawText(
+        "resultsMenu.splash." + ResultsShit);
 
     NPatchInfo shadowOverlay;
-    shadowOverlay.source = {0,0,128,128};
-    shadowOverlay.top = cardWidth*0.1;
-    shadowOverlay.bottom = cardWidth*0.1;
-    shadowOverlay.left = cardWidth*0.1;
-    shadowOverlay.right = cardWidth*0.1;
+    shadowOverlay.source = { 0, 0, 128, 128 };
+    shadowOverlay.top = cardWidth * 0.1;
+    shadowOverlay.bottom = cardWidth * 0.1;
+    shadowOverlay.left = cardWidth * 0.1;
+    shadowOverlay.right = cardWidth * 0.1;
     shadowOverlay.layout = 0;
 
     BeginBlendMode(BLEND_MULTIPLIED);
-    DrawTextureNPatch(ASSET(borderShadow), shadowOverlay, {cardPos, cardTop + topCardHeight, cardWidth, lowerCardBottom}, {0}, 0, WHITE);
+    DrawTextureNPatch(ASSET(borderShadow),
+                      shadowOverlay,
+                      { cardPos, cardTop + topCardHeight, cardWidth, lowerCardBottom },
+                      { 0 },
+                      0,
+                      WHITE);
     EndBlendMode();
     float scoreBoxX = cardPos + (cardWidth * 0.1f);
     float scoreBoxY = cardTop + topCardHeight + (lowerCardBottom * 0.05f);
@@ -425,27 +693,32 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float scoreBoxHeight = lowerCardBottom * 0.3f;
 
     NPatchInfo scoreBoxPatch;
-    scoreBoxPatch.source = {0,0,128,128};
-    scoreBoxPatch.top = scoreBoxWidth*0.1f;
-    scoreBoxPatch.bottom = scoreBoxWidth*0.1f;
-    scoreBoxPatch.left = scoreBoxWidth*0.1f;
-    scoreBoxPatch.right = scoreBoxWidth*0.1f;
+    scoreBoxPatch.source = { 0, 0, 128, 128 };
+    scoreBoxPatch.top = scoreBoxWidth * 0.1f;
+    scoreBoxPatch.bottom = scoreBoxWidth * 0.1f;
+    scoreBoxPatch.left = scoreBoxWidth * 0.1f;
+    scoreBoxPatch.right = scoreBoxWidth * 0.1f;
     scoreBoxPatch.layout = 0;
-    DrawTextureNPatch(ASSET(resultsBox), scoreBoxPatch, {scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight}, {0}, 0, WHITE);
+    DrawTextureNPatch(ASSET(resultsBox),
+                      scoreBoxPatch,
+                      { scoreBoxX, scoreBoxY, scoreBoxWidth, scoreBoxHeight },
+                      { 0 },
+                      0,
+                      WHITE);
 
     std::string scoreString = GameMenu::scoreCommaFormatter(stats->Score);
 
     Encore::Text::DrawText(
         assets.redHatMono,
         scoreString,
-        { scorePos, scoreBoxY + (scoreBoxHeight * 0.55f)},
+        { scorePos, scoreBoxY + (scoreBoxHeight * 0.55f) },
         scoreBoxHeight * 0.4,
         GetColor(0x00adffFF),
         CENTER
     );
 
     renderPlayerStars(
-    player,
+        player,
         (cardPos + cardHalfWidth),
         scoreBoxY + (scoreBoxHeight * 0.1f),
         scoreBoxHeight * 0.35,
@@ -453,7 +726,9 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     );
 
     Encore::TextDisplay Header;
-    Header.Pos(cardPos + cardHalfWidth, scoreBoxY + (scoreBoxHeight * 1.125)).Align(CENTER).Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(lowerCardBottom * 0.05);
+    Header.Pos(cardPos + cardHalfWidth, scoreBoxY + (scoreBoxHeight * 1.125)).
+           Align(CENTER).Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(
+               lowerCardBottom * 0.05);
 
     float statsHeight = scoreBoxY + (scoreBoxHeight * 1.25) + (lowerCardBottom * 0.05);
     float ActualStatsHeight = u.hinpct(0.03f);
@@ -464,114 +739,35 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
     LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
     RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
-    if (resultsState.at(playerslot) == GENERAL) {
-        Header.lDrawText("resultsMenu.statisticsHeader");
-        RightStatData.Fnt(ASSET(rubik));
-        LeftStatData.lDrawText("resultsMenu.statline.perfect");
-        LeftStatData.pos.y += ActualStatsHeight;
-        LeftStatData.lDrawText("resultsMenu.statline.good");
-        LeftStatData.pos.y += ActualStatsHeight;
-        LeftStatData.lDrawText("resultsMenu.statline.missed");
-        LeftStatData.pos.y += ActualStatsHeight;
-        LeftStatData.lDrawText("resultsMenu.statline.overhit");
-        LeftStatData.pos.y += ActualStatsHeight;
-        LeftStatData.lDrawText("resultsMenu.statline.streak");
-        LeftStatData.pos.y += ActualStatsHeight;
-        LeftStatData.lDrawText("resultsMenu.statline.noteCount");
-        LeftStatData.pos.y += ActualStatsHeight;
-        LeftStatData.lDrawText("resultsMenu.statline.accRating");
 
-        float hitpct = ((float)stats->PerfectHits / (float)stats->AttemptedNotes);
-        float pHitPercent = floorf(hitpct * 100.0f);
-        std::string PerfectDisplay =
-            TextFormat("%01i (%3.0f%%)", stats->PerfectHits, pHitPercent);
-
-        float gpct =
-            ((float)(stats->NotesHit - stats->PerfectHits)
-             / (float)stats->AttemptedNotes);
-        float gHitPercent = floorf(gpct * 100.0f);
-        std::string GoodDisplay = TextFormat(
-            "%01i (%3.0f%%)", stats->NotesHit - stats->PerfectHits, gHitPercent
-        );
-
-        float mpct = ((float)stats->Misses / (float)stats->AttemptedNotes);
-        float mHitPercent = floorf(mpct * 100.0f);
-        std::string MissDisplay =
-            TextFormat("%01i (%3.0f%%)", stats->Misses, mHitPercent);
-
-        std::string NotesDisplay = TextFormat("%01i", stats->AttemptedNotes);
-        std::string AccRatingDisplay = TextFormat("%2.2f", accuracy * 100);
-        // int MaxNotes =
-        //    song.parts[player.Instrument]->charts[player.Difficulty].notes.size();
-        RightStatData.DrawText(PerfectDisplay);
-        RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(GoodDisplay);
-        RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(MissDisplay);
-        RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(TextFormat("%01i", stats->Overhits, stats->AttemptedNotes));
-        RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(TextFormat("%01i/%01i", stats->MaxCombo, stats->AttemptedNotes));
-        RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(NotesDisplay);
-        RightStatData.pos.y += ActualStatsHeight;
-        RightStatData.DrawText(AccRatingDisplay);
-        RightStatData.pos.x -= RightStatData.TextWidth(AccRatingDisplay) * 1.25f;
-        RightStatData.Fnt(ASSET(redHatDisplayItalic)).Col(curGrade.color).DrawText(curGrade.Letter + Modifier);
-    } else if (resultsState.at(playerslot) == SECTIONS) {
-        Header.lDrawText("resultsMenu.sectionHeader");
-        RightStatData.Fnt(ASSET(JetBrainsMono));
-        int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->sections.size()
-                            ? player.engine->chart->sections.size()
-                            : topSectList.at(playerslot) + MAX_LIST_LENGTH ;
-        for (int i = topSectList.at(playerslot); i < bottom; i++) {
-            Section &sect = player.engine->chart->sections.at(i);
-
-            RightStatData.Col(WHITE).pos.x = statsRight;
-            std::string percentage;
-            if (sect.notes == 0) {
-                percentage = "";
-            } else {
-                percentage = std::to_string(int((float(sect.hit) / float(sect.notes)) * 100.0f)) + "%";
-            }
-            RightStatData.DrawText(percentage);
-            float percentWidth = RightStatData.TextWidth("0000%");
-            RightStatData.pos.x -= percentWidth;
-
-            float perfectWidth = RightStatData.TextWidth("000");
-            RightStatData.Col(GOLD).DrawText(std::to_string(sect.perfects));
-            RightStatData.pos.x -= perfectWidth * 1.2;
-
-            float goodWidth = RightStatData.TextWidth("000");
-            RightStatData.Col(LIGHTGRAY).DrawText(std::to_string(sect.hit - sect.perfects));
-            RightStatData.pos.x -= goodWidth * 1.125;
-
-            float overhitWidth = 0;
-            if (sect.hit == sect.notes && sect.overhits > 0) {
-                RightStatData.Col(GRAY).DrawText("+" + std::to_string(sect.overhits));
-                overhitWidth = RightStatData.TextWidth("+" + std::to_string(sect.overhits));
-            } else if (sect.hit != sect.notes) {
-                RightStatData.Col(RED).DrawText("-" + std::to_string(sect.notes-sect.hit));
-                overhitWidth = RightStatData.TextWidth("-" + std::to_string(sect.notes-sect.hit));
-            }
-            LeftStatData.Bounds(RightStatData.pos.x - (overhitWidth * 1.5) - statsLeft, ActualStatsHeight );
-            LeftStatData.DrawText(sect.name);
-            LeftStatData.pos.y += u.hinpct(0.03f);
-            RightStatData.pos.y += u.hinpct(0.03f);
-        }
+    Rectangle infoRect = { cardPos, statsHeight, cardWidth, lowerCardBottom - (scoreBoxHeight * 1.25f) };
+    switch (resultsState.at(playerslot)) {
+    case GENERAL:
+        DrawStatistics(stats, curGrade, infoRect, lowerCardBottom);
+        break;
+    case SECTIONS:
+        DrawSections(player, infoRect, lowerCardBottom, playerslot);
+        break;
+    case HISTOGRAM:
+        DrawHistogram(player, infoRect, lowerCardBottom, playerslot);
+        break;
     }
 };
 
 
 void resultsMenu::renderPlayerStars(
-    Player &player, float xPos, float yPos, float scale, bool left
+    Player &player,
+    float xPos,
+    float yPos,
+    float scale,
+    bool left
 ) {
     auto &stats = player.engine->stats;
     auto &engine = player.engine;
 
     int inst = engine->inst >= PlasticDrums ? engine->inst - 5 : engine->inst;
     stats->StarThresholdValue = stats->Score / engine->chart->BaseScore;
-    for (int i = 0; i < 6 ; i++) {
+    for (int i = 0; i < 6; i++) {
         if (stats->StarThresholdValue > STAR_THRESHOLDS[inst][i]) {
             stats->Stars = i;
         }
@@ -589,7 +785,8 @@ void resultsMenu::renderPlayerStars(
         );
     }
     for (int i = 0; i < 5; i++) {
-        if (i > stats->Stars) break;
+        if (i > stats->Stars)
+            break;
         DrawTexturePro(
             stats->Stars >= 5 ? GoldStar : Star,
             { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
