@@ -177,7 +177,10 @@ public:
     std::string jsonHash = "";
     int hopoThreshold = -1;
     std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> LoadAudioINI();
+    /// Returns an empty string if not found
+    std::filesystem::path GetVideoPath();
     float previewStartTime = 0.0f;
+    double videoStartTime = 0.0;
 
     std::string GetPlaylistPath() const {
         return midiPath.parent_path().parent_path().filename().string();

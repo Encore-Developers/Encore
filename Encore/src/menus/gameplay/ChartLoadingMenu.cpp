@@ -114,6 +114,10 @@ void ChartLoadingMenu::Load() {
     TheAssets.loadingPool.SubmitTask([this]() {
         TheAudioManager.unloadStreams();
         TheAudioManager.loadStreams(curSong->LoadAudioINI());
+        auto videoPath = curSong->GetVideoPath();
+        if (!videoPath.empty()) {
+            videoBackground = std::make_shared<VideoBackground>(videoPath);
+        }
         LoadCharts();
     });
     // std::thread ChartLoader(LoadCharts);
@@ -161,7 +165,7 @@ void ChartLoadingMenu::Draw() {
         StartLoading = true;
         switch (gamemode) {
         case GAMEPLAY:
-            TheMenuManager.CreateAndSwitchMenu<GameplayMenu>(curSong);
+            TheMenuManager.CreateAndSwitchMenu<GameplayMenu>(curSong, videoBackground);
             break;
         case PRACTICE:
             TheMenuManager.CreateAndSwitchMenu<PracticeMenu>(curSong);

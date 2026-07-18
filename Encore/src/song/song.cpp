@@ -66,6 +66,8 @@ void Song::PullInfoFromINI(INIReader &ini) {
 
     previewStartTime = ini.GetInteger("song", "preview_start_time", 0);
 
+    videoStartTime = ini.GetInteger("song", "video_start_time", 0) / 1000.0f;
+
     Difficulties[PlasticGuitar] = ini.GetInteger("song", "diff_guitar", -1);
 
     Difficulties[PlasticBass] = ini.GetInteger("song", "diff_bass", -1);
@@ -119,4 +121,14 @@ std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> Song:
         }
     }
     return stemsPath;
+}
+std::filesystem::path Song::GetVideoPath() {
+    for (const auto& entry : std::filesystem::directory_iterator(songDir)) {
+        if (entry.is_regular_file()) {
+            if (entry.path().stem() == "video") {
+                return entry.path();
+            }
+        }
+    }
+    return "";
 }
