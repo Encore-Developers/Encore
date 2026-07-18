@@ -142,9 +142,12 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, double Song
 void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
     if (chordSize == 0) chordSize = 1;
-
     int startTick = chart->CurrentNoteIterators.at(lane)->StartTicks;
     double startTime = chart->CurrentNoteIterators.at(lane)->StartSeconds;
+    const double offset = (stats->InputTime) - startTime;
+
+    stats->accuracies.emplace_back(startTime, offset);
+
     // you REALLY dont need to be firing every few seconds
     // Encore::EncoreLog(
     //        LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
@@ -153,7 +156,6 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).hit++;
     auto event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
-    const double offset = (stats->InputTime) - startTime;
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = stats->InputTime;
         if (!chart->sections.empty())

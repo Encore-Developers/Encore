@@ -12,7 +12,11 @@
 #include "../scoring.h"
 
 namespace Encore::RhythmEngine {
-
+    struct NoteAccuracy {
+        double time;
+        double offset;
+        explicit NoteAccuracy(const double time, const double offset) : time(time), offset(offset) {}
+    };
     enum class StrumState {
         Default = 0,
         UpStrum = 1,
@@ -74,6 +78,7 @@ namespace Encore::RhythmEngine {
         double StarThresholdValue = 0.0;
         StrumState strumState = StrumState::Default;
         Overdrive overdrive;
+        std::vector<NoteAccuracy> accuracies;
         void HitNote(int chordSize, int perfect) {
             if (perfect == -1) {
                 Combo = 0;
