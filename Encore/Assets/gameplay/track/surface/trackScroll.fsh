@@ -23,9 +23,9 @@ void main()
     }
     float mult = mix(1, 0.55, strikelineGlow);
     baseColor.a *= smoothstep(trackLength, trackLength-fadeSize, fragPosition.z);
-    baseColor.r *= pow(mult, 1.5);
-    baseColor.g *= pow(mult, 1.5);
-    baseColor.b *= pow(mult, 1.5);
+    baseColor.r *= pow(mult, 1.25);
+    baseColor.g *= pow(mult, 1.25);
+    baseColor.b *= pow(mult, 1.25);
     baseColor.a *= mult;
     finalColor = baseColor;
 }

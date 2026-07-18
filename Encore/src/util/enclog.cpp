@@ -33,9 +33,9 @@ bool Encore::Log::InitializeLogger(std::string prefsPath) {
 
         // const auto now = ;
         prefsPath += "logs/";
-        auto zonedTime = std::chrono::zoned_time(std::chrono::current_zone(), std::chrono::system_clock::now());
-        const auto date = std::chrono::floor<std::chrono::days>(zonedTime.get_local_time());
-        const auto nowSec = std::chrono::floor<std::chrono::seconds>(zonedTime.get_local_time().time_since_epoch());
+        auto zonedTime = std::chrono::system_clock::now(); // std::chrono::zoned_time(std::chrono::current_zone(), );
+        const auto date = std::chrono::floor<std::chrono::days>(zonedTime);
+        const auto nowSec = std::chrono::floor<std::chrono::seconds>(zonedTime.time_since_epoch());
         const auto time = std::chrono::hh_mm_ss(nowSec);
 
         long long hour = time.hours().count() % 24;

@@ -21,11 +21,12 @@
 
 // #include "libstud-uuid/uuid/uuid.hxx"
 
+/*
 class Band {
     /**
      * @brief Do Not Use. Outdated.
      * Already achieved with Band Gameplay Stats and the Band shit
-     */
+     *
     std::filesystem::path ScoreFile;
     bool SoloGameplay = true; // to be true until multiple players
 };
@@ -34,7 +35,7 @@ enum NoteHitType {
     STANDARD, // strums/ptaps
     ALTERNATIVE // hopos/ctaps/lifts
 };
-
+*/
 // Temporary stopgap to let people do things on this old version
 enum ControllerBindingType : uint8_t {
     GUITAR = 0,
