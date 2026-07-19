@@ -35,7 +35,7 @@ jobs:
     - name: Move Assets/Songs folders and bass.dll x64
       working-directory: ${{github.workspace}}/build_x64/Encore
       run: move Assets Release/Assets ; move Songs Release/Songs ; move bass.dll Release/bass.dll ; move bassopus.dll Release/bassopus.dll ; move discord_game_sdk.dll Release/discord_game_sdk.dll ; move avformat-62.dll Release/avformat-62.dll ; move avcodec-62.dll Release/avcodec-62.dll
-         ; move avutil-60.dll Release/avutil-60.dll ; move swscale-9.dll Release/swscale-9.dll
+         ; move avutil-60.dll Release/avutil-60.dll ; move swscale-9.dll Release/swscale-9.dll ; move swresample-6.dll Release/swresample-6.dll
         
     - uses: actions/upload-artifact@v4
       with:
