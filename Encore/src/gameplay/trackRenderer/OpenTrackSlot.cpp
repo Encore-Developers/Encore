@@ -65,6 +65,11 @@ void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime, Co
 }
 
 void Encore::OpenTrackSlot::DrawSmasher(bool held) {
+    if (animTimer < 1) {
+        animTimer += GetFrameTime() * 3.5;
+    } else {
+        animTimer = 1;
+    }
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)
             continue;
@@ -82,7 +87,35 @@ void Encore::OpenTrackSlot::DrawSmasher(bool held) {
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
                             note->StartSeconds + note->LengthSeconds, color, track->player.engine->whammy);
+            if (hitFlare) {
+                if (hitFlare->id == hitFlareId) {
+                    hitFlare->time = (std::sin(TheSongTime.GetElapsedTime() * 100) + 1) *
+                        0.5 * FLARE_LIFETIME * 0.1 + 0.02;
+                    //hitFlare->time = 0;
+                }
+            }
             break;
         }
     }
+}
+
+void Encore::OpenTrackSlot::AnimateHit(bool perfect, Color color) {
+    float size = 2.4f;
+    if (!perfect) {
+        color = ColorBrightness(color, -0.7);
+    } else {
+        color = ColorBrightness(GOLD, -0.3);
+        size = 2.9f;
+    }
+    animTimer = 0;
+    overhitTimer = 0;
+
+    Particle part;
+    part.setActive(true)
+        .setType(OPENFLARE)
+        .pos(xPos, 0.15, 0)
+        .size(size)
+        .col(color);
+    hitFlare = track->particleSystem->SpawnParticle(part);
+    hitFlareId = hitFlare->id;
 }

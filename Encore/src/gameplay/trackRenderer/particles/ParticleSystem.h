@@ -19,7 +19,8 @@ namespace Encore {
         SMOKE,
         SHOCKWAVE,
         KICKFLARE,
-        MARKIPLIER_FLASH
+        MARKIPLIER_FLASH,
+        OPENFLARE
     };
 
     class Particle {
@@ -27,32 +28,49 @@ namespace Encore {
         bool active : 1 = false; // The bit fields here save 4 * MAX_PARTICLES bytes
         unsigned int id = 0;
         ParticleType type : 31;
+        float Size = 0.0;
         float time = 0.0;
         Vector3 position;
         Vector3 velocity;
         Color color;
 
-        Particle& pos(Vector3 _position) {
+        Particle& pos(const Vector3 _position) {
             position = _position;
             return *this;
         }
 
-        Particle& vel(Vector3 _velocity) {
+        Particle& vel(const Vector3 _velocity) {
             velocity = _velocity;
             return *this;
         }
 
-        Particle& col(Color _color) {
+        Particle& pos(const float x, const float y, const float z) {
+            position = {x,y,z};
+            return *this;
+        }
+
+        Particle& vel(const float x, const float y, const float z) {
+            velocity = {x,y,z};
+            return *this;
+        }
+
+        Particle& col(const Color _color) {
             color = _color;
             return *this;
         }
 
-        Particle& setActive(bool _active) {
+
+        Particle& size(const float _size) {
+            Size = _size;
+            return *this;
+        }
+
+        Particle& setActive(const bool _active) {
             active = _active;
             return *this;
         }
 
-        Particle& setType(ParticleType _type) {
+        Particle& setType(const ParticleType _type) {
             type = _type;
             return *this;
         }

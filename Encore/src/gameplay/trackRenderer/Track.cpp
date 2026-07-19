@@ -868,7 +868,8 @@ void Encore::Track::HandleEvent(Event *event) {
         flash.setActive(true)
              .setType(MARKIPLIER_FLASH)
              .pos({ 0, -0.099, -1.249 })
-             .col(color);
+             .col(color)
+             .size(1.25f);
         multiplierFlash = particleSystem->SpawnParticle(flash);
         flashID = multiplierFlash->id;
     }
@@ -890,17 +891,11 @@ void Encore::Track::HandleEvent(Event *event) {
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
-                if (slot->openHitAnim) {
+                if (slot->openHitAnim && hitEvent->judgement == -1) {
                     auto allSlots = GetSlotsForLane(31, true);
                     for (int i = 0; i < 7; i++) {
                         if (allSlots[i]) {
-                            auto slot = allSlots[i];
-                            if (hitEvent->judgement == -1) {
-                                slot->AnimateOverhit();
-                            } else {
-                                slot->AnimateHit(hitEvent->judgement,
-                                                 player.QueryColorProfile(SLOT_OPEN, ColorProfileType));
-                            }
+                            allSlots[i]->AnimateOverhit();
                         } else
                             break;
                     }

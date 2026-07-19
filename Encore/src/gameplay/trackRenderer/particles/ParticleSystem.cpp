@@ -9,6 +9,7 @@ void Encore::Particle::Update(ParticleSystem* system) {
     switch (type) {
     case FLARE:
     case KICKFLARE:
+    case OPENFLARE:
         if (time > FLARE_LIFETIME) {
             active = false;
         }
@@ -35,7 +36,7 @@ void Encore::Particle::Render(ParticleSystem* system) {
             color.a = (frac*frac)*250;
             Color white = {255, 255, 255, color.a};
             Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
-            float size = 2.1-time*0.5;
+            float size = Size-time*0.5f;
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorBrightness(ColorLerp(color, white, 0), -0.1));
             DrawBillboardRec(system->billboardCamera, ASSET(hitFlareInnerTex), source, position, {size*0.7f, size}, ColorBrightness(ColorLerp(color, white, 0.9), -0.1));
@@ -48,16 +49,29 @@ void Encore::Particle::Render(ParticleSystem* system) {
             color.a = (frac*frac)*200;
             Color white = {255, 255, 255, color.a};
             // Rectangle source = { 0.0f, 0.0f, (float)ASSET(hitFlareTex).width, (float)ASSET(hitFlareTex).height };
-            float size = 2.4-time*0.5;
+            float size = Size-time*0.5f;
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             //DrawBillboardRec(system->billboardCamera, ASSET(hitFlareTex), source, position, {size*0.9f, size*1.2f}, ColorLerp(color, white, 0));
             //DrawBillboardRec(system->billboardCamera, ASSET(hitFlareInnerTex), source, position, {size*0.7f, size}, ColorLerp(color, white, 0.9));
             ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareTex);
-            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0));
+            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4f, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0));
             ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareInnerTex);
-            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0.9));
+            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4f, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0.9));
             EndBlendMode();
             break;
+        }
+        case OPENFLARE: {
+            float lifetime = FLARE_LIFETIME-time;
+            float frac = (lifetime/FLARE_LIFETIME);
+            color.a = (frac*frac)*200;
+            Color white = {255, 255, 255, color.a};
+            float size = Size-time*0.5f;
+            BeginBlendMode(BlendMode::BLEND_ADDITIVE);
+            ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareTex);
+            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4f, 1.2f*size, 2.0f*size}, ColorLerp(color, white, 0));
+            ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareInnerTex);
+            DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4f, 1.2f*size, 2.0f*size}, ColorLerp(color, white, 0.9));
+            EndBlendMode();
             break;
         }
         case SHOCKWAVE: {
@@ -66,7 +80,7 @@ void Encore::Particle::Render(ParticleSystem* system) {
             // color.a = (frac*frac)*color.a;
             Color white = {color.r, color.g, color.b, (unsigned char)((frac*frac)*color.a)};
             Rectangle source = { 0.0f, 0.0f, (float)ASSET(shockwaveTex).width, (float)ASSET(shockwaveTex).height };
-            float size = 2.0+(time*16.0);
+            float size = Size+(time * 16.0f);
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             DrawBillboardRec(system->billboardCamera, ASSET(shockwaveTex), source, position, {size, size/2},  white);
             EndBlendMode();
@@ -77,7 +91,7 @@ void Encore::Particle::Render(ParticleSystem* system) {
             float frac = (lifetime/MARKIPLIER_LIFETIME);
             color.a = (frac*frac)*255;
             Rectangle source = { 0.0f, 0.0f, (float)ASSET(markiplierFlash).width, (float)ASSET(markiplierFlash).height };
-            float size = 1.25-time;
+            float size = Size-time;
             BeginBlendMode(BlendMode::BLEND_ADDITIVE);
             DrawBillboardRec(system->billboardCamera, ASSET(markiplierFlash), source, position, {size, size}, color);
             EndBlendMode();

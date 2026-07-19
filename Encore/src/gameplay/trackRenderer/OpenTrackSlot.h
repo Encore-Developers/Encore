@@ -5,6 +5,7 @@
 #ifndef ENCORE_OPENTRACKSLOT_H
 #define ENCORE_OPENTRACKSLOT_H
 #include "TrackSlot.h"
+#include "particles/ParticleSystem.h"
 
 
 namespace Encore {
@@ -18,10 +19,15 @@ namespace Encore {
             openHitAnim = true;
         };
 
+
+        Particle* hitFlare = nullptr;
+        unsigned int hitFlareId;
+
+        float animTimer = 1;
         virtual void DrawNote(RhythmEngine::EncNote *note, bool missed) override;
         virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy) override;
         virtual void DrawSmasher(bool held) override;
-        virtual void AnimateHit(bool perfect, Color color) override {};
+        virtual void AnimateHit(bool perfect, Color color) override;
     };
 
 }

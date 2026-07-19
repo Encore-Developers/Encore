@@ -218,34 +218,42 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
         return;
     }
     if (track->player.engine->chart->overdrive.RenderNotesAsOD(TheSongTime.GetElapsedTime())) {
-        colorg = ColorBrightness(WHITE, -0.3);
+        colorg = ColorBrightness(WHITE, -0.5);
     }
+    float size = 2.0f;
     if (!perfect) {
         colorg = ColorBrightness(colorg, -0.7);
+    } else {
+        colorg = ColorBrightness(GOLD, -0.5);
+        size = 2.6f;
     }
     animTimer = 0;
     overhitTimer = 0;
     Particle part;
-    part.active = true;
-    part.type = FLARE;
-    part.position = { xPos, 0.05, 0 };
-    part.color = colorg;
+    part.setActive(true)
+        .setType(FLARE)
+        .pos(xPos, 0.05, 0)
+        .size(size)
+        .col(colorg);
     hitFlare = track->particleSystem->SpawnParticle(part);
     hitFlareId = hitFlare->id;
 
+    float shockSize = 1.0f;
     Particle shockwave;
     Color color = WHITE;
-    color.a = 32;
+    color.a = 48;
 
     if (perfect) {
         color = GOLD;
-        color.a = 196;
+        color.a = 128;
+        shockSize = 2.0f;
     }
 
     shockwave.setActive(true)
              .setType(SHOCKWAVE)
-             .pos({ xPos, 0.05, 0 })
-             .col(color);
+             .pos(xPos, 0.05, 0)
+             .col(color)
+             .size(shockSize);
     shockwaveParticle = track->particleSystem->SpawnParticle(shockwave);
     shockwaveId = shockwaveParticle->id;
 }
