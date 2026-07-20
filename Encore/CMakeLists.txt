@@ -176,11 +176,11 @@ if(APPLE)
     find_library(STEAMAPI NAMES steam_api PATHS "lib/steam/osx/")
     file(COPY "lib/steam/osx/libsteam_api.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   endif()
-  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libavcodec.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libavformat.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libavutil.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libswscale.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
-  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libswresample.dylib" DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libavcodec.dylib" FOLLOW_SYMLINK_CHAIN DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libavformat.dylib" FOLLOW_SYMLINK_CHAIN DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libavutil.dylib" FOLLOW_SYMLINK_CHAIN DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libswscale.dylib" FOLLOW_SYMLINK_CHAIN DESTINATION ${CMAKE_BINARY_DIR}/Encore)
+  file(COPY "${FFMPEG_MACOS_BINARY_PATH}/../lib/libswresample.dylib" FOLLOW_SYMLINK_CHAIN DESTINATION ${CMAKE_BINARY_DIR}/Encore)
   add_custom_command(TARGET Encore
           POST_BUILD COMMAND
           ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path"
