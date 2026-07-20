@@ -5,7 +5,13 @@
 set(CMAKE_OBJECT_PATH_MAX 500)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)
+message("${CMAKE_SYSTEM_PROCESSOR}")
+# Linking now depends on system ffmpeg binaries, which only include whatever matches the local system
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
+  set(CMAKE_OSX_ARCHITECTURES arm64)
+else()
+  set(CMAKE_OSX_ARCHITECTURES x86_64)
+endif()
 set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3)
 # Generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -39,11 +45,24 @@ if (WIN32)
   find_library(AVFORMAT_LIBRARY avformat PATHS "${ffmpeg_SOURCE_DIR}/lib")
   find_library(AVUTIL_LIBRARY avutil PATHS "${ffmpeg_SOURCE_DIR}/lib")
   find_library(SWSCALE_LIBRARY swscale PATHS "${ffmpeg_SOURCE_DIR}/lib")
-else()
+elseif(NOT APPLE)
   find_library(AVCODEC_LIBRARY avcodec)
   find_library(AVFORMAT_LIBRARY avformat)
   find_library(AVUTIL_LIBRARY avutil)
   find_library(SWSCALE_LIBRARY swscale)
+else()
+  # Requires the ffmpeg package from Homebrew.
+  execute_process(
+          COMMAND bash "-c" "dirname $(readlink -f $(which ffmpeg))"
+          WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+          OUTPUT_VARIABLE FFMPEG_MACOS_BINARY_PATH
+          OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  find_library(AVCODEC_LIBRARY avcodec PATHS "${FFMPEG_MACOS_BINARY_PATH}/../lib")
+  find_library(AVFORMAT_LIBRARY avformat PATHS "${FFMPEG_MACOS_BINARY_PATH}/../lib")
+  find_library(AVUTIL_LIBRARY avutil PATHS "${FFMPEG_MACOS_BINARY_PATH}/../lib")
+  find_library(SWSCALE_LIBRARY swscale PATHS "${FFMPEG_MACOS_BINARY_PATH}/../lib")
+
 endif()
 
 
@@ -146,6 +165,7 @@ if(UNIX AND NOT APPLE)
           "-DGLFW_EXPOSE_NATIVE_WAYLAND")
 endif()
 if(APPLE)
+  target_include_directories(Encore PRIVATE "${FFMPEG_MACOS_BINARY_PATH}/../include")
   find_library(DISCORD_GAME_SDK NAMES discord_game_sdk PATHS "lib/discord-rpc/macos")
   file(COPY_FILE "lib/discord-rpc/macos/libdiscord_game_sdk.dylib" ${CMAKE_BINARY_DIR}/Encore/discord_game_sdk.dylib)
   find_library(BASS NAMES bass PATHS "lib/bass/macos")
