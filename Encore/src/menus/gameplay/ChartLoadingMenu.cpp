@@ -116,7 +116,8 @@ void ChartLoadingMenu::Load() {
         TheAudioManager.loadStreams(curSong->LoadAudioINI());
         auto videoPath = curSong->GetVideoPath();
         if (!videoPath.empty()) {
-            videoBackground = std::make_shared<VideoBackground>(videoPath);
+            videoBackground = std::make_shared<VideoBackground>(videoPath, curSong->videoStartTime);
+            videoBackground->selfPtr = videoBackground;
         }
         LoadCharts();
     });

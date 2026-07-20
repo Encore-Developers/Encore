@@ -14,7 +14,7 @@ inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
 void Encore::LyricRenderer::RenderLyrics() {
     ProcessAnimation();
     Units& u = Units::getInstance();
-    if (!TheSongTime.Lyrics.empty() && displayState != HIDDEN
+    if (!TheSongTime.Lyrics.empty()
     ) {
         ZoneScopedN("Lyrics Display")
         auto easeInOut = getEasingFunction(EaseInOutSine);

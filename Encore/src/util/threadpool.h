@@ -13,12 +13,14 @@ class ThreadPool {
     std::counting_semaphore<999999> tasksSem;
     unsigned int threadCount;
     volatile bool shutdown = false;
+    bool waitsForShutdown = true;
 
     void ThreadRun();
 
 public:
     ThreadPool(unsigned int threadCount);
     void SubmitTask(std::function<void()> task);
+    void Detach();
 
     ~ThreadPool();
 };

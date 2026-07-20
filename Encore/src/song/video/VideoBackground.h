@@ -39,6 +39,9 @@ public:
     std::atomic<double> decodedTime = 0;
     std::atomic_uint64_t bufferCount = 0;
     Texture2D currentTexture;
+    double initialSeekTime = 0;
+    // Upgraded to a full pointer when other threads are doing other thread things
+    std::weak_ptr<VideoBackground> selfPtr;
 
     unsigned int pbo = 0;
     void* mappedUploadBuffer = nullptr;
@@ -51,10 +54,11 @@ public:
 
     std::atomic<UploadState> uploadState = IDLE;
 
-    VideoBackground(std::filesystem::path videoPath) : videoPath(std::move(videoPath)) {
+    VideoBackground(std::filesystem::path videoPath, double initialSeekTime) : videoPath(std::move(videoPath)), initialSeekTime(initialSeekTime) {
         currentTexture.id = 0;
         currentTexture.width = 0;
         currentTexture.height = 0;
+        workers.Detach();
         OpenFile();
     }
 

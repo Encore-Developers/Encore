@@ -38,10 +38,19 @@ void ThreadPool::SubmitTask(std::function<void()> task) {
     tasksMutex.unlock();
     tasksSem.release();
 }
+void ThreadPool::Detach() {
+    waitsForShutdown = false;
+    for (auto &thread : threads) {
+        thread.detach();
+    }
+}
 ThreadPool::~ThreadPool() {
     ZoneScopedN("Wait for Task Finish")
     shutdown = true;
     tasksSem.release(threadCount);
+    if (!waitsForShutdown) {
+        return;
+    }
     for (size_t i = 0; i < threadCount; ++i) {
         threads[i].join();
     }

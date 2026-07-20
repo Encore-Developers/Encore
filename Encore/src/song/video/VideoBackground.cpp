@@ -40,6 +40,9 @@ void VideoBackground::OpenFile() {
     }
     streamIndex = streamnum;
     bufferCount += 1;
+    if (initialSeekTime > 0) {
+        av_seek_frame(fmtCtx, streamIndex, initialSeekTime / ((double)fmtCtx->streams[streamIndex]->time_base.num/(double)fmtCtx->streams[streamIndex]->time_base.den), 0);
+    }
     ReadAndDecodeFrame();
 }
 
@@ -49,7 +52,8 @@ Texture2D *VideoBackground::GetTexture(double time) {
         return nullptr;
     }
     if (time > decodedTime - 3 && bufferCount < 10 - frameQueue.size()) {
-        workers.SubmitTask([this]{ReadAndDecodeFrame();});
+        auto ptr = selfPtr.lock();
+        workers.SubmitTask([ptr]{ptr->ReadAndDecodeFrame();});
         bufferCount += 1;
     }
     if (!frameQueueMutex.try_lock()) {
@@ -133,7 +137,8 @@ void VideoBackground::QueueFrameUpload(const std::shared_ptr<ManagedFrame>& fram
         ZoneScopedN("Map Upload Buffer")
         mappedUploadBuffer = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
     }
-    workers.SubmitTask([this, frame](){UploadToPBO(frame);});
+    auto ptr = selfPtr.lock();
+    workers.SubmitTask([ptr, frame](){ptr->UploadToPBO(frame);});
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
