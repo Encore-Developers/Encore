@@ -87,6 +87,7 @@ set(PLATFORM "SDL")
 add_subdirectory(thirdparty/raylib EXCLUDE_FROM_ALL)
 
 string(TIMESTAMP BUILDDATE UTC)
+string(TIMESTAMP VERSION "%yw%U")
 
 option ( TRACY_ENABLE " " OFF )
 option ( TRACY_ON_DEMAND " " ON )
@@ -224,7 +225,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-        "-DENCORE_VERSION=\"v0.2.0\"")
+        "-DENCORE_VERSION=\"${VERSION}\"")
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         "-DGIT_BRANCH=\"${GIT_BRANCH}\"")

@@ -628,6 +628,23 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
                                    InstIconSize },
                                  WHITE);
 
+    int diffNumber = curSong->Difficulties[player.Instrument];
+
+    assets.BaseRingTexture.Draw({ cardPos + (cardWidth * 0.02f),
+                                   cursor + (topCardHeight * 0.015f), InstIconSize,
+                                   InstIconSize },
+                                 WHITE);
+
+    if (diffNumber > 0) {
+        if (diffNumber > 6) {
+            diffNumber = 6;
+        }
+        auto ring = TheAssets.YargRings[diffNumber - 1];
+        ring->Draw({ cardPos + (cardWidth * 0.02f),
+                                   cursor + (topCardHeight * 0.015f), InstIconSize,
+                                   InstIconSize }, WHITE);
+    }
+
     float asda = InstIconSize / 4;
     Encore::TextDisplay a;
     a.Pos(left + InstIconSize, cursor + asda + (topCardHeight * 0.0175f)).
