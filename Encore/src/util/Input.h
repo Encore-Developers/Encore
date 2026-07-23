@@ -17,6 +17,7 @@ namespace Encore {
         INPUT_LEFT,
         INPUT_RIGHT,
         CHANNEL_MAX,
+        DISCONNECT,
         INVALID = -1
     };
     inline InputChannel IntIC(int lane) {

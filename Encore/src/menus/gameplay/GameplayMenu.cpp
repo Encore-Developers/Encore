@@ -47,7 +47,8 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
         OvershellControllerInputCallback(this, event);
         return true;
     }
-    if (event.channel == Encore::InputChannel::PAUSE && event.action == Encore::Action::PRESS) {
+    if ((event.channel == Encore::InputChannel::PAUSE && event.action == Encore::Action::PRESS)
+        || event.channel == Encore::InputChannel::DISCONNECT) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (!ThePlayerManager.ActivePlayers[i]) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);

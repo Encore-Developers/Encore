@@ -94,7 +94,11 @@ Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
     if (TheMenuManager.ActiveMenu && TheMenuManager.ActiveMenu->UIInput) {
         bindingType = GUITAR;
     }
-
+    if (event->type == SDL_EVENT_GAMEPAD_REMOVED) {
+        outevent.channel = Encore::InputChannel::DISCONNECT;
+        outevent.timestamp = SDLTimeToAudioTime(event->gbutton.timestamp);
+        outevent.slot = event->gdevice.which;
+    }
 
     if (event->type == SDL_EVENT_GAMEPAD_BUTTON_UP || event->type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
         outevent.channel = Encore::InputChannel::INVALID;
