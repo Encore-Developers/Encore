@@ -213,12 +213,15 @@ Encore::RhythmEngine::TimePoint Encore::RhythmEngine::GuitarEngine::NextNoteTime
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::GuitarEngine::LastNoteTime() {
-    TimePoint tp{0,0};
-    if (chart->HeldNotePointers.at(0)) {
-        tp.sec = chart->HeldNotePointers.at(0)->end.sec;
-        tp.tick = chart->HeldNotePointers.at(0)->end.tick;
+    if (chart->at(0).begin() == chart->CurrentNoteIterators.at(0))
+        return TimePoint{0,0};
+    double endTime = (chart->CurrentNoteIterators.at(0)-1)->end.sec;
+    int endTick = (chart->CurrentNoteIterators.at(0)-1)->end.tick;
+    if (endTick == 0) {
+        endTime = (chart->CurrentNoteIterators.at(0)-1)->start.sec;
+        endTick = (chart->CurrentNoteIterators.at(0)-1)->start.tick;
     }
-    return tp;
+    return TimePoint{endTime, endTick};
 }
 
 /*

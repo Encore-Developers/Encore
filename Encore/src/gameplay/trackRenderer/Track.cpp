@@ -130,8 +130,9 @@ void Encore::Track::Draw() {
     {
         ZoneScopedN("Countdown")
 
-        double timeTillNote = player.engine->NextNoteTime().sec - TheSongTime.GetElapsedTime();
-        if (timeTillNote > 2) {
+        double cdSec = player.engine->NextNoteTime().sec - TheSongTime.GetElapsedTime();
+        double timeTillNote = player.engine->NextNoteTime().sec - player.engine->LastNoteTime().sec;
+        if (player.engine->LastNoteTime().tick > 0 && timeTillNote > 2 && TheSongTime.GetElapsedTime() > player.engine->LastNoteTime().sec && cdSec > 0.5) {
             Vector3 worldSpace = { 0, 2.5, 5 };
             Vector2 screenPos = GetWorldToScreen(
                 worldSpace,
@@ -145,7 +146,7 @@ void Encore::Track::Draw() {
             .Col(119, 183, 255, 255)
             .Align(CENTER)
             .Fnt(ASSET(redHatMono))
-            .DrawText(std::format("{:4.2f}", timeTillNote));
+            .DrawText(std::format("{:4.2f}", cdSec));
 
         }
     }
