@@ -151,7 +151,7 @@ Encore::RhythmEngine::MidiChartHandler::GenerateOverdriveTicks() {
     return overdriveTicks;
 }
 
-std::vector<Encore::RhythmEngine::EncLyricPhrase>
+std::vector<Encore::RhythmEngine::LyricPhrase>
 Encore::RhythmEngine::MidiChartHandler::GetLyricPhrases() {
     return Lyrics;
 }

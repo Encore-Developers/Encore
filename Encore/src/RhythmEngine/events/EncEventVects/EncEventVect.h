@@ -17,8 +17,8 @@ struct EncEventVect : std::vector<t> {
     t &operator[](int event) { return this->at(event); }
 
     virtual bool TickDuringCurrentEvent(int tick) {
-        if (tick >= this->at(CurrentEvent).StartTick
-            && tick < this->at(CurrentEvent).TickLength) {
+        if (tick >= this->at(CurrentEvent).start.tick
+            && tick < this->at(CurrentEvent).end.tick) {
             return true;
         }
         return false;
@@ -28,7 +28,7 @@ struct EncEventVect : std::vector<t> {
         if (this->empty())
             return;
 
-        if (CurrentEvent < this->size() - 1 && tick >= this->at(CurrentEvent).TickLength) {
+        if (CurrentEvent < this->size() - 1 && tick >= this->at(CurrentEvent).end.tick) {
             CurrentEvent++;
         }
     }
@@ -49,8 +49,8 @@ struct EncEventVect : std::vector<t> {
 
     virtual void UpdateEventViaNote(bool hit, int tick) {
         if (!this->empty()) {
-            if (tick >= this->at(CurrentEvent).StartTick
-                && tick < this->at(CurrentEvent).TickLength && hit) {
+            if (tick >= this->at(CurrentEvent).start.tick
+                && tick < this->at(CurrentEvent).end.tick && hit) {
                 ++this->at(CurrentEvent).NotesHit;
             }
         }

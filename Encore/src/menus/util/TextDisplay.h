@@ -34,6 +34,11 @@ namespace Encore
         TextDisplay& AddY(float y);
         TextDisplay& Size(float _fontSize);
         TextDisplay& Col(Color _color);
+        TextDisplay &Col(unsigned char r,
+                         unsigned char g,
+                         unsigned char b,
+                         unsigned char a);
+        TextDisplay &fCol(float r, float g, float b, float a);
         TextDisplay& Align(TextAlign _align);
         TextDisplay& Bounds(Vector2 _wh);
         TextDisplay& Bounds(float _width, float _height);

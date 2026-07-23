@@ -16,7 +16,7 @@ namespace Encore::RhythmEngine {
         void CheckModifiers(const smf::MidiEvent &event);
         void CheckEvents(const smf::MidiEvent &event);
         void CreateNote(const smf::MidiEvent &event);
-        int GetNoteType(const smf::MidiEvent &event) override;
+        NoteEvent::NoteType GetNoteType(const smf::MidiEvent &event) override;
 
         void GetChartEvents(smf::MidiEventList &track) override;
         void GetNoteModifiers(smf::MidiEventList &track) override;

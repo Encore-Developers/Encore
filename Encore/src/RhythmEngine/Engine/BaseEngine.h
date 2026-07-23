@@ -22,7 +22,6 @@ namespace Encore::RhythmEngine {
         OverhitNote = 1,
         CheckNextInput = 2
     };
-
     class BaseEngine : public EventSource {
     public:
         BaseEngine(auto _chart, auto _stats, Player* _player)
@@ -36,9 +35,9 @@ namespace Encore::RhythmEngine {
 
         virtual void SetStatsInputState(ControllerEvent &event) {
         };
-        bool EarlyStrike(double noteStartTime) const;
-        bool InHitwindow(double noteStartTime) const;
-        bool PerfectHit(double noteStartTime) const;
+        [[nodiscard]] bool EarlyStrike(double noteStartTime) const;
+        [[nodiscard]] bool InHitwindow(double noteStartTime) const;
+        [[nodiscard]] bool PerfectHit(double noteStartTime) const;
         void ProcessInput(ControllerEvent &event);
         /*
          * Before hitting the note,
@@ -64,6 +63,8 @@ namespace Encore::RhythmEngine {
 
         // bool GetCurrentNote(int lane);
         // virtual bool CanNoteBeHit();
+        virtual TimePoint NextNoteTime() { return TimePoint(-1,-1); };
+        virtual TimePoint LastNoteTime() { return TimePoint(-1,-1); };
         bool IsWithinPracticeSection(double time) const;
         virtual void UpdateOnFrame(double CurrentTime) {};
         void BaseUpdateOnFrame(double CurrentTime);

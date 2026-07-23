@@ -32,7 +32,7 @@ namespace Encore::RhythmEngine {
         void CheckModifiers(const smf::MidiEvent &event);
         void CheckEvents(const smf::MidiEvent &event);
         void CreateNote(const smf::MidiEvent &event);
-        int GetNoteType(const smf::MidiEvent &event) override;
+        NoteEvent::NoteType GetNoteType(const smf::MidiEvent &event) override;
 
         void GetChartEvents(smf::MidiEventList &track) override;
         void GetNoteModifiers(smf::MidiEventList &track) override;
@@ -53,7 +53,7 @@ namespace Encore::RhythmEngine {
                 for (int i = 0; i < chart.size; i++) {
                     if (i == 0) continue;
                     for (auto& note : chart.at(i)) {
-                        note.NoteType = (i + 1) % 2;
+                        note.type = (i + 1) % 2;
                     }
                 }
             }

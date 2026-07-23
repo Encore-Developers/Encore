@@ -2,8 +2,8 @@
 #ifndef ENCORE_TRACKSLOT_H
 #define ENCORE_TRACKSLOT_H
 
-#include "RhythmEngine/Chart/EncNote.h"
 #include "raylib.h"
+#include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 #include "users/ColorProfile.h"
 
 namespace Encore {
@@ -22,7 +22,7 @@ namespace Encore {
         bool openHitAnim = false;
         TrackSlot* parentSlot = nullptr;
 
-        virtual void DrawNote(RhythmEngine::EncNote *note, bool missed) = 0;
+        virtual void DrawNote(RhythmEngine::NoteEvent *note, bool missed) = 0;
         virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy) = 0;
         virtual void DrawSmasher(bool held) = 0;
         virtual void AnimateHit(bool perfect, Color color) = 0;

@@ -354,6 +354,8 @@ int TheGame::Run(int argc, char *argv[]) {
                 break;
             case SDL_EVENT_GAMEPAD_ADDED:
                 SDL_OpenGamepad(event.gdevice.which);
+            case SDL_EVENT_GAMEPAD_REMOVED:
+                ProcessControllerEvent(TranslateSDLEvent(&event));
             case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
             case SDL_EVENT_GAMEPAD_BUTTON_UP:
             case SDL_EVENT_GAMEPAD_AXIS_MOTION:

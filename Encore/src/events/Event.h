@@ -3,9 +3,10 @@
 #define ENCORE_EVENT_H
 
 #include "RhythmEngine/REenums.h"
-#include "RhythmEngine/Chart/EncNote.h"
 
 #include <unordered_set>
+
+#include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 
 namespace Encore {
     class Event {
@@ -22,11 +23,11 @@ namespace Encore {
 
     class NoteHitEvent : public Event {
     public:
-        RhythmEngine::EncNote* note;
+        RhythmEngine::NoteEvent* note;
         RhythmEngine::Judgement judgement = RhythmEngine::GOOD;
         double offset = 0;
-        explicit NoteHitEvent(RhythmEngine::EncNote* note) : note(note) {}
-        NoteHitEvent(RhythmEngine::EncNote* note, const RhythmEngine::Judgement _judgement, const float offset) : note(note), judgement(_judgement), offset(offset) {}
+        explicit NoteHitEvent(RhythmEngine::NoteEvent* note) : note(note) {}
+        NoteHitEvent(RhythmEngine::NoteEvent* note, const RhythmEngine::Judgement _judgement, const float offset) : note(note), judgement(_judgement), offset(offset) {}
     };
 
     class OverhitEvent : public Event {

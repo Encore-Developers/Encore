@@ -81,45 +81,47 @@ void Encore::RhythmEngine::MidiGuitarLoader::CheckTaps(const smf::MidiEvent &eve
         };
     }
 }
-[[nodiscard]] int
+[[nodiscard]] Encore::RhythmEngine::NoteEvent::NoteType
 Encore::RhythmEngine::MidiGuitarLoader::GetNoteType(const smf::MidiEvent &event) {
     if (!TapMarker.empty()) {
         if (TapMarker.front().first <= event.tick) {
-            return 2;
+            return NoteEvent::TAP;
         }
     }
     if (!ForceHopoOn.empty()) {
         if (ForceHopoOn.front().first <= event.tick) {
-            return 1;
+            return NoteEvent::HOPO;
         }
     }
     if (!ForceHopoOff.empty()) {
         if (ForceHopoOff.front().first <= event.tick) {
-            return 0;
+            return NoteEvent::NORMAL;
         }
     }
     if (!chart[0].empty()) {
+        auto& note = chart[0].back();
         // DUDE ARE YOU A FUCKING MORON
         // HOPOS HAVE SPECIFIC REQURIEMENTS TO BE HOPOS, NOT JUST "its close enough"
         // GOD FUCKING DAMN
         // ALSO THAT IF STATEMENT IS FUCKING UTTERLY USELESS
         // oh my god i might DIE what the FUCK
-        if (chart[0].back().Lane != PlasticFrets[GetEventLane(Difficulty, event)]) {
-            if (chart[0].back().StartTicks + Threshold >= event.tick && !(PlasticFrets[GetEventLane(Difficulty, event)] & chart[0].back().Lane)) {
-                return 1;
+        if (note.lane != PlasticFrets[GetEventLane(Difficulty, event)]) {
+            if (note.start.tick + Threshold >= event.tick && !(PlasticFrets[GetEventLane(Difficulty, event)] & note.lane)) {
+                return NoteEvent::HOPO;
             }
         }
     }
-    return 0;
+    return NoteEvent::NORMAL;
 }
 void Encore::RhythmEngine::MidiGuitarLoader::CheckEvents(const smf::MidiEvent &event) {
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength <= event.tick)
+            && chart.overdrive[CurrentOverdrive].end.tick <= event.tick)
             CurrentOverdrive++;
     }
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
+    // oh god.
     if (!chart.sections.empty()) {
         if (CurrentSection < chart.sections.size() - 1 && event.tick >= chart.sections[CurrentSection+1].tickStart)
             CurrentSection++;
@@ -136,18 +138,23 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetChartEvents(smf::MidiEventList &
         ATTEMPT_TO_ADD_CHART_EVENT(126, rolls, event);
     }
 }
+
+double SustainBaseScore(double tickLen, double Resolution, double maxMult) {
+    return (tickLen / Resolution) * BASE_SCORE_SUSTAIN_POINTS * maxMult;
+};
+
 void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &event) {
-    int lengthTicks = event.getLinkedEvent()->tick - event.tick;
-    double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
-    int lane = PlasticFrets[GetEventLane(Difficulty, event)];
-    if (event.getLinkedEvent()->tick - event.tick < Resolution * 0.3541) {
-        lengthTicks = 0;
-        lengthSec = 0;
+    Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
+    uint8_t lane = PlasticFrets[GetEventLane(Difficulty, event)];
+    if (pNote.tickLen() < Resolution * 0.3541) {
+        pNote.end.tick = 0;
+        pNote.end.sec = 0;
+    } else {
+        chart.BaseScore += SustainBaseScore(pNote.tickLen(), Resolution, maxMult);
+        pNote.end.tick -= 1;
     }
-    if (lengthTicks > 0) {
-        chart.BaseScore += static_cast<double>(int(lengthTicks / Resolution)) * BASE_SCORE_SUSTAIN_POINTS;
-        lengthTicks -= 1;
-    }
+
+    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
     if (!OpenMarker.empty()) {
         if (OpenMarker.front().first <= event.tick) {
             lane = 0;
@@ -156,25 +163,23 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
 
     if (!chart[0].empty()) {
         int sustainChopThreshold = (midiFile->getTPQ() / 16);
-        int noteEnd = chart[0].back().StartTicks + chart[0].back().LengthTicks;
-        if (chart[0].back().LengthTicks > 0 && noteEnd >= event.tick - sustainChopThreshold && noteEnd <= event.tick + 1) {
-            chart[0].back().LengthTicks = (event.tick - chart[0].back().StartTicks) - (sustainChopThreshold * 4);
-            chart[0].back().LengthSeconds = midiFile->getTimeInSeconds(chart[0].back().StartTicks + chart[0].back().LengthTicks) - chart[0].back().StartSeconds;
+        for (auto note = chart[0].end()--;
+                note->end.tick >= pNote.start.tick - sustainChopThreshold;
+                --note) {
+            int noteEnd = note->end.tick;
+            if (note->tickLen() > 0 && noteEnd >= event.tick - sustainChopThreshold && noteEnd <= event.tick + 1) {
+                note->end.tick = event.tick - (sustainChopThreshold * 4);
+                note->end.sec = midiFile->getTimeInSeconds(note->end.tick);
+            }
         }
     }
+
     chart[0].emplace_back(
-        event.tick,
-        lengthTicks,
-        event.seconds,
-        lengthSec,
+        pNote.start,
+        pNote.end,
         GetNoteType(event),
         lane
     );
-    if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
-            chart.solos[CurrentSolo].NoteCount++;
-        }
-    }
     if (!chart.sections.empty()) {
         int end = midiFile->getFileDurationInTicks();
         if (CurrentSection < chart.sections.size() - 1) {
@@ -184,7 +189,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
             chart.sections.at(CurrentSection).notes++;
     }
     if (!chart.trills.empty()) {
-        if (event.tick >= chart.trills[CurrentTrill].StartTick) {
+        if (event.tick >= chart.trills[CurrentTrill].start.tick) {
             if (chart.trills[CurrentTrill].lane1 == 255) {
                 chart.trills[CurrentTrill].lane1 =
                     PlasticFrets[GetEventLane(Difficulty, event)];
@@ -194,11 +199,12 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
             }
         }
     }
-    if (!chart.overdrive.empty()) {
-        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick && event.tick < chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength) {
-            chart.overdrive[CurrentOverdrive].NoteCount++;
-        }
-    }
+
+    if (!chart.solos.empty())
+        chart.solos[CurrentSolo].CountNote(event.tick);
+    if (!chart.overdrive.empty())
+        chart.overdrive[CurrentOverdrive].CountNote(event.tick);
+
 }
 
 void Encore::RhythmEngine::MidiGuitarLoader::GetNoteModifiers(smf::MidiEventList &track) {
@@ -228,34 +234,34 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track)
         CheckModifiers(event);
         if (IsInPitchRangeGB(Difficulty, event) && event.isNoteOn()) {
             if (chart[0].empty()) {
-                chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
                 CreateNote(event);
                 continue;
             }
-            if (chart[0].back().StartTicks == event.tick) {
+            auto& note = chart[0].back();
+            if (note.start.tick == event.tick) {
                 chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
-                chart[0].back().Lane += PlasticFrets[GetEventLane(Difficulty, event)];
-                if (chart[0].back().NoteType == 1) {
-                    chart[0].back().NoteType = 0;
+                note.lane += PlasticFrets[GetEventLane(Difficulty, event)];
+                if (note.type == 1) {
+                    note.type = 0;
                 }
                 if (!chart.trills.empty()) {
-                    if (event.tick >= chart.trills[CurrentTrill].StartTick) {
+                    // if (event.tick >= chart.trills[CurrentTrill].StartTick) {
                         //chart.rolls[CurrentRoll].lane +=
                          //   PlasticFrets[GetEventLane(Difficulty, event)];
                         //FIXME
-                    }
+                    // }
                 }
-                if (chart[0].back().LengthTicks > 0) {
-                    chart.BaseScore += (chart[0].back().LengthTicks / 480.0f) * (SUSTAIN_POINTS_PER_BEAT * BASE_SCORE_NOTE_MULT) * maxMult;;
+                if (note.tickLen() > 0) {
+                    chart.BaseScore += SustainBaseScore(note.tickLen(), Resolution, maxMult);
                 }
                 if (!ForceHopoOn.empty()) {
                     if (ForceHopoOn.front().first <= event.tick) {
-                        chart[0].back().NoteType = 1;
+                        note.type = 1;
                     }
                 }
                 continue;
             }
-            chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;;
+            chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
             CreateNote(event);
         }
     }

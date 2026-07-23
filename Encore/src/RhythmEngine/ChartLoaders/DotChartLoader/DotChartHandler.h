@@ -24,7 +24,7 @@ namespace Encore::RhythmEngine {
         std::vector<TimeSig> GetTimeSigChanges() override;
         std::array<TrackInformation, PlasticVocals>& GetValidParts() override;
         OverdriveTicks GenerateOverdriveTicks() override;
-        std::vector<EncLyricPhrase> GetLyricPhrases() override;
+        std::vector<LyricPhrase> GetLyricPhrases() override;
         void LoadCharts() override;
         std::pair<int, double> GetEndEvent() override;
         std::vector<Section> GetSections() override;

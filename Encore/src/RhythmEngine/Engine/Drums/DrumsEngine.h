@@ -22,6 +22,7 @@ namespace Encore::RhythmEngine {
         void HitNote(size_t lane) override;
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(ControllerEvent &event) override;
+        TimePoint NextNoteTime() override;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<DrumsStats> stats;
         Player* player;

@@ -8,13 +8,13 @@
 #include "Track.h"
 #include "rlgl.h"
 
-void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
-    auto pos = track->GetNotePos3D(note->StartSeconds);
+void Encore::OpenTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) {
+    auto pos = track->GetNotePos3D(note->start.sec);
     Vector3 position = { xPos, 0.0, pos };
     Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
 
 
-    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
         color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, track->ColorProfileType));
     } else {
@@ -26,13 +26,13 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
     }
     ASSET(noteShader).SetUniform("noteColor", color);
 
-    if (note->LengthSeconds > 0) {
+    if (note->secLen() > 0) {
         Color sustainColor = missed ? ColorBrightness(color, -0.75) : color;
-        DrawSustainTail(note->StartSeconds, note->StartSeconds + note->LengthSeconds, sustainColor, 0);
+        DrawSustainTail(note->start.sec, note->end.sec, sustainColor, 0);
     }
     rlDrawRenderBatchActive();
 
-    if (note->NoteType == 1 || note->NoteType == 2) {
+    if (note->type == RhythmEngine::NoteEvent::HOPO || note->type == RhythmEngine::NoteEvent::TAP) {
         DrawModelEx(ASSET(openHopoNote),
                     position,
                     { 0 },
@@ -73,20 +73,20 @@ void Encore::OpenTrackSlot::DrawSmasher(bool held) {
     for (auto note : track->player.engine->chart->HeldNotePointers) {
         if (!note)
             continue;
-        if (note->StartSeconds + note->LengthSeconds < TheSongTime.GetElapsedTime()) {
+        if (note->end.sec < TheSongTime.GetElapsedTime()) {
             continue;
         }
         bool matches = false;
-        if (note->Lane == 0) {
+        if (note->lane == 0) {
             matches = true;
         }
         Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
-        if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+        if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         }
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
-                            note->StartSeconds + note->LengthSeconds, color, track->player.engine->whammy);
+                            note->end.sec, color, track->player.engine->whammy);
             if (hitFlare) {
                 if (hitFlare->id == hitFlareId) {
                     hitFlare->time = (std::sin(TheSongTime.GetElapsedTime() * 100) + 1) *

@@ -37,8 +37,7 @@ void Encore::RhythmEngine::MidiPadLoader::CheckEvents(const smf::MidiEvent &even
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick
-                    + chart.overdrive[CurrentOverdrive].TickLength
+            && chart.overdrive[CurrentOverdrive].end.tick
                 <= event.tick)
             CurrentOverdrive++;
     }
@@ -49,14 +48,14 @@ void Encore::RhythmEngine::MidiPadLoader::CheckEvents(const smf::MidiEvent &even
     // ITERATE_EVENT_BY_NOTE(overdrive, CurrentOverdrive, event)
 }
 
-[[nodiscard]] int
+[[nodiscard]] Encore::RhythmEngine::NoteEvent::NoteType
 Encore::RhythmEngine::MidiPadLoader::GetNoteType(const smf::MidiEvent &event) {
     if (!LiftMarkers[GetEventLane(Difficulty, event)].empty()) {
         if (LiftMarkers[GetEventLane(Difficulty, event)].front() == event.tick) {
-            return 1; // lift
+            return NoteEvent::LIFT;
         }
     }
-    return 0;
+    return NoteEvent::NORMAL;
 }
 void Encore::RhythmEngine::MidiPadLoader::GetChartEvents(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
@@ -70,26 +69,21 @@ void Encore::RhythmEngine::MidiPadLoader::GetChartEvents(smf::MidiEventList &tra
 }
 
 void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event) {
-    int lengthTicks = event.getLinkedEvent()->tick - event.tick;
-    double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
-    if (event.getLinkedEvent()->tick - event.tick < 170) {
-        lengthTicks = 0;
-        lengthSec = 0;
+    Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
+    uint8_t lane = PlasticFrets[GetEventLane(Difficulty, event)];
+    if (pNote.tickLen() < Resolution * 0.3541) {
+        pNote.end.tick = 0;
+        pNote.end.sec = 0;
+    } else {
+        chart.BaseScore += (pNote.tickLen() / Resolution) * BASE_SCORE_SUSTAIN_POINTS * maxMult;
     }
-    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;;
+    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
 
-    if (lengthTicks > 0) {
-        chart.BaseScore += (lengthTicks / 480) * BASE_SCORE_SUSTAIN_POINTS * maxMult;;
-    }
     chart[GetEventLane(Difficulty, event)].emplace_back(
-
-        event.tick,
-        lengthTicks,
-        event.seconds,
-        lengthSec,
+        pNote.start,
+        pNote.end,
         GetNoteType(event),
-        PlasticFrets[GetEventLane(Difficulty, event)]
-
+        PlasticFrets[lane]
     );
 
     if (!chart.sections.empty()) {
@@ -101,16 +95,11 @@ void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event
             chart.sections.at(CurrentSection).notes++;
     }
     // i hate how solos need note counts before entering lol
-    if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick  && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
-            chart.solos[CurrentSolo].NoteCount++;
-        }
-    }
-    if (!chart.overdrive.empty()) {
-        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick && event.tick < chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength) {
-            chart.overdrive[CurrentOverdrive].NoteCount++;
-        }
-    }
+
+    if (!chart.solos.empty())
+        chart.solos[CurrentSolo].CountNote(event.tick);
+    if (!chart.overdrive.empty())
+        chart.overdrive[CurrentOverdrive].CountNote(event.tick);
 }
 
 void Encore::RhythmEngine::MidiPadLoader::GetNotes(smf::MidiEventList &track) {

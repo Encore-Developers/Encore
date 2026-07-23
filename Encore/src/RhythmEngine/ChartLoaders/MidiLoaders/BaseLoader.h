@@ -11,10 +11,10 @@
 #define ATTEMPT_TO_ADD_CHART_EVENT(lane, type, event)                                    \
     if (event[1] == lane && event.isNoteOn()) {                                          \
         chart.type.emplace_back(                                                         \
-            event.tick,                                                                  \
-            event.seconds,                                                               \
-            event.getLinkedEvent()->tick - event.tick,                                   \
-            event.getLinkedEvent()->seconds - event.seconds                              \
+            event.seconds,                                                                  \
+            event.tick,                                                               \
+            event.getLinkedEvent()->seconds,                                   \
+            event.getLinkedEvent()->tick                              \
         );                                                                               \
         continue;                                                                        \
     }
@@ -28,7 +28,7 @@
 #define ITERATE_EVENT_BY_NOTE(event, itr, note)                                          \
     if (!chart.event.empty()) {                                                          \
         if (itr < chart.event.size() - 1                                                 \
-            && chart.event[itr].StartTick + chart.event[itr].TickLength < note.tick)        \
+            && chart.event[itr].end.tick < note.tick)        \
             itr++;                                                                       \
     }
 
@@ -38,7 +38,7 @@ namespace Encore::RhythmEngine {
         virtual void GetChartEvents(smf::MidiEventList &track) {};
         virtual void GetNoteModifiers(smf::MidiEventList &track) {};
         virtual void GetNotes(smf::MidiEventList &track) {};
-        virtual int GetNoteType(const smf::MidiEvent &event) { return 0; };
+        virtual NoteEvent::NoteType GetNoteType(const smf::MidiEvent &event) { return NoteEvent::NORMAL; };
 
     public:
         virtual ~BaseLoader() = default;

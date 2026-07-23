@@ -350,7 +350,7 @@ void DebugSeek(float time, float audioTime) {
             }
             for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[
                      i].end(); ++iter) {
-                if (iter->StartSeconds > time) {
+                if (iter->start.sec > time) {
                     engine->chart->CurrentNoteIterators[i] = iter;
                     break;
                 }

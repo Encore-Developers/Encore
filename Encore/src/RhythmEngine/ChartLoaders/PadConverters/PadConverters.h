@@ -13,7 +13,7 @@ namespace Encore::RhythmEngine::PadConverters {
 
     NoteHand GetLaneHand(uint8_t note);
 
-    NoteHand GetNoteHand(EncNote& note);
+    NoteHand GetNoteHand(NoteEvent& note);
 
     BaseChart ConvertGuitarToPad(BaseChart& sourceChart);
 }

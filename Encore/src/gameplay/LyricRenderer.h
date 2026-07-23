@@ -3,7 +3,6 @@
 #include "easing/easing.h"
 #include "../menus/main/MainMenu.h"
 #include "../menus/util/uiUnits.h"
-#include "RhythmEngine/Chart/EncNote.h"
 
 namespace Encore {
     class LyricRenderer {
@@ -58,7 +57,7 @@ namespace Encore {
 
         void DrawPhraseBackground(int type, float pos, float size);
 
-        void DrawPhrase(RhythmEngine::EncLyricPhrase *phrase,
+        void DrawPhrase(RhythmEngine::LyricPhrase *phrase,
                         float pos,
                         float size,
                         unsigned char alpha);

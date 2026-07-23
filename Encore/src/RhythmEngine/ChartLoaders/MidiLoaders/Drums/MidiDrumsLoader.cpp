@@ -8,7 +8,6 @@
 #include <regex>
 
 #include "RhythmEngine/scoring.h"
-#include "util/Presence.h"
 // i hate sysex
 
 void Encore::RhythmEngine::MidiDrumsLoader::CheckToms(const smf::MidiEvent &event) {
@@ -24,39 +23,39 @@ void Encore::RhythmEngine::MidiDrumsLoader::CheckToms(const smf::MidiEvent &even
     }
 }
 
-[[nodiscard]] int
+[[nodiscard]] Encore::RhythmEngine::NoteEvent::NoteType
 Encore::RhythmEngine::MidiDrumsLoader::GetNoteType(const smf::MidiEvent &event) {
     if (GetEventLane(Difficulty, event) == 4) {
         if (!GreenTom.empty()) {
             if (GreenTom.front().first <= event.tick) {
-                return 0;
+                return NoteEvent::NORMAL;
             }
         }
     }
     if (GetEventLane(Difficulty, event) == 3) {
         if (!BlueTom.empty()) {
             if (BlueTom.front().first <= event.tick) {
-                return 0;
+                return NoteEvent::NORMAL;
             }
         }
     }
     if (GetEventLane(Difficulty, event) == 2) {
         if (!YellowTom.empty()) {
             if (YellowTom.front().first <= event.tick) {
-                return 0;
+                return NoteEvent::NORMAL;
             }
         }
     }
     if (GetEventLane(Difficulty, event) <= 1) {
-        return 0;
+        return NoteEvent::NORMAL;
     }
-    return 1;
+    return NoteEvent::CYMBAL;
 }
 void Encore::RhythmEngine::MidiDrumsLoader::CheckEvents(const smf::MidiEvent &event) {
     ITERATE_EVENT_BY_NOTE(solos, CurrentSolo, event)
     if (!chart.overdrive.empty()) {
         if (CurrentOverdrive < chart.overdrive.size() - 1
-            && chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength <= event.tick)
+            && chart.overdrive[CurrentOverdrive].end.tick <= event.tick)
             CurrentOverdrive++;
     }
     if (!chart.sections.empty()) {
@@ -76,28 +75,27 @@ void Encore::RhythmEngine::MidiDrumsLoader::GetChartEvents(smf::MidiEventList &t
     }
 }
 void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &event) {
-    int lengthTicks = event.getLinkedEvent()->tick - event.tick;
-    double lengthSec = event.getLinkedEvent()->seconds - event.seconds;
-    if (event.getLinkedEvent()->tick - event.tick < 170) {
-        lengthTicks = 0;
-        lengthSec = 0;
+    Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
+    uint8_t lane = GetEventLane(Difficulty, event);
+    if (pNote.tickLen() < Resolution * 0.3541) {
+        pNote.end.tick = 0;
+        pNote.end.sec = 0;
     }
-    int lane = GetEventLane(Difficulty, event);
     int type = GetNoteType(event);
     if (!DiscoFlip.empty()) {
         if (DiscoFlip.front().first <= event.tick) {
             if (lane == 1) {
                 lane = 2;
-                type = 1;
+                type = NoteEvent::CYMBAL;
             } else if (lane == 2) {
                 lane = 1;
-                type = 0;
+                type = NoteEvent::NORMAL;
             }
         }
     }
-    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;;
+    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
     chart[lane].emplace_back(
-        event.tick, lengthTicks, event.seconds, lengthSec, type, PlasticFrets[lane]
+        pNote.start, pNote.end, type, PlasticFrets[lane]
     );
 
     if (!chart.sections.empty()) {
@@ -108,16 +106,10 @@ void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &eve
         if (event.tick >= chart.sections.at(CurrentSection).tickStart && event.tick < end)
             chart.sections.at(CurrentSection).notes++;
     }
-    if (!chart.solos.empty()) {
-        if (event.tick >= chart.solos[CurrentSolo].StartTick && event.tick < chart.solos[CurrentSolo].StartTick + chart.solos[CurrentSolo].TickLength) {
-            chart.solos[CurrentSolo].NoteCount++;
-        }
-    }
-    if (!chart.overdrive.empty()) {
-        if (event.tick >= chart.overdrive[CurrentOverdrive].StartTick && event.tick < chart.overdrive[CurrentOverdrive].StartTick + chart.overdrive[CurrentOverdrive].TickLength) {
-            chart.overdrive[CurrentOverdrive].NoteCount++;
-        }
-    }
+    if (!chart.solos.empty())
+        chart.solos[CurrentSolo].CountNote(event.tick);
+    if (!chart.overdrive.empty())
+        chart.overdrive[CurrentOverdrive].CountNote(event.tick);
 }
 
 void Encore::RhythmEngine::MidiDrumsLoader::GetNoteModifiers(smf::MidiEventList &track) {

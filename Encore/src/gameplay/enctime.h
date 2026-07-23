@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "RhythmEngine/Chart/EncNote.h"
+#include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 #include "song/song.h"
 
 struct BPM {
@@ -79,12 +79,12 @@ public:
 
     std::vector<Section> Sections {};
     size_t CurrentLyricPhrase = 0;
-    std::vector<Encore::RhythmEngine::EncLyricPhrase> Lyrics {};
+    std::vector<Encore::RhythmEngine::LyricPhrase> Lyrics {};
     // GetCurrentLyric will always be in bounds, and is currently wrapped by an Empty check
     // where it is used. GetPreviousLyric and GetNextLyric return null if out of bounds.
-    Encore::RhythmEngine::EncLyricPhrase& GetCurrentLyric();
-    Encore::RhythmEngine::EncLyricPhrase* GetPreviousLyric();
-    Encore::RhythmEngine::EncLyricPhrase* GetNextLyric();
+    Encore::RhythmEngine::LyricPhrase& GetCurrentLyric();
+    Encore::RhythmEngine::LyricPhrase* GetPreviousLyric();
+    Encore::RhythmEngine::LyricPhrase* GetNextLyric();
 
     SongTime() = default;
     void ParseSections(Song* song, smf::MidiFile&);

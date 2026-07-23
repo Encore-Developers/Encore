@@ -5,7 +5,6 @@
 #ifndef NOTEVECTOR_H
 #define NOTEVECTOR_H
 
-#include "EncNote.h"
 #include "RhythmEngine/events/EncEventVects/EventVectors.h"
 #include "../timingvalues.h"
 #include <deque>
@@ -36,9 +35,9 @@ namespace Encore::RhythmEngine {
     // shouldnt be that bad once i get to the gritty part of the code
     // but holy fuck ive come so far
 
-    class NoteVector : public std::deque<EncNote> {
+    class NoteVector : public std::deque<NoteEvent> {
     public:
-        EncNote &operator[](const int i) { return this->at(i); }
+        NoteEvent &operator[](const int i) { return this->at(i); }
     };
 
     class BaseChart {
@@ -66,9 +65,9 @@ namespace Encore::RhythmEngine {
         std::vector<NoteVector::iterator> CurrentNoteIterators;
         // todo: please fix extended sustains, i really dont wanna do this right now
         // idea: use array instead of singular note
-        std::vector<EncNote*> HeldNotePointers;
-        std::vector<EncNote *> MissedNotePointers;
-        std::vector<EncNote *> DroppedSustainPointers;
+        std::vector<NoteEvent*> HeldNotePointers;
+        std::vector<NoteEvent *> MissedNotePointers;
+        std::vector<NoteEvent *> DroppedSustainPointers;
         double BaseScore = 0;
         /**
          * this DOES NOT CARE about timing or ANYTHING.
@@ -99,7 +98,7 @@ namespace Encore::RhythmEngine {
 
         void DropSustain(size_t lane) {
             if (IsHeldNotePresent(lane)) {
-                if (HeldNotePointers.at(lane)->StartSeconds + HeldNotePointers.at(lane)->LengthSeconds - 0.075 > TheSongTime.GetElapsedTime() ) {
+                if (HeldNotePointers.at(lane)->end.sec - 0.075 > TheSongTime.GetElapsedTime() ) {
                     DroppedSustainPointers.push_back(HeldNotePointers.at(lane));
                 }
                 HeldNotePointers.at(lane) = nullptr;

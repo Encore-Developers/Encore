@@ -5,9 +5,11 @@
 #ifndef ENCORE_LYRICLOADER_H
 #define ENCORE_LYRICLOADER_H
 
-#include "RhythmEngine/Chart/EncNote.h"
 #include "midifile/MidiFile.h"
+
 #include <cstdint>
+
+#include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 
 namespace Encore::RhythmEngine {
     class MidiLyricLoader {
@@ -20,7 +22,8 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList *midiEventList);
     public:
         void LoadLyrics();
-        std::vector<EncLyricPhrase> lyrics;
+        std::vector<LyricPhrase> lyrics;
+
         MidiLyricLoader(smf::MidiFile *midiFile_, int trackIdx_)
             : midiFile(midiFile_), trackIdx(trackIdx_) {
         };

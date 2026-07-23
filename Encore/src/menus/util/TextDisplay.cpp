@@ -49,6 +49,17 @@ namespace Encore
         this->color = _color;
         return *this;
     }
+
+    TextDisplay & TextDisplay::Col(const unsigned char r, const unsigned char g, const unsigned char b, const unsigned char a) {
+        this->color = {r, g, b, a};
+        return *this;
+    }
+
+    // FUCK YOU I WON'T DO WHAT YOU TELL ME!
+    TextDisplay & TextDisplay::fCol(const float r, const float g, const float b, const float a) {
+        this->color = {(unsigned char)(r*255), (unsigned char)(g*255), (unsigned char)(b*255), (unsigned char)(a*255)};
+        return *this;
+    }
     TextDisplay & TextDisplay::Align(const TextAlign _align) {
         this->align = _align;
         return *this;

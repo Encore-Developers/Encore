@@ -17,7 +17,7 @@ namespace Encore::RhythmEngine {
         std::array<std::pair<std::array<BaseChart, 4>, bool>, PitchedVocals> Charts;
         std::array<TrackInformation, PlasticVocals> Parts;
         int threshold = -1;
-        std::vector<EncLyricPhrase> Lyrics;
+        std::vector<LyricPhrase> Lyrics;
     public:
         explicit ChartHandler(std::filesystem::path fileName)
             : file(std::move(fileName)) {
@@ -29,7 +29,7 @@ namespace Encore::RhythmEngine {
         virtual ~ChartHandler() = default;
         virtual std::array<TrackInformation, PlasticVocals> &GetValidParts() = 0;
         virtual void LoadCharts() = 0;
-        virtual std::vector<EncLyricPhrase> GetLyricPhrases() = 0;
+        virtual std::vector<LyricPhrase> GetLyricPhrases() = 0;
         virtual std::pair<int, double> GetEndEvent() = 0;
         virtual std::vector<Section> GetSections() = 0;
         virtual OverdriveTicks GenerateOverdriveTicks() = 0;
@@ -47,7 +47,7 @@ namespace Encore::RhythmEngine {
         explicit ChartLoader(const std::filesystem::path &chartPath);;
 
         std::array<TrackInformation, PlasticVocals> &GetSongParts() const;
-        std::vector<EncLyricPhrase> GetLyricPhrases() const;
+        std::vector<LyricPhrase> GetLyricPhrases() const;
         OverdriveTicks GenerateOverdriveTicks() const;
         std::pair<int, double> GetEndEvent() const;
         std::vector<BPM> GetBPMChanges() const;

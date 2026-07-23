@@ -43,6 +43,8 @@ namespace Encore::RhythmEngine {
         // };
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(ControllerEvent &event) override;
+        TimePoint NextNoteTime() override;
+        TimePoint LastNoteTime() override;
         // bool CanNoteBeHit() override;
         void Overhit();
         std::shared_ptr<BaseChart> chart;

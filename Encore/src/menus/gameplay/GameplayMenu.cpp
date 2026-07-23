@@ -467,7 +467,6 @@ void GameplayMenu::Draw() {
         return;
     }
 
-    TheLyricRenderer.RenderLyrics();
 
     for (auto &stream : TheAudioManager.loadedStreams) {
         float volume = TheGameSettings.GetInactiveVolume();
@@ -523,6 +522,8 @@ void GameplayMenu::Draw() {
 
     // Score Drawing
     DrawScorebox(u, assets, scoreY);
+
+    TheLyricRenderer.RenderLyrics();
 
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
@@ -663,8 +664,8 @@ void GameplayMenu::Load() {
 
         for (auto &lane : player.engine->chart->Lanes) {
             if (lane.empty()) continue;
-            if (lane.back().LengthSeconds + lane.back().StartSeconds > LastNote) {
-                LastNote = lane.back().StartSeconds + lane.back().LengthSeconds + 1;
+            if (lane.back().end.sec > LastNote) {
+                LastNote = lane.back().end.sec + 1;
             }
         }
         tracks.push_back(track);

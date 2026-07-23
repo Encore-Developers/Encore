@@ -34,7 +34,7 @@ namespace Encore {
         void DrawTrackNotifications();
         void DrawCombo();
         void DrawJudgement();
-        TrackSlot **GetSlotsForNote(RhythmEngine::EncNote& note) const;
+        TrackSlot **GetSlotsForNote(RhythmEngine::NoteEvent& note) const;
         TrackSlot **GetSlotsForLane(uint8_t lane, bool forceMask = false) const;
 
         void UpdateControllerLED();

@@ -128,6 +128,28 @@ void Encore::Track::Draw() {
         EndMode3D();
     }
     {
+        ZoneScopedN("Countdown")
+
+        double timeTillNote = player.engine->NextNoteTime().sec - TheSongTime.GetElapsedTime();
+        if (timeTillNote > 2) {
+            Vector3 worldSpace = { 0, 2.5, 5 };
+            Vector2 screenPos = GetWorldToScreen(
+                worldSpace,
+                AnimCamera);
+            screenPos.x += Offset * GetRenderWidth() * 0.5;
+            float SoloPercentHeight = GetRenderHeight()*0.05f;
+
+            TextDisplay countdown;
+            countdown.Size(SoloPercentHeight)
+            .Pos(screenPos)
+            .Col(119, 183, 255, 255)
+            .Align(CENTER)
+            .Fnt(ASSET(redHatMono))
+            .DrawText(std::format("{:4.2f}", timeTillNote));
+
+        }
+    }
+    {
         ZoneScopedN("Debug")
         if (EncoreDebug::showDebug) {
             DrawTrackDebugWindow();
@@ -252,8 +274,8 @@ void Encore::Track::DrawOverdriveMeter() {
 
 void Encore::Track::DrawSolo() {
     for (auto solo : player.engine->chart->solos) {
-        float midPos = GetNotePos3D((solo.StartSec + (solo.StartSec + solo.EndSec)) / 2);
-        float soloLength = (solo.StartSec + solo.EndSec) - (solo.StartSec);
+        float midPos = GetNotePos3D((solo.start.sec + solo.end.sec) / 2);
+        float soloLength = solo.secLen();
         DrawCube({ 2.55, 0, midPos },
                  0.1,
                  0.1,
@@ -271,10 +293,10 @@ void Encore::Track::DrawSoloUI() {
     if (player.engine->chart->solos.empty())
         return;
 
-    solo *curSolo = &player.engine->chart->solos.at(
+    RhythmEngine::solo *curSolo = &player.engine->chart->solos.at(
         player.engine->chart->solos.CurrentEvent);
-    if (TheSongTime.GetElapsedTime() > curSolo->StartSec && TheSongTime.GetElapsedTime() <
-        curSolo->StartSec + curSolo->EndSec) {
+    if (TheSongTime.GetElapsedTime() > curSolo->start.sec && TheSongTime.GetElapsedTime() <
+        curSolo->end.sec) {
         Vector3 worldSpace = { 0, 2.5, BaseLength + 5 };
         Vector2 screenPos = GetWorldToScreen(
             worldSpace,
@@ -666,14 +688,14 @@ void Encore::Track::DrawNotes() {
         for (int curNote = NotePoolSize.second - 1; curNote >= NotePoolSize.first; curNote
              --) {
             auto *note = &player.engine->chart->at(lane).at(curNote);
-            if (note->StartSeconds > GetViewEndTime()) {
+            if (note->start.sec > GetViewEndTime()) {
                 continue;
             }
             if (player.engine->practice) {
-                if (note->StartSeconds >= player.engine->pStopTime) {
+                if (note->start.sec >= player.engine->pStopTime) {
                     continue;
                 }
-                if (note->StartSeconds < player.engine->pStartTime) {
+                if (note->start.sec < player.engine->pStartTime) {
                     continue;
                 }
             }
@@ -689,7 +711,7 @@ void Encore::Track::DrawNotes() {
     }
 
     for (auto note : player.engine->chart->MissedNotePointers) {
-        if (note->StartSeconds + note->LengthSeconds < TheSongTime.GetElapsedTime() - 5) {
+        if (note->end.sec < TheSongTime.GetElapsedTime() - 5) {
             continue;
         }
         auto slots = GetSlotsForNote(*note);
@@ -702,15 +724,15 @@ void Encore::Track::DrawNotes() {
         }
     }
     for (auto note : player.engine->chart->DroppedSustainPointers) {
-        if (note->StartSeconds + note->LengthSeconds < TheSongTime.GetElapsedTime() - 5) {
+        if (note->end.sec < TheSongTime.GetElapsedTime() - 5) {
             continue;
         }
         auto slots = GetSlotsForNote(*note);
         for (int i = 0; i < 7; i++) {
             if (slots[i]) {
                 auto slot = slots[i];
-                slot->DrawSustainTail(note->StartSeconds,
-                                      note->StartSeconds + note->LengthSeconds,
+                slot->DrawSustainTail(note->start.sec,
+                                      note->end.sec,
                                       ColorBrightness(player.QueryColorProfile(slot->colorSlot, ColorProfileType), -0.75),
                                       0);
             } else
@@ -789,7 +811,7 @@ void Encore::Track::DrawBeatlines() {
     rlDrawRenderBatchActive();
 };
 
-Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote &note) const {
+Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::NoteEvent &note) const {
     static TrackSlot *slotBuffer[7];
     int curIndex = 0;
     auto append_slot = [&](size_t index) {
@@ -799,10 +821,10 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::EncNote &note) 
         slotBuffer[curIndex] = slots[index].get();
         curIndex++;
     };
-    auto lane = note.Lane;
+    auto lane = note.lane;
     for (int i = 0; i < 6; i++) {
         if (lane & RhythmEngine::PlasticFrets[i]) {
-            if (player.Instrument == PlasticDrums && note.NoteType == 1 && player.engine->chart->size == 5) {
+            if (player.Instrument == PlasticDrums && note.type == 1 && player.engine->chart->size == 5) {
                 append_slot(i + 3);
             } else {
                 append_slot(i);

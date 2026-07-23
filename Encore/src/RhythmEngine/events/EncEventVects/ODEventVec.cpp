@@ -7,8 +7,7 @@
 void Encore::RhythmEngine::ODEvents::ResetEvents() {
     for (auto &event : *this) {
         event.NotesHit = 0;
-        event.added = false;
-        event.missed = false;
+        event.state = odPhrase::Default;
     }
 }
 
@@ -24,8 +23,8 @@ void Encore::RhythmEngine::ODEvents::UpdateEventViaNote(bool hit, int tick) {
         this->at(CurrentEvent).NotesHit++;
         Log::Trace("Overdrive note hit: {}/{}", this->at(CurrentEvent).NotesHit, this->at(CurrentEvent).NoteCount);
     }
-    if (!hit && !this->at(CurrentEvent).missed) {
-        this->at(CurrentEvent).missed = true;
+    if (!hit && !this->at(CurrentEvent).missed()) {
+        this->at(CurrentEvent).state = odPhrase::Missed;
 
         Log::Trace("Overdrive note missed: {}/{}", this->at(CurrentEvent).NotesHit + 1, this->at(CurrentEvent).NoteCount);
     }
@@ -48,7 +47,7 @@ void Encore::RhythmEngine::ODEvents::MissCurrentEvent(int eventTime) {
         return;
 
     if (TickDuringCurrentEvent(eventTime))
-        this->at(CurrentEvent).missed = true;
+        this->at(CurrentEvent).state = odPhrase::Missed;
 }
 
 bool Encore::RhythmEngine::ODEvents::RenderNotesAsOD(double time) const {
@@ -57,8 +56,8 @@ bool Encore::RhythmEngine::ODEvents::RenderNotesAsOD(double time) const {
     }
 
     for (auto &event : *this) {
-        if ((time >= event.StartSec
-            && time < event.StartSec + event.EndSec) && !event.missed) {
+        if ((time >= event.start.sec
+            && time < event.end.sec) && event.state != odPhrase::Missed) {
             return true;
             }
     }
@@ -69,8 +68,8 @@ bool Encore::RhythmEngine::ODEvents::TickDuringCurrentEvent(int tick) {
     if (CurrentEvent >= this->size())
         return false;
 
-    if (tick >= this->at(CurrentEvent).StartTick
-        && tick < this->at(CurrentEvent).StartTick + this->at(CurrentEvent).TickLength) {
+    if (tick >= this->at(CurrentEvent).start.tick
+        && tick < this->at(CurrentEvent).end.tick) {
         return true;
         }
     return false;
@@ -86,24 +85,24 @@ bool Encore::RhythmEngine::ODEvents::Perfect() {
 }
 
 float Encore::RhythmEngine::ODEvents::CheckOverdrive(double sec) {
-    if (CurrentEvent >= this->size())
+    if (CurrentEvent >= this->size() || sec < this->at(CurrentEvent).start.sec)
         return 0;
 
     float valueToReturn = 0;
     // if we're at the end of the event
     // and the event can potentially have overdrive added
-    if (this->Perfect() && !this->at(CurrentEvent).missed && !this->at(CurrentEvent).added) {
+    if (this->Perfect() && !this->at(CurrentEvent).added()) {
         // add overdrive
         valueToReturn = 0.25f;
         Log::Trace("Perfect Overdrive phrase");
         Log::Trace("Removing Overdrive phrase");
         // increment if possible, make sure that the last overdrive gets added
-        this->at(CurrentEvent).added = true;
+        this->at(CurrentEvent).state = odPhrase::Added;
         if (CurrentEvent < this->size())
             CurrentEvent++;
         return valueToReturn;
     }
-    if (this->at(CurrentEvent).missed) {
+    if (this->at(CurrentEvent).missed()) {
         Log::Trace("Removing Overdrive phrase");
         // increment if possible, make sure that the last overdrive gets added
         if (CurrentEvent < this->size())

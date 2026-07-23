@@ -31,16 +31,16 @@ void SongTime::BeatmapFromMidiTrack(smf::MidiFile &midiFile, int songEndTick) {
  */
 
 
-Encore::RhythmEngine::EncLyricPhrase &SongTime::GetCurrentLyric() {
+Encore::RhythmEngine::LyricPhrase &SongTime::GetCurrentLyric() {
     return Lyrics.at(CurrentLyricPhrase);
 }
-Encore::RhythmEngine::EncLyricPhrase *SongTime::GetNextLyric() {
+Encore::RhythmEngine::LyricPhrase *SongTime::GetNextLyric() {
     if (CurrentLyricPhrase < Lyrics.size() - 1) {
         return &Lyrics.at(CurrentLyricPhrase + 1);
     }
     return nullptr;
 }
-Encore::RhythmEngine::EncLyricPhrase *SongTime::GetPreviousLyric() {
+Encore::RhythmEngine::LyricPhrase *SongTime::GetPreviousLyric() {
     if (CurrentLyricPhrase > 0) {
         return &Lyrics.at(CurrentLyricPhrase - 1);
     }

@@ -522,8 +522,8 @@ void resultsMenu::DrawHistogram(Player &player, Rectangle rect, float cardHeight
     float perfectNormalized = (perfectBackend/goodBackend)*1;
 
     for (auto& solo : player.engine->chart->solos) {
-        float leftPos = HistogramBox.x + (HistogramBox.width * (solo.StartSec / songLength));
-        float rightPos = HistogramBox.width * (solo.EndSec / songLength);
+        float leftPos = HistogramBox.x + (HistogramBox.width * (solo.start.sec / songLength));
+        float rightPos = HistogramBox.width * (solo.secLen() / songLength);
         Rectangle solorec {leftPos, HistogramBox.y, rightPos, HistogramBox.height};
 
         DrawRectangleRec(solorec, ColorAlpha(SKYBLUE, 0.5));

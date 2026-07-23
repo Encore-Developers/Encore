@@ -151,9 +151,9 @@ GenerateOverdriveTicks() {
     return OverdriveTicks{};
 }
 
-std::vector<Encore::RhythmEngine::EncLyricPhrase> Encore::RhythmEngine::DotChartHandler::
+std::vector<Encore::RhythmEngine::LyricPhrase> Encore::RhythmEngine::DotChartHandler::
 GetLyricPhrases() {
-    return std::vector<EncLyricPhrase>{};
+    return std::vector<LyricPhrase>{};
 }
 
 void Encore::RhythmEngine::DotChartHandler::LoadCharts() {

@@ -130,8 +130,8 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, double SongTime) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;
-    EncNote &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
-    if (CurrentNote.StartSeconds + goodBackend < SongTime
+    NoteEvent &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
+    if (CurrentNote.start.sec + goodBackend < SongTime
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
         GhostCount = 0;
         MissNote(Lane);
@@ -140,10 +140,10 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, double Song
 }
 
 void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
-    int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->Lane);
+    int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->lane);
     if (chordSize == 0) chordSize = 1;
-    int startTick = chart->CurrentNoteIterators.at(lane)->StartTicks;
-    double startTime = chart->CurrentNoteIterators.at(lane)->StartSeconds;
+    int startTick = chart->CurrentNoteIterators.at(lane)->start.tick;
+    double startTime = chart->CurrentNoteIterators.at(lane)->start.sec;
     const double offset = (stats->InputTime) - startTime;
 
     stats->accuracies.emplace_back(startTime, offset, false);
@@ -212,13 +212,13 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
-    stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->StartSeconds, 0, true);
+    stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->start.sec, 0, true);
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).notes++;
     stats->MissNote();
-    chart->overdrive.MissCurrentEvent(chart->CurrentNoteIterators.at(lane)->StartTicks);
+    chart->overdrive.MissCurrentEvent(chart->CurrentNoteIterators.at(lane)->start.tick);
     chart->overdrive.UpdateEventViaNote(
-        false, chart->CurrentNoteIterators.at(lane)->StartTicks
+        false, chart->CurrentNoteIterators.at(lane)->start.tick
     );
     chart->MissedNotePointers.push_back(&*chart->CurrentNoteIterators.at(lane));
 
@@ -231,9 +231,9 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
             if (earliestNoteTime == 0.0)
-                earliestNoteTime = chart->at(i).front().StartSeconds;
-            if (earliestNoteTime > chart->at(i).front().StartSeconds) {
-                earliestNoteTime = chart->at(i).front().StartSeconds;
+                earliestNoteTime = chart->at(i).front().start.sec;
+            if (earliestNoteTime > chart->at(i).front().start.sec) {
+                earliestNoteTime = chart->at(i).front().start.sec;
             }
         }
     }
@@ -252,7 +252,7 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     FireEventTemp(OverhitEvent(lane));
     stats->Overhit();
     chart->overdrive.UpdateEventViaNote(
-        false, chart->CurrentNoteIterators.at(lane)->StartTicks
+        false, chart->CurrentNoteIterators.at(lane)->start.tick
     );
 }
 void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int difficulty) {

@@ -4,8 +4,8 @@
 #include "EventVectors.h"
 
 bool Encore::RhythmEngine::SoloEvents::TickDuringCurrentEvent(int tick) {
-    if (tick >= this->at(CurrentEvent).StartTick
-        && tick < this->at(CurrentEvent).StartTick + this->at(CurrentEvent).TickLength) {
+    if (tick >= this->at(CurrentEvent).start.tick
+        && tick < this->at(CurrentEvent).end.tick) {
         return true;
         }
     return false;
@@ -15,7 +15,7 @@ void Encore::RhythmEngine::SoloEvents::CheckEvents(double time) {
     if (this->empty())
         return;
 
-    if (CurrentEvent < this->size() - 1 && time >= this->at(CurrentEvent).EndSec + this->at(CurrentEvent).StartSec) {
+    if (CurrentEvent < this->size() - 1 && time >= this->at(CurrentEvent).end.sec) {
         CurrentEvent++;
     }
 }

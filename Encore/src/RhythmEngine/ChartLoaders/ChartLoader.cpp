@@ -20,7 +20,7 @@ GetSongParts() const {
     return chartHandler->GetValidParts();
 }
 
-std::vector<Encore::RhythmEngine::EncLyricPhrase> Encore::RhythmEngine::ChartLoader::
+std::vector<Encore::RhythmEngine::LyricPhrase> Encore::RhythmEngine::ChartLoader::
 GetLyricPhrases() const {
     return chartHandler->GetLyricPhrases();
 }

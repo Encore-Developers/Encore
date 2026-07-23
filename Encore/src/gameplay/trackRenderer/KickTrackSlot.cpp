@@ -11,13 +11,13 @@
 
 
 
-void Encore::KickTrackSlot::DrawNote(RhythmEngine::EncNote *note, bool missed) {
-    auto pos = track->GetNotePos3D(note->StartSeconds);
+void Encore::KickTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) {
+    auto pos = track->GetNotePos3D(note->start.sec);
     Vector3 position = { xPos, 0.0, pos };
 
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
-    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->StartSeconds)) {
+    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
         color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, track->ColorProfileType));
     } else {
