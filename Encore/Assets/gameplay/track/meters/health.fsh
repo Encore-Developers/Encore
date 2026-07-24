@@ -16,22 +16,28 @@ uniform float Fade;
 out vec4 finalColor;
 
 vec4 meter(vec2 pos, vec4 color) {
-    if (pos.y < SolidPct) {
-        return color;
-    } else {
-        return vec4(color.xyz, mix(GlowIntensity, 0, smoothstep(SolidPct, GlowBottomPct, pos.y)));
-    }
+    vec4 glow = vec4(color.xyz, mix(GlowIntensity, 0, smoothstep(SolidPct, GlowBottomPct, pos.y)));
+    return mix(color, glow, smoothstep(SolidPct, SolidPct+0.02, pos.y));
 }
 
 vec4 sample(vec2 pos) {
-    if (pos.x <= FillPct) {
-        return meter(pos, MainColor);
-    } else if (pos.x <= FillResidualPct) {
-        return meter(pos, ResidualColor);
+    vec4 main = meter(pos, MainColor);
+    vec4 resid = meter(pos, ResidualColor);
+    float epsilon = 0;
+    if (FillResidualPct > 0.01) {
+        epsilon = 0.01;
     }
-    return vec4(0.0);
+    vec4 filled = mix(main, resid, smoothstep(FillPct, FillPct+epsilon, pos.x));
+    return mix(filled, vec4(0.0), smoothstep(FillResidualPct, FillResidualPct+epsilon, pos.x));
 }
 
 void main() {
-    finalColor = sample(fragTexCoord) * vec4(1.0, 1.0, 1.0, Fade);
+    vec4 accumulate = vec4(0.0);
+    accumulate += sample(fragTexCoord+vec2(0.001, 0.0));
+    accumulate += sample(fragTexCoord+vec2(-0.001, 0.0));
+    accumulate += sample(fragTexCoord+vec2(0, 0.001));
+    accumulate += sample(fragTexCoord+vec2(0, -0.001));
+    accumulate += sample(fragTexCoord);
+    accumulate /= 5;
+    finalColor = accumulate * vec4(1.0, 1.0, 1.0, Fade);
 }
