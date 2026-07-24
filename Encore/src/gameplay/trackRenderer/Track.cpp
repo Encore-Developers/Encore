@@ -59,7 +59,7 @@ void Encore::Track::Draw() {
     {
         ZoneScopedN("Track Shader Uniforms")
         for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                             ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
+                             ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader), ASSETPTR(healthMeterShader),
                              ASSETPTR(multiplierFillShader),
                              ASSETPTR(indicatorRingShader),
                              ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader) }) {
@@ -245,14 +245,7 @@ void Encore::Track::DrawSurface() {
 void Encore::Track::DrawOverdriveMeter() {
     ZoneScoped;
 
-    // int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
-    // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
-    // int flashInterval = (numer * 480) / denom;
-    // warning: 0.25
-    // fine: 0.75
-    // good: 1.0
-    float Percentage = 1 - TheSongTime.GetBeatlineDelta();
-    Color healthColor = ColorLerp(YELLOW, GREEN, player.engine->stats->Health);
+    //Color healthColor = ColorLerp(YELLOW, GREEN, player.engine->stats->Health);
     //if (player.engine->stats->Health < 0.25) {
     //    healthColor = ColorLerp(MAROON, RED, Remap(player.engine->stats->Health, 0, 0.25, 0, 1.0));
     //} else if (player.engine->stats->Health < 0.75) {
@@ -261,7 +254,7 @@ void Encore::Track::DrawOverdriveMeter() {
     //    healthColor = ColorLerp(YELLOW, GREEN, Remap(player.engine->stats->Health, 0.75, 1.0, 0, 1.0));
     //}
     // testing
-    ASSET(overdriveShader).SetUniform("fade", 1.0f);
+    /*ASSET(overdriveShader).SetUniform("fade", 1.0f);
     ASSET(overdriveShader).SetUniform("BaseColor", Color{0,0,0,0});
     if (player.engine->stats->Health < 0.25) {
         ASSET(overdriveShader).SetUniform("FillColor", ColorAlpha(ColorBrightness(RED, 1-Percentage), Percentage));
@@ -304,6 +297,8 @@ void Encore::Track::DrawOverdriveMeter() {
                 { 0.875, 0.7, 0.875 },
                 player.AccentColor);
 
+    */
+    float Percentage = 1 - TheSongTime.GetBeatlineDelta();
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
@@ -312,7 +307,36 @@ void Encore::Track::DrawOverdriveMeter() {
                                       1.0f - player.engine->stats->overdrive.Fill);
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
-    ASSET(overdriveShader).SetUniform("fade", 0.0f);
+
+    static float SolidPct = 0.11;
+    ImGui::SliderFloat("SolidPct", &SolidPct, 0.0f, 1.0f);
+    static float GlowBottomPct = 0.5;
+    ImGui::SliderFloat("GlowBottomPct", &GlowBottomPct, 0.0f, 1.0f);
+    ImGui::SliderFloat("Health Fade", &HealthFade, 0.0f, 1.0f);
+    ImGui::DragFloat("Time Full", &TimeFull, 0.01f);
+    if (AnimHealth > player.engine->stats->Health) {
+        ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
+        ASSET(healthMeterShader).SetUniform("ResidualColor", RED);
+        ASSET(healthMeterShader).SetUniform("FillPct", player.engine->stats->Health);
+        ASSET(healthMeterShader).SetUniform("FillResidualPct", AnimHealth);
+    } else {
+        ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
+        ASSET(healthMeterShader).SetUniform("ResidualColor", ColorLerp(GREEN, WHITE, 0.95));
+        ASSET(healthMeterShader).SetUniform("FillPct", AnimHealth);
+        ASSET(healthMeterShader).SetUniform("FillResidualPct", player.engine->stats->Health);
+    }
+
+    ASSET(healthMeterShader).SetUniform("SolidPct", SolidPct + HealthChangeTimer * HealthChangeTimer * 0.1);
+    ASSET(healthMeterShader).SetUniform("GlowBottomPct", GlowBottomPct + HealthChangeTimer * HealthChangeTimer * 0.1);
+    ASSET(healthMeterShader).SetUniform("GlowIntensity", 0.7);
+    ASSET(healthMeterShader).SetUniform("Fade", HealthFade);
+
+    DrawModelEx(ASSET(healthMeter),
+                { 0, -0.1, -0.85 },
+                { 1, 0, 0 },
+                60,
+                { 0.95, 0.8, 0.95 },
+                WHITE);
 
     DrawModelEx(ASSET(overdriveMeter),
                 { 0, -0.1, -0.85 },
@@ -624,16 +648,19 @@ void Encore::Track::DrawCombo() {
     if (player.engine->stats->Combo > 0) {
         comboDisplay.DrawText(comboNum);
     }
-    float HighwayPixelsOnScreen = (ScreenTrackStartPoint.y - ScreenTrackEndPoint.y) * Scale;
-    float NotHighwayPixelsOnScreen = GetRenderHeight() - HighwayPixelsOnScreen;
-    std::string gn = std::to_string(int((Length / GetZPerSecond()) * 1000));
-    std::string wn = std::to_string(std::abs(int((NotHighwayPixelsOnScreen / float(GetRenderHeight())) * 1000)));
-    comboDisplay.AddX(comboDisplay.TextWidth("00000"))
-    .Col(ColorAlpha(RAYWHITE, 0.75))
-    .DrawText(wn)
-    .AddX(comboDisplay.TextWidth(wn) * 1.25f)
-    .Col(ColorAlpha(GREEN, 0.75))
-    .DrawText(gn);
+    if (EncoreDebug::showDebug) {
+        float HighwayPixelsOnScreen = (ScreenTrackStartPoint.y - ScreenTrackEndPoint.y) * Scale;
+        float NotHighwayPixelsOnScreen = GetRenderHeight() - HighwayPixelsOnScreen;
+        std::string gn = std::to_string(int((Length / GetZPerSecond()) * 1000));
+        std::string wn = std::to_string(std::abs(int((NotHighwayPixelsOnScreen / float(GetRenderHeight())) * 1000)));
+        comboDisplay.AddX(comboDisplay.TextWidth("00000"))
+        .Col(ColorAlpha(RAYWHITE, 0.75))
+        .DrawText(wn)
+        .AddX(comboDisplay.TextWidth(wn) * 1.25f)
+        .Col(ColorAlpha(GREEN, 0.75))
+        .DrawText(gn);
+    }
+
 }
 
 void Encore::Track::DrawJudgement() {
@@ -969,7 +996,6 @@ void Encore::Track::HandleEvent(Event *event) {
     if (auto healthChangeEvent = event->GetTyped<HealthChangeEvent>()) {
         if (player.engine->stats->Health < 1 && player.engine->stats->Health > 0) {
             HealthChangeTimer = 1;
-            AnimHealth += healthChangeEvent->amount;
         }
     }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
@@ -1045,18 +1071,22 @@ void Encore::Track::ProcessAnimation() {
         IntroTimer = 0;
     }
     if (HealthChangeTimer > 0)
-        HealthChangeTimer -= GetFrameTime();
+        HealthChangeTimer -= GetFrameTime() * 5;
     else {
         HealthChangeTimer = 0;
     }
     float ChangeAmount = GetFrameTime() / 12;
     if (HealthChangeTimer == 0) ChangeAmount = GetFrameTime() * 2;
-    if (AnimHealth > 0) {
-        AnimHealth -= ChangeAmount;
-        if (AnimHealth < 0) AnimHealth = 0;
-    } else if (AnimHealth < 0) {
-        AnimHealth += ChangeAmount;
-        if (AnimHealth > 0) AnimHealth = 0;
+    AnimHealth = Lerp(AnimHealth, player.engine->stats->Health, 1 - expf(-10*GetFrameTime()));
+    if (player.engine->stats->Health >= 1) {
+        TimeFull += GetFrameTime();
+    } else {
+        TimeFull = 0;
+    }
+    if (TimeFull > 1) {
+        HealthFade = Lerp(HealthFade, 0, 1 - expf(-3*GetFrameTime()));
+    } else {
+        HealthFade = Lerp(HealthFade, 1, 1 - expf(-12*GetFrameTime()));
     }
     auto ease = getEasingFunction(EaseInQuad);
     auto easeout = getEasingFunction(EaseInQuart);

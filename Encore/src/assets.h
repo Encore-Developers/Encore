@@ -657,13 +657,36 @@ public:
                                 "trackLength",
                                 "fadeSize",
                                 "offset",
-                                "scale",
-                                "fade"},
+                                "scale"},
 
                                 [this](Shader* asset) {
                                 asset->locs[SHADER_LOC_MAP_EMISSION] =
                                 overdriveShader.GetUniformLoc("FillTexture");
                                 });
+
+    NEWSHADERASSET(healthMeterShader,
+                                "gameplay/track/meters/health.fsh",
+                                "gameplay/track/trackCurve.vsh",
+                                {"MainColor",
+                                "ResidualColor",
+                                "FillTexture",
+                                "FillPct",
+                                "curveFac",
+                                "trackLength",
+                                "fadeSize",
+                                "offset",
+                                "scale",
+                                "FillResidualPct",
+                                "SolidPct",
+                                "GlowBottomPct",
+                                "GlowIntensity",
+                                "Fade"});
+
+    NEWLEGACYMODELASSET(healthMeter,
+                        "gameplay/track/meters/health_meter.obj",
+                        [this](Model* model) {
+                            model->materials[0].shader = healthMeterShader;
+                        });
 
     NEWLEGACYMODELASSET(overdriveMeter,
                         "gameplay/track/meters/overdrive_meter.obj",

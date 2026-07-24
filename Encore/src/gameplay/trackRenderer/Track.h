@@ -84,6 +84,8 @@ namespace Encore {
         float JudgementTimer = 0;
         float HealthChangeTimer = 0;
         double AnimHealth = 0.0;
+        float TimeFull = 100.0f;
+        float HealthFade = 0.0f;
         int JudgementType = 0;
         float LastHitOffset = 0;
         // The column of the screen that this track can occupy. Used for multiplayer positioning.
