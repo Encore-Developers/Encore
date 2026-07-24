@@ -12,6 +12,27 @@ namespace Encore::RhythmEngine {
         double sec;
         int tick;
         explicit TimePoint(const double _sec, const int _tick) : sec(_sec), tick(_tick) {}
+
+        bool operator>(const TimePoint& tp) const {
+            return sec > tp.sec && tick > tp.tick;
+        }
+        bool operator>=(const TimePoint& tp) const {
+            return sec >= tp.sec && tick >= tp.tick;
+        }
+
+        bool operator<(const TimePoint& tp) const {
+            return sec < tp.sec && tick < tp.tick;
+        }
+        bool operator<=(const TimePoint& tp) const {
+            return sec <= tp.sec && tick <= tp.tick;
+        }
+
+        bool operator==(const TimePoint& tp) const {
+            return sec == tp.sec && tick == tp.tick;
+        }
+        bool operator!=(const TimePoint& tp) const {
+            return sec != tp.sec && tick != tp.tick;
+        }
     };
 
     struct Event {

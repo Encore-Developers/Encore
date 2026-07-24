@@ -309,3 +309,37 @@ void Encore::RhythmEngine::BaseEngine::UpdateCalibration(const double playerInpu
     // stats->InputOffset is in seconds, our settings values are in ms
     stats->InputOffset = (playerInputOffset + TheGameSettings.VideoOffset)/1000.0; // TODO: this isn't the right way to calculate this
 }
+
+Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {
+    TimePoint tp{0,0};
+    for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
+        if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
+            continue;
+        if (tp.tick == 0 && tp.sec == 0) tp = chart->CurrentNoteIterators.at(Lane)->start;
+        if (chart->CurrentNoteIterators.at(Lane)->start < tp) tp = chart->CurrentNoteIterators.at(Lane)->start;
+    }
+    return tp;
+}
+
+
+Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::LastNoteTime() {
+    TimePoint tp{0,0};
+    for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
+        if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end()) continue;
+        auto lastNote = (chart->CurrentNoteIterators.at(Lane)-1);
+        if (lastNote < chart->at(Lane).begin())
+            continue;
+        if (tp.tick == 0 && tp.sec == 0) {
+            tp = lastNote->start;
+            continue;
+        }
+        if (lastNote->start > tp) {
+            if (lastNote->end.tick == 0) {
+                tp = lastNote->start;
+            } else {
+                tp = lastNote->end;
+            }
+        }
+    }
+    return tp;
+}

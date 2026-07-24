@@ -23,6 +23,7 @@ namespace Encore::RhythmEngine {
         void UpdateOnFrame(double CurrentTime) override;
         void SetStatsInputState(ControllerEvent &event) override;
         TimePoint NextNoteTime() override;
+        TimePoint LastNoteTime() override;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<DrumsStats> stats;
         Player* player;

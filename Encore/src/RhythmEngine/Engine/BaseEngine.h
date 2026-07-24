@@ -63,8 +63,8 @@ namespace Encore::RhythmEngine {
 
         // bool GetCurrentNote(int lane);
         // virtual bool CanNoteBeHit();
-        virtual TimePoint NextNoteTime() { return TimePoint(-1,-1); };
-        virtual TimePoint LastNoteTime() { return TimePoint(-1,-1); };
+        virtual TimePoint NextNoteTime();
+        virtual TimePoint LastNoteTime();
         bool IsWithinPracticeSection(double time) const;
         virtual void UpdateOnFrame(double CurrentTime) {};
         void BaseUpdateOnFrame(double CurrentTime);

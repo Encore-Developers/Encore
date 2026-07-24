@@ -76,7 +76,7 @@ void Encore::RhythmEngine::MidiDrumsLoader::GetChartEvents(smf::MidiEventList &t
 }
 void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &event) {
     Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
-    uint8_t lane = GetEventLane(Difficulty, event);
+    int lane = GetEventLane(Difficulty, event);
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;

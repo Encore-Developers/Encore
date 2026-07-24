@@ -155,3 +155,7 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(const double CurrentTime) {
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::PadEngine::NextNoteTime() {
     return BaseEngine::NextNoteTime();
 }
+
+Encore::RhythmEngine::TimePoint Encore::RhythmEngine::PadEngine::LastNoteTime() {
+    return BaseEngine::LastNoteTime();
+}

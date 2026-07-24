@@ -35,7 +35,7 @@ namespace Encore::RhythmEngine {
     // shouldnt be that bad once i get to the gritty part of the code
     // but holy fuck ive come so far
 
-    class NoteVector : public std::deque<NoteEvent> {
+    class NoteVector : public std::vector<NoteEvent> {
     public:
         NoteEvent &operator[](const int i) { return this->at(i); }
     };

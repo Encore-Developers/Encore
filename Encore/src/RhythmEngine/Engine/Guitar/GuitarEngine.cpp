@@ -139,6 +139,8 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
         int chordMult = heldNote->lane == 0 ? 25 : std::popcount(heldNote->lane);
         stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick
             * stats->multiplier()) * chordMult);
+        stats->Health += (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * 0.0005);
+        if (stats->Health > 1) stats->Health = 1;
     }
     if (heldNote && heldNote->end.sec <= CurrentTime) {
         chart->DropSustain(0);

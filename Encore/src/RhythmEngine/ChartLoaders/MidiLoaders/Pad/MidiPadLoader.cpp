@@ -83,7 +83,7 @@ void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event
         pNote.start,
         pNote.end,
         GetNoteType(event),
-        PlasticFrets[lane]
+        lane
     );
 
     if (!chart.sections.empty()) {

@@ -66,6 +66,10 @@ Encore::RhythmEngine::TimePoint Encore::RhythmEngine::DrumsEngine::NextNoteTime(
     return BaseEngine::NextNoteTime();
 }
 
+Encore::RhythmEngine::TimePoint Encore::RhythmEngine::DrumsEngine::LastNoteTime() {
+    return BaseEngine::LastNoteTime();
+}
+
 int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     if (event.channel > IntIC(chart->size-1))
