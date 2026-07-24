@@ -191,9 +191,9 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         stats->Accuracy += acc;
 
         if (acc < 0.3) {
-            stats->Health -= getHealthGain(healthGainPerNote * (1.0-acc));
+            stats->Health -= getHealthGain((healthGainPerNote * (1.0-acc)) * (stats->multNoOD()));
             if (stats->Health < 0) stats->Health = 0;
-            HealthChangeEvent hce(-(getHealthGain(healthGainPerNote * (1.0-acc))));
+            HealthChangeEvent hce(-(getHealthGain((healthGainPerNote * (1.0-acc)) * (stats->multNoOD()))));
             FireEvent(&hce);
         } else {
             stats->Health += getHealthGain(healthGainPerNote * acc);
@@ -232,14 +232,17 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
-    auto getHealthLoss = [this](const double amount) {
+    auto getHealthLoss = [this](const double amount, bool combobreak) {
+        double mult = 1;
+        if (combobreak) mult = stats->multNoOD() * 2;
         if (stats->overdrive.Active)
-            return amount * healthOverdriveLossMult;
-        return amount;
+            return amount * healthOverdriveLossMult * mult;
+        return amount * mult;
     };
-    stats->Health -= getHealthLoss(healthLossPerNote);
+    bool cbreak = stats->multNoOD() >= 4;
+    stats->Health -= getHealthLoss(healthLossPerNote, cbreak);
     if (stats->Health < 0) stats->Health = 0;
-    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote));
+    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote, cbreak));
     FireEvent(&hce);
     stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->start.sec, 0, true);
     if (!chart->sections.empty())
@@ -255,14 +258,17 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
-    auto getHealthLoss = [this](const double amount) {
+    auto getHealthLoss = [this](const double amount, bool combobreak) {
+        double mult = 1;
+        if (combobreak) mult = stats->multNoOD() * 2;
         if (stats->overdrive.Active)
-            return amount * healthOverdriveLossMult;
-        return amount;
+            return amount * healthOverdriveLossMult * mult;
+        return amount * mult;
     };
-    stats->Health -= getHealthLoss(healthLossPerNote);
+    bool cbreak = stats->multNoOD() >= 4;
+    stats->Health -= getHealthLoss(healthLossPerNote, cbreak);
     if (stats->Health < 0) stats->Health = 0;
-    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote));
+    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote, cbreak));
     FireEvent(&hce);
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
