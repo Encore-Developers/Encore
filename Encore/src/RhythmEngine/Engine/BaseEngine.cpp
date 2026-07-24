@@ -176,11 +176,26 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
         Log::Debug("Accuracy: {}", 1);
+        stats->Health += healthGainPerNote;
+        if (stats->Health > 1) stats->Health = 1;
+        HealthChangeEvent hce(healthGainPerNote);
+        FireEvent(&hce);
     } else {
         double acc = (goodFrontend - std::abs(offset)) / goodFrontend;
         if (acc < 0) acc = 0;
         stats->Accuracy += acc;
 
+        if (acc < 0.3) {
+            stats->Health -= healthGainPerNote * (1.0-acc);
+            if (stats->Health < 0) stats->Health = 0;
+            HealthChangeEvent hce(-(healthGainPerNote * (1.0-acc)));
+            FireEvent(&hce);
+        } else {
+            stats->Health += healthGainPerNote * acc;
+            if (stats->Health > 1) stats->Health = 1;
+            HealthChangeEvent hce(healthGainPerNote * acc);
+            FireEvent(&hce);
+        }
         Log::Debug("Accuracy: {}", acc);
     }
 
@@ -212,6 +227,10 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
+    stats->Health -= healthLossPerNote;
+    if (stats->Health < 0) stats->Health = 0;
+    HealthChangeEvent hce(-healthLossPerNote);
+    FireEvent(&hce);
     stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->start.sec, 0, true);
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).notes++;
@@ -226,7 +245,10 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
-
+    stats->Health -= healthLossPerNote;
+    if (stats->Health < 0) stats->Health = 0;
+    HealthChangeEvent hce(-healthLossPerNote);
+    FireEvent(&hce);
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {

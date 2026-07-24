@@ -42,6 +42,12 @@ namespace Encore {
         explicit MultFlashEvent(const bool comboBreak) : comboBreak(comboBreak) {};
     };
 
+    class HealthChangeEvent : public Event {
+        public:
+        double amount = 0.0;
+        explicit HealthChangeEvent(const double amount) : amount(amount) {};
+    };
+
     class TrackNotificationEvent : public Event {
     public:
         enum TrackNotificationType {

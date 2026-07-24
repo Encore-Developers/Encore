@@ -8,7 +8,7 @@ uniform vec4 BaseColor;
 uniform sampler2D FillTexture;
 uniform sampler2D texture0;
 uniform lowp float FillPct;
-
+uniform float fade = 0.0;
 out vec4 finalColor;
 
 void main() {
@@ -19,9 +19,13 @@ void main() {
 
     // should this spot be filled because of overdrive?
     float overdriveFill = smoothstep(FillPct-0.005, FillPct+0.005, 1.0-fragTexCoord.x);
-
-    finalColor = mix(textureColor, FillColor, maskOn*overdriveFill);
-    // if (maskOn > 0.0) {
+	
+	if (fade > 0.5) {
+		finalColor = mix(textureColor, FillColor, maskOn*overdriveFill) * mix(1, 0, fragTexCoord.y);
+    } else {
+		finalColor = mix(textureColor, FillColor, maskOn*overdriveFill);
+	}
+	// if (maskOn > 0.0) {
     //    if (overdriveFill > 0.0) {
     //        finalColor = FillColor;
     //    } else {

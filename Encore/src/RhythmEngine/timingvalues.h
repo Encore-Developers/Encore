@@ -23,6 +23,6 @@ constexpr float healthLossPerNote = 0.03f;
 constexpr float healthGainPerNote = 0.015f;
 constexpr float healthLossSustainDrop = 0.01f;
 constexpr float healthOverdriveGainMult = 3.0f;
-
+constexpr double defaultHealth = 0.75f;
 #define SUSTAIN_DROP_THRESHOLD 240
 #define NOTE_POOL_SIZE 100

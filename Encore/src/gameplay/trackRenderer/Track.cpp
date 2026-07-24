@@ -132,7 +132,10 @@ void Encore::Track::Draw() {
 
         double cdSec = player.engine->NextNoteTime().sec - TheSongTime.GetElapsedTime();
         double timeTillNote = player.engine->NextNoteTime().sec - player.engine->LastNoteTime().sec;
-        if (player.engine->LastNoteTime().tick > 0 && timeTillNote > 2 && TheSongTime.GetElapsedTime() > player.engine->LastNoteTime().sec && cdSec > 0.5) {
+        if (player.engine->LastNoteTime().tick > 0
+            && timeTillNote > 2
+            && TheSongTime.GetElapsedTime() > player.engine->LastNoteTime().sec
+            && cdSec > 0.5) {
             Vector3 worldSpace = { 0, 2.5, 5 };
             Vector2 screenPos = GetWorldToScreen(
                 worldSpace,
@@ -234,8 +237,61 @@ void Encore::Track::DrawOverdriveMeter() {
     // int denom = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).denom;
     // int numer = TheSongTime.TimeSigChanges.at(TheSongTime.CurrentTimeSig).numer;
     // int flashInterval = (numer * 480) / denom;
-
+    // warning: 0.25
+    // fine: 0.75
+    // good: 1.0
     float Percentage = 1 - TheSongTime.GetBeatlineDelta();
+    Color healthColor = ColorLerp(YELLOW, GREEN, player.engine->stats->Health);
+    //if (player.engine->stats->Health < 0.25) {
+    //    healthColor = ColorLerp(MAROON, RED, Remap(player.engine->stats->Health, 0, 0.25, 0, 1.0));
+    //} else if (player.engine->stats->Health < 0.75) {
+    //    healthColor = ColorLerp(RED, YELLOW, Remap(player.engine->stats->Health, 0.25, 0.75, 0, 1.0));
+    //} else if (player.engine->stats->Health >= 0.75) {
+    //    healthColor = ColorLerp(YELLOW, GREEN, Remap(player.engine->stats->Health, 0.75, 1.0, 0, 1.0));
+    //}
+    // testing
+    ASSET(overdriveShader).SetUniform("fade", 1.0f);
+    ASSET(overdriveShader).SetUniform("BaseColor", Color{0,0,0,0});
+    if (player.engine->stats->Health < 0.25) {
+        ASSET(overdriveShader).SetUniform("FillColor", ColorAlpha(ColorBrightness(RED, 1-Percentage), Percentage));
+        ASSET(overdriveShader).SetUniform("FillPct", 0.0f);
+        DrawModelEx(ASSET(overdriveMeter),
+                { 0, -0.19, -1 },
+                { 1, 0, 0 },
+                60,
+                { 0.875, 0.7, 0.875 },
+                player.AccentColor);
+    }
+
+    // losing health
+    if (AnimHealth < 0) {
+        ASSET(overdriveShader).SetUniform("FillColor", ColorBrightness(RED, 0.5));
+        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - (player.engine->stats->Health - AnimHealth));
+    } else {
+        ASSET(overdriveShader).SetUniform("FillColor", WHITE);
+        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - player.engine->stats->Health);
+    }
+    DrawModelEx(ASSET(overdriveMeter),
+                    { 0, -0.19, -1 },
+                    { 1, 0, 0 },
+                    60,
+                    { 0.875, 0.7, 0.875 },
+                    player.AccentColor);
+    // losing health
+    if (AnimHealth < 0) {
+        ASSET(overdriveShader).SetUniform("FillColor", healthColor);
+        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - player.engine->stats->Health);
+    } else {
+        ASSET(overdriveShader).SetUniform("FillColor", healthColor);
+        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - (player.engine->stats->Health - AnimHealth));
+    }
+    DrawModelEx(ASSET(overdriveMeter),
+                { 0, -0.19, -1 },
+                { 1, 0, 0 },
+                60,
+                { 0.875, 0.7, 0.875 },
+                player.AccentColor);
+
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
@@ -244,6 +300,7 @@ void Encore::Track::DrawOverdriveMeter() {
                                       1.0f - player.engine->stats->overdrive.Fill);
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
+    ASSET(overdriveShader).SetUniform("fade", 0.0f);
 
     DrawModelEx(ASSET(overdriveMeter),
                 { 0, -0.1, -0.85 },
@@ -251,6 +308,7 @@ void Encore::Track::DrawOverdriveMeter() {
                 60,
                 { 0.95, 0.8, 0.95 },
                 player.AccentColor);
+
 
     return;
 
@@ -896,6 +954,12 @@ void Encore::Track::HandleEvent(Event *event) {
         multiplierFlash = particleSystem->SpawnParticle(flash);
         flashID = multiplierFlash->id;
     }
+    if (auto healthChangeEvent = event->GetTyped<HealthChangeEvent>()) {
+        if (player.engine->stats->Health < 1 && player.engine->stats->Health > 0) {
+            HealthChangeTimer = 1;
+            AnimHealth += healthChangeEvent->amount;
+        }
+    }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
         if (Notification) {
             Notification->time = notifEvent->time - 0.25;
@@ -967,6 +1031,20 @@ void Encore::Track::ProcessAnimation() {
         IntroTimer -= GetFrameTime();
     else {
         IntroTimer = 0;
+    }
+    if (HealthChangeTimer > 0)
+        HealthChangeTimer -= GetFrameTime();
+    else {
+        HealthChangeTimer = 0;
+    }
+    float ChangeAmount = GetFrameTime() / 12;
+    if (HealthChangeTimer == 0) ChangeAmount = GetFrameTime() * 2;
+    if (AnimHealth > 0) {
+        AnimHealth -= ChangeAmount;
+        if (AnimHealth < 0) AnimHealth = 0;
+    } else if (AnimHealth < 0) {
+        AnimHealth += ChangeAmount;
+        if (AnimHealth > 0) AnimHealth = 0;
     }
     auto ease = getEasingFunction(EaseInQuad);
     auto easeout = getEasingFunction(EaseInQuart);

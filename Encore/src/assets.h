@@ -657,7 +657,8 @@ public:
                                 "trackLength",
                                 "fadeSize",
                                 "offset",
-                                "scale"},
+                                "scale",
+                                "fade"},
 
                                 [this](Shader* asset) {
                                 asset->locs[SHADER_LOC_MAP_EMISSION] =
