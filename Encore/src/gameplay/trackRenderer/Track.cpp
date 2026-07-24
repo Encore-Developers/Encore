@@ -308,12 +308,7 @@ void Encore::Track::DrawOverdriveMeter() {
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
 
-    static float SolidPct = 0.11;
-    ImGui::SliderFloat("SolidPct", &SolidPct, 0.0f, 1.0f);
-    static float GlowBottomPct = 0.5;
-    ImGui::SliderFloat("GlowBottomPct", &GlowBottomPct, 0.0f, 1.0f);
-    ImGui::SliderFloat("Health Fade", &HealthFade, 0.0f, 1.0f);
-    ImGui::DragFloat("Time Full", &TimeFull, 0.01f);
+
     if (AnimHealth > player.engine->stats->Health) {
         ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
         ASSET(healthMeterShader).SetUniform("ResidualColor", RED);
@@ -326,6 +321,8 @@ void Encore::Track::DrawOverdriveMeter() {
         ASSET(healthMeterShader).SetUniform("FillResidualPct", player.engine->stats->Health);
     }
 
+    float SolidPct = Clamp(Remap(AnimHealth, 0.2, 0.5, 0.22, 0.11), 0.11, 0.22);
+    float GlowBottomPct = Clamp(Remap(AnimHealth, 0.2, 0.5, 0.8, 0.5), 0.5, 0.8);
     ASSET(healthMeterShader).SetUniform("SolidPct", SolidPct + HealthChangeTimer * HealthChangeTimer * 0.1);
     ASSET(healthMeterShader).SetUniform("GlowBottomPct", GlowBottomPct + HealthChangeTimer * HealthChangeTimer * 0.1);
     ASSET(healthMeterShader).SetUniform("GlowIntensity", 0.7);
