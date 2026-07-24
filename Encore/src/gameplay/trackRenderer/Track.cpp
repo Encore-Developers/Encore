@@ -1083,7 +1083,7 @@ void Encore::Track::ProcessAnimation() {
     if (TimeFull > 1) {
         HealthFade = Lerp(HealthFade, 0, 1 - expf(-3*GetFrameTime()));
     } else {
-        HealthFade = Lerp(HealthFade, 1, 1 - expf(-12*GetFrameTime()));
+        HealthFade = Lerp(HealthFade, 1, 1 - expf(-25*GetFrameTime()));
     }
     auto ease = getEasingFunction(EaseInQuad);
     auto easeout = getEasingFunction(EaseInQuart);
