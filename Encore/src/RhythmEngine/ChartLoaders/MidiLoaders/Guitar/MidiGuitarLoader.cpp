@@ -156,22 +156,23 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
 
     chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
     if (!OpenMarker.empty()) {
-        if (OpenMarker.front().first <= event.tick) {
+        if (OpenMarker.front().first <= pNote.start.tick) {
             lane = 0;
         }
     }
 
     if (!chart[0].empty()) {
         int sustainChopThreshold = (midiFile->getTPQ() / 16);
-        for (auto note = chart[0].end()--;
-                note->end.tick >= pNote.start.tick - sustainChopThreshold;
-                --note) {
+        // auto& note = chart[0].back();
+        for (auto note = --chart[0].end(); note >= chart[0].begin(); --note) {
+            if (note->end.tick < pNote.start.tick - (sustainChopThreshold * 4)) break;
             int noteEnd = note->end.tick;
-            if (note->tickLen() > 0 && noteEnd >= event.tick - sustainChopThreshold && noteEnd <= event.tick + 1) {
-                note->end.tick = event.tick - (sustainChopThreshold * 4);
+            if (note->tickLen() > 0 && noteEnd >= pNote.start.tick - sustainChopThreshold && noteEnd <= pNote.start.tick + 1) {
+                note->end.tick = pNote.start.tick - (sustainChopThreshold * 4);
                 note->end.sec = midiFile->getTimeInSeconds(note->end.tick);
             }
         }
+
     }
 
     chart[0].emplace_back(
