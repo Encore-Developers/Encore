@@ -173,12 +173,17 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     stats->LastHitAccuracy = (stats->InputTime) - startTime;
     stats->HitNote(chordSize, event.judgement);
 
+    auto getHealthGain = [this](const double amount) {
+        if (stats->overdrive.Active)
+            return amount * healthOverdriveGainMult;
+        return amount;
+    };
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
         Log::Debug("Accuracy: {}", 1);
-        stats->Health += healthGainPerNote;
+        stats->Health += getHealthGain(healthGainPerNote);
         if (stats->Health > 1) stats->Health = 1;
-        HealthChangeEvent hce(healthGainPerNote);
+        HealthChangeEvent hce(getHealthGain(healthGainPerNote));
         FireEvent(&hce);
     } else {
         double acc = (goodFrontend - std::abs(offset)) / goodFrontend;
@@ -186,14 +191,14 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         stats->Accuracy += acc;
 
         if (acc < 0.3) {
-            stats->Health -= healthGainPerNote * (1.0-acc);
+            stats->Health -= getHealthGain(healthGainPerNote * (1.0-acc));
             if (stats->Health < 0) stats->Health = 0;
-            HealthChangeEvent hce(-(healthGainPerNote * (1.0-acc)));
+            HealthChangeEvent hce(-(getHealthGain(healthGainPerNote * (1.0-acc))));
             FireEvent(&hce);
         } else {
-            stats->Health += healthGainPerNote * acc;
+            stats->Health += getHealthGain(healthGainPerNote * acc);
             if (stats->Health > 1) stats->Health = 1;
-            HealthChangeEvent hce(healthGainPerNote * acc);
+            HealthChangeEvent hce(getHealthGain(healthGainPerNote * acc));
             FireEvent(&hce);
         }
         Log::Debug("Accuracy: {}", acc);
@@ -227,9 +232,14 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
-    stats->Health -= healthLossPerNote;
+    auto getHealthLoss = [this](const double amount) {
+        if (stats->overdrive.Active)
+            return amount * healthOverdriveLossMult;
+        return amount;
+    };
+    stats->Health -= getHealthLoss(healthLossPerNote);
     if (stats->Health < 0) stats->Health = 0;
-    HealthChangeEvent hce(-healthLossPerNote);
+    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote));
     FireEvent(&hce);
     stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->start.sec, 0, true);
     if (!chart->sections.empty())
@@ -245,9 +255,14 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
-    stats->Health -= healthLossPerNote;
+    auto getHealthLoss = [this](const double amount) {
+        if (stats->overdrive.Active)
+            return amount * healthOverdriveLossMult;
+        return amount;
+    };
+    stats->Health -= getHealthLoss(healthLossPerNote);
     if (stats->Health < 0) stats->Health = 0;
-    HealthChangeEvent hce(-healthLossPerNote);
+    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote));
     FireEvent(&hce);
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
