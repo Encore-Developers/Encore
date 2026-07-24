@@ -96,11 +96,11 @@ void Encore::LyricRenderer::DrawPhraseBackground(int type, float pos, float size
                         float(ASSET(mainLyricBar).height) };
     Rectangle dest{ 0, baselineVox, float(GetRenderWidth()), voxHeight };
     auto texture = ASSETPTR(mainLyricBar);
-
+    unsigned char alpha = type == 1 ? DisplayAlpha * 0.75 : DisplayAlpha * 0.9;
     if (type == 1)
         texture = ASSETPTR(secLyricBar);
 
-    DrawTexturePro(*texture, imageRec, dest, { 0, 0 }, 0, {255,255,255, DisplayAlpha});
+    DrawTexturePro(*texture, imageRec, dest, { 0, 0 }, 0, {255,255,255, alpha});
 }
 
 void Encore::LyricRenderer::DrawPhrase(RhythmEngine::LyricPhrase *phrase,
