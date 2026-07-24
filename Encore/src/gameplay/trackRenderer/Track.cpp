@@ -220,7 +220,18 @@ void Encore::Track::DrawSurface() {
                     ColorAlpha(accentColor, ease(SpotlightTimer)));
     }
 
-    DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, WHITE);
+    Color railColor = WHITE;
+    float health = player.engine->stats->Health;
+    if (health < 0.33f) {
+        float fac = 1-health;
+        float strength = getEasingFunction(EaseInSine)((fac*fac)-(health + 0.33));
+        railColor = ColorBrightness(RED, (TheSongTime.GetBeatlineDelta() * -strength) + 0.33f);
+        Color failingColor = ColorBrightness(ColorAlpha(RED, (1-TheSongTime.GetBeatlineDelta() * 0.25) * strength), -(TheSongTime.GetBeatlineDelta() * strength));
+        ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
+        DrawModelEx(ASSET(trackSurface),{0},{0}, 0,{1, 1, 1},failingColor);
+
+    };
+    DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, railColor);
     // static std::vector<Vector3> points;
     // points.clear();
     // for (int i = 0; i <= 10; i++) {
@@ -282,6 +293,7 @@ void Encore::Track::DrawOverdriveMeter() {
         ASSET(overdriveShader).SetUniform("FillColor", healthColor);
         ASSET(overdriveShader).SetUniform("FillPct", 1.0f - player.engine->stats->Health);
     } else {
+        if (player.engine->stats->Health > 0.9) healthColor = ColorBrightness(healthColor, Percentage * 0.75);
         ASSET(overdriveShader).SetUniform("FillColor", healthColor);
         ASSET(overdriveShader).SetUniform("FillPct", 1.0f - (player.engine->stats->Health - AnimHealth));
     }
