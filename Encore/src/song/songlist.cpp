@@ -97,7 +97,7 @@ bool SongList::sortPlaylist(Song *a, Song *b) {
     // /Path/To/SongFolder/SongName/notes.mid/ (end)
     // ..............^-------|--------|---------|
     // return *------a->midiPath.end() < *------b->midiPath.end();
-    return a->GetPlaylistPath() < b->GetPlaylistPath();
+    return a->playlist < b->playlist;
 }
 
 bool SongList::sortSource(Song *a, Song *b) {
@@ -220,6 +220,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 song.songInfoPath = infoPath;
                 song.songDir = folder;
                 song.LoadSongIni(folder);
+                song.playlist = folder.parent_path().filename().string();
                 auto placedSong = &songs.emplace_back(std::move(song));
                 scanPool->SubmitTask([placedSong]() {
                     ZoneScopedN("Hash Song")
@@ -420,6 +421,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         std::string dir;
         SongCacheIn >> dir;
         song.songDir = dir;
+        song.playlist = song.songDir.parent_path().filename().string();
 
         std::string art;
         SongCacheIn >> art;

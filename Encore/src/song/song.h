@@ -157,6 +157,7 @@ public:
     int length = 0;
     int songListPos = 0;
     int BeatTrackID = 0;
+    std::string playlist = "";
     double music_start = 0.0;
     double end = 0.0;
     SongHash hash;

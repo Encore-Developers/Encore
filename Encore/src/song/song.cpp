@@ -62,6 +62,8 @@ void Song::PullInfoFromINI(INIReader &ini) {
 
     hopoThreshold = ini.GetInteger("song", "hopo_frequency", 170);
 
+    loadingPhrase = ini.GetString("song", "loading_phrase", "");
+
     length = ini.GetInteger("song", "song_length", 0);
 
     previewStartTime = ini.GetInteger("song", "preview_start_time", 0);

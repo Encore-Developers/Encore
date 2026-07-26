@@ -244,60 +244,6 @@ void Encore::Track::DrawSurface() {
 
 void Encore::Track::DrawOverdriveMeter() {
     ZoneScoped;
-
-    //Color healthColor = ColorLerp(YELLOW, GREEN, player.engine->stats->Health);
-    //if (player.engine->stats->Health < 0.25) {
-    //    healthColor = ColorLerp(MAROON, RED, Remap(player.engine->stats->Health, 0, 0.25, 0, 1.0));
-    //} else if (player.engine->stats->Health < 0.75) {
-    //    healthColor = ColorLerp(RED, YELLOW, Remap(player.engine->stats->Health, 0.25, 0.75, 0, 1.0));
-    //} else if (player.engine->stats->Health >= 0.75) {
-    //    healthColor = ColorLerp(YELLOW, GREEN, Remap(player.engine->stats->Health, 0.75, 1.0, 0, 1.0));
-    //}
-    // testing
-    /*ASSET(overdriveShader).SetUniform("fade", 1.0f);
-    ASSET(overdriveShader).SetUniform("BaseColor", Color{0,0,0,0});
-    if (player.engine->stats->Health < 0.25) {
-        ASSET(overdriveShader).SetUniform("FillColor", ColorAlpha(ColorBrightness(RED, 1-Percentage), Percentage));
-        ASSET(overdriveShader).SetUniform("FillPct", 0.0f);
-        DrawModelEx(ASSET(overdriveMeter),
-                { 0, -0.19, -1 },
-                { 1, 0, 0 },
-                60,
-                { 0.875, 0.7, 0.875 },
-                player.AccentColor);
-    }
-
-    // losing health
-    if (AnimHealth < 0) {
-        ASSET(overdriveShader).SetUniform("FillColor", ColorBrightness(RED, 0.5));
-        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - (player.engine->stats->Health - AnimHealth));
-    } else {
-        ASSET(overdriveShader).SetUniform("FillColor", WHITE);
-        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - player.engine->stats->Health);
-    }
-    DrawModelEx(ASSET(overdriveMeter),
-                    { 0, -0.19, -1 },
-                    { 1, 0, 0 },
-                    60,
-                    { 0.875, 0.7, 0.875 },
-                    player.AccentColor);
-    // losing health
-    if (AnimHealth < 0) {
-        ASSET(overdriveShader).SetUniform("FillColor", healthColor);
-        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - player.engine->stats->Health);
-    } else {
-        if (player.engine->stats->Health > 0.9) healthColor = ColorBrightness(healthColor, Percentage * 0.75);
-        ASSET(overdriveShader).SetUniform("FillColor", healthColor);
-        ASSET(overdriveShader).SetUniform("FillPct", 1.0f - (player.engine->stats->Health - AnimHealth));
-    }
-    DrawModelEx(ASSET(overdriveMeter),
-                { 0, -0.19, -1 },
-                { 1, 0, 0 },
-                60,
-                { 0.875, 0.7, 0.875 },
-                player.AccentColor);
-
-    */
     float Percentage = 1 - TheSongTime.GetBeatlineDelta();
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
