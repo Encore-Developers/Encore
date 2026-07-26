@@ -671,10 +671,13 @@ void EncoreDebug::DrawJoystickTools() {
         Text("Last Translated Time: %f", lastTranslatedTime);
         const ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
             ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
-        if (BeginTable("Joysticks", 3, flags, GetContentRegionAvail())) {
+        if (BeginTable("Joysticks", 6, flags, GetContentRegionAvail())) {
             TableSetupScrollFreeze(0, 1);
             TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
             TableSetupColumn("GUID", ImGuiTableColumnFlags_WidthStretch);
+            TableSetupColumn("VID", ImGuiTableColumnFlags_WidthFixed);
+            TableSetupColumn("PID", ImGuiTableColumnFlags_WidthFixed);
+            TableSetupColumn("REV", ImGuiTableColumnFlags_WidthFixed);
             TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch);
             TableHeadersRow();
 
@@ -696,6 +699,18 @@ void EncoreDebug::DrawJoystickTools() {
                 ImGui::Text("%s", guidStr);
 
                 TableSetColumnIndex(2);
+                auto vid = SDL_GetJoystickVendorForID(joyId);
+                ImGui::Text("%x", vid);
+
+                TableSetColumnIndex(3);
+                auto pid = SDL_GetJoystickProductForID(joyId);
+                ImGui::Text("%x", pid);
+
+                TableSetColumnIndex(4);
+                auto rev = SDL_GetJoystickProductVersionForID(joyId);
+                ImGui::Text("%x", rev);
+
+                TableSetColumnIndex(5);
                 if (SmallButton("Copy Name and GUID")) {
                     std::string clipContent = std::string(guidStr) + "," + joystickName;
                     ImGui::SetClipboardText(clipContent.c_str());
