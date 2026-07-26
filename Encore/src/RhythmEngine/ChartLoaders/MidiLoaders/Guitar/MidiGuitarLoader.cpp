@@ -164,7 +164,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
     if (!chart[0].empty()) {
         int sustainChopThreshold = (midiFile->getTPQ() / 16);
         // auto& note = chart[0].back();
-        for (auto note = --chart[0].end(); note >= chart[0].begin(); --note) {
+        for (auto note = --chart[0].end(); note > chart[0].begin(); --note) {
             if (note->end.tick < pNote.start.tick - (sustainChopThreshold * 4)) break;
             int noteEnd = note->end.tick;
             if (note->tickLen() > 0 && noteEnd >= pNote.start.tick - sustainChopThreshold && noteEnd <= pNote.start.tick + 1) {
