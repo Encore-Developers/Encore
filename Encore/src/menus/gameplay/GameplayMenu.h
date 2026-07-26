@@ -18,18 +18,6 @@
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
 protected:
-    int CameraSelectionPerPlayer[4][4] {
-        {0,0,0,0},
-        {1,0,0,0},
-        {2,1,0,0},
-        {3,2,1,0}
-    };
-    int CameraPosPerPlayer[4][4] {
-        {0,0,0,0},
-        {8,-8,0,0},
-        {4,0,-4,0},
-        {4,12,-12,-4}
-    };
     std::vector<std::shared_ptr<Encore::Track>> tracks;
     Encore::ButtonActionRegistry buttReg;
     std::shared_ptr<VideoBackground> videoBackground;
@@ -48,6 +36,7 @@ public:
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::ControllerEvent event);
     void SaveReplay();
+    void DrawMTVOverlay(Vector2 pos);
     void Draw() override;
     void Load() override;
     void DrawPauseMenu();
@@ -55,6 +44,6 @@ public:
     virtual void UpdatePauseState();
     virtual bool IsPaused();
 
-    virtual void SetPresence() override;
+    void SetPresence() override;
     bool AllowsTempPlayers() override { return true; };
 };

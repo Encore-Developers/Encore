@@ -136,23 +136,24 @@ void OvershellMenu::DrawOvershell() {
     Units &unit = Units::getInstance();
 float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
     float InnerBottom = BottomBottomOvershell + unit.hinpct(0.005f);
-
-    DrawRectangleGradientV(
-        0,
-        BottomBottomOvershell,
-        GetRenderWidth(),
-        unit.hinpct(0.13f) + 1,
-        Color { 32, 32, 51, 255 },
-        Color { 24, 24, 39, 255 }
-    );
-    DrawRectangleGradientV(
-        0,
-        BottomBottomOvershell,
-        GetRenderWidth(),
-        unit.hinpct(0.0075f),
-        Color { 0, 0, 0, 64 },
-        Color { 0, 0, 0, 0 }
+    if (dropInDropOut) {
+        DrawRectangleGradientV(
+            0,
+            BottomBottomOvershell,
+            GetRenderWidth(),
+            unit.hinpct(0.13f) + 1,
+            Color { 32, 32, 51, 255 },
+            Color { 24, 24, 39, 255 }
         );
+        DrawRectangleGradientV(
+            0,
+            BottomBottomOvershell,
+            GetRenderWidth(),
+            unit.hinpct(0.0075f),
+            Color { 0, 0, 0, 64 },
+            Color { 0, 0, 0, 0 }
+            );
+    }
     float LeftMin = unit.wpct(0.025f);
     float LeftMax = unit.wpct(0.975f);
     GuiSetFont(ASSET(rubik));

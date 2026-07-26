@@ -56,6 +56,7 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
                 OvershellState[i] = OS_OPTIONS;
                 for (int g = 0; g < player.engine->chart->Lanes.size(); g++) {
                     player.engine->chart->DropSustain(g);
+                    player.engine->stats->HeldFrets.at(g) = false;
                 }
                 break;
             }
@@ -416,6 +417,49 @@ void GameplayMenu::SaveReplay() {
         replayOut.close();
     }
 }
+
+void GameplayMenu::DrawMTVOverlay(Vector2 pos) {
+    Units& u = Units::getInstance();
+    const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
+    Encore::TextDisplay title;
+    Encore::TextDisplay secondary;
+
+    float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+    title.Size(TitleFontSize).Pos(pos)
+         .Fnt(ASSET(josefinSansBold)).DrawText(curSong->title);
+
+    float TitleWidth = title.TextWidth(curSong->title);
+    float TitleFontOffset = (TitleFontSize * 1.25f);
+    float SecondaryFontSize = TitleFontSize * 0.85f;
+    secondary.Size(SecondaryFontSize)
+             .Pos(title.pos.x + TitleWidth + u.winpct(0.005f), pos.y + (TitleFontSize - SecondaryFontSize))
+             .Fnt(ASSET(josefinSansBoldItalic)).Col(LIGHTGRAY);
+    if (TheSongList.PlaylistSize > 0)
+        secondary.DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
+
+    secondary.Pos(pos.x + (TitleFontSize * 0.1f), pos.y + TitleFontOffset)
+             .DrawText(curSong->artist + ", " + curSong->releaseYear);
+
+    secondary.AddPos(( TitleFontSize * 1.13f), TitleFontSize)
+             .DrawText(curSong->charters[0]);
+    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
+                   {pos.x + (TitleFontSize * 0.1f), pos.y + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
+    );
+
+    std::string CurrentSectionName = "None";
+    if (!TheSongTime.Sections.empty()) {
+        for (int i = 0; i < TheSongTime.Sections.size() - 1; i++) {
+            if (TheSongTime.Sections.at(i).start <= TheSongTime.GetElapsedTime()
+                && TheSongTime.Sections.at(i+1).start > TheSongTime.GetElapsedTime()) {
+                CurrentSectionName = TheSongTime.Sections.at(i).name;
+                break;
+            }
+        }
+    }
+
+    secondary.AddPos(-( TitleFontSize * 1.13f), TitleFontSize).DrawText(LOCALISE_FMT("gameplay.sectionDisplay", CurrentSectionName));
+}
+
 void GameplayMenu::Draw() {
     UpdatePauseState();
     UIInput = IsPaused();
@@ -528,47 +572,12 @@ void GameplayMenu::Draw() {
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
 
-    const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
-    Encore::TextDisplay title;
-    Encore::TextDisplay secondary;
-    float topOfVocalBar = u.hpct(0.2f);
-    float TitleFontSize = u.hinpct(0.0425f * 0.75f);
-    title.Size(TitleFontSize).Pos(u.wpct(0.01f), topOfVocalBar)
-    .Fnt(ASSET(josefinSansBold)).DrawText(curSong->title);
 
-    float TitleWidth = title.TextWidth(curSong->title);
-    float TitleFontOffset = (TitleFontSize * 1.25f);
-    float SecondaryFontSize = TitleFontSize * 0.85f;
-    secondary.Size(SecondaryFontSize)
-    .Pos(title.pos.x + TitleWidth + u.winpct(0.005f), topOfVocalBar + (TitleFontSize - SecondaryFontSize))
-    .Fnt(ASSET(josefinSansBoldItalic)).Col(LIGHTGRAY);
-    if (TheSongList.PlaylistSize > 0)
-        secondary.DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
-
-    secondary.Pos(u.wpct(0.01f), topOfVocalBar + TitleFontOffset)
-    .DrawText(curSong->artist + ", " + curSong->releaseYear);
-
-    secondary.AddPos(( TitleFontSize * 1.125f), TitleFontSize)
-    .DrawText(curSong->charters[0]);
-    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
-        {u.wpct(0.01f), topOfVocalBar + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
-    );
-
-    std::string CurrentSectionName = "None";
-    if (!TheSongTime.Sections.empty()) {
-        for (int i = 0; i < TheSongTime.Sections.size() - 1; i++) {
-            if (TheSongTime.Sections.at(i).start <= TheSongTime.GetElapsedTime()
-                && TheSongTime.Sections.at(i+1).start > TheSongTime.GetElapsedTime()) {
-                CurrentSectionName = TheSongTime.Sections.at(i).name;
-                break;
-            }
-        }
-    }
-
-    secondary.AddPos(-( TitleFontSize * 1.125f), TitleFontSize).DrawText(LOCALISE_FMT("gameplay.sectionDisplay", CurrentSectionName));
 
     if (IsPaused()) {
         DrawPauseMenu();
+    } else {
+        DrawMTVOverlay({u.wpct(0.01f), u.hpct(0.2f)});
     }
 
     GameMenu::DrawTopBarText(true);
@@ -689,8 +698,14 @@ void GameplayMenu::DrawPauseMenu() {
     float AlbumArtTop = u.hpct(0.05f);
     float AlbumArtRight = u.winpct(0.15f);
 
-    // why do you exist
-    float AlbumArtBottom = u.winpct(0.15f);
+    Rectangle albumRect{ AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtRight };
+    NPatchInfo shadowOverlay;
+    shadowOverlay.source = {0,0,128,128};
+    shadowOverlay.top = AlbumArtRight*0.1;
+    shadowOverlay.bottom = AlbumArtRight*0.1;
+    shadowOverlay.left = AlbumArtRight*0.1;
+    shadowOverlay.right = AlbumArtRight*0.1;
+    shadowOverlay.layout = 0;
     DrawRectangle(
         0,
         0,
@@ -702,66 +717,34 @@ void GameplayMenu::DrawPauseMenu() {
     GameMenu::DrawTopOvershell(0.2f);
     GameMenu::DrawTopBarText(true);
 
-    DrawRectangle(
-        (int)u.LeftSide,
-        (int)AlbumArtTop,
-        (int)AlbumArtRight + 12,
-        (int)AlbumArtBottom + 12,
-        WHITE
-    );
-    DrawRectangle(
-        (int)u.LeftSide + 6,
-        (int)AlbumArtTop + 6,
-        (int)AlbumArtRight,
-        (int)AlbumArtBottom,
-        BLACK
-    );
     buttReg.DrawPrompts(false, u.hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
-    DrawTexturePro(
-        TheArtLoader.loadedArt->GetTexture(),
-        Rectangle{ 0,
-                   0,
-                   (float)TheArtLoader.loadedArt->GetTexture().width,
-                   (float)TheArtLoader.loadedArt->GetTexture().width },
-        Rectangle{ u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
-        { 0, 0 },
-        0,
-        WHITE
-    );
-
-    float BottomOvershell = u.hpct(1) - u.hinpct(0.15f);
-    float TextPlacementTB = AlbumArtTop;
-    float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
-    Encore::Text::DrawText(
-        ASSET(redHatDisplayItalic),
-        curSong->title.c_str(),
-        { TextPlacementLR, TextPlacementTB },
-        u.hinpct(0.05f),
-        WHITE,
-        LEFT
-    );
-    Encore::Text::DrawText(
-        ASSET(rubikItalic),
-        curSong->artist.c_str(),
-        { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
-        u.hinpct(0.04f),
-        WHITE,
-        LEFT
-    );
-    const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
-    DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
-        {TextPlacementLR, TextPlacementTB + u.hinpct(0.095f), u.hinpct(0.04f), u.hinpct(0.04f)}, {0,0}, 0, WHITE
-    );
-    if (!curSong->charters.empty()) {
-        Encore::Text::DrawText(
-            ASSET(rubikItalic),
-            curSong->charters[0],
-            { TextPlacementLR + u.hinpct(0.05f), TextPlacementTB + u.hinpct(0.095f) },
-            u.hinpct(0.04f),
-            WHITE,
-            LEFT
+    if (TheArtLoader.loadedArt->GetTexture().id != 0) {
+        DrawTexturePro(
+            *TheArtLoader.loadedArt,
+            Rectangle{ 0,
+                       0,
+                       (float)TheArtLoader.loadedArt->GetTexture().width,
+                       (float)TheArtLoader.loadedArt->GetTexture().width },
+            albumRect,
+            { 0, 0 },
+            0,
+            WHITE
+        );
+    } else {
+        DrawTexturePro(
+            ASSET(missingAlbumArt),
+            Rectangle{ 0,
+                       0,
+                       (float)ASSET(missingAlbumArt).width,
+                       (float)ASSET(missingAlbumArt).width },
+            albumRect,
+            { 0, 0 },
+            0,
+            WHITE
         );
     }
-    GameMenu::DrawBottomOvershell();
+    DrawTextureNPatch(ASSET(borderShadowLight), shadowOverlay, albumRect, {0}, 0, {255,255,255,128});
+    DrawMTVOverlay({albumRect.x + (albumRect.width * 1.05f), albumRect.y + (albumRect.height * 0.03f)});
+
     DrawOvershell();
 }

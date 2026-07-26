@@ -54,10 +54,13 @@ void Encore::ButtonActionRegistry::HandleInput(const ControllerEvent &event) {
 void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, float left) {
     ZoneScoped
     Units u = Units::getInstance();
+    bool modified = false;
     if (top < 0) {
+        modified = true;
         top = GetRenderHeight() - u.hpct(0.18f);
     }
     if (left < 0) {
+        modified = true;
         left = u.LeftSide;
     }
     GuiSetStyle(BUTTON,
@@ -72,7 +75,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
     Rectangle backgroundPos = {left, top + u.hinpct(0.0075f), ButtonWidth - u.hinpct(0.0075f), buttonHeight - u.hinpct(0.015f)};
     TextDisplay ButtonData;
     ButtonData.Pos(left + buttonHeight, top + u.hinpct(0.015f)).Size(nameFontSize).Fnt(ASSET(josefinSansBold));
-    {
+    if (modified) {
         float BottomOvershell = GetRenderHeight() - u.hpct(0.18f);
         DrawRectangleGradientV(
             0,
