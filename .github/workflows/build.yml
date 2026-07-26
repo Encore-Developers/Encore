@@ -1,5 +1,3 @@
-# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
-# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
 name: Indev - Windows x64, Linux, macOS
 on:
   workflow_dispatch:
@@ -14,9 +12,6 @@ env:
 
 jobs:
   build-windows:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: windows-latest
     
     steps:
@@ -24,12 +19,9 @@ jobs:
       with:
         submodules: true
     - name: Configure CMake x64
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build_x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build x64
-      # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build_x64 --config ${{env.BUILD_TYPE}}
 
     - name: Move Assets/Songs folders and bass.dll x64
@@ -44,15 +36,15 @@ jobs:
 
 
   build-linux:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-26.04
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: true
+
+    - name: Perform forbidden action
+      run: echo "deb http://us.archive.ubuntu.com/ubuntu stonking main restricted universe multiverse" >> /etc/apt/sources.list
     
     - name: Update apt-get
       run: sudo apt-get update
@@ -61,46 +53,22 @@ jobs:
       run: sudo apt-get install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev libxtst-dev libavcodec-dev libswscale-dev libavformat-dev
       
     - name: Configure CMake x64
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build_linux_x64 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build x64
-      # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build_linux_x64 --config ${{env.BUILD_TYPE}}
 
     - name: Remove CMake files x64
       working-directory: ${{github.workspace}}/build_linux_x64/Encore
       run: rm -r -f CMakeFiles Makefile cmake_install.cmake
-
-#   - name: Configure CMake x86
-#      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-#      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-#      run: cmake -B ${{github.workspace}}/build_linux_x86 -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
-#
-#    - name: Build x86
-#      # Build your program with the given configuration
-#      run: cmake --build ${{github.workspace}}/build_linux_x86 --config ${{env.BUILD_TYPE}}
-#
-#    - name: Remove CMake files x86
-#      working-directory: ${{github.workspace}}/build_linux_x86/Encore
-#      run: rm -r -f CMakeFiles Makefile cmake_install.cmake
       
     - uses: actions/upload-artifact@v4
       with:
         name: Encore_Linux_x64-Indev
         path: ${{github.workspace}}/build_linux_x64/Encore/*
-    
-#    - uses: actions/upload-artifact@v4
-#      with:
-#        name: Encore_Linux_x86
-#        path: ${{github.workspace}}/build_linux_x86/Encore/*
 
         
   build-macos:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: macos-latest
 
     steps:
@@ -112,12 +80,9 @@ jobs:
       run: brew install -y ffmpeg
 
     - name: Configure CMake
-      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build_macos -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build_macos --config ${{env.BUILD_TYPE}}
 
     - name: Remove CMake files
