@@ -44,7 +44,7 @@ jobs:
         submodules: true
 
     - name: Perform forbidden action
-      run: echo "deb http://us.archive.ubuntu.com/ubuntu stonking main restricted universe multiverse" >> /etc/apt/sources.list
+      run: sudo bash -c 'echo "deb http://us.archive.ubuntu.com/ubuntu stonking main restricted universe multiverse" >> /etc/apt/sources.list'
     
     - name: Update apt-get
       run: sudo apt-get update
