@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
     };
     auto sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
 
-    GPUDynamicBuffer<GemInstance> gemInstances(100, SDL_GPU_BUFFERUSAGE_VERTEX, true);
+    GPUDynamicBuffer<GemInstance> gemInstances(SDL_GPU_BUFFERUSAGE_VERTEX, true);
     PIPELINE(BlockUntilLoaded());
     static float renderScale3D = 1.0f;
 
@@ -268,17 +268,20 @@ int main(int argc, char *argv[]) {
         boxSize = ImGui::GetWindowSize();
         ImGui::End();
 
+        static std::vector<GemInstance> gemInstanceVec;
+
         if (randomizeInstances) {
             ZoneScopedN("Generate Gem Instances")
-            gemInstances.Reset();
+            gemInstanceVec.clear();
             for (int i = 0; i < instanceCount; i++) {
                 GemInstance instance {
                     {i % 5 - 2, (1-(float)i/instanceCount)*150.0f},
                     {1, 1}
                 };
 
-                gemInstances.Push(instance);
+                gemInstanceVec.push_back(instance);
             }
+            gemInstances.UploadData(mainCopyPass, gemInstanceVec);
         }
 
         ImGui::Render();
@@ -300,10 +303,6 @@ int main(int argc, char *argv[]) {
             depthTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
             depthTargetInfo.stencil_load_op = SDL_GPU_LOADOP_CLEAR;
             depthTargetInfo.cycle = true;
-            if (randomizeInstances) {
-                ZoneScopedN("Upload Gem Instances")
-                gemInstances.UploadData(mainCopyPass);
-            }
             auto renderPass = SDL_BeginGPURenderPass(renderCmdBuf, &colorTargetInfo, 1, &depthTargetInfo);
             UBO uniform {
                 cam.getMatrix(),
@@ -330,7 +329,7 @@ int main(int argc, char *argv[]) {
             };
             SDL_BindGPUFragmentSamplers(renderPass, 0, &samplerBinding, 1);
 
-            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, gemInstances.Size(), 0, 0, 0);
+            SDL_DrawGPUIndexedPrimitives(renderPass, ASSET(testMesh).numFaces*3, gemInstanceVec.size(), 0, 0, 0);
 
             SDL_EndGPURenderPass(renderPass);
         }

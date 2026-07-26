@@ -11,9 +11,9 @@ class GPUDynamicBuffer {
     SDL_GPUBuffer* buffer = nullptr;
     SDL_GPUTransferBuffer* transferBuffer = nullptr;
     size_t currentBufferCapacity = 0;
-    std::vector<T> data;
     SDL_GPUBufferUsageFlags usage;
     bool cycle;
+public:
 
     void ResizeBuffer(size_t newCap) {
         if (buffer) {
@@ -29,34 +29,27 @@ class GPUDynamicBuffer {
             (unsigned int)(sizeof(T) * newCap)
         };
         buffer = SDL_CreateGPUBuffer(TheGPU, &bufCreateInfo);
+        if (!buffer)
+        {
+            std::cout << "Failed to create GPU buffer: " << SDL_GetError() << std::endl;
+        }
 
         SDL_GPUTransferBufferCreateInfo transCreateInfo = {
             SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
             (unsigned int)(sizeof(T) * newCap)
         };
         transferBuffer = SDL_CreateGPUTransferBuffer(TheGPU, &transCreateInfo);
+        if (!transferBuffer)
+        {
+            std::cout << "Failed to create GPU transfer buffer: " << SDL_GetError() << std::endl;
+        }
         currentBufferCapacity = newCap;
     }
-public:
 
-    GPUDynamicBuffer(size_t initialAlloc, SDL_GPUBufferUsageFlags usage, bool cycle) : usage(usage), cycle(cycle) {
-        data.reserve(initialAlloc);
-        ResizeBuffer(initialAlloc);
-    }
+    GPUDynamicBuffer(SDL_GPUBufferUsageFlags usage, bool cycle) : usage(usage), cycle(cycle) {}
 
-    void Reset() {
-        data.clear();
-    }
-
-    void Push(T value) {
-        data.push_back(value);
-        if (data.capacity() != currentBufferCapacity) {
-            ResizeBuffer(data.capacity());
-        }
-    }
-
-    size_t Size() {
-        return data.size();
+    size_t Capacity() {
+        return currentBufferCapacity;
     }
 
     SDL_GPUBufferBinding GetBinding() const {
@@ -65,12 +58,31 @@ public:
         };
     }
 
-    void UploadData(SDL_GPUCopyPass* copyPass) {
+    SDL_GPUBuffer* GetBuffer() const
+    {
+        return buffer;
+    }
+
+    operator SDL_GPUBufferBinding()
+    {
+        return GetBinding();
+    }
+
+    void UploadData(SDL_GPUCopyPass* copyPass, const std::vector<T>& data) {
+        if (data.size() > currentBufferCapacity)
+        {
+            ResizeBuffer(data.size());
+        }
         if (data.empty()) {
             return;
         }
 
         void* mappedBuffer = SDL_MapGPUTransferBuffer(TheGPU, transferBuffer, cycle);
+        if (!mappedBuffer)
+        {
+            std::cout << "Failed to map GPU transfer buffer: " << SDL_GetError() << std::endl;
+            return;
+        }
         memcpy(mappedBuffer, data.data(), data.size() * sizeof(T));
         SDL_UnmapGPUTransferBuffer(TheGPU, transferBuffer);
 
@@ -84,5 +96,17 @@ public:
             (unsigned int)(sizeof(T) * data.size()),
         };
         SDL_UploadToGPUBuffer(copyPass, &sourceLoc, &destLoc, cycle);
+    }
+
+    ~GPUDynamicBuffer()
+    {
+        if (buffer)
+        {
+            SDL_ReleaseGPUBuffer(TheGPU, buffer);
+        }
+        if (transferBuffer)
+        {
+            SDL_ReleaseGPUTransferBuffer(TheGPU, transferBuffer);
+        }
     }
 };

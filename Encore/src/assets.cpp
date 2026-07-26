@@ -68,7 +68,7 @@ void Asset::SetAssetParent(Asset *newParent) {
     DelistAsset();
 }
 void Asset::BlockUntilLoaded() {
-    while (state == LOADED) {
+    while (state != LOADED) {
         std::this_thread::sleep_for(std::chrono::microseconds(1));
     }
 }
@@ -181,6 +181,11 @@ void TextureAsset::Load() {
         0
     };
     texture = SDL_CreateGPUTexture(TheGPU, &createInfo);
+    if (!texture)
+    {
+        std::cerr << "Failed to create texture: " << SDL_GetError() << std::endl;
+        return;
+    }
 
     auto cmdbuf = SDL_AcquireGPUCommandBuffer(TheGPU);
     auto copyPass = SDL_BeginGPUCopyPass(cmdbuf);
@@ -397,6 +402,8 @@ void ShaderAsset::GenerateVertexInputState(SDL_ShaderCross_GraphicsShaderMetadat
 
 void ShaderAsset::Unload() {
     SDL_ReleaseGPUShader(TheGPU, shader);
+    vertexAttributes.clear();
+    bufferDescriptions.clear();
 }
 void MeshAsset::Load() {
     ZoneScopedN("Mesh Load")
@@ -523,22 +530,4 @@ void MeshAsset::CopyToTransferBuffer() {
 }
 void MeshAsset::Unload() {
 
-}
-
-void Assets::AddRingsAndInstruments() {
-    // for (int i = 1; i <= 6; i++) {
-    //     TextureAsset *tex = new TextureAsset(TextFormat("ui/hugh ring/rings-%i.png", i),
-    //                                          true);
-    //     YargRings.push_back(tex);
-    //     // Grabbing from the vec because it moved
-    //     mainMenuSet.AddAsset(tex);
-    // }
-    // InstIcons.push_back(new TextureAsset("ui/hugh ring/drums-inv.png", true));
-    // InstIcons.push_back(new TextureAsset("ui/hugh ring/bass-inv.png", true));
-    // InstIcons.push_back(new TextureAsset("ui/hugh ring/lead-inv.png", true));
-    // InstIcons.push_back(new TextureAsset("ui/hugh ring/keys-inv.png", true));
-    // InstIcons.push_back(new TextureAsset("ui/hugh ring/vox-inv.png", true));
-    // for (auto icon : InstIcons) {
-    //     mainMenuSet.AddAsset(icon);
-    // }
 }

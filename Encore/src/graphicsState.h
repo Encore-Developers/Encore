@@ -4,8 +4,22 @@
 // This file is just here to store globals for the window and the graphics device
 // If you have a better idea please let me know
 
+class Camera;
 extern SDL_GPUDevice* TheGPU;
 extern bool TheGPUReady;
 extern SDL_Window* TheWindow;
 
 void BlockUntilGPUReady();
+
+struct RenderState
+{
+    SDL_GPUCommandBuffer* renderCmd;
+    SDL_GPURenderPass* renderPass;
+    SDL_GPUCommandBuffer* copyCmd;
+    SDL_GPUCopyPass* copyPass;
+    unsigned int fbWidth;
+    unsigned int fbHeight;
+
+    Camera* camera;
+    double deltaTime;
+};
