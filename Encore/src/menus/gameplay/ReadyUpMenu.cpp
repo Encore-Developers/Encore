@@ -151,9 +151,17 @@ void ReadyUpMenu::Draw() {
     Units &u = Units::getInstance();
     GameMenu::DrawAlbumArtBackground();
     float AlbumArtLeft = u.LeftSide;
-    float AlbumArtTop = u.hpct(0.05f);
+    float AlbumArtTop = u.hpct(0.04f);
     float AlbumArtRight = u.winpct(0.15f);
-    float AlbumArtBottom = u.winpct(0.15f);
+
+    Rectangle albumRect{ AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtRight };
+    NPatchInfo shadowOverlay;
+    shadowOverlay.source = {0,0,128,128};
+    shadowOverlay.top = AlbumArtRight*0.1;
+    shadowOverlay.bottom = AlbumArtRight*0.1;
+    shadowOverlay.left = AlbumArtRight*0.1;
+    shadowOverlay.right = AlbumArtRight*0.1;
+    shadowOverlay.layout = 0;
     DrawRectangle(
         0,
         0,
@@ -163,33 +171,35 @@ void ReadyUpMenu::Draw() {
     );
 
     GameMenu::DrawTopOvershell(0.2f);
-    GameMenu::DrawTopBarText(false);
+    GameMenu::DrawTopBarText(true);
 
-    DrawRectangle(
-        (int)u.LeftSide,
-        (int)AlbumArtTop,
-        (int)AlbumArtRight + 12,
-        (int)AlbumArtBottom + 12,
-        WHITE
-    );
-    DrawRectangle(
-        (int)u.LeftSide + 6,
-        (int)AlbumArtTop + 6,
-        (int)AlbumArtRight,
-        (int)AlbumArtBottom,
-        BLACK
-    );
-    DrawTexturePro(
-        TheArtLoader.loadedArt->GetTexture(),
-        Rectangle{ 0,
-                   0,
-                   (float)TheArtLoader.loadedArt->GetTexture().width,
-                   (float)TheArtLoader.loadedArt->GetTexture().width },
-        Rectangle{ u.LeftSide + 6, AlbumArtTop + 6, AlbumArtRight, AlbumArtBottom },
-        { 0, 0 },
-        0,
-        WHITE
-    );
+    // buttReg.DrawPrompts(false, u.hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
+    if (TheArtLoader.loadedArt->GetTexture().id != 0) {
+        DrawTexturePro(
+            *TheArtLoader.loadedArt,
+            Rectangle{ 0,
+                       0,
+                       (float)TheArtLoader.loadedArt->GetTexture().width,
+                       (float)TheArtLoader.loadedArt->GetTexture().width },
+            albumRect,
+            { 0, 0 },
+            0,
+            WHITE
+        );
+    } else {
+        DrawTexturePro(
+            ASSET(missingAlbumArt),
+            Rectangle{ 0,
+                       0,
+                       (float)ASSET(missingAlbumArt).width,
+                       (float)ASSET(missingAlbumArt).width },
+            albumRect,
+            { 0, 0 },
+            0,
+            WHITE
+        );
+    }
+    DrawTextureNPatch(ASSET(borderShadowLight), shadowOverlay, albumRect, {0}, 0, {255,255,255,128});
 
     float BottomOvershell = u.hpct(1) - u.hinpct(0.18f);
     float TextPlacementTB = AlbumArtTop;
@@ -220,6 +230,22 @@ void ReadyUpMenu::Draw() {
             WHITE
         );
     }
+    // GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_TOP);
+    // GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_WORD);
+    // GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, u.hinpct(0.03f));
+    // GuiSetStyle(DEFAULT, TEXT_SIZE, u.hinpct(0.0275));
+    //
+    // GuiLabel(
+    //     { albumRect.x + albumRect.width,
+    //       u.hpct(0.2f),
+    //       u.wpct(1.0f) - (albumRect.x + albumRect.width),
+    //       (albumRect.y + albumRect.width) - u.hpct(0.2f) },
+    //       curSong->loadingPhrase.data()
+    // );
+    //
+    // GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_CENTER);
+    // GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_NONE);
+    // Encore::Text::DrawText(ASSET(josefinSansNormal), curSong->loadingPhrase, {albumRect.x + albumRect.width, u.hpct(0.2f)}, u.hinpct(0.0275), LIGHTGRAY, LEFT);
     // todo: allow this to be run per player
     // load midi
     GameMenu::DrawBottomOvershell();
@@ -392,6 +418,7 @@ void ReadyUpMenu::Draw() {
 }
 
 void ReadyUpMenu::Load() {
+    curSong->LoadInfoINI(curSong->songInfoPath);
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
         if (_action != Encore::Action::PRESS) return;

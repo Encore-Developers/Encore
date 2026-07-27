@@ -695,7 +695,7 @@ void GameplayMenu::DrawPauseMenu() {
     Units &u = Units::getInstance();
 
     float AlbumArtLeft = u.LeftSide;
-    float AlbumArtTop = u.hpct(0.05f);
+    float AlbumArtTop = u.hpct(0.04f);
     float AlbumArtRight = u.winpct(0.15f);
 
     Rectangle albumRect{ AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtRight };
@@ -744,7 +744,7 @@ void GameplayMenu::DrawPauseMenu() {
         );
     }
     DrawTextureNPatch(ASSET(borderShadowLight), shadowOverlay, albumRect, {0}, 0, {255,255,255,128});
-    DrawMTVOverlay({albumRect.x + (albumRect.width * 1.05f), albumRect.y + (albumRect.height * 0.03f)});
+    DrawMTVOverlay({albumRect.x + (albumRect.width * 1.075f), albumRect.y + (albumRect.height * 0.0625f)});
 
     DrawOvershell();
 }

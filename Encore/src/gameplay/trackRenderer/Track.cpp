@@ -22,6 +22,95 @@
 #include "tracy/Tracy.hpp"
 #include "users/playerManager.h"
 
+void Encore::Track::DrawCountdown() {
+    ZoneScopedN("Countdown")
+    auto start = player.engine->LastNoteTime();
+    auto end = player.engine->NextNoteTime();
+    double timeTillNote = end.sec - start.sec;
+    if (timeTillNote < 5)
+        return;
+    if (TheSongTime.GetElapsedTime() <= player.engine->LastNoteTime().sec)
+        return;
+    double cdSec = end.sec - TheSongTime.GetElapsedTime();
+    Vector3 worldSpace = { 0, 0, 8 };
+    Vector2 screenPos = GetWorldToScreen(
+        worldSpace,
+        AnimCamera);
+    screenPos.x += Offset * GetRenderWidth() * 0.5;
+    float SoloPercentHeight = GetRenderHeight() * 0.075f;
+    TextDisplay countdown;
+    countdown.Size(SoloPercentHeight)
+             .Pos({ screenPos.x, screenPos.y - (SoloPercentHeight / 2) })
+             .Align(CENTER)
+             .Fnt(ASSET(redHatMono));
+    int MeasuresRemaining = 0;
+    for (size_t i = TheSongTime.CurrentBeatline; i < TheSongTime.Beatlines.size(); i
+         ++) {
+        if (TheSongTime.Beatlines[i].type != Measure)
+            continue;
+        MeasuresRemaining++;
+        if (TheSongTime.Beatlines[i].tick >= end.tick) { break; }
+    }
+    // if (MeasuresRemaining > 2) {
+        unsigned char alpha = 255;
+
+        float scale = (GetRenderHeight() / 1080.0f) * 0.3;
+        if ((TheSongTime.GetElapsedTime() - start.sec) < 1) {
+            alpha = alpha * (TheSongTime.GetElapsedTime() - start.sec);
+        }
+        if (cdSec < 1) {
+            alpha = float(alpha) * (cdSec * 2);
+            scale *= cdSec;
+            if (cdSec < 0.5)
+                alpha = 0;
+
+        }
+        auto ease = getEasingFunction(EaseInQuad);
+        float progress = cdSec / timeTillNote > 1.0f ? 1.0f : cdSec / timeTillNote;
+        float fac = 1 - TheSongTime.GetBeatlineDelta() > 1.0f ? 1.0f : 1 - TheSongTime.GetBeatlineDelta();
+        Color bgC = ColorBrightness(player.AccentColor, -0.75);
+        float animScale = scale + ((scale * ease(fac)) / 8);
+        DrawCircleV(screenPos,
+                    scale * 200.1f,
+                    {bgC.r, bgC.g, bgC.b, (unsigned char)(double(alpha) * 0.75f)});
+        DrawRing(screenPos,
+                 scale * 200.0f,
+                 animScale * 250.0f,
+                 -90,
+                 360 - 90,
+                 64,
+                 { 255, 255, 255, (unsigned char)(alpha / 3) });
+        DrawRing(screenPos,
+                 scale * 200.0f,
+                 animScale * 250.0f,
+                 -90,
+                 360 * progress - 90,
+                 64,
+                 { 255, 255, 255, alpha });
+
+        countdown.Col(119, 183, 255, alpha).DrawText(std::to_string(MeasuresRemaining));
+        return;
+    // }
+
+    // unsigned char alpha = 255;
+    if (cdSec < 1) {
+        alpha = float(alpha) * (cdSec * 2);
+        if (cdSec < 0.5)
+            alpha = 0;
+    }
+    float size = GetRenderHeight() * 0.05f;
+    countdown.Size(size).Fnt(ASSET(josefinSansBold)).Pos(
+        { screenPos.x, screenPos.y - (size / 2) });
+    float width = countdown.lTextWidth("gameplay.countdownEnd");
+    Rectangle bg{ screenPos.x - ((width * 1.1f) / 2), screenPos.y - (size * 0.7f),
+                  (width * 1.1f), (size * 1.3f) };
+    DrawRectangleLinesEx({ bg.x - 3, bg.y - 3, bg.width + 6, bg.height + 6 },
+                         6.0f,
+                         { 255, 255, 255, alpha });
+    DrawRectangleRec(bg, { 0, 0, 0, alpha });
+    countdown.Col(255, 255, 255, alpha).lDrawText("gameplay.countdownEnd");
+}
+
 void Encore::Track::Draw() {
     ZoneScopedN("Track Draw")
     // make a copy of BaseCamera to set AnimCamera to for calculations
@@ -38,10 +127,10 @@ void Encore::Track::Draw() {
             FitToColumn(ColumnLeft, ColumnRight, BaseCamera);
         }
 
-        NoteSpeed = player.NoteSpeed; // TODO: should probably find a better way to do this
+        NoteSpeed = player.NoteSpeed;
+        // TODO: should probably find a better way to do this
         Length = BaseLength * player.HighwayLength;
         player.engine->UpdateCalibration(player.InputCalibration);
-
 
         ProcessAnimation();
         if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
@@ -59,7 +148,8 @@ void Encore::Track::Draw() {
     {
         ZoneScopedN("Track Shader Uniforms")
         for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                             ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader), ASSETPTR(healthMeterShader),
+                             ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
+                             ASSETPTR(healthMeterShader),
                              ASSETPTR(multiplierFillShader),
                              ASSETPTR(indicatorRingShader),
                              ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader) }) {
@@ -103,8 +193,9 @@ void Encore::Track::Draw() {
         EndMode3D();
     }
     {
-        Vector2 bottomPos = {GetRenderWidth()/2.0f + Offset*GetRenderWidth()/2.0f, (float)GetRenderHeight()};
-        Camera2D cam = {bottomPos, bottomPos, 0, Scale};
+        Vector2 bottomPos = { GetRenderWidth() / 2.0f + Offset * GetRenderWidth() / 2.0f,
+                              (float)GetRenderHeight() };
+        Camera2D cam = { bottomPos, bottomPos, 0, Scale };
         BeginMode2D(cam);
         ZoneScopedN("Track UI")
         DrawJudgement();
@@ -116,6 +207,8 @@ void Encore::Track::Draw() {
             DrawSoloUI();
         }
         DrawUsername();
+        }
+        DrawCountdown();
         EndMode2D();
 
         BeginMode3D(AnimCamera);
@@ -126,38 +219,6 @@ void Encore::Track::Draw() {
         DrawMultiplier();
         EndShaderMode();
         EndMode3D();
-    }
-    {
-        ZoneScopedN("Countdown")
-
-        double cdSec = player.engine->NextNoteTime().sec - TheSongTime.GetElapsedTime();
-        double timeTillNote = player.engine->NextNoteTime().sec - player.engine->LastNoteTime().sec;
-        if (player.engine->LastNoteTime().tick > 0
-            && timeTillNote > 2
-            && TheSongTime.GetElapsedTime() > player.engine->LastNoteTime().sec
-            && cdSec > 0.5) {
-            Vector3 worldSpace = { 0, 2.5, 5 };
-            Vector2 screenPos = GetWorldToScreen(
-                worldSpace,
-                AnimCamera);
-            screenPos.x += Offset * GetRenderWidth() * 0.5;
-            float SoloPercentHeight = GetRenderHeight()*0.05f;
-
-            TextDisplay countdown;
-            countdown.Size(SoloPercentHeight)
-            .Pos(screenPos)
-            .Col(119, 183, 255, 255)
-            .Align(CENTER)
-            .Fnt(ASSET(redHatMono))
-            .DrawText(std::format("{:4.2f}", cdSec));
-
-        }
-    }
-    {
-        ZoneScopedN("Debug")
-        if (EncoreDebug::showDebug) {
-            DrawTrackDebugWindow();
-        }
     }
 }
 
@@ -208,7 +269,8 @@ void Encore::Track::DrawSurface() {
     }
 
     SpotlightTimer = Lerp(SpotlightTimer,
-                          (int)(player.engine->stats->multNoOD() >= (player.engine->stats->SixMultiplier ? 6 : 4)),
+                          (int)(player.engine->stats->multNoOD() >= (
+                              player.engine->stats->SixMultiplier ? 6 : 4)),
                           GetFrameTime() * 3);
     if (SpotlightTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(spotlightTex);
@@ -223,13 +285,15 @@ void Encore::Track::DrawSurface() {
     Color railColor = WHITE;
     float health = player.engine->stats->Health;
     if (health < 0.33f) {
-        float fac = 1-health;
-        float strength = getEasingFunction(EaseInSine)((fac*fac)-(health + 0.33));
-        railColor = ColorBrightness(RED, (TheSongTime.GetBeatlineDelta() * -strength) + 0.33f);
-        Color failingColor = ColorBrightness(ColorAlpha(RED, (1-TheSongTime.GetBeatlineDelta() * 0.25) * strength), -(TheSongTime.GetBeatlineDelta() * strength));
+        float fac = 1 - health;
+        float strength = getEasingFunction(EaseInSine)((fac * fac) - (health + 0.33));
+        railColor = ColorBrightness(RED,
+                                    (TheSongTime.GetBeatlineDelta() * -strength) + 0.33f);
+        Color failingColor = ColorBrightness(
+            ColorAlpha(RED, (1 - TheSongTime.GetBeatlineDelta() * 0.25) * strength),
+            -(TheSongTime.GetBeatlineDelta() * strength));
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
-        DrawModelEx(ASSET(trackSurface),{0},{0}, 0,{1, 1, 1},failingColor);
-
+        DrawModelEx(ASSET(trackSurface), { 0 }, { 0 }, 0, { 1, 1, 1 }, failingColor);
     };
     DrawModelEx(ASSET(rails), { 0 }, { 0 }, 0, { 1, 1, 1 }, railColor);
     // static std::vector<Vector3> points;
@@ -254,7 +318,6 @@ void Encore::Track::DrawOverdriveMeter() {
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
 
-
     if (AnimHealth > player.engine->stats->Health) {
         ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
         ASSET(healthMeterShader).SetUniform("ResidualColor", RED);
@@ -262,15 +325,21 @@ void Encore::Track::DrawOverdriveMeter() {
         ASSET(healthMeterShader).SetUniform("FillResidualPct", AnimHealth);
     } else {
         ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
-        ASSET(healthMeterShader).SetUniform("ResidualColor", ColorLerp(GREEN, WHITE, 0.95));
+        ASSET(healthMeterShader).SetUniform("ResidualColor",
+                                            ColorLerp(GREEN, WHITE, 0.95));
         ASSET(healthMeterShader).SetUniform("FillPct", AnimHealth);
-        ASSET(healthMeterShader).SetUniform("FillResidualPct", player.engine->stats->Health);
+        ASSET(healthMeterShader).SetUniform("FillResidualPct",
+                                            player.engine->stats->Health);
     }
 
     float SolidPct = Clamp(Remap(AnimHealth, 0.2, 0.5, 0.22, 0.11), 0.11, 0.22);
     float GlowBottomPct = Clamp(Remap(AnimHealth, 0.2, 0.5, 0.8, 0.5), 0.5, 0.8);
-    ASSET(healthMeterShader).SetUniform("SolidPct", SolidPct + HealthChangeTimer * HealthChangeTimer * 0.1);
-    ASSET(healthMeterShader).SetUniform("GlowBottomPct", GlowBottomPct + HealthChangeTimer * HealthChangeTimer * 0.1);
+    ASSET(healthMeterShader).SetUniform("SolidPct",
+                                        SolidPct + HealthChangeTimer * HealthChangeTimer *
+                                        0.1);
+    ASSET(healthMeterShader).SetUniform("GlowBottomPct",
+                                        GlowBottomPct + HealthChangeTimer *
+                                        HealthChangeTimer * 0.1);
     ASSET(healthMeterShader).SetUniform("GlowIntensity", 0.7);
     ASSET(healthMeterShader).SetUniform("Fade", HealthFade);
 
@@ -287,7 +356,6 @@ void Encore::Track::DrawOverdriveMeter() {
                 60,
                 { 0.95, 0.8, 0.95 },
                 player.AccentColor);
-
 
     return;
 
@@ -333,30 +401,30 @@ void Encore::Track::DrawSoloUI() {
 
     RhythmEngine::solo *curSolo = &player.engine->chart->solos.at(
         player.engine->chart->solos.CurrentEvent);
-    if (TheSongTime.GetElapsedTime() > curSolo->start.sec && TheSongTime.GetElapsedTime() <
-        curSolo->end.sec) {
+    if (TheSongTime.GetElapsedTime() > curSolo->start.sec && TheSongTime.GetElapsedTime()
+        < curSolo->end.sec) {
         Vector3 worldSpace = { 0, 2.5, BaseLength + 5 };
         Vector2 screenPos = GetWorldToScreen(
             worldSpace,
             AnimCamera);
         screenPos.x += Offset * GetRenderWidth() * 0.5;
-        float SoloPercentHeight = GetRenderHeight()*0.05f;
+        float SoloPercentHeight = GetRenderHeight() * 0.05f;
         Text::DrawText(ASSET(redHatMono),
-                             TextFormat("%01i%%",
-                                        int((float(curSolo->NotesHit) / float(
-                                            curSolo->NoteCount)) * 100.0f)),
-                             screenPos,
-                             SoloPercentHeight,
-                             { 119, 183, 255, 255 },
-                             CENTER);
+                       TextFormat("%01i%%",
+                                  int((float(curSolo->NotesHit) / float(
+                                      curSolo->NoteCount)) * 100.0f)),
+                       screenPos,
+                       SoloPercentHeight,
+                       { 119, 183, 255, 255 },
+                       CENTER);
         Text::DrawText(ASSET(redHatMono),
-                             TextFormat("%01i/%01i",
-                                        curSolo->NotesHit,
-                                        curSolo->NoteCount),
-                             { screenPos.x, screenPos.y + SoloPercentHeight },
-                             GetRenderHeight()*0.025f,
-                             WHITE,
-                             CENTER);
+                       TextFormat("%01i/%01i",
+                                  curSolo->NotesHit,
+                                  curSolo->NoteCount),
+                       { screenPos.x, screenPos.y + SoloPercentHeight },
+                       GetRenderHeight() * 0.025f,
+                       WHITE,
+                       CENTER);
     }
 }
 
@@ -365,7 +433,7 @@ void Encore::Track::DrawUsername() {
     Vector2 screenPos = GetWorldToScreen(worldPos, AnimCamera);
 
     auto easeIn = getEasingFunction(EaseInQuint);
-    unsigned char alpha = (easeIn(1-IntroTimer) * 255.0);
+    unsigned char alpha = (easeIn(1 - IntroTimer) * 255.0);
     if (IntroTimer >= 1) {
         alpha = 0;
     }
@@ -383,8 +451,8 @@ void Encore::Track::DrawUsername() {
         color = RED;
     }
     screenPos.x += Offset * GetRenderWidth() * 0.5;
-    screenPos.y = GetRenderHeight() - GetRenderHeight()*0.045;
-    float FontSize = GetRenderHeight()*0.035;
+    screenPos.y = GetRenderHeight() - GetRenderHeight() * 0.045;
+    float FontSize = GetRenderHeight() * 0.035;
     float width = MeasureTextEx(ASSET(rubik), NameText.c_str(), FontSize, 0).x + FontSize;
     float left = screenPos.x - (width / 2);
     Rectangle icon = { left, screenPos.y, FontSize, FontSize };
@@ -397,14 +465,14 @@ void Encore::Track::DrawUsername() {
                    icon,
                    { 0, 0 },
                    0,
-                   {255,255,255,alpha});
+                   { 255, 255, 255, alpha });
     left += FontSize;
     Text::DrawText(ASSET(rubik),
-                         NameText,
-                         { left, screenPos.y },
-                         FontSize,
-                         {color.r, color.g, color.b, alpha},
-                         LEFT);
+                   NameText,
+                   { left, screenPos.y },
+                   FontSize,
+                   { color.r, color.g, color.b, alpha },
+                   LEFT);
 }
 
 Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
@@ -437,12 +505,13 @@ void Encore::Track::DrawOffsetWindow() {
 
     TextDisplay calib;
     try {
-        double avgOffset = player.engine->stats->TotalOffset / player.engine->stats->NotesHit * 1000;
+        double avgOffset = player.engine->stats->TotalOffset / player.engine->stats->
+            NotesHit * 1000;
         double lastOffset = LastHitOffset * 1000;
         calib.Fnt(ASSET(JetBrainsMono)).Pos(ScreenPos.x, ScreenPos.y - FontSize)
-            .Align(CENTER).Size(FontSize)
-            .lDrawText(LOCALISE_FMT("gameplay.avgOffset", avgOffset))
-            .AddY(FontSize).DrawText(LOCALISE_FMT("gameplay.lastOffset", lastOffset));
+             .Align(CENTER).Size(FontSize)
+             .lDrawText(LOCALISE_FMT("gameplay.avgOffset", avgOffset))
+             .AddY(FontSize).DrawText(LOCALISE_FMT("gameplay.lastOffset", lastOffset));
     } catch (const std::exception &e) {
         std::cout << e.what() << std::endl;
     }
@@ -559,7 +628,7 @@ void Encore::Track::DrawTrackNotifications() {
         ASSET(josefinSansBold),
         Text,
         pos,
-        GetRenderHeight()*getEasingFunction(EaseOutBack)(size) * FontPct,
+        GetRenderHeight() * getEasingFunction(EaseOutBack)(size) * FontPct,
         { 255, 255, 255, (unsigned char)(255.0f * size) },
         CENTER
     );
@@ -575,39 +644,39 @@ void Encore::Track::DrawCombo() {
     Vector2 ScreenTrackEndPoint = GetWorldToScreen(TrackEndPoint, AnimCamera);
     Vector2 ScreenTrackStartPoint = GetWorldToScreen(TrackStartPoint, AnimCamera);
     TextDisplay comboDisplay;
-    float POffset = GetRenderHeight()*0.05f;
+    float POffset = GetRenderHeight() * 0.05f;
 
     Vector2 ScreenMultiplierPosition = GetWorldToScreen(
         WorldMultiplierPosition,
         AnimCamera);
     std::string comboNum = std::to_string(player.engine->stats->Combo);
     comboDisplay.Fnt(ASSET(rubikBold))
-    .Col(ColorAlpha(WHITE, 0.75))
-    .Size(GetRenderHeight()*0.025f)
-    .Pos({ ScreenMultiplierPosition.x + POffset,
-            ScreenMultiplierPosition.y - (comboDisplay.fontSize / 2) })
-    .AddX(Offset * GetRenderWidth() * 0.5);
+                .Col(ColorAlpha(WHITE, 0.75))
+                .Size(GetRenderHeight() * 0.025f)
+                .Pos({ ScreenMultiplierPosition.x + POffset,
+                       ScreenMultiplierPosition.y - (comboDisplay.fontSize / 2) })
+                .AddX(Offset * GetRenderWidth() * 0.5);
 
     if (player.engine->stats->Combo > 0) {
         comboDisplay.DrawText(comboNum);
     }
     if (EncoreDebug::showDebug) {
-        float HighwayPixelsOnScreen = (ScreenTrackStartPoint.y - ScreenTrackEndPoint.y) * Scale;
+        float HighwayPixelsOnScreen = (ScreenTrackStartPoint.y - ScreenTrackEndPoint.y) *
+            Scale;
         float NotHighwayPixelsOnScreen = GetRenderHeight() - HighwayPixelsOnScreen;
         std::string gn = std::to_string(int((Length / GetZPerSecond()) * 1000));
-        std::string wn = std::to_string(std::abs(int((NotHighwayPixelsOnScreen / float(GetRenderHeight())) * 1000)));
+        std::string wn = std::to_string(
+            std::abs(int((NotHighwayPixelsOnScreen / float(GetRenderHeight())) * 1000)));
         comboDisplay.AddX(comboDisplay.TextWidth("00000"))
-        .Col(ColorAlpha(RAYWHITE, 0.75))
-        .DrawText(wn)
-        .AddX(comboDisplay.TextWidth(wn) * 1.25f)
-        .Col(ColorAlpha(GREEN, 0.75))
-        .DrawText(gn);
+                    .Col(ColorAlpha(RAYWHITE, 0.75))
+                    .DrawText(wn)
+                    .AddX(comboDisplay.TextWidth(wn) * 1.25f)
+                    .Col(ColorAlpha(GREEN, 0.75))
+                    .DrawText(gn);
     }
-
 }
 
 void Encore::Track::DrawJudgement() {
-
     if (JudgementTimer > 0)
         JudgementTimer -= GetFrameTime() * 5;
     else {
@@ -642,12 +711,12 @@ void Encore::Track::DrawJudgement() {
     Vector2 pos = {};
     Vector3 WorldMultiplierPosition = { 0, -0.1, -1.3 };
     unsigned char alpha = 255;
-    float FontSize = GetRenderHeight()*0.025f;
+    float FontSize = GetRenderHeight() * 0.025f;
     float TextWidth = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
         x;
     float TextHeight = MeasureTextEx(ASSET(rubikBold), JudgementStr.c_str(), FontSize, 0).
         y;
-    float POffset = GetRenderHeight()*0.05f;
+    float POffset = GetRenderHeight() * 0.05f;
     // perfect in
     float move = 0;
     double MaxAlpha = 255;
@@ -774,7 +843,11 @@ void Encore::Track::DrawNotes() {
                 auto slot = slots[i];
                 slot->DrawSustainTail(note->start.sec,
                                       note->end.sec,
-                                      ColorBrightness(player.QueryColorProfile(slot->colorSlot, ColorProfileType), -0.75),
+                                      ColorBrightness(
+                                          player.QueryColorProfile(
+                                              slot->colorSlot,
+                                              ColorProfileType),
+                                          -0.75),
                                       0);
             } else
                 break;
@@ -820,8 +893,9 @@ void Encore::Track::DrawBeatlines() {
             auto &beatline = TheSongTime.Beatlines[i];
             float ScrollPos = GetNotePos3D(
                 beatline.time
-            )-0.24;
-            if (ScrollPos > Length) break;
+            ) - 0.24;
+            if (ScrollPos > Length)
+                break;
             float Size = 0;
             Color beatlineColor = WHITE;
             switch (beatline.type) {
@@ -865,7 +939,8 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::NoteEvent &note
     auto lane = note.lane;
     for (int i = 0; i < 6; i++) {
         if (lane & RhythmEngine::PlasticFrets[i]) {
-            if (player.Instrument == PlasticDrums && note.type == 1 && player.engine->chart->size == 5) {
+            if (player.Instrument == PlasticDrums && note.type == 1 && player.engine->
+                chart->size == 5) {
                 append_slot(i + 3);
             } else {
                 append_slot(i);
@@ -926,7 +1001,9 @@ void Encore::Track::HandleEvent(Event *event) {
         KickSpeedMult = bounceEvent->mult;
     }
     if (auto multiplierIncrease = event->GetTyped<MultFlashEvent>()) {
-        Color color = multiplierIncrease->comboBreak ? RED : ColorBrightness(player.AccentColor, 0.2);
+        Color color = multiplierIncrease->comboBreak
+            ? RED
+            : ColorBrightness(player.AccentColor, 0.2);
         Particle flash;
         flash.setActive(true)
              .setType(MARKIPLIER_FLASH)
@@ -973,7 +1050,9 @@ void Encore::Track::HandleEvent(Event *event) {
                     slot->AnimateOverhit();
                 } else {
                     slot->AnimateHit(hitEvent->judgement,
-                                     player.QueryColorProfile(slot->colorSlot, ColorProfileType));
+                                     player.QueryColorProfile(
+                                         slot->colorSlot,
+                                         ColorProfileType));
                 }
             } else
                 break;
@@ -1019,23 +1098,30 @@ void Encore::Track::ProcessAnimation() {
         HealthChangeTimer = 0;
     }
     float ChangeAmount = GetFrameTime() / 12;
-    if (HealthChangeTimer == 0) ChangeAmount = GetFrameTime() * 2;
-    AnimHealth = Lerp(AnimHealth, player.engine->stats->Health, 1 - expf(-10*GetFrameTime()));
+    if (HealthChangeTimer == 0)
+        ChangeAmount = GetFrameTime() * 2;
+    AnimHealth = Lerp(AnimHealth,
+                      player.engine->stats->Health,
+                      1 - expf(-10 * GetFrameTime()));
     if (player.engine->stats->Health >= 1) {
         TimeFull += GetFrameTime();
     } else {
         TimeFull = 0;
     }
     if (TimeFull > 1) {
-        HealthFade = Lerp(HealthFade, 0, 1 - expf(-3*GetFrameTime()));
+        HealthFade = Lerp(HealthFade, 0, 1 - expf(-3 * GetFrameTime()));
     } else {
-        HealthFade = Lerp(HealthFade, 1, 1 - expf(-25*GetFrameTime()));
+        HealthFade = Lerp(HealthFade, 1, 1 - expf(-25 * GetFrameTime()));
     }
     auto ease = getEasingFunction(EaseInQuad);
     auto easeout = getEasingFunction(EaseInQuart);
     AnimCamera.position.y = BaseCamera.position.y - (ease(KickTimer) * 0.2);
     if (IntroTimer > 0)
-        AnimCamera.target.y = Remap(easeout(IntroTimer), 0, 1, 0, AnimCamera.position.y * 2);
+        AnimCamera.target.y = Remap(easeout(IntroTimer),
+                                    0,
+                                    1,
+                                    0,
+                                    AnimCamera.position.y * 2);
     else
         AnimCamera.target.y = BaseCamera.target.y - (ease(KickTimer) * 0.1);
 }

@@ -278,6 +278,7 @@
 		"replay": "(REPLAY)",
 		"avgOffset": "Average Offset: {: 7.2f}ms",
 		"lastOffset": "Last Hit Offset: {: 7.2f}ms",
+		"countdownEnd": "Get Ready!",
 		"trackNotification": {
 			"overdrive": "Overdrive ready",
 			"combo": "{} Note Combo",

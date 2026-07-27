@@ -18,6 +18,7 @@ namespace Encore {
     class Track : public EventSink {
     public:
         void DrawTrackDebugWindow();
+        void DrawCountdown();
         void Draw();
         void Load();
         void DrawNotes();
