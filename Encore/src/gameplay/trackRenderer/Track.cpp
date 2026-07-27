@@ -207,7 +207,7 @@ void Encore::Track::Draw() {
             DrawSoloUI();
         }
         DrawUsername();
-        }
+        
         DrawCountdown();
         EndMode2D();
 
