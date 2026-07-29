@@ -45,8 +45,20 @@ namespace Encore::RhythmEngine {
         explicit Event(const TimePoint _start, const TimePoint _end)
             : start(_start), end(_end) {}
 
-        int tickLen() const { return end.tick - start.tick; }
-        double secLen() const { return end.sec - start.sec; }
+        int tickLen() const {
+            int out = end.tick - start.tick;
+            if (out < 0) {
+                return 0;
+            }
+            return out;
+        }
+        double secLen() const {
+            double out = end.sec - start.sec;
+            if (out < 0) {
+                return 0;
+            }
+            return out;
+        }
     };
 
     struct NoteEvent : Event {
