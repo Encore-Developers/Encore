@@ -1161,7 +1161,7 @@ void Encore::Track::DrawTrackDebugWindow() {
                     if (player.engine->stats->Type == 0) {
                         player.engine->Overhit(0);
                     } else {
-                        for (int i = 0; 0 < player.engine->stats->HeldFrets.size(); i++) {
+                        for (int i = 0; i < player.engine->stats->HeldFrets.size(); i++) {
                             if (player.engine->stats->HeldFrets.at(i))
                                 player.engine->Overhit(i);
                         }
@@ -1172,7 +1172,7 @@ void Encore::Track::DrawTrackDebugWindow() {
                     if (player.engine->stats->Type == 0) {
                         player.engine->FireEventTemp(OverhitEvent(0));
                     } else {
-                        for (int i = 0; 0 < player.engine->stats->HeldFrets.size(); i++) {
+                        for (int i = 0; i < player.engine->stats->HeldFrets.size(); i++) {
                             if (player.engine->stats->HeldFrets.at(i))
                                 player.engine->FireEventTemp(OverhitEvent(i));
                         }
