@@ -235,7 +235,7 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
     }
     auto getHealthLoss = [this](const double amount, bool combobreak) {
         double mult = 1;
-        if (combobreak) mult = stats->multNoOD() * 2;
+        if (combobreak) mult = 8;
         if (stats->overdrive.Active)
             return amount * healthOverdriveLossMult * mult;
         return amount * mult;

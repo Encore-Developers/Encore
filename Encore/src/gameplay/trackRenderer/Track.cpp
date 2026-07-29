@@ -24,14 +24,16 @@
 
 void Encore::Track::DrawCountdown() {
     ZoneScopedN("Countdown")
+    double time = TheSongTime.GetElapsedTime();
     auto start = player.engine->LastNoteTime();
     auto end = player.engine->NextNoteTime();
-    double timeTillNote = end.sec - start.sec;
+    double timeTillNote = double(end - start);
+
     if (timeTillNote < 5)
         return;
-    if (TheSongTime.GetElapsedTime() <= player.engine->LastNoteTime().sec)
+    if (start >= time)
         return;
-    double cdSec = end.sec - TheSongTime.GetElapsedTime();
+    double cdSec = end - time;
     Vector3 worldSpace = { 0, 0, 8 };
     Vector2 screenPos = GetWorldToScreen(
         worldSpace,
@@ -49,14 +51,14 @@ void Encore::Track::DrawCountdown() {
         if (TheSongTime.Beatlines[i].type != Measure)
             continue;
         MeasuresRemaining++;
-        if (TheSongTime.Beatlines[i].tick >= end.tick) { break; }
+        if (TheSongTime.Beatlines[i].tick >= end) { break; }
     }
     // if (MeasuresRemaining > 2) {
         unsigned char alpha = 255;
 
         float scale = (GetRenderHeight() / 1080.0f) * 0.3;
-        if ((TheSongTime.GetElapsedTime() - start.sec) < 1) {
-            alpha = alpha * (TheSongTime.GetElapsedTime() - start.sec);
+        if ((time - start) < 1) {
+            alpha = alpha * (time - start);
         }
         if (cdSec < 1) {
             alpha = float(alpha) * (cdSec * 2);
@@ -200,13 +202,15 @@ void Encore::Track::Draw() {
         ZoneScopedN("Track UI")
         DrawJudgement();
         DrawCombo();
-        if (TheGameSettings.ShowCalibrationInfo) {
-            DrawOffsetWindow();
-        } else {
-            DrawTrackNotifications();
-            DrawSoloUI();
+        if (EncoreDebug::showGameplayHud) {
+            if (TheGameSettings.ShowCalibrationInfo) {
+                DrawOffsetWindow();
+            } else {
+                DrawTrackNotifications();
+                DrawSoloUI();
+            }
+            DrawUsername();
         }
-        DrawUsername();
         
         DrawCountdown();
         EndMode2D();

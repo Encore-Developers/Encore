@@ -2,6 +2,7 @@
 #ifndef ENCORE_DEBUG_H
 #define ENCORE_DEBUG_H
 #include "imgui.h"
+#include "users/playerManager.h"
 
 namespace EncoreDebug {
 
@@ -19,7 +20,8 @@ namespace EncoreDebug {
     extern bool showDebug;
     extern bool reloadQueued;
     extern bool reloadFonts;
-
+    extern bool showGameplayHud;
+    extern bool showEngineWindow[MAX_PLAYERS];
     void DrawDebug();
     void MenuBar();
     void DrawAssetViewer();
@@ -30,6 +32,7 @@ namespace EncoreDebug {
     void DrawPracticeSectionSelector();
     void DrawColorProfileSettings();
     void DrawJoystickTools();
+    void DrawEngineWindow(int slot);
     void DrawLocaleDebug();
     void DrawLog();
 

@@ -97,12 +97,12 @@ void SettingsGameplay::ControllerInputCallback(ControllerEvent event) {
 
 void SettingsGameplay::Load() {
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg, STRUM_UP, "UP", {
+    NEWBUTTONACTION2(buttReg, STRUM_UP, "generic.up", {
         if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         settings.IncrementSelected(true);
     }, false)
-    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "DOWN", {
+    NEWBUTTONACTION2(buttReg, STRUM_DOWN, "generic.down", {
         if (_action != Encore::Action::PRESS) return;
         if (ScanningSongs) return;
         settings.IncrementSelected(false);

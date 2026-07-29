@@ -551,23 +551,27 @@ void GameplayMenu::Draw() {
         if (player.engine->stats->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
+        if (EncoreDebug::showEngineWindow[player.ActiveSlot]) {
+            track->DrawTrackDebugWindow();
+        }
         TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
     }
     TheAudioManager.UpdateAudioStreamVolumes();
+    if (EncoreDebug::showGameplayHud) {
+        float scorePos = u.RightSide - u.hinpct(0.01f);
+        float scoreY = u.hpct(0.2f);
+        float starY = scoreY + u.hinpct(0.065f);
+        // Draw Stars
+        DrawGameplayStars(u, assets, scorePos, starY);
 
-    float scorePos = u.RightSide - u.hinpct(0.01f);
-    float scoreY = u.hpct(0.2f);
-    float starY = scoreY + u.hinpct(0.065f);
-    // Draw Stars
-    DrawGameplayStars(u, assets, scorePos, starY);
+        // Draw Timerbox
+        DrawTimerbox(u, assets, scoreY);
 
-    // Draw Timerbox
-    DrawTimerbox(u, assets, scoreY);
+        // Score Drawing
+        DrawScorebox(u, assets, scoreY);
 
-    // Score Drawing
-    DrawScorebox(u, assets, scoreY);
-
-    TheLyricRenderer.RenderLyrics();
+        TheLyricRenderer.RenderLyrics();
+    }
 
     // please God smite this code. flip a few bits in my hard drive. please get rid of this shit somehow
     // there's better ways. forgive me for I have sinned
@@ -576,11 +580,12 @@ void GameplayMenu::Draw() {
 
     if (IsPaused()) {
         DrawPauseMenu();
-    } else {
+    } else if (EncoreDebug::showGameplayHud){
         DrawMTVOverlay({u.wpct(0.01f), u.hpct(0.2f)});
     }
 
-    GameMenu::DrawTopBarText(true);
+    if (EncoreDebug::showGameplayHud)
+        GameMenu::DrawTopBarText(true);
 }
 
 void GameplayMenu::Load() {

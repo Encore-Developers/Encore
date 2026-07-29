@@ -24,6 +24,9 @@
 bool EncoreDebug::showDebug = false;
 bool EncoreDebug::reloadQueued = false;
 bool EncoreDebug::reloadFonts = false;
+bool EncoreDebug::showGameplayHud = true;
+
+bool EncoreDebug::showEngineWindow[MAX_PLAYERS] = { false, false, false, false };
 
 bool showDemoWindow = false;
 bool showAssets = false;
@@ -36,6 +39,7 @@ bool showEasings = false;
 bool showJoystickTools = false;
 bool showLocaleDebug = false;
 bool showLog = false;
+
 
 bool paused = false;
 std::string pauseText = "Pause";
@@ -153,15 +157,25 @@ void EncoreDebug::MenuBar() {
     ZoneScoped;
     auto gameplayMenu = TheMenuManager.GetActiveMenu<GameplayMenu>();
     BeginMainMenuBar();
-    if (BeginMenu("Windows")) {
-        MenuItem("Assets", 0, &showAssets);
+
+    if (BeginMenu("Config")) {
+        MenuItem("Quick Settings", 0, &showQuickSettings);
         MenuItem("Player Manager", 0, &showPlayerManager);
-        MenuItem("Song List", 0, &showSongList, !gameplayMenu);
-        MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         MenuItem("Color Profile Manager", 0, &showColorProfileManager);
-        MenuItem("Easings Debug", 0, &showEasings);
+        EndMenu();
+    }
+
+    if (BeginMenu("Tools")) {
         MenuItem("Joystick Tools", 0, &showJoystickTools);
+        MenuItem("ImGui Demo Window", 0, &showDemoWindow);
         MenuItem("Log", 0, &showLog);
+        EndMenu();
+    }
+
+    if (BeginMenu("Dev")) {
+        MenuItem("Assets", 0, &showAssets);
+        MenuItem("Song List", 0, &showSongList, !gameplayMenu);
+        MenuItem("Easings Debug", 0, &showEasings);
         if (Encore::Locale::unlocalizedTokens.empty()) {
             MenuItem("Locale Debug", 0, &showLocaleDebug);
         } else {
@@ -171,42 +185,52 @@ void EncoreDebug::MenuBar() {
                      0,
                      &showLocaleDebug);
         }
-
         EndMenu();
     }
-    if (MenuItem(TextFormat("Quick Settings (%i FPS)###QuickSettings", GetFPS()),
-                 0,
-                 &showQuickSettings)) {
-    }
 
-    if (gameplayMenu && MenuItem("End Song")) {
-        TheAudioManager.unloadStreams();
-        TheSongTime.FullReset();
-        TheMenuManager.CreateAndSwitchMenu<resultsMenu>(gameplayMenu->curSong);
-    }
     if (gameplayMenu) {
-        MenuItem("Practice", 0, &showPractice);
-    }
-
-    if (gameplayMenu && MenuItem(pauseText.c_str())) {
-        paused = !paused;
-        for (auto player : ThePlayerManager.ActivePlayers) {
-            if (!player)
-                continue;
-            player->engine->stats->Paused = paused;
-        }
-        if (paused) {
-            pauseText = "Play";
-            TheAudioManager.pauseStreams();
-        } else {
-            pauseText = "Pause";
-            TheAudioManager.unpauseStreams();
+        if (BeginMenu("Gameplay")) {
+            if (MenuItem(pauseText.c_str())) {
+                paused = !paused;
+                for (auto player : ThePlayerManager.ActivePlayers) {
+                    if (!player)
+                        continue;
+                    player->engine->stats->Paused = paused;
+                }
+                if (paused) {
+                    pauseText = "Resume";
+                    TheAudioManager.pauseStreams();
+                } else {
+                    pauseText = "Pause";
+                    TheAudioManager.unpauseStreams();
+                }
+            }
+            if (MenuItem("End Song")) {
+                TheAudioManager.unloadStreams();
+                TheSongTime.FullReset();
+                TheMenuManager.CreateAndSwitchMenu<resultsMenu>(gameplayMenu->curSong);
+            }
+            MenuItem("Practice", 0, &showPractice);
+            MenuItem("Show Hud", 0, &showGameplayHud);
+            if (BeginMenu("Active Stats/Engines")) {
+                for (int p = 0; p < ThePlayerManager.PlayersActive; p++) {
+                    MenuItem(ThePlayerManager.GetActivePlayer(p).Name.c_str(),
+                             0,
+                             &showEngineWindow[p]);
+                }
+                EndMenu();
+            }
+            EndMenu();
         }
     }
     auto avail = GetWindowWidth();
     auto size = CalcTextSize(debugVersionHash.c_str()).x;
+    auto fpsSize = CalcTextSize("00000 FPS").x;
+    auto realFpsSize = CalcTextSize(TextFormat("%i FPS", GetFPS())).x;
 
-    SetCursorPosX(avail - size - GetStyle().FramePadding.x);
+    SetCursorPosX(avail - realFpsSize - GetStyle().FramePadding.x);
+    ImGui::Text("%i FPS", GetFPS());
+    SetCursorPosX(avail - size - fpsSize - GetStyle().FramePadding.x);
     ImGui::Text("%s", debugVersionHash.c_str());
 
     EndMainMenuBar();
@@ -616,7 +640,7 @@ void EncoreDebug::DrawPlayerManager() {
                     if (ThePlayerManager.ActivePlayers[i] == nullptr) {
                         if (i == 0)
                             Text("%s",
-                             "No players are available. Please consider having players join, or disable \"Show Only Active Players\"");
+                                 "No players are available. Please consider having players join, or disable \"Show Only Active Players\"");
                         break;
                     }
                     DrawPlayer(ThePlayerManager.ActivePlayers[i]);
@@ -742,6 +766,47 @@ void EncoreDebug::DrawJoystickTools() {
     }
 
     End();
+}
+
+void EncoreDebug::DrawEngineWindow(int slot) {
+    auto &player = ThePlayerManager.GetActivePlayer(slot);
+    if (Begin(player.Name.c_str())) {
+        if (CollapsingHeader("Engine")) {
+            auto engine = player.engine;
+            BeginDisabled();
+            float time = engine->LastUpdateTime;
+            SliderFloat("Last Update Time", &time, time, time);
+            time = engine->stats->InputOffset;
+            SliderFloat("Input Offset", &time, time, time);
+            time = engine->stats->InputTime;
+            SliderFloat("Input Time", &time, time, time);
+            EndDisabled();
+
+            ProgressBar(engine->whammy, { 1.0f, 0.0f }, "Whammy");
+            SeparatorText("Timers");
+            for (auto Timer : engine->Timers) {
+                for (auto timer : player.engine->Timers) {
+                    float countdown = Clamp(
+                        (timer.second.Time + timer.second.Duration)
+                        - TheSongTime.GetElapsedTime(),
+                        0,
+                        timer.second.Duration
+                    );
+                    ProgressBar(countdown / timer.second.Duration,
+                                { -FLT_MIN, 0 },
+                                TextFormat("%s: %4.4f",
+                                           timer.first.c_str(),
+                                           countdown));
+                };
+            }
+        }
+        if (CollapsingHeader("Stats")) {
+            auto stats = player.engine->stats;
+        }
+        if (CollapsingHeader("Events")) {
+        }
+        End();
+    }
 }
 
 void EncoreDebug::DrawLocaleDebug() {
@@ -1006,6 +1071,9 @@ void EncoreDebug::DrawLog() {
     End();
 }
 
+float bounceTimer = 1.0f;
+float bounceMult = 5.0f;
+
 void Encore::Track::DrawTrackDebugWindow() {
     ZoneScoped;
     SetNextWindowSizeConstraints({ 400, 0.0f }, { FLT_MAX, FLT_MAX });
@@ -1014,7 +1082,11 @@ void Encore::Track::DrawTrackDebugWindow() {
         nullptr,
         ImGuiWindowFlags_AlwaysAutoResize
     )) {
-        if (CollapsingHeader("Camera Settings")) {
+        if (!BeginTabBar("Track Debug")) {
+            End();
+            return;
+        }
+        if (BeginTabItem("Camera")) {
             DragFloat3("Camera Position", (float *)&BaseCamera.position, 0.1);
             DragFloat3("Camera Target", (float *)&BaseCamera.target, 0.1);
             DragFloat("Camera FOV", &BaseCamera.fovy);
@@ -1030,47 +1102,170 @@ void Encore::Track::DrawTrackDebugWindow() {
                 DragFloat("Column Right", &ColumnRight, 0.01);
             }
             DragFloat("Note Height", &NoteHeight, 0.01);
+            EndTabItem();
         }
-        if (CollapsingHeader("Engine State")) {
-            SeparatorText("Timers");
-            for (auto timer : player.engine->Timers) {
-                float countdown = Clamp(
-                    (timer.second.Time + timer.second.Duration)
-                    - TheSongTime.GetElapsedTime(),
-                    0,
-                    timer.second.Duration
+        if (BeginTabItem("RhythmEngine")) {
+            BeginTabBar("guh");
+            if (BeginTabItem("Engine")) {
+                auto engine = player.engine;
+                BeginDisabled();
+                float time = engine->LastUpdateTime;
+                InputFloat("Last Update Time", &time);
+                time = engine->stats->InputOffset;
+                InputFloat("Input Offset", &time);
+                time = engine->stats->InputTime;
+                InputFloat("Input Time", &time);
+                EndDisabled();
+                float health = player.engine->stats->Health;
+                SliderFloat("Health", &health, 0, 1);
+                player.engine->stats->Health = health;
+                float od = player.engine->stats->overdrive.Fill;
+                SliderFloat("Overdrive", &od, 0, 1);
+                Checkbox("Overdrive Active", &player.engine->stats->overdrive.Active);
+                player.engine->stats->overdrive.Fill = od;
+                ProgressBar(engine->whammy, { -1.0f, 0.0f }, "Whammy");
+                SeparatorText("Timers");
+                for (auto Timer : engine->Timers) {
+                    for (auto timer : player.engine->Timers) {
+                        float countdown = Clamp(
+                            (timer.second.Time + timer.second.Duration)
+                            - TheSongTime.GetElapsedTime(),
+                            0,
+                            timer.second.Duration
+                        );
+                        ProgressBar(countdown / timer.second.Duration,
+                                    { -FLT_MIN, 0 },
+                                    TextFormat("%s: %4.4f",
+                                               timer.first.c_str(),
+                                               countdown));
+                    };
+                }
+                SeparatorText("Multiplier Flash");
+                if (Button("Send Combo Break Event")) {
+                    player.engine->FireEventTemp(MultFlashEvent(true));
+                }
+                SameLine();
+                if (Button("Send Combo Gain Event")) {
+                    player.engine->FireEventTemp(MultFlashEvent(false));
+                }
+                SeparatorText("Highway Bounce");
+                SameLine();
+                if (Button("Send Event")) {
+                    HighwayBounceEvent bounce(bounceTimer, bounceMult);
+                    player.engine->FireEvent(&bounce);
+                }
+                DragFloat("Timer", &bounceTimer);
+                DragFloat("Mult", &bounceMult);
+                SeparatorText("Overhit");
+                if (Button("Send Engine Event")) {
+                    if (player.engine->stats->Type == 0) {
+                        player.engine->Overhit(0);
+                    } else {
+                        for (int i = 0; 0 < player.engine->stats->HeldFrets.size(); i++) {
+                            if (player.engine->stats->HeldFrets.at(i))
+                                player.engine->Overhit(i);
+                        }
+                    }
+                }
+                SameLine();
+                if (Button("Send Track Event")) {
+                    if (player.engine->stats->Type == 0) {
+                        player.engine->FireEventTemp(OverhitEvent(0));
+                    } else {
+                        for (int i = 0; 0 < player.engine->stats->HeldFrets.size(); i++) {
+                            if (player.engine->stats->HeldFrets.at(i))
+                                player.engine->FireEventTemp(OverhitEvent(i));
+                        }
+                    }
+                }
+                EndTabItem();
+            }
+            if (BeginTabItem("Stats")) {
+                DragInt("Combo", &player.engine->stats->Combo);
+
+                ImGui::Text("%s",
+                            TextFormat("Ghost Count: %i", player.engine->GhostCount));
+                ImGui::Text("%s",
+                            TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
+                ImGui::Text("%s",
+                            TextFormat("Attempted notes: %i",
+                                       player.engine->stats->AttemptedNotes)
                 );
-                ProgressBar(countdown / timer.second.Duration,
-                            { -FLT_MIN, 0 },
-                            TextFormat("%s: %4.4f",
-                                       timer.first.c_str(),
-                                       countdown));
-            };
-            SeparatorText("Stats");
-            ImGui::Text("%s", TextFormat("Combo: %i", player.engine->stats->Combo));
-            ImGui::Text("%s", TextFormat("Ghost Count: %i", player.engine->GhostCount));
-            ImGui::Text("%s",
-                        TextFormat("Max combo: %i", player.engine->stats->MaxCombo));
-            ImGui::Text("%s",
-                        TextFormat("Attempted notes: %i",
-                                   player.engine->stats->AttemptedNotes)
-            );
-            ImGui::Text("%s", TextFormat("Misses: %i", player.engine->stats->Misses));
-            ImGui::Text("%s",
-                        TextFormat("Notes hit: %i (%.0f%)",
-                                   player.engine->stats->NotesHit,
-                                   (float)player.engine->stats->NotesHit / player.engine->
-                                   stats->AttemptedNotes * 100));
-            ImGui::Text("%s", TextFormat("Score: %4.2f", player.engine->stats->Score));
-            ImGui::Text("%s",
-                        TextFormat("Base score: %4.2f", player.engine->chart->BaseScore));
-            ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
-            ImGui::Text("%s",
-                        TextFormat("Multiplier: %ix",
-                                   player.engine->stats->multiplier()));
-            Checkbox("Allow Timestamped Inputs", &player.engine->allowTimestampedInputs);
+                ImGui::Text("%s", TextFormat("Misses: %i", player.engine->stats->Misses));
+                ImGui::Text("%s",
+                            TextFormat("Notes hit: %i (%.0f%)",
+                                       player.engine->stats->NotesHit,
+                                       (float)player.engine->stats->NotesHit / player.
+                                       engine->
+                                       stats->AttemptedNotes * 100));
+                ImGui::Text("%s",
+                            TextFormat("Score: %4.2f", player.engine->stats->Score));
+                ImGui::Text("%s",
+                            TextFormat("Base score: %4.2f",
+                                       player.engine->chart->BaseScore));
+                ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
+                ImGui::Text("%s",
+                            TextFormat("Multiplier: %ix",
+                                       player.engine->stats->multiplier()));
+                Checkbox("Allow Timestamped Inputs",
+                         &player.engine->allowTimestampedInputs);
+                EndTabItem();
+            }
+            if (BeginTabItem("Info")) {
+                const unsigned int count = 1000;
+                static float values[count] = { 0 };
+                auto acc = [this](double time) {
+                    if (time < perfectFrontend / goodFrontend) {
+                        return 1.0;
+                    }
+                    return (1 - time) / 1;
+                };
+                for (unsigned int i = 0; i < count; i++) {
+                    double f = (double)i / (double)count;
+                    values[i] = acc(f);
+                }
+                PlotLines(
+                    "###acc",
+                    values,
+                    count,
+                    0,
+                    "Accuracy",
+                    FLT_MAX,
+                    FLT_MAX,
+                    { 0.0f, GetContentRegionAvail().x * 0.8f }
+                );
+
+                const unsigned int hcount = 1000;
+                static float hvalues[hcount] = { 0 };
+                auto health = [this](float time) {
+                    if (time < perfectFrontend / goodFrontend) {
+                        return healthGainPerNote;
+                    }
+                    if (time > 0.7) {
+                        return -(healthGainPerNote * (1 - ((1 - time) / 1)));
+                    }
+                    return healthGainPerNote * ((1 - time) / 1);
+                };
+                for (unsigned int i = 0; i < hcount; i++) {
+                    double f = (double)i / (double)hcount;
+                    hvalues[i] = health(f);
+                }
+                PlotLines(
+                    "###health",
+                    hvalues,
+                    hcount,
+                    0,
+                    "Health gain/note accuracy",
+                    FLT_MAX,
+                    FLT_MAX,
+                    { 0.0f, GetContentRegionAvail().x * 0.8f }
+                );
+                EndTabItem();
+            }
+            EndTabBar();
+            EndTabItem();
         }
-        if (CollapsingHeader("Section Stats")) {
+        if (BeginTabItem("Sections")) {
             if (BeginTable("Sections", 3)) {
                 int i = 0;
                 for (auto &section : player.engine->chart->sections) {
@@ -1091,8 +1286,9 @@ void Encore::Track::DrawTrackDebugWindow() {
                 }
                 EndTable();
             }
+            EndTabItem();
         }
-        if (CollapsingHeader("Track Slots")) {
+        if (BeginTabItem("Track Slots")) {
             if (Button("Configure 5 Lane")) {
                 Configure5Lane();
             }
@@ -1131,11 +1327,15 @@ void Encore::Track::DrawTrackDebugWindow() {
                                          ColorProfileType));
                 }
                 DragFloat("X Position", &slot->xPos, 0.01);
+                SameLine();
                 DragFloat("Width", &slot->width, 0.01);
+                SameLine();
                 DragFloat("Length", &slot->length, 0.01);
                 PopID();
             }
+            EndTabItem();
         }
+        EndTabBar();
     }
     End();
 }
