@@ -178,6 +178,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
             return amount * healthOverdriveGainMult;
         return amount;
     };
+
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
         Log::Debug("Accuracy: {}", 1);
@@ -191,9 +192,9 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         stats->Accuracy += acc;
 
         if (acc < 0.3) {
-            stats->Health -= getHealthGain((healthGainPerNote * (1.0-acc)) * (stats->multNoOD()));
+            stats->Health -= getHealthGain((healthGainPerNote * (1.0-acc)));
             if (stats->Health < 0) stats->Health = 0;
-            HealthChangeEvent hce(-(getHealthGain((healthGainPerNote * (1.0-acc)) * (stats->multNoOD()))));
+            HealthChangeEvent hce(-(getHealthGain((healthGainPerNote * (1.0-acc)))));
             FireEvent(&hce);
         } else {
             stats->Health += getHealthGain(healthGainPerNote * acc);
@@ -321,7 +322,7 @@ Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime()
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
             continue;
-        if (tp.tick == 0 && tp.sec == 0) tp = chart->CurrentNoteIterators.at(Lane)->start;
+        if (tp == 0 && tp == 0.0) tp = chart->CurrentNoteIterators.at(Lane)->start;
         if (chart->CurrentNoteIterators.at(Lane)->start < tp) tp = chart->CurrentNoteIterators.at(Lane)->start;
     }
     return tp;
@@ -335,12 +336,12 @@ Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::LastNoteTime()
         auto lastNote = (chart->CurrentNoteIterators.at(Lane)-1);
         if (lastNote < chart->at(Lane).begin())
             continue;
-        if (tp.tick == 0 && tp.sec == 0) {
+        if (tp == 0.0 && tp == 0) {
             tp = lastNote->start;
             continue;
         }
         if (lastNote->start > tp) {
-            if (lastNote->end.tick == 0) {
+            if (lastNote->end == 0) {
                 tp = lastNote->start;
             } else {
                 tp = lastNote->end;
