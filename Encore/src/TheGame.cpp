@@ -398,6 +398,12 @@ int TheGame::Run(int argc, char *argv[]) {
         } else {
             GuiUnlock();
         }
+        if ((ImGui::GetIO().WantTextInput || wantsCharacterInput) && !SDL_TextInputActive(GetSDLWindow())) {
+            SDL_StartTextInput(GetSDLWindow());
+        }
+        if (!(ImGui::GetIO().WantTextInput || wantsCharacterInput) && SDL_TextInputActive(GetSDLWindow())) {
+            SDL_StopTextInput(GetSDLWindow());
+        }
         static bool imGuiFontLoaded = false;
 
         if (!imGuiFontLoaded && ASSET(JetBrainsMono).state == LOADED) {

@@ -26,6 +26,8 @@ extern uint64_t syncSDLTicks;
 extern double lastTranslatedTime;
 extern int controllerPollRate;
 
+extern bool wantsCharacterInput;
+
 void PollControllers(std::stop_token token);
 
 #define MAX_EVENTS 2000

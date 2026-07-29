@@ -11,6 +11,7 @@
 #include "raylib.h"
 #include "menus/util/locale/Locale.h"
 #include "gameplay/enctime.h"
+#include "gameplay/inputCallbacks.h"
 #include "menus/gameplay/ChartLoadingMenu.h"
 #include "menus/gameplay/PracticeMenu.h"
 #include "menus/gameplay/ReadyUpMenu.h"
@@ -164,6 +165,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
     float osBottom = GetYPos(-1, true);
     PlayerManager &playerManager = ThePlayerManager;
     BeginScissorMode(0,0,GetRenderWidth(),unit.hpct(1.0f));
+    wantsCharacterInput = false;
     for (int i = 0; i < MAX_PLAYERS; i++) {
         osLeft = GetOvershellSlotLeft(i);
         osWidth = GetOvershellSlotWidth();
@@ -187,6 +189,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
         }
         switch (OvershellState[i]) {
         case CREATION: {
+            wantsCharacterInput = true;
             DrawOvershellRectangleHeader(
                 osLeft,
                 0,

@@ -64,6 +64,8 @@ double syncAudioTime;
 uint64_t syncSDLTicks;
 double lastTranslatedTime = 0;
 
+bool wantsCharacterInput;
+
 void SyncSDLWithAudio() {
     if (TheAudioManager.loadedStreams.empty()) {
         syncAudioTime = 0;
