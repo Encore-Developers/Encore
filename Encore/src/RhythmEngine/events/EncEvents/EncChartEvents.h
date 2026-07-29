@@ -11,35 +11,198 @@ namespace Encore::RhythmEngine {
     struct TimePoint {
         double sec;
         int tick;
-        explicit TimePoint(const double _sec, const int _tick) : sec(_sec), tick(_tick) {}
 
-        bool operator>(const TimePoint& tp) const {
+        TimePoint(const double _sec, const int _tick)
+            : sec(_sec), tick(_tick) {
+        }
+
+        TimePoint operator+(const TimePoint &tp) const {
+            return { sec + tp.sec, tick + tp.tick };
+        }
+
+        TimePoint operator-(const TimePoint &tp) const {
+            return { sec - tp.sec, tick - tp.tick };
+        }
+
+        double operator+(const double _sec) const {
+            return sec + _sec;
+        }
+
+        double operator-(const double _sec) const {
+            return sec - _sec;
+        }
+
+        int operator+(const int _tick) const {
+            return tick + _tick;
+        }
+
+        int operator-(const int _tick) const {
+            return tick - _tick;
+        }
+
+        explicit operator double() const {
+            return sec;
+        }
+
+        explicit operator int() const {
+            return tick;
+        }
+
+        bool operator>(const TimePoint &tp) const {
             return sec > tp.sec && tick > tp.tick;
         }
-        bool operator>=(const TimePoint& tp) const {
+
+        bool operator>=(const TimePoint &tp) const {
             return sec >= tp.sec && tick >= tp.tick;
         }
 
-        bool operator<(const TimePoint& tp) const {
+        bool operator<(const TimePoint &tp) const {
             return sec < tp.sec && tick < tp.tick;
         }
-        bool operator<=(const TimePoint& tp) const {
+
+        bool operator<=(const TimePoint &tp) const {
             return sec <= tp.sec && tick <= tp.tick;
         }
 
-        bool operator==(const TimePoint& tp) const {
+        bool operator==(const TimePoint &tp) const {
             return sec == tp.sec && tick == tp.tick;
         }
-        bool operator!=(const TimePoint& tp) const {
+
+        bool operator!=(const TimePoint &tp) const {
             return sec != tp.sec && tick != tp.tick;
         }
+
+
+        bool operator>(const int _tick) const {
+            return tick > _tick;
+        }
+
+        bool operator>=(const int _tick) const {
+            return tick >= _tick;
+        }
+
+        bool operator<(const int _tick) const {
+            return tick < _tick;
+        }
+
+        bool operator<=(const int _tick) const {
+            return tick <= _tick;
+        }
+
+        bool operator==(const int _tick) const {
+            return tick == _tick;
+        }
+
+        bool operator!=(const int _tick) const {
+            return tick != _tick;
+        }
+
+
+        bool operator>(const double _sec) const {
+            return sec > _sec;
+        }
+
+        bool operator>=(const double _sec) const {
+            return sec >= _sec;
+        }
+
+        bool operator<(const double _sec) const {
+            return sec < _sec;
+        }
+
+        bool operator<=(const double _sec) const {
+            return sec <= _sec;
+        }
+
+        bool operator==(const double _sec) const {
+            return sec == _sec;
+        }
+
+        bool operator!=(const double _sec) const {
+            return sec != _sec;
+        }
     };
+
+
+    // So. You have to do this to have right hand operators? i can just hijack this shit?
+    // so if i had TimePoint > 2.5 i could make it return something different from
+    // 2.5 < TimePoint?
+
+    // you must be kidding me
+    inline bool operator>(const int _tick, const TimePoint &tp) {
+        return _tick > tp.tick;
+    }
+
+    inline bool operator>=(const int _tick, const TimePoint &tp) {
+        return _tick >= tp.tick;
+    }
+
+    inline bool operator<(const int _tick, const TimePoint &tp) {
+        return _tick < tp.tick;
+    }
+
+    inline bool operator<=(const int _tick, const TimePoint &tp) {
+        return _tick <= tp.tick;
+    }
+
+    inline bool operator==(const int _tick, const TimePoint &tp) {
+        return tp.tick == _tick;
+    }
+
+    inline bool operator!=(const int _tick, const TimePoint &tp) {
+        return tp.tick != _tick;
+    }
+
+    inline bool operator>(const double _sec, const TimePoint &tp) {
+        return _sec > tp.sec;
+    }
+
+    inline bool operator>=(const double _sec, const TimePoint &tp) {
+        return _sec >= tp.sec;
+    }
+
+    inline bool operator<(const double _sec, const TimePoint &tp) {
+        return _sec < tp.sec;
+    }
+
+    inline bool operator<=(const double _sec, const TimePoint &tp) {
+        return _sec <= tp.sec;
+    }
+
+    inline bool operator==(const double _sec, const TimePoint &tp) {
+        return tp.sec == _sec;
+    }
+
+    inline bool operator!=(const double _sec, const TimePoint &tp) {
+        return tp.sec != _sec;
+    }
+
+    inline double operator+(const double _sec, const TimePoint &tp) {
+        return _sec + tp.sec;
+    }
+
+    inline double operator-(const double _sec, const TimePoint &tp) {
+        return _sec - tp.sec;
+    }
+
+    inline int operator+(const int _tick, const TimePoint &tp) {
+        return _tick + tp.tick;
+    }
+
+    inline int operator-(const int _tick, const TimePoint &tp) {
+        return _tick - tp.tick;
+    }
 
     struct Event {
         TimePoint start;
         TimePoint end;
-        explicit Event(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : start(_startSec, _startTick), end(_endSec, _endTick) {}
+
+        explicit Event(const double _startSec,
+                       const int _startTick,
+                       const double _endSec,
+                       const int _endTick)
+            : start(_startSec, _startTick), end(_endSec, _endTick) {
+        }
 
         // doubt this is useful
         explicit Event(const TimePoint _start, const TimePoint _end)
@@ -69,10 +232,23 @@ namespace Encore::RhythmEngine {
             CYMBAL = 1,
             TAP = 2
         };
-        NoteEvent(const double _startSec, const int _startTick, const double _endSec, const int _endTick, const uint8_t _type, const uint8_t _lane)
-            : Event(_startSec, _startTick, _endSec, _endTick), type(_type), lane(_lane) {}
-        NoteEvent(const TimePoint _start, const TimePoint _end, const uint8_t _type, const uint8_t _lane)
-            : Event(_start, _end), type(_type), lane(_lane)  {}
+
+        NoteEvent(const double _startSec,
+                  const int _startTick,
+                  const double _endSec,
+                  const int _endTick,
+                  const uint8_t _type,
+                  const uint8_t _lane)
+            : Event(_startSec, _startTick, _endSec, _endTick), type(_type), lane(_lane) {
+        }
+
+        NoteEvent(const TimePoint _start,
+                  const TimePoint _end,
+                  const uint8_t _type,
+                  const uint8_t _lane)
+            : Event(_start, _end), type(_type), lane(_lane) {
+        }
+
         uint8_t type = 0;
         uint8_t lane = 0;
         bool passed = false;
@@ -89,17 +265,31 @@ namespace Encore::RhythmEngine {
     struct ChartEvent : Event {
         int NotesHit = 0;
         int NoteCount = 0;
-        ChartEvent(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : Event(_startSec, _startTick, _endSec, _endTick) {}
+
+        ChartEvent(const double _startSec,
+                   const int _startTick,
+                   const double _endSec,
+                   const int _endTick)
+            : Event(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         ChartEvent(const TimePoint _start, const TimePoint _end)
-            : Event(_start, _end) {}
+            : Event(_start, _end) {
+        }
     };
 
     struct LyricPhrase : Event {
-        LyricPhrase(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : Event(_startSec, _startTick, _endSec, _endTick) {}
+        LyricPhrase(const double _startSec,
+                    const int _startTick,
+                    const double _endSec,
+                    const int _endTick)
+            : Event(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         LyricPhrase(const TimePoint _start, const TimePoint _end)
-            : Event(_start, _end) {}
+            : Event(_start, _end) {
+        }
+
         std::vector<Syllable> syllables;
     };
 
@@ -126,10 +316,17 @@ namespace Encore::RhythmEngine {
     };
 
     struct solo : ChartEvent {
-        solo(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {}
+        solo(const double _startSec,
+             const int _startTick,
+             const double _endSec,
+             const int _endTick)
+            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         solo(const TimePoint _start, const TimePoint _end)
-            : ChartEvent(_start, _end) {}
+            : ChartEvent(_start, _end) {
+        }
+
         void CountNote(const int tick) {
             if (tick >= start.tick && tick < end.tick) {
                 NoteCount++;
@@ -138,23 +335,38 @@ namespace Encore::RhythmEngine {
     };
 
     struct trill : ChartEvent {
-        trill(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {}
+        trill(const double _startSec,
+              const int _startTick,
+              const double _endSec,
+              const int _endTick)
+            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         trill(const TimePoint _start, const TimePoint _end)
-            : ChartEvent(_start, _end) {}
+            : ChartEvent(_start, _end) {
+        }
+
         uint8_t lane1 = 255;
         uint8_t lane2 = 255;
     };
 
     struct roll : ChartEvent {
-        roll(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {}
+        roll(const double _startSec,
+             const int _startTick,
+             const double _endSec,
+             const int _endTick)
+            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         roll(const TimePoint _start, const TimePoint _end)
-            : ChartEvent(_start, _end) {}
+            : ChartEvent(_start, _end) {
+        }
+
         uint8_t lane = 255;
     };
 
-    struct DrumFill : ChartEvent {};
+    struct DrumFill : ChartEvent {
+    };
 
     struct odPhrase : ChartEvent {
         enum PhraseState : uint8_t {
@@ -162,36 +374,57 @@ namespace Encore::RhythmEngine {
             Added = 1,
             Missed = 2,
         };
-        odPhrase(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {}
+
+        odPhrase(const double _startSec,
+                 const int _startTick,
+                 const double _endSec,
+                 const int _endTick)
+            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         odPhrase(const TimePoint _start, const TimePoint _end)
-            : ChartEvent(_start, _end) {}
+            : ChartEvent(_start, _end) {
+        }
+
         PhraseState state = Default;
         bool added() const { return state == Added; }
         bool missed() const { return state == Missed; }
+
         void CountNote(const int tick) {
             if (tick >= start.tick && tick < end.tick) {
                 NoteCount++;
             }
         }
+
         // bool added = false;
         // bool missed = false;
     };
 
     // unused, should fix
     struct section : ChartEvent {
-        section(const double _startSec, const int _startTick, const double _endSec, const int _endTick)
-            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {}
+        section(const double _startSec,
+                const int _startTick,
+                const double _endSec,
+                const int _endTick)
+            : ChartEvent(_startSec, _startTick, _endSec, _endTick) {
+        }
+
         section(const TimePoint _start, const TimePoint _end)
-            : ChartEvent(_start, _end) {}
+            : ChartEvent(_start, _end) {
+        }
+
         std::string Name;
     };
 
-    struct tapPhrase : NoteEvent {};
+    struct tapPhrase : NoteEvent {
+    };
 
-    struct forceOnPhrase : NoteEvent {};
+    struct forceOnPhrase : NoteEvent {
+    };
 
-    struct openMarker : NoteEvent {};
+    struct openMarker : NoteEvent {
+    };
 
-    struct forceOffPhrase : NoteEvent {};
+    struct forceOffPhrase : NoteEvent {
+    };
 }
