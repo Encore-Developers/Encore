@@ -8,6 +8,9 @@
 
 namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
+        bool MaskMatch(const NoteEvent *itr) const;
+        bool IsEarly() const;
+
         bool ActivateOverdrive(ControllerEvent &event) override;
         void CheckMissedNotes(double CurrentTime);
         bool IsInputTooEarly() const;

@@ -66,7 +66,7 @@ namespace Encore {
             int MaxBrightness,
             int QuarterNoteLength
         );
-
+        Vector2 MultiplierUVCalculation();
         ProfileManager::ColorProfileType ColorProfileType = ProfileManager::PLASTIC;
         float NoteSpeed = 1;
         float BaseLength = 20;

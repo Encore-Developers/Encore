@@ -67,8 +67,8 @@ void resultsMenu::KeyboardInputCallback(SDL_KeyboardEvent *event) {
     }
 }
 
-
-int FinalScore = 0;
+// why do you exist
+double FinalScore = 0;
 
 void resultsMenu::Load() {
     buttReg.buttMap.clear();

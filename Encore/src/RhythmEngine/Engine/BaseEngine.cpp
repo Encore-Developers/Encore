@@ -179,37 +179,23 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     stats->LastHitAccuracy = (stats->InputTime) - startTime;
     stats->HitNote(chordSize, event.judgement);
 
-    auto getHealthGain = [this](const double amount) {
-        if (stats->overdrive.Active)
-            return amount * healthOverdriveGainMult;
-        return amount;
-    };
-
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
         Log::Debug("Accuracy: {}", 1);
-        stats->Health += getHealthGain(healthGainPerNote);
-        if (stats->Health > 1) stats->Health = 1;
-        HealthChangeEvent hce(getHealthGain(healthGainPerNote));
+        stats->AddHealth(1);
+        HealthChangeEvent hce;
         FireEvent(&hce);
     } else {
         double acc = (goodFrontend - std::abs(offset)) / goodFrontend;
         if (acc < 0) acc = 0;
         stats->Accuracy += acc;
 
-        if (acc < 0.3) {
-            stats->Health -= getHealthGain((healthGainPerNote * (1.0-acc)));
-            if (stats->Health < 0) stats->Health = 0;
-            HealthChangeEvent hce(-(getHealthGain((healthGainPerNote * (1.0-acc)))));
-            FireEvent(&hce);
-        } else {
-            stats->Health += getHealthGain(healthGainPerNote * acc);
-            if (stats->Health > 1) stats->Health = 1;
-            HealthChangeEvent hce(getHealthGain(healthGainPerNote * acc));
-            FireEvent(&hce);
-        }
+        stats->AddHealth(acc);
+        HealthChangeEvent hce;
+        FireEvent(&hce);
         Log::Debug("Accuracy: {}", acc);
     }
+
 
     if (stats->Combo == 25 && stats->Overhits == 0 && stats->Misses == 0) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
@@ -217,16 +203,16 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     }
 
     int comboNotif = stats->Combo > 200 ? stats->Combo % 100 : stats->Combo % 50;
-    if (stats->Combo == 50 && (inst == PartBass || inst == PlasticBass)) {
+    if (stats->Combo == stats->ep.mult.comboForMax() && (inst == PartBass || inst == PlasticBass)) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::BASSGROOVE};
         FireEvent(&event2);
     } else if (comboNotif == 0) {
         TrackNotificationEvent event2 {startTime, TrackNotificationEvent::COMBO, stats->Combo};
         FireEvent(&event2);;
     }
-    int multiplierIncrease = stats->Combo % 10;
+    int multiplierIncrease = stats->Combo % stats->ep.mult.count;
     // in the unplanned/planned career mode, id like this to be adjustable
-    if (multiplierIncrease == 0 && stats->Combo <= (stats->SixMultiplier ? 50 : 30)) {
+    if (multiplierIncrease == 0 && stats->Combo <= stats->ep.mult.comboForMax()) {
         MultFlashEvent e {false};
         FireEvent(&e);
     }
@@ -235,22 +221,16 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
-    if (stats->Combo >= 10) {
+    if (stats->Combo >= stats->ep.mult.count) {
         MultFlashEvent e {true};
         FireEvent(&e);
     }
-    auto getHealthLoss = [this](const double amount, bool combobreak) {
-        double mult = 1;
-        if (combobreak) mult = 8;
-        if (stats->overdrive.Active)
-            return amount * healthOverdriveLossMult * mult;
-        return amount * mult;
-    };
-    bool cbreak = stats->multNoOD() >= 4;
-    stats->Health -= getHealthLoss(healthLossPerNote, cbreak);
-    if (stats->Health < 0) stats->Health = 0;
-    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote, cbreak));
+    bool cbreak = stats->multNoOD() == stats->ep.mult.max;
+
+    stats->RemoveHealth(cbreak);
+    HealthChangeEvent hce;
     FireEvent(&hce);
+
     stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->start.sec, 0, true);
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).notes++;
@@ -265,18 +245,12 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
-    auto getHealthLoss = [this](const double amount, bool combobreak) {
-        double mult = 1;
-        if (combobreak) mult = stats->multNoOD() * 2;
-        if (stats->overdrive.Active)
-            return amount * healthOverdriveLossMult * mult;
-        return amount * mult;
-    };
-    bool cbreak = stats->multNoOD() >= 4;
-    stats->Health -= getHealthLoss(healthLossPerNote, cbreak);
-    if (stats->Health < 0) stats->Health = 0;
-    HealthChangeEvent hce(-getHealthLoss(healthLossPerNote, cbreak));
+    bool cbreak = stats->multNoOD() == stats->ep.mult.max;
+
+    stats->RemoveHealth(cbreak);
+    HealthChangeEvent hce;
     FireEvent(&hce);
+
     double earliestNoteTime = 0.0;
     for (int i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
@@ -336,13 +310,13 @@ Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime()
 
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::LastNoteTime() {
-    TimePoint tp{0,0};
+    TimePoint tp{1,0};
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end()) continue;
         auto lastNote = (chart->CurrentNoteIterators.at(Lane)-1);
         if (lastNote < chart->at(Lane).begin())
             continue;
-        if (tp == 0.0 && tp == 0) {
+        if (tp == 0) {
             tp = lastNote->start;
             continue;
         }

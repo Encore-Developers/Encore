@@ -44,8 +44,13 @@ namespace Encore {
 
     class HealthChangeEvent : public Event {
         public:
-        double amount = 0.0;
-        explicit HealthChangeEvent(const double amount) : amount(amount) {};
+        explicit HealthChangeEvent() {};
+    };
+
+
+    class OverdriveGain : public Event {
+    public:
+        explicit OverdriveGain() {};
     };
 
     class TrackNotificationEvent : public Event {
@@ -68,7 +73,7 @@ namespace Encore {
     class HighwayBounceEvent : public Event {
     public:
         float timer = 1.0f;
-        float mult = 5.0f;
+        float mult = 4.5f;
         HighwayBounceEvent() {}
         HighwayBounceEvent(float _mult) : mult(_mult) {}
         HighwayBounceEvent(float _timer, float _mult) : timer(_timer), mult(_mult) {}

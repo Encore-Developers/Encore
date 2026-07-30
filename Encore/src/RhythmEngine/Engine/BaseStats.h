@@ -18,6 +18,27 @@ namespace Encore::RhythmEngine {
         bool miss;
         explicit NoteAccuracy(const double time, const double offset, const bool miss) : time(time), offset(offset), miss(miss) {}
     };
+
+    // i just made some BULLSHIIIIIIIIIIIT
+    struct EngineParameters {
+        struct Multiplier {
+            double max = 4;
+            int count = 10;
+            double odMult = 2;
+            int comboForMax() const {
+                return (max - 1) * count;
+            }
+        } mult;
+        struct Health {
+            float cbMult = 8.0f;
+            float starting = 0.75f;
+            float Gain = 0.015f;
+            float Loss = 0.03f;
+            float odMult = 2.0f;
+            float hurtThreshold = (1.0f/3.0f);
+        } health;
+    };
+
     enum class StrumState {
         Default = 0,
         UpStrum = 1,
@@ -38,10 +59,6 @@ namespace Encore::RhythmEngine {
      *
      * Not to be confused with handling current chart events. Those are handled
      * by their respective chart event vectors.
-     *
-     * Note: the LaneCount size template is SPECIFICALLY for how many buttons are
-     * needed for the instrument being played. Guitar, despite being 1 lane, NEEDS 5
-     * buttons.
      */
     class BaseStats {
     public:
@@ -51,7 +68,23 @@ namespace Encore::RhythmEngine {
         };
         virtual ~BaseStats() = default;
 
+        void AddHealth(const float acc) {
+            float delta = acc * ep.health.Gain;
+            if (acc < ep.health.hurtThreshold) delta = -(ep.health.Gain * (1.0-acc));
+            float mult = overdrive.Active ? ep.health.odMult : 1;
+            Health += delta * mult;
+            if (Health > 1) Health = 1;
+        }
 
+        void RemoveHealth(const bool comboBreak) {
+            double mult = 1;
+            if (comboBreak) mult = ep.health.cbMult;
+            if (overdrive.Active) mult *= ep.health.odMult;
+            Health -= ep.health.Loss * mult;
+            if (Health < 0) Health = 0;
+        }
+
+        EngineParameters ep;
         int Type = 0;
         double Score = 0;
         int Combo = 0;
@@ -112,17 +145,18 @@ namespace Encore::RhythmEngine {
             AudioMuted = true;
             CanHitHopo = false;
         };
-        [[nodiscard]] int multiplier() const {
-            int od = overdrive.Active ? 2 : 1;
+        [[nodiscard]] double multiplier() const {
+
+            double od = overdrive.Active ? ep.mult.odMult : 1;
             // if (IsBassOrVox()) {
             //     if (Combo >= 50)
             //         return 6 * od;
 
             //} else {
             int MaxMult = SixMultiplier ? 6 : 4;
-            int Multiplier = (Combo / 10) + 1;
-            if (Multiplier > MaxMult) {
-                Multiplier = MaxMult;
+            double Multiplier = (Combo / ep.mult.count) + 1;
+            if (Multiplier > ep.mult.max) {
+                Multiplier = ep.mult.max;
             }
             return Multiplier * od;
 
@@ -131,11 +165,10 @@ namespace Encore::RhythmEngine {
             // };
             // return (Combo / 10) + 1 * od;
         };
-        [[nodiscard]] int multNoOD() const {
-            int MaxMult = SixMultiplier ? 6 : 4;
-            int Multiplier = (Combo / 10) + 1;
-            if (Multiplier > MaxMult) {
-                Multiplier = MaxMult;
+        [[nodiscard]] double multNoOD() const {
+            double Multiplier = (Combo / ep.mult.count) + 1;
+            if (Multiplier > ep.mult.max) {
+                Multiplier = ep.mult.max;
             }
             return Multiplier;
         };
@@ -143,13 +176,13 @@ namespace Encore::RhythmEngine {
             if (Combo == 0) {
                 return 0;
             }
-            int MaxMultCombo = SixMultiplier ? 50 : 30;
-            int ComboMod = Combo % 10;
+            int MaxMultCombo = ep.mult.count * (ep.mult.max-1);
+            int ComboMod = Combo % ep.mult.count;
             if (Combo >= MaxMultCombo || ComboMod == 0) {
                 return 1.0f;
             }
 
-            return (static_cast<float>(ComboMod) / 10.0f);
+            return (static_cast<float>(ComboMod) / static_cast<float>(ep.mult.count) );
 
         }
         std::vector<bool> HeldFrets = {};

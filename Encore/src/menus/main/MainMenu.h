@@ -21,11 +21,11 @@ struct Separators : public std::numpunct<CharT> {
 
 namespace GameMenu {
 
-    inline std::string scoreCommaFormatter(int value) {
+    inline std::string scoreCommaFormatter(double value) {
         std::stringstream ss;
         ss.imbue(std::locale(std::cout.getloc(), new Separators<char>()));
         ss << std::fixed << value;
-        return ss.str();
+        return ss.str().substr(0, ss.str().size() - 7);
     }
     void DrawTopOvershell(float TopOvershell);
     void DrawBottomOvershell();

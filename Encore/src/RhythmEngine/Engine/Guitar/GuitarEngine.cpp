@@ -10,19 +10,18 @@
 
 #include <bit>
 
-bool MaskMatch(uint8_t noteMask, uint8_t playerMask) {
-    // chord check
-    if (std::has_single_bit(noteMask)) {
-        return (playerMask < noteMask * 2) && (playerMask >= noteMask);
-        // since its a single note, the mask just needs to be lesser than the
-        // note's mask * 2 AND equal to or above the current note's mask
-    }
-    return playerMask == noteMask;
-    // if its a chord just. go wild lmfao
+bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const NoteEvent *itr) const {
+    uint8_t note = itr->lane;
+    uint8_t pMask = stats->HeldFretsArrayToMask();
+    uint8_t maxMask = note << 1;
+    if (std::has_single_bit(note))
+        return (pMask < maxMask) && (pMask >= note);
+
+    return pMask == note;
 }
 
-bool IsEarly(const double noteTime, const double currentTime) {
-    if (noteTime - goodFrontend > currentTime) {
+bool Encore::RhythmEngine::GuitarEngine::IsEarly() const {
+    if (chart->CurrentNoteIterators.at(0)->start - goodFrontend > stats->InputTime) {
         return true;
     }
     return false;
@@ -71,13 +70,13 @@ bool Encore::RhythmEngine::GuitarEngine::IsInputTooEarly() const {
     if (chart->CurrentNoteIterators.at(0) + 1 != chart->Lanes.at(0).end()) {
         auto NextNote = chart->CurrentNoteIterators.at(0);
         NextNote += 1;
-        double noteMiddlePoint = (NextNote->start.sec - CurrentNote.start.sec) / dynamicHitwindowRatio;
+        double noteMiddlePoint = (NextNote->start - CurrentNote.start).sec / dynamicHitwindowRatio;
         if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
-        if (CurrentNote.start.sec - noteMiddlePoint > stats->InputTime) {
+        if (CurrentNote.start - noteMiddlePoint > stats->InputTime) {
             return true;
         }
     }
-    if (CurrentNote.start.sec - goodFrontend > stats->InputTime) {
+    if (CurrentNote.start - goodFrontend > stats->InputTime) {
         return true;
     }
     return false;
@@ -94,9 +93,9 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
     if (chart->CurrentNoteIterators.at(0) + 1 != chart->Lanes.at(0).end()) {
         auto NextNote = chart->CurrentNoteIterators.at(0);
         NextNote += 1;
-        double noteMiddlePoint = (NextNote->start.sec - CurrentNote.start.sec) / dynamicHitwindowRatio;
+        double noteMiddlePoint = (NextNote->start - CurrentNote.start).sec / dynamicHitwindowRatio;
         if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
-        if (CurrentNote.start.sec + noteMiddlePoint < CurrentTime) {
+        if (CurrentNote.start + noteMiddlePoint < CurrentTime) {
             MissedNote = true;
         }
     }
@@ -213,19 +212,20 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::GuitarEngine::NextNoteTime() {
-    return TimePoint(chart->CurrentNoteIterators.at(0)->start.sec, chart->CurrentNoteIterators.at(0)->start.tick);
+    if (chart->CurrentNoteIterators.at(0) != chart->Lanes.at(0).end()) {
+        return chart->CurrentNoteIterators.at(0)->start;
+    }
+    return {0,0};
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::GuitarEngine::LastNoteTime() {
     if (chart->at(0).begin() == chart->CurrentNoteIterators.at(0))
-        return TimePoint{0,0};
-    double endTime = (chart->CurrentNoteIterators.at(0)-1)->end.sec;
-    int endTick = (chart->CurrentNoteIterators.at(0)-1)->end.tick;
-    if (endTick == 0) {
-        endTime = (chart->CurrentNoteIterators.at(0)-1)->start.sec;
-        endTick = (chart->CurrentNoteIterators.at(0)-1)->start.tick;
+        return {0,0};
+    auto end = (chart->CurrentNoteIterators.at(0)-1)->end;
+    if (end == 0) {
+        end = (chart->CurrentNoteIterators.at(0)-1)->start;
     }
-    return TimePoint{endTime, endTick};
+    return end;
 }
 
 /*
@@ -243,7 +243,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 
     bool extSus = false;
     if (chart->IsHeldNotePresent(0)) {
-        if (chart->HeldNotePointers.at(0)->end.sec > CurrentNote->start.sec) {
+        if (chart->HeldNotePointers.at(0)->end > CurrentNote->start) {
                 extSus = true;
             };
 
@@ -252,14 +252,13 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         if (event.action == Action::PRESS &&
 
             // if the frets dont match
-            !MaskMatch(chart->HeldNotePointers.at(0)->lane,
-                       stats->HeldFretsArrayToMask()) &&
+            !MaskMatch(chart->HeldNotePointers.at(0)) &&
 
             // is not an extended sustain
-            !(chart->HeldNotePointers.at(0)->end.sec > CurrentNote->start.sec) &&
+            chart->HeldNotePointers.at(0)->end <= CurrentNote->start &&
 
             // is before the end of the sustain
-            (chart->HeldNotePointers.at(0)->end.sec >= TheSongTime.CurrentTick + SUSTAIN_DROP_THRESHOLD)
+            (chart->HeldNotePointers.at(0)->end >= TheSongTime.CurrentTick + SUSTAIN_DROP_THRESHOLD)
         ) {
             chart->DropSustain(0);
         }
@@ -279,37 +278,15 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             Timers["SAH"].ResetTimer();
             Log::Trace("SAH Disabled");
             return CheckNextInput;
-        }/*
-        // commented out for the sake of this not overriding the miss checks
-        if (stats->Combo == 0 && chart->CurrentNoteIterators.at(0) != chart->Lanes.at(0).begin()) {
-            auto MissCheckNote = chart->CurrentNoteIterators.at(0);
-            float offset = goodBackend;
-            while (true) {
-                if (MissCheckNote >= chart->Lanes.at(0).end() - 1) {
-                    break;
-                }
-                MissCheckNote += 1;
-                float nextOffset = (stats->InputTime - stats->InputOffset) - MissCheckNote->start.sec;
-                if (std::abs(nextOffset) < std::abs(offset)) {
-                    offset = nextOffset;
-                } else {
-                    MissCheckNote -= 1;
-                    while (chart->CurrentNoteIterators.at(0) != MissCheckNote) {
-                        MissNote(0);
-                    }
-                    CurrentNote = &*MissCheckNote;
-                    break;
-                }
-            }
-        }*/
+        }
         // miss should be managed by current frame
         // overhit is managed here
-        if (IsEarly(CurrentNote->start.sec, stats->InputTime)) {
+        if (IsEarly()) {
             Overhit();
             return OverhitNote;
         }
         // if frets match, continue and try to hit
-        if (!MaskMatch(CurrentNote->lane, pMask)) {
+        if (!MaskMatch(CurrentNote)) {
             Timers["FAS"].ActivateTimer(stats->InputTime);
             Log::Trace("FAS Enabled");
             return CheckNextInput;
@@ -320,8 +297,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     // really couldve just put it up there LMFAO
     bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
 
-    if (MaskMatch(CurrentNote->lane, pMask)
-        && !IsEarly(CurrentNote->start.sec, stats->InputTime)
+    if (MaskMatch(CurrentNote) && !IsEarly()
         && (HittableAsHopo(CurrentNote->type, stats->CanHitHopo, GhostCount)
             || HittableAsTap(CurrentNote->type) || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);

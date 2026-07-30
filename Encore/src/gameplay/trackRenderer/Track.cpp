@@ -479,21 +479,18 @@ void Encore::Track::DrawUsername() {
                    LEFT);
 }
 
-Vector2 MultiplierUVCalculation(bool sixmult, int combo, bool overdrive) {
+Vector2 Encore::Track::MultiplierUVCalculation() {
     Vector2 curPos = { 0, 0 };
+    auto stats = player.engine->stats;
+    int mult = stats->Combo / stats->ep.mult.count;
+    mult = Clamp(mult, 0, stats->ep.mult.max - 1);
 
-    int mult = combo / 10;
-    if (sixmult) {
-        mult = Clamp(mult, 0, 5);
-    } else {
-        mult = Clamp(mult, 0, 3);
-    }
     curPos.x = mult * 0.25f;
     if (curPos.x >= 1) {
         curPos.x -= 1;
         curPos.y += 0.25;
     }
-    if (overdrive) {
+    if (stats->overdrive.Active) {
         curPos.y += 0.5;
     }
     return curPos;
@@ -534,9 +531,9 @@ void Encore::Track::DrawMultiplier() {
     ASSET(indicatorRingShader).SetUniform("time", GetTime());
     ASSET(multiplierFillShader).SetUniform("BaseColor",
                                            ColorBrightness(player.AccentColor, -0.85));
-    int MaxMult = player.engine->stats->SixMultiplier ? 6 : 4;
+
     Color fillColor;
-    if (player.engine->stats->multNoOD() == MaxMult) {
+    if (player.engine->stats->multNoOD() == player.engine->stats->ep.mult.max) {
         fillColor = SKYBLUE;
     } else {
         fillColor = RAYWHITE;
@@ -558,9 +555,7 @@ void Encore::Track::DrawMultiplier() {
         ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
     }
 
-    Vector2 numberUV = MultiplierUVCalculation(player.engine->stats->SixMultiplier,
-                                               player.engine->stats->Combo,
-                                               player.engine->stats->overdrive.Active);
+    Vector2 numberUV = MultiplierUVCalculation();
 
     ASSET(multNumShader).SetUniform("uvOffset", numberUV);
     DrawModelEx(ASSET(multiplierFill), position, { 0 }, 0, scale, WHITE);
