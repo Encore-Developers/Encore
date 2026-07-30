@@ -2,6 +2,7 @@
 #include "ParticleSystem.h"
 
 #include "assets.h"
+#include "easing/easing.h"
 #include "gameplay/trackRenderer/Track.h"
 
 void Encore::Particle::Update(ParticleSystem* system) {
@@ -11,6 +12,11 @@ void Encore::Particle::Update(ParticleSystem* system) {
     case KICKFLARE:
     case OPENFLARE:
         if (time > FLARE_LIFETIME) {
+            active = false;
+        }
+        break;
+    case OVERDRIVE_SIDES:
+        if (time > OD_FLASH_LIFETIME) {
             active = false;
         }
         break;
@@ -57,6 +63,17 @@ void Encore::Particle::Render(ParticleSystem* system) {
             DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4f, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0));
             ASSET(kickFlareModel).Fetch().materials[0].maps[0].texture = ASSET(kickFlareInnerTex);
             DrawModelEx(ASSET(kickFlareModel), position, {-1, 0, 0}, 50, {1.4f, 1.2f*size, 1.2f*size}, ColorLerp(color, white, 0.9));
+            EndBlendMode();
+            break;
+        }
+        case OVERDRIVE_SIDES: {
+            float lifetime = OD_FLASH_LIFETIME-time;
+            float frac = (lifetime/OD_FLASH_LIFETIME);
+            color.a = getEasingFunction(EaseInExpo)(frac)*200;
+            float size = (Size*2)-time;
+            BeginBlendMode(BlendMode::BLEND_ADDITIVE);
+            DrawModelEx(ASSET(overdriveSide), {-2.5, 0, 0}, {0}, 0, {1.4f, 1.2f*size, 1.2f*size}, color);
+            DrawModelEx(ASSET(overdriveSide), {2.5, 0, 0}, {0}, 0, {1.4f, 1.2f*size, 1.2f*size}, color);
             EndBlendMode();
             break;
         }

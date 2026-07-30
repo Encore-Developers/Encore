@@ -55,6 +55,8 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &even
         if (stats->overdrive.Activate(stats->InputTime)) {
             HighwayBounceEvent HBevent;
             FireEvent(&HBevent);
+            OverdriveGain gain;
+            FireEvent(&gain);
             // TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
         }
         return true;

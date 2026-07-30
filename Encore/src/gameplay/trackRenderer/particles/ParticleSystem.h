@@ -6,6 +6,7 @@
 #define FLARE_LIFETIME 0.18f
 #define SHOCKWAVE_LIFETIME 0.3f
 #define MARKIPLIER_LIFETIME 0.75f
+#define OD_FLASH_LIFETIME 1.5f
 
 #include "raylib.h"
 
@@ -20,7 +21,8 @@ namespace Encore {
         SHOCKWAVE,
         KICKFLARE,
         MARKIPLIER_FLASH,
-        OPENFLARE
+        OPENFLARE,
+        OVERDRIVE_SIDES
     };
 
     class Particle {

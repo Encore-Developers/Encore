@@ -1022,6 +1022,15 @@ void Encore::Track::HandleEvent(Event *event) {
             HealthChangeTimer = 1;
         }
     }
+    if (auto gain = event->GetTyped<OverdriveGain>()) {
+        Particle flash;
+        flash.setActive(true)
+             .setType(OVERDRIVE_SIDES)
+             .col(GOLD)
+             .size(1.0f);
+        odSides = particleSystem->SpawnParticle(flash);
+        odSidesID = odSides->id;
+    }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
         if (Notification) {
             Notification->time = notifEvent->time - 0.25;

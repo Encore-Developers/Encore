@@ -48,11 +48,11 @@ bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
 bool Encore::RhythmEngine::Overdrive::Add(
     const double &CurrentTime, std::shared_ptr<BaseChart> &chart
 ) {
-    float previousFill = Fill;
-    Fill += chart->overdrive.CheckOverdrive(CurrentTime);
+    float toAdd = chart->overdrive.CheckOverdrive(CurrentTime);
+    Fill += toAdd;
     if (Fill > 1.0)
         Fill = 1.0;
-    if (Fill != previousFill)
+    if (toAdd > 0)
         return true;
     return false;
 }

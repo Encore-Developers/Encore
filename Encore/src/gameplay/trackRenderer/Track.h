@@ -99,6 +99,9 @@ namespace Encore {
 
         Particle* multiplierFlash = nullptr;
         unsigned int flashID;
+
+        Particle* odSides = nullptr;
+        unsigned int odSidesID;
         std::unique_ptr<ParticleSystem> particleSystem;
 
         Track(Player &player_)

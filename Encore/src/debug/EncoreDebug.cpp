@@ -1148,6 +1148,10 @@ void Encore::Track::DrawTrackDebugWindow() {
                 if (Button("Send Combo Gain Event")) {
                     player.engine->FireEventTemp(MultFlashEvent(false));
                 }
+                SeparatorText("Overdrive Gain Flash");
+                if (Button("Send Gain Flash Event")) {
+                    player.engine->FireEventTemp(OverdriveGain());
+                }
                 SeparatorText("Highway Bounce");
                 SameLine();
                 if (Button("Send Event")) {
@@ -1205,7 +1209,7 @@ void Encore::Track::DrawTrackDebugWindow() {
                                        player.engine->chart->BaseScore));
                 ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
                 ImGui::Text("%s",
-                            TextFormat("Multiplier: %ix",
+                            TextFormat("Multiplier: %.2fx",
                                        player.engine->stats->multiplier()));
                 Checkbox("Allow Timestamped Inputs",
                          &player.engine->allowTimestampedInputs);

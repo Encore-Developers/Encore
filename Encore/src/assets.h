@@ -469,6 +469,18 @@ public:
                    "offset",
                    "scale"});
 
+    NEWTEXASSET(overdriveSideTex, "gameplay/track/particles/overdrive_side.png");
+    NEWLEGACYMODELASSET(overdriveSide,
+                        "gameplay/track/particles/overdrive_side.obj",
+                        [this](Model* model) {
+                        SetTextureWrap(regularNoteTex, TEXTURE_WRAP_CLAMP);
+                        SetTextureWrap(regularMaskTex, TEXTURE_WRAP_CLAMP);
+                        model->materials[0].maps[0].texture = overdriveSideTex;
+                        // const Texture2D mask = regularMaskTex.Fetch();
+
+                        model->materials[0].shader = trackCurveShader;
+                        });
+
     NEWTEXASSET(regularNoteTex, "gameplay/track/notes/normal/diffuse.png");
     NEWTEXASSET(hopoNoteTex, "gameplay/track/notes/hopo/diffuse.png");
     NEWTEXASSET(kickNoteTex, "gameplay/track/notes/kick/diffuse.png");

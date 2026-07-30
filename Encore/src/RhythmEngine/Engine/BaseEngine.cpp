@@ -112,9 +112,15 @@ bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) cons
 
 void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
     stats->overdrive.ticks.UpdateOverdriveTick();
-    if (stats->overdrive.Add(CurrentTime, chart) && stats->overdrive.Fill >= 0.5 && !stats->overdrive.Active) {
-        TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
-        FireEvent(&odReady);
+    if (stats->overdrive.Add(CurrentTime, chart)) {
+        if (stats->overdrive.Fill >= 0.5) {
+            TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
+            FireEvent(&odReady);
+        }
+        HighwayBounceEvent HBevent{1.0f, 3.0f};
+        FireEvent(&HBevent);
+        OverdriveGain gain;
+        FireEvent(&gain);
     }
 
     chart->solos.CheckEvents(CurrentTime);

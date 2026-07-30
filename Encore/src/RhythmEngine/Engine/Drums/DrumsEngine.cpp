@@ -11,7 +11,12 @@ bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
 ControllerEvent &event
 ) {
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
-        stats->overdrive.Activate(stats->InputTime); // time
+        if (stats->overdrive.Activate(stats->InputTime)) {
+            HighwayBounceEvent HBevent;
+            FireEvent(&HBevent);
+            OverdriveGain gain;
+            FireEvent(&gain);
+        }; // time
         return true;
     }
     return false;
