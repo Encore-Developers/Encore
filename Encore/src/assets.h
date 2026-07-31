@@ -398,7 +398,7 @@ public:
     std::vector<TextureAsset *> GradeBackgrounds;
     NEWTEXASSET(cheese, "gameplay/ui/grade_bg/cheese.png");
     NEWTEXASSET(overshellTip, "gameplay/ui/overshellTip.png");
-
+    NEWTEXASSET(fretButtonPrompt, "gameplay/ui/fret_button.png");
     Image icon;
     NEWTEXASSET(encoreWhiteLogo, "encore-white.png");
     NEWTEXASSET(encoreTransLogo, "encore-trans.png");

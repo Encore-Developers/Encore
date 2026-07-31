@@ -74,7 +74,22 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
     Rectangle pos = {left, top, ButtonWidth, buttonHeight};
     Rectangle backgroundPos = {left, top + u.hinpct(0.0075f), ButtonWidth - u.hinpct(0.0075f), buttonHeight - u.hinpct(0.015f)};
     TextDisplay ButtonData;
-    ButtonData.Pos(left + buttonHeight, top + u.hinpct(0.015f)).Size(nameFontSize).Fnt(ASSET(josefinSansBold));
+
+    float buttonIconWidth = buttonHeight * 1.3f;
+    Rectangle icon {
+        pos.x + u.hinpct(0.005f),
+        backgroundPos.y + (backgroundPos.height * 0.15f),
+        buttonIconWidth * 0.95f,
+        backgroundPos.height * 0.7f
+    };
+    float iWidth = icon.width/4;
+    NPatchInfo iconNP;
+    iconNP.left = iWidth;
+    iconNP.right = iWidth;
+    iconNP.source = {0,0,float(ASSET(fretButtonPrompt).width), float(ASSET(fretButtonPrompt).height)};
+    iconNP.layout = NPATCH_THREE_PATCH_HORIZONTAL;
+
+    ButtonData.Pos(left + (buttonIconWidth * 1.15), top + u.hinpct(0.015f)).Size(nameFontSize).Fnt(ASSET(josefinSansBold));
     if (modified) {
         float BottomOvershell = GetRenderHeight() - u.hpct(0.18f);
         DrawRectangleGradientV(
@@ -90,8 +105,8 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         if (!butt.second.barVisible)
             continue;
         float textWidth = ButtonData.lTextWidth(butt.second.Name);
-        pos.width = textWidth + (buttonHeight * 1.5);
-        backgroundPos.width = textWidth + (buttonHeight * 1.25);
+        pos.width = textWidth + (buttonIconWidth * 1.5);
+        backgroundPos.width = textWidth + (buttonIconWidth * 1.25);
         DrawRectangleRounded(backgroundPos, 0.5, 10, {0,0,0,64});
         bool IsHovered = CheckCollisionPointRec(GetMousePosition(), pos);
         bool IsClicked = IsHovered && IsMouseButtonPressed(0);
@@ -102,18 +117,27 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
             butt.second.RunAction(Action::PRESS, -1);
         };
 
+
+
+
+        Color buttColor = tempColorToButtonLabel(butt.first);
+        DrawTextureNPatch(ASSET(fretButtonPrompt), iconNP, icon, {0}, 0, buttColor);
         // todo: replace this with actual controller-dependant icons
+
+        DrawCircle(icon.x + (icon.width/2), icon.y + (icon.height/2), icon.height * 0.5, {BLACK.r, BLACK.g, BLACK.b, 196});
+
         Text::DrawText(ASSET(rubikBold),
                              tempLaneToButtonLabel(butt.first),
-                             { pos.x + u.hinpct(0.01f),
-                               pos.y + u.hinpct(0.01f) },
-                             fontSize,
-                             tempColorToButtonLabel(butt.first),
-                             LEFT);
+                             { icon.x + (icon.width/2),
+                               icon.y + ((icon.height/2) - ((fontSize * 0.65f)/2)) },
+                             fontSize * 0.65f,
+                             RAYWHITE,
+                             CENTER);
 
         ButtonData.lDrawText(butt.second.Name);
         ButtonData.pos.x += pos.width;
         pos.x += pos.width;
+        icon.x += pos.width;
         backgroundPos.x += pos.width;
     }
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
