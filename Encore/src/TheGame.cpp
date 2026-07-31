@@ -473,7 +473,7 @@ int TheGame::Run(int argc, char *argv[]) {
 }
 
 TheGame::TheGame() {
-    Encore::Log::InitializeLogger(SDL_GetPrefPath("Encore", "v0.2.0"));
+    Encore::Log::InitializeLogger(SDL_GetPrefPath("Encore", "latest"));
 }
 
 TheGame::~TheGame() {
