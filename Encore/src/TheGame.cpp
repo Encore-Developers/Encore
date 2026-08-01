@@ -418,7 +418,7 @@ int TheGame::Run(int argc, char *argv[]) {
         }
 
 
-        ClearBackground(DARKGRAY);
+        ClearBackground({0, 0, 0, 0});
         static bool showLoading = true;
         static float loadingScreenFade = 1.0f;
         if (showLoading && !initialSet.PollLoaded(true)) {

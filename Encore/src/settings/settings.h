@@ -26,9 +26,10 @@
     OPTION(bool, DiscordRichPresence, true)                                              \
     OPTION(int, Framerate, 1000)                                                         \
     OPTION(bool, VerticalSync, true)                                                     \
-    OPTION(bool, ShowCalibrationInfo, false)                                              \
-    OPTION(bool, EnableCHEAPOverlayPackets, false)                                              \
-    OPTION(std::string, Language, "en_US")
+    OPTION(bool, ShowCalibrationInfo, false)                                             \
+    OPTION(bool, EnableCHEAPOverlayPackets, false)                                       \
+    OPTION(std::string, Language, "en_US")                                               \
+    OPTION(bool, StreamerTransparency, false)
 namespace Encore {
     inline void WriteJsonFile(const std::filesystem::path &FileToWrite, const nlohmann::json &JSONobject) {
         std::ofstream o(FileToWrite, std::ios::out | std::ios::trunc);

@@ -322,6 +322,7 @@ void EncoreDebug::DrawQuickSettings() {
         SliderFloat("Debug Song Speed", &TheAudioManager.debugSpeed, 0, 3);
         Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
         Checkbox("VSync", &TheGameSettings.VerticalSync);
+        Checkbox("Streamer Transparency", &TheGameSettings.StreamerTransparency);
         SliderInt("Menu FPS", &TheFrameManager.menuFPS, 1, 300);
         SliderInt("Gameplay FPS", &TheGameSettings.Framerate, 1, 1500);
         SliderInt("Controller Poll Rate", &controllerPollRate, 10, 1000, "%dhz");

@@ -490,7 +490,6 @@ void GameplayMenu::Draw() {
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
     TheSongTime.UpdateBeatlines();
-    ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     if (!songPlaying && tracks.back()->IntroTimer==0) {
         TheAudioManager.UpdateAudioStreamVolumes();
@@ -501,27 +500,30 @@ void GameplayMenu::Draw() {
             streamsPaused = true;
         }
     }
-    Texture2D* video = nullptr;
-    if (videoBackground) {
-        video = videoBackground->GetTexture(TheSongTime.GetElapsedTime() + curSong->videoStartTime);
-    }
-    if (video) {
-        Vector2 screenSize = {(float)GetRenderWidth(), (float)GetRenderHeight()};
-        Vector2 fitSize = AspectFitRect({(float)video->width, (float)video->height}, screenSize);
-        Vector2 videoOffset = Vector2Subtract(Vector2Scale(screenSize, 0.5), Vector2Scale(fitSize, 0.5));
+    if (!TheGameSettings.StreamerTransparency) {
+        Texture2D* video = nullptr;
+        if (videoBackground) {
+            video = videoBackground->GetTexture(TheSongTime.GetElapsedTime() + curSong->videoStartTime);
+        }
+        if (video) {
+            Vector2 screenSize = {(float)GetRenderWidth(), (float)GetRenderHeight()};
+            Vector2 fitSize = AspectFitRect({(float)video->width, (float)video->height}, screenSize);
+            Vector2 videoOffset = Vector2Subtract(Vector2Scale(screenSize, 0.5), Vector2Scale(fitSize, 0.5));
 
-        DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {videoOffset.x, videoOffset.y, fitSize.x, fitSize.y}, Vector2(0, 0), 0, WHITE);
-    } else {
-        GameMenu::DrawAlbumArtBackground();
+            DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {videoOffset.x, videoOffset.y, fitSize.x, fitSize.y}, Vector2(0, 0), 0, WHITE);
+        } else {
+            GameMenu::DrawAlbumArtBackground();
+        }
+        DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
+        DrawRectangle(
+            0,
+            0,
+            GetRenderWidth(),
+            GetRenderHeight(),
+            Color{ 255, 255, 255, BackgroundColor }
+        );
     }
-    DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
-    DrawRectangle(
-        0,
-        0,
-        GetRenderWidth(),
-        GetRenderHeight(),
-        Color{ 255, 255, 255, BackgroundColor }
-    );
+
 
     if (TheSongTime.GetElapsedTime() > curSong->end - 0.1) {
         // TODO: endgame
