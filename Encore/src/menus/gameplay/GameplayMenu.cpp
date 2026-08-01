@@ -460,6 +460,24 @@ void GameplayMenu::DrawMTVOverlay(Vector2 pos) {
     secondary.AddPos(-( TitleFontSize * 1.13f), TitleFontSize).DrawText(LOCALISE_FMT("gameplay.sectionDisplay", CurrentSectionName));
 }
 
+Vector2 AspectFitRect(Vector2 smallSize, Vector2 bigSize)
+{
+    auto smallRatio = bigSize.x / bigSize.y;
+    auto containerRatio = smallSize.x / smallSize.y;
+
+    if (smallRatio < containerRatio)
+    {
+        auto ratio = bigSize.x / smallSize.x;
+        auto height = smallSize.y * ratio;
+        return {bigSize.x, height};
+    } else
+    {
+        auto ratio = bigSize.y / smallSize.y;
+        auto width = smallSize.x * ratio;
+        return {width, bigSize.y};
+    }
+}
+
 void GameplayMenu::Draw() {
     UpdatePauseState();
     UIInput = IsPaused();
@@ -488,7 +506,11 @@ void GameplayMenu::Draw() {
         video = videoBackground->GetTexture(TheSongTime.GetElapsedTime() + curSong->videoStartTime);
     }
     if (video) {
-        DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {0, 0, (float)GetRenderWidth(), (float)GetRenderHeight()}, Vector2(0, 0), 0, WHITE);
+        Vector2 screenSize = {(float)GetRenderWidth(), (float)GetRenderHeight()};
+        Vector2 fitSize = AspectFitRect({(float)video->width, (float)video->height}, screenSize);
+        Vector2 videoOffset = Vector2Subtract(Vector2Scale(screenSize, 0.5), Vector2Scale(fitSize, 0.5));
+
+        DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {videoOffset.x, videoOffset.y, fitSize.x, fitSize.y}, Vector2(0, 0), 0, WHITE);
     } else {
         GameMenu::DrawAlbumArtBackground();
     }

@@ -191,6 +191,16 @@ void VideoBackground::ReadAndDecodeFrame() {
             ZoneScopedN("Color conversion + scaling")
             SwsContext* swsCtx = sws_getContext(frame->width, frame->height, codecCtx->pix_fmt, frame->width, frame->height, AV_PIX_FMT_RGB24, 0, nullptr, nullptr, nullptr);
             AVFrame* outFrame = av_frame_alloc();
+            outFrame->format = AV_PIX_FMT_RGB24;
+            outFrame->width = frame->width;
+            outFrame->height = frame->height;
+
+            int size = frame->width * frame->height * 3;
+            auto buf = (uint8_t*)av_malloc(size);
+            outFrame->buf[0] = av_buffer_create(buf, size, av_buffer_default_free, NULL, 0);
+            outFrame->data[0] = buf;
+            outFrame->linesize[0] = frame->width * 3;
+
             auto scaleResult = sws_scale_frame(swsCtx, outFrame, frame);
             outFrame->pts = frame->pts;
             outFrame->time_base = fmtCtx->streams[streamIndex]->time_base;
