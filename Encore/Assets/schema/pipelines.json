@@ -1,0 +1,36 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"pipelines": {
+			"type": "object",
+			"additionalProperties": {
+				"type": "object",
+				"properties": {
+					"preset": {"type": "string", "description": "One of the preset pipelines defined in PipelineManager::CompileAll. Defines a bunch of common pipeline properties and somethings that aren't easily represented in JSON."},
+					"vertexShader": {"type": "string", "description": "Asset ID of the vertex shader. Vertex input state is automatically generated from this shader."},
+					"fragmentShader": {"type": "string", "description": "Asset ID of the fragment shader."},
+					"primitiveType": {"enum": ["triangleList", "triangleStrip", "lineList", "lineStrip", "pointList"]},
+					"rasterizerState": {
+						"type": "object",
+						"properties": {
+							"fillMode": {"enum": ["fill", "line"]},
+							"cullMode": {"enum": ["none", "front", "back"]},
+							"frontFace": {"enum": ["cw", "ccw"]}
+						}
+					},
+					"blendMode": {"enum": ["normal", "add", "normalPremultiplied"], "description": "Blend modes are defined in pipelines.cpp"},
+					"depthStencilState": {
+						"type": "object",
+						"description": "Extremely basic depth options. I don't know if we'll need more than this.",
+						"properties": {
+							"enableDepthTest": {"type": "boolean"},
+							"enableDepthWrite": {"type": "boolean"}
+						}
+					}
+				},
+				"required": ["preset", "vertexShader", "fragmentShader", "primitiveType"]
+			}
+		}
+	}
+}

@@ -18,6 +18,8 @@
 #include <vector>
 #include <iostream>
 #include <unordered_set>
+#include "nlohmann/json.hpp"
+#include "util/threadpool.h"
 
 enum AssetState : uint8_t {
     UNLOADED,
@@ -41,12 +43,11 @@ protected:
 public:
     AssetState state = UNLOADED;
     std::string id = {};
-    std::thread loadingThread;
     bool noPreload = false;
     /// Used for assets created by another and not stored in TheAssets (ShaderAsset)
     Asset *parent = nullptr;
 
-    Asset(const std::string &id);
+    Asset(const nlohmann::json &info);
 
     /// Empty constructor provided so vectors can initialize. Do not use!
     Asset() = default;
@@ -61,9 +62,6 @@ public:
     void SetAssetParent(Asset *newParent);
 
     void BlockUntilLoaded();
-
-    /// Removes the asset from the internal list, hiding it from the debug Assets window
-    void DelistAsset();
 
     /// Unloads this asset. Only use in render thread!
     virtual void Unload() {
@@ -89,11 +87,17 @@ protected:
 public:
     char *fileBuffer;
     bool addNullTerminator = false;
+    std::string path = {};
 
     static const std::filesystem::path GetBaseDirectory();
 
-    FileAsset(const std::string &id)
-        : Asset(id) {
+    FileAsset(const nlohmann::json &info)
+        : Asset(info), path(info["path"]) {
+    }
+
+    // Used for temporary assets while loading shaders
+    FileAsset(const std::string& path) : Asset(), path(path) {
+
     }
 
     FileAsset() {
@@ -102,7 +106,7 @@ public:
     virtual void Unload();
 
     std::filesystem::path GetPath() {
-        return GetBaseDirectory() / id;
+        return GetBaseDirectory() / path;
     }
     std::unique_ptr<std::istream> GetStream(std::ios::openmode mode) {
         return std::make_unique<std::ifstream>(GetPath(), mode);
@@ -144,8 +148,8 @@ public:
 
     bool rawDataLoaded = false;
 
-    TextureAsset(const std::string &id, bool keepRawData = false, int mips = 1)
-        : FileAsset(id), keepRawData(keepRawData), mips(mips) {
+    TextureAsset(const nlohmann::json &info)
+        : FileAsset(info), keepRawData(info["keepRawData"]), mips(info["mips"]) {
     }
     virtual void Finalize(SDL_GPUCopyPass* copyPass);
 
@@ -168,18 +172,32 @@ class ShaderAsset : public FileAsset {
 
     std::vector<SDL_GPUVertexBufferDescription> bufferDescriptions;
     std::vector<SDL_GPUVertexAttribute> vertexAttributes;
+    SDL_GPUShader* shader = nullptr;
 public:
     SDL_ShaderCross_ShaderStage stage;
-    SDL_GPUShader* shader;
     SDL_GPUVertexInputState vertexInputState = {};
 
-    ShaderAsset(const std::string &id, SDL_ShaderCross_ShaderStage stage) : FileAsset(id), stage(stage) {
+    static SDL_ShaderCross_ShaderStage StageFromString(const std::string &str) {
+        if (str == "vertex") {
+            return SDL_SHADERCROSS_SHADERSTAGE_VERTEX;
+        }
+        if (str == "fragment") {
+            return SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT;
+        }
+        if (str == "computer") {
+            return SDL_SHADERCROSS_SHADERSTAGE_COMPUTE;
+        }
+        throw std::runtime_error("Unknown shader stage " + str);
+    }
+
+    ShaderAsset(const nlohmann::json &info) : FileAsset(info) {
         addNullTerminator = true;
+        stage = StageFromString(info["stage"]);
     }
 
     ShaderAsset() {}
 
-    operator SDL_GPUShader*() {
+    operator SDL_GPUShader*() const {
         return shader;
     }
 
@@ -213,7 +231,7 @@ public:
     std::vector<MeshVertex> vertices;
     std::vector<Face> faces;
 
-    MeshAsset(const std::string &id) : FileAsset(id) {
+    MeshAsset(const nlohmann::json &info) : FileAsset(info) {
         addNullTerminator = true;
     }
 
@@ -222,43 +240,23 @@ public:
     virtual void Unload();
 };
 
-#define ASSET(varname) TheAssets.varname
-#define ASSETPTR(varname) &TheAssets.varname
-
-#define NEWFILEASSET(varname, path) FileAsset varname = FileAsset(path)
-#define NEWTEXASSET(varname, path) TextureAsset varname = TextureAsset(path)
-#define NEWTEXASSET_MIPS(varname, path, mips) TextureAsset varname = TextureAsset(path, false, mips)
-#define NEWTEXASSET_KEEPRAW(varname, path) TextureAsset varname = TextureAsset(path, true)
-#define FRAG SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT
-#define VERT SDL_SHADERCROSS_SHADERSTAGE_VERTEX
-#define NEWSHADERASSET(varname, path, stage) ShaderAsset varname = ShaderAsset(path, stage)
-#define NEWMESHASSET(varname, path) MeshAsset varname = MeshAsset(path)
-
+#define GET_ASSET_STATIC(type, id) static std::shared_ptr<type> id = TheAssets.GetAsset<type>(#id);
 
 class Assets {
 private:
     std::filesystem::path directory = SDL_GetBasePath() / std::filesystem::path("Assets");
 
 public:
-    std::vector<Asset *> assets; // Stored for debugging
+    std::unordered_map<std::string, std::shared_ptr<Asset>> assets;
     std::deque<Asset *> finalizeQueue;
     std::mutex finalizeQueueMutex;
+    ThreadPool loadingPool = std::thread::hardware_concurrency()-1;
     Assets() {
     }
 
 
-    NEWTEXASSET_KEEPRAW(faviconTex, "encore_favicon-NEW.png");
-    NEWSHADERASSET(noteVert, "testshaders/test_instanced.vert.hlsl", VERT);
-    NEWSHADERASSET(noteFrag, "testshaders/test.frag.hlsl", FRAG);
-
-    NEWSHADERASSET(boxVert, "ui/box/box.vert.hlsl", VERT);
-    NEWSHADERASSET(boxFrag, "ui/box/box.frag.hlsl", FRAG);
-
-    NEWSHADERASSET(compositeVert, "compositing/compositelayer.vert.hlsl", VERT);
-    NEWSHADERASSET(compositeFrag, "compositing/compositelayer.frag.hlsl", FRAG);
-
-    NEWMESHASSET(testMesh, "gameplay/track/notes/normal/model.obj");
-    NEWTEXASSET_MIPS(testMeshTex, "gameplay/track/notes/normal/diffuse.png", 8);
+    void LoadAssetSet(const nlohmann::json &set);
+    void Init();
 
     void AddRingsAndInstruments();
 
@@ -272,70 +270,20 @@ public:
         return directory;
     }
 
+    template<class T>
+    std::shared_ptr<T> GetAsset(const std::string& id) {
+        auto asset = assets.find(id);
+        if (asset == assets.end()) {
+            throw std::runtime_error("Asset not found: " + id);
+        }
+        if (auto typed = std::dynamic_pointer_cast<T>(asset->second)) {
+            return typed;
+        }
+        throw std::runtime_error("Cannot get asset " + id + " as " + typeid(T).name());
+    }
+
     Assets(const Assets &) = delete;
     void operator=(const Assets &) = delete;
 };
 
 extern Assets TheAssets;
-
-/// Used for easily loading groups of assets and polling their state as one.
-class AssetSet {
-    std::vector<Asset *> assets;
-
-public:
-    AssetSet(std::initializer_list<Asset *> l) {
-        assets = std::vector<Asset *>(l);
-    }
-
-    void AddAsset(Asset *asset) {
-        assets.push_back(asset);
-    }
-
-    void StartLoad() {
-        for (long unsigned int i = 0; i < assets.size(); i++) {
-            auto asset = assets[i];
-            if (asset->state == UNLOADED) {
-                asset->StartLoad();
-            }
-        }
-    }
-
-    bool PollLoaded() {
-        bool loaded = true;
-        for (long unsigned int i = 0; i < assets.size(); i++) {
-            auto asset = assets[i];
-            if (!asset->CanFetch()) {
-                loaded = false;
-            }
-        }
-        return loaded;
-    }
-
-    int CountLoaded() {
-        int loaded = 0;
-        for (long unsigned int i = 0; i < assets.size(); i++) {
-            if (assets[i]->CanFetch()) {
-                loaded++;
-            }
-        }
-        return loaded;
-    }
-
-    int AssetCount() {
-        return assets.size();
-    }
-
-    float GetProgress() {
-        return static_cast<float>(CountLoaded()) / static_cast<float>(AssetCount());
-    }
-
-    void BlockUntilLoaded() {
-        while (!PollLoaded()) {
-            std::this_thread::sleep_for(std::chrono::microseconds(1));
-        }
-    }
-};
-
-extern AssetSet initialSet;
-extern AssetSet mainMenuSet;
-extern AssetSet gameplaySet;

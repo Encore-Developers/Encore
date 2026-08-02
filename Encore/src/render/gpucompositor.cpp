@@ -24,7 +24,8 @@ void GPUCompositor::BeginCompositing(
         sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
     }
     renderPass = SDL_BeginGPURenderPass(cmdbuf, &targetInfo, 1, nullptr);
-    SDL_BindGPUGraphicsPipeline(renderPass, PIPELINE(compositeLayerPipeline));
+    static auto& pipeline = GET_PIPELINE("compositeLayer");
+    SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
     SDL_PushGPUFragmentUniformData(cmdbuf, 0, &showAlphaDebug, 8);
 }
 

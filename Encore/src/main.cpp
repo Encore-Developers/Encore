@@ -8,6 +8,7 @@
 #include "tracy/Tracy.hpp"
 #include "graphicsState.h"
 #include "assets.h"
+#include "hb-gpu.h"
 #include "glm/gtc/random.hpp"
 #include "math/camera.h"
 #include "render/gpucompositor.h"
@@ -71,9 +72,10 @@ int main(int argc, char *argv[]) {
     SDL_SetAppMetadata("Encore", "v0.2.0", "encore");
     LocateDevAssets();
     SDL_Log("Asset path: %s", TheAssets.getDirectory().generic_u8string().c_str());
-    //
 
-    for (auto asset : TheAssets.assets) {
+    TheAssets.Init();
+
+    for (auto &asset : TheAssets.assets | views::values) {
         asset->StartLoad();
     }
 
@@ -86,8 +88,10 @@ int main(int argc, char *argv[]) {
     auto window = SDL_CreateWindow("Encore", 1280, 720, SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
     TheWindow = window;
 
-    while (!ASSET(faviconTex).rawDataLoaded) {}
-    auto icon = SDL_CreateSurfaceFrom(ASSET(faviconTex).width, ASSET(faviconTex).height, SDL_PIXELFORMAT_RGBA32, ASSET(faviconTex).data, ASSET(faviconTex).width*sizeof(Pixel));
+    GET_ASSET_STATIC(TextureAsset, faviconTex);
+
+    while (!faviconTex->rawDataLoaded) {}
+    auto icon = SDL_CreateSurfaceFrom(faviconTex->width, faviconTex->height, SDL_PIXELFORMAT_RGBA32, faviconTex->data, faviconTex->width*sizeof(Pixel));
     if (!SDL_SetWindowIcon(window, icon)) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Could set icon: %s\n", SDL_GetError());
     }
@@ -110,7 +114,7 @@ int main(int argc, char *argv[]) {
     SDL_SetGPUSwapchainParameters(gpu, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_MAILBOX);
     SDL_SetGPUAllowedFramesInFlight(TheGPU, 1);
 
-    PIPELINE(CompileThreaded());
+    ThePipelineManager.CompileThreaded();
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -158,7 +162,7 @@ int main(int argc, char *argv[]) {
     auto sampler = SDL_CreateGPUSampler(TheGPU, &samplerCreate);
 
     GPUDynamicBuffer<GemInstance> gemInstances(SDL_GPU_BUFFERUSAGE_VERTEX, true);
-    PIPELINE(BlockUntilLoaded());
+    ThePipelineManager.BlockUntilLoaded();
     static float renderScale3D = 1.0f;
 
     while (!shouldClose) {
@@ -199,6 +203,17 @@ int main(int argc, char *argv[]) {
             ZoneScopedN("SDL Event Polling")
             while (SDL_PollEvent(&event)) {
                 ImGui_ImplSDL3_ProcessEvent(&event);
+                if (event.type == SDL_EVENT_KEY_DOWN) {
+                    if (event.key.key == SDLK_F5) {
+                        for (auto& asset : TheAssets.assets | std::views::values) {
+                            if (auto shader = std::dynamic_pointer_cast<ShaderAsset>(asset)) {
+                                shader->Unload();
+                                shader->StartLoad();
+                            }
+                        }
+                        ThePipelineManager.CompileAll();
+                    }
+                }
                 if (event.type == SDL_EVENT_QUIT) {
                     shouldClose = true;
                 }
@@ -291,6 +306,8 @@ int main(int argc, char *argv[]) {
 
 
 
+
+#ifdef balls
         if (true) {
             ZoneScopedN("3D Render Pass")
             SDL_GPUColorTargetInfo colorTargetInfo = The3DFramebuffer->GetColorTargetInfo();
@@ -333,6 +350,7 @@ int main(int argc, char *argv[]) {
 
             SDL_EndGPURenderPass(renderPass);
         }
+#endif
 
         if (true) {
             ZoneScopedN("2D Render Pass")

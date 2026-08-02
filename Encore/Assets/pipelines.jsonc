@@ -1,0 +1,20 @@
+{
+	"$schema": "./schema/pipelines.json",
+	"pipelines": {
+		"box": {
+			"preset": "2d",
+			"vertexShader": "boxVert",
+			"fragmentShader": "boxFrag",
+			"primitiveType": "triangleStrip",
+			"rasterizerState": {
+				"fillMode": "fill"
+			}
+		},
+		"compositeLayer": {
+			"preset": "compositor",
+			"vertexShader": "compositeLayerVert",
+			"fragmentShader": "compositeLayerFrag",
+			"primitiveType": "triangleStrip"
+		}
+	}
+}

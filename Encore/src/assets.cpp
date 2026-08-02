@@ -18,7 +18,7 @@
 #include <iostream>
 #include <regex>
 #include <unordered_set>
-
+using json = nlohmann::json;
 class Assets;
 class Asset;
 
@@ -52,6 +52,35 @@ void Asset::DoFinalize() {
     SDL_ReleaseGPUFence(TheGPU, fence);
 }
 
+void Assets::LoadAssetSet(const json &set) {
+    for (auto& [key, value] : set["assets"].items()) {
+        std::string type = value["type"];
+        std::shared_ptr<Asset> newAsset;
+        // TODO: this fucking sucks
+        if (type == "texture") {
+            newAsset = std::make_shared<TextureAsset>(value);
+        }
+        if (type == "shader") {
+            newAsset = std::make_shared<ShaderAsset>(value);
+        }
+        if (type == "mesh") {
+            newAsset = std::make_shared<MeshAsset>(value);
+        }
+        if (!newAsset) {
+            throw std::runtime_error("Unrecognized asset type " + type);
+        }
+        newAsset->id = key;
+        assets[key] = newAsset;
+    }
+}
+void Assets::Init() {
+    std::ifstream regStream(getDirectory() / "assetReg.json");
+    json registry = nlohmann::json::parse(regStream);
+    for (auto& [key, value] : registry["sets"].items()) {
+        std::ifstream setStream(getDirectory() / value);
+        LoadAssetSet(nlohmann::json::parse(setStream));
+    }
+}
 Assets &Assets::getInstance() {
     return TheAssets;
 }
@@ -65,7 +94,6 @@ void Asset::CheckForFetch() {
 
 void Asset::SetAssetParent(Asset *newParent) {
     parent = newParent;
-    DelistAsset();
 }
 void Asset::BlockUntilLoaded() {
     while (state != LOADED) {
@@ -73,32 +101,20 @@ void Asset::BlockUntilLoaded() {
     }
 }
 
-void Asset::DelistAsset() {
-    for (auto iter = TheAssets.assets.begin(); iter != TheAssets.assets.end(); ++iter) {
-        auto asset = *iter;
-        if (asset == this) {
-            TheAssets.assets.erase(iter);
-            break;
-        }
-    }
-}
-
 Asset::~Asset() {
-    DelistAsset();
+
 }
 
-Asset::Asset(const std::string &id) {
-    this->id = id;
-    TheAssets.assets.push_back(this);
+Asset::Asset(const json &info) {
+
 }
 
 void Asset::StartLoad() {
     ZoneScoped;
+    ZoneNameF("Start Load %s", id.c_str());
     if (state == UNLOADED) {
         state = LOADING;
-        loadingThread = std::thread([this]() { this->Load(); });
-        loadingThread.detach();
-        //Encore::EncoreLog(LOG_INFO, TextFormat("Loading asset %s...", id.c_str()));
+        TheAssets.loadingPool.SubmitTask([this]() {ZoneScoped; ZoneNameF("Load %s", id.c_str()); this->Load();});
     }
 }
 
@@ -301,7 +317,7 @@ void ShaderAsset::Load() {
         (const uint8_t *)SDL_ShaderCross_CompileSPIRVFromHLSL(&hlslInfo, &size);
 
     if (spirv == nullptr) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s: %s", id.c_str(), SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s: %s", path.c_str(), SDL_GetError());
         return;
     }
 
@@ -319,7 +335,7 @@ void ShaderAsset::Load() {
     }
     BlockUntilGPUReady();
     static auto props = SDL_CreateProperties();
-    SDL_SetStringProperty(props, SDL_PROP_GPU_SHADER_CREATE_NAME_STRING, id.c_str());
+    SDL_SetStringProperty(props, SDL_PROP_GPU_SHADER_CREATE_NAME_STRING, path.c_str());
     shader = SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(TheGPU, &spirvInfo, &resourceInfo->resource_info, props);
     state = LOADED;
     SDL_free((void*)spirv);

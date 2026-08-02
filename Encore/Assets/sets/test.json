@@ -1,0 +1,30 @@
+{
+	"assets": {
+		"faviconTex": {
+			"type": "texture",
+			"path": "encore_favicon-NEW.png",
+			"keepRawData": true,
+			"mips": 1
+		},
+		"boxVert": {
+			"type": "shader",
+			"path": "ui/box/box.vert.hlsl",
+			"stage": "vertex"
+		},
+		"boxFrag": {
+			"type": "shader",
+			"path": "ui/box/box.frag.hlsl",
+			"stage": "fragment"
+		},
+		"compositeLayerVert": {
+			"type": "shader",
+			"path": "compositing/compositelayer.vert.hlsl",
+			"stage": "vertex"
+		},
+		"compositeLayerFrag": {
+			"type": "shader",
+			"path": "compositing/compositelayer.frag.hlsl",
+			"stage": "fragment"
+		}
+	}
+}

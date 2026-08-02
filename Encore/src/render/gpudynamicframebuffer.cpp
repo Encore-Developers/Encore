@@ -63,6 +63,6 @@ void GPUDynamicFramebuffer::SetSampleCount(SDL_GPUSampleCount sampleCount) {
     }
     this->sampleCount = sampleCount;
     forceDirty = true;
-    PIPELINE(CompileAll());
+    ThePipelineManager.CompileAll();
     Update(width, height);
 }

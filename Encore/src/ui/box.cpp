@@ -119,7 +119,8 @@ BoxMesh *Box::GetMesh() const {
     return &squircleMesh;
 }
 void Box::Draw(SDL_GPURenderPass* renderPass, SDL_GPUCommandBuffer* cmdBuf, Vector2 pos, Vector2 size) {
-    SDL_BindGPUGraphicsPipeline(renderPass, PIPELINE(boxPipeline));
+    static auto &boxPipeline = GET_PIPELINE("box");
+    SDL_BindGPUGraphicsPipeline(renderPass, boxPipeline);
     BoxMesh *mesh = GetMesh();
     auto binding = mesh->GetBinding();
     SDL_BindGPUVertexBuffers(renderPass, 0, &binding, 1);
