@@ -13,3 +13,6 @@
 [submodule "Encore/thirdparty/spirv-cross"]
 	path = Encore/thirdparty/spirv-cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+[submodule "Encore/thirdparty/harfbuzz"]
+	path = Encore/thirdparty/harfbuzz
+	url = https://github.com/harfbuzz/harfbuzz.git
