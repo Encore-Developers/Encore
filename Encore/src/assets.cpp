@@ -5,6 +5,8 @@
 #include "assets.h"
 
 #include "graphicsState.h"
+#include <hb.h>
+#include <hb-gpu.h>
 #include "stb_image.h"
 #include "tiny_obj_loader.h"
 
@@ -65,6 +67,9 @@ void Assets::LoadAssetSet(const json &set) {
         }
         if (type == "mesh") {
             newAsset = std::make_shared<MeshAsset>(value);
+        }
+        if (type == "font") {
+            newAsset = std::make_shared<FontAsset>(value);
         }
         if (!newAsset) {
             throw std::runtime_error("Unrecognized asset type " + type);
@@ -265,6 +270,13 @@ void TextureAsset::Unload() {
     texture = nullptr;
     state = UNLOADED;
 }
+void FontAsset::Load() {
+    LoadFile();
+
+    blob = hb_blob_create(fileBuffer, fileSize, HB_MEMORY_MODE_READONLY, nullptr, nullptr);
+    face = hb_face_create(blob, faceIndex);
+    state = LOADED;
+}
 void ShaderAsset::PreprocessShader(std::string &input, std::unordered_set<std::string>* includedFiles) {
     static const std::regex includeRegex("#include <(.+?)>");
     std::smatch match;
@@ -282,18 +294,32 @@ void ShaderAsset::PreprocessShader(std::string &input, std::unordered_set<std::s
             continue;
         }
         includedFiles->insert(file);
-        FileAsset includedFile("shader_includes/" + file);
-        includedFile.addNullTerminator = true;
-        includedFile.LoadImmediate();
-        std::string includeContents = includedFile.fileBuffer;
-        includedFile.Unload();
-        PreprocessShader(includeContents, includedFiles);
+        std::string includeContents;
+        if (file == "__hb_vert") {
+            includeContents = hb_gpu_shader_source(HB_GPU_SHADER_STAGE_VERTEX, HB_GPU_SHADER_LANG_HLSL);
+        } else if (file == "__hb_frag") {
+            includeContents = hb_gpu_shader_source(HB_GPU_SHADER_STAGE_FRAGMENT, HB_GPU_SHADER_LANG_HLSL);
+        } else {
+            FileAsset includedFile("shader_includes/" + file);
+            includedFile.addNullTerminator = true;
+            includedFile.LoadImmediate();
+            includeContents = includedFile.fileBuffer;
+            includedFile.Unload();
+            PreprocessShader(includeContents, includedFiles);
+        }
         input.replace(match[0].first, match[0].second, includeContents.c_str());
     }
 
     if (ownsIncludeSet) {
         delete includedFiles;
     }
+}
+void FontAsset::Unload() {
+    FreeFileBuffer();
+    hb_face_destroy(face);
+    hb_blob_destroy(blob);
+    face = nullptr;
+    blob = nullptr;
 }
 void ShaderAsset::Load() {
     ZoneScopedN("Shader Compile")

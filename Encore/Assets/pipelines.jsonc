@@ -5,10 +5,7 @@
 			"preset": "2d",
 			"vertexShader": "boxVert",
 			"fragmentShader": "boxFrag",
-			"primitiveType": "triangleStrip",
-			"rasterizerState": {
-				"fillMode": "fill"
-			}
+			"primitiveType": "triangleStrip"
 		},
 		"compositeLayer": {
 			"preset": "compositor",

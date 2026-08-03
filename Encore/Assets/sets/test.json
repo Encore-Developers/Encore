@@ -25,6 +25,20 @@
 			"type": "shader",
 			"path": "compositing/compositelayer.frag.hlsl",
 			"stage": "fragment"
+		},
+		"testFont": {
+			"type": "font",
+			"path": "fonts/Rubik-Regular.ttf"
+		},
+		"labelVert": {
+			"type": "shader",
+			"path": "ui/text/label.vert.hlsl",
+			"stage": "vertex"
+		},
+		"labelFrag": {
+			"type": "shader",
+			"path": "ui/text/label.frag.hlsl",
+			"stage": "fragment"
 		}
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hb.h"
 #include "SDL3/SDL_filesystem.h"
 #include "SDL3/SDL_gpu.h"
 #include "SDL3_shadercross/SDL_shadercross.h"
@@ -161,6 +162,28 @@ public:
     operator SDL_GPUTexture*() {
         return texture;
     }
+};
+
+class FontAsset : public FileAsset {
+    virtual void Load();
+
+    hb_blob_t* blob;
+    hb_face_t* face;
+public:
+    int faceIndex = 0;
+
+    FontAsset(const nlohmann::json &info)
+        : FileAsset(info) {
+        if (info.contains("faceIndex")) {
+            faceIndex = info["faceIndex"];
+        }
+    }
+    virtual void Finalize(SDL_GPUCopyPass* copyPass) {};
+
+    FontAsset() {
+    }
+
+    virtual void Unload();
 };
 
 

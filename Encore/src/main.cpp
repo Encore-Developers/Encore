@@ -59,6 +59,15 @@ struct GemInstance {
     
 };
 
+void RecompileShadersAndPipelines() {
+    for (auto &asset : TheAssets.assets | std::views::values) {
+        if (auto shader = std::dynamic_pointer_cast<ShaderAsset>(asset)) {
+            shader->Unload();
+            shader->StartLoad();
+        }
+    }
+    ThePipelineManager.CompileAll();
+}
 int main(int argc, char *argv[]) {
     ArgumentList::InitArguments(argc, argv);
     auto videoDriver = ArgumentList::GetArgValue("video_driver");
@@ -205,13 +214,7 @@ int main(int argc, char *argv[]) {
                 ImGui_ImplSDL3_ProcessEvent(&event);
                 if (event.type == SDL_EVENT_KEY_DOWN) {
                     if (event.key.key == SDLK_F5) {
-                        for (auto& asset : TheAssets.assets | std::views::values) {
-                            if (auto shader = std::dynamic_pointer_cast<ShaderAsset>(asset)) {
-                                shader->Unload();
-                                shader->StartLoad();
-                            }
-                        }
-                        ThePipelineManager.CompileAll();
+                        RecompileShadersAndPipelines();
                     }
                 }
                 if (event.type == SDL_EVENT_QUIT) {
