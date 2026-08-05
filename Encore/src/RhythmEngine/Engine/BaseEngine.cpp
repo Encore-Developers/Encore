@@ -117,9 +117,7 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
             TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
             FireEvent(&odReady);
         }
-        HighwayBounceEvent HBevent{1.0f, 3.0f};
-        FireEvent(&HBevent);
-        OverdriveGain gain;
+        OverdriveEvent gain;
         FireEvent(&gain);
     }
 
@@ -176,7 +174,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
-    stats->LastHitAccuracy = (stats->InputTime) - startTime;
+    stats->LastHitOffset = (stats->InputTime) - startTime;
     stats->HitNote(chordSize, event.judgement);
 
     if (PerfectHit(startTime)) {
@@ -197,18 +195,19 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     }
 
 
+    TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
     if (stats->Combo == 25 && stats->Overhits == 0 && stats->Misses == 0) {
-        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
         FireEvent(&event2);
     }
 
     int comboNotif = stats->Combo > 200 ? stats->Combo % 100 : stats->Combo % 50;
     if (stats->Combo == stats->ep.mult.comboForMax() && (inst == PartBass || inst == PlasticBass)) {
-        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::BASSGROOVE};
+        event2.type = TrackNotificationEvent::BASSGROOVE;
         FireEvent(&event2);
     } else if (comboNotif == 0) {
-        TrackNotificationEvent event2 {startTime, TrackNotificationEvent::COMBO, stats->Combo};
-        FireEvent(&event2);;
+        event2.type = TrackNotificationEvent::COMBO;
+        event2.combo = stats->Combo;
+        FireEvent(&event2);
     }
     int multiplierIncrease = stats->Combo % stats->ep.mult.count;
     // in the unplanned/planned career mode, id like this to be adjustable

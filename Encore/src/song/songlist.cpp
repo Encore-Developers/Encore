@@ -102,18 +102,16 @@ bool SongList::sortPlaylist(Song *a, Song *b) {
 
 bool SongList::sortSource(Song *a, Song *b) {
     ZoneScoped;
-    std::string aLower = TextToLower(a->source.c_str());
-    std::string bLower = TextToLower(b->source.c_str());
+    std::string aLower = lower(a->source);
+    std::string bLower = lower(b->source);
     return aLower < bLower;
 }
 
 bool SongList::sortAlbum(Song *a, Song *b) {
     ZoneScoped;
-    std::string aLower = TextToLower(a->album.c_str());
-    std::string bLower = TextToLower(b->album.c_str());
-    std::string aaa = removeArticle(TextToLower(a->album.c_str()));
-    std::string bbb = removeArticle(TextToLower(b->album.c_str()));
-    return aaa < bbb;
+    std::string aLower = lower(a->album);
+    std::string bLower = lower(b->album);
+    return removeArticle(aLower) < removeArticle(bLower);
 }
 
 bool SongList::sortLen(Song *a, Song *b) {
@@ -315,12 +313,12 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
         std::string header;
         switch (sortType) {
         case SortType::Title: {
-            std::string title = removeArticle(TextToLower(song->title.c_str()));
+            std::string title = removeArticle(lower(song->title));
             header = title.empty() ? "#" : std::string(1, toupper(title[0]));
             break;
         }
         case SortType::Artist: {
-            std::string artist = removeArtistJunk(TextToLower(song->artist.c_str()));
+            std::string artist = removeArticle(lower(song->artist));
             header = artist.empty() ? "#" : artist;
             break;
         }

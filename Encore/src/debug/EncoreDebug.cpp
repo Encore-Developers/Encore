@@ -1151,7 +1151,7 @@ void Encore::Track::DrawTrackDebugWindow() {
                 }
                 SeparatorText("Overdrive Gain Flash");
                 if (Button("Send Gain Flash Event")) {
-                    player.engine->FireEventTemp(OverdriveGain());
+                    player.engine->FireEventTemp(OverdriveEvent());
                 }
                 SeparatorText("Highway Bounce");
                 SameLine();

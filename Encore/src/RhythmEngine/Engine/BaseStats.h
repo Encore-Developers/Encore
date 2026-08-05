@@ -79,7 +79,7 @@ namespace Encore::RhythmEngine {
         void RemoveHealth(const bool comboBreak) {
             double mult = 1;
             if (comboBreak) mult = ep.health.cbMult;
-            if (overdrive.Active) mult *= ep.health.odMult;
+            else if (overdrive.Active) mult = ep.health.odMult;
             Health -= ep.health.Loss * mult;
             if (Health < 0) Health = 0;
         }
@@ -107,7 +107,7 @@ namespace Encore::RhythmEngine {
         bool Quit = false;
         double Health = defaultHealth;
         double Accuracy = 0;
-        double LastHitAccuracy = -1;
+        double LastHitOffset = -1;
         int Stars = 0;
         double StarThresholdValue = 0.0;
         StrumState strumState = StrumState::Default;

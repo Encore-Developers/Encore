@@ -12,9 +12,7 @@ ControllerEvent &event
 ) {
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         if (stats->overdrive.Activate(stats->InputTime)) {
-            HighwayBounceEvent HBevent;
-            FireEvent(&HBevent);
-            OverdriveGain gain;
+            OverdriveEvent gain;
             FireEvent(&gain);
         }; // time
         return true;
@@ -27,43 +25,13 @@ ControllerEvent &event
 ) {
     stats->InputTime = event.timestamp - stats->InputOffset; // todo: REPLACE WITH ACTUAL SONG
     // TIME (IN SECONDS)
-    if (event.action == Action::PRESS) {
-        switch (event.channel) {
-        case InputChannel::LANE_1:
-        case InputChannel::LANE_2:
-        case InputChannel::LANE_3:
-        case InputChannel::LANE_4:
-        case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(event.channel)) = true;
-            break;
-        }
-        case InputChannel::LANE_6: {
-            if (chart->size == 6)
-                stats->HeldFrets.at(ICInt(event.channel)) = true;
-            break;
-        }
-        default:
-            break;
-        }
-    }
-    if (event.action == Action::RELEASE) {
-        switch (event.channel) {
-        case InputChannel::LANE_1:
-        case InputChannel::LANE_2:
-        case InputChannel::LANE_3:
-        case InputChannel::LANE_4:
-        case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(event.channel)) = false;
-            break;
-        }
-        case InputChannel::LANE_6: {
-            if (chart->size == 6)
-                stats->HeldFrets.at(ICInt(event.channel)) = false;
-            break;
-        }
-        default:
-            break;
-        }
+    if (event.action == Action::INVALID) return;
+    if (event.channel == InputChannel::INVALID) return;
+
+    bool press = event.action == Action::PRESS;
+    if (event.channel < InputChannel::STRUM_UP) {
+        if (chart-> size != 6 && event.channel == InputChannel::LANE_6) return;
+        stats->HeldFrets.at(ICInt(event.channel)) = press;
     }
 }
 

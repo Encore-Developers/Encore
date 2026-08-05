@@ -477,10 +477,10 @@ TheGame::TheGame() {
 }
 
 TheGame::~TheGame() {
-    TheMenuManager.~MenuManager();
 #ifdef STEAM
     SteamAPI_Shutdown();
 #endif
+    TheMenuManager.~MenuManager();
     Encore::Log::Exit();
 }
 

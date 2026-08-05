@@ -48,9 +48,9 @@ namespace Encore {
     };
 
 
-    class OverdriveGain : public Event {
+    class OverdriveEvent : public Event {
     public:
-        explicit OverdriveGain() {};
+        explicit OverdriveEvent() {};
     };
 
     class TrackNotificationEvent : public Event {

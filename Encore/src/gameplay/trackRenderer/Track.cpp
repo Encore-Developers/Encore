@@ -1017,7 +1017,7 @@ void Encore::Track::HandleEvent(Event *event) {
             HealthChangeTimer = 1;
         }
     }
-    if (auto gain = event->GetTyped<OverdriveGain>()) {
+    if (auto gain = event->GetTyped<OverdriveEvent>()) {
         Particle flash;
         flash.setActive(true)
              .setType(OVERDRIVE_SIDES)
@@ -1025,6 +1025,8 @@ void Encore::Track::HandleEvent(Event *event) {
              .size(1.0f);
         odSides = particleSystem->SpawnParticle(flash);
         odSidesID = odSides->id;
+        KickTimer = 1;
+        KickSpeedMult = 3;
     }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {
         if (Notification) {

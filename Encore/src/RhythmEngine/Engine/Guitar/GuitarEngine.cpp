@@ -10,14 +10,12 @@
 
 #include <bit>
 
-bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const NoteEvent *itr) const {
+bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const NoteEvent *itr, const uint8_t mask) const {
     uint8_t note = itr->lane;
-    uint8_t pMask = stats->HeldFretsArrayToMask();
     uint8_t maxMask = note << 1;
     if (std::has_single_bit(note))
-        return (pMask < maxMask) && (pMask >= note);
-
-    return pMask == note;
+        return (mask < maxMask) && (mask >= note);
+    return mask == note;
 }
 
 bool Encore::RhythmEngine::GuitarEngine::IsEarly() const {
@@ -27,23 +25,10 @@ bool Encore::RhythmEngine::GuitarEngine::IsEarly() const {
     return false;
 }
 
-bool HittableAsHopo(uint8_t NoteType, bool CanHitHopo, int GhostCount) {
-    if (CanHitHopo > 0 && NoteType == Encore::RhythmEngine::NoteEvent::HOPO  && GhostCount < 4)
-        return true;
-    return false;
-}
-
-bool HittableAsTap(uint8_t NoteType) {
-    if (NoteType == Encore::RhythmEngine::NoteEvent::TAP)
-        return true;
-    return false;
-}
-
-bool HittableAsStrum(const int NoteType, const bool FAS, const double inputTime, const double FASTime) {
-    // checks if FAS is active
-    if (FAS && inputTime < FASTime + fretAfterStrumTime && NoteType == 0) {
-        return true;
-    }
+bool HittableAsStrumless(const uint8_t type, const bool CanHitHopo) {
+    if (type == Encore::RhythmEngine::NoteEvent::NORMAL) return false;
+    if (CanHitHopo && type == Encore::RhythmEngine::NoteEvent::HOPO) return true;
+    if (type == Encore::RhythmEngine::NoteEvent::TAP) return true;
     return false;
 }
 
@@ -52,10 +37,8 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &even
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
         if (stats->overdrive.Activate(stats->InputTime)) {
-            HighwayBounceEvent HBevent;
-            FireEvent(&HBevent);
-            OverdriveGain gain;
-            FireEvent(&gain);
+            OverdriveEvent activate;
+            FireEvent(&activate);
             // TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
         }
         return true;
@@ -155,60 +138,37 @@ void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
     ControllerEvent &event
 ) {
     stats->InputTime = event.timestamp - stats->InputOffset; // todo: REPLACE WITH ACTUAL SONG
+    if (event.channel == InputChannel::INVALID) return;
+    if (event.channel == InputChannel::LANE_6) return;
     // TIME
     // (IN SECONDS)
     if (event.channel == InputChannel::WHAMMY && chart->IsHeldNotePresent(0)) {
         whammy = float(event.axis) / 255.0f;
+        return;
     }
-    if (event.action == Action::PRESS) {
-        switch (event.channel) {
-        case InputChannel::LANE_1:
-        case InputChannel::LANE_2:
-        case InputChannel::LANE_3:
-        case InputChannel::LANE_4:
-        case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(event.channel)) = true;
-            break;
+
+    bool press = event.action == Action::PRESS;
+    if (event.channel < InputChannel::LANE_6) {
+        stats->HeldFrets.at(ICInt(event.channel)) = press;
+        if (press) return;
+
+        // sustain release logic
+        if (!chart->HeldNotePointers.at(0)) return;
+        auto note = chart->HeldNotePointers.at(0);
+        if ( note->lane != 0 && note->lane & PlasticFrets[ICInt(event.channel)] &&
+            note->end.tick >= TheSongTime.CurrentTick + 240)
+        {
+            chart->DropSustain(0);
         }
-        case InputChannel::STRUM_UP: {
-            stats->strumState = StrumState::UpStrum;
-            break;
-        }
-        case InputChannel::STRUM_DOWN: {
-            stats->strumState = StrumState::DownStrum;
-            break;
-        }
-        default:
-            break;
-        }
+        return;
     }
-    if (event.action == Action::RELEASE) {
-        switch (event.channel) {
-        case InputChannel::LANE_1:
-        case InputChannel::LANE_2:
-        case InputChannel::LANE_3:
-        case InputChannel::LANE_4:
-        case InputChannel::LANE_5: {
-            if (chart->HeldNotePointers.at(0)) {
-                auto note = chart->HeldNotePointers.at(0);
-                if ( note->lane != 0 && note->lane & PlasticFrets[ICInt(event.channel)] &&
-                    note->end.tick >= TheSongTime.CurrentTick +
-                    240) {
-                    chart->DropSustain(0);
-                }
-            }
-            stats->HeldFrets.at(ICInt(event.channel)) = false;
-            break;
-        }
-        case InputChannel::STRUM_UP:
-        case InputChannel::STRUM_DOWN: {
-            stats->strumState = StrumState::Default;
-            break;
-        }
-        default:
-            break;
-        }
-    }
+
+
+    if (event.channel == InputChannel::STRUM_UP)
+        stats->strumState = press ? StrumState::UpStrum : StrumState::Default;
+    else if (event.channel == InputChannel::STRUM_DOWN)
+        stats->strumState = press ? StrumState::DownStrum : StrumState::Default;
+
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::GuitarEngine::NextNoteTime() {
@@ -241,38 +201,39 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         return CheckNextInput;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(0);
 
-    bool extSus = false;
+    uint8_t pMask = stats->HeldFretsArrayToMask();
+    bool press = event.action == Action::PRESS;
+
     if (chart->IsHeldNotePresent(0)) {
-        if (chart->HeldNotePointers.at(0)->end > CurrentNote->start) {
-                extSus = true;
-            };
+        auto *held = chart->HeldNotePointers.at(0);
 
         // second note:
         // what the fuck is this. i cannot read this
-        if (event.action == Action::PRESS &&
+        if (press &&
 
             // if the frets dont match
-            !MaskMatch(chart->HeldNotePointers.at(0)) &&
+            !MaskMatch(held, pMask) &&
 
             // is not an extended sustain
-            chart->HeldNotePointers.at(0)->end <= CurrentNote->start &&
+            held->end <= CurrentNote->start &&
 
             // is before the end of the sustain
-            (chart->HeldNotePointers.at(0)->end >= TheSongTime.CurrentTick + SUSTAIN_DROP_THRESHOLD)
+            held->end >= stats->InputTime
         ) {
             chart->DropSustain(0);
         }
+
+
+        if (held->end > CurrentNote->start) {
+            pMask &= ~held->lane;
+        };
     }
-    uint8_t pMask = stats->HeldFretsArrayToMask();
-    // if an upper note is pressed when a sustain is active, unless the sustain goes on longer than the current note
-    if (extSus) {
-        pMask &= ~chart->HeldNotePointers.at(0)->lane;
-    }
+
+    bool early = IsEarly();
     // STRUM PATH
-    bool StrumInput = (stats->strumState != StrumState::Default)
-        && event.action == Action::PRESS
-        && ((event.channel == InputChannel::STRUM_UP || event.channel ==
-            InputChannel::STRUM_DOWN));
+    bool StrumInput = press
+        && (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN);
+
     if (StrumInput) {
         if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
             Timers["SAH"].ResetTimer();
@@ -281,37 +242,37 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         }
         // miss should be managed by current frame
         // overhit is managed here
-        if (IsEarly()) {
+        if (early) {
             Overhit();
             return OverhitNote;
         }
         // if frets match, continue and try to hit
-        if (!MaskMatch(CurrentNote)) {
+        if (!MaskMatch(CurrentNote, pMask)) {
             Timers["FAS"].ActivateTimer(stats->InputTime);
             Log::Trace("FAS Enabled");
             return CheckNextInput;
         }
-
     }
+    if (early) return CheckNextInput;
+    if (!MaskMatch(CurrentNote, pMask)) return CheckNextInput;
     // if FAS is active, or if there was a strum
     // really couldve just put it up there LMFAO
     bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
+    bool fret = HittableAsStrumless(CurrentNote->type, stats->CanHitHopo);
 
-    if (MaskMatch(CurrentNote) && !IsEarly()
-        && (HittableAsHopo(CurrentNote->type, stats->CanHitHopo, GhostCount)
-            || HittableAsTap(CurrentNote->type) || strum || player->bindingType == PAD)) {
+    if ((fret || strum || player->bindingType == PAD)) {
         HitNote(StrumInput);
         return HitState::HitNote;
     }
 
-    // GHOSTING
-    if (event.action == Action::PRESS && event.channel <= InputChannel::LANE_5 && event.
-        channel !=
-        InputChannel::INVALID) {
-        if (stats->HeldFretsArrayToMask() > CurrentNote->lane) {
-            GhostCount++;
-        }
-    }
+    // GHOSTING -- this doesnt work, please fixme
+    // if (event.action == Action::RELEASE && event.channel <= InputChannel::LANE_5 && event.
+    //     channel !=
+    //     InputChannel::INVALID) {
+    //     if (pMask > CurrentNote->lane) {
+    //         GhostCount++;
+    //     }
+    // }
 
     return CheckNextInput;
 }

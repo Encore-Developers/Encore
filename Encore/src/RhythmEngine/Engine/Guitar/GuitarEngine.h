@@ -8,7 +8,7 @@
 
 namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
-        bool MaskMatch(const NoteEvent *itr) const;
+        bool MaskMatch(const NoteEvent *itr, uint8_t mask) const;
         bool IsEarly() const;
 
         bool ActivateOverdrive(ControllerEvent &event) override;
