@@ -1,8 +1,4 @@
 #pragma once
-
-#ifndef ENCORE_SONG_H
-#define ENCORE_SONG_H
-
 #include "picosha2.h"
 #include "raylib.h"
 #include "midifile/MidiFile.h"
@@ -138,22 +134,91 @@ struct std::hash<SongHash> {
     }
 };
 
+
+struct SortName {
+    std::string name = "";
+    std::string sortName = "";
+
+
+    SortName() {}
+    SortName(const std::string &name) : name(name) {
+        UpdateSortName();
+    }
+    SortName(const char* name) : name(name) {
+        UpdateSortName();
+    }
+
+    operator std::string&() {
+        return name;
+    }
+
+    SortName& operator =(const std::string& newValue) {
+        name = newValue;
+        UpdateSortName();
+        return *this;
+    }
+
+    const char* c_str() const {
+        return name.c_str();
+    }
+
+    std::string operator +(const char* add) const {
+        return name + add;
+    }
+
+    std::string operator +(const std::string& add) const {
+        return name + add;
+    }
+
+    static std::string lower(std::string string) {
+        std::transform(string.begin(),
+                       string.end(),
+                       string.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
+        return string;
+    }
+
+    void UpdateSortName() {
+        ZoneScoped;
+
+        std::string use = lower(name);
+
+        if (use.starts_with("a ")) {
+            sortName = use.substr(2);
+        }
+        else if (use.starts_with("an ")) {
+            sortName = use.substr(3);
+        }
+        else if (use.starts_with("the ")) {
+            sortName = use.substr(4);
+        } else {
+            sortName = use;
+        }
+
+        sortName = use;
+    }
+};
+
+inline std::string operator +(const std::string& lhs, const SortName &rhs) {
+    return lhs + rhs.name;
+}
+
 class Song {
 public:
     Song() {
         albumArtPath = TheAssets.getDirectory() / "ui" / "missing.png";
     }
     bool midiParsed = false;
-    std::string title = "";
+    SortName title = "";
     float titleXOffset = 0;
     float titleTextWidth = 0;
     double titleScrollTime = 0.0;
-    std::string artist = "";
+    SortName artist = "";
     float artistXOffset = 0;
     float artistTextWidth = 0;
     double artistScrollTime = 0.0;
     std::string source = "custom";
-    std::string album = "";
+    SortName album = "";
     int length = 0;
     int songListPos = 0;
     int BeatTrackID = 0;
@@ -275,7 +340,3 @@ public:
 
     void LoadAlbumArt();
 };
-
-
-
-#endif // ENCORE_SONG_H

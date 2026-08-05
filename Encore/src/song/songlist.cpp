@@ -76,13 +76,11 @@ std::string removeArticle(const std::string &str) {
 }
 
 bool SongList::sortArtist(Song *a, Song *b) {
-    ZoneScoped
-    return removeArticle(lower(a->artist)) < removeArticle(lower(b->artist));
+    return a->artist.sortName < b->artist.sortName;
 }
 
 bool SongList::sortTitle(Song *a, Song *b) {
-    ZoneScoped
-    return removeArticle(lower(a->title)) < removeArticle(lower(b->title));
+    return a->title.sortName < b->title.sortName;
 }
 
 bool SongList::sortPlaylist(Song *a, Song *b) {
@@ -109,9 +107,7 @@ bool SongList::sortSource(Song *a, Song *b) {
 
 bool SongList::sortAlbum(Song *a, Song *b) {
     ZoneScoped;
-    std::string aLower = lower(a->album);
-    std::string bLower = lower(b->album);
-    return removeArticle(aLower) < removeArticle(bLower);
+    return a->album.sortName < b->album.sortName;
 }
 
 bool SongList::sortLen(Song *a, Song *b) {
@@ -130,6 +126,7 @@ SongList::~SongList() {
 
 void SongList::sortList(SortType sortType) {
     ZoneScoped
+    auto start = std::chrono::high_resolution_clock::now();
     sectionEntries.clear();
     sortedSongs.clear();
     for (auto &song : songs) {
@@ -161,6 +158,8 @@ void SongList::sortList(SortType sortType) {
     default: ;
     }
     GenerateSongEntriesWithHeaders(sortType);
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+    Encore::Log::Info("Sorted {} songs in {} ms", sortedSongs.size(), time);
 }
 
 void SongList::WriteCache() {
@@ -313,12 +312,12 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
         std::string header;
         switch (sortType) {
         case SortType::Title: {
-            std::string title = removeArticle(lower(song->title));
+            std::string title = removeArticle(TextToLower(song->title.c_str()));
             header = title.empty() ? "#" : std::string(1, toupper(title[0]));
             break;
         }
         case SortType::Artist: {
-            std::string artist = removeArticle(lower(song->artist));
+            std::string artist = removeArtistJunk(TextToLower(song->artist.c_str()));
             header = artist.empty() ? "#" : artist;
             break;
         }

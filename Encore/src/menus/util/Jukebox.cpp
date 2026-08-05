@@ -76,7 +76,7 @@ void Jukebox::PickRandomSong() {
 
             TheSongList.curSong->LoadAlbumArt();
             Log::Info("Jukebox: Picked song");
-            Log::Error("{} - {}", TheSongList.curSong->title, TheSongList.curSong->artist);
+            Log::Error("{} - {}", TheSongList.curSong->title.name, TheSongList.curSong->artist.name);
         } catch (const std::exception &e) {
             Log::Error("Jukebox failed! {}", e.what());
         };
