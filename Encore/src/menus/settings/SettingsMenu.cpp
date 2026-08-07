@@ -24,8 +24,6 @@ static int selectedIndex = 0;
 enum OptionsCategories {
     AUDIO_VISUAL,
     GAMEPLAY_SETTINGS,
-    CONTROLLER_BINDINGS,
-    KEYBOARD_BINDINGS,
     CREDITS
 };
 
@@ -63,7 +61,7 @@ void SettingsMenu::Draw() {
     DrawLineEx({EntryTextLeft, TextLineTop}, {EntryTextLeft + u.wpct(0.42f), TextLineTop}, u.winpct(0.001f), WHITE);
 
 
-    int menuItemCount = 5;
+    int menuItemCount = 3;
     static float clickFeedbackTimer = 0.0f;
     static int clickedIndex = -1;
     if (clickFeedbackTimer > 0) {
@@ -103,12 +101,6 @@ void SettingsMenu::Draw() {
                     break;
                 case GAMEPLAY_SETTINGS:
                     TheMenuManager.CreateAndSwitchMenu<Encore::SettingsGameplay>();
-                    break;
-                case CONTROLLER_BINDINGS:
-                    TheMenuManager.CreateAndSwitchMenu<SettingsController>();
-                    break;
-                case KEYBOARD_BINDINGS:
-                    TheMenuManager.CreateAndSwitchMenu<SettingsKeyboard>();
                     break;
                 case CREDITS:
                     TheMenuManager.CreateAndSwitchMenu<SettingsCredits>();
@@ -162,12 +154,6 @@ void SettingsMenu::Load() {
             break;
         case GAMEPLAY_SETTINGS:
             TheMenuManager.CreateAndSwitchMenu<Encore::SettingsGameplay>();
-            break;
-        case CONTROLLER_BINDINGS:
-            TheMenuManager.CreateAndSwitchMenu<SettingsController>();
-            break;
-        case KEYBOARD_BINDINGS:
-            TheMenuManager.CreateAndSwitchMenu<SettingsKeyboard>();
             break;
         case CREDITS:
             break;

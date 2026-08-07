@@ -14,11 +14,9 @@
 class SettingsMenu : public OvershellMenu {
     Encore::ButtonActionRegistry buttReg;
 
-    std::array<std::string, 5> menuItems = {
+    std::array<std::string, 3> menuItems = {
         "settings.header.audioVisual",
         "settings.header.gameplay",
-        "settings.header.controller",
-        "settings.header.keyboard",
         "settings.header.credits"
     };
 public:
