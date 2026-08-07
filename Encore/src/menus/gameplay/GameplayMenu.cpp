@@ -157,6 +157,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
         }
         if (sdlKeycode == SDLK_ESCAPE && sdlEvent->down) {
             event.channel = Encore::InputChannel::PAUSE;
+            sdlEvent->down = false; // HACK: "Consume" the event by setting it to an key up event
         }
         event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
         if (!CheckPauseInput(event))
