@@ -350,7 +350,8 @@ int TheGame::Run(int argc, char *argv[]) {
             switch (event.type) {
             case SDL_EVENT_KEY_DOWN:
             case SDL_EVENT_KEY_UP:
-                keyCallback((SDL_KeyboardEvent*)&event);
+                if (imGuiLoaded)
+                    keyCallback((SDL_KeyboardEvent*)&event);
                 break;
             case SDL_EVENT_GAMEPAD_ADDED:
                 SDL_OpenGamepad(event.gdevice.which);
