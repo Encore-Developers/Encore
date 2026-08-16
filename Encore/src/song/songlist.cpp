@@ -312,8 +312,7 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
         std::string header;
         switch (sortType) {
         case SortType::Title: {
-            std::string title = removeArticle(TextToLower(song->title.c_str()));
-            header = title.empty() ? "#" : std::string(1, toupper(title[0]));
+            header = song->title.sortName.empty() ? "#" : std::string(1, toupper(song->title.sortName[0]));
             break;
         }
         case SortType::Artist: {
