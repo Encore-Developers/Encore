@@ -18,14 +18,20 @@
 #define SONG_CACHE_VERSION 26062801
 #define SONG_CACHE_HEADER 0x52434E45 // "ENCR"
 
+enum EntryType {
+    eSong = 0,
+    eHeader = 1,
+    eSubheader = 2
+};
+
 struct ListMenuEntry {
-    bool isHeader;
-    int songListID;
+    EntryType type;
+    Song* song;
     std::string headerChar;
     bool hiddenEntry;
-    ListMenuEntry(bool _isHeader, int _songListID, std::string _headerChar, bool _hiddenEntry) {
-        isHeader = _isHeader;
-        songListID = _songListID;
+    ListMenuEntry(EntryType _type, Song* _song, std::string _headerChar, bool _hiddenEntry) {
+        type = _type;
+        song = _song;
         headerChar = _headerChar;
         hiddenEntry = _hiddenEntry;
     }
@@ -80,6 +86,9 @@ class SongList {
 
 
     static bool sortArtist(Song *a, Song *b);
+
+    static bool secondarySort(ListMenuEntry a, ListMenuEntry b);
+
     static bool sortTitle(Song *a, Song *b);
     static bool sortPlaylist(Song *a, Song *b);
     static bool sortSource(Song *a, Song *b);

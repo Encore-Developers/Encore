@@ -151,7 +151,27 @@ struct SortName {
     operator std::string&() {
         return name;
     }
+    bool operator==(const SortName &that) const {
+        return this->sortName == that.sortName;
+    }
+    bool operator<=(const SortName &that) const {
+        return this->sortName <= that.sortName;
+    }
 
+    bool operator>=(const SortName &that) const {
+        return this->sortName >= that.sortName;
+    }
+
+    bool operator>(const SortName &that) const {
+        return this->sortName > that.sortName;
+    }
+    bool operator<(const SortName &that) const {
+        return this->sortName < that.sortName;
+    }
+
+    bool operator!=(const SortName &that) const {
+        return this->sortName != that.sortName;
+    }
     SortName& operator =(const std::string& newValue) {
         name = newValue;
         UpdateSortName();
@@ -225,6 +245,8 @@ public:
     std::string playlist = "";
     double music_start = 0.0;
     double end = 0.0;
+    int trackListing = -1;
+    int playlistListing = -1;
     SongHash hash;
     std::vector<PartIcon> partIcons{
         PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone

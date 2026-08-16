@@ -15,6 +15,8 @@
 #include "util/binary.h"
 #include "util/threadpool.h"
 
+#include <list>
+
 using json = nlohmann::json;
 
 std::filesystem::path SongList::cachePath() {
@@ -37,16 +39,15 @@ void SongList::Clear() {
 }
 void SongList::PopulateHashIndex() {
     songHashIndex.clear();
-    for (auto& song : songs) {
+    for (auto &song : songs) {
         songHashIndex.emplace(song.hash, &song);
     }
 }
 
 std::string lower(std::string string) {
-    std::transform(string.begin(),
-                   string.end(),
-                   string.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
+    std::transform(string.begin(), string.end(), string.begin(), [](unsigned char c) {
+        return std::tolower(c);
+    });
     return string;
 }
 
@@ -76,7 +77,12 @@ std::string removeArticle(const std::string &str) {
 }
 
 bool SongList::sortArtist(Song *a, Song *b) {
-    return a->artist.sortName < b->artist.sortName;
+    return (a->artist.sortName + a->album.sortName + std::format("{:012}", a->trackListing))
+        < (b->artist.sortName + b->album.sortName + std::format("{:012}", b->trackListing));
+}
+
+bool SongList::secondarySort(ListMenuEntry a, ListMenuEntry b) {
+    return a.song->album.sortName < b.song->album.sortName;
 }
 
 bool SongList::sortTitle(Song *a, Song *b) {
@@ -85,17 +91,18 @@ bool SongList::sortTitle(Song *a, Song *b) {
 
 bool SongList::sortPlaylist(Song *a, Song *b) {
     ZoneScoped
-    // i just made some BUUUUULLLLLLLLLSHIIIIIIIIIIT.
-    // this gets the end iter of the path,
-    // then goes back THREE path segments to get playlist name
-    // then sorts like usual, like how sortTitle works.
-    // i tried to bring this to its own function but for some reason it didnt work
-    // and it works like this (sorta) and im so fucking scared #tbh
-    // they made mental hospitals for the people who could concieve such a thing
-    // /Path/To/SongFolder/SongName/notes.mid/ (end)
-    // ..............^-------|--------|---------|
-    // return *------a->midiPath.end() < *------b->midiPath.end();
-    return a->playlist < b->playlist;
+        // i just made some BUUUUULLLLLLLLLSHIIIIIIIIIIT.
+        // this gets the end iter of the path,
+        // then goes back THREE path segments to get playlist name
+        // then sorts like usual, like how sortTitle works.
+        // i tried to bring this to its own function but for some reason it didnt work
+        // and it works like this (sorta) and im so fucking scared #tbh
+        // they made mental hospitals for the people who could concieve such a thing
+        // /Path/To/SongFolder/SongName/notes.mid/ (end)
+        // ..............^-------|--------|---------|
+        // return *------a->midiPath.end() < *------b->midiPath.end();
+        return a->playlist + std::format("{:012}", a->playlistListing)
+        < b->playlist + std::format("{:012}", b->playlistListing);
 }
 
 bool SongList::sortSource(Song *a, Song *b) {
@@ -118,17 +125,25 @@ bool SongList::sortYear(Song *a, Song *b) {
     return a->releaseYear < b->releaseYear;
 }
 
-SongList::SongList() {
-}
+SongList::SongList() {}
 
-SongList::~SongList() {
-}
+SongList::~SongList() {}
+
+struct Bucket {
+    std::vector<Song *> songs;
+    SortName name;
+    const SortName &artist() { return songs.at(0)->artist; }
+    Bucket(std::vector<Song *> _songs, const std::string &_name) {
+        songs = std::move(_songs);
+        name = _name;
+    }
+};
 
 void SongList::sortList(SortType sortType) {
-    ZoneScoped
-    auto start = std::chrono::high_resolution_clock::now();
+    ZoneScoped auto start = std::chrono::high_resolution_clock::now();
     sectionEntries.clear();
     sortedSongs.clear();
+    std::list<Bucket> buckets;
     for (auto &song : songs) {
         sortedSongs.push_back(&song);
     }
@@ -136,10 +151,95 @@ void SongList::sortList(SortType sortType) {
     case SortType::Title:
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         break;
-    case SortType::Artist:
+    case SortType::Artist: {
         // std::sort(sortedSongs.begin(), sortedSongs.end(), sortAlbum);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortArtist);
+        SortName previousArtist;
+        SortName previousAlbum;
+        for (size_t i = 0; i < sortedSongs.size(); i++) {
+            auto *song = sortedSongs[i];
+            if (song->artist == previousArtist && song->album == previousAlbum) {
+                buckets.back().songs.push_back(song);
+            } else {
+                buckets.emplace_back(Bucket { { song }, song->album });
+                previousAlbum = song->album;
+                previousArtist = song->artist;
+            }
+        }
+        std::vector<std::list<Bucket>::iterator> ToDelete;
+        for (auto bucket = buckets.begin(); bucket != buckets.end(); ++bucket) {
+            if (bucket->songs.size() < 3) {
+                for (auto g = bucket; bucket != buckets.begin(); --g) {
+                    if (g->artist() != bucket->artist()) {
+                        if (g++->name != "singles") {
+                            buckets.insert(g++, Bucket(bucket->songs, "singles"));
+                        } else {
+                            g++->songs.insert(
+                                g++->songs.end(),
+                                bucket->songs.begin(),
+                                bucket->songs.end()
+                            );
+                        }
+                        ToDelete.push_back(bucket);
+                        break;
+                    }
+                }
+            }
+        }
+        for (auto d : ToDelete) {
+            buckets.erase(d);
+        }
+        listMenuEntries.clear();
+        SortName currentArtist;
+        for (auto &bucket : buckets) {
+            if (currentArtist != bucket.artist()) {
+                currentArtist = bucket.artist();
+                if (!sectionEntries.empty()) {
+                    sectionEntries.back().lastListID = listMenuEntries.size() - 1;
+                }
+                sectionEntries.emplace_back(listMenuEntries.size());
+                listMenuEntries.emplace_back(
+                    eHeader, nullptr, bucket.artist().name, false
+                );
+                if (bucket.name.sortName == "singles") {
+                    for (auto song : bucket.songs) {
+                        listMenuEntries.emplace_back(
+                            eSong, song, song->artist.name, false
+                        );
+                        song->songListPos = listMenuEntries.size();
+                    }
+                } else {
+                    listMenuEntries.emplace_back(
+                        eSubheader, nullptr, bucket.name.name, false
+                    );
+                    for (auto song : bucket.songs) {
+                        listMenuEntries.emplace_back(
+                            eSong, song, song->artist.name, false
+                        );
+                        song->songListPos = listMenuEntries.size();
+                    }
+                }
+            } else {
+                if (bucket.name != "singles") {
+                    if (!sectionEntries.empty()) {
+                        sectionEntries.back().lastListID = listMenuEntries.size() - 1;
+                    }
+                    listMenuEntries.emplace_back(
+                        eSubheader, nullptr, bucket.name.name, false
+                    );
+                    for (auto song : bucket.songs) {
+                        listMenuEntries.emplace_back(eSong, song, "", false);
+                        song->songListPos = listMenuEntries.size();
+                    }
+                }
+            }
+        }
+        if (!listMenuEntries.empty()) {
+            sectionEntries.back().lastListID = listMenuEntries.size();
+        }
+        listMenuEntries.shrink_to_fit();
         break;
+    }
     case SortType::Source:
         // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortSource);
@@ -155,16 +255,26 @@ void SongList::sortList(SortType sortType) {
         // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortPlaylist);
         break;
-    default: ;
+    default:;
     }
-    GenerateSongEntriesWithHeaders(sortType);
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+    if (sortType != SortType::Artist)
+        GenerateSongEntriesWithHeaders(sortType);
+    // if (sortType == SortType::Artist) {
+    //     for (auto& sect : sectionEntries) {
+    //         size_t end = sect.lastListID >= listMenuEntries.size() ? sect.lastListID :
+    //         sect.lastListID+1; std::sort(listMenuEntries.begin() + sect.firstListID +
+    //         1, listMenuEntries.begin() + end, secondarySort);
+    //     }
+    // }
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start
+    )
+                    .count();
     Encore::Log::Info("Sorted {} songs in {} ms", sortedSongs.size(), time);
 }
 
 void SongList::WriteCache() {
-    ZoneScoped
-    std::filesystem::remove(cachePath());
+    ZoneScoped std::filesystem::remove(cachePath());
 
     // Native-endian order used for best performance, since the cache is not a portable
     // file
@@ -186,11 +296,13 @@ void SongList::WriteCache() {
         sstr << songInfo.rdbuf();
         SongCache << sstr.str();
 
-        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s", song.title.c_str(), song.artist.c_str()));
-        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
-        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s", song.albumArtPath.c_str()));
-        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song Info Path: %s", song.songInfoPath.c_str()));
-        //Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song length:    %01i", song.length));
+        // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Song found:     %s - %s",
+        // song.title.c_str(), song.artist.c_str())); Encore::EncoreLog(LOG_INFO,
+        // TextFormat("CACHE: Directory:      %s", song.songDir.c_str()));
+        // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Album Art Path: %s",
+        // song.albumArtPath.c_str())); Encore::EncoreLog(LOG_INFO, TextFormat("CACHE:
+        // Song Info Path: %s", song.songInfoPath.c_str())); Encore::EncoreLog(LOG_INFO,
+        // TextFormat("CACHE: Song length:    %01i", song.length));
     }
 
     SongCache.close();
@@ -199,8 +311,7 @@ void SongList::WriteCache() {
 ThreadPool *scanPool;
 
 void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &badSongs) {
-    ZoneScoped
-    if (!std::filesystem::is_directory(folder)) {
+    ZoneScoped if (!std::filesystem::is_directory(folder)) {
         return;
     }
 
@@ -212,7 +323,8 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
     if (std::filesystem::exists(infoPath)) {
         ++SongCount;
         try {
-            if (std::filesystem::exists(folder / "notes.mid") || std::filesystem::exists(folder / "notes.chart")) {
+            if (std::filesystem::exists(folder / "notes.mid")
+                || std::filesystem::exists(folder / "notes.chart")) {
                 Song song;
                 song.songInfoPath = infoPath;
                 song.songDir = folder;
@@ -221,7 +333,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 auto placedSong = &songs.emplace_back(std::move(song));
                 scanPool->SubmitTask([placedSong]() {
                     ZoneScopedN("Hash Song")
-                    std::ifstream hashStream(placedSong->midiPath, std::ios::binary);
+                        std::ifstream hashStream(placedSong->midiPath, std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
                     memcpy(&placedSong->hash, hash, picosha2::k_digest_size);
@@ -242,7 +354,8 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
             badSongs << folder << std::endl << std::endl;
         }
     } else {
-        // If this folder doesn't have song.ini, this must be a organizational folder; continue scanning.
+        // If this folder doesn't have song.ini, this must be a organizational folder;
+        // continue scanning.
         for (const auto &entry : std::filesystem::directory_iterator(folder)) {
             ScanFolder(entry.path(), badSongs);
         };
@@ -252,23 +365,26 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
 }
 
 void SongList::ScanSongs(const std::vector<std::filesystem::path> &songsFolder) {
-    ZoneScoped
-    ScanningSongs = true;
+    ZoneScoped ScanningSongs = true;
     Clear();
-    std::vector<std::filesystem::path> folders{ "./Songs" };
+    std::vector<std::filesystem::path> folders { "./Songs" };
     for (const auto &folder : songsFolder) {
         folders.push_back(folder);
     }
     scanPool = new ThreadPool(std::thread::hardware_concurrency() - 1);
 
-    std::wofstream badSongs(badSongsPath(),
-                            std::ios::out | std::ios::trunc | std::ios::binary);
+    std::wofstream badSongs(
+        badSongsPath(), std::ios::out | std::ios::trunc | std::ios::binary
+    );
 
-    badSongs.imbue(std::locale(badSongs.getloc(),
-                               new std::codecvt_utf16<
-                                   wchar_t, 0x10FFFF, std::little_endian>));
+    badSongs.imbue(
+        std::locale(
+            badSongs.getloc(),
+            new std::codecvt_utf16<wchar_t, 0x10FFFF, std::little_endian>
+        )
+    );
     badSongs << "Please open in Notepad++ or any editor that detects UTF16" << std::endl
-        << std::endl;
+             << std::endl;
 
     for (const auto &folder : folders) {
         if (!is_directory(folder)) {
@@ -312,11 +428,13 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
         std::string header;
         switch (sortType) {
         case SortType::Title: {
-            header = song->title.sortName.empty() ? "#" : std::string(1, toupper(song->title.sortName[0]));
+            header = song->title.sortName.empty()
+                ? "#"
+                : std::string(1, toupper(song->title.sortName[0]));
             break;
         }
         case SortType::Artist: {
-            std::string artist = removeArtistJunk(TextToLower(song->artist.c_str()));
+            std::string artist = song->artist.sortName + " - " + song->album.sortName;
             header = artist.empty() ? "#" : artist;
             break;
         }
@@ -344,20 +462,18 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
             header = "#";
             break;
         }
+
         if (lower(header) != lower(currentHeader)) {
             currentHeader = header;
             if (!sectionEntries.empty()) {
                 sectionEntries.back().lastListID = listMenuEntries.size() - 1;
             }
             sectionEntries.emplace_back(listMenuEntries.size());
-            if (sortType == SortType::Artist) {
-                listMenuEntries.emplace_back(true, 0, song->artist, false);
-            } else {
-                listMenuEntries.emplace_back(true, 0, currentHeader, false);
-            }
+            listMenuEntries.emplace_back(eHeader, nullptr, currentHeader, false);
             pos++;
         }
-        listMenuEntries.emplace_back(false, i, "", false);
+
+        listMenuEntries.emplace_back(eSong, song, "", false);
         song->songListPos = listMenuEntries.size();
         pos++;
     }
@@ -372,7 +488,6 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     Encore::Log::Info("Loading cache from {}", cachePath().string());
     encore::bin_ifstream_native SongCacheIn(cachePath(), std::ios::binary);
     if (!SongCacheIn) {
-
         Encore::Log::Warn("Failed to load song cache!");
         SongCacheIn.close();
         ScanSongs(songsFolder);
@@ -392,7 +507,11 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     uint32_t version;
     SongCacheIn >> version;
     if (version != SONG_CACHE_VERSION) {
-        Encore::Log::Warn("Cache version {:01}, but current version is {:01}", version, SONG_CACHE_VERSION);
+        Encore::Log::Warn(
+            "Cache version {:01}, but current version is {:01}",
+            version,
+            SONG_CACHE_VERSION
+        );
         SongCacheIn.close();
         ScanSongs(songsFolder);
         return;
@@ -406,11 +525,10 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     Encore::Log::Info("Loading song cache");
     std::set<std::filesystem::path> loadedSongs;
     // To track loaded songs and avoid duplicates
-    //songs.reserve(cachedSongCount);
+    // songs.reserve(cachedSongCount);
     MaxChartsToLoad = cachedSongCount;
     for (size_t i = 0; i < cachedSongCount; i++) {
-        ZoneScopedN("Song")
-        CurrentChartNumber = i + 1;
+        ZoneScopedN("Song") CurrentChartNumber = i + 1;
         Song song;
 
         // Read cache values
@@ -434,14 +552,14 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> song.hash;
 
         {
-            ZoneScopedN("INI Parse")
-            std::string iniData;
+            ZoneScopedN("INI Parse") std::string iniData;
             SongCacheIn >> iniData;
             INIReader reader(iniData.c_str(), iniData.length());
             song.PullInfoFromINI(reader);
         }
 
-        // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s", song.songDir.c_str()));
+        // Encore::EncoreLog(LOG_INFO, TextFormat("CACHE: Directory - %s",
+        // song.songDir.c_str()));
 
         {
             ZoneScopedN("Vector insert");
@@ -456,10 +574,10 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
     SongCacheIn.close();
     // size_t loadedSongCount = songs.size();
 
-    //if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
-    //    Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");
-    //    WriteCache();
-    //}
+    // if (cachedSongCount != loadedSongCount || songs.size() != loadedSongCount) {
+    //     Encore::EncoreLog(LOG_INFO, "CACHE: Updating song cache");
+    //     WriteCache();
+    // }
 
     // ScanSongs(songsFolder);
     PopulateHashIndex();

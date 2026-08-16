@@ -84,19 +84,19 @@ void SongSelectMenu::ScrollSongSelect(int val) {
     if (newPos >= TheSongList.listMenuEntries.size())
         newPos = TheSongList.listMenuEntries.size() - 1;
 
-    if (oldPos != newPos && !TheSongList.listMenuEntries[newPos].isHeader) {
-        TheSongList.curSong = TheSongList.sortedSongs[TheSongList.listMenuEntries[newPos].
-            songListID];
+    if (oldPos != newPos && TheSongList.listMenuEntries[newPos].type == eSong) {
+        TheSongList.curSong = TheSongList.listMenuEntries[newPos].song;
 
         StopPreview();
         currentPreviewVolume = 0.0f;
         previewState = PreviewState::Hysteresis;
         selectionTime = curTime;
 
-        TheSongList.sortedSongs[TheSongList.listMenuEntries[newPos].songListID]->
+        TheSongList.listMenuEntries[newPos].song->
             LoadAlbumArt();
     }
-    if (TheSongList.listMenuEntries[newPos].isHeader) {
+    if (TheSongList.listMenuEntries[newPos].type != eSong) {
+        TheSongList.curSong = nullptr;
         StopPreview();
     }
     curSongMenuPos = newPos;
@@ -466,7 +466,7 @@ void SongSelectMenu::LoadPreview(Song &song) {
         TraceLog(
             LOG_ERROR,
             "Failed to load preview audio for song %d: %s",
-            TheSongList.listMenuEntries[curSongMenuPos].songListID,
+            TheSongList.listMenuEntries[curSongMenuPos].song->songInfoPath.string().c_str(),
             e.what()
         );
         previewState = PreviewState::Failed;
@@ -479,6 +479,10 @@ std::string SongSelectMenu::GetHeader() {
         auto sect = TheSongList.sectionEntries[sectInt];
         if (topOflistMenu - 1 >= sect.firstListID && topOflistMenu - 1 <= sect
             .lastListID) {
+            if (currentSortValue == SortType::Playlist)
+                return "/" + TheSongList.listMenuEntries[sect.firstListID].headerChar;
+
+
             return TheSongList.listMenuEntries[sect.firstListID].headerChar;
         }
     }
@@ -496,17 +500,10 @@ void SongSelectMenu::Draw() {
     curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
     if (previewState == PreviewState::Hysteresis) {
-        if (!TheSongList.listMenuEntries[curSongMenuPos].isHeader) {
-            if (TheSongList.listMenuEntries[curSongMenuPos].songListID >= 0 && curTime -
+        if (TheSongList.listMenuEntries[curSongMenuPos].type == eSong) {
+            if (TheSongList.listMenuEntries[curSongMenuPos].song != nullptr && curTime -
                 selectionTime >= 0.75) {
-                if (TheSongList.listMenuEntries[curSongMenuPos].songListID < TheSongList.
-                    sortedSongs
-                    .size()) {
-                    LoadPreview(
-                        *TheSongList.sortedSongs[TheSongList.listMenuEntries[
-                                curSongMenuPos].
-                            songListID]);
-                }
+                LoadPreview(*TheSongList.listMenuEntries[curSongMenuPos].song);
             }
         }
     }
@@ -616,7 +613,7 @@ void SongSelectMenu::Draw() {
         if (TheSongList.listMenuEntries.size() == listMenuPos)
             break;
 
-        if (TheSongList.listMenuEntries[listMenuPos].isHeader) {
+        if (TheSongList.listMenuEntries[listMenuPos].type == eHeader) {
             Rectangle entryRec{ 0, songYPos, u.RightSide - u.winpct(0.25f),
                                 songEntryHeight };
             Color headerColor = ColorBrightness(AccentColor, -0.5f);
@@ -642,6 +639,8 @@ void SongSelectMenu::Draw() {
                                    songEntryHeight - padding * 2,
                                    songEntryHeight - padding * 2 };
                 DrawTexturePro(SourceTex->GetTexture(), source, dest, { 0 }, 0, WHITE);
+            } else if (currentSortValue == SortType::Playlist) {
+                headerText = "/" + TheSongList.listMenuEntries[listMenuPos].headerChar;
             } else {
                 headerText = TheSongList.listMenuEntries[listMenuPos].headerChar;
             }
@@ -650,12 +649,33 @@ void SongSelectMenu::Draw() {
             songTitle.pos.y += songEntryHeight;
             songArtist.pos.y += songEntryHeight;
             songYPos += songEntryHeight;
+        } else if (TheSongList.listMenuEntries[listMenuPos].type == eSubheader) {
+            Rectangle entryRec{ 0, songYPos, u.RightSide - u.winpct(0.25f),
+                                songEntryHeight };
+            Color headerColor = ColorBrightness(AccentColor, -0.5f);
+            if (listMenuPos == curSongMenuPos) {
+                headerColor = ColorBrightness(AccentColor, -0.25f);
+            }
+            headerColor = ColorAlpha(ColorContrast(headerColor, -0.25f), 0.5);
+            songTitle.Col(WHITE);
+            songArtist.Col(WHITE);
+
+            ASSET(AltBackground).Draw(entryRec, headerColor);
+
+            // DrawRectangleRec(entryRec, headerColor);
+            std::string headerText = TheSongList.listMenuEntries[listMenuPos].headerChar;
+            // todo(solamint): proper subheader style
+            songTitle.pos.x = songXPos;
+            songArtist.pos.x = songXPos;
+            songArtist.Fnt(ASSET(josefinSansBoldItalic)).Col(WHITE).DrawText(headerText).Fnt(ASSET(josefinSansItalic));
+            songTitle.pos.y += songEntryHeight;
+            songArtist.pos.y += songEntryHeight;
+            songYPos += songEntryHeight;
         } else if (!TheSongList.listMenuEntries[listMenuPos].hiddenEntry) {
             Rectangle entryRec{ 0, songYPos, u.RightSide - u.winpct(0.25f),
                                 songEntryHeight };
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
-            Song *songi = TheSongList.sortedSongs[TheSongList.listMenuEntries[listMenuPos]
-                .songListID];
+            Song *songi = TheSongList.listMenuEntries[listMenuPos].song;
             Color background = { 128, 128, 128, 128 };
             if (listMenuPos % 2) {
                 background = { 160, 160, 160, 128 };
@@ -775,6 +795,7 @@ void SongSelectMenu::Draw() {
 
 
 void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
+
     Units &u = Units::getInstance();
 
     float AlbumX = leftPos;
@@ -862,8 +883,10 @@ void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
     .AddY(AlbumFontHeight * 1.3f)
     .Fnt(ASSET(josefinSansNormal))
     .Col(LIGHTGRAY)
-    .Size(AlbumFontHeight * 0.85f)
-    .DrawText(curSong->charters[0]);
+    .Size(AlbumFontHeight * 0.85f);
+    if (!curSong->charters.empty()) {
+        BoxDisplay.DrawText(curSong->charters[0]);
+    }
 
     // the more i work on this the more i wanna blow my brains out holy shit
     float Midpoint = AlbumX + (AlbumWidth / 2);

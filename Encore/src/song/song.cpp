@@ -64,6 +64,13 @@ void Song::PullInfoFromINI(INIReader &ini) {
 
     loadingPhrase = ini.GetString("song", "loading_phrase", "");
 
+
+    trackListing = ini.GetInteger("song", "album_track", -1);
+    if (trackListing == -1)
+        trackListing = ini.GetInteger("song", "track", -1);
+
+    playlistListing = ini.GetInteger("song", "playlist_track", -1);
+
     length = ini.GetInteger("song", "song_length", 0);
 
     previewStartTime = ini.GetInteger("song", "preview_start_time", 0);
