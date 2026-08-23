@@ -60,12 +60,11 @@ extern POS TheOSState;
 
 class OvershellMenu : public Menu {
 public:
-    static const std::unordered_map<std::string, ControllerBindingType> hardcodedControllerTypes;
 
     OvershellMenu() {}
     virtual ~OvershellMenu() {}
 
-    SDL_JoystickID ControllersToAssign[MAX_PLAYERS] = {0};
+    Encore::ControllerIdentity ControllersToAssign[MAX_PLAYERS] = {};
     Encore::ProfileManager::ColorProfileType ColorProfileType[MAX_PLAYERS] { Encore::ProfileManager::PLASTIC };
     int OvershellState[MAX_PLAYERS] { 0 };
     int AvailableControllers = 0;

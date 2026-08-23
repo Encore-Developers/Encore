@@ -982,8 +982,8 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
 
 void Encore::Track::UpdateControllerLED() {
     ZoneScoped
-    if (player.joypadID > 0) {
-        auto joystick = SDL_GetJoystickFromID(player.joypadID);
+    if (player.controller.source == InputSource::SDL_JOYSTICK || player.controller.source == InputSource::SDL_GAMEPAD) {
+        auto joystick = SDL_GetJoystickFromID(player.controller.joystickID);
         if (joystick) {
             float beatFrac = TheSongTime.GetBeatlineDelta();
             Color baseColor = ColorLerp(player.AccentColor, { 0, 0, 0, 0 }, beatFrac);

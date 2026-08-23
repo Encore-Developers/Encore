@@ -33,5 +33,4 @@ void PollControllers(std::stop_token token);
 #define MAX_EVENTS 2000
 
 void ProcessControllerEvent(const Encore::ControllerEvent &event);
-Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event);
 #endif //INPUTCALLBACKS_H

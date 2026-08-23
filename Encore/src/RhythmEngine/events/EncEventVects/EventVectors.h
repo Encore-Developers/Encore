@@ -8,7 +8,6 @@
 #include "EncEventVect.h"
 #include "../EncEvents/EncChartEvents.h"
 #include "util/enclog.h"
-#include "raylib.h"
 
 namespace Encore::RhythmEngine {
     struct SoloEvents final : EncEventVect<solo> {

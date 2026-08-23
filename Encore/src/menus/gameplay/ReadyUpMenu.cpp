@@ -24,10 +24,8 @@ void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         auto player = ThePlayerManager.ActivePlayers[i];
         if (!player)
             continue;
-        if (player->joypadID != event.slot)
+        if (player->controller != event.controller)
             continue;
-        if (event.slot == std::numeric_limits<unsigned int>::max())
-            return;
 
         buttReg.HandleInput(event);
         if (event.action == Encore::Action::PRESS) {

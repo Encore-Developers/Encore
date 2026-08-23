@@ -1,25 +1,8 @@
 #pragma once
 #include "SDL3/SDL_joystick.h"
+#include "users/controller.h"
 
 namespace Encore {
-    enum class InputChannel : int8_t {
-        LANE_1 = 0,
-        LANE_2,
-        LANE_3,
-        LANE_4,
-        LANE_5,
-        LANE_6,
-        STRUM_UP,
-        STRUM_DOWN,
-        PAUSE,
-        OVERDRIVE,
-        WHAMMY,
-        INPUT_LEFT,
-        INPUT_RIGHT,
-        CHANNEL_MAX,
-        DISCONNECT,
-        INVALID = -1
-    };
     inline InputChannel IntIC(int lane) {
         switch (lane) {
         case 0:
@@ -62,10 +45,6 @@ namespace Encore {
             return 10;
         case InputChannel::WHAMMY:
             return 11;
-        case InputChannel::INPUT_LEFT:
-            return 12;
-        case InputChannel::INPUT_RIGHT:
-            return 13;
         default:
             return 0;
         }
@@ -83,7 +62,7 @@ namespace Encore {
         InputChannel channel = InputChannel::INVALID;
         Action action = Action::INVALID;
         unsigned char axis = 0;
-        SDL_JoystickID slot = 0;
+        ControllerIdentity controller;
         double timestamp = 0;
 
         bool IsAccept() {

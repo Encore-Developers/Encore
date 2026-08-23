@@ -52,7 +52,7 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (!ThePlayerManager.ActivePlayers[i]) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
-            if (player.joypadID == event.slot) {
+            if (player.controller == event.controller) {
                 OvershellState[i] = OS_OPTIONS;
                 for (int g = 0; g < player.engine->chart->Lanes.size(); g++) {
                     player.engine->chart->DropSustain(g);
@@ -111,63 +111,7 @@ void GameplayMenu::SetPresence() {
 }
 
 void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
-    if (sdlEvent->repeat)
-        return;
-    for (auto track : tracks) {
-        if (!track) {
-            continue;
-        }
-        Player &player = track->player;
-        if (player.joypadID != -1 && player.joypadID != -2) {
-            continue;
-        }
-        Encore::RhythmEngine::BaseEngine *engine = player.engine.get();
-
-        Encore::ControllerEvent event;
-        event.slot = -1;
-        if (sdlEvent->down) {
-            event.action = Encore::Action::PRESS;
-        } else {
-            event.action = Encore::Action::RELEASE;
-        }
-        SDL_Keycode sdlKeycode = sdlEvent->key;
-        if (sdlKeycode == TheGameKeybinds.overdriveBinds.first || sdlKeycode == TheGameKeybinds.
-            overdriveBinds.second) {
-            event.channel = Encore::InputChannel::OVERDRIVE;
-        }
-        if (!player.Bot) {
-            if (player.bindingType != PAD) {
-                if (sdlKeycode == TheGameKeybinds.strumBinds.first) {
-                    event.channel = Encore::InputChannel::STRUM_UP;
-                } else if (sdlKeycode == TheGameKeybinds.strumBinds.second) {
-                    event.channel = Encore::InputChannel::STRUM_DOWN;
-                }
-            }
-            int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals)
-                ? 6
-                : 4;
-
-            for (int i = 0; i < DiffMax; i++) {
-                if (sdlKeycode == TheGameKeybinds.keybinds5k[i] || sdlKeycode == TheGameKeybinds.
-                    keybinds5kalt[
-                        i]) {
-                    event.channel = Encore::IntIC(i);
-                }
-            }
-        }
-        if (sdlKeycode == SDLK_ESCAPE && sdlEvent->down) {
-            event.channel = Encore::InputChannel::PAUSE;
-            sdlEvent->down = false; // HACK: "Consume" the event by setting it to an key up event
-        }
-        event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
-        if (!CheckPauseInput(event))
-            if (event.channel != Encore::InputChannel::INVALID) {
-                engine->UpdateOnFrame(event.timestamp);
-                engine->ProcessInput(event);
-                event.slot = player.ActiveSlot;
-                recordingReplay.inputs.push_back(event);
-            }
-    }
+    // TODO: Special pausing logic for keyboard
 };
 
 void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
@@ -176,7 +120,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
             continue;
         }
         Player &player = track->player;
-        if (player.joypadID != -2 && player.joypadID != event.slot) {
+        if (player.controller != event.controller) {
             continue;
         }
 
@@ -190,7 +134,9 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
                     engine->UpdateOnFrame(event.timestamp);
             }
             engine->ProcessInput(event);
-            event.slot = player.ActiveSlot;
+            if (event.channel >= Encore::InputChannel::CHANNEL_MAX) continue;
+            event.controller.source = Encore::InputSource::REPLAY;
+            event.controller.replaySlot = player.ActiveSlot;
             recordingReplay.inputs.push_back(event);
         }
     }

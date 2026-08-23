@@ -17,7 +17,7 @@ namespace Encore::RhythmEngine {
         stream >> activeSlot;
         uint8_t bindType;
         stream >> bindType;
-        bindingType = (ControllerBindingType)bindType;
+        bindingType = (PhysicalDeviceType)bindType;
         stream >> noteSpeed;
         stream >> trackLength;
     }
@@ -34,7 +34,7 @@ namespace Encore::RhythmEngine {
     }
     bool ReplayPlayer::EventMatchesFilter(ControllerEvent &event) {
         if (slotFilter == -1) return true;
-        return event.slot == slotFilter;
+        return event.controller.replaySlot == slotFilter;
     }
     void ReplayPlayer::SkipNonFilter() {
         while (HasNextInput() && !EventMatchesFilter(*nextInput)) {
@@ -79,7 +79,7 @@ namespace Encore::RhythmEngine {
             stream << input.axis;
             // Yes, this is smaller than SDL_JoystickID, slots in replays represent player numbers
             // so even 8 bits is overkill
-            stream << (int8_t)input.slot;
+            stream << (int8_t)input.controller.replaySlot;
 
             stream << input.timestamp;
         }
@@ -122,7 +122,8 @@ namespace Encore::RhythmEngine {
             stream >> newInput.axis;
             int8_t slot;
             stream >> slot;
-            newInput.slot = slot;
+            newInput.controller.source = InputSource::REPLAY;
+            newInput.controller.replaySlot = slot;
             stream >> newInput.timestamp;
             inputs.push_back(newInput);
         }

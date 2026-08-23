@@ -15,7 +15,7 @@
 #include "RhythmEngine/scoring.h"
 
 #include <span>
-
+#include "users/controller.h"
 #include "profiles/ProfileManager.h"
 #include "SDL3/SDL_gamepad.h"
 
@@ -36,13 +36,6 @@ enum NoteHitType {
     ALTERNATIVE // hopos/ctaps/lifts
 };
 */
-// Temporary stopgap to let people do things on this old version
-enum ControllerBindingType : uint8_t {
-    GUITAR = 0,
-    GUITAR_GHPS3,
-    PAD,
-    DRUMS
-};
 namespace Encore::RhythmEngine {
     class Replay;
     class ReplayPlayer;
@@ -101,10 +94,8 @@ public:
     std::shared_ptr<Encore::RhythmEngine::ReplayPlayer> ReplayPlayer = nullptr;
     int ReplaySlot;
 
-    ControllerBindingType bindingType = GUITAR;
-    // -1 == keyboard
-    // -2 == all
-    SDL_JoystickID joypadID = -1;
+    Encore::PhysicalDeviceType bindingType = Encore::GUITAR;
+    Encore::ControllerIdentity controller;
     bool ReadiedUpBefore;
     bool Online;
     int ActiveSlot {};

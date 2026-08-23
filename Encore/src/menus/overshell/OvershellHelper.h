@@ -63,15 +63,15 @@ namespace encOS {
             }
         }
 
-        SDL_JoystickID GetJoystick() {
-            if (menu->ControllersToAssign[i] != 0) {
-                return menu->ControllersToAssign[i];
-            }
-            if (GetPlayer()) {
-                return GetPlayer()->joypadID;
-            }
-            return 0;
-        }
+        // SDL_JoystickID GetJoystick() {
+        //     if (menu->ControllersToAssign[i] != 0) {
+        //         return menu->ControllersToAssign[i];
+        //     }
+        //     if (GetPlayer()) {
+        //         return GetPlayer()->joypadID;
+        //     }
+        //     return 0;
+        // }
 
         void ControllerInput(Encore::ControllerEvent event) {
             if (event.action != Encore::Action::PRESS) {

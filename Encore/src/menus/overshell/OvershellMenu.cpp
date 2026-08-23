@@ -24,7 +24,7 @@ using namespace Encore::RhythmEngine;
 bool OvershellKeyboardInputCallback(OvershellMenu *menu, SDL_KeyboardEvent* event) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT && event->key == SDLK_RETURN) {
-            ThePlayerManager.GetActivePlayer(i).joypadID = -1;
+            ThePlayerManager.GetActivePlayer(i).controller.source = Encore::InputSource::KEYBOARD;
             menu->OvershellState[i] = OS_OPTIONS;
             return true;
         }
@@ -32,35 +32,7 @@ bool OvershellKeyboardInputCallback(OvershellMenu *menu, SDL_KeyboardEvent* even
     return false;
 }
 
-const std::unordered_map<std::string, ControllerBindingType> OvershellMenu::hardcodedControllerTypes = {
-    {"060074ae6f0e00004802000000010000", GUITAR} // RB4 Jaguar/Riffmaster
-};
 
-void DetectControllerType(Player& player) {
-    auto type = SDL_GetJoystickType(SDL_GetJoystickFromID(player.joypadID));
-    char guidStr[33];
-    SDL_GUIDToString(SDL_GetJoystickGUIDForID(player.joypadID), guidStr, 33);
-    std::string guid = guidStr;
-    if (OvershellMenu::hardcodedControllerTypes.contains(guid)) {
-        player.bindingType = OvershellMenu::hardcodedControllerTypes.at(guid);
-        return;
-    }
-    switch (type) {
-    case SDL_JOYSTICK_TYPE_GUITAR:
-        player.bindingType = GUITAR;
-        if (player.joypadID > 0) {
-            if (SDL_GetJoystickVendorForID(player.joypadID) == 0x12ba && SDL_GetJoystickProductForID(player.joypadID) == 0x0100) {
-                player.bindingType = GUITAR_GHPS3;
-            }
-        }
-        break;
-    case SDL_JOYSTICK_TYPE_DRUM_KIT:
-        player.bindingType = DRUMS;
-        break;
-    default:
-        player.bindingType = PAD;
-    }
-}
 
 // required to be changed for more than 4 players
 OvershellInputState encOS::inputStates[] = {0, 1, 2, 3};
@@ -78,19 +50,18 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::ControllerEve
         bool thisSlotIsController = false;
         auto player = ThePlayerManager.ActivePlayers[i];
         if (menu->OvershellState[i] == OS_CONTROLLER_ASSIGNMENT) {
-            player->joypadID = event.slot;
+            player->controller = event.controller;
             player->ActiveSlot = i;
-            DetectControllerType(*player);
             menu->OvershellState[i] = OS_OPTIONS;
             return true;
         }
         if (player) {
-            if (player->joypadID == event.slot) {
+            if (player->controller == event.controller) {
                 controllerSignedIn = true;
                 thisSlotIsController = true;
             }
         }
-        if (menu->ControllersToAssign[i] == event.slot) {
+        if (menu->ControllersToAssign[i] == event.controller) {
             controllerSignedIn = true;
             thisSlotIsController = true;
         }
@@ -114,8 +85,8 @@ bool OvershellControllerInputCallback(OvershellMenu *menu, Encore::ControllerEve
     }
     if (menu->dropInDropOut && (event.channel == Encore::InputChannel::PAUSE || event.channel == Encore::InputChannel::LANE_1) && !controllerSignedIn) {
         for (int i = 0; i < 4; i++) {
-            if (!ThePlayerManager.ActivePlayers[i] && menu->ControllersToAssign[i] == 0) {
-                menu->ControllersToAssign[i] = event.slot;
+            if (!ThePlayerManager.ActivePlayers[i] && menu->ControllersToAssign[i].source == Encore::InputSource::INVALID) {
+                menu->ControllersToAssign[i] = event.controller;
                 menu->OvershellState[i] = OS_PLAYER_SELECTION;
                 return true;
             }
@@ -244,11 +215,10 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     )) {
                         playerManager.AddActivePlayer(playerManager.PlayerList[x], i);
 
-                        if (ControllersToAssign[i] != 0) {
-                            playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
+                        if (ControllersToAssign[i].IsValid()) {
+                            playerManager.GetActivePlayer(i).controller = ControllersToAssign[i];
                             playerManager.GetActivePlayer(i).ActiveSlot = i;
-                            DetectControllerType(playerManager.GetActivePlayer(i));
-                            ControllersToAssign[i] = 0;
+                            ControllersToAssign[i].source = Encore::InputSource::INVALID;
                         }
                         CancelButtonActivation = true;
                         OvershellState[i] = OS_ATTRACT;
@@ -271,7 +241,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             if (OvershellButton(i, pos++, "Cancel") || input.backPressed) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_ATTRACT;
-                ControllersToAssign[i] = 0;
+                ControllersToAssign[i].source = Encore::InputSource::INVALID;
             }
             BeginBlendMode(BLEND_MULTIPLIED);
             DrawRectangleRec(
@@ -392,36 +362,9 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 OvershellState[i] = OS_COLOR_PROFILE_TYPE_SELECTOR;
             }
             if (dropInDropOut) {
-                const char* typeString;
-                switch (playerManager.GetActivePlayer(i).bindingType) {
-                case GUITAR:
-                case GUITAR_GHPS3:
-                    typeString = LOCALIZE("overshell.types.guitar");
-                    break;
-                case DRUMS:
-                    typeString = LOCALIZE("overshell.types.drums");
-                    break;
-                case PAD:
-                    typeString = LOCALIZE("overshell.types.pad");
-                    break;
-                default:
-                    typeString = LOCALIZE("generic.unknown");
-                }
-                if (OvershellButton(i, curSlot++,LOCALIZE_FMT("overshell.instrumentType", typeString))) {
-                    OvershellState[i] = OS_INSTRUMENT_SELECTIONS;
-                }
-                auto padId = playerManager.GetActivePlayer(i).joypadID;
-                const char* padName = "Unknown";
-                if (padId == -2) {
-                    padName = "All";
-                }
-                if (padId == -1) {
-                    padName = "Keyboard";
-                }
-                if (SDL_GetJoystickFromID(padId)) {
-                    padName = SDL_GetJoystickNameForID(padId);
-                }
+                auto pad = playerManager.GetActivePlayer(i).controller;
                 GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.018f));
+                auto padName = pad.GetName();
                 if (OvershellButton(i, curSlot++,LOCALIZE_FMT("overshell.currentController", padName))) {
                     OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
                     break;
@@ -546,48 +489,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
 
             break;
         }
-        case OS_INSTRUMENT_SELECTIONS: {
-            // int ButtonHeight = unit.winpct(0.03f);
-            Color headerUsernameColor =
-                playerManager.GetActivePlayer(i).Bot ? SKYBLUE : WHITE;
-            DrawOvershellRectangleHeader(
-                osLeft,
-                OvershellTopLoc - (ButtonHeight * 4),
-                osWidth,
-                osCoverHeight,
-                playerManager.GetActivePlayer(i).Name,
-                playerManager.GetActivePlayer(i).AccentColor,
-                headerUsernameColor,
-                true
-            );
-            input.SetLength(4);
-
-            if (OvershellButton(i, 3,LOCALISE("overshell.types.guitar"))) {
-                playerManager.GetActivePlayer(i).bindingType = GUITAR;
-                Uint32 joyId = playerManager.GetActivePlayer(i).joypadID;
-                if (joyId > 0) {
-                    if (SDL_GetJoystickVendorForID(joyId) == 0x12ba && SDL_GetJoystickProductForID(joyId) == 0x0100) {
-                    playerManager.GetActivePlayer(i).bindingType = GUITAR_GHPS3;
-                    }
-                }
-                OvershellState[i] = OS_OPTIONS;
-            }
-            if (OvershellButton(i, 2,LOCALISE("overshell.types.drums"))) {
-                playerManager.GetActivePlayer(i).bindingType = DRUMS;
-                OvershellState[i] = OS_OPTIONS;
-            }
-            if (OvershellButton(i, 1,LOCALISE("overshell.types.pad"))) {
-                playerManager.GetActivePlayer(i).bindingType = PAD;
-                OvershellState[i] = OS_OPTIONS;
-            }
-
-            if (OvershellButton(i, 0,LOCALISE("generic.back")) || input.backPressed) {
-                OvershellState[i] = OS_OPTIONS;
-            }
-
-            DrawOvershellBottomCover(osLeft, osWidth, 3, playerManager.GetActivePlayer(i).AccentColor);
-            break;
-        }
         case OS_COLOR_PROFILE_TYPE_SELECTOR: {
             BeginBlendMode(BLEND_MULTIPLIED);
             DrawRectangleRec(
@@ -611,7 +512,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             if (OvershellButton(i, 0,LOCALISE("generic.cancel")) || input.backPressed) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_OPTIONS;
-                ControllersToAssign[i] = 0;
             }
             if (OvershellButton(i, 1,LOCALISE("overshell.types.drums"))) {
                 ColorProfileType[i] = Encore::ProfileManager::DRUMS;
@@ -647,7 +547,6 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             if (OvershellButton(i, 0, "Cancel")) {
                 CancelButtonActivation = true;
                 OvershellState[i] = OS_COLOR_PROFILE_TYPE_SELECTOR;
-                ControllersToAssign[i] = 0;
             }
             BeginBlendMode(BLEND_MULTIPLIED);
             DrawRectangleRec(

@@ -26,7 +26,8 @@ void QuickOpenSongDir(std::filesystem::path dir) {
                 fakePlayer->PlaybackReplay = replay;
                 fakePlayer->ReplayPlayer = std::make_shared<Encore::RhythmEngine::ReplayPlayer>(*replay);
                 fakePlayer->ReplayPlayer->slotFilter = part.activeSlot;
-                fakePlayer->joypadID = -3;
+                fakePlayer->controller.source = Encore::InputSource::REPLAY;
+                fakePlayer->controller.replaySlot = part.activeSlot;
 
                 for (size_t i = 0; i < MAX_PLAYERS; i++) {
                     if (!ThePlayerManager.ActivePlayers[i]) {

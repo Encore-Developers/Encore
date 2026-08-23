@@ -10,8 +10,8 @@
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
 // - MM: Current month
 // - DD: Current day
-// - RR: Number of times the cache was revised that day, starting from 1
-#define REPLAY_VERSION 26062904
+// - RR: Number of times the replay version was revised that day, starting from 1
+#define REPLAY_VERSION 26082301
 #define REPLAY_HEADER 0x52434E45 // "ENCR"
 
 namespace Encore::RhythmEngine {
@@ -24,7 +24,7 @@ namespace Encore::RhythmEngine {
             /// Overshell slot this player was in at time of recording. This is what the
             /// slot parameter on events is set to.
             int activeSlot;
-            ControllerBindingType bindingType;
+            PhysicalDeviceType bindingType;
 
             // In case we want to create fake players from
             float noteSpeed;
