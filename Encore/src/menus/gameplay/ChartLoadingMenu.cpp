@@ -84,6 +84,9 @@ void ChartLoadingMenu::LoadCharts() {
                 player.engine->chart->Lanes.
                                  resize(4);
         }
+        if (inst == PartVocals || inst == PartBass || inst == PlasticVocals) {
+            player.engine->stats->ep.mult.max = 6;
+        }
         for (int i = 0; i < player.engine->chart->Lanes.size(); i++) {
 
             player.engine->chart->at(i).shrink_to_fit();
