@@ -114,11 +114,13 @@ void ChartLoadingMenu::Load() {
     TheAssets.loadingPool.SubmitTask([this]() {
         TheAudioManager.unloadStreams();
         TheAudioManager.loadStreams(curSong->LoadAudioINI());
+#ifndef NO_VIDEO
         auto videoPath = curSong->GetVideoPath();
         if (!videoPath.empty()) {
             videoBackground = std::make_shared<VideoBackground>(videoPath, curSong->videoStartTime);
             videoBackground->selfPtr = videoBackground;
         }
+#endif
         LoadCharts();
     });
     // std::thread ChartLoader(LoadCharts);

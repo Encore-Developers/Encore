@@ -13,6 +13,7 @@ extern "C" {
 
 void VideoBackground::OpenFile() {
     ZoneScoped;
+#ifndef NO_VIDEO
     auto result = avformat_open_input(&fmtCtx, reinterpret_cast<const char *>(videoPath.generic_u8string().c_str()), nullptr, nullptr);
     if (result != 0) {
         Encore::Log::Error("Failed to open video file: {}", result);
@@ -44,10 +45,12 @@ void VideoBackground::OpenFile() {
         av_seek_frame(fmtCtx, streamIndex, initialSeekTime / ((double)fmtCtx->streams[streamIndex]->time_base.num/(double)fmtCtx->streams[streamIndex]->time_base.den), 0);
     }
     ReadAndDecodeFrame();
+#endif
 }
 
 Texture2D *VideoBackground::GetTexture(double time) {
     ZoneScoped
+#ifndef NO_VIDEO
     if (!active) {
         return nullptr;
     }
@@ -112,8 +115,12 @@ Texture2D *VideoBackground::GetTexture(double time) {
     }
     frameQueueMutex.unlock();
     return &currentTexture;
+#else
+    return nullptr;
+#endif
 }
 VideoBackground::~VideoBackground() {
+#ifndef NO_VIDEO
     if (pbo != 0) {
         glDeleteBuffers(1, &pbo);
     }
@@ -126,6 +133,7 @@ VideoBackground::~VideoBackground() {
     if (codecCtx) {
         avcodec_free_context(&codecCtx);
     }
+#endif
 }
 
 void VideoBackground::QueueFrameUpload(const std::shared_ptr<ManagedFrame>& frame) {
@@ -150,6 +158,7 @@ void VideoBackground::UploadToPBO(const std::shared_ptr<ManagedFrame>& frame) {
 
 void VideoBackground::ReadAndDecodeFrame() {
     ZoneScoped
+#ifndef NO_VIDEO
     if (fmtCtx && codecCtx) {
         ManagedFrame managedFrame = av_frame_alloc();
         auto frame = managedFrame.frame;
@@ -218,6 +227,7 @@ void VideoBackground::ReadAndDecodeFrame() {
         }
 
     }
+#endif
 }
 double VideoBackground::PtsToAudioTime(int64_t pts, AVRational timeBase) {
     double timeBaseFloat = timeBase.num / (double)timeBase.den;

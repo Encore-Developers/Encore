@@ -11,7 +11,9 @@
 #include "isteamuser.h"
 #endif
 
+#ifndef NO_DISCORD
 #include "discord-rpc/core.h"
+#endif
 #include <array>
 #include <ctime>
 #include <iostream>
@@ -19,13 +21,14 @@
 
 #include "enclog.h"
 
-
+#ifndef NO_DISCORD
 discord::Core* core{};
 
 std::string discordCommitHash = GIT_COMMIT_HASH;
 std::string discordVersion = ENCORE_VERSION;
 std::string discordgitBranch = GIT_BRANCH;
 std::string discordBuildDate = BUILDDATE;
+#endif
 
 #ifdef STEAM
 void Encore::Presence::OnOverlayOpen( GameOverlayActivated_t* callback ) {
@@ -35,6 +38,7 @@ void Encore::Presence::OnOverlayOpen( GameOverlayActivated_t* callback ) {
 }
 #endif
 void Encore::Presence::Initialize(std::string discordBoot) {
+#ifndef NO_DISCORD
     if (discordBoot != "false") {
         auto result = discord::Core::Create(1216298119457804379, DiscordCreateFlags_NoRequireDiscord, &core);
         if (!core) {
@@ -57,9 +61,11 @@ void Encore::Presence::Initialize(std::string discordBoot) {
         */
         Initialized = true;
     }
+#endif
 }
 
 Encore::Presence::~Presence() {
+#ifndef NO_DISCORD
     if (!Initialized)
         return;
     Initialized = false;
@@ -67,11 +73,14 @@ Encore::Presence::~Presence() {
         Log::Info("{} clearing activity", (result == discord::Result::Ok) ? "Succeeded" : "Failed");
     });
     core = nullptr;
+#endif
 }
 void Encore::Presence::Update() {
+#ifndef NO_DISCORD
     if (!Initialized)
         return;
     core->RunCallbacks();
+#endif
 }
 void Encore::Presence::SteamUpdatePresence(const char *key, const char *value) {
 #ifdef STEAM
@@ -166,6 +175,7 @@ const char *Encore::Discord::GetGlyphPath(Uint64 GamepadSteamHandle,
 }
 */
 void Encore::Presence::DiscordUpdatePresence(const std::string &title, const std::string &details, int players) {
+#ifndef NO_DISCORD
     if (!Initialized)
         return;
     discord::Activity activity{};
@@ -186,6 +196,7 @@ void Encore::Presence::DiscordUpdatePresence(const std::string &title, const std
     core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
         Log::Info("{} updating activity!", (result == discord::Result::Ok) ? "Succeeded" : "Failed");
     });
+#endif
 }
 
 std::array<std::string, 11> AssetNames = {
@@ -203,6 +214,7 @@ std::array<std::string, 11> PartNames = {
 void Encore::Presence::DiscordUpdatePresenceSong(
     const std::string &title, const std::string &details, int instrument, int length
 ) {
+#ifndef NO_DISCORD
     if (!Initialized)
         return;
     discord::Activity activity{};
@@ -229,4 +241,5 @@ void Encore::Presence::DiscordUpdatePresenceSong(
     core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {
         Log::Info("{} updating activity!", (result == discord::Result::Ok) ? "Succeeded" : "Failed");
     });
+#endif
 }
