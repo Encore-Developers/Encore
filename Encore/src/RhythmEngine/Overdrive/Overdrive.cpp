@@ -2,7 +2,7 @@
 // Created by maria on 26/08/2025.
 //
 
-#include "Overdrive.h"
+#include "RhythmEngine/Engine/BaseStats.h"
 #include "assets.h"
 #include "gameplay/enctime.h"
 #include "settings/settings.h"
@@ -22,7 +22,7 @@ void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
     //  two measures per charge at 4/4
     //  8 beats per charge
     //  64 for full charge
-    Fill -= (ticks.CurrentODTick - ticks.LastODTick) / 32;
+    Fill -= (ticks.CurrentODTick - ticks.LastODTick) / ep.duration;
 
     if (Fill <= 0) {
         Fill = 0;
@@ -32,7 +32,7 @@ void Encore::RhythmEngine::Overdrive::Update(double &CurrentTime) {
     }
 }
 bool Encore::RhythmEngine::Overdrive::Activate(const double &CurrentTime) {
-    if (Fill < 0.25 || Active)
+    if (Fill < ((double)ep.minCharges/(double)ep.maxCharges) || Active)
         return false;
     Active = true;
     UseOverdriveLift = true;
@@ -49,10 +49,12 @@ bool Encore::RhythmEngine::Overdrive::Add(
     const double &CurrentTime, std::shared_ptr<BaseChart> &chart
 ) {
     float toAdd = chart->overdrive.CheckOverdrive(CurrentTime);
-    Fill += toAdd;
-    if (Fill > 1.0)
-        Fill = 1.0;
-    if (toAdd > 0)
+    if (toAdd > 0.1) {
+        Fill += (1.00/(double)ep.maxCharges);
+        // Fill += toAdd;
+        if (Fill > 1.0)
+            Fill = 1.0;
         return true;
+    }
     return false;
 }

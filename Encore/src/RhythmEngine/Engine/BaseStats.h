@@ -5,18 +5,42 @@
 #ifndef BASESTATS_H
 #define BASESTATS_H
 #include <array>
-#include "../Overdrive/Overdrive.h"
 #include "assets.h"
 #include "settings/settings.h"
 #include "song/audio.h"
 #include "../scoring.h"
+#include "RhythmEngine/timingvalues.h"
+#include "RhythmEngine/Overdrive/OverdriveTicks.h"
 
 namespace Encore::RhythmEngine {
+    class BaseChart;
     struct NoteAccuracy {
         double time;
         double offset;
         bool miss;
-        explicit NoteAccuracy(const double time, const double offset, const bool miss) : time(time), offset(offset), miss(miss) {}
+        explicit NoteAccuracy(const double time, const double offset, const bool miss)
+            : time(time), offset(offset), miss(miss) {}
+    };
+
+    struct OverdriveEP {
+        int duration = 32; // name this better PLEASE
+        int maxCharges = 4;
+        int minCharges = 1;
+    };
+
+    class Overdrive {
+    public:
+        double Fill = 0.0;
+        double ActivationTime = 0.0;
+        double ActivationTick = 0.0;
+        bool Active = false;
+        OverdriveTicks ticks;
+        OverdriveEP &ep;
+        explicit Overdrive(OverdriveEP &ep_) : ep(ep_) {};
+        bool UseOverdriveLift = false;
+        void Update(double &CurrentTime);
+        bool Activate(const double &CurrentTime);
+        bool Add(const double &CurrentTime, std::shared_ptr<BaseChart> &chart);
     };
 
     // i just made some BULLSHIIIIIIIIIIIT
@@ -25,9 +49,7 @@ namespace Encore::RhythmEngine {
             double max = 4;
             int count = 10;
             double odMult = 2;
-            int comboForMax() const {
-                return (max - 1) * count;
-            }
+            int comboForMax() const { return (max - 1) * count; }
         } mult;
         struct Health {
             float cbMult = 8.0f;
@@ -35,8 +57,9 @@ namespace Encore::RhythmEngine {
             float Gain = 0.015f;
             float Loss = 0.03f;
             float odMult = 2.0f;
-            float hurtThreshold = (1.0f/3.0f);
+            float hurtThreshold = (1.0f / 3.0f);
         } health;
+        OverdriveEP od;
     };
 
     enum class StrumState {
@@ -62,7 +85,8 @@ namespace Encore::RhythmEngine {
      */
     class BaseStats {
     public:
-        explicit BaseStats(const int BaseScore, const size_t laneCount = 5) {
+        explicit BaseStats(const int BaseScore, const size_t laneCount = 5)
+            : overdrive(ep.od) {
             StarCalcBaseScore = BaseScore;
             HeldFrets.resize(laneCount, false);
         };
@@ -70,18 +94,23 @@ namespace Encore::RhythmEngine {
 
         void AddHealth(const float acc) {
             float delta = acc * ep.health.Gain;
-            if (acc < ep.health.hurtThreshold) delta = -(ep.health.Gain * (1.0-acc));
+            if (acc < ep.health.hurtThreshold)
+                delta = -(ep.health.Gain * (1.0 - acc));
             float mult = overdrive.Active ? ep.health.odMult : 1;
             Health += delta * mult;
-            if (Health > 1) Health = 1;
+            if (Health > 1)
+                Health = 1;
         }
 
         void RemoveHealth(const bool comboBreak) {
             double mult = 1;
-            if (comboBreak) mult = ep.health.cbMult;
-            else if (overdrive.Active) mult = ep.health.odMult;
+            if (comboBreak)
+                mult = ep.health.cbMult;
+            else if (overdrive.Active)
+                mult = ep.health.odMult;
             Health -= ep.health.Loss * mult;
-            if (Health < 0) Health = 0;
+            if (Health < 0)
+                Health = 0;
         }
 
         EngineParameters ep;
@@ -119,10 +148,13 @@ namespace Encore::RhythmEngine {
             } else {
                 Combo++;
             }
-            if (Combo > MaxCombo) MaxCombo = Combo;
-            const double PointsPerNote = BASE_NOTE_POINT * (perfect == 1 ? PERFECT_MULTIPLIER : 1.0);
+            if (Combo > MaxCombo)
+                MaxCombo = Combo;
+            const double PointsPerNote =
+                BASE_NOTE_POINT * (perfect == 1 ? PERFECT_MULTIPLIER : 1.0);
             Score += (PointsPerNote * chordSize) * multiplier();
-            if (perfect == 1) PerfectHits++;
+            if (perfect == 1)
+                PerfectHits++;
             // PerfectHits = 0;
             NotesHit++;
             AttemptedNotes++;
@@ -130,7 +162,8 @@ namespace Encore::RhythmEngine {
             AudioMuted = false;
         };
         void MissNote() {
-            if (Combo > MaxCombo) MaxCombo = Combo;
+            if (Combo > MaxCombo)
+                MaxCombo = Combo;
             Combo = 0;
             Misses++;
             AttemptedNotes++;
@@ -138,15 +171,18 @@ namespace Encore::RhythmEngine {
             CanHitHopo = false;
         };
         void Overhit() {
-            TheAudioManager.playSample(ASSET(missSound), TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume);
+            TheAudioManager.playSample(
+                ASSET(missSound),
+                TheGameSettings.avMainVolume * TheGameSettings.avSoundEffectVolume
+            );
             Overhits++;
-            if (Combo > MaxCombo) MaxCombo = Combo;
+            if (Combo > MaxCombo)
+                MaxCombo = Combo;
             Combo = 0;
             AudioMuted = true;
             CanHitHopo = false;
         };
         [[nodiscard]] double multiplier() const {
-
             double od = overdrive.Active ? ep.mult.odMult : 1;
             // if (IsBassOrVox()) {
             //     if (Combo >= 50)
@@ -176,14 +212,13 @@ namespace Encore::RhythmEngine {
             if (Combo == 0) {
                 return 0;
             }
-            int MaxMultCombo = ep.mult.count * (ep.mult.max-1);
+            int MaxMultCombo = ep.mult.count * (ep.mult.max - 1);
             int ComboMod = Combo % ep.mult.count;
             if (Combo >= MaxMultCombo || ComboMod == 0) {
                 return 1.0f;
             }
 
-            return (static_cast<float>(ComboMod) / static_cast<float>(ep.mult.count) );
-
+            return (static_cast<float>(ComboMod) / static_cast<float>(ep.mult.count));
         }
         std::vector<bool> HeldFrets = {};
     };
