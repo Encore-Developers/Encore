@@ -847,7 +847,7 @@ void Encore::Track::DrawNotes() {
                                               slot->colorSlot,
                                               ColorProfileType),
                                           -0.75),
-                                      0);
+                                      0, false);
             } else
                 break;
         }

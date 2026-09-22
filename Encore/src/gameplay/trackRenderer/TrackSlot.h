@@ -23,7 +23,7 @@ namespace Encore {
         TrackSlot* parentSlot = nullptr;
 
         virtual void DrawNote(RhythmEngine::NoteEvent *note, bool missed) = 0;
-        virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy) = 0;
+        virtual void DrawSustainTail(double startTime, double endTime, Color color, float whammy, bool active) = 0;
         virtual void DrawSmasher(bool held) = 0;
         virtual void AnimateHit(bool perfect, Color color) = 0;
         virtual void AnimateOverhit() {}

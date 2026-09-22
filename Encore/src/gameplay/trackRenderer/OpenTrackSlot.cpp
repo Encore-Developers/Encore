@@ -28,7 +28,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed)
 
     if (note->secLen() > 0) {
         Color sustainColor = missed ? ColorBrightness(color, -0.75) : color;
-        DrawSustainTail(note->start.sec, note->end.sec, sustainColor, 0);
+        DrawSustainTail(note->start.sec, note->end.sec, sustainColor, 0, false);
     }
     rlDrawRenderBatchActive();
 
@@ -50,7 +50,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed)
     }
 }
 
-void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime, Color color, float whammy) {
+void Encore::OpenTrackSlot::DrawSustainTail(double startTime, double endTime, Color color, float whammy, bool active) {
     if (endTime <= startTime) {
         return;
     }
@@ -86,7 +86,7 @@ void Encore::OpenTrackSlot::DrawSmasher(bool held) {
         }
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
-                            note->end.sec, color, track->player.engine->whammy);
+                            note->end.sec, color, track->player.engine->whammy, true);
             if (hitFlare) {
                 if (hitFlare->id == hitFlareId) {
                     hitFlare->time = (std::sin(TheSongTime.GetElapsedTime() * 100) + 1) *

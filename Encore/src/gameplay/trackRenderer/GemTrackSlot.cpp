@@ -34,7 +34,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) 
 
     if (note->secLen() > 0) {
         Color sustainColor = missed ? ColorBrightness(color, -0.75) : color;
-        DrawSustainTail(note->start.sec, note->end.sec, ColorBrightness(sustainColor, -0.5), 0);
+        DrawSustainTail(note->start.sec, note->end.sec, ColorBrightness(sustainColor, -0.5), 0, false);
     }
 
     rlDrawRenderBatchActive();
@@ -75,58 +75,129 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) 
 
     //DrawCube({xPos, 0.2, pos}, finalWidth, 0.4, 0.5, track->player.QueryColorProfile(colorSlot));
 }
+struct Segment {
+    struct {
+        Vector3 l;
+        Vector3 r;
+    } front;
+    struct {
+        Vector3 l;
+        Vector3 r;
+    } back;
+};
 
-void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Color color, float whammy) {
+void DrawSegment(Segment segment, Color color) {
+    float fm = (segment.front.l.x + segment.front.r.x) / 2;
+    float rm = (segment.back.l.x + segment.back.r.x) / 2;
+
+    Color bright = ColorBrightness(color, 0.2);
+    // left side
+    rlColor4ub(0, 0, 0, 0);
+    rlVertex3f(segment.front.l.x, 0.03, segment.front.l.z);
+    rlVertex3f(segment.back.l.x, 0.03, segment.back.l.z);
+    rlColor4ub(color.r, color.g, color.b, color.a);
+    rlVertex3f(rm, 0.03, segment.back.l.z);
+    rlVertex3f(fm, 0.03, segment.front.l.z);
+    
+    rlVertex3f(fm, 0.03, segment.front.r.z);
+    rlVertex3f(rm, 0.03, segment.back.r.z);
+    rlColor4ub(0, 0, 0, 0);
+    rlVertex3f(segment.back.r.x, 0.03, segment.back.r.z);
+    rlVertex3f(segment.front.r.x, 0.03, segment.front.r.z);
+}
+void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Color color, float whammy, bool active) {
     if (endTime <= startTime) {
         return;
     }
     float startPos = track->GetNotePos3D(startTime);
     float endPos = track->GetNotePos3D(endTime);
+    float additiveTime = 0;
+    if (startTime <= TheSongTime.GetElapsedTime() + 0.01) {
+        additiveTime = TheSongTime.GetElapsedTime() * 10;
+    }
     float tailPos = endPos;
     endPos -= 0.1;
     if (endPos < startPos) {
         endPos = startPos;
     }
-    float widthMult = 0.25;
+
+    float widthMult = 24;
+    Color dimmed = ColorBrightness(color, -0.5);
+    if (active == false) {
+        dimmed = ColorAlpha(dimmed, 0.8);
+    } else {
+        widthMult = 4 / ((whammy / 2) + 0.75f);
+    }
+    //
     Color bright = ColorBrightness(color, 0.2);
     rlSetBlendMode(RL_BLEND_ADDITIVE);
     rlDisableDepthTest();
     rlBegin(RL_QUADS);
-
-    // like i know this is a WIP but this is still really funny/cool to see
-    float whammyOffset = whammy * (width*widthMult);
-    rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, startPos);
-    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, endPos);
-    rlColor4ub(bright.r, bright.g, bright.b, 255);
+    float regWidthMult = 0.25;
+    float w = width * 1.5f;
+    float whammyOffset = whammy * (w*regWidthMult);
+    rlColor4ub(color.r, color.g, color.b, 0); // sets vertex color
+    rlVertex3f(xPos -  w*regWidthMult - whammyOffset, 0.03, startPos); // places vertex
+    rlVertex3f(xPos -  w*regWidthMult - whammyOffset, 0.03, endPos);
+    rlColor4ub(bright.r, bright.g, bright.b, 64);
     rlVertex3f(xPos, 0.03, endPos);
     rlVertex3f(xPos, 0.03, startPos);
+    // since thats all four it stops???? i guess because rlBegin(RL_QUADS) is being used
+    // i fucking hate implicit behaviours FUCK implicit behaviours
 
     rlVertex3f(xPos, 0.03, startPos);
     rlVertex3f(xPos, 0.03, endPos);
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, endPos);
-    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, startPos);
+    rlVertex3f(xPos +  w*regWidthMult + whammyOffset, 0.03, endPos);
+    rlVertex3f(xPos +  w*regWidthMult + whammyOffset, 0.03, startPos);
 
 
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, endPos);
-    rlVertex3f(xPos - width*widthMult - whammyOffset, 0.03, tailPos);
+    rlVertex3f(xPos - w*regWidthMult - whammyOffset, 0.03, endPos);
+    rlVertex3f(xPos - w*regWidthMult - whammyOffset, 0.03, tailPos);
     rlVertex3f(xPos, 0.03, tailPos);
-    rlColor4ub(bright.r, bright.g, bright.b, 255);
+    rlColor4ub(bright.r, bright.g, bright.b, 64);
     rlVertex3f(xPos, 0.03, endPos);
 
     rlColor4ub(color.r, color.g, color.b, 0);
-    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, endPos);
-    rlColor4ub(bright.r, bright.g, bright.b, 255);
+    rlVertex3f(xPos + w*regWidthMult + whammyOffset, 0.03, endPos);
+    rlColor4ub(bright.r, bright.g, bright.b, 64);
     rlVertex3f(xPos, 0.03, endPos);
     rlColor4ub(color.r, color.g, color.b, 0);
     rlVertex3f(xPos, 0.03, tailPos);
-    rlVertex3f(xPos + width*widthMult + whammyOffset, 0.03, tailPos);
+    rlVertex3f(xPos + w*regWidthMult + whammyOffset, 0.03, tailPos);
+    // seggs
+    Segment newSeg;
+    for (float seg = startPos; seg < endPos; seg += 0.25f) {
+        if (seg >= track->GetNotePos3D(track->GetViewEndTime())) break;
+        if (seg < -3) continue;
+        float laneWidth = width/widthMult;
+        float halfWidth = width/8;
+        float dist = (seg - startPos) - additiveTime;
+        float xEnd = std::sin((dist+1)/2) * laneWidth;
+        float xStart = std::sin((dist)/2) * laneWidth;
+        newSeg.front.l = { (xPos-halfWidth)+xStart, 0.3, seg };
+        newSeg.front.r = { (xPos+halfWidth)+xStart, 0.3, seg };
 
+        newSeg.back.l = { (xPos-halfWidth)+xEnd, 0.3, seg+1 };
+        newSeg.back.r = { (xPos+halfWidth)+xEnd, 0.3, seg+1 };
+        DrawSegment(newSeg, dimmed);
+
+        newSeg.front.l = { (xPos-halfWidth)-xStart, 0.3, seg };
+        newSeg.front.r = { (xPos+halfWidth)-xStart, 0.3, seg };
+
+        newSeg.back.l = { (xPos-halfWidth)-xEnd, 0.3, seg+1 };
+        newSeg.back.r = { (xPos+halfWidth)-xEnd, 0.3, seg+1 };
+        DrawSegment(newSeg, dimmed);
+
+    }
     rlEnd();
     rlSetBlendMode(RL_BLEND_ALPHA);
     rlEnableDepthTest();
+    // like i know this is a WIP but this is still really funny/cool to see
+    /*
+
+*/
     // DrawCube({ xPos, 0.1, midPos },
     //          0.2 + whammy,
     //          0.1,
@@ -199,7 +270,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         }
         if (matches) {
             DrawSustainTail(TheSongTime.GetElapsedTime(),
-                            note->end.sec, color, track->player.engine->whammy);
+                            note->end.sec, color, track->player.engine->whammy, true);
             if (hitFlare) {
                 if (hitFlare->id == hitFlareId) {
                     hitFlare->time = (std::sin(TheSongTime.GetElapsedTime() * 100) + 1) *
