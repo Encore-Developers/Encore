@@ -8,12 +8,18 @@
 void QuickOpenSongDir(std::filesystem::path dir) {
     if (std::filesystem::is_regular_file(dir)) {
         if (dir.extension() == ".encrReplay") {
-            ThePlayerManager.CullTempPlayers();
             std::shared_ptr<Encore::RhythmEngine::Replay> replay = std::make_shared<Encore::RhythmEngine::Replay>();
             encore::bin_ifstream_le stream(dir, std::ios::binary);
             replay->Load(stream);
             stream.close();
             if (!replay->loaded) return;
+            auto song = TheSongList.songHashIndex[replay->song];
+
+            if (!song) {
+                Encore::Log::Error("Error: Replay song not found!");
+                return;
+            }
+            ThePlayerManager.CullTempPlayers();
             for (auto& part : replay->participants) {
                 std::shared_ptr<Player> fakePlayer = std::make_shared<Player>();
                 fakePlayer->Name = part.name;
@@ -34,13 +40,6 @@ void QuickOpenSongDir(std::filesystem::path dir) {
                         break;
                     }
                 }
-            }
-            auto song = TheSongList.songHashIndex[replay->song];
-
-            if (!song) {
-                ThePlayerManager.CullTempPlayers();
-                Encore::Log::Error("Error: Replay song not found!");
-                return;
             }
 
             TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(song);
