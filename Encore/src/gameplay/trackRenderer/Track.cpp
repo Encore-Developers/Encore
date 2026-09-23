@@ -24,7 +24,7 @@
 
 void Encore::Track::DrawCountdown() {
     ZoneScopedN("Countdown")
-    double time = TheSongTime.GetElapsedTime();
+    double time = currentTime;
     auto start = player.engine->LastNoteTime();
     auto end = player.engine->NextNoteTime();
     double timeTillNote = double(end - start);
@@ -123,6 +123,9 @@ void Encore::Track::Draw() {
     // }
 
     UpdateControllerLED();
+
+    currentTime = TheSongTime.GetElapsedTime();
+
     {
         ZoneScopedN("Track Animation/Position Proc")
         if (ColumnFitting) {
@@ -405,7 +408,7 @@ void Encore::Track::DrawSoloUI() {
 
     RhythmEngine::solo *curSolo = &player.engine->chart->solos.at(
         player.engine->chart->solos.CurrentEvent);
-    if (TheSongTime.GetElapsedTime() > curSolo->start.sec && TheSongTime.GetElapsedTime()
+    if (currentTime > curSolo->start.sec && currentTime
         < curSolo->end.sec) {
         Vector3 worldSpace = { 0, 2.5, BaseLength + 5 };
         Vector2 screenPos = GetWorldToScreen(
@@ -573,7 +576,7 @@ void Encore::Track::DrawMultiplier() {
 void Encore::Track::DrawTrackNotifications() {
     if (!Notification)
         return;
-    if (Notification->time + 3.5 < TheSongTime.GetElapsedTime()) {
+    if (Notification->time + 3.5 < currentTime) {
         Notification = nullptr;
         return;
     }
@@ -606,13 +609,13 @@ void Encore::Track::DrawTrackNotifications() {
     }
     float TextWidth = MeasureTextEx(ASSET(josefinSansBold), Text.c_str(), FontSize, 0).x;
     float size = 0;
-    if (TheSongTime.GetElapsedTime() < notif->time + 0.25) {
-        size = (TheSongTime.GetElapsedTime() - notif->time) / ((notif->time + 0.25) -
+    if (currentTime < notif->time + 0.25) {
+        size = (currentTime - notif->time) / ((notif->time + 0.25) -
             notif->time);
-    } else if (TheSongTime.GetElapsedTime() > notif->time + 3.0) {
+    } else if (currentTime > notif->time + 3.0) {
         float startTime = notif->time + 3.0;
         float endTime = notif->time + 3.5;
-        size = 1 - ((TheSongTime.GetElapsedTime() - startTime) / (endTime - startTime));
+        size = 1 - ((currentTime - startTime) / (endTime - startTime));
     } else {
         size = 1;
     }
@@ -820,7 +823,7 @@ void Encore::Track::DrawNotes() {
     }
 
     for (auto note : player.engine->chart->MissedNotePointers) {
-        if (note->end.sec < TheSongTime.GetElapsedTime() - 5) {
+        if (note->end.sec < currentTime - 5) {
             continue;
         }
         auto slots = GetSlotsForNote(*note);
@@ -833,7 +836,7 @@ void Encore::Track::DrawNotes() {
         }
     }
     for (auto note : player.engine->chart->DroppedSustainPointers) {
-        if (note->end.sec < TheSongTime.GetElapsedTime() - 5) {
+        if (note->end.sec < currentTime - 5) {
             continue;
         }
         auto slots = GetSlotsForNote(*note);
@@ -870,7 +873,7 @@ void Encore::Track::DrawSmashers() {
 void Encore::Track::DrawBeatlines() {
     ZoneScoped;
     if (!TheSongTime.Beatlines.empty()) {
-        // if (TheSongTime.Beatlines.front().time < TheSongTime.GetElapsedTime() - 1) {
+        // if (TheSongTime.Beatlines.front().time < currentTime - 1) {
         //     TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
         // }
 
@@ -1253,11 +1256,11 @@ void Encore::Track::ConfigureDrumsGemKick() {
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {
-    return (noteTime - TheSongTime.GetElapsedTime()) * GetZPerSecond();
+    return (noteTime - currentTime) * GetZPerSecond();
 }
 
 float Encore::Track::GetViewEndTime() const {
-    return TheSongTime.GetElapsedTime() + (Length / GetZPerSecond());
+    return currentTime + (Length / GetZPerSecond());
 }
 
 float Encore::Track::GetZPerSecond() const {

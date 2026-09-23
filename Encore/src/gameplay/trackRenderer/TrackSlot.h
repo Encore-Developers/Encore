@@ -18,6 +18,7 @@ namespace Encore {
         Track *track;
         size_t index = 0;
 
+        double sustainShift = 0.0f;
         float overhitTimer = 0.0;
         bool openHitAnim = false;
         TrackSlot* parentSlot = nullptr;

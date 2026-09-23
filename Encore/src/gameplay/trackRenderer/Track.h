@@ -68,6 +68,7 @@ namespace Encore {
         );
         Vector2 MultiplierUVCalculation();
         ProfileManager::ColorProfileType ColorProfileType = ProfileManager::PLASTIC;
+        double currentTime = 0.0f;
         float NoteSpeed = 1;
         float BaseLength = 20;
         float Length = 20;

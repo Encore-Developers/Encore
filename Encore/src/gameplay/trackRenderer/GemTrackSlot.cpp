@@ -6,6 +6,7 @@
 #include "rlgl.h"
 
 #include "Track.h"
+#include "raymath.h"
 
 #include "song/song.h"
 
@@ -86,7 +87,7 @@ struct Segment {
     } back;
 };
 
-void DrawSegment(Segment segment, Color color) {
+void DrawSegment(Segment segment, Color color, float frontAlpha = 1, float backAlpha = 1) {
     float fm = (segment.front.l.x + segment.front.r.x) / 2;
     float rm = (segment.back.l.x + segment.back.r.x) / 2;
 
@@ -95,11 +96,13 @@ void DrawSegment(Segment segment, Color color) {
     rlColor4ub(0, 0, 0, 0);
     rlVertex3f(segment.front.l.x, 0.03, segment.front.l.z);
     rlVertex3f(segment.back.l.x, 0.03, segment.back.l.z);
-    rlColor4ub(color.r, color.g, color.b, color.a);
+    rlColor4f(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f * backAlpha);
     rlVertex3f(rm, 0.03, segment.back.l.z);
+    rlColor4f(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f * frontAlpha);
     rlVertex3f(fm, 0.03, segment.front.l.z);
     
     rlVertex3f(fm, 0.03, segment.front.r.z);
+    rlColor4f(color.r/255.0f, color.g/255.0f, color.b/255.0f, color.a/255.0f * backAlpha);
     rlVertex3f(rm, 0.03, segment.back.r.z);
     rlColor4ub(0, 0, 0, 0);
     rlVertex3f(segment.back.r.x, 0.03, segment.back.r.z);
@@ -115,6 +118,10 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     if (startTime <= TheSongTime.GetElapsedTime() + 0.01) {
         additiveTime = TheSongTime.GetElapsedTime() * 10;
     }
+    if (active) {
+        additiveTime += sustainShift;
+        sustainShift += whammy * GetFrameTime() * 15;
+    }
     float tailPos = endPos;
     endPos -= 0.1;
     if (endPos < startPos) {
@@ -122,7 +129,7 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     }
 
     float widthMult = 24;
-    Color dimmed = ColorBrightness(color, -0.5);
+    Color dimmed = ColorBrightness(color, 0);
     if (active == false) {
         dimmed = ColorAlpha(dimmed, 0.8);
     } else {
@@ -168,27 +175,34 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     rlVertex3f(xPos + w*regWidthMult + whammyOffset, 0.03, tailPos);
     // seggs
     Segment newSeg;
-    for (float seg = startPos; seg < endPos; seg += 0.25f) {
+    constexpr float segStep = 0.5f;
+    for (float seg = startPos; seg < endPos; seg += segStep) {
         if (seg >= track->GetNotePos3D(track->GetViewEndTime())) break;
         if (seg < -3) continue;
+        float endFade = Clamp(Remap(seg+segStep, endPos - 2, endPos, 1, 0), 0, 1);
+        float endFadeFront = Clamp(Remap(seg, endPos - 2, endPos, 1, 0), 0, 1);
         float laneWidth = width/widthMult;
         float halfWidth = width/8;
         float dist = (seg - startPos) - additiveTime;
-        float xEnd = std::sin((dist+1)/2) * laneWidth;
+        float xEnd = std::sin((dist+segStep)/2) * laneWidth;
         float xStart = std::sin((dist)/2) * laneWidth;
+        auto col = dimmed;
         newSeg.front.l = { (xPos-halfWidth)+xStart, 0.3, seg };
         newSeg.front.r = { (xPos+halfWidth)+xStart, 0.3, seg };
 
-        newSeg.back.l = { (xPos-halfWidth)+xEnd, 0.3, seg+1 };
-        newSeg.back.r = { (xPos+halfWidth)+xEnd, 0.3, seg+1 };
-        DrawSegment(newSeg, dimmed);
+        newSeg.back.l = { (xPos-halfWidth)+xEnd, 0.3, seg+segStep };
+        newSeg.back.r = { (xPos+halfWidth)+xEnd, 0.3, seg+segStep };
+        //fuck it we drawin it twice
+        DrawSegment(newSeg, col, endFadeFront, endFade);
+        DrawSegment(newSeg, col, endFadeFront, endFade);
 
         newSeg.front.l = { (xPos-halfWidth)-xStart, 0.3, seg };
         newSeg.front.r = { (xPos+halfWidth)-xStart, 0.3, seg };
 
-        newSeg.back.l = { (xPos-halfWidth)-xEnd, 0.3, seg+1 };
-        newSeg.back.r = { (xPos+halfWidth)-xEnd, 0.3, seg+1 };
-        DrawSegment(newSeg, dimmed);
+        newSeg.back.l = { (xPos-halfWidth)-xEnd, 0.3, seg+segStep };
+        newSeg.back.r = { (xPos+halfWidth)-xEnd, 0.3, seg+segStep };
+        DrawSegment(newSeg, col, endFadeFront, endFade);
+        DrawSegment(newSeg, col, endFadeFront, endFade);
 
     }
     rlEnd();
@@ -308,6 +322,7 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
         .col(colorg);
     hitFlare = track->particleSystem->SpawnParticle(part);
     hitFlareId = hitFlare->id;
+    sustainShift = 0;
 
     float shockSize = 1.0f;
     Particle shockwave;
