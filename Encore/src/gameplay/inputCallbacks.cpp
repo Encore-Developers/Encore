@@ -238,6 +238,7 @@ Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
         outevent.slot = event->gdevice.which;
     }
     if (event->type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+        outevent.timestamp = SDLTimeToAudioTime(event->jaxis.timestamp);
         if (event->gaxis.axis == SDL_GAMEPAD_AXIS_RIGHTX) {
             outevent.channel = Encore::InputChannel::WHAMMY;
             outevent.axis = int(((float(event->gaxis.value) + 32768.0f) / 65535.0f) * 255.0f);
