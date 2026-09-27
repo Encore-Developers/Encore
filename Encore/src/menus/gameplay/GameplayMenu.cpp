@@ -595,6 +595,8 @@ void GameplayMenu::Draw() {
         // Score Drawing
         DrawScorebox(u, assets, scoreY);
 
+        DrawAccuracyDisplay(u, scorePos, starY + u.hinpct(0.06));
+
         TheLyricRenderer.RenderLyrics();
     }
 
@@ -611,6 +613,38 @@ void GameplayMenu::Draw() {
 
     if (EncoreDebug::showGameplayHud)
         GameMenu::DrawTopBarText(true);
+}
+
+void GameplayMenu::DrawAccuracyDisplay(Units& u, float xPos, float yPos) {
+    if (tracks.size() == 1) {
+        auto& player = tracks[0]->player;
+        // predicted: current accuracy if the player perfects every note from now (maximum possible accuracy)
+        double predictedAccuracy = (player.engine->stats->Accuracy - player.engine->stats->AttemptedNotes + player.engine->noteCount) / player.engine->noteCount;
+
+        float height = u.hinpct(SmallHeader);
+        Encore::TextDisplay text;
+        text.Pos(xPos, yPos);
+        text.Align(RIGHT);
+        text.Size(height);
+
+        Grade* grade;
+        GetGrade(predictedAccuracy, &grade);
+        text.Fnt(ASSET(redHatDisplayItalic));
+        text.Col(ColorBrightness(grade->color, -0.3));
+        text.DrawText(grade->Letter);
+
+        text.Col(grade->color);
+        float fraction = grade->GetFraction(predictedAccuracy);
+        fraction = Remap(fraction, 0, 1, 0.2, 0.8);
+        BeginScissorMode(0, yPos+height*(1.0f-fraction), GetRenderWidth(), height*fraction);
+        text.DrawText(grade->Letter);
+        EndScissorMode();
+        text.AddX(-text.TextWidth(grade->Letter) - u.hinpct(0.01));
+        auto accuracyText = std::format("{:.1f}%", (predictedAccuracy * 100.0f));
+        text.Fnt(ASSET(rubik));
+        text.Col(WHITE);
+        text.DrawText(accuracyText);
+    }
 }
 
 void GameplayMenu::Load() {

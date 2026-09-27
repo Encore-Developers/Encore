@@ -26,7 +26,6 @@ namespace Encore::RhythmEngine {
     public:
         BaseEngine(auto _chart, auto _stats, Player* _player)
             : chart(_chart), stats(_stats), player(_player) {
-            size_t noteCount = 0;
             for (auto& lane : chart->Lanes) noteCount += lane.size();
             stats->accuracies.reserve(noteCount);
         };
@@ -53,6 +52,7 @@ namespace Encore::RhythmEngine {
         std::unordered_map<std::string, RhythmTimer> Timers;
         double LastUpdateTime;
         bool allowTimestampedInputs = true;
+        size_t noteCount = 0;
 
         Player* player;
         float whammy = 0.0;

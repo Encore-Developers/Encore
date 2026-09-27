@@ -4,7 +4,11 @@
 
 #ifndef SCORING_H
 #define SCORING_H
+#include "raylib.h"
+#include "raymath.h"
+
 #include <vector>
+#include <array>
 
 /**
  * @brief Values for scoring in gameplay
@@ -31,5 +35,36 @@ inline constexpr float STAR_THRESHOLDS[5][6] = {
 
 inline constexpr float BAND_STAR_THRESHOLD[6] =
     { 0.06f, 0.12f, 0.20f, 0.47f, 0.78f, 1.15f };
+
+struct Grade {
+    struct Range {
+        double bottom;
+        double top;
+    };
+    Color color = WHITE;
+    const char *Letter;
+    Range range = {0,0};
+    explicit Grade(const Color _color, const char _letter[1], const Range _range)
+        : color(_color), Letter(_letter), range(_range) {}
+
+    /// 0 is lower (-), 1 is normal, 2 is upper (+)
+    [[nodiscard]] int GetSubdiv(double acc) const {
+        if (acc >= range.top - (range.top - range.bottom) * 0.3) return 2;
+        if (acc < range.bottom + (range.bottom - range.top) * 0.3) return 0;
+        return 1;
+    }
+
+    /// Returns 0 at the bottom of the grade's range, 1 at the top
+    float GetFraction(double acc) const {
+        if (range.bottom == range.top) {
+            return acc == range.bottom;
+        }
+        return Remap(acc, range.bottom, range.top, 0, 1);
+    }
+};
+
+extern std::array<Grade, 7> Grades;
+/// Returns the index of the grade, grade param is set to pointer of the grade (can be null)
+int GetGrade(double acc, Grade** grade);
 
 #endif // SCORING_H

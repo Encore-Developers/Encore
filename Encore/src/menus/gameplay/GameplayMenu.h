@@ -38,6 +38,7 @@ public:
     void SaveReplay();
     void DrawMTVOverlay(Vector2 pos);
     void Draw() override;
+    void DrawAccuracyDisplay(Units &u, float xPos, float yPos);
     void Load() override;
     void DrawPauseMenu();
     virtual bool CheckPauseInput(Encore::ControllerEvent event);

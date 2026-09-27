@@ -220,6 +220,12 @@ namespace Encore::RhythmEngine {
 
             return (static_cast<float>(ComboMod) / static_cast<float>(ep.mult.count));
         }
+        double GetAccuracyScore() const {
+            if (AttemptedNotes == 0) {
+                return 1;
+            }
+            return Accuracy / AttemptedNotes;
+        }
         std::vector<bool> HeldFrets = {};
     };
 

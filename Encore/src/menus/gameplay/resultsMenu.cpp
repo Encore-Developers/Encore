@@ -298,36 +298,14 @@ void resultsMenu::Draw() {
 }
 
 
-std::array<Grade, 7> Grades{
-    {
-        Grade(MAGENTA, "P", { 1.00, 1.00 }),
-        Grade(GOLD, "S", { 0.96, 1.00 }),
-        Grade(GREEN, "A", { 0.90, 0.96 }),
-        Grade(SKYBLUE, "B", { 0.85, 0.90 }),
-        Grade(ORANGE, "C", { 0.77, 0.85 }),
-        Grade(RED, "D", { 0.60, 0.77 }),
-        Grade(backgroundColor, "F", { 0.00, 0.60 }),
-    }
-};
 
-int GetGrade(double acc, Grade &grade) {
-    int i = 0;
-    for (const auto &g : Grades) {
-        if (acc >= g.range.bottom) {
-            grade = g;
-            return i;
-        }
-        i++;
-    }
-    return 0;
-}
 
 void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats> &stats,
-                                 Grade curGrade,
+                                 Grade* curGrade,
                                  Rectangle rect,
                                  float cardHeight) {
-    std::string grade = curGrade.Letter;
-    switch (curGrade.GetSubdiv(stats->Accuracy / stats->AttemptedNotes)) {
+    std::string grade = curGrade->Letter;
+    switch (curGrade->GetSubdiv(stats->Accuracy / stats->AttemptedNotes)) {
     case 0:
         grade += "-";
         break;
@@ -410,7 +388,7 @@ void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats
     RightStatData.pos.y += ActualStatsHeight;
     RightStatData.DrawText(AccRatingDisplay);
     RightStatData.pos.x -= RightStatData.TextWidth(AccRatingDisplay) * 1.25f;
-    RightStatData.Fnt(ASSET(redHatDisplayItalic)).Col(curGrade.color).DrawText(grade);
+    RightStatData.Fnt(ASSET(redHatDisplayItalic)).Col(curGrade->color).DrawText(grade);
 }
 
 void resultsMenu::DrawSections(Player &player, Rectangle rect, float cardHeight, int playerslot) {
@@ -595,15 +573,15 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float scorePos = (cardPos + cardHalfWidth);
     int Percent =
         floorf(((float)stats->NotesHit / (float)stats->AttemptedNotes) * 100.0f);
-    double accuracy = stats->Accuracy / stats->AttemptedNotes;
+    double accuracy = stats->GetAccuracyScore();
 
     std::string ResultsShit = "F";
-    Grade curGrade(WHITE, "", { 0, 0 });
+    Grade* curGrade;
     if (!stats->Bot) {
-        bgToDraw = assets.GradeBackgrounds[GetGrade(accuracy, curGrade)];
-        ResultsShit = curGrade.Letter;
+        bgToDraw = assets.GradeBackgrounds[GetGrade(accuracy, &curGrade)];
+        ResultsShit = curGrade->Letter;
     } else {
-        curGrade = Grades.back();
+        curGrade = &Grades.back();
     }
 
     bgToDraw->Draw({ cardPos, cardTop, cardWidth, topCardHeight }, WHITE);
