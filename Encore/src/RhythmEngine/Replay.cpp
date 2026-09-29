@@ -1,7 +1,10 @@
 #include "Replay.h"
+
+#define LOAD_VALUE_TYPE(type, target) {type temp; stream >> temp; *(type*)(&target) = temp;}
+
 namespace Encore::RhythmEngine {
 
-    void Replay::ReplayParticipant::Write(encore::bin_ofstream_le &stream) {
+    void ReplayParticipant::Write(encore::bin_ofstream_le &stream) {
         stream << name;
         stream << instrument;
         stream << difficulty;
@@ -9,8 +12,16 @@ namespace Encore::RhythmEngine {
         stream << bindingType;
         stream << noteSpeed;
         stream << trackLength;
+
+        stream << (uint64_t)inputs.size();
+        for (auto& input : inputs) {
+            stream << (int8_t)input.channel;
+            stream << (int8_t)input.action;
+            stream << input.axis;
+            stream << input.timestamp;
+        }
     }
-    void Replay::ReplayParticipant::Load(encore::bin_ifstream_le &stream) {
+    void ReplayParticipant::Load(encore::bin_ifstream_le &stream) {
         stream >> name;
         stream >> instrument;
         stream >> difficulty;
@@ -20,26 +31,34 @@ namespace Encore::RhythmEngine {
         bindingType = (ControllerBindingType)bindType;
         stream >> noteSpeed;
         stream >> trackLength;
+
+        uint64_t inputCount;
+        stream >> inputCount;
+
+        for (uint64_t i = 0; i < inputCount; i++) {
+            ControllerEvent newInput;
+            LOAD_VALUE_TYPE(int8_t, newInput.channel)
+            assert(newInput.channel < InputChannel::CHANNEL_MAX);
+            LOAD_VALUE_TYPE(int8_t, newInput.action)
+            assert(newInput.action <= Action::REPEAT);
+            stream >> newInput.axis;
+            stream >> newInput.timestamp;
+
+            inputs.push_back(newInput);
+        }
+
+        std::ranges::sort(inputs, [](const ControllerEvent& a, const ControllerEvent& b){return a.timestamp < b.timestamp;});
     }
-    Replay::ReplayParticipant::ReplayParticipant()
+    ReplayParticipant::ReplayParticipant()
         : instrument(0), difficulty(0), activeSlot(0), bindingType(), noteSpeed(0),
           trackLength(0) {}
-    Replay::ReplayParticipant::ReplayParticipant(Player &player)
+    ReplayParticipant::ReplayParticipant(Player &player)
         : name(player.Name), instrument(player.Instrument), difficulty(player.Difficulty),
           activeSlot(player.ActiveSlot), bindingType(player.bindingType), noteSpeed(player.NoteSpeed),
           trackLength(player.HighwayLength) {}
-    ReplayPlayer::ReplayPlayer(Replay &replay)
-        : replay(&replay), lastUpdateTime(0) {
-        nextInput = replay.inputs.begin();
-    }
-    bool ReplayPlayer::EventMatchesFilter(ControllerEvent &event) {
-        if (slotFilter == -1) return true;
-        return event.slot == slotFilter;
-    }
-    void ReplayPlayer::SkipNonFilter() {
-        while (HasNextInput() && !EventMatchesFilter(*nextInput)) {
-            nextInput++;
-        }
+    ReplayPlayer::ReplayPlayer(ReplayParticipant &replayParticipant)
+        : replayParticipant(&replayParticipant), lastUpdateTime(0) {
+        nextInput = replayParticipant.inputs.begin();
     }
 
     void ReplayPlayer::Advance(double time) {
@@ -47,7 +66,7 @@ namespace Encore::RhythmEngine {
     }
 
     bool ReplayPlayer::HasNextInput() {
-        if (nextInput == replay->inputs.end()) return false;
+        if (nextInput == replayParticipant->inputs.end()) return false;
         return nextInput->timestamp <= lastUpdateTime;
     }
 
@@ -55,10 +74,9 @@ namespace Encore::RhythmEngine {
         if (lastEventFetched) {
             return &*nextInput;
         }
-        SkipNonFilter();
         auto ret = &*nextInput;
         ++nextInput;
-        if (nextInput == replay->inputs.end()) lastEventFetched = true;
+        if (nextInput == replayParticipant->inputs.end()) lastEventFetched = true;
         return ret;
     }
 
@@ -71,21 +89,7 @@ namespace Encore::RhythmEngine {
         for (auto& participant : participants) {
             participant.Write(stream);
         }
-
-        stream << (uint64_t)inputs.size();
-        for (auto& input : inputs) {
-            stream << (int8_t)input.channel;
-            stream << (int8_t)input.action;
-            stream << input.axis;
-            // Yes, this is smaller than SDL_JoystickID, slots in replays represent player numbers
-            // so even 8 bits is overkill
-            stream << (int8_t)input.slot;
-
-            stream << input.timestamp;
-        }
     }
-
-#define LOAD_VALUE_TYPE(type, target) {type temp; stream >> temp; *(type*)(&target) = temp;}
 
     void Replay::Load(encore::bin_ifstream_le& stream) {
         uint32_t header;
@@ -110,24 +114,6 @@ namespace Encore::RhythmEngine {
             part->Load(stream);
         }
 
-        uint64_t inputCount;
-        stream >> inputCount;
-
-        for (uint64_t i = 0; i < inputCount; i++) {
-            ControllerEvent newInput;
-            LOAD_VALUE_TYPE(int8_t, newInput.channel)
-            assert(newInput.channel < InputChannel::CHANNEL_MAX);
-            LOAD_VALUE_TYPE(int8_t, newInput.action)
-            assert(newInput.action <= Action::REPEAT);
-            stream >> newInput.axis;
-            int8_t slot;
-            stream >> slot;
-            newInput.slot = slot;
-            stream >> newInput.timestamp;
-            inputs.push_back(newInput);
-        }
-
-        std::ranges::sort(inputs, [](const ControllerEvent& a, const ControllerEvent& b){return a.timestamp < b.timestamp;});
         loaded = true;
     }
 }

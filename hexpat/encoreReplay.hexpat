@@ -34,17 +34,6 @@ enum ControllerBindingType : u8 {
     DRUMS
 };
 
-struct Participant {
-    String name;
-    SongPart instrument;
-    Difficulty difficulty;
-    u32 activeSlot;
-    ControllerBindingType bindingType;
-    
-    float noteSpeed;
-    float trackLength;
-};
-
 enum InputChannel : s8 {
     LANE_1 = 0,
     LANE_2 = 1,
@@ -73,8 +62,21 @@ struct InputEvent {
     InputChannel channel;
     Action action;
     u8 axis;
-    u8 slot;
     double timestamp;
+};
+
+struct Participant {
+    String name;
+    SongPart instrument;
+    Difficulty difficulty;
+    u32 activeSlot;
+    ControllerBindingType bindingType;
+    
+    float noteSpeed;
+    float trackLength;
+    
+    u64 inputCount;
+    InputEvent inputs[inputCount];
 };
 
 struct Replay {
@@ -84,9 +86,6 @@ struct Replay {
     
     u64 participantCount;
     Participant participants[participantCount];
-    
-    u64 inputCount;
-    InputEvent inputs[inputCount];
 };
 
 Replay replay @ 0x00;

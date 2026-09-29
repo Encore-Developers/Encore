@@ -10,34 +10,36 @@
 // - YY: Current year (2 digits, 4 digits impedes on 32-bit integer limit)
 // - MM: Current month
 // - DD: Current day
-// - RR: Number of times the cache was revised that day, starting from 1
-#define REPLAY_VERSION 26062904
+// - RR: Number of times the replay format was revised that day, starting from 1
+#define REPLAY_VERSION 26092801
 #define REPLAY_HEADER 0x52434E45 // "ENCR"
 
 namespace Encore::RhythmEngine {
-    class Replay {
-    public:
-        struct ReplayParticipant {
-            std::string name;
-            int instrument;
-            int difficulty;
-            /// Overshell slot this player was in at time of recording. This is what the
-            /// slot parameter on events is set to.
-            int activeSlot;
-            ControllerBindingType bindingType;
+    struct ReplayParticipant {
+        std::string name;
+        int instrument;
+        int difficulty;
+        /// Overshell slot this player was in at time of recording. This is what the
+        /// slot parameter on events is set to.
+        int activeSlot;
+        ControllerBindingType bindingType;
 
-            // In case we want to create fake players from
-            float noteSpeed;
-            float trackLength;
-
-            void Write(encore::bin_ofstream_le& stream);
-            void Load(encore::bin_ifstream_le& stream);
-
-            ReplayParticipant();
-            ReplayParticipant(Player& player);
-        };
+        // In case we want to create fake players from
+        float noteSpeed;
+        float trackLength;
 
         std::deque<ControllerEvent> inputs;
+
+        void Write(encore::bin_ofstream_le& stream);
+        void Load(encore::bin_ifstream_le& stream);
+
+        ReplayParticipant();
+        ReplayParticipant(Player& player);
+    };
+    class Replay {
+    public:
+
+
         std::vector<ReplayParticipant> participants;
         SongHash song;
         bool loaded = false;
@@ -48,16 +50,14 @@ namespace Encore::RhythmEngine {
 
     class ReplayPlayer {
     public:
-        Replay* replay;
+        ReplayParticipant* replayParticipant;
         std::deque<ControllerEvent>::iterator nextInput;
         double lastUpdateTime;
-        int slotFilter = -1;
+
         bool lastEventFetched = false;
 
-        ReplayPlayer(Replay& replay);
+        ReplayPlayer(ReplayParticipant& replay);
 
-        bool EventMatchesFilter(ControllerEvent& event);
-        void SkipNonFilter();
         void Advance(double time);
         bool HasNextInput();
         ControllerEvent* GetNextInput();

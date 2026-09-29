@@ -30,12 +30,11 @@ void QuickOpenSongDir(std::filesystem::path dir) {
                 fakePlayer->HighwayLength = part.trackLength;
                 fakePlayer->ReplaySlot = part.activeSlot;
                 fakePlayer->PlaybackReplay = replay;
-                fakePlayer->ReplayPlayer = std::make_shared<Encore::RhythmEngine::ReplayPlayer>(*replay);
-                fakePlayer->ReplayPlayer->slotFilter = part.activeSlot;
+                fakePlayer->ReplayPlayer = std::make_shared<Encore::RhythmEngine::ReplayPlayer>(part);
                 fakePlayer->joypadID = -3;
 
-                for (size_t i = 0; i < MAX_PLAYERS; i++) {
-                    if (!ThePlayerManager.ActivePlayers[i]) {
+                for (size_t i = 0; i < 256; i++) {
+                    if (i >= ThePlayerManager.ActivePlayers.size() || !ThePlayerManager.ActivePlayers[i]) {
                         ThePlayerManager.AddActivePlayer(fakePlayer, i);
                         break;
                     }

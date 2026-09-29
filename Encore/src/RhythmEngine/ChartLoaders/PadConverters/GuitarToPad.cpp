@@ -65,6 +65,9 @@ void SetOriginalLanePass(BaseChart &sourceChart) {
 }
 
 void HopoPass(BaseChart &sourceChart) {
+    if (sourceChart.Lanes[0].size() < 5) {
+        return;
+    }
     int hopoTemperature = 0;
     for (int i = 2; i < sourceChart.Lanes[0].size()-3; i++) {
         NoteEvent& note = sourceChart.Lanes[0][i];

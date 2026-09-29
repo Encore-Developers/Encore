@@ -41,7 +41,7 @@ void ChartLoadingMenu::LoadCharts() {
     chartLoader.LoadCharts();
     TheSongTime.Sections = chartLoader.GetSections();
 
-    for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+    for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum])
             continue;
         ZoneScopedN("RhythmEngine ctors")

@@ -24,7 +24,7 @@ public:
     // BandGameplayStats *BandStats;
     std::filesystem::path PlayerListSaveFile;
     std::vector<std::shared_ptr<Player>> PlayerList;
-    std::array<std::shared_ptr<Player>, MAX_PLAYERS> ActivePlayers;
+    std::vector<std::shared_ptr<Player>> ActivePlayers;
     int PlayersActive = 0;
 
     Player* GetPlayerForJoystick(SDL_JoystickID id);
@@ -40,6 +40,9 @@ public:
     }
 
     void AddActivePlayer(std::shared_ptr<Player> player, int slot) {
+        if (slot >= ActivePlayers.size()) {
+            ActivePlayers.resize(slot + 1);
+        }
         ActivePlayers.at(slot) = player;
         // GetActivePlayer(slot).joypadID = slot;
         PlayersActive += 1;

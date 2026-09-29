@@ -14,6 +14,7 @@
 using json = nlohmann::json;
 
 PlayerManager::PlayerManager() {
+    ActivePlayers.resize(MAX_PLAYERS);
     for (auto &p : ActivePlayers) {
         p = nullptr;
     }
@@ -141,7 +142,7 @@ void PlayerManager::SaveSpecificPlayer(std::shared_ptr<Player> player, bool acti
 }
 
 Player *PlayerManager::GetPlayerForJoystick(SDL_JoystickID id) {
-    for (size_t i = 0; i < MAX_PLAYERS; i++) {
+    for (size_t i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
         auto player = ActivePlayers[i];
         if (!player) {
             continue;
@@ -161,7 +162,7 @@ void PlayerManager::CreatePlayer(const std::string &name) {
 }; // set it as the next one in PlayerList
 
 void PlayerManager::DeletePlayer(const Player &PlayerToDelete) {
-    for (size_t i = 0; i < MAX_PLAYERS; i++) {
+    for (size_t i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
         auto player = ActivePlayers[i];
         if (!player) {
             continue;

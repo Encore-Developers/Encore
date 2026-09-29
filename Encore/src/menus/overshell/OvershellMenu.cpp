@@ -243,10 +243,11 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                         i, pos, playerManager.PlayerList[x]->Name.c_str()
                     )) {
                         playerManager.AddActivePlayer(playerManager.PlayerList[x], i);
+                        playerManager.GetActivePlayer(i).ActiveSlot = i;
 
                         if (ControllersToAssign[i] != 0) {
                             playerManager.GetActivePlayer(i).joypadID = ControllersToAssign[i];
-                            playerManager.GetActivePlayer(i).ActiveSlot = i;
+
                             DetectControllerType(playerManager.GetActivePlayer(i));
                             ControllersToAssign[i] = 0;
                         }

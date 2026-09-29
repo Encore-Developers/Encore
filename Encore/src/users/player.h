@@ -118,9 +118,7 @@ public:
     void SetColorProfile(const std::string &profile, Encore::ProfileManager::ColorProfileType type);
     Color QueryColorProfile(Encore::ColorSlot slot, Encore::ProfileManager::ColorProfileType type);
 
-    // zero indexed. local would be 0-3, online would be 4-7.
-    // NOTE! this is only for like. local information and
-    // not actually shared information. i was thinking of a UUID system for online
+
 };
 
 /*

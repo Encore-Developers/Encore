@@ -110,6 +110,7 @@ namespace Encore {
         };
         ~Track();
         Player& player;
+        std::deque<ControllerEvent> recordedInputs;
     protected:
 
         std::vector<std::unique_ptr<TrackSlot>> slots;

@@ -20,7 +20,7 @@
 
 void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     auto &Parts = chartLoader.GetSongParts();
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+    for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
         auto player = ThePlayerManager.ActivePlayers[i];
         if (!player)
             continue;

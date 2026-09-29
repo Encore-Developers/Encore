@@ -49,7 +49,7 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
     }
     if ((event.channel == Encore::InputChannel::PAUSE && event.action == Encore::Action::PRESS)
         || event.channel == Encore::InputChannel::DISCONNECT) {
-        for (int i = 0; i < MAX_PLAYERS; i++) {
+        for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
             if (!ThePlayerManager.ActivePlayers[i]) continue;
             Player &player = ThePlayerManager.GetActivePlayer(i);
             if (player.joypadID == event.slot) {
@@ -74,7 +74,7 @@ void GameplayMenu::UpdatePauseState() {
     } else {
         if (streamsPaused) {
             TheAudioManager.unpauseStreams();
-            for (int i = 0; i < MAX_PLAYERS; i++) {
+            for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
                 if (!ThePlayerManager.ActivePlayers[i]) continue;
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 player.engine->chart->MissedNotePointers.clear();
@@ -94,7 +94,7 @@ bool GameplayMenu::IsPaused() {
 void GameplayMenu::SetPresence() {
     int inst = 0;
     if (ThePlayerManager.PlayersActive == 1) {
-        for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+        for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
             if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
             inst = ThePlayerManager.GetActivePlayer(playerNum).Instrument;
         }
@@ -165,7 +165,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
                 engine->UpdateOnFrame(event.timestamp);
                 engine->ProcessInput(event);
                 event.slot = player.ActiveSlot;
-                recordingReplay.inputs.push_back(event);
+                track->recordedInputs.push_back(event);
             }
     }
 };
@@ -191,7 +191,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
             }
             engine->ProcessInput(event);
             event.slot = player.ActiveSlot;
-            recordingReplay.inputs.push_back(event);
+            track->recordedInputs.push_back(event);
         }
     }
 };
@@ -201,7 +201,7 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
     };
     double score = 0;
-    for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+    for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
     }
@@ -302,7 +302,7 @@ void GameplayMenu::DrawGameplayStars(
     // todo: redo for band
     double score = 0;
     double baseScore = 0;
-    for (int playerNum = 0; playerNum < MAX_PLAYERS; playerNum++) {
+    for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
         baseScore += ThePlayerManager.GetActivePlayer(playerNum).engine->chart->BaseScore;
@@ -400,23 +400,19 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
 
 void GameplayMenu::SaveReplay() {
     std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
-    bool playback = false;
-    for (auto track : tracks) {
-        if (track->player.PlaybackReplay) {
-            playback = true;
-            break;
+    // TODO: date+time filename
+    replayPath /= (curSong->title + ".encrReplay");
+    encore::bin_ofstream_le replayOut(replayPath, std::ios::binary);
+    for (auto &track : tracks) {
+        if (track->player.ReplayPlayer) {
+            recordingReplay.participants.push_back(*track->player.ReplayPlayer->replayParticipant);
+        } else {
+            auto& part = recordingReplay.participants.emplace_back(track->player);
+            part.inputs = track->recordedInputs;
         }
     }
-    if (!playback) {
-        // TODO: date+time filename
-        replayPath /= (curSong->title + ".encrReplay");
-        encore::bin_ofstream_le replayOut(replayPath, std::ios::binary);
-        for (auto &track : tracks) {
-            recordingReplay.participants.emplace_back(track->player);
-        }
-        recordingReplay.Save(replayOut);
-        replayOut.close();
-    }
+    recordingReplay.Save(replayOut);
+    replayOut.close();
 }
 
 void GameplayMenu::DrawMTVOverlay(Vector2 pos) {
@@ -692,7 +688,7 @@ void GameplayMenu::Load() {
         stream.volume = volume;
     }
 
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+    for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
         if (!ThePlayerManager.ActivePlayers[i]) continue;
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
