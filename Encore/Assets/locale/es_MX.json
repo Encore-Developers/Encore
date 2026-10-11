@@ -5,11 +5,59 @@
 		"unknown": "Desconocido",
 		"select": "Seleccionar",
 		"confirm": "Confirmar",
+		"restart": "Reiniciar",
 		"back": "Atrás",
 		"pause": "Pausar",
 		"unpause": "Reanudar",
 		"instrument": "Instrumento",
-		"difficulty": "Dificultad"
+		"difficulty": "Dificultad",
+		"on": "Sí",
+		"off": "No"
+	},
+	"settings": {
+		"header": {
+			"main": "AJUSTES",
+			"categorySel": "Menú Principal",
+			"audioVisual": "Audio",
+			"gameplay": "Gameplay",
+			"controller": "Mapeos de Control",
+			"keyboard": "Mapeos de Teclado",
+			"credits": "Créditos"
+			},
+		"separator": {
+			"volume": "Volumen",
+			"calibration": "Calibración",
+			"video": "Video",
+			"songs": "Canciones"
+		},
+		"subtitle": "Selecciona un menú",
+		"audioOffset": "Latencia de Audio",
+		"videoOffset": "Latencia de Video",
+		"framerate": "Cuadros por Segundo",
+		"verticalSync": "Sinc. Vertical",
+		"scanSongs": "Escanear Canciones",
+		"awesomenessDetection": "Detección de Genialidad",
+		"fullscreen": "Pantalla Completa",
+		"volume": {
+			"global": "Volumen Principal",
+			"active": "Volumen de Instrumento Activo",
+			"inactive": "Volumen de Instrumento Inactivo",
+			"sfx": "Volumen de Efectos",
+			"mute": "Reducción de Volumen al fallar",
+			"menuMusic": "Volumen de Música de Menú",
+			"vocals": "Volumen de Pista de Vocales",
+			"crowd": "Volumen de Público"
+		},
+		"prompt": {
+			"exit": "Guardar y Salir",
+			"exitWithoutSaving":"Salir Sin Guardar"
+		},
+		"credits": {
+			"maintainers": "Mantenedores Principales",
+			"founder": "Fundadores",
+			"locale": "Localización",
+			"contributors": "Contribuyentes"
+		}
 	},
 	"mainMenu": {
 		"options": "Opciones",
@@ -69,12 +117,12 @@
 			"No se habla del Discord de Encore.",
 			"hey, si tienes tiempo, ¿quieres una comisión?",
 			"¡se me le olvidó!",
-			"¡ya me acordé!",
+			"¡ya me le acordé!",
 			"¡El overshell es el mejor invento después del pan de molde!",
 			"encore",
 			"¡Hola mami!",
 			"¡Hecho a mano con amor!",
-			"¡El Whammy te da puntos extra!",
+			"¡El Whammy da puntos extra!",
 			"Cuando se va todo al carajo, ¿eres tú el carajo?",
 			"¡John Encore te da las gracias!",
 			"¡Dificultades Técnicas!",
@@ -89,10 +137,10 @@
 			"¡Marie estuvo aquí!",
 			"¡Kimicake estuvo aquí!",
 			"¡Jaydenz estuvo aquí!",
+			"¡Lynxeption estuvo aquí!",
 			"¡ESTAH TÚ NO LAH TIENE!",
 			"¡tposejank estuvo aquí!",
-			"¡Lynxeption estuvo aquí!",
-			"¡It's Only Connor (or Clover) estuvo aquí!",
+			"¡It's Only Connor (o Clover) estuvo aquí!",
 			"¡y el multijugador sigue en desarrollo!",
 			"Sin modo práctica; ¡es trampa!",
 			"¡No hagas eso!",
@@ -109,7 +157,7 @@
 			"¡It's a Psychobilly Freakout!",
 			"¡Rasguear 0-0-0-0 hacia abajo DOLERÁ!",
 			"si no te caen bien los gays no juegues esto",
-			"¡bien gordo!",
+			"¡bien fokin gordo!",
 			"explicándole la pluralidad a un gringo: ¡imagina dos carnes en una hamburguesa!",
 			"¡hawk tuah, viejo!",
 			"¿tung tung tung sahur es trans? andamos rizzeando como un sigma. este void está bien bodrio, cierra la cuenta.",
@@ -122,9 +170,13 @@
 			"¡Per Fidem Ad Ludos Rhythmicos!",
 			"0.2—¡Más de un año en desarrollo!",
 			"¿Les molesta si un latino habla un poquito de english?",
-			"[Encore] build-macos falló en main… ¡pero no es como que me importe o algo~! ¡baka!"
+			"[Encore] build-macos falló en main… ¡pero no es como que me importe o algo~! ¡baka!",
+			"Isn't she lovely?",
+			"Isn't she wonderful?",
+			"Isn't she precious?"
 		],
 		"steamOnlySplashes": [
+			"Hola ",
 			"¿Puedes creer que nos dejaron publicar en Steam?",
 			"¡Hola, SteamDB!",
 			"Cuidado: tus amigos de Steam pueden ver lo que juegas.",
@@ -144,6 +196,7 @@
 			"guitar": "Guitarra",
 			"drums": "Batería",
 			"pad": "Pad/Control"
+			"plastic": "Plástico"
 		},
 		"currentController": "Control: {}",
 		"brutalMode": "Modo Brutal",
@@ -151,12 +204,18 @@
 		"leftyFlip": "Modo Zurdo",
 		"dropOut": "Abandonar",
 		"return": "Regresar",
-		"restart": "Reiniciar",
 		"exitSong": "Abandonar Canción"
 	},
 	"songSelect": {
 		"header": "BIBLIOTECA DE CANCIONES",
+		"quickplay": "Partida Rápida",
+		"playlistMode": "CreandoPlaylist",
+		"createPlaylist": "Crear Playlist",
+		"disablePlaylist": "Eliminar Playlist",
+		"addToPlaylist": "Añadir Canción",
+		"removeFromPlaylist": "Quitar Canción",
 		"playSong": "Jugar Canción",
+		"playPlaylist": "Comenzar Playlist",
 		"sort": "Ordenar",
 		"jumpHeaders": "Saltar Categorías",
 		"sortedBy": "Ordenado por: {}",
@@ -166,7 +225,8 @@
 			"artist": "Artista",
 			"source": "Origen",
 			"length": "Duración",
-			"year": "Año"
+			"year": "Año",
+			"playlist": "Playlist"
 		},
 		"options": {
 			"audiovisual": "Audio/Visual",
@@ -177,8 +237,12 @@
 		}
 	},
 	"resultsMenu": {
+		"sections": "Toggle General/Section Stats",
 		"back": "Regresar a Biblioteca de Canciones",
+		"next": "Next Song in Playlist",
 		"indevWarning": "La puntuación se desactiva en builds de desarrollo",
+		"statisticsHeader": "Statistics",
+		"sectionHeader": "Sections",
 		"infoText": {
 			"fc": "Impecable",
 			"autoplay": "Autoplay"
@@ -189,14 +253,30 @@
 			"missed": "Fallidas:",
 			"overhit": "Rachas:",
 			"streak": "Racha más larga:",
-			"noteCount": "Notas:"
+			"noteCount": "Notas:",
+			"accRating": "Calificación de Precisión:"
+		},
+		"splash": {
+			"P": "¡Perfecto!",
+			"S": "¡Sensacional!",
+			"A": "¡Asombroso!",
+			"B": "¡Bien!",
+			"C": "Con más práctica...",
+			"D": "¡Dale otra vez!",
+			"F": "Fallido",
+			"autoplay": "Autoplay"
 		}
 	},
 	"gameplay": {
 		"perfect": "PERFECTO",
 		"good": "BIEN",
 		"bad": "MAL",
+		"playlistDisplay": "({} de {})",
+		"sectionDisplay": "Sección: {}",
 		"autoplay": "(AUTOPLAY)",
+		"replay": "(REPETICIÓN)",
+		"avgOffset": "Latencia Promedio: {: 7.2f}ms",
+		"lastOffset": "Latencia de Último Golpe: {: 7.2f}ms",
 		"trackNotification": {
 			"overdrive": "Sobrecarga lista",
 			"combo": "Combo de {} Notas",
@@ -211,6 +291,13 @@
 	"cacheLoading": {
 		"header": "CARGANDO CACHÉ",
 		"loading": "{}/{} canciones cargadas"
+		},
+	"songScanning":  {
+		"header": "Escaneando Canciones",
+		"folders": "Carpetas Encontradas:",
+		"songs": "Canciones Encontradas:",
+		"badSongs": "Canciones con Errores:",
+		"hashed": "Hashes Calculados:"
 	},
 	"parts": {
 		"pad": "Pad",
@@ -231,5 +318,10 @@
 		"medium": "Media",
 		"hard": "Difícil",
 		"expert": "Experta"
+	},
+	"practice": {
+		"selectSections": "Elegir Secciones",
+		"exit": "Terminar Práctica",
+		"wholeSong": "Canción Completa"
 	}
 }
