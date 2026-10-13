@@ -105,6 +105,9 @@ namespace Encore {
         unsigned int odSidesID;
         std::unique_ptr<ParticleSystem> particleSystem;
 
+        ThreadPool joystickLEDThread = {1};
+        double lastLEDUpdateTime = 0.0;
+
         Track(Player &player_)
             : player(player_) {
         };

@@ -985,16 +985,29 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
 
 void Encore::Track::UpdateControllerLED() {
     ZoneScoped
-    if (player.joypadID > 0) {
-        auto joystick = SDL_GetJoystickFromID(player.joypadID);
-        if (joystick) {
-            float beatFrac = TheSongTime.GetBeatlineDelta();
-            Color baseColor = ColorLerp(player.AccentColor, { 0, 0, 0, 0 }, beatFrac);
-            Color overdriveColor = ColorLerp({ 255, 255, 0, 255 }, baseColor, beatFrac);
-            baseColor = ColorLerp(baseColor, overdriveColor, OverdriveTimer);
-            SDL_SetJoystickLED(joystick, baseColor.r, baseColor.g, baseColor.b);
+    if (currentTime > lastLEDUpdateTime + (1.0f/30.0f)) {
+        lastLEDUpdateTime = currentTime;
+        if (player.joypadID > 0) {
+            auto joystick = SDL_GetJoystickFromID(player.joypadID);
+            if (joystick) {
+                float beatFrac = TheSongTime.GetBeatlineDelta();
+                Color baseBaseColor = player.AccentColor;
+                float health = player.engine->stats->Health;
+                if (health < 0.33f) {
+                    float fac = 1 - health;
+                    float strength = getEasingFunction(EaseInSine)((fac * fac) - (health + 0.33));
+                    baseBaseColor = ColorLerp(baseBaseColor, {255, 0, 0, 255}, strength);
+                };
+                Color baseColor = ColorLerp(baseBaseColor, { 0, 0, 0, 0 }, beatFrac);
+                Color overdriveColor = ColorLerp({ 255, 255, 0, 255 }, baseColor, beatFrac);
+                baseColor = ColorLerp(baseColor, overdriveColor, OverdriveTimer);
+                joystickLEDThread.SubmitTask([joystick, baseColor]() {
+                    SDL_SetJoystickLED(joystick, baseColor.r, baseColor.g, baseColor.b);
+                });
+            }
         }
     }
+
 }
 
 void Encore::Track::HandleEvent(Event *event) {
