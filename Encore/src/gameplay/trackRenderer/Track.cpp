@@ -989,7 +989,7 @@ void Encore::Track::UpdateControllerLED() {
         lastLEDUpdateTime = currentTime;
         if (player.joypadID > 0) {
             auto joystick = SDL_GetJoystickFromID(player.joypadID);
-            if (joystick) {
+            if (joystick && SDL_JoystickConnected(joystick)) {
                 float beatFrac = TheSongTime.GetBeatlineDelta();
                 Color baseBaseColor = player.AccentColor;
                 float health = player.engine->stats->Health;
