@@ -24,6 +24,7 @@ namespace Encore {
         void DrawNotes();
         void DrawSmashers();
         void DrawBeatlines();
+        void DrawReplayDebug();
         void DrawSurface();
         void DrawOverdriveMeter();
         void DrawSolo();

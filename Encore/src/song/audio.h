@@ -33,6 +33,7 @@ namespace Encore {
             float volume = 1.0;
             Stems instrument;
             unsigned long fxhandle = 0;
+            float sampleRate = 0;
         };
         std::vector<AudioStream> loadedStreams; // Loaded audio streams
 
@@ -49,6 +50,7 @@ namespace Encore {
         void playStreams() const;
         void restartStreams() const;
         void seekStreams(double time) const;
+        void updateStreamRates();
         // Audio stream information
         double GetMusicTimePlayed() const;
         [[nodiscard]] double GetMusicTimeLength() const;

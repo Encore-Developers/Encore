@@ -319,7 +319,9 @@ void EncoreDebug::DrawQuickSettings() {
     ZoneScoped;
     if (Begin("Quick Settings", &showQuickSettings)) {
         SliderFloat("Song Speed", &TheAudioManager.songSpeed, 0, 3);
-        SliderFloat("Debug Song Speed", &TheAudioManager.debugSpeed, 0, 3);
+        if (SliderFloat("Debug Song Speed", &TheAudioManager.debugSpeed, 0, 3)) {
+            TheAudioManager.updateStreamRates();
+        }
         Checkbox("Uncap Framerate", &TheFrameManager.removeFPSLimit);
         Checkbox("VSync", &TheGameSettings.VerticalSync);
         Checkbox("Streamer Transparency", &TheGameSettings.StreamerTransparency);

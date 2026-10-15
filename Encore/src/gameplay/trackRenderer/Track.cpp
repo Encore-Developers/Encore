@@ -17,6 +17,7 @@
 #include "easing/easing.h"
 #include "events/Event.h"
 #include "../../menus/main/MainMenu.h"
+#include "RhythmEngine/Replay.h"
 #include "menus/util/locale/Locale.h"
 #include "song/song.h"
 #include "tracy/Tracy.hpp"
@@ -191,6 +192,9 @@ void Encore::Track::Draw() {
         BeginMode3D(AnimCamera);
         BeginShaderMode(ASSET(trackCurveShader));
         DrawSmashers();
+
+        DrawReplayDebug();
+
         rlDisableDepthTest();
         DrawNotes();
 
@@ -927,6 +931,59 @@ void Encore::Track::DrawBeatlines() {
     }
     rlDrawRenderBatchActive();
 };
+
+void Encore::Track::DrawReplayDebug() {
+    if (!player.ReplayPlayer || !EncoreDebug::showDebug) {
+        return;
+    }
+    if (player.ReplayPlayer->lastEventFetched) {
+        return;
+    }
+    auto end = GetViewEndTime();
+    for (auto it = player.ReplayPlayer->nextInput; it != player.ReplayPlayer->replayParticipant->inputs.end(); it++) {
+        auto& event = *it;
+        if (event.timestamp > end) {
+            break;
+        }
+        if (event.channel == InputChannel::WHAMMY) {
+            continue;
+        }
+        float pos = GetNotePos3D(event.timestamp);
+        switch (event.channel) {
+        case InputChannel::LANE_1:
+        case InputChannel::LANE_2:
+        case InputChannel::LANE_3:
+        case InputChannel::LANE_4:
+        case InputChannel::LANE_5:
+            if (event.action == Action::PRESS) {
+                auto& slot = slots[(int)event.channel];
+                DrawCube({slot->xPos, 0, pos}, slot->width*1.35, 0.06, 0.1, player.QueryColorProfile(slot->colorSlot, ColorProfileType));
+            } else {
+                auto& slot = slots[(int)event.channel];
+                DrawCube({slot->xPos, 0, pos}, slot->width, 0.06, 0.1, {128, 128, 128, 128});
+                // for (auto itback = it; itback != player.ReplayPlayer->replayParticipant->inputs.begin() && it != player.ReplayPlayer->replayParticipant->inputs.begin(); itback--) {
+                //     if (itback->channel == event.channel && itback->action == Action::PRESS) {
+                //         float pos2 = GetNotePos3D(itback->timestamp);
+                //         float mid = (pos + pos2) / 2.0f;
+                //         float dist = (pos - pos2);
+                //         DrawCube({slot->xPos, 0, mid}, 0.2, 0.06, dist, player.QueryColorProfile(slot->colorSlot, ColorProfileType));
+                //     }
+                // }
+            }
+            break;
+        case InputChannel::STRUM_UP:
+        case InputChannel::STRUM_DOWN:
+            if (event.action == Action::PRESS) {
+                for (int i = 0; i < 5; i++) {
+                    // I am *lazy*. Just draw 5 cubes and call it a day
+                    DrawCube({2.0f-i, 0, pos}, 1, 0.06, 0.1, player.QueryColorProfile(SLOT_OPEN, ColorProfileType));
+                }
+            }
+
+            break;
+        }
+    }
+}
 
 Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::NoteEvent &note) const {
     static TrackSlot *slotBuffer[7];

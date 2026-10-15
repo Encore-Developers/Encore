@@ -114,6 +114,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::pa
             AudioStream audio_stream;
             audio_stream.handle = streamHandle;
             audio_stream.instrument = path.second;
+            BASS_ChannelGetAttribute(audio_stream.handle, BASS_ATTRIB_FREQ, &audio_stream.sampleRate);
             loadedStreams.push_back(std::move(audio_stream));
             if (streams != 0) {
                 BASS_ChannelSetLink(
@@ -126,9 +127,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::pa
                     BASS_ChannelFlags(streamHandle, 0, BASS_SAMPLE_LOOP); // remove the
                                                                           // LOOP flag
             }
-            float rate = 0;
-            BASS_ChannelGetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, &rate);
-            BASS_ChannelSetAttribute(loadedStreams[streams].handle, BASS_ATTRIB_FREQ, rate*songSpeed*debugSpeed);
+
             streams++;
         } else {
             std::string pString = path.first.string();
@@ -141,6 +140,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::pa
             };
         }
     }
+    updateStreamRates();
 }
 
 void Encore::AudioManager::unloadStreams() {
@@ -186,6 +186,11 @@ void Encore::AudioManager::seekStreams(double time) const {
             BASS_ChannelSetPosition(stream.handle, rewindTimeBytes, BASS_POS_BYTE);
         }
         BASS_ChannelPlay(loadedStreams[0].handle, false);
+    }
+}
+void Encore::AudioManager::updateStreamRates() {
+    for (auto& stream : loadedStreams) {
+        BASS_ChannelSetAttribute(stream.handle, BASS_ATTRIB_FREQ, stream.sampleRate*songSpeed*debugSpeed);
     }
 }
 
