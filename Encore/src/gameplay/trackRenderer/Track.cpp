@@ -961,14 +961,15 @@ void Encore::Track::DrawReplayDebug() {
             } else {
                 auto& slot = slots[(int)event.channel];
                 DrawCube({slot->xPos, 0, pos}, slot->width, 0.06, 0.1, {128, 128, 128, 128});
-                // for (auto itback = it; itback != player.ReplayPlayer->replayParticipant->inputs.begin() && it != player.ReplayPlayer->replayParticipant->inputs.begin(); itback--) {
-                //     if (itback->channel == event.channel && itback->action == Action::PRESS) {
-                //         float pos2 = GetNotePos3D(itback->timestamp);
-                //         float mid = (pos + pos2) / 2.0f;
-                //         float dist = (pos - pos2);
-                //         DrawCube({slot->xPos, 0, mid}, 0.2, 0.06, dist, player.QueryColorProfile(slot->colorSlot, ColorProfileType));
-                //     }
-                // }
+                for (auto itback = it; itback != player.ReplayPlayer->replayParticipant->inputs.begin() && it != player.ReplayPlayer->replayParticipant->inputs.begin(); itback--) {
+                    if (itback->channel == event.channel && itback->action == Action::PRESS) {
+                        float pos2 = GetNotePos3D(itback->timestamp);
+                        float mid = (pos + pos2) / 2.0f;
+                        float dist = (pos - pos2);
+                        DrawCube({slot->xPos, 0, mid}, 0.2, 0.06, dist, player.QueryColorProfile(slot->colorSlot, ColorProfileType));
+                        break;
+                    }
+                }
             }
             break;
         case InputChannel::STRUM_UP:

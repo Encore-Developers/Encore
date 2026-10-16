@@ -500,7 +500,7 @@ void GameplayMenu::Draw() {
     if (!TheGameSettings.StreamerTransparency) {
         Texture2D* video = nullptr;
         if (videoBackground) {
-            video = videoBackground->GetTexture(TheSongTime.GetElapsedTime() + curSong->videoStartTime);
+            video = videoBackground->GetTexture((TheSongTime.GetElapsedTime()*TheAudioManager.songSpeed) + curSong->videoStartTime);
         }
         if (video) {
             Vector2 screenSize = {(float)GetRenderWidth(), (float)GetRenderHeight()};
