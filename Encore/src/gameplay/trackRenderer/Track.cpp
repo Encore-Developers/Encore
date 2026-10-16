@@ -979,8 +979,14 @@ void Encore::Track::DrawReplayDebug() {
                     DrawCube({2.0f-i, 0, pos}, 1, 0.06, 0.1, player.QueryColorProfile(SLOT_OPEN, ColorProfileType));
                 }
             }
-
             break;
+        case InputChannel::OVERDRIVE:
+            if (event.action == Action::PRESS) {
+                for (int i = 0; i < 5; i++) {
+                    // I am *lazy*. Just draw 5 cubes and call it a day
+                    DrawCube({2.0f-i, 0, pos}, 1, 0.06, 0.1, player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, ColorProfileType));
+                }
+            }
         }
     }
 }
