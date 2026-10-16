@@ -169,7 +169,7 @@ void SongList::sortList(SortType sortType) {
         std::vector<std::list<Bucket>::iterator> ToDelete;
         for (auto bucket = buckets.begin(); bucket != buckets.end(); ++bucket) {
             if (bucket->songs.size() < 3) {
-                for (auto g = bucket; bucket != buckets.begin(); --g) {
+                for (auto g = bucket; bucket != buckets.begin() && g != buckets.begin(); --g) {
                     if (g->artist() != bucket->artist()) {
                         if (g++->name != "singles") {
                             buckets.insert(g++, Bucket(bucket->songs, "singles"));
