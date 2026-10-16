@@ -34,6 +34,7 @@ namespace Encore {
             Stems instrument;
             unsigned long fxhandle = 0;
             float sampleRate = 0;
+            bool tempoResampling = false;
         };
         std::vector<AudioStream> loadedStreams; // Loaded audio streams
 

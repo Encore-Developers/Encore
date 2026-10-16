@@ -1,6 +1,7 @@
 #include "audio.h"
 
 #include "bass/bass.h"
+#include "bass/bass_fx.h"
 #include "bass/bassopus.h"
 #include "tracy/Tracy.hpp"
 
@@ -109,11 +110,22 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::pa
     ZoneScoped;
     int streams = 0;
     for (auto &path : paths) {
-        HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, 0);
+        int flags = 0;
+        if (songSpeed != 1) {
+            flags = BASS_STREAM_DECODE;
+        }
+        HSTREAM streamHandle = BASS_StreamCreateFile(false, path.first.c_str(), 0, 0, flags);
+        if (songSpeed != 1) {
+            streamHandle = BASS_FX_TempoCreate(streamHandle, BASS_FX_FREESOURCE);
+        }
+        CHECK_BASS_ERROR("Error");
         if (streamHandle) {
             AudioStream audio_stream;
             audio_stream.handle = streamHandle;
             audio_stream.instrument = path.second;
+            if (songSpeed != 1) {
+                audio_stream.tempoResampling = true;
+            }
             BASS_ChannelGetAttribute(audio_stream.handle, BASS_ATTRIB_FREQ, &audio_stream.sampleRate);
             loadedStreams.push_back(std::move(audio_stream));
             if (streams != 0) {
@@ -190,7 +202,12 @@ void Encore::AudioManager::seekStreams(double time) const {
 }
 void Encore::AudioManager::updateStreamRates() {
     for (auto& stream : loadedStreams) {
-        BASS_ChannelSetAttribute(stream.handle, BASS_ATTRIB_FREQ, stream.sampleRate*songSpeed*debugSpeed);
+        if (stream.tempoResampling) {
+            BASS_ChannelSetAttribute(stream.handle, BASS_ATTRIB_TEMPO, ((songSpeed*debugSpeed)-1.0f)*100.0f);
+        } else {
+            BASS_ChannelSetAttribute(stream.handle, BASS_ATTRIB_FREQ, stream.sampleRate*debugSpeed);
+        }
+        CHECK_BASS_ERROR("Failed to update stream rates");
     }
 }
 
