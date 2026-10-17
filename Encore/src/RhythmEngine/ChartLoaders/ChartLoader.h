@@ -21,7 +21,7 @@ namespace Encore::RhythmEngine {
         std::vector<LyricPhrase> Lyrics;
     public:
         explicit ChartHandler(Song* song)
-            : song(song), file(song->chartPath) {
+            : song(song), file(song->chartPath), threshold(song->hopoThreshold) {
         };
 
         void SetThreshold(int thresh) {
