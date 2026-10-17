@@ -16,7 +16,7 @@ namespace Encore::RhythmEngine {
         bool processed = false;
         bool FinishedLoading = false;
     public:
-        explicit MidiChartHandler(std::filesystem::path fileName);
+        explicit MidiChartHandler(Song* song);
         ~MidiChartHandler() = default;
         int GetResolution() override { return tpq; };
         std::vector<BPM> GetBPMChanges() override;
@@ -29,6 +29,7 @@ namespace Encore::RhythmEngine {
         std::vector<Section> GetSections() override;
         BaseChart GetChart(int part, int diff) override;
         bool IsLoaded() override;
+        void PopulateSubsongs() override;
     };
 
 }

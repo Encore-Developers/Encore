@@ -289,7 +289,7 @@ void SongList::WriteCache() {
         SongCache << song.songDir.string();
         SongCache << song.albumArtPath.string();
         SongCache << song.songInfoPath.string();
-        SongCache << song.midiPath.string();
+        SongCache << song.chartPath.string();
         SongCache << song.hash;
         std::ifstream songInfo(song.songInfoPath);
         std::ostringstream sstr;
@@ -333,7 +333,7 @@ void SongList::ScanFolder(const std::filesystem::path &folder, std::wofstream &b
                 auto placedSong = &songs.emplace_back(std::move(song));
                 scanPool->SubmitTask([placedSong]() {
                     ZoneScopedN("Hash Song")
-                        std::ifstream hashStream(placedSong->midiPath, std::ios::binary);
+                        std::ifstream hashStream(placedSong->chartPath, std::ios::binary);
                     unsigned char hash[picosha2::k_digest_size] = { 0 };
                     picosha2::hash256(hashStream, hash, hash + picosha2::k_digest_size);
                     memcpy(&placedSong->hash, hash, picosha2::k_digest_size);
@@ -547,7 +547,7 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
 
         std::string midiPath;
         SongCacheIn >> midiPath;
-        song.midiPath = midiPath;
+        song.chartPath = midiPath;
 
         SongCacheIn >> song.hash;
 

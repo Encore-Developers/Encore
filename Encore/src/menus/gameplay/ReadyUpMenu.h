@@ -29,7 +29,7 @@ public:
     Song* curSong;
     Encore::RhythmEngine::ChartLoader chartLoader;
     ReadyUpMenu(Song* song)
-        : curSong(song), chartLoader(song->midiPath) {}
+        : curSong(song), chartLoader(song) {}
 
     ~ReadyUpMenu() override = default;
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override;

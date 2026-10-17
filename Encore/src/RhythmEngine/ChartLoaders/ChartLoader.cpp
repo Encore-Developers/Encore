@@ -7,11 +7,13 @@
 #include "DotChartLoader/DotChartHandler.h"
 #include "MidiLoaders/MidiChartHandler.h"
 
-Encore::RhythmEngine::ChartLoader::ChartLoader(const std::filesystem::path &chartPath) {
-    if (chartPath.filename() == "notes.mid") {
-        chartHandler = new MidiChartHandler(chartPath);
-    } else if (chartPath.filename() == "notes.chart") {
-        chartHandler = new DotChartHandler(chartPath);
+Encore::RhythmEngine::ChartLoader::ChartLoader(Song* song) {
+    // TODO: change chart loading to use istreams obtained from a method on Song
+    // both of the loaders should support it already and that'll let us load fron .sngs and whatnot
+    if (song->chartPath.filename() == "notes.mid") {
+        chartHandler = new MidiChartHandler(song);
+    } else if (song->chartPath.filename() == "notes.chart") {
+        chartHandler = new DotChartHandler(song);
     }
 }
 
@@ -48,6 +50,9 @@ int Encore::RhythmEngine::ChartLoader::GetResolution() {
 
 std::vector<TimeSig> Encore::RhythmEngine::ChartLoader::GetTimeSigChanges() const {
     return chartHandler->GetTimeSigChanges();
+}
+void Encore::RhythmEngine::ChartLoader::PopulateSubsongs() {
+    chartHandler->PopulateSubsongs();
 }
 
 Encore::RhythmEngine::BaseChart Encore::RhythmEngine::ChartLoader::GetChart(const SongPart part,

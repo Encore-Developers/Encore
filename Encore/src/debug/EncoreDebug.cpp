@@ -384,6 +384,20 @@ void DebugSeek(float time, float audioTime) {
             }
         }
     }
+    if (auto gameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get())) {
+        int i = 0;
+        for (auto& subsong : gameplay->curSong->subSongs) {
+            if (time > subsong.startTime) {
+                gameplay->subsongIndex = i;
+            }
+            i++;
+        }
+    }
+    for (int i = 0; i < TheSongTime.Lyrics.size(); i++) {
+        if (time > TheSongTime.Lyrics[i].start.sec) {
+            TheSongTime.CurrentLyricPhrase = 0;
+        }
+    }
     TheSongTime.CurrentBeatline = 0;
     TheSongTime.UpdateBeatlines();
 }

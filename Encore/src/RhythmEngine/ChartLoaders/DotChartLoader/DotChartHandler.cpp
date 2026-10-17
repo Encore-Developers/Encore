@@ -38,8 +38,8 @@ double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double l
     double secondDelta = secondsPerBeat * beatDelta;
     return secondDelta + lastTime;
 };
-Encore::RhythmEngine::DotChartHandler::DotChartHandler(std::filesystem::path fileName)
-    : ChartHandler(std::move(fileName)) {
+Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
+    : ChartHandler(song) {
     static const std::regex event("  ([0-9]+) = ([A-Z]+) (.+) ?(\\d?)");
     chart.open(file);
     for (std::string line; std::getline(chart, line);) {
@@ -176,3 +176,4 @@ Encore::RhythmEngine::BaseChart Encore::RhythmEngine::DotChartHandler::GetChart(
 bool Encore::RhythmEngine::DotChartHandler::IsLoaded() {
     return true;
 }
+void Encore::RhythmEngine::DotChartHandler::PopulateSubsongs() {}

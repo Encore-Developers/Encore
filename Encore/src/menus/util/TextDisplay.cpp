@@ -85,11 +85,18 @@ namespace Encore
     }
 
     TextDisplay & TextDisplay::lDrawText(const std::string &localizeKey) {
-        DrawText(LOCALISE(localizeKey));
+        DrawText(LOCALISE(localizeKey).toChar());
         return *this;
     }
+    TextDisplay &TextDisplay::DrawText(const LocalizedString &text) {
+        return DrawText(text.toChar());
+    }
 
-    TextDisplay &  TextDisplay::DrawText(const std::string &text) {
+    TextDisplay &TextDisplay::DrawText(const std::string &text) {
+        return DrawText(text.c_str());
+    }
+
+    TextDisplay &  TextDisplay::DrawText(const char* text) {
         float textLeftPos = pos.x+padding.x;
         float textWidth = TextWidth(text); //MeasureTextEx(font, text.c_str(), fontSize, 0).x;
         float textHeight = TextHeight(text);
@@ -101,7 +108,7 @@ namespace Encore
         if (width != 0 && height != 0) {
             if (textWidth > width-padding.x*2) {
                 size = (width - padding.x*2) / (textWidth / textHeight);
-                textWidth = MeasureTextEx(font, text.c_str(), size, 0).x;
+                textWidth = MeasureTextEx(font, text, size, 0).x;
                 top += (fontSize/2) - (size/2);
             }
         }
@@ -124,7 +131,7 @@ namespace Encore
         }
         }
         BeginShaderMode(ASSET(sdfShader));
-        DrawTextEx(font, text.c_str(), { textLeftPos, top }, size, 0, color);
+        DrawTextEx(font, text, { textLeftPos, top }, size, 0, color);
         EndShaderMode();
         return *this;
     }

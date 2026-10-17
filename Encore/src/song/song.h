@@ -223,7 +223,49 @@ inline std::string operator +(const std::string& lhs, const SortName &rhs) {
     return lhs + rhs.name;
 }
 
-class Song {
+class MTVProvider {
+public:
+    virtual ~MTVProvider() = default;
+    virtual const char* GetTitle() {return "";};
+    virtual const char* GetArtist() {return "";};
+    virtual const char* GetYear() {return "";};
+    virtual const char* GetAlbum() {return "";};
+    virtual const char* GetSource() {return "";};
+    virtual const char* GetCharter() {return "";};
+
+    virtual std::pair<double, double> GetMTVFadeInRange() {return {0, 0};}
+    virtual std::pair<double, double> GetMTVFadeOutRange() {return {0, 0};}
+};
+
+class SubSong : public MTVProvider {
+public:
+    std::string title;
+    std::string artist;
+    std::string album;
+    std::string year;
+    std::string source;
+    std::string charter;
+
+    // Timing info, blank until the song's chart is loaded
+    double startTime = INFINITY;
+    double enterTime = INFINITY;
+    double exitTime = INFINITY;
+
+    double mtvFadeInTime;
+    double mtvFadeOutTime;
+
+    const char *GetTitle() override { return title.c_str(); }
+    const char *GetArtist() override { return artist.c_str(); }
+    const char *GetAlbum() override { return album.c_str(); }
+    const char *GetYear() override { return year.c_str(); }
+    const char *GetSource() override { return source.c_str(); }
+    const char *GetCharter() override { return charter.c_str(); }
+
+    std::pair<double, double> GetMTVFadeInRange() override {return {enterTime, enterTime+mtvFadeInTime};}
+    std::pair<double, double> GetMTVFadeOutRange() override {return {exitTime, exitTime+mtvFadeOutTime};}
+};
+
+class Song : public MTVProvider {
 public:
     Song() {
         albumArtPath = TheAssets.getDirectory() / "ui" / "missing.png";
@@ -255,7 +297,7 @@ public:
     // Bass, Plastic Guitar
     std::array<int, PlasticVocals> Difficulties {-1};
 
-    std::filesystem::path midiPath = "";
+    std::filesystem::path chartPath = "";
     std::filesystem::path songDir = "";
     std::filesystem::path albumArtPath;
     std::filesystem::path songInfoPath = "";
@@ -269,9 +311,20 @@ public:
     std::filesystem::path GetVideoPath();
     float previewStartTime = 0.0f;
     double videoStartTime = 0.0;
+    std::vector<SubSong> subSongs;
+
+    const char *GetTitle() override { return title.c_str(); }
+    const char *GetArtist() override { return artist.c_str(); }
+    const char *GetAlbum() override { return artist.c_str(); }
+    const char *GetYear() override { return releaseYear.c_str(); }
+    const char *GetSource() override { return source.c_str(); }
+    const char *GetCharter() override { return charters[0].c_str(); }
+
+    std::pair<double, double> GetMTVFadeInRange() override;
+    std::pair<double, double> GetMTVFadeOutRange() override;
 
     std::string GetPlaylistPath() const {
-        return midiPath.parent_path().parent_path().filename().string();
+        return chartPath.parent_path().parent_path().filename().string();
     }
 
     void LoadInfoINI(std::filesystem::path iniPath);

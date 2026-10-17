@@ -13,14 +13,15 @@ struct TrackInformation {
 namespace Encore::RhythmEngine {
     class ChartHandler {
     protected:
+        Song* song;
         std::filesystem::path file;
         std::array<std::pair<std::array<BaseChart, 4>, bool>, PitchedVocals> Charts;
         std::array<TrackInformation, PlasticVocals> Parts;
         int threshold = -1;
         std::vector<LyricPhrase> Lyrics;
     public:
-        explicit ChartHandler(std::filesystem::path fileName)
-            : file(std::move(fileName)) {
+        explicit ChartHandler(Song* song)
+            : song(song), file(song->chartPath) {
         };
 
         void SetThreshold(int thresh) {
@@ -38,13 +39,14 @@ namespace Encore::RhythmEngine {
         virtual std::vector<TimeSig> GetTimeSigChanges() = 0;
         virtual BaseChart GetChart(int part, int diff) = 0;
         virtual bool IsLoaded() = 0;
+        virtual void PopulateSubsongs() = 0;
     };
 
     class ChartLoader {
         ChartHandler *chartHandler;
 
     public:
-        explicit ChartLoader(const std::filesystem::path &chartPath);;
+        explicit ChartLoader(Song* song);
 
         std::array<TrackInformation, PlasticVocals> &GetSongParts() const;
         std::vector<LyricPhrase> GetLyricPhrases() const;
@@ -54,6 +56,7 @@ namespace Encore::RhythmEngine {
         std::vector<Section> GetSections() const;
         int GetResolution();
         std::vector<TimeSig> GetTimeSigChanges() const;
+        void PopulateSubsongs();
 
         BaseChart GetChart(SongPart part, int difficulty) const;
         bool IsLoaded() {return chartHandler->IsLoaded();};

@@ -34,7 +34,7 @@
 
 Encore::LyricRenderer TheLyricRenderer;
 
-GameplayMenu::GameplayMenu(Song* song, std::shared_ptr<VideoBackground> videoBackground) : curSong(song), videoBackground(std::move(videoBackground)) {
+GameplayMenu::GameplayMenu(Song* song, std::shared_ptr<VideoBackground> videoBackground) : curSong(song), currentMTVProvider(song), videoBackground(std::move(videoBackground)) {
     hasOvershell = false;
 }
 
@@ -415,32 +415,54 @@ void GameplayMenu::SaveReplay() {
     replayOut.close();
 }
 
-void GameplayMenu::DrawMTVOverlay(Vector2 pos) {
+void GameplayMenu::DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFading) {
+    float alpha = 1.0f;
+    if (allowFading) {
+        auto time = TheSongTime.GetElapsedTime();
+        auto fadeInRange = song->GetMTVFadeInRange();
+        auto fadeOutRange = song->GetMTVFadeOutRange();
+        if (time < fadeInRange.first) {
+            alpha = 0.0f;
+        }
+        if (time > fadeInRange.first) {
+            if (time > fadeInRange.second) {
+                alpha = 1.0f;
+            }
+            alpha = Remap(time, fadeInRange.first, fadeInRange.second, 0, 1);
+        }
+        if (time > fadeOutRange.first) {
+            if (time > fadeOutRange.second) {
+                alpha = 0.0f;
+            }
+            alpha = Remap(time, fadeOutRange.first, fadeOutRange.second, 1, 0);
+        }
+    }
     Units& u = Units::getInstance();
-    const auto sourceTex = TheSourceIcons[curSong->source]->GetTexture();
+    const auto sourceTex = TheSourceIcons[song->GetSource()]->GetTexture();
     Encore::TextDisplay title;
     Encore::TextDisplay secondary;
 
     float TitleFontSize = u.hinpct(0.0425f * 0.75f);
-    title.Size(TitleFontSize).Pos(pos)
-         .Fnt(ASSET(josefinSansBold)).DrawText(curSong->title);
+    auto songTitle = song->GetTitle();
+    title.Size(TitleFontSize).Pos(pos).Col(ColorAlpha(WHITE, alpha))
+         .Fnt(ASSET(josefinSansBold)).DrawText(songTitle);
 
-    float TitleWidth = title.TextWidth(curSong->title);
+    float TitleWidth = title.TextWidth(songTitle);
     float TitleFontOffset = (TitleFontSize * 1.25f);
     float SecondaryFontSize = TitleFontSize * 0.85f;
     secondary.Size(SecondaryFontSize)
              .Pos(title.pos.x + TitleWidth + u.winpct(0.005f), pos.y + (TitleFontSize - SecondaryFontSize))
-             .Fnt(ASSET(josefinSansBoldItalic)).Col(LIGHTGRAY);
+             .Fnt(ASSET(josefinSansBoldItalic)).Col(ColorAlpha(LIGHTGRAY, alpha));
     if (TheSongList.PlaylistSize > 0)
         secondary.DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
 
     secondary.Pos(pos.x + (TitleFontSize * 0.1f), pos.y + TitleFontOffset)
-             .DrawText(curSong->artist + ", " + curSong->releaseYear);
+             .DrawText(std::format("{}, {}", song->GetArtist(), song->GetYear()));
 
     secondary.AddPos(( TitleFontSize * 1.13f), TitleFontSize)
-             .DrawText(curSong->charters[0]);
+             .DrawText(song->GetCharter());
     DrawTexturePro(sourceTex, {0,0, (float)sourceTex.width, (float)sourceTex.height},
-                   {pos.x + (TitleFontSize * 0.1f), pos.y + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, WHITE
+                   {pos.x + (TitleFontSize * 0.1f), pos.y + (TitleFontOffset + SecondaryFontSize), TitleFontSize, TitleFontSize}, {0,0}, 0, ColorAlpha(WHITE, alpha)
     );
 
     std::string CurrentSectionName = "None";
@@ -601,10 +623,22 @@ void GameplayMenu::Draw() {
 
 
 
+    if (!curSong->subSongs.empty()) {
+        if (subsongIndex < curSong->subSongs.size()-1) {
+            if (TheSongTime.GetElapsedTime() > curSong->subSongs[subsongIndex+1].startTime) {
+                subsongIndex++;
+            }
+        }
+        if (currentMTVProvider != &curSong->subSongs[subsongIndex]) {
+            if (TheSongTime.GetElapsedTime() > curSong->subSongs[subsongIndex].enterTime) {
+                currentMTVProvider = &curSong->subSongs[subsongIndex];
+            }
+        }
+    }
     if (IsPaused()) {
         DrawPauseMenu();
     } else if (EncoreDebug::showGameplayHud){
-        DrawMTVOverlay({u.wpct(0.01f), u.hpct(0.2f)});
+        DrawMTVOverlay(currentMTVProvider, {u.wpct(0.01f), u.hpct(0.2f)});
     }
 
     if (EncoreDebug::showGameplayHud)
@@ -804,7 +838,7 @@ void GameplayMenu::DrawPauseMenu() {
         );
     }
     DrawTextureNPatch(ASSET(borderShadowLight), shadowOverlay, albumRect, {0}, 0, {255,255,255,128});
-    DrawMTVOverlay({albumRect.x + (albumRect.width * 1.075f), albumRect.y + (albumRect.height * 0.0625f)});
+    DrawMTVOverlay(curSong, {albumRect.x + (albumRect.width * 1.075f), albumRect.y + (albumRect.height * 0.0625f)}, false);
 
     DrawOvershell();
 }

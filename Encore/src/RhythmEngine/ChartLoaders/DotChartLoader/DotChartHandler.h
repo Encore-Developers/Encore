@@ -17,7 +17,7 @@ namespace Encore::RhythmEngine {
         std::vector<BPM> bpms;
         std::pair<int, double> EndEvent;
     public:
-        explicit DotChartHandler(std::filesystem::path fileName);;
+        explicit DotChartHandler(Song* song);;
         ~DotChartHandler() override;
         int GetResolution() override { return tpq; };
         std::vector<BPM> GetBPMChanges() override;
@@ -30,6 +30,7 @@ namespace Encore::RhythmEngine {
         std::vector<Section> GetSections() override;
         BaseChart GetChart(int part, int diff) override;
         bool IsLoaded() override;
+        void PopulateSubsongs() override;
     };
 
 }

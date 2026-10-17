@@ -29,6 +29,15 @@ std::map<std::string, AudioManager::Stems> IniStems = {
     { "crowd",      AudioManager::Stems::Crowd }
 };
 
+std::pair<double, double> Song::GetMTVFadeInRange() {
+    return {0, 0};
+}
+std::pair<double, double> Song::GetMTVFadeOutRange() {
+    if (!subSongs.empty()) {
+        return {0, subSongs[0].startTime};
+    }
+    return {INFINITY, INFINITY};
+}
 void Song::LoadInfoINI(std::filesystem::path iniPath) {
     for (const auto &entry : std::filesystem::directory_iterator(iniPath.parent_path())) {
         if (entry.is_regular_file()) {
@@ -36,7 +45,7 @@ void Song::LoadInfoINI(std::filesystem::path iniPath) {
                 albumArtPath = entry.path();
             }
             if (entry.path().filename() == "notes.mid") {
-                midiPath = entry.path();
+                chartPath = entry.path();
             }
         }
     }
@@ -96,6 +105,30 @@ void Song::PullInfoFromINI(INIReader &ini) {
     Difficulties[PartDrums] = ini.GetInteger("song", "diff_drums_pad", -1);
 
     Difficulties[PartVocals] = ini.GetInteger("song", "diff_vocals_pad", -1);
+
+    subSongs.clear();
+    int subsongCount = ini.GetInteger("song", "subsongs", 0);
+    for (int i = 0; i < subsongCount; i++) {
+        std::string sectionName = std::format("subsong_{}", i+1);
+        if (!ini.HasSection(sectionName)) {
+            Encore::Log::Error("Error loading subsongs for {}: subsongs property is {} but section [subsong_{}] is not defined;", title.c_str(), subsongCount, i+1);
+            break;
+        }
+        SubSong subsong;
+
+        // All of the subsong properties are optional and fall back to the main song's values when missing
+        subsong.title = ini.GetString(sectionName, "name", title.name);
+        subsong.artist = ini.GetString(sectionName, "artist", artist.name);
+        subsong.album = ini.GetString(sectionName, "album", album.name);
+        subsong.source = ini.GetString(sectionName, "icon", source);
+        subsong.charter = ini.GetString(sectionName, "charter", charters[0]);
+        subsong.year = ini.GetString(sectionName, "year", releaseYear);
+
+        subsong.mtvFadeInTime = ini.GetReal(sectionName, "mtv_fade_in_time", 1);
+        subsong.mtvFadeOutTime = ini.GetReal(sectionName, "mtv_fade_out_time", 1);
+
+        subSongs.push_back(subsong);
+    }
 }
 
 void Song::LoadSongIni(const std::filesystem::path& songPath) {
@@ -105,7 +138,7 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
                 albumArtPath = entry.path();
             }
             if (entry.path().filename() == "notes.mid" || entry.path().filename() == "notes.chart") {
-                midiPath = entry.path();
+                chartPath = entry.path();
             }
         }
     }

@@ -21,7 +21,7 @@ public:
 
     std::shared_ptr<VideoBackground> videoBackground;
 
-    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode), chartLoader(song->midiPath)  {};
+    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode), chartLoader(song)  {};
     ~ChartLoadingMenu() {};
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
     void ControllerInputCallback(Encore::ControllerEvent event) override {};

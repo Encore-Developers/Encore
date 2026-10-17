@@ -33,8 +33,8 @@ SongPart Encore::RhythmEngine::MidiChartHandler::GetSongPart(smf::MidiEventList 
     return Invalid;
 }
 
-Encore::RhythmEngine::MidiChartHandler::MidiChartHandler(std::filesystem::path fileName)
-    : ChartHandler(std::move(fileName)) {
+Encore::RhythmEngine::MidiChartHandler::MidiChartHandler(Song* song)
+    : ChartHandler(song) {
     midifile.read(file);
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
@@ -285,4 +285,49 @@ Encore::RhythmEngine::BaseChart Encore::RhythmEngine::MidiChartHandler::GetChart
 
 bool Encore::RhythmEngine::MidiChartHandler::IsLoaded() {
 return true;
+}
+void Encore::RhythmEngine::MidiChartHandler::PopulateSubsongs() {
+    if (song->subSongs.empty()) {
+        return;
+    }
+    auto &events = midifile[EventsTrack];
+    int currentSubsong = -1;
+    for (int i = 0; i < events.getSize(); i++) {
+        auto& event = events[i];
+        std::string evt_string;
+        evt_string.reserve(event.getSize());
+        for (int k = 3; k < event.getSize(); k++) {
+            evt_string += event[k];
+        }
+
+        if (evt_string == "[subsong]") {
+            currentSubsong++;
+            if (currentSubsong >= song->subSongs.size()) {
+                Log::Error("Song has more [subsong] events than subsongs defined in metadata. Something is wrong!");
+                return;
+            }
+            auto& subsong = song->subSongs[currentSubsong];
+            subsong.startTime = event.seconds;
+            subsong.enterTime = event.seconds;
+        }
+
+        if (evt_string == "[subsong_enter]") {
+            if (currentSubsong < 0) {
+                // "supported yet" I'll probably allow these to be placed before a subsong in order to control the base song's MTV overlay
+                Log::Error("Song has a [subsong_enter] event before any [subsong] events. This isn't supported yet.");
+                return;
+            }
+            auto& subsong = song->subSongs[currentSubsong];
+            subsong.enterTime = event.seconds;
+        }
+
+        if (evt_string == "[subsong_exit]") {
+            if (currentSubsong < 0) {
+                Log::Error("Song has a [subsong_exit] event before any [subsong] events. This isn't supported yet.");
+                return;
+            }
+            auto& subsong = song->subSongs[currentSubsong];
+            subsong.exitTime = event.seconds;
+        }
+    }
 }

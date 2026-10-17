@@ -25,6 +25,8 @@ public:
     bool streamsPaused = false;
     bool songPlaying = false;
 
+    int subsongIndex = 0;
+    MTVProvider* currentMTVProvider;
     Song* curSong;
     Encore::RhythmEngine::Replay recordingReplay;
 
@@ -36,7 +38,7 @@ public:
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::ControllerEvent event);
     void SaveReplay();
-    void DrawMTVOverlay(Vector2 pos);
+    void DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFading = true);
     void Draw() override;
     void DrawAccuracyDisplay(Units &u, float xPos, float yPos);
     void Load() override;

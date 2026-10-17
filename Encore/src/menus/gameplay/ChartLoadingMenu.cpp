@@ -40,6 +40,7 @@ void ChartLoadingMenu::LoadCharts() {
     }
     chartLoader.LoadCharts();
     TheSongTime.Sections = chartLoader.GetSections();
+    chartLoader.PopulateSubsongs();
 
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum])
