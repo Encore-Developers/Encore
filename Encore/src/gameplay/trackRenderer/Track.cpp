@@ -16,7 +16,7 @@
 #include "debug/EncoreDebug.h"
 #include "easing/easing.h"
 #include "events/Event.h"
-#include "../../menus/main/MainMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "RhythmEngine/Replay.h"
 #include "menus/util/locale/Locale.h"
 #include "song/song.h"

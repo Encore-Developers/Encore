@@ -5,10 +5,9 @@
 #ifndef RESULTSMENU_H
 #define RESULTSMENU_H
 
-#include "../main/MainMenu.h"
 #include "../menu.h"
-
-
+#include "menus/overshell/OvershellMenu.h"
+#include "menus/util/ButtonActionRegistry.h"
 
 class resultsMenu : public OvershellMenu {
     enum ResultsState {

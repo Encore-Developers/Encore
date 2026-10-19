@@ -32,15 +32,15 @@ public:
 
     GameplayMenu(Song* song, std::shared_ptr<VideoBackground> videoBackground = nullptr);
     virtual ~GameplayMenu();
-    void DrawScorebox(Units &u, Assets &assets, float scoreY);
-    void DrawTimerbox(Units &u, Assets &assets, float scoreY);
-    void DrawGameplayStars(Units &u, Assets &assets, float scorePos, float starY);
+    void DrawScorebox(Assets &assets, float scoreY);
+    void DrawTimerbox(Assets &assets, float scoreY);
+    void DrawGameplayStars(Assets &assets, float scorePos, float starY);
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::ControllerEvent event);
     void SaveReplay();
     void DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFading = true);
     void Draw() override;
-    void DrawAccuracyDisplay(Units &u, float xPos, float yPos);
+    void DrawAccuracyDisplay(float xPos, float yPos);
     void Load() override;
     void DrawPauseMenu();
     virtual bool CheckPauseInput(Encore::ControllerEvent event);

@@ -4,7 +4,11 @@
 
 #include "LyricRenderer.h"
 
+#include "enctime.h"
 #include "raymath.h"
+#include "easing/easing.h"
+#include "menus/util/TextDisplay.h"
+#include "menus/util/uiUnits.h"
 
 inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
     const auto percent = static_cast<float>(value) / (255.0f);
@@ -13,7 +17,6 @@ inline unsigned char remapAlpha(unsigned char value, unsigned char max) {
 
 void Encore::LyricRenderer::RenderLyrics() {
     ProcessAnimation();
-    Units& u = Units::getInstance();
     if (!TheSongTime.Lyrics.empty()
     ) {
         ZoneScopedN("Lyrics Display")
@@ -25,11 +28,11 @@ void Encore::LyricRenderer::RenderLyrics() {
             ZoneScopedN("Draw Next Lyric Phrase")
             DrawPhraseBackground(1, 0.06f, 0.06f * 0.75f);
             DrawPhraseBackground(0, 0, 0.06f);
-            float iconWidth = u.hinpct(0.4);
-            Rectangle rect {u.RightSide - iconWidth, u.hpct(0) - (iconWidth/2), iconWidth*1.25f, iconWidth*1.25f};
+            float iconWidth = Units::hinpct(0.4);
+            Rectangle rect {Units::RightSide - iconWidth, Units::hpct(0) - (iconWidth/2), iconWidth*1.25f, iconWidth*1.25f};
             Rectangle source {0,0,float(ASSET(InstIcons).at(4)->width), float(ASSET(InstIcons).at(4)->height)};
             //
-            BeginScissorMode(0,u.hpct(0)+u.hinpct(0.04f)+1, GetRenderWidth(), u.hinpct(0.06f * 0.75f) + u.hinpct(0.06f));
+            BeginScissorMode(0,Units::hpct(0)+Units::hinpct(0.04f)+1, GetRenderWidth(), Units::hinpct(0.06f * 0.75f) + Units::hinpct(0.06f));
             BeginBlendMode(BLEND_ADDITIVE);
             unsigned char c = static_cast<unsigned char>(easeInOut(ShowHideTimer) * 48.0);
             // if (ShowHideTimer > 0.5)
@@ -89,9 +92,8 @@ void Encore::LyricRenderer::RenderLyrics() {
 
 void Encore::LyricRenderer::DrawPhraseBackground(int type, float pos, float size) {
     ZoneScopedN("Draw Phrase Background")
-    Units &u = Units::getInstance();
-    float baselineVox = u.hpct(0) + u.hinpct(0.04) + u.hinpct(pos);
-    float voxHeight = u.hinpct(size);
+    float baselineVox = Units::hpct(0) + Units::hinpct(0.04) + Units::hinpct(pos);
+    float voxHeight = Units::hinpct(size);
     Rectangle imageRec{ 0, 0, float(ASSET(mainLyricBar).width),
                         float(ASSET(mainLyricBar).height) };
     Rectangle dest{ 0, baselineVox, float(GetRenderWidth()), voxHeight };
@@ -108,11 +110,10 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::LyricPhrase *phrase,
     float size,
     unsigned char alpha) {
     ZoneScopedN("Draw Lyric Phrase")
-    Units &u = Units::getInstance();
 
-    const float baselineVox = u.hpct(0) + u.hinpct(0.04) + u.hinpct(pos);
-    const float voxHeight = u.hinpct(0.06f);
-    const float FontSize = u.hinpct(size);
+    const float baselineVox = Units::hpct(0) + Units::hinpct(0.04) + Units::hinpct(pos);
+    const float voxHeight = Units::hinpct(0.06f);
+    const float FontSize = Units::hinpct(size);
     const float padding = (voxHeight - FontSize) / 2;
 
     // god forbid i have a proper ui library
@@ -141,7 +142,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::LyricPhrase *phrase,
             if (EndSec < TheSongTime.GetElapsedTime()) {
                 lyricData.Col( PlayedColor ).DrawText(syllable.syllable);
             } else {
-                const int padding2 = u.winpct(0.01f);
+                const int padding2 = Units::winpct(0.01f);
                 const float percentage = Remap(TheSongTime.GetElapsedTime(), syllable.time.sec, EndSec, 0, 1);
                 const int playedWidth = float(lyricData.TextWidth(syllable.syllable)) * percentage;
                 const int unplayedWidth = float(lyricData.TextWidth(syllable.syllable)) * (1 - percentage);

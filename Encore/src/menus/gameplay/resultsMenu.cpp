@@ -5,7 +5,7 @@
 #include "resultsMenu.h"
 
 #include "ChartLoadingMenu.h"
-#include "../main/MainMenu.h"
+#include "menus/util/GameMenu.h"
 #include "raygui.h"
 #include "ReadyUpMenu.h"
 #include "../util/styles.h"
@@ -15,8 +15,10 @@
 #include "../MenuManager.h"
 #include "menus/util/locale/Locale.h"
 #include "menus/main/SongSelectMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
+#include "song/songlist.h"
 
 void resultsMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     buttReg.HandleInput(event);
@@ -223,7 +225,6 @@ void resultsMenu::Load() {
 }
 
 void resultsMenu::Draw() {
-    Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
 
@@ -235,9 +236,9 @@ void resultsMenu::Draw() {
         drawPlayerResults(ThePlayerManager.GetActivePlayer(i), i);
     }
     // Shift track info text to the right of the album cover
-    float textX = u.LeftSide + u.winpct(0.01f);
-    float TitleY = u.hpct(0.05125f);
-    float TitleFontSize = u.hinpct(0.04f);
+    float textX = Units::LeftSide + Units::winpct(0.01f);
+    float TitleY = Units::hpct(0.05125f);
+    float TitleFontSize = Units::hinpct(0.04f);
     float SecondaryFontSize = TitleFontSize * 0.75f;
     float SecondaryFontOffset = TitleFontSize * 1.2f;
     Encore::TextDisplay SongTitle;
@@ -257,16 +258,16 @@ void resultsMenu::Draw() {
                  .TextWidth(curSong->title);
 
     Encore::TextDisplay SongArtist;
-    SongArtist.Pos(textX + SecondaryFontOffset + TitleSize + u.hinpct(0.02f),
-                   TitleY + u.hinpct(0.008f))
+    SongArtist.Pos(textX + SecondaryFontOffset + TitleSize + Units::hinpct(0.02f),
+                   TitleY + Units::hinpct(0.008f))
               .Fnt(ASSET(josefinSansBoldItalic))
               .Size(SecondaryFontSize)
               .Col(LIGHTGRAY)
               .DrawText(curSong->artist);
 
-    // renderStars(ThePlayerManager.BandStats, u.wpct(0.5f), u.hpct(0.1f),
-    // u.hinpct(0.05f), false);
-    float ScoreFontSize = u.hinpct(0.08f);
+    // renderStars(ThePlayerManager.BandStats, Units::wpct(0.5f), Units::hpct(0.1f),
+    // Units::hinpct(0.05f), false);
+    float ScoreFontSize = Units::hinpct(0.08f);
     Encore::Text::DrawText(
         assets.redHatMono,
         GameMenu::scoreCommaFormatter(FinalScore).c_str(),
@@ -315,11 +316,10 @@ void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats
     default:
         break;
     }
-    Units &u = Units::getInstance();
-    float ActualStatsHeight = u.hinpct(0.03f);
+    float ActualStatsHeight = Units::hinpct(0.03f);
     float statsHeight = rect.y;
-    float statsLeft = rect.x + u.winpct(0.01f);
-    float statsRight = rect.x + rect.width - u.winpct(0.01f);
+    float statsLeft = rect.x + Units::winpct(0.01f);
+    float statsRight = rect.x + rect.width - Units::winpct(0.01f);
 
     Encore::TextDisplay Header;
     Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
@@ -328,8 +328,8 @@ void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats
     Encore::TextDisplay LeftStatData;
     Encore::TextDisplay RightStatData;
 
-    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
 
     Header.lDrawText("resultsMenu.statisticsHeader");
     RightStatData.Fnt(ASSET(rubik));
@@ -392,11 +392,10 @@ void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats
 }
 
 void resultsMenu::DrawSections(Player &player, Rectangle rect, float cardHeight, int playerslot) {
-    Units &u = Units::getInstance();
-    float ActualStatsHeight = u.hinpct(0.03f);
+    float ActualStatsHeight = Units::hinpct(0.03f);
     float statsHeight = rect.y;
-    float statsLeft = rect.x + u.winpct(0.01f);
-    float statsRight = rect.x + rect.width - u.winpct(0.01f);
+    float statsLeft = rect.x + Units::winpct(0.01f);
+    float statsRight = rect.x + rect.width - Units::winpct(0.01f);
 
     Encore::TextDisplay Header;
     Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
@@ -405,8 +404,8 @@ void resultsMenu::DrawSections(Player &player, Rectangle rect, float cardHeight,
     Encore::TextDisplay LeftStatData;
     Encore::TextDisplay RightStatData;
 
-    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
     Header.lDrawText("resultsMenu.sectionHeader");
     RightStatData.Fnt(ASSET(JetBrainsMono));
     int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->
@@ -448,17 +447,16 @@ void resultsMenu::DrawSections(Player &player, Rectangle rect, float cardHeight,
         LeftStatData.Bounds(RightStatData.pos.x - (overhitWidth * 1.5) - statsLeft,
                             ActualStatsHeight);
         LeftStatData.DrawText(sect.name);
-        LeftStatData.pos.y += u.hinpct(0.03f);
-        RightStatData.pos.y += u.hinpct(0.03f);
+        LeftStatData.pos.y += Units::hinpct(0.03f);
+        RightStatData.pos.y += Units::hinpct(0.03f);
     }
 }
 
 void resultsMenu::DrawHistogram(Player &player, Rectangle rect, float cardHeight, int playerslot) {
-    Units &u = Units::getInstance();
-    float ActualStatsHeight = u.hinpct(0.03f);
+    float ActualStatsHeight = Units::hinpct(0.03f);
     float statsHeight = rect.y;
-    float statsLeft = rect.x + u.winpct(0.01f);
-    float statsRight = rect.x + rect.width - u.winpct(0.01f);
+    float statsLeft = rect.x + Units::winpct(0.01f);
+    float statsRight = rect.x + rect.width - Units::winpct(0.01f);
 
     Encore::TextDisplay Header;
     Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
@@ -467,8 +465,8 @@ void resultsMenu::DrawHistogram(Player &player, Rectangle rect, float cardHeight
     Encore::TextDisplay LeftStatData;
     Encore::TextDisplay RightStatData;
 
-    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
     Header.lDrawText("resultsMenu.histogramHeader");
     RightStatData.Fnt(ASSET(JetBrainsMono));
     int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->
@@ -559,13 +557,12 @@ void resultsMenu::DrawHistogram(Player &player, Rectangle rect, float cardHeight
 }
 
 void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
-    Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     auto &stats = player.engine->stats;
     float cardPos = GetOvershellSlotLeft(playerslot);
     float cardWidth = GetOvershellSlotWidth();
     float cardHalfWidth = cardWidth / 2;
-    float cardTop = u.hpct(0.18f);
+    float cardTop = Units::hpct(0.18f);
     float topCardHeight = (float(assets.GradeBackgrounds[0]->height) / float(
         assets.GradeBackgrounds[0]->width)) * cardWidth;
     auto bgToDraw = ASSETPTR(cheese);
@@ -649,7 +646,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
                            BannerSize,
                            ColorAlpha(player.AccentColor, 0.25),
                            ColorAlpha(player.AccentColor, 0));
-    float totalSpace = u.hpct(1.0f) - u.hpct(0.36f);
+    float totalSpace = Units::hpct(1.0f) - Units::hpct(0.36f);
     float lowerCardBottom = totalSpace - topCardHeight;
     DrawRectangleGradientV(cardPos,
                            cardTop + topCardHeight,
@@ -726,14 +723,14 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
                lowerCardBottom * 0.05);
 
     float statsHeight = scoreBoxY + (scoreBoxHeight * 1.25) + (lowerCardBottom * 0.05);
-    float ActualStatsHeight = u.hinpct(0.03f);
-    float statsLeft = cardPos + u.winpct(0.01f);
-    float statsRight = cardPos + cardWidth - u.winpct(0.01f);
+    float ActualStatsHeight = Units::hinpct(0.03f);
+    float statsLeft = cardPos + Units::winpct(0.01f);
+    float statsRight = cardPos + cardWidth - Units::winpct(0.01f);
     Encore::TextDisplay LeftStatData;
     Encore::TextDisplay RightStatData;
 
-    LeftStatData.Pos(statsLeft, statsHeight).Size(u.hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(u.hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
+    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
 
     Rectangle infoRect = { cardPos, statsHeight, cardWidth, lowerCardBottom - (scoreBoxHeight * 1.25f) };
     switch (resultsState.at(playerslot)) {

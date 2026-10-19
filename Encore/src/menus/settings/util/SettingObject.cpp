@@ -1,16 +1,16 @@
 #include "imgui.h"
 #include "SettingRenderer.h"
+#include "assets.h"
 #include "raygui.h"
 #include "../../util/uiUnits.h"
+#include "menus/util/TextDisplay.h"
 #include "menus/util/locale/Locale.h"
-#include "menus/main/MainMenu.h"
 
 Color glowColor = Color{142, 13, 148, 64};
 Color activeColor = Color{255, 105, 180, 255};
 
 void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
-    Units u = Units::getInstance();
-    float EntryFontSize = u.hinpct(0.03f);
+    float EntryFontSize = Units::hinpct(0.03f);
     int defaultColor = GuiGetStyle(BUTTON, BASE_COLOR_PRESSED);
     float TextTop = pos.y + (pos.height - EntryFontSize) / 2;
 
@@ -22,7 +22,7 @@ void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hover
         DrawRectangleRec(pos, glowColor);
         EndBlendMode();
     }
-    Text::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
+    Text::lDrawText(ASSET(rubikBold), name, {pos.x + Units::winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
 
     Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - ButtonSpace.height, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
     GuiSetStyle(BUTTON, BORDER_WIDTH, 2);
@@ -39,8 +39,7 @@ void Encore::SettingDoohickey::boolSettingObject::Draw(Rectangle pos, bool hover
 }
 
 void Encore::SettingDoohickey::floatSettingObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
-    Units u = Units::getInstance();
-    float EntryFontSize = u.hinpct(0.03f);
+    float EntryFontSize = Units::hinpct(0.03f);
     float TextTop = pos.y + (pos.height - EntryFontSize) / 2;
     DrawTexturePro(ASSET(EntryBackground), {0, 0, (float)ASSET(EntryBackground).width, (float)ASSET(EntryBackground).height}, pos, {0}, 0, WHITE);
 
@@ -50,7 +49,7 @@ void Encore::SettingDoohickey::floatSettingObject::Draw(Rectangle pos, bool hove
         DrawRectangleRec(pos, glowColor);
         EndBlendMode();
     }
-    Text::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
+    Text::lDrawText(ASSET(rubikBold), name, {pos.x + Units::winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
     float temp = *value;
     GuiSlider(ButtonSpace, nullptr, nullptr, &temp, min, max);
     if (!Clickable) {
@@ -60,8 +59,7 @@ void Encore::SettingDoohickey::floatSettingObject::Draw(Rectangle pos, bool hove
 }
 
 void Encore::SettingDoohickey::buttonSettingObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
-    Units u = Units::getInstance();
-    float EntryFontSize = u.hinpct(0.03f);
+    float EntryFontSize = Units::hinpct(0.03f);
     float TextTop = pos.y + (pos.height - EntryFontSize) / 2;
     DrawTexturePro(ASSET(EntryBackground), {0, 0, (float)ASSET(EntryBackground).width, (float)ASSET(EntryBackground).height}, pos, {0}, 0, WHITE);
 
@@ -80,16 +78,14 @@ void Encore::SettingDoohickey::buttonSettingObject::Draw(Rectangle pos, bool hov
 }
 
 void Encore::SettingDoohickey::separatorObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
-    Units u = Units::getInstance();
-    float EntryFontSize = u.hinpct(0.03f);
+    float EntryFontSize = Units::hinpct(0.03f);
     float TextTop = pos.y + ((pos.height - EntryFontSize) / 3) * 2;
-    Text::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
+    Text::lDrawText(ASSET(rubikBold), name, {pos.x + Units::winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
     DrawLineEx({pos.x, pos.y + pos.height-2}, {pos.x + pos.width, pos.y + pos.height-2}, 2, WHITE);
 }
 
 void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovered, bool Clickable) {
-    Units u = Units::getInstance();
-    float EntryFontSize = u.hinpct(0.03f);
+    float EntryFontSize = Units::hinpct(0.03f);
     float TextTop = pos.y + (pos.height - EntryFontSize) / 2;
     DrawTexturePro(ASSET(EntryBackground), {0, 0, (float)ASSET(EntryBackground).width, (float)ASSET(EntryBackground).height}, pos, {0}, 0, WHITE);
 
@@ -99,7 +95,7 @@ void Encore::SettingDoohickey::intSettingObject::Draw(Rectangle pos, bool hovere
         DrawRectangleRec(pos, glowColor);
         EndBlendMode();
     }
-    Text::lDrawText(ASSET(rubikBold), name, {pos.x + u.winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
+    Text::lDrawText(ASSET(rubikBold), name, {pos.x + Units::winpct(0.01f), TextTop}, EntryFontSize, WHITE, LEFT);
     Rectangle leftButton {ButtonSpace.x, ButtonSpace.y, ButtonSpace.height, ButtonSpace.height};
     Rectangle slider {ButtonSpace.x + leftButton.width, ButtonSpace.y, ButtonSpace.width - (leftButton.width*2), leftButton.width};
     Rectangle rightButton {ButtonSpace.x + ButtonSpace.width - leftButton.width, ButtonSpace.y, leftButton.width, leftButton.width};

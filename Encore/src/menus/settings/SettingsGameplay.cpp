@@ -6,20 +6,17 @@
 
 #include "SettingsMenu.h"
 #include "../MenuManager.h"
-#include "../main/MainMenu.h"
 #include "raygui.h"
 #include "assets.h"
 #include "settings/settings.h"
 #include "settingsOptionRenderer.h"
 #include "../util/uiUnits.h"
-#include "gameplay/enctime.h"
 #include "../overshell/OvershellMenu.h"
 #include "imgui.h"
 #include "SDL3/SDL_dialog.h"
 #include "gameplay/inputCallbacks.h"
-#include "misc/imgui_stdlib.h"
-#include "util/settings-text.h"
-#include "../overshell/OvershellHelper.h"
+#include "menus/util/GameMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "menus/util/locale/Locale.h"
 #include "song/ArtLoader.h"
 
@@ -28,7 +25,6 @@ using namespace Encore;
 bool ShowGameplaySettings = true;
 bool AwesomenessDetection = false;
 void SettingsGameplay::Draw() {
-    Units& u = Units::getInstance();
     Assets& assets = Assets::getInstance();
 
     GameMenu::DrawAlbumArtBackground();
@@ -37,15 +33,15 @@ void SettingsGameplay::Draw() {
     GameMenu::DrawTopOvershell(0.15f);
     GameMenu::DrawTopBarText();
 
-    float TextPlacementTB = u.hpct(0.05f);
-    Text::lDrawText(assets.rubik, "settings.header.gameplay", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
-    Text::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {u.LeftSide, TextPlacementTB}, u.hinpct(0.125f), WHITE, LEFT);
+    float TextPlacementTB = Units::hpct(0.05f);
+    Text::lDrawText(assets.rubik, "settings.header.gameplay", {Units::LeftSide, Units::hpct(0.027f)}, Units::hinpct(0.042f), LIGHTGRAY, LEFT);
+    Text::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {Units::LeftSide, TextPlacementTB}, Units::hinpct(0.125f), WHITE, LEFT);
     settings.isOSOpen = isOSOpen();
     settings.Draw();
-    float EntryHeight = u.hinpct(0.05f);
-    float EntryWidth = u.winpct(0.7);
-    float EntryLeft = ((u.winpct(1.0) - EntryWidth) / 2) + u.LeftSide;
-    float EntryTop = u.hpct(0.15f) + (EntryHeight * settings.settingsArray.size());
+    float EntryHeight = Units::hinpct(0.05f);
+    float EntryWidth = Units::winpct(0.7);
+    float EntryLeft = ((Units::winpct(1.0) - EntryWidth) / 2) + Units::LeftSide;
+    float EntryTop = Units::hpct(0.15f) + (EntryHeight * settings.settingsArray.size());
     Rectangle rect = {EntryLeft, EntryTop, EntryWidth, EntryHeight   };
     float scale = SDL_GetWindowDisplayScale(GetSDLWindow());
     ImGui::SetNextWindowPos({rect.x/scale, rect.y/scale}, ImGuiCond_Always);

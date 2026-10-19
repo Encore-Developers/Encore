@@ -6,7 +6,7 @@
 
 #include "raygui.h"
 #include "../../util/uiUnits.h"
-#include "menus/main/MainMenu.h"
+#include "song/songlist.h"
 
 void Encore::SettingDoohickey::Action(bool remove) {
     if (ScanningSongs) return;
@@ -31,11 +31,11 @@ void Encore::SettingDoohickey::IncrementSelected(bool up) {
 }
 
 void Encore::SettingDoohickey::Draw(float EntryTop) {
-    Units u = Units::getInstance();
-    float EntryHeight = u.hinpct(0.05f);
-    float EntryWidth = u.winpct(0.7);
 
-    float EntryLeft = ((u.winpct(1.0) - EntryWidth) / 2) + u.LeftSide;
+    float EntryHeight = Units::hinpct(0.05f);
+    float EntryWidth = Units::winpct(0.7);
+
+    float EntryLeft = ((Units::winpct(1.0) - EntryWidth) / 2) + Units::LeftSide;
     Vector2 mousePos = GetMousePosition();
 
     Color sliderNormal = Color{24, 24, 39, 178};
@@ -51,11 +51,11 @@ void Encore::SettingDoohickey::Draw(float EntryTop) {
     GuiSetStyle(SLIDER, BORDER_WIDTH, 2);
     GuiSetStyle(SLIDER, SLIDER_WIDTH, 0);
     GuiSetStyle(SLIDER, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-    Rectangle background { EntryLeft, u.hpct(EntryTop), EntryWidth, GetRenderHeight() - u.hpct(0.15f)};
+    Rectangle background { EntryLeft, Units::hpct(EntryTop), EntryWidth, GetRenderHeight() - Units::hpct(0.15f)};
     DrawTexturePro(ASSET(EntryBackground), {0, 0, (float)ASSET(EntryBackground).width, (float)ASSET(EntryBackground).height}, background, {0}, 0, { 255, 255, 255, 128});
 
     for (int settingOffset = 0; settingOffset < settingsArray.size(); settingOffset++) {
-        float top = u.hpct(EntryTop) + (EntryHeight * settingOffset);
+        float top = Units::hpct(EntryTop) + (EntryHeight * settingOffset);
         Rectangle wholeBoxRect = {EntryLeft, top, EntryWidth, EntryHeight};
         bool hovered = false;
         if (!isOSOpen && !ScanningSongs && CheckCollisionPointRec(mousePos, wholeBoxRect)) {

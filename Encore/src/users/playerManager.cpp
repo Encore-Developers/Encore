@@ -22,7 +22,6 @@ PlayerManager::PlayerManager() {
 PlayerManager::~PlayerManager() = default;
 
 
-
 void PlayerManager::LoadPlayerList() {
     try {
         std::ifstream f(PlayerListSaveFile);

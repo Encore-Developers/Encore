@@ -7,8 +7,9 @@
 #include <filesystem>
 #include <mutex>
 #include <thread>
-
 #include "MainMenu.h"
+#include "menus/util/TextDisplay.h"
+#include "menus/util/GameMenu.h"
 #include "raymath.h"
 #include "../util/uiUnits.h"
 #include "song/songlist.h"
@@ -35,7 +36,6 @@ void cacheLoadingScreen::Load() {
 
 
 void cacheLoadingScreen::Draw() {
-    Units u = Units::getInstance();
     float diagonalLength = sqrtf(
         (float)(GetRenderWidth() * GetRenderWidth())
         + (float)(GetRenderHeight() * GetRenderHeight())
@@ -57,21 +57,21 @@ void cacheLoadingScreen::Draw() {
     GameMenu::DrawTopOvershell(0.15f);
     DrawRectangle(
         0,
-        u.hpct(0.15f),
+        Units::hpct(0.15f),
         Remap(CurrentChartNumber, 0, MaxChartsToLoad, 0, GetRenderWidth()),
-        u.hinpct(0.01f),
+        Units::hinpct(0.01f),
         MAGENTA
     );
 
     Encore::Text::lDrawText(
         ASSET(redHatDisplayBlack),
         "cacheLoading.header",
-        { u.LeftSide, u.hpct(0.05f) },
-        u.hinpct(0.125f),
+        { Units::LeftSide, Units::hpct(0.05f) },
+        Units::hinpct(0.125f),
         WHITE,
         LEFT
     );
-    float RubikFontSize = u.hinpct(0.05f);
+    float RubikFontSize = Units::hinpct(0.05f);
     int loaded = CurrentChartNumber;
     int toLoad = MaxChartsToLoad;
     std::string songs = TextFormat("%d/%d", loaded, toLoad);
@@ -79,32 +79,32 @@ void cacheLoadingScreen::Draw() {
     Encore::Text::DrawText(
         ASSET(rubikBold),
         LoadingText,
-        { u.RightSide, u.hpct(0.085f) },
+        { Units::RightSide, Units::hpct(0.085f) },
         RubikFontSize,
         LIGHTGRAY,
         RIGHT
     );
     GameMenu::DrawBottomOvershell();
 
-    Rectangle LogoRect = { u.LeftSide + u.hinpct(0.075f),
-                           GetRenderHeight() - u.hpct(0.14f) + u.hinpct(0.07f),
-                           u.hinpct(0.14f),
-                           u.hinpct(0.14f) };
+    Rectangle LogoRect = { Units::LeftSide + Units::hinpct(0.075f),
+                           GetRenderHeight() - Units::hpct(0.14f) + Units::hinpct(0.07f),
+                           Units::hinpct(0.14f),
+                           Units::hinpct(0.14f) };
 
     auto logo = ASSETPTR(faviconTex);
     DrawTexturePro(
         *logo,
         { 0, 0, (float)logo->width, (float)logo->height },
         LogoRect,
-        { u.hinpct(0.07f), u.hinpct(0.07f) },
+        { Units::hinpct(0.07f), Units::hinpct(0.07f) },
         0,
         WHITE
     );
     Encore::Text::DrawText(
         ASSET(josefinSansItalic),
         CacheSplash[SplashSel],
-        { u.LeftSide + u.hinpct(0.16),
-          GetRenderHeight() - u.hpct(0.14f) + u.hinpct(0.055f) },
+        { Units::LeftSide + Units::hinpct(0.16),
+          GetRenderHeight() - Units::hpct(0.14f) + Units::hinpct(0.055f) },
         RubikFontSize / 1.5f,
         WHITE,
         LEFT

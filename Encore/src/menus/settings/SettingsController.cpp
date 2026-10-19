@@ -6,12 +6,7 @@
 
 #include "SettingsMenu.h"
 #include "../MenuManager.h"
-#include "../main/MainMenu.h"
-#include "assets.h"
 #include "raygui.h"
-#include "../util/uiUnits.h"
-#include "util/settings-text.h"
-#include "../overshell/OvershellHelper.h"
 #include "menus/util/locale/Locale.h"
 
 static const std::vector<std::string> presets = {

@@ -8,6 +8,7 @@
 
 #include "../MenuManager.h"
 #include "MainMenu.h"
+#include "menus/util/GameMenu.h"
 #include "raygui.h"
 #include "settings/settings.h"
 #include "../util/uiUnits.h"
@@ -19,6 +20,7 @@
 #include "imgui.h"
 #include "raymath.h"
 #include "menus/gameplay/ReadyUpMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "menus/util/locale/Locale.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
@@ -491,7 +493,6 @@ std::string SongSelectMenu::GetHeader() {
 
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
-    Units u = Units::getInstance();
 
     Vector2 mouseWheel = GetMouseWheelMoveV();
     // Update song select offset based on mouse wheel
@@ -517,7 +518,7 @@ void SongSelectMenu::Draw() {
     ClearBackground(DARKGRAY);
     GameMenu::DrawAlbumArtBackground();
 
-    float TopOvershell = u.hpct(0.15f);
+    float TopOvershell = Units::hpct(0.15f);
     DrawRectangle(
         0,
         0,
@@ -525,26 +526,26 @@ void SongSelectMenu::Draw() {
         (float)GetRenderHeight(),
         GetColor(0x00000080)
     );
-    BeginScissorMode(0, u.hpct(0.15f), u.RightSide - u.winpct(0.25f), u.hinpct(0.7f));
+    BeginScissorMode(0, Units::hpct(0.15f), Units::RightSide - Units::winpct(0.25f), Units::hinpct(0.7f));
     // GameMenu::DrawTopOvershell(0.208333f);
     EndScissorMode();
-    float OvershellTop = u.hpct(0.18f);
-    float songEntryHeight = u.hinpct(0.64f / 11);
+    float OvershellTop = Units::hpct(0.18f);
+    float songEntryHeight = Units::hinpct(0.64f / 11);
     GameMenu::DrawTopOvershell(0.18f);
     if (TheSongList.PlaylistMode) {
         DrawRectangleGradientV(
             0,
             0,
             GetRenderWidth(),
-            u.hpct(0.15f) - u.hinpct(0.005f),
+            Units::hpct(0.15f) - Units::hinpct(0.005f),
             Color{ 0, 0, 0, 0 },
             Color{ 255, 0, 255, 128 }
         );
     }
-    float TextPlacementTB = u.hpct(0.08f);
-    float TextPlacementLR = u.LeftSide;
+    float TextPlacementTB = Units::hpct(0.08f);
+    float TextPlacementLR = Units::LeftSide;
     Encore::TextDisplay subheader;
-    subheader.Pos(u.LeftSide, u.hpct(0.06f)).Size(u.hinpct(0.035f)).Col(LIGHTGRAY).Fnt(
+    subheader.Pos(Units::LeftSide, Units::hpct(0.06f)).Size(Units::hinpct(0.035f)).Col(LIGHTGRAY).Fnt(
         ASSET(josefinSansBold));
     if (TheSongList.PlaylistMode) {
         subheader.DrawText(LOCALISE("songSelect.quickplay").toString()
@@ -555,16 +556,16 @@ void SongSelectMenu::Draw() {
     }
 
     GameMenu::DrawTopBarText();
-    int AlbumX = u.RightSide - u.winpct(0.25f);
-    int AlbumY = u.hpct(0.04f);
-    int AlbumHeight = u.winpct(0.25f);
-    int AlbumOuter = u.hinpct(0.01f);
-    int AlbumInner = u.hinpct(0.005f);
+    int AlbumX = Units::RightSide - Units::winpct(0.25f);
+    int AlbumY = Units::hpct(0.04f);
+    int AlbumHeight = Units::winpct(0.25f);
+    int AlbumOuter = Units::hinpct(0.01f);
+    int AlbumInner = Units::hinpct(0.005f);
 
     std::string sortType = LOCALIZE(
         "songSelect.sortTypes."+sortTypes[(int)currentSortValue]);
     Encore::TextDisplay sortTypeD;
-    float SortFontSize = u.hinpct(0.03f);
+    float SortFontSize = Units::hinpct(0.03f);
     sortTypeD.Pos(AlbumX - (AlbumOuter * 2), OvershellTop - SortFontSize - AlbumOuter).
               Size(SortFontSize).
               Fnt(ASSET(josefinSansItalic)).Col(LIGHTGRAY).Align(RIGHT).
@@ -573,18 +574,18 @@ void SongSelectMenu::Draw() {
 
     Encore::TextDisplay header;
     header.Pos(TextPlacementLR, TextPlacementTB)
-          .Bounds(u.winpct(0.73) - sortWidth, u.hinpct(0.125f))
-          .Size(u.hinpct(0.125f)).Fnt(ASSET(redHatDisplayBlack)).lDrawText(
+          .Bounds(Units::winpct(0.73) - sortWidth, Units::hinpct(0.125f))
+          .Size(Units::hinpct(0.125f)).Fnt(ASSET(redHatDisplayBlack)).lDrawText(
               "songSelect.header");
     //sortData.pos.x = AlbumX - (AlbumOuter * 2);
     //std::size_t sortCount = TheSongList.sortedSongs.size();
     //sortData.Align(RIGHT).DrawText(LOCALISE_FMT("songSelect.songsLoaded", sortCount));
 
-    float songTitleWidth = u.winpct(0.3f);
-    float songArtistWidth = u.winpct(0.5f);
+    float songTitleWidth = Units::winpct(0.3f);
+    float songArtistWidth = Units::winpct(0.5f);
     ASSET(AltBackground).Draw({ 0,
                                 OvershellTop,
-                                (u.RightSide - u.winpct(0.25f)),
+                                (Units::RightSide - Units::winpct(0.25f)),
                                 songEntryHeight
                               },
                               ColorBrightness(AccentColor, -0.5f));
@@ -597,13 +598,13 @@ void SongSelectMenu::Draw() {
                                (long)TheSongList.listMenuEntries.size() - 10);
     Encore::TextDisplay songTitle;
     Encore::TextDisplay songArtist;
-    float songXPos = u.LeftSide + u.winpct(0.005f) - 2 + songEntryHeight;
+    float songXPos = Units::LeftSide + Units::winpct(0.005f) - 2 + songEntryHeight;
     float songYPos = std::floor(OvershellTop + songEntryHeight);
-    songTitle.Fnt(ASSET(rubikBold)).Size(u.hinpct(0.035f))
-             .Pos(songXPos, songYPos + u.hinpct(0.0125f));
-    auto padding = u.hinpct(0.01f);
-    songArtist.Fnt(ASSET(josefinSansItalic)).Size(u.hinpct(0.025f))
-              .Pos(songXPos + songTitleWidth + 30, songYPos + u.hinpct(0.02f));
+    songTitle.Fnt(ASSET(rubikBold)).Size(Units::hinpct(0.035f))
+             .Pos(songXPos, songYPos + Units::hinpct(0.0125f));
+    auto padding = Units::hinpct(0.01f);
+    songArtist.Fnt(ASSET(josefinSansItalic)).Size(Units::hinpct(0.025f))
+              .Pos(songXPos + songTitleWidth + 30, songYPos + Units::hinpct(0.02f));
 
     for (size_t listMenuPos = topOflistMenu;
          listMenuPos < TheSongList.listMenuEntries.size() &&
@@ -614,7 +615,7 @@ void SongSelectMenu::Draw() {
             break;
 
         if (TheSongList.listMenuEntries[listMenuPos].type == eHeader) {
-            Rectangle entryRec{ 0, songYPos, u.RightSide - u.winpct(0.25f),
+            Rectangle entryRec{ 0, songYPos, Units::RightSide - Units::winpct(0.25f),
                                 songEntryHeight };
             Color headerColor = ColorBrightness(AccentColor, -0.5f);
             if (listMenuPos == curSongMenuPos) {
@@ -650,7 +651,7 @@ void SongSelectMenu::Draw() {
             songArtist.pos.y += songEntryHeight;
             songYPos += songEntryHeight;
         } else if (TheSongList.listMenuEntries[listMenuPos].type == eSubheader) {
-            Rectangle entryRec{ 0, songYPos, u.RightSide - u.winpct(0.25f),
+            Rectangle entryRec{ 0, songYPos, Units::RightSide - Units::winpct(0.25f),
                                 songEntryHeight };
             Color headerColor = ColorBrightness(AccentColor, -0.5f);
             if (listMenuPos == curSongMenuPos) {
@@ -672,7 +673,7 @@ void SongSelectMenu::Draw() {
             songArtist.pos.y += songEntryHeight;
             songYPos += songEntryHeight;
         } else if (!TheSongList.listMenuEntries[listMenuPos].hiddenEntry) {
-            Rectangle entryRec{ 0, songYPos, u.RightSide - u.winpct(0.25f),
+            Rectangle entryRec{ 0, songYPos, Units::RightSide - Units::winpct(0.25f),
                                 songEntryHeight };
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
             Song *songi = TheSongList.listMenuEntries[listMenuPos].song;
@@ -761,7 +762,7 @@ void SongSelectMenu::Draw() {
             songYPos += songEntryHeight;
         }
     }
-    DrawSongInformation(u.RightSide - u.winpct(0.25f), SongToDisplayInfo);
+    DrawSongInformation(Units::RightSide - Units::winpct(0.25f), SongToDisplayInfo);
     if (curSongMenuPos > 0 && curSongMenuPos < TheSongList.
                                                listMenuEntries.size()) {
         std::string categoryHeaderText = GetHeader();
@@ -783,10 +784,10 @@ void SongSelectMenu::Draw() {
 
     if (TheSongList.PlaylistMode) {
         Encore::TextDisplay playlistSongs;
-        playlistSongs.Size(u.hinpct(0.035f)).Pos(AlbumX, AlbumY);
+        playlistSongs.Size(Units::hinpct(0.035f)).Pos(AlbumX, AlbumY);
         for (auto &listSong : TheSongList.playlist) {
             playlistSongs.DrawText(listSong->title);
-            playlistSongs.pos.y += u.hinpct(0.0375f);
+            playlistSongs.pos.y += Units::hinpct(0.0375f);
         }
     }
     buttReg.DrawPrompts(isOSOpen());
@@ -795,13 +796,10 @@ void SongSelectMenu::Draw() {
 
 
 void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
-
-    Units &u = Units::getInstance();
-
     float AlbumX = leftPos;
-    float AlbumY = u.hpct(0.04f);
-    float AlbumWidth = u.winpct(0.25f);
-    float InfoBoxHeight = u.hpct(1.0) - u.hinpct(0.36);
+    float AlbumY = Units::hpct(0.04f);
+    float AlbumWidth = Units::winpct(0.25f);
+    float InfoBoxHeight = Units::hpct(1.0) - Units::hinpct(0.36);
     Rectangle albumRect{ AlbumX, AlbumY, AlbumWidth, AlbumWidth };
     NPatchInfo shadowOverlay;
     shadowOverlay.source = {0,0,128,128};

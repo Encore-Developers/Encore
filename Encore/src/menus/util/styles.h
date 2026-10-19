@@ -39,7 +39,7 @@ constexpr Color AccentColor = { 255, 0, 255, 255 };
     SetWindowPosition(0, 0);
 
 #define SET_LARGE_BUTTON_STYLE()                                                         \
-    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.08f));                               \
+    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)Units::hinpct(0.08f));                               \
     GuiSetFont(assets.redHatDisplayBlack);                                               \
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);                               \
     GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xaaaaaaFF);                                 \
@@ -85,7 +85,7 @@ constexpr Color AccentColor = { 255, 0, 255, 255 };
     GuiSetStyle(BUTTON, TEXT_COLOR_FOCUSED, 0xFFFFFFFF);                                 \
     GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, 0xFFFFFFFF);                                 \
                                                                                          \
-    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)u.hinpct(0.03f));                               \
+    GuiSetStyle(DEFAULT, TEXT_SIZE, (int)Units::hinpct(0.03f));                          \
     GuiSetStyle(DEFAULT, TEXT_SPACING, 0);                                               \
                                                                                          \
     GuiSetStyle(TOGGLE, BASE_COLOR_NORMAL, 0x181827FF);                                  \

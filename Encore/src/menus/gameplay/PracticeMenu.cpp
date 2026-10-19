@@ -4,7 +4,7 @@
 #include "resultsMenu.h"
 #include "debug/EncoreDebug.h"
 #include "menus/MenuManager.h"
-#include "menus/main/MainMenu.h"
+#include "menus/util/GameMenu.h"
 #include "song/OpenSource.h"
 #include "menus/main/SongSelectMenu.h"
 
@@ -115,13 +115,12 @@ bool PracticeSectionOption::Input(Encore::ControllerEvent event) {
 void PracticeMenu::Draw() {
     UIInput = state != GAMEPLAY;
     DrawGameplay();
-    Units& u = Units::getInstance();
     if (state == OPTIONS) {
         optionsMenu.displayParams
-        .Pos(u.wpct(0.015), u.hpct(0.015))
-        .Bounds(u.winpct(0.3), u.hinpct(0.9))
-        .Padding(u.hinpct(0.010), u.hinpct(0.005))
-        .Size(u.hinpct(0.03))
+        .Pos(Units::wpct(0.015), Units::hpct(0.015))
+        .Bounds(Units::winpct(0.3), Units::hinpct(0.9))
+        .Padding(Units::hinpct(0.010), Units::hinpct(0.005))
+        .Size(Units::hinpct(0.03))
         .Col(WHITE);
         optionsMenu.Draw();
     }
@@ -130,10 +129,10 @@ void PracticeMenu::Draw() {
             sectionsMenu.rangeStart = 2;
         }
         sectionsMenu.displayParams
-        .Pos(u.wpct(0.015), u.hpct(0.015))
-        .Bounds(u.winpct(0.3), u.hinpct(0.9))
-        .Padding(u.hinpct(0.010), u.hinpct(0.005))
-        .Size(u.hinpct(0.03))
+        .Pos(Units::wpct(0.015), Units::hpct(0.015))
+        .Bounds(Units::winpct(0.3), Units::hinpct(0.9))
+        .Padding(Units::hinpct(0.010), Units::hinpct(0.005))
+        .Size(Units::hinpct(0.03))
         .Col(WHITE);
         sectionsMenu.Draw();
     }
@@ -146,8 +145,6 @@ void PracticeMenu::DrawGameplay() {
     } else {
         HideCursor();
     }
-    Units &u = Units::getInstance();
-    Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
     TheSongTime.UpdateBeatlines();
     ClearBackground(BLACK);

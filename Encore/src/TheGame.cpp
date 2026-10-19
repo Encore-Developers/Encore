@@ -219,7 +219,7 @@ int TheGame::Run(int argc, char *argv[]) {
     std::string discordOff = ArgumentList::GetArgValue("discord");
     TheGameRPC.Initialize(discordOff);
     SetTraceLogCallback(Encore::RaylibLogWrapper);
-    Units u = Units::getInstance();
+
     commitHash.erase(7);
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -344,7 +344,7 @@ int TheGame::Run(int argc, char *argv[]) {
         ZoneScopedN("Main Loop")
         // glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         SDL_GL_SetSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
-        u.calcUnits();
+        Units::calcUnits();
 
         //PollQueuedInputs(poller);
         SyncSDLWithAudio();

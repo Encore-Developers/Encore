@@ -7,7 +7,7 @@
 #include "GameplayMenu.h"
 #include "PracticeMenu.h"
 #include "../MenuManager.h"
-#include "../main/MainMenu.h"
+#include "menus/util/GameMenu.h"
 #include "../util/uiUnits.h"
 #include "RhythmEngine/engines.h"
 #include "gameplay/enctime.h"
@@ -133,7 +133,7 @@ void ChartLoadingMenu::Load() {
 }
 
 void ChartLoadingMenu::Draw() {
-    Units u = Units::getInstance();
+
     Assets &assets = Assets::getInstance();
 
     ClearBackground(BLACK);
@@ -142,13 +142,13 @@ void ChartLoadingMenu::Draw() {
     Encore::Text::lDrawText(
         assets.redHatDisplayBlack,
         "chartLoading.header",
-        { u.LeftSide, u.hpct(0.05f) },
-        u.hinpct(0.125f),
+        { Units::LeftSide, Units::hpct(0.05f) },
+        Units::hinpct(0.125f),
         WHITE,
         LEFT
     );
     float AfterLoadingTextPos =
-        MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", u.hinpct(0.125f), 0).x;
+        MeasureTextEx(assets.redHatDisplayBlack, "LOADING...  ", Units::hinpct(0.125f), 0).x;
 
     std::string LoadingPhrase = curSong->loadingPhrase.empty()
         ? LOCALIZE("chartLoading.loadingPhrase").toString()
@@ -157,8 +157,8 @@ void ChartLoadingMenu::Draw() {
     Encore::Text::DrawText(
         assets.rubikBold,
         LoadingPhrase.c_str(),
-        { u.LeftSide + AfterLoadingTextPos + u.winpct(0.02f), u.hpct(0.09f) },
-        u.hinpct(0.05f),
+        { Units::LeftSide + AfterLoadingTextPos + Units::winpct(0.02f), Units::hpct(0.09f) },
+        Units::hinpct(0.05f),
         LIGHTGRAY,
         LEFT
     );

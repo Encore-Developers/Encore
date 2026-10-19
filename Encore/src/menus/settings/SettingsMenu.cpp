@@ -9,7 +9,7 @@
 #include "SettingsGameplay.h"
 #include "SettingsKeyboard.h"
 #include "../MenuManager.h"
-#include "../main/MainMenu.h"
+#include "menus/main/MainMenu.h"
 #include "raygui.h"
 #include "settings/settings.h"
 #include "../util/uiUnits.h"
@@ -17,6 +17,8 @@
 #include "SettingsCredits.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellHelper.h"
+#include "menus/util/GameMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "menus/util/locale/Locale.h"
 
 static int selectedIndex = 0;
@@ -28,37 +30,36 @@ enum OptionsCategories {
 };
 
 void SettingsMenu::Draw() {
-    Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
-    float TextPlacementTB = u.hpct(0.05f);
-    float TextPlacementLR = u.wpct(0.05f);
-    float EntryFontSize = u.hinpct(0.075f);
-    float EntryHeight = u.hinpct(0.075f);
-    float EntryTop = u.hpct(0.30f);
-    float TextLineTop = u.hpct(0.36f);
-    float TextTop = u.hpct(0.31f);
-    float EntryTextLeft = u.wpct(0.03f);
+    float TextPlacementTB = Units::hpct(0.05f);
+    float TextPlacementLR = Units::wpct(0.05f);
+    float EntryFontSize = Units::hinpct(0.075f);
+    float EntryHeight = Units::hinpct(0.075f);
+    float EntryTop = Units::hpct(0.30f);
+    float TextLineTop = Units::hpct(0.36f);
+    float TextTop = Units::hpct(0.31f);
+    float EntryTextLeft = Units::wpct(0.03f);
 
     GameMenu::DrawTopOvershell(0.15f);
 
     // find a better name for this than Main Menu
     Encore::Text::lDrawText(assets.rubik, "settings.header.categorySel",
-                         {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
+                         {Units::LeftSide, Units::hpct(0.027f)}, Units::hinpct(0.042f), LIGHTGRAY, LEFT);
     Encore::Text::lDrawText(
         assets.redHatDisplayBlack,
         "settings.header.main",
-        {u.LeftSide, TextPlacementTB},
-        u.hinpct(0.125f),
+        {Units::LeftSide, TextPlacementTB},
+        Units::hinpct(0.125f),
         WHITE,
         LEFT
     );
-    float fontSize = u.hinpct(0.029f);
+    float fontSize = Units::hinpct(0.029f);
     Encore::Text::lDrawText(assets.josefinSansItalic, "settings.subtitle", {EntryTextLeft, TextTop}, fontSize, Color{136, 136, 136, 255}, LEFT);
 
-    DrawLineEx({EntryTextLeft, TextLineTop}, {EntryTextLeft + u.wpct(0.42f), TextLineTop}, u.winpct(0.001f), WHITE);
+    DrawLineEx({EntryTextLeft, TextLineTop}, {EntryTextLeft + Units::wpct(0.42f), TextLineTop}, Units::winpct(0.001f), WHITE);
 
 
     int menuItemCount = 3;
@@ -87,7 +88,7 @@ void SettingsMenu::Draw() {
         Rectangle itemRect = {
             EntryTextLeft,
             yPos,
-            u.wpct(0.32f),
+            Units::wpct(0.32f),
             EntryHeight
         };
         if (CheckCollisionPointRec(mousePos, itemRect)) {
@@ -118,7 +119,6 @@ void SettingsMenu::Draw() {
         }
     }
 
-    Units::getInstance();
     GameMenu::DrawTopBarText();
     GameMenu::DrawBottomOvershell();
     buttReg.DrawPrompts(isOSOpen());

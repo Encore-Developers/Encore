@@ -1,4 +1,6 @@
 #include "SimpleMenu.h"
+
+#include "imgui.h"
 #include "raylib.h"
 using namespace SimpleMenu;
 using namespace Encore;

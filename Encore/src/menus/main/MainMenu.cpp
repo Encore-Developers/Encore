@@ -19,7 +19,6 @@
 
 #include "imgui.h"
 #include "../menu.h"
-#include "../overshell/overshellRenderer.h"
 #include "../util/uiUnits.h"
 #include "../util/locale/Locale.h"
 #include "../../song/songlist.h"
@@ -29,167 +28,26 @@
 #include "menus/settings/SettingsMenu.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
-
-#ifndef GIT_COMMIT_HASH
-#define GIT_COMMIT_HASH
-#endif
+#include "menus/util/GameMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "../MenuManager.h"
 #include "../../settings/settings.h"
 #include "users/playerManager.h"
 
-#ifndef ENCORE_VERSION
-#define ENCORE_VERSION
-#endif
 
 const float Width = (float)GetRenderWidth();
 const float Height = (float)GetRenderHeight();
 
 bool randomSongChosen = false;
-std::string menuCommitHash = GIT_COMMIT_HASH;
-std::string menuVersion = ENCORE_VERSION;
-std::string gitBranch = GIT_BRANCH;
+
+
 Assets &menuAss = Assets::getInstance();
 SongList &songListMenu = TheSongList;
-Units u = Units::getInstance();
 Encore::Jukebox TheGameJukebox;
 MainMenu TheGameMenu;
 int MainMenu::logoInt = 0;
 
-void GameMenu::DrawTopOvershell(float TopOvershell) {
-    float OvershellBottom = u.hpct(TopOvershell);
-    float OvershellHeight = u.hinpct(TopOvershell);
-    float TopBarPos = u.hpct(0);
-    float TopBarHeight = u.hinpct(0.04);
 
-    DrawRectangleGradientV(
-        0,
-        OvershellBottom - 2,
-        GetRenderWidth(),
-        u.hinpct(0.025f),
-        Color { 0, 0, 0, 128 },
-        Color { 0, 0, 0, 0 }
-    );
-    DrawRectangleGradientV(
-        0,
-        TopBarPos - u.hinpct(0.025f),
-        GetRenderWidth(),
-        u.hinpct(0.025f),
-        Color { 0, 0, 0, 0 },
-        Color { 0, 0, 0, 128 }
-    );
-    DrawRectangle(0, TopBarPos, (int)GetRenderWidth(), OvershellHeight, WHITE);
-    DrawRectangleGradientV(
-        0,
-        TopBarPos,
-        GetRenderWidth(),
-        TopBarHeight,
-        GetColor(0x332033FF),
-        GetColor(0x271827FF)
-    );
-    DrawRectangleGradientV(
-        0,
-        TopBarPos + TopBarHeight,
-        GetRenderWidth(),
-        OvershellHeight - TopBarHeight - u.hinpct(0.005f),
-        Color { 32, 32, 51, 255 },
-        Color { 24, 24, 39, 255 }
-    );
-    DrawRectangleGradientV(
-        0,
-        TopBarPos + TopBarHeight,
-        GetRenderWidth(),
-        u.hinpct(0.0075f),
-        Color { 0, 0, 0, 64 },
-        Color { 0, 0, 0, 0 }
-    );
-    DrawRectangleGradientV(
-        0,
-        TopBarPos,
-        GetRenderWidth(),
-        u.hinpct(0.005f),
-        Color { 0, 0, 0, 64 },
-        Color { 0, 0, 0, 0 }
-    );
-    //DrawRectangle(
-    //    0,
-    //    0,
-    //    (int)GetRenderWidth(),
-    //    u.hpct(TopOvershell) - u.hinpct(0.005f),
-    //   ColorBrightness(GetColor(0x181827FF), -0.25f)
-    // );
-}
-
-void GameMenu::DrawBottomOvershell() {
-    float BottomOvershell = GetRenderHeight() - u.hpct(0.18f);
-    DrawRectangle(
-        0, BottomOvershell, (float)(GetRenderWidth()), (float)GetRenderHeight(), WHITE
-    );
-    DrawRectangle(
-        0,
-        BottomOvershell + u.hinpct(0.005f),
-        (float)(GetRenderWidth()),
-        (float)GetRenderHeight(),
-        ColorBrightness(GetColor(0x181827FF), -0.5f)
-    );
-}
-
-// should be reduced to just PlayerSongStats (instead of Player) eventually
-
-// todo: replace player with band stats
-
-void GameMenu::DrawAlbumArtBackground() {
-    if (!TheArtLoader.loadedArtBlur) {
-        return;
-    }
-    float diagonalLength = sqrtf(
-        (float)(GetRenderWidth() * GetRenderWidth())
-        + (float)(GetRenderHeight() * GetRenderHeight())
-    );
-    float RectXPos = GetRenderWidth() / 2;
-    float RectYPos = diagonalLength / 2;
-
-    BeginShaderMode(menuAss.bgShader);
-    DrawTexturePro(
-        *TheArtLoader.loadedArtBlur,
-        Rectangle { 0, 0, (float)TheArtLoader.loadedArtBlur->GetTexture().width, (float)TheArtLoader.loadedArtBlur->GetTexture().width },
-        Rectangle { RectXPos, -RectYPos * 2, diagonalLength * 2, diagonalLength * 2 },
-        { 0, 0 },
-        45,
-        WHITE
-    );
-    EndShaderMode();
-};
-
-
-void GameMenu::DrawTopBarText(bool ShowFPS, bool ShowLogo) {
-    float Size = u.hinpct(0.025f);
-    float Top = u.hpct(00);
-    float Offset = 0;
-
-    if (ShowLogo) {
-        Encore::TextDisplay logo;
-        logo.Pos(u.wpct(0.0025f), Top - u.hinpct(0.003))
-            .Size(Size*1.75)
-            .Col(WHITE)
-            .Fnt(ASSET(rubikExtraBold))
-            .DrawText("encore");
-        Offset = logo.TextWidth("encore");
-    }
-
-    Encore::TextDisplay vers;
-    std::string VersionText = menuVersion + "-" + gitBranch + ":" + menuCommitHash.substr(0, 6);
-    vers.Pos(u.wpct(0.0025f) + (Offset * 1.125), Top + (u.hinpct(0.0225) - (Size /2)))
-        .Size(Size)
-        .Col(GetColor(0x807F7FFF))
-        .Fnt(ASSET(josefinSansBold))
-        .DrawText(VersionText);
-
-    if (!ShowFPS) return;
-
-    vers.AddX(vers.TextWidth(VersionText) * 1.125)
-        .Col(LIME)
-        .DrawText(std::format("FPS: {}", GetFPS()));
-};
 
 
 void MainMenu::ChooseSplashText(std::filesystem::path directory) {
@@ -340,7 +198,7 @@ void DrawWarning(Vector2 pos, Vector2 size) {
 void MainMenu::DrawMiniMTVOverlay(unsigned char alpha, Vector2 pos)
 {
     const auto sourceTex = TheSourceIcons[TheSongList.curSong->source]->GetTexture();
-    float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+    float TitleFontSize = Units::hinpct(0.0425f * 0.75f);
     float TitleFontOffset = (TitleFontSize * 1.25f);
 
     Encore::Text::DrawText(ASSET(josefinSansBold), TheSongList.curSong->title,
@@ -357,7 +215,7 @@ void MainMenu::DrawMiniMTVOverlay(unsigned char alpha, Vector2 pos)
 }
 
 void MainMenu::AttractScreen() {
-    float SplashFontSize = u.hinpct(0.03f);
+    float SplashFontSize = Units::hinpct(0.03f);
     float SplashHeight =
         MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0)
             .y;
@@ -367,17 +225,17 @@ void MainMenu::AttractScreen() {
     Color accentColor =
         ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f);
 
-    float SongFontSize = u.hinpct(0.03f);
+    float SongFontSize = Units::hinpct(0.03f);
 
-    Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
+    Vector2 StringBox = { Units::wpct(0.01f), Units::hpct(0.2125f) };
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
-    float LogoHeight = u.winpct(0.1f);
-    float LogoWidth = u.winpct(0.48f);
-    Vector2 GreetSplashPos = { u.wpct(0.5f) - (SplashWidth / 2),
-                               u.hpct(0.36f) + LogoHeight };
+    float LogoHeight = Units::winpct(0.1f);
+    float LogoWidth = Units::winpct(0.48f);
+    Vector2 GreetSplashPos = { Units::wpct(0.5f) - (SplashWidth / 2),
+                               Units::hpct(0.36f) + LogoHeight };
     Rectangle LogoRect = {
-        u.wpct(0.5f) - (LogoWidth / 2), u.hpct(0.35f), LogoWidth, LogoHeight
+        Units::wpct(0.5f) - (LogoWidth / 2), Units::hpct(0.35f), LogoWidth, LogoHeight
     };
 
     DrawTextEx(
@@ -390,7 +248,7 @@ void MainMenu::AttractScreen() {
     );
     std::string hint = LOCALIZE("mainMenu.hint");
     float HintWidth = MeasureTextEx(menuAss.rubik, hint.c_str(), SplashFontSize, 0).x;
-    Vector2 HintPos = { u.wpct(0.5f) - (HintWidth / 2), u.hpct(0.5f) + LogoHeight };
+    Vector2 HintPos = { Units::wpct(0.5f) - (HintWidth / 2), Units::hpct(0.5f) + LogoHeight };
     DrawTextEx(menuAss.rubik, hint.c_str(), HintPos, SplashFontSize, 0, WHITE);
     switch (logoInt) {
         case (1): {
@@ -429,10 +287,10 @@ void MainMenu::AttractScreen() {
             if (TitleAnimTimer > 1) TitleAnimTimer = 1;
         }
         unsigned char Alpha = 96 + (easeInOut(TitleAnimTimer) * 159);
-        float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+        float TitleFontSize = Units::hinpct(0.0425f * 0.75f);
         float TitleFontOffset = (TitleFontSize * 1.25f);
-        float topOfVocalBar = GetRenderHeight() - u.hpct(0.13f) - (TitleFontOffset * 2);
-        DrawMiniMTVOverlay(Alpha, {u.wpct(0.99f),topOfVocalBar});
+        float topOfVocalBar = GetRenderHeight() - Units::hpct(0.13f) - (TitleFontOffset * 2);
+        DrawMiniMTVOverlay(Alpha, {Units::wpct(0.99f),topOfVocalBar});
     }
     DrawOvershell();
 
@@ -452,7 +310,7 @@ void MainMenu::GotoSongSelect() {
 }
 void MainMenu::MainMenuScreen() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
-    float SplashFontSize = u.hinpct(0.03f);
+    float SplashFontSize = Units::hinpct(0.03f);
     float SplashHeight =
         MeasureTextEx(menuAss.josefinSansItalic, SplashString.c_str(), SplashFontSize, 0)
             .y;
@@ -462,21 +320,21 @@ void MainMenu::MainMenuScreen() {
     Color accentColor =
         ColorBrightness(ColorContrast(Color { 255, 0, 255, 128 }, -0.125f), -0.25f);
 
-    float SongFontSize = u.hinpct(0.03f);
+    float SongFontSize = Units::hinpct(0.03f);
 
-    Vector2 StringBox = { u.wpct(0.01f), u.hpct(0.2125f) };
+    Vector2 StringBox = { Units::wpct(0.01f), Units::hpct(0.2125f) };
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
 
     GameMenu::DrawTopOvershell(0.2f);
     GameMenu::DrawTopBarText(false, false);
-    float logoHeight = u.hinpct(0.15f);
+    float logoHeight = Units::hinpct(0.15f);
     float logoWidth = (float(ASSET(encoreWhiteLogo).width) / float(ASSET(encoreWhiteLogo).height)) * logoHeight;
-    DrawRectangle(0, u.hpct(0.2f), u.LeftSide, u.hinpct(0.05f), accentColor);
+    DrawRectangle(0, Units::hpct(0.2f), Units::LeftSide, Units::hinpct(0.05f), accentColor);
     DrawRectangleGradientH(
-        u.LeftSide,
-        u.hpct(0.2f),
-        SplashWidth + u.winpct(0.1f),
-        u.hinpct(0.05f),
+        Units::LeftSide,
+        Units::hpct(0.2f),
+        SplashWidth + Units::winpct(0.1f),
+        Units::hinpct(0.05f),
         accentColor,
         Color { 0, 0, 0, 0 }
     );
@@ -485,7 +343,7 @@ void MainMenu::MainMenuScreen() {
         menuAss.josefinSansItalic, SplashString.c_str(), StringBox, SplashFontSize, 0, WHITE
     );
 
-    Rectangle LogoRect = { u.LeftSide + u.winpct(0.01f), u.hpct(0.035f), logoWidth, logoHeight };
+    Rectangle LogoRect = { Units::LeftSide + Units::winpct(0.01f), Units::hpct(0.035f), logoWidth, logoHeight };
     switch (logoInt) {
     case (1): {
         ASSET(encorePrideLogo).Draw(LogoRect, WHITE);
@@ -519,13 +377,13 @@ void MainMenu::MainMenuScreen() {
     GuiSetStyle(BUTTON, BORDER_COLOR_FOCUSED, 0x00000000);
     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x00000000);
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x00000000);
-    if (GuiButton({ 0, u.hpct(0.8f), u.LeftSide + SplashWidth, u.hpct(0.05f) }, "") && !isOSOpen()) {
+    if (GuiButton({ 0, Units::hpct(0.8f), Units::LeftSide + SplashWidth, Units::hpct(0.05f) }, "") && !isOSOpen()) {
         ChooseSplashText(directory);
     }
-    float LeftMMButton = u.wpct(0.03f);
+    float LeftMMButton = Units::wpct(0.03f);
     Color color = {170, 170, 170, 255};
-    float MainMenuButtonTopLeft = u.hpct(0.3f);
-    Rectangle pos = {LeftMMButton, MainMenuButtonTopLeft, u.winpct(0.35), u.hinpct(0.08f)};
+    float MainMenuButtonTopLeft = Units::hpct(0.3f);
+    Rectangle pos = {LeftMMButton, MainMenuButtonTopLeft, Units::winpct(0.35), Units::hinpct(0.08f)};
     // Look. I'll admit this isnt the best thing I couldve done.
     // But I dont think any more unnecessary work should be needed for this.
     // It's three fucking buttons for crying out loud. What more should i do?
@@ -546,7 +404,7 @@ void MainMenu::MainMenuScreen() {
 
     {
         color = {170, 170, 170, 255};
-        pos.y += u.hinpct(0.09f);
+        pos.y += Units::hinpct(0.09f);
 
         if (GuiButton(pos, "") && !isOSOpen()) {
             TheMenuManager.CreateAndSwitchMenu<SettingsMenu>();
@@ -559,7 +417,7 @@ void MainMenu::MainMenuScreen() {
     }
 
     {
-        pos.y += u.hinpct(0.09f);
+        pos.y += Units::hinpct(0.09f);
         color = {170, 170, 170, 255};
         if (CheckCollisionPointRec(GetMousePosition(), pos) || ControllerSelected == 2) {
             DrawButtonGradient(pos, accentColor);
@@ -582,7 +440,7 @@ void MainMenu::MainMenuScreen() {
 
     if (GuiButton(
             { (float)GetRenderWidth() - 60,
-              (float)GetRenderHeight() - u.hpct(0.15f) - 60,
+              (float)GetRenderHeight() - Units::hpct(0.15f) - 60,
               60,
               60 },
             ""
@@ -592,7 +450,7 @@ void MainMenu::MainMenuScreen() {
 
     if (GuiButton(
             { (float)GetRenderWidth() - 120,
-              (float)GetRenderHeight() - u.hpct(0.15f) - 60,
+              (float)GetRenderHeight() - Units::hpct(0.15f) - 60,
               60,
               60 },
             ""
@@ -603,14 +461,14 @@ void MainMenu::MainMenuScreen() {
     GuiSetFont(menuAss.rubik);
     DrawTextureEx(
         menuAss.github,
-        { (float)GetRenderWidth() - 54, (float)GetRenderHeight() - 54 - u.hpct(0.15f) },
+        { (float)GetRenderWidth() - 54, (float)GetRenderHeight() - 54 - Units::hpct(0.15f) },
         0,
         0.2,
         WHITE
     );
     DrawTextureEx(
         menuAss.discord,
-        { (float)GetRenderWidth() - 113, (float)GetRenderHeight() - 48 - u.hpct(0.15f) },
+        { (float)GetRenderWidth() - 113, (float)GetRenderHeight() - 48 - Units::hpct(0.15f) },
         0,
         0.075,
         WHITE
@@ -623,11 +481,11 @@ void MainMenu::MainMenuScreen() {
             menuAss.rubikItalic, TheSongList.curSong->artist.c_str(), SongFontSize, 0
         );
 
-        Vector2 SongTitleBox = { u.RightSide - u.hinpct(0.13f),
-                                 u.hpct(0.2f) - u.hinpct(0.131f) };
+        Vector2 SongTitleBox = { Units::RightSide - Units::hinpct(0.13f),
+                                 Units::hpct(0.2f) - Units::hinpct(0.131f) };
         DrawMiniMTVOverlay(255, SongTitleBox);
-        // SongTitleBox.x = SongTitleBox.x - u.hinpct(0.12f);
-        // SongArtistBox.x = SongArtistBox.x - u.hinpct(0.12f);
+        // SongTitleBox.x = SongTitleBox.x - Units::hinpct(0.12f);
+        // SongArtistBox.x = SongArtistBox.x - Units::hinpct(0.12f);
         // DrawTextEx(
         //     menuAss.rubikBoldItalic,
         //     TheSongList.curSong->title.c_str(),
@@ -649,27 +507,27 @@ void MainMenu::MainMenuScreen() {
         float length = TheAudioManager.GetMusicTimeLength();
         DrawRectangle(
             0,
-            u.hpct(0.2f) - u.hinpct(0.01f),
+            Units::hpct(0.2f) - Units::hinpct(0.01f),
             Remap(played, 0, length, 0, GetRenderWidth()),
-            u.hinpct(0.005f),
+            Units::hinpct(0.005f),
             SKYBLUE
         );
 
         GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
         if (GuiButton(
-                { u.RightSide - u.hinpct(0.12f),
-                  u.hpct(0.2f) - u.hinpct(0.1f) - u.hinpct(0.031f),
-                  u.hinpct(0.06f),
-                  u.hinpct(0.06f) },
+                { Units::RightSide - Units::hinpct(0.12f),
+                  Units::hpct(0.2f) - Units::hinpct(0.1f) - Units::hinpct(0.031f),
+                  Units::hinpct(0.06f),
+                  Units::hinpct(0.06f) },
                 TheGameJukebox.playing ? "||" : ">"
             )) {
             TheGameJukebox.TogglePlayback();
         }
         if (GuiButton(
-                { u.RightSide - u.hinpct(0.06f),
-                  u.hpct(0.2f) - u.hinpct(0.1f) - u.hinpct(0.031f),
-                  u.hinpct(0.06f),
-                  u.hinpct(0.06f) },
+                { Units::RightSide - Units::hinpct(0.06f),
+                  Units::hpct(0.2f) - Units::hinpct(0.1f) - Units::hinpct(0.031f),
+                  Units::hinpct(0.06f),
+                  Units::hinpct(0.06f) },
                 ">>"
             )) {
             TheGameJukebox.SkipSong();
@@ -681,10 +539,10 @@ void MainMenu::MainMenuScreen() {
             MeasureTextEx(menuAss.rubikBoldItalic, LOCALISE("mainMenu.noSongLoaded"), SongFontSize, 0);
         Vector2 ArtistSize = MeasureTextEx(menuAss.rubikItalic, "", SongFontSize, 0);
 
-        Vector2 SongTitleBox = { u.RightSide - TitleSize.x - u.winpct(0.01f),
-                                 u.hpct(0.2f) - u.hinpct(0.1f) - (TitleSize.y * 1.1f) };
-        Vector2 SongArtistBox = { u.RightSide - ArtistSize.x - u.winpct(0.01f),
-                                  u.hpct(0.2f) - u.hinpct(0.1f) };
+        Vector2 SongTitleBox = { Units::RightSide - TitleSize.x - Units::winpct(0.01f),
+                                 Units::hpct(0.2f) - Units::hinpct(0.1f) - (TitleSize.y * 1.1f) };
+        Vector2 SongArtistBox = { Units::RightSide - ArtistSize.x - Units::winpct(0.01f),
+                                  Units::hpct(0.2f) - Units::hinpct(0.1f) };
         DrawTextEx(
             menuAss.rubikBoldItalic, LOCALISE("mainMenu.noSongLoaded"), SongTitleBox, SongFontSize, 0, WHITE
         );
@@ -693,7 +551,7 @@ void MainMenu::MainMenuScreen() {
     buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();
 
-    DrawWarning({GetRenderWidth() - 520.0f, u.hpct(0.2f)}, {500, 650});
+    DrawWarning({GetRenderWidth() - 520.0f, Units::hpct(0.2f)}, {500, 650});
 }
 // this is really nasty shit as far as im concerned please dont think about it too much
 void MainMenu::Draw() {
@@ -724,7 +582,7 @@ void GameMenu::DrawFPS(int posX, int posY) {
         menuAss.josefinSansItalic,
         TextFormat("%2i FPS", fps),
         { (float)posX, (float)posY },
-        u.hinpct(0.025f),
+        Units::hinpct(0.025f),
         0,
         color
     );

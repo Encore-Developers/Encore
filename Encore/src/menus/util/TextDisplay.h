@@ -5,7 +5,7 @@
 #ifndef ENCORE_TEXTDISPLAY_H
 #define ENCORE_TEXTDISPLAY_H
 #include "assets.h"
-#include "menus/main/MainMenu.h"
+#include "locale/Locale.h"
 
 enum TextAlign {
     LEFT,

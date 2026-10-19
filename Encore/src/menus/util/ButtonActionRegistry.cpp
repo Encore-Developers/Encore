@@ -8,7 +8,8 @@
 #include "menus/util/locale/Locale.h"
 #include "menus/MenuManager.h"
 #include "uiUnits.h"
-#include "menus/main/MainMenu.h"
+#include "TextDisplay.h"
+#include "menus/overshell/OvershellMenu.h"
 
 // these funcs below are temp before a proper binding/icon library is implemented
 
@@ -151,26 +152,26 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
     for (int a = 1; a < 4 ; a++) {
         totalTypes += types.at(a);
     }
-    Units u = Units::getInstance();
+
     bool modified = false;
     if (top < 0) {
         modified = true;
-        top = GetRenderHeight() - u.hpct(0.18f);
+        top = GetRenderHeight() - Units::hpct(0.18f);
     }
     if (left < 0) {
         modified = true;
-        left = u.LeftSide;
+        left = Units::LeftSide;
     }
     GuiSetStyle(BUTTON,
                 BASE_COLOR_NORMAL,
                 0x00000000);
     GuiSetStyle(BUTTON, BORDER_WIDTH, 0);
-    float ButtonWidth = u.winpct(0.135f);
-    const float buttonHeight = u.hinpct(0.05f);
-    const float fontSize = u.hinpct(0.03f);
-    const float nameFontSize = u.hinpct(0.025f);
+    float ButtonWidth = Units::winpct(0.135f);
+    const float buttonHeight = Units::hinpct(0.05f);
+    const float fontSize = Units::hinpct(0.03f);
+    const float nameFontSize = Units::hinpct(0.025f);
     Rectangle pos = {left, top, ButtonWidth, buttonHeight};
-    Rectangle backgroundPos = {left, top + u.hinpct(0.0075f), ButtonWidth - u.hinpct(0.0075f), buttonHeight - u.hinpct(0.015f)};
+    Rectangle backgroundPos = {left, top + Units::hinpct(0.0075f), ButtonWidth - Units::hinpct(0.0075f), buttonHeight - Units::hinpct(0.015f)};
     TextDisplay ButtonData;
 
     float buttonIconWidth = buttonHeight * 1.3f;
@@ -178,7 +179,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
     float asdgasdfkjahlsdg = totalTypes > 1 ? (buttonIconWidth * 0.95f) + ((totalTypes-1) * (buttonHeight*0.6f)) : buttonIconWidth * 0.95f;
 
     Rectangle icon {
-        pos.x + u.hinpct(0.005f),
+        pos.x + Units::hinpct(0.005f),
         backgroundPos.y + (backgroundPos.height * 0.15f),
         asdgasdfkjahlsdg,
         backgroundPos.height * 0.7f
@@ -190,14 +191,14 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
     iconNP.source = {0,0,float(ASSET(fretButtonPrompt).width), float(ASSET(fretButtonPrompt).height)};
     iconNP.layout = NPATCH_THREE_PATCH_HORIZONTAL;
 
-    ButtonData.Pos(left + (icon.width + (buttonHeight * 0.25)), top + u.hinpct(0.015f)).Size(nameFontSize).Fnt(ASSET(josefinSansBold));
+    ButtonData.Pos(left + (icon.width + (buttonHeight * 0.25)), top + Units::hinpct(0.015f)).Size(nameFontSize).Fnt(ASSET(josefinSansBold));
     if (modified) {
-        float BottomOvershell = GetRenderHeight() - u.hpct(0.18f);
+        float BottomOvershell = GetRenderHeight() - Units::hpct(0.18f);
         DrawRectangleGradientV(
             0,
             BottomOvershell,
             (float)(GetRenderWidth()),
-            u.hinpct(0.05f),
+            Units::hinpct(0.05f),
         GetColor(0x472E47FF),
         GetColor(0x271827FF)
         );
@@ -266,7 +267,7 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
         ButtonData.lDrawText(butt.second.Name);
         ButtonData.pos.x += pos.width + (buttonHeight * 0.25);
         pos.x += pos.width + (buttonHeight * 0.25);
-        icon.x = pos.x + u.hinpct(0.005f);
+        icon.x = pos.x + Units::hinpct(0.005f);
         backgroundPos.x += pos.width + (buttonHeight * 0.25);
     }
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);

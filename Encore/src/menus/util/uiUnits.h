@@ -1,38 +1,23 @@
-//
-// Created by marie on 05/05/2024.
-//
-
-#ifndef ENCORE_UIUNITS_H
-#define ENCORE_UIUNITS_H
-
+#pragma once
 #include "raylib.h"
 
 class Units {
-    Units() {}
-
 public:
-    static Units &getInstance() {
-        static Units instance; // This is the single instance
-        return instance;
-    }
+    static float RightBorder;
+    static float RightSide;
+    static float LeftBorder;
+    static float LeftSide;
 
-    float RightBorder;
-    float RightSide;
-    float LeftBorder;
-    float LeftSide;
+    static float BottomBorder;
+    static float BottomSide;
+    static float TopBorder;
+    static float TopSide;
 
-    float BottomBorder;
-    float BottomSide;
-    float TopBorder;
-    float TopSide;
-
-    void calcUnits();
+    static void calcUnits();
     // usable height
-    float hpct(float pct);
-    float hinpct(float pct);
+    static float hpct(float pct);
+    static float hinpct(float pct);
     // usable width
-    float wpct(float pct);
-    float winpct(float pct);
+    static float wpct(float pct);
+    static float winpct(float pct);
 };
-
-#endif // ENCORE_UIUNITS_H

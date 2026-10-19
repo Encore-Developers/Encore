@@ -5,17 +5,17 @@
 
 #include "SettingsMenu.h"
 #include "../MenuManager.h"
-#include "../main/MainMenu.h"
 #include "assets.h"
 #include "../util/uiUnits.h"
 #include "util/settings-text.h"
 #include "../overshell/OvershellMenu.h"
 #include "raygui.h"
 #include "../overshell/OvershellHelper.h"
+#include "menus/util/GameMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "menus/util/locale/Locale.h"
 
 void SettingsKeyboard::Draw() {
-    Units& u = Units::getInstance();
     Assets& assets = Assets::getInstance();
     GameMenu::DrawAlbumArtBackground();
     DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color { 0, 0, 0, 128 });
@@ -23,19 +23,19 @@ void SettingsKeyboard::Draw() {
     GameMenu::DrawTopBarText();
     GameMenu::DrawBottomOvershell();
 
-    float TextPlacementTB = u.hpct(0.05f);
-    float TextPlacementLR = u.wpct(0.05f);
-    Encore::Text::lDrawText(assets.rubik, "settings.header.keyboard", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
-    Encore::Text::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {u.LeftSide, TextPlacementTB}, u.hinpct(0.125f), WHITE, LEFT);
+    float TextPlacementTB = Units::hpct(0.05f);
+    float TextPlacementLR = Units::wpct(0.05f);
+    Encore::Text::lDrawText(assets.rubik, "settings.header.keyboard", {Units::LeftSide, Units::hpct(0.027f)}, Units::hinpct(0.042f), LIGHTGRAY, LEFT);
+    Encore::Text::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {Units::LeftSide, TextPlacementTB}, Units::hinpct(0.125f), WHITE, LEFT);
 
     float settingsOffsetX = 0.0f;
     float settingsOffsetY = 0.0f;
-    float EntryFontSize = u.hinpct(0.03f);
-    float EntryHeight = u.hinpct(0.06f) + 30.0f - 50.0f + 10.0f + 7.0f;
-    float EntryTop = TextPlacementTB + u.hinpct(0.125f) + u.hinpct(0.01f) + settingsOffsetY - 30.0f - 2.0f - 2.0f;
+    float EntryFontSize = Units::hinpct(0.03f);
+    float EntryHeight = Units::hinpct(0.06f) + 30.0f - 50.0f + 10.0f + 7.0f;
+    float EntryTop = TextPlacementTB + Units::hinpct(0.125f) + Units::hinpct(0.01f) + settingsOffsetY - 30.0f - 2.0f - 2.0f;
     float verticalGap = 0.0f;
-    float boxLeft = u.LeftSide + u.winpct(0.025f) + settingsOffsetX + 75.0f - 50.0f - 2.0f;
-    float boxWidth = u.wpct(boxWidthPct) + 50.0f + 17.0f + 7.0f - 2.0f - 2.0f;
+    float boxLeft = Units::LeftSide + Units::winpct(0.025f) + settingsOffsetX + 75.0f - 50.0f - 2.0f;
+    float boxWidth = Units::wpct(boxWidthPct) + 50.0f + 17.0f + 7.0f - 2.0f - 2.0f;
     float OptionLeft = boxLeft;
     float OptionWidth = boxWidth;
     Color boxBackground = Color{31, 31, 50, 255};
@@ -54,9 +54,9 @@ void SettingsKeyboard::Draw() {
 
         std::string label = options[i].first;
         Vector2 labelSize = MeasureTextEx(assets.rubikBold, label.c_str(), EntryFontSize, 0);
-        DrawTextEx(assets.rubikBold, label.c_str(), {boxLeft + u.winpct(0.01f), optionTop + (EntryHeight - labelSize.y) / 2}, EntryFontSize, 0, WHITE);
+        DrawTextEx(assets.rubikBold, label.c_str(), {boxLeft + Units::winpct(0.01f), optionTop + (EntryHeight - labelSize.y) / 2}, EntryFontSize, 0, WHITE);
 
-        float buttonWidth = u.winpct(0.15f);
+        float buttonWidth = Units::winpct(0.15f);
         Rectangle buttonRect = {OptionLeft + OptionWidth - buttonWidth, optionTop, buttonWidth, EntryHeight};
         std::string buttonText = (*options[i].second == -2) ? "Unbound" : keybinds.getKeyStr(*options[i].second);
         if (static_cast<int>(i) == bindingOption) buttonText = "Press key...";

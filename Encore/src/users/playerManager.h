@@ -15,7 +15,6 @@ class PlayerManager {
 public:
     PlayerManager();
     ~PlayerManager();
-    void MakePlayerDirectory(); // run on initialization?
     void LoadPlayerList(); // make player, load
     // player stuff to
     // PlayerList

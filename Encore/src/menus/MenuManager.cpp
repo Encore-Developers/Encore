@@ -10,7 +10,6 @@
 #include "settings/SettingsMenu.h"
 #include "main/SongSelectMenu.h"
 #include "main/cacheLoadingScreen.h"
-#include "main/MainMenu.h"
 #include "menu.h"
 #include "raygui.h"
 #include "gameplay/resultsMenu.h"
@@ -24,6 +23,7 @@
 #include <utility>
 
 #include "settings/keybinds.h"
+#include "util/TextDisplay.h"
 
 void MenuManager::SwitchToMenu(std::shared_ptr<Menu> menu) {
     if (!menu->AllowsTempPlayers()) {
@@ -50,25 +50,24 @@ void MenuManager::DrawMenu() {
     std::shared_ptr<Menu> menu = ActiveMenu;
     menu->Draw();
     if (ScanningSongs) {
-        Units &u = Units::getInstance();
-        DrawRectangle(0, u.TopSide, GetRenderWidth(), u.hinpct(1.0), {0,0,0,128});
+        DrawRectangle(0, Units::TopSide, GetRenderWidth(), Units::hinpct(1.0), {0,0,0,128});
         NPatchInfo info = { {0,0,128,128},
-            int(u.winpct(0.025)),
-            int(u.winpct(0.025)),
-            int(u.winpct(0.025)),
-            int(u.winpct(0.025)), 0};
-        Rectangle warningBox{ u.wpct(0.30 ), u.hpct(0.35), u.winpct(0.4), u.hinpct(0.3) };
+            int(Units::winpct(0.025)),
+            int(Units::winpct(0.025)),
+            int(Units::winpct(0.025)),
+            int(Units::winpct(0.025)), 0};
+        Rectangle warningBox{ Units::wpct(0.30 ), Units::hpct(0.35), Units::winpct(0.4), Units::hinpct(0.3) };
         DrawTextureNPatch(ASSET(resultsBox), info, warningBox, {0}, 0, WHITE);
 
 
         // DrawRectangleRec(warningBox, { 0, 0, 0, 158 });
-        float fontSize = u.hinpct(0.05f);
+        float fontSize = Units::hinpct(0.05f);
 
         Encore::TextDisplay data;
-        data.Fnt(ASSET(rubik)).Size(fontSize).Pos(warningBox.x + u.winpct(0.02), warningBox.y + u.winpct(0.01));
+        data.Fnt(ASSET(rubik)).Size(fontSize).Pos(warningBox.x + Units::winpct(0.02), warningBox.y + Units::winpct(0.01));
         Encore::TextDisplay count;
         count.Fnt(ASSET(redHatMono)).Size(fontSize)
-             .Pos(warningBox.x + warningBox.width - u.winpct(0.02), warningBox.y + u.winpct(0.01)).Align(RIGHT);
+             .Pos(warningBox.x + warningBox.width - Units::winpct(0.02), warningBox.y + Units::winpct(0.01)).Align(RIGHT);
 
         data.lDrawText("songScanning.header");
         data.pos.y += fontSize;

@@ -7,7 +7,7 @@
 #include "ChartLoadingMenu.h"
 #include "../overshell/OvershellHelper.h"
 #include "../MenuManager.h"
-#include "../main/MainMenu.h"
+#include "menus/util/GameMenu.h"
 #include "raygui.h"
 #include "../util/styles.h"
 #include "../util/uiUnits.h"
@@ -15,6 +15,7 @@
 #include "menus/util/locale/Locale.h"
 #include "menus/main/SongSelectMenu.h"
 #include "RhythmEngine/ChartLoaders/ChartLoader.h"
+#include "menus/util/TextDisplay.h"
 
 #include "users/playerManager.h"
 
@@ -86,7 +87,6 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
                                    int playerInt,
                                    Player &player,
                                    float xPosOfMenu) {
-    Units &u = Units::getInstance();
     auto& Parts = chartLoader.GetSongParts();
     float width = GetOvershellSlotWidth();
     float left = GetOvershellSlotLeft(playerInt);
@@ -99,10 +99,10 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             }
             Rectangle pos{
                 left,
-                BottomOvershell - u.hinpct(0.05f)
-                - (u.hinpct(0.05f) * (float)i),
+                BottomOvershell - Units::hinpct(0.05f)
+                - (Units::hinpct(0.05f) * (float)i),
                 width,
-                u.hinpct(0.05f)
+                Units::hinpct(0.05f)
             };
 
             if (GuiButton(pos, "") && !isOSOpen()) {
@@ -118,26 +118,26 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
             Encore::Text::lDrawText(
                 ASSET(rubik),
                 diffList[i],
-                { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
-                u.hinpct(0.03f),
+                { pos.x + Units::hinpct(0.01f), pos.y + Units::hinpct(0.01f) },
+                Units::hinpct(0.03f),
                 WHITE,
                 LEFT
             );
         } else {
             GuiButton(
                 { left,
-                  BottomOvershell - u.hinpct(0.05f)
-                  - (u.hinpct(0.05f) * i),
+                  BottomOvershell - Units::hinpct(0.05f)
+                  - (Units::hinpct(0.05f) * i),
                   width,
-                  u.hinpct(0.05f) },
+                  Units::hinpct(0.05f) },
                 ""
             );
             DrawRectangle(
                 left + 2,
-                BottomOvershell + 2 - u.hinpct(0.05f)
-                - (u.hinpct(0.05f) * i),
+                BottomOvershell + 2 - Units::hinpct(0.05f)
+                - (Units::hinpct(0.05f) * i),
                 width - 4,
-                u.hinpct(0.05f) - 4,
+                Units::hinpct(0.05f) - 4,
                 Color{ 0, 0, 0, 128 }
             );
         }
@@ -148,11 +148,10 @@ void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
 void ReadyUpMenu::Draw() {
     bool SwitchMenus = true;
     Assets &assets = Assets::getInstance();
-    Units &u = Units::getInstance();
     GameMenu::DrawAlbumArtBackground();
-    float AlbumArtLeft = u.LeftSide;
-    float AlbumArtTop = u.hpct(0.04f);
-    float AlbumArtRight = u.winpct(0.15f);
+    float AlbumArtLeft = Units::LeftSide;
+    float AlbumArtTop = Units::hpct(0.04f);
+    float AlbumArtRight = Units::winpct(0.15f);
 
     Rectangle albumRect{ AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtRight };
     NPatchInfo shadowOverlay;
@@ -173,7 +172,7 @@ void ReadyUpMenu::Draw() {
     GameMenu::DrawTopOvershell(0.2f);
     GameMenu::DrawTopBarText(true);
 
-    // buttReg.DrawPrompts(false, u.hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
+    // buttReg.DrawPrompts(false, Units::hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
     if (TheArtLoader.loadedArt->GetTexture().id != 0) {
         DrawTexturePro(
             *TheArtLoader.loadedArt,
@@ -201,22 +200,22 @@ void ReadyUpMenu::Draw() {
     }
     DrawTextureNPatch(ASSET(borderShadowLight), shadowOverlay, albumRect, {0}, 0, {255,255,255,128});
 
-    float BottomOvershell = u.hpct(1) - u.hinpct(0.18f);
+    float BottomOvershell = Units::hpct(1) - Units::hinpct(0.18f);
     float TextPlacementTB = AlbumArtTop;
     float TextPlacementLR = AlbumArtRight + AlbumArtLeft + 32;
     DrawTextEx(
         assets.redHatDisplayItalic,
         curSong->title.c_str(),
         { TextPlacementLR, TextPlacementTB },
-        u.hinpct(0.05f),
+        Units::hinpct(0.05f),
         0,
         WHITE
     );
     DrawTextEx(
         assets.rubikItalic,
         curSong->artist.c_str(),
-        { TextPlacementLR, TextPlacementTB + u.hinpct(0.05125f) },
-        u.hinpct(0.04f),
+        { TextPlacementLR, TextPlacementTB + Units::hinpct(0.05125f) },
+        Units::hinpct(0.04f),
         0,
         WHITE
     );
@@ -224,28 +223,28 @@ void ReadyUpMenu::Draw() {
         DrawTextEx(
             assets.rubikItalic,
             curSong->charters[0].c_str(),
-            { TextPlacementLR, TextPlacementTB + u.hinpct(0.095f) },
-            u.hinpct(0.04f),
+            { TextPlacementLR, TextPlacementTB + Units::hinpct(0.095f) },
+            Units::hinpct(0.04f),
             0,
             WHITE
         );
     }
     // GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_TOP);
     // GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_WORD);
-    // GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, u.hinpct(0.03f));
-    // GuiSetStyle(DEFAULT, TEXT_SIZE, u.hinpct(0.0275));
+    // GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, Units::hinpct(0.03f));
+    // GuiSetStyle(DEFAULT, TEXT_SIZE, Units::hinpct(0.0275));
     //
     // GuiLabel(
     //     { albumRect.x + albumRect.width,
-    //       u.hpct(0.2f),
-    //       u.wpct(1.0f) - (albumRect.x + albumRect.width),
-    //       (albumRect.y + albumRect.width) - u.hpct(0.2f) },
+    //       Units::hpct(0.2f),
+    //       Units::wpct(1.0f) - (albumRect.x + albumRect.width),
+    //       (albumRect.y + albumRect.width) - Units::hpct(0.2f) },
     //       curSong->loadingPhrase.data()
     // );
     //
     // GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_CENTER);
     // GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_NONE);
-    // Encore::Text::DrawText(ASSET(josefinSansNormal), curSong->loadingPhrase, {albumRect.x + albumRect.width, u.hpct(0.2f)}, u.hinpct(0.0275), LIGHTGRAY, LEFT);
+    // Encore::Text::DrawText(ASSET(josefinSansNormal), curSong->loadingPhrase, {albumRect.x + albumRect.width, Units::hpct(0.2f)}, Units::hinpct(0.0275), LIGHTGRAY, LEFT);
     // todo: allow this to be run per player
     // load midi
     GameMenu::DrawBottomOvershell();
@@ -255,8 +254,8 @@ void ReadyUpMenu::Draw() {
             continue;
         Player &player = ThePlayerManager.GetActivePlayer(playerInt);
 
-        float LeftOfMenu = u.wpct(0.025);
-        float xPosOfMenu = LeftOfMenu + ((playerInt) * u.winpct(0.25f));
+        float LeftOfMenu = Units::wpct(0.025);
+        float xPosOfMenu = LeftOfMenu + ((playerInt) * Units::winpct(0.25f));
         switch (SlotState[playerInt]) {
         case INSTRUMENT: {
             if (PartsToDisplay.empty()) {
@@ -268,10 +267,10 @@ void ReadyUpMenu::Draw() {
                     ControllerInstSlot[playerInt] = PartsToDisplay.size() - 1;
                 }
                 Rectangle pos{ GetOvershellSlotLeft(playerInt),
-                               BottomOvershell - u.hinpct(0.05f)
-                               - (u.hinpct(0.05f) * (float)i),
+                               BottomOvershell - Units::hinpct(0.05f)
+                               - (Units::hinpct(0.05f) * (float)i),
                                GetOvershellSlotWidth(),
-                               u.hinpct(0.05f) };
+                               Units::hinpct(0.05f) };
                 std::string PartAndDiff = std::to_string(
                         curSong->Difficulties.at(PartsToDisplay[i]) + 1) + "/7   ";
                 PartAndDiff += LOCALIZE(songPartsList[PartsToDisplay[i]]).toString();
@@ -290,8 +289,8 @@ void ReadyUpMenu::Draw() {
                 Encore::Text::DrawText(
                     assets.rubik,
                     PartAndDiff,
-                    { pos.x + u.hinpct(0.01f), pos.y + u.hinpct(0.01f) },
-                    u.hinpct(0.03f),
+                    { pos.x + Units::hinpct(0.01f), pos.y + Units::hinpct(0.01f) },
+                    Units::hinpct(0.03f),
                     WHITE,
                     LEFT
                 );
@@ -306,9 +305,9 @@ void ReadyUpMenu::Draw() {
         case READY: {
             if (GuiButton(
                 { xPosOfMenu,
-                  BottomOvershell - u.hinpct(0.05f),
-                  u.winpct(0.2f),
-                  u.hinpct(0.05f) },
+                  BottomOvershell - Units::hinpct(0.05f),
+                  Units::winpct(0.2f),
+                  Units::hinpct(0.05f) },
                 ""
             ) && !isOSOpen()) {
                 SlotState[playerInt] = DIFFICULTY;
@@ -317,8 +316,8 @@ void ReadyUpMenu::Draw() {
             Encore::Text::lDrawText(
                 assets.rubik,
                 "generic.difficulty",
-                { xPosOfMenu, BottomOvershell - u.hinpct(0.04f) },
-                u.hinpct(0.03f),
+                { xPosOfMenu, BottomOvershell - Units::hinpct(0.04f) },
+                Units::hinpct(0.03f),
                 WHITE,
                 LEFT
             );
@@ -326,23 +325,23 @@ void ReadyUpMenu::Draw() {
             DrawTextEx(
                 assets.rubikBold,
                 difficultyLocalized,
-                { xPosOfMenu + u.winpct(0.19f)
+                { xPosOfMenu + Units::winpct(0.19f)
                   - MeasureTextEx(
                       assets.rubikBold, difficultyLocalized,
-                      u.hinpct(0.03f),
+                      Units::hinpct(0.03f),
                       0
                   )
                   .x,
-                  BottomOvershell - u.hinpct(0.04f) },
-                u.hinpct(0.03f),
+                  BottomOvershell - Units::hinpct(0.04f) },
+                Units::hinpct(0.03f),
                 0,
                 WHITE
             );
             if (GuiButton(
                 { xPosOfMenu,
-                  BottomOvershell - u.hinpct(0.10f),
-                  u.winpct(0.2f),
-                  u.hinpct(0.05f) },
+                  BottomOvershell - Units::hinpct(0.10f),
+                  Units::winpct(0.2f),
+                  Units::hinpct(0.05f) },
                 ""
             ) && !isOSOpen()) {
                 SlotState[playerInt] = INSTRUMENT;
@@ -351,8 +350,8 @@ void ReadyUpMenu::Draw() {
             Encore::Text::lDrawText(
                 assets.rubik,
                 "generic.instrument",
-                { xPosOfMenu, BottomOvershell - u.hinpct(0.09f) },
-                u.hinpct(0.03f),
+                { xPosOfMenu, BottomOvershell - Units::hinpct(0.09f) },
+                Units::hinpct(0.03f),
                 WHITE,
                 LEFT
             );
@@ -360,16 +359,16 @@ void ReadyUpMenu::Draw() {
             DrawTextEx(
                 assets.rubikBold,
                 text,
-                { xPosOfMenu + u.winpct(0.19f)
+                { xPosOfMenu + Units::winpct(0.19f)
                   - MeasureTextEx(
                       assets.rubikBold,
                       text,
-                      u.hinpct(0.03f),
+                      Units::hinpct(0.03f),
                       0
                   )
                   .x,
-                  BottomOvershell - u.hinpct(0.09f) },
-                u.hinpct(0.03f),
+                  BottomOvershell - Units::hinpct(0.09f) },
+                Units::hinpct(0.03f),
                 0,
                 WHITE
             );
@@ -383,8 +382,8 @@ void ReadyUpMenu::Draw() {
             //if (GuiButton(
             //    { xPosOfMenu,
             //      BottomOvershell,
-            //      u.winpct(0.2f),
-            //      u.hinpct(0.05f) },
+            //      Units::winpct(0.2f),
+            //      Units::hinpct(0.05f) },
             //    "Go Back"
             //)) {
             //    SlotState[playerInt] = INSTRUMENT;

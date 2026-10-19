@@ -4,7 +4,7 @@
 
 #include "GameplayMenu.h"
 
-#include "../main/MainMenu.h"
+#include "menus/util/GameMenu.h"
 #include "../util/uiUnits.h"
 #include "song/audio.h"
 #include "song/songlist.h"
@@ -28,7 +28,9 @@
 
 #include "gameplay/LyricRenderer.h"
 #include "gameplay/inputCallbacks.h"
+#include "menus/util/TextDisplay.h"
 #include "settings/keybinds.h"
+#include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 #include "tracy/Tracy.hpp"
 
@@ -196,7 +198,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     }
 };
 
-void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
+void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
     Rectangle scoreboxSrc{
         0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
     };
@@ -206,12 +208,12 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
     }
     // not optimized at all LMAO
-    float WidthOfScorebox = u.hinpct(0.28);
-    // float scoreY = u.hpct(0.15f);
-    float ScoreboxX = u.RightSide;
+    float WidthOfScorebox = Units::hinpct(0.28);
+    // float scoreY = Units::hpct(0.15f);
+    float ScoreboxX = Units::RightSide;
     float HeightOfScorebox = WidthOfScorebox / (5 + (1/3));
     float ScoreboxY = scoreY;
-    float scoreTextPadding = (HeightOfScorebox - u.hinpct(0.05)) / 2;
+    float scoreTextPadding = (HeightOfScorebox - Units::hinpct(0.05)) / 2;
     Rectangle scoreboxDraw{ ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox };
     DrawTexturePro(
         assets.Scorebox,
@@ -227,21 +229,21 @@ void GameplayMenu::DrawScorebox(Units &u, Assets &assets, float scoreY) {
         GameMenu::scoreCommaFormatter(
             score
         ),
-        { u.RightSide - u.winpct(0.0145f), ScoreboxY + scoreTextPadding },
-        u.hinpct(0.05),
+        { Units::RightSide - Units::winpct(0.0145f), ScoreboxY + scoreTextPadding },
+        Units::hinpct(0.05),
         Color{ 107, 161, 222, 255 },
         RIGHT
     );
     EndBlendMode();
 }
 
-void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
+void GameplayMenu::DrawTimerbox(Assets &assets, float scoreY) {
     Rectangle TimerboxSrc{
         0, 0, float(assets.Timerbox.width), float(assets.Timerbox.height)
     };
-    float WidthOfTimerbox = u.hinpct(0.14);
-    // float scoreY = u.hpct(0.15f);
-    float TimerboxX = u.RightSide;
+    float WidthOfTimerbox = Units::hinpct(0.14);
+    // float scoreY = Units::hpct(0.15f);
+    float TimerboxX = Units::RightSide;
 
     float HeightOfTimerbox = WidthOfTimerbox / 2;
     float TimerboxY = scoreY;
@@ -286,15 +288,14 @@ void GameplayMenu::DrawTimerbox(Units &u, Assets &assets, float scoreY) {
     Encore::Text::DrawText(
         assets.rubik,
         textTime,
-        { u.RightSide - (WidthOfTimerbox / 2), TimerboxY - u.hinpct(SmallHeader * (0.66 * 1.25)) },
-        u.hinpct(SmallHeader * 0.66),
+        { Units::RightSide - (WidthOfTimerbox / 2), TimerboxY - Units::hinpct(SmallHeader * (0.66 * 1.25)) },
+        Units::hinpct(SmallHeader * 0.66),
         WHITE,
         CENTER
     );
 }
 
 void GameplayMenu::DrawGameplayStars(
-    Units &u,
     Assets &assets,
     float scorePos,
     float starY
@@ -314,8 +315,8 @@ void GameplayMenu::DrawGameplayStars(
     // int starsVal = player.engine->stats->Stars;
     for (int i = 0; i < 5; i++) {
         bool firstStar = (i == 0);
-        float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
-        float starWH = u.hinpct(0.05);
+        float starX = scorePos - Units::hinpct(0.26) + (i * Units::hinpct(0.0525));
+        float starWH = Units::hinpct(0.05);
         Rectangle emptyStarWH = {
             0, 0, (float)assets.emptyStar.width, (float)assets.emptyStar.height
         };
@@ -326,7 +327,7 @@ void GameplayMenu::DrawGameplayStars(
             firstStar ? 0 : STAR_THRESHOLDS[0][i - 1],
             STAR_THRESHOLDS[0][i],
             0,
-            u.hinpct(0.05)
+            Units::hinpct(0.05)
         );
         BeginScissorMode(starX, (starY + starWH) - yMaskPos, starWH, yMaskPos);
         DrawTexturePro(
@@ -340,7 +341,7 @@ void GameplayMenu::DrawGameplayStars(
         EndScissorMode();
     }
     if (starPercent >= STAR_THRESHOLDS[0][4]) {
-        float starWH = u.hinpct(0.05);
+        float starWH = Units::hinpct(0.05);
         Rectangle emptyStarWH = {
             0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
         };
@@ -350,7 +351,7 @@ void GameplayMenu::DrawGameplayStars(
             STAR_THRESHOLDS[0][4],
             STAR_THRESHOLDS[0][5],
             0,
-            u.hinpct(0.05)
+            Units::hinpct(0.05)
         );
         BeginScissorMode(
             scorePos - (starWH * 6),
@@ -359,7 +360,7 @@ void GameplayMenu::DrawGameplayStars(
             yMaskPos
         );
         for (int i = 0; i < 5; i++) {
-            float starX = scorePos - u.hinpct(0.26) + (i * u.hinpct(0.0525));
+            float starX = scorePos - Units::hinpct(0.26) + (i * Units::hinpct(0.0525));
             Rectangle starRect = { starX, starY, starWH, starWH };
             DrawTexturePro(
                 starPercent >= STAR_THRESHOLDS[0][5]
@@ -437,12 +438,11 @@ void GameplayMenu::DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFadi
             alpha = Remap(time, fadeOutRange.first, fadeOutRange.second, 1, 0);
         }
     }
-    Units& u = Units::getInstance();
     const auto sourceTex = TheSourceIcons[song->GetSource()]->GetTexture();
     Encore::TextDisplay title;
     Encore::TextDisplay secondary;
 
-    float TitleFontSize = u.hinpct(0.0425f * 0.75f);
+    float TitleFontSize = Units::hinpct(0.0425f * 0.75f);
     auto songTitle = song->GetTitle();
     title.Size(TitleFontSize).Pos(pos).Col(ColorAlpha(WHITE, alpha))
          .Fnt(ASSET(josefinSansBold)).DrawText(songTitle);
@@ -451,7 +451,7 @@ void GameplayMenu::DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFadi
     float TitleFontOffset = (TitleFontSize * 1.25f);
     float SecondaryFontSize = TitleFontSize * 0.85f;
     secondary.Size(SecondaryFontSize)
-             .Pos(title.pos.x + TitleWidth + u.winpct(0.005f), pos.y + (TitleFontSize - SecondaryFontSize))
+             .Pos(title.pos.x + TitleWidth + Units::winpct(0.005f), pos.y + (TitleFontSize - SecondaryFontSize))
              .Fnt(ASSET(josefinSansBoldItalic)).Col(ColorAlpha(LIGHTGRAY, alpha));
     if (TheSongList.PlaylistSize > 0)
         secondary.DrawText(LOCALISE_FMT("gameplay.playlistDisplay", TheSongList.PlaylistIndex, TheSongList.PlaylistSize));
@@ -505,7 +505,6 @@ void GameplayMenu::Draw() {
     } else {
         HideCursor();
     }
-    Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
     TheSongTime.UpdateTick();
     TheSongTime.UpdateBeatlines();
@@ -601,19 +600,19 @@ void GameplayMenu::Draw() {
     }
     TheAudioManager.UpdateAudioStreamVolumes();
     if (EncoreDebug::showGameplayHud) {
-        float scorePos = u.RightSide - u.hinpct(0.01f);
-        float scoreY = u.hpct(0.2f);
-        float starY = scoreY + u.hinpct(0.065f);
+        float scorePos = Units::RightSide - Units::hinpct(0.01f);
+        float scoreY = Units::hpct(0.2f);
+        float starY = scoreY + Units::hinpct(0.065f);
         // Draw Stars
-        DrawGameplayStars(u, assets, scorePos, starY);
+        DrawGameplayStars(assets, scorePos, starY);
 
         // Draw Timerbox
-        DrawTimerbox(u, assets, scoreY);
+        DrawTimerbox(assets, scoreY);
 
         // Score Drawing
-        DrawScorebox(u, assets, scoreY);
+        DrawScorebox(assets, scoreY);
 
-        DrawAccuracyDisplay(u, scorePos, starY + u.hinpct(0.06));
+        DrawAccuracyDisplay(scorePos, starY + Units::hinpct(0.06));
 
         TheLyricRenderer.RenderLyrics();
     }
@@ -638,20 +637,20 @@ void GameplayMenu::Draw() {
     if (IsPaused()) {
         DrawPauseMenu();
     } else if (EncoreDebug::showGameplayHud){
-        DrawMTVOverlay(currentMTVProvider, {u.wpct(0.01f), u.hpct(0.2f)});
+        DrawMTVOverlay(currentMTVProvider, {Units::wpct(0.01f), Units::hpct(0.2f)});
     }
 
     if (EncoreDebug::showGameplayHud)
         GameMenu::DrawTopBarText(true);
 }
 
-void GameplayMenu::DrawAccuracyDisplay(Units& u, float xPos, float yPos) {
+void GameplayMenu::DrawAccuracyDisplay(float xPos, float yPos) {
     if (tracks.size() == 1) {
         auto& player = tracks[0]->player;
         // predicted: current accuracy if the player perfects every note from now (maximum possible accuracy)
         double predictedAccuracy = (player.engine->stats->Accuracy - player.engine->stats->AttemptedNotes + player.engine->noteCount) / player.engine->noteCount;
 
-        float height = u.hinpct(SmallHeader);
+        float height = Units::hinpct(SmallHeader);
         Encore::TextDisplay text;
         text.Pos(xPos, yPos);
         text.Align(RIGHT);
@@ -669,7 +668,7 @@ void GameplayMenu::DrawAccuracyDisplay(Units& u, float xPos, float yPos) {
         BeginScissorMode(0, yPos+height*(1.0f-fraction), GetRenderWidth(), height*fraction);
         text.DrawText(grade->Letter);
         EndScissorMode();
-        text.AddX(-text.TextWidth(grade->Letter) - u.hinpct(0.01));
+        text.AddX(-text.TextWidth(grade->Letter) - Units::hinpct(0.01));
         auto accuracyText = std::format("{:.1f}%", (predictedAccuracy * 100.0f));
         text.Fnt(ASSET(rubik));
         text.Col(WHITE);
@@ -786,11 +785,10 @@ void GameplayMenu::Load() {
 }
 void GameplayMenu::DrawPauseMenu() {
     Assets &assets = Assets::getInstance();
-    Units &u = Units::getInstance();
 
-    float AlbumArtLeft = u.LeftSide;
-    float AlbumArtTop = u.hpct(0.04f);
-    float AlbumArtRight = u.winpct(0.15f);
+    float AlbumArtLeft = Units::LeftSide;
+    float AlbumArtTop = Units::hpct(0.04f);
+    float AlbumArtRight = Units::winpct(0.15f);
 
     Rectangle albumRect{ AlbumArtLeft, AlbumArtTop, AlbumArtRight, AlbumArtRight };
     NPatchInfo shadowOverlay;
@@ -811,7 +809,7 @@ void GameplayMenu::DrawPauseMenu() {
     GameMenu::DrawTopOvershell(0.2f);
     GameMenu::DrawTopBarText(true);
 
-    buttReg.DrawPrompts(false, u.hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
+    buttReg.DrawPrompts(false, Units::hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
     if (TheArtLoader.loadedArt->GetTexture().id != 0) {
         DrawTexturePro(
             *TheArtLoader.loadedArt,

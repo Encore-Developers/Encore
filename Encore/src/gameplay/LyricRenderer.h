@@ -1,8 +1,6 @@
 #pragma once
-#include "enctime.h"
-#include "easing/easing.h"
-#include "../menus/main/MainMenu.h"
-#include "../menus/util/uiUnits.h"
+#include "raylib.h"
+#include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 
 namespace Encore {
     class LyricRenderer {

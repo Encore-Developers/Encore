@@ -8,7 +8,8 @@
 #include "SettingsMenu.h"
 #include "menus/MenuManager.h"
 #include "../util/uiUnits.h"
-#include "menus/main/MainMenu.h"
+#include "menus/util/GameMenu.h"
+#include "menus/util/TextDisplay.h"
 #include "menus/overshell/OvershellHelper.h"
 
 using namespace Encore;
@@ -59,9 +60,8 @@ void SettingsCredits::Load() {
     };
 
     contributorFunc = [this]() {
-        Units &u = Units::getInstance();
 
-        ImGui::SetNextItemWidth(u.winpct(0.7));
+        ImGui::SetNextItemWidth(Units::winpct(0.7));
         if (ImGui::BeginTable("contributors", 4)) {
             ImGui::TableNextRow();
             for (int m = 0; m < contributor.size(); m++) {
@@ -94,7 +94,6 @@ void SettingsCredits::Load() {
 }
 
 void SettingsCredits::Draw() {
-    Units &u = Units::getInstance();
     Assets &assets = Assets::getInstance();
 
     GameMenu::DrawAlbumArtBackground();
@@ -104,9 +103,9 @@ void SettingsCredits::Draw() {
     GameMenu::DrawTopBarText();
     GameMenu::DrawBottomOvershell();
 
-    float TextPlacementTB = u.hpct(0.05f);
-    Text::lDrawText(assets.rubik, "settings.header.credits", {u.LeftSide, u.hpct(0.027f)}, u.hinpct(0.042f), LIGHTGRAY, LEFT);
-    Text::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {u.LeftSide, TextPlacementTB}, u.hinpct(0.125f), WHITE, LEFT);
+    float TextPlacementTB = Units::hpct(0.05f);
+    Text::lDrawText(assets.rubik, "settings.header.credits", {Units::LeftSide, Units::hpct(0.027f)}, Units::hinpct(0.042f), LIGHTGRAY, LEFT);
+    Text::lDrawText(assets.redHatDisplayBlack, "settings.header.main", {Units::LeftSide, TextPlacementTB}, Units::hinpct(0.125f), WHITE, LEFT);
 
     settings.isOSOpen = isOSOpen();
     settings.Draw();

@@ -2,6 +2,16 @@
 #include "raylib.h"
 #include "raymath.h"
 
+float Units::RightBorder;
+float Units::RightSide;
+float Units::LeftBorder;
+float Units::LeftSide;
+
+float Units::BottomBorder;
+float Units::BottomSide;
+float Units::TopBorder;
+float Units::TopSide;
+
 void Units::calcUnits() {
     RightBorder = ((float)GetRenderWidth() / 2) + ((float)GetRenderHeight() / 1.25f);
     RightSide =

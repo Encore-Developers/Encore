@@ -3,7 +3,7 @@
 #include "raygui.h"
 #include "assets.h"
 #include "../util/styles.h"
-#include "../main/MainMenu.h"
+#include "menus/util/TextDisplay.h"
 
 void encOS::DrawBeacon(int slot, float x, float y, float width, float height, bool top, Color playerColor) {
     Color overshellBeacon = ColorBrightness(playerColor, -0.75f);
@@ -35,8 +35,7 @@ bool encOS::DrawOvershellRectangleHeader(
     Color usernameColor,
     bool drawBG
 ) {
-    Units &u = Units::getInstance();
-    height = u.hinpct(0.11f);
+    height = Units::hinpct(0.11f);
     y = GetYPos(1) - height;
     Assets &assets = Assets::getInstance();
     float UpperPortion = height * 0.6f;
@@ -73,7 +72,7 @@ bool encOS::DrawOvershellRectangleHeader(
 
     float centerPos = x + (width / 2);
     float fontSize = UpperPortion / 1.75;
-    float padding = u.hinpct(0.025f);
+    float padding = Units::hinpct(0.025f);
     float textX = x + padding;
     float textY = y + ((UpperPortion/2) - (fontSize/2));
     float textW = width - (padding*2);
@@ -87,39 +86,36 @@ bool encOS::DrawOvershellBottomCover(float x,
     float width,
     int state,
     Color accentColor) {
-    Units &u = Units::getInstance();
-    float height = u.hinpct(0.11f * 0.4f);
+    float height = Units::hinpct(0.11f * 0.4f);
     DrawRectangleGradientV(x, GetYPos(0, true), width, height, ColorBrightness(accentColor, -0.6f), ColorBrightness(accentColor, -0.76f));
-    DrawRectangleGradientV(x, GetYPos(0, true), width, u.hinpct(0.004f), Color { 0, 0, 0, 64 }, Color { 0, 0, 0, 0 });
+    DrawRectangleGradientV(x, GetYPos(0, true), width, Units::hinpct(0.004f), Color { 0, 0, 0, 64 }, Color { 0, 0, 0, 0 });
     return true;
 }
 
 float encOS::GetYPos(int buttonIndex, bool ignoreRaise) {
-    Units &u = Units::getInstance();
-    float baseline = u.hpct(1.0) - u.hinpct(0.11f * 0.4f);
-    auto out = baseline + (u.winpct(0.03f) * (buttonIndex));
+    float baseline = Units::hpct(1.0) - Units::hinpct(0.11f * 0.4f);
+    auto out = baseline + (Units::winpct(0.03f) * (buttonIndex));
     if (OvershellInputState::currentState && !ignoreRaise) {
-        out -= OvershellInputState::currentState->raise * u.winpct(0.03f);
+        out -= OvershellInputState::currentState->raise * Units::winpct(0.03f);
     }
     return out;
 }
 
 bool encOS::OvershellButton(int slot, int x, std::string string) {
-    Units &u = Units::getInstance();
     GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
     GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
     GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
-    float y = u.hpct(1.0f) - u.hinpct(0.11f * 0.4f);
+    float y = Units::hpct(1.0f) - Units::hinpct(0.11f * 0.4f);
     bool selected = GuiButton(
         { osLeft,
           GetYPos(x),
           osWidth,
-          u.winpct(0.03f) },
+          Units::winpct(0.03f) },
         string.c_str()
     );
     SETDEFAULTSTYLE();
     if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
-        DrawRectangle(osLeft, GetYPos(x), osWidth, u.winpct(0.03f), {255, 0, 255, 80});
+        DrawRectangle(osLeft, GetYPos(x), osWidth, Units::winpct(0.03f), {255, 0, 255, 80});
         if (OvershellInputState::currentState->selectPressed) {
             selected = true;
         }
@@ -128,17 +124,16 @@ bool encOS::OvershellButton(int slot, int x, std::string string) {
 }
 
 void encOS::OvershellText(int slot, int x, std::string string) {
-    Units &u = Units::getInstance();
     SETDEFAULTSTYLE();
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_TOP);
     GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_WORD);
-    GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, u.hinpct(0.03f));
-    float y = u.hpct(1.0f) - u.hinpct(0.11f * 0.4f);
+    GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, Units::hinpct(0.03f));
+    float y = Units::hpct(1.0f) - Units::hinpct(0.11f * 0.4f);
     GuiLabel(
         { osLeft,
-          y - (u.winpct(0.03f) * (x + 1)),
+          y - (Units::winpct(0.03f) * (x + 1)),
           osWidth,
-          u.winpct(0.07f) },
+          Units::winpct(0.07f) },
         string.c_str()
     );
     GuiSetStyle(DEFAULT, TEXT_ALIGNMENT_VERTICAL, TEXT_ALIGN_CENTER);
@@ -146,13 +141,12 @@ void encOS::OvershellText(int slot, int x, std::string string) {
 }
 
 bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialVal) {
-    Units &u = Units::getInstance();
-    float height = u.winpct(0.03f);
-    float widthNoHeight = u.winpct(0.2f);
-    float y = u.hpct(1.0f) - u.hinpct(0.11f * 0.4f);
+    float height = Units::winpct(0.03f);
+    float widthNoHeight = Units::winpct(0.2f);
+    float y = Units::hpct(1.0f) - Units::hinpct(0.11f * 0.4f);
     Rectangle bounds = { osLeft + height,
-                         u.hpct(1.0f) - (u.winpct(0.03f) * (x + 1)),
-                         u.winpct(0.2f) - height - height,
+                         Units::hpct(1.0f) - (Units::winpct(0.03f) * (x + 1)),
+                         Units::winpct(0.2f) - height - height,
                          height };
     Rectangle confirmBounds = { osLeft + osWidth - height,
                                 GetYPos(x),
@@ -177,7 +171,7 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
     SETDEFAULTSTYLE();
 
     if (OvershellInputState::currentState && OvershellInputState::currentState->focusedItem == x) {
-        DrawRectangle(osLeft, GetYPos(x), osWidth, u.winpct(0.03f), {255, 0, 255, 80});
+        DrawRectangle(osLeft, GetYPos(x), osWidth, Units::winpct(0.03f), {255, 0, 255, 80});
         if (OvershellInputState::currentState->selectPressed) {
             initialVal = !initialVal;
         }
@@ -191,13 +185,12 @@ bool encOS::OvershellCheckbox(int slot, int x, std::string string, bool initialV
 bool encOS::OvershellSlider(
     int slot, int x, std::string string, float *value, float step, float min, float max
 ) {
-    Units &u = Units::getInstance();
     GuiSetStyle(DEFAULT, BORDER_COLOR_NORMAL, 0);
     GuiSetStyle(DEFAULT, BORDER_COLOR_FOCUSED, 0);
     GuiSetStyle(DEFAULT, BORDER_COLOR_PRESSED, 0);
-    float height = u.winpct(0.03f);
-    float speedTextWidth = u.winpct(0.04f);
-    float widthNoHeight = u.winpct(0.2f) - height;
+    float height = Units::winpct(0.03f);
+    float speedTextWidth = Units::winpct(0.04f);
+    float widthNoHeight = Units::winpct(0.2f) - height;
     Rectangle bounds = { osLeft + speedTextWidth,
                          GetYPos(x),
                          osWidth - speedTextWidth - height,

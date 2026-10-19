@@ -4,7 +4,6 @@
 #include "../MenuManager.h"
 #include "assets.h"
 #include "../util/uiUnits.h"
-#include "../main/MainMenu.h"
 #include "users/playerManager.h"
 #include "OvershellHelper.h"
 #include "raygui.h"
@@ -13,7 +12,7 @@
 #include "gameplay/enctime.h"
 #include "gameplay/inputCallbacks.h"
 #include "menus/gameplay/ChartLoadingMenu.h"
-#include "menus/gameplay/PracticeMenu.h"
+#include "song/songlist.h"
 #include "menus/gameplay/ReadyUpMenu.h"
 #include "menus/main/SongSelectMenu.h"
 #include "users/profiles/ProfileManager.h"
@@ -134,15 +133,14 @@ bool OvershellMenu::isOSOpen() {
 void OvershellMenu::DrawOvershell() {
     ZoneScoped
     Assets &assets = Assets::getInstance();
-    Units &unit = Units::getInstance();
-float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
-    float InnerBottom = BottomBottomOvershell + unit.hinpct(0.005f);
+    float BottomBottomOvershell = GetRenderHeight() - Units::hpct(0.13f);
+    float InnerBottom = BottomBottomOvershell + Units::hinpct(0.005f);
     if (dropInDropOut) {
         DrawRectangleGradientV(
             0,
             BottomBottomOvershell,
             GetRenderWidth(),
-            unit.hinpct(0.13f) + 1,
+            Units::hinpct(0.13f) + 1,
             Color { 32, 32, 51, 255 },
             Color { 24, 24, 39, 255 }
         );
@@ -150,21 +148,21 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             0,
             BottomBottomOvershell,
             GetRenderWidth(),
-            unit.hinpct(0.0075f),
+            Units::hinpct(0.0075f),
             Color { 0, 0, 0, 64 },
             Color { 0, 0, 0, 0 }
             );
     }
-    float LeftMin = unit.wpct(0.025f);
-    float LeftMax = unit.wpct(0.975f);
+    float LeftMin = Units::wpct(0.025f);
+    float LeftMax = Units::wpct(0.975f);
     GuiSetFont(ASSET(rubik));
-    float ButtonHeight = unit.winpct(0.03f);
+    float ButtonHeight = Units::winpct(0.03f);
 
-    float OvershellTopLoc = BottomBottomOvershell + unit.hinpct(0.02f);
-    float osCoverHeight = unit.hinpct(0.11f);
+    float OvershellTopLoc = BottomBottomOvershell + Units::hinpct(0.02f);
+    float osCoverHeight = Units::hinpct(0.11f);
     float osBottom = GetYPos(-1, true);
     PlayerManager &playerManager = ThePlayerManager;
-    BeginScissorMode(0,0,GetRenderWidth(),unit.hpct(1.0f));
+    BeginScissorMode(0,0,GetRenderWidth(),Units::hpct(1.0f));
     wantsCharacterInput = false;
     for (int i = 0; i < MAX_PLAYERS; i++) {
         osLeft = GetOvershellSlotLeft(i);
@@ -174,7 +172,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
         input.Begin(this);
 
         float SlotWidth = GetOvershellSlotWidth();
-        float OvershellCenterLoc = (unit.wpct(0.125) + (unit.winpct(0.25) * i));
+        float OvershellCenterLoc = (Units::wpct(0.125) + (Units::winpct(0.25) * i));
         float HalfWidth = OvershellCenterLoc - osLeft;
         Color headerUsernameColor;
         if (playerManager.ActivePlayers.at(i)) {
@@ -422,12 +420,12 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 if (SDL_GetJoystickFromID(padId)) {
                     padName = SDL_GetJoystickNameForID(padId);
                 }
-                GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.018f));
+                GuiSetStyle(DEFAULT, TEXT_SIZE, (int)Units::hinpct(0.018f));
                 if (OvershellButton(i, curSlot++,LOCALIZE_FMT("overshell.currentController", padName))) {
                     OvershellState[i] = OS_CONTROLLER_ASSIGNMENT;
                     break;
                 }
-                GuiSetStyle(DEFAULT, TEXT_SIZE, (int)unit.hinpct(0.03f));
+                GuiSetStyle(DEFAULT, TEXT_SIZE, (int)Units::hinpct(0.03f));
 
                 playerManager.GetActivePlayer(i).BrutalMode =
                 OvershellCheckbox(i, curSlot++,LOCALIZE("overshell.brutalMode"), playerManager.GetActivePlayer(i).BrutalMode);
@@ -526,7 +524,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                     };
                     DrawOvershellBottomCover(osLeft, osWidth, 1, LIGHTGRAY);
                 } else {
-                    float asdfsdf = unit.hinpct(0.11f * 0.4f);
+                    float asdfsdf = Units::hinpct(0.11f * 0.4f);
                     if (DrawOvershellRectangleHeader(
                             osLeft,
                             OvershellTopLoc + asdfsdf,
@@ -548,7 +546,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             break;
         }
         case OS_INSTRUMENT_SELECTIONS: {
-            // int ButtonHeight = unit.winpct(0.03f);
+            // int ButtonHeight = Units::winpct(0.03f);
             Color headerUsernameColor =
                 playerManager.GetActivePlayer(i).Bot ? SKYBLUE : WHITE;
             DrawOvershellRectangleHeader(
@@ -595,7 +593,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
                 { osLeft,
                   osBottom - ButtonHeight,
                   osWidth,
-                  unit.winpct(0.03f) },
+                  Units::winpct(0.03f) },
                 Color { 255, 0, 0, 128 }
             );
             EndBlendMode();
@@ -683,9 +681,8 @@ float padding = 0.1f;
 
 
 float OvershellMenu::GetOvershellSlotLeft(size_t slot) {
-    Units &u = Units::getInstance();
-    float LeftMin = u.wpct(0.01f);
-    float LeftMax = u.wpct(0.99f);
+    float LeftMin = Units::wpct(0.01f);
+    float LeftMax = Units::wpct(0.99f);
     float MaxWidth = LeftMax - LeftMin;
     float AlottedSlotWidth = MaxWidth / MAX_PLAYERS;
     float RemaningPadding = AlottedSlotWidth * padding * slot / (MAX_PLAYERS - 1);
@@ -693,9 +690,8 @@ float OvershellMenu::GetOvershellSlotLeft(size_t slot) {
 }
 
 float OvershellMenu::GetOvershellSlotWidth() {
-    Units &u = Units::getInstance();
-    float LeftMin = u.wpct(0.01f);
-    float LeftMax = u.wpct(0.99f);
+    float LeftMin = Units::wpct(0.01f);
+    float LeftMax = Units::wpct(0.99f);
     float MaxWidth = LeftMax - LeftMin;
     return (MaxWidth / MAX_PLAYERS) * (1 - padding);
 }
