@@ -43,7 +43,7 @@ namespace Encore::RhythmEngine {
     };
 
     class ChartLoader {
-        ChartHandler *chartHandler;
+        std::shared_ptr<ChartHandler> chartHandler;
 
     public:
         explicit ChartLoader(Song* song);
