@@ -137,8 +137,13 @@ void Song::LoadSongIni(const std::filesystem::path& songPath) {
             if (entry.path().stem() == "album") {
                 albumArtPath = entry.path();
             }
-            if (entry.path().filename() == "notes.mid" || entry.path().filename() == "notes.chart") {
+            if (entry.path().filename() == "notes.mid") {
                 chartPath = entry.path();
+                chartFormat = ChartFormat::Midi;
+            }
+            if (entry.path().filename() == "notes.chart") {
+                chartPath = entry.path();
+                chartFormat = ChartFormat::DotChart;
             }
         }
     }
@@ -173,4 +178,13 @@ std::filesystem::path Song::GetVideoPath() {
         }
     }
     return "";
+}
+std::shared_ptr<std::istream> Song::GetChartData() {
+    switch (chartFormat) {
+    case ChartFormat::Midi:
+        return std::make_shared<std::ifstream>(chartPath, std::ios::binary);
+    case ChartFormat::DotChart:
+        return std::make_shared<std::ifstream>(chartPath);
+    }
+    return nullptr;
 }

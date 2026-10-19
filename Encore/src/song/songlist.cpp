@@ -290,6 +290,7 @@ void SongList::WriteCache() {
         SongCache << song.albumArtPath.string();
         SongCache << song.songInfoPath.string();
         SongCache << song.chartPath.string();
+        SongCache << (uint8_t)song.chartFormat;
         SongCache << song.hash;
         std::ifstream songInfo(song.songInfoPath);
         std::ostringstream sstr;
@@ -545,9 +546,13 @@ void SongList::LoadCache(const std::vector<std::filesystem::path> &songsFolder) 
         SongCacheIn >> infopath;
         song.songInfoPath = infopath;
 
-        std::string midiPath;
-        SongCacheIn >> midiPath;
-        song.chartPath = midiPath;
+        std::string chartPath;
+        SongCacheIn >> chartPath;
+        song.chartPath = chartPath;
+
+        uint8_t format;
+        SongCacheIn >> format;
+        song.chartFormat = (ChartFormat)format;
 
         SongCacheIn >> song.hash;
 

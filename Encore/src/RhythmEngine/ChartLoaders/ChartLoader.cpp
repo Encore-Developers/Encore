@@ -8,12 +8,13 @@
 #include "MidiLoaders/MidiChartHandler.h"
 
 Encore::RhythmEngine::ChartLoader::ChartLoader(Song* song) {
-    // TODO: change chart loading to use istreams obtained from a method on Song
-    // both of the loaders should support it already and that'll let us load fron .sngs and whatnot
-    if (song->chartPath.filename() == "notes.mid") {
+    switch (song->chartFormat) {
+    case ChartFormat::Midi:
         chartHandler = std::make_shared<MidiChartHandler>(song);
-    } else if (song->chartPath.filename() == "notes.chart") {
+        break;
+    case ChartFormat::DotChart:
         chartHandler = std::make_shared<DotChartHandler>(song);
+        break;
     }
 }
 

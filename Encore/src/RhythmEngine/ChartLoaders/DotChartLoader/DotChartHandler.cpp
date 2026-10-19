@@ -41,8 +41,8 @@ double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double l
 Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
     : ChartHandler(song) {
     static const std::regex event("  ([0-9]+) = ([A-Z]+) (.+) ?(\\d?)");
-    chart.open(file);
-    for (std::string line; std::getline(chart, line);) {
+    auto chart = song->GetChartData();
+    for (std::string line; std::getline(*chart, line);) {
         if (line.empty()) continue;
         if (line.starts_with('[') && line.ends_with(']')) {
             line.pop_back();
@@ -51,7 +51,7 @@ Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
                 double LastTime = 0;
                 int LastTick = 0;
                 double CurBPM = 0;
-                for (std::string sectLine; std::getline(chart, sectLine);) {
+                for (std::string sectLine; std::getline(*chart, sectLine);) {
                     if (sectLine.starts_with('{')) continue;
                     std::smatch syncMatch;
                     std::regex_match(sectLine, syncMatch, event);
@@ -85,7 +85,7 @@ Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
                 }
             }
             if (line == "Events") {
-                for (std::string sectLine; std::getline(chart, sectLine);) {
+                for (std::string sectLine; std::getline(*chart, sectLine);) {
                     if (sectLine.starts_with('{')) continue;
                     std::smatch syncMatch;
                     std::regex_match(sectLine, syncMatch, event);
@@ -99,17 +99,11 @@ Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
         }
     }
     // todo: time analysis after parsing beatlines
-    chart.close();
-}
 
-Encore::RhythmEngine::DotChartHandler::~DotChartHandler() {
-    chart.close();
 }
-
 
 std::vector<BPM> Encore::RhythmEngine::DotChartHandler::GetBPMChanges() {
     return bpms;
-
 }
 
 std::vector<TimeSig> Encore::RhythmEngine::DotChartHandler::GetTimeSigChanges() {
@@ -123,8 +117,8 @@ GetValidParts() {
     if (processed) {
         return Parts;
     }
-    chart.open(file);
-    for (std::string line; std::getline(chart, line);) {
+    auto chart = song->GetChartData();
+    for (std::string line; std::getline(*chart, line);) {
         if (line.empty()) continue;
         if (line.starts_with('[') && line.ends_with(']')) {
             line.pop_back();
@@ -142,7 +136,6 @@ GetValidParts() {
         }
     }
     processed = true;
-    chart.close();
     return Parts;
 }
 

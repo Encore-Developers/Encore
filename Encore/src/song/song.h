@@ -265,6 +265,11 @@ public:
     std::pair<double, double> GetMTVFadeOutRange() override {return {exitTime, exitTime+mtvFadeOutTime};}
 };
 
+enum class ChartFormat : uint8_t {
+    Midi,
+    DotChart
+};
+
 class Song : public MTVProvider {
 public:
     Song() {
@@ -297,6 +302,7 @@ public:
     // Bass, Plastic Guitar
     std::array<int, PlasticVocals> Difficulties {-1};
 
+    ChartFormat chartFormat = ChartFormat::Midi;
     std::filesystem::path chartPath = "";
     std::filesystem::path songDir = "";
     std::filesystem::path albumArtPath;
@@ -312,6 +318,8 @@ public:
     float previewStartTime = 0.0f;
     double videoStartTime = 0.0;
     std::vector<SubSong> subSongs;
+
+    std::shared_ptr<std::istream> GetChartData();
 
     const char *GetTitle() override { return title.c_str(); }
     const char *GetArtist() override { return artist.c_str(); }

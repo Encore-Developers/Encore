@@ -8,7 +8,6 @@
 namespace Encore::RhythmEngine {
     class DotChartHandler final : public ChartHandler
     {
-        std::ifstream chart;
         int EventsTrack = -1;
         int tpq = 192;
         bool processed = false;
@@ -17,8 +16,7 @@ namespace Encore::RhythmEngine {
         std::vector<BPM> bpms;
         std::pair<int, double> EndEvent;
     public:
-        explicit DotChartHandler(Song* song);;
-        ~DotChartHandler() override;
+        explicit DotChartHandler(Song* song);
         int GetResolution() override { return tpq; };
         std::vector<BPM> GetBPMChanges() override;
         std::vector<TimeSig> GetTimeSigChanges() override;

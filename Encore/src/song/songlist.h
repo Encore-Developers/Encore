@@ -15,7 +15,7 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the cache was revised that day, starting from 1
-#define SONG_CACHE_VERSION 26062801
+#define SONG_CACHE_VERSION 26101901
 #define SONG_CACHE_HEADER 0x52434E45 // "ENCR"
 
 enum EntryType {

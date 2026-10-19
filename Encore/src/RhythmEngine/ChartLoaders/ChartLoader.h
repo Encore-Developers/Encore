@@ -14,14 +14,13 @@ namespace Encore::RhythmEngine {
     class ChartHandler {
     protected:
         Song* song;
-        std::filesystem::path file;
         std::array<std::pair<std::array<BaseChart, 4>, bool>, PitchedVocals> Charts;
         std::array<TrackInformation, PlasticVocals> Parts;
         int threshold = -1;
         std::vector<LyricPhrase> Lyrics;
     public:
         explicit ChartHandler(Song* song)
-            : song(song), file(song->chartPath), threshold(song->hopoThreshold) {
+            : song(song), threshold(song->hopoThreshold) {
         };
 
         void SetThreshold(int thresh) {
