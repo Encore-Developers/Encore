@@ -110,10 +110,11 @@ namespace Encore {
         double lastLEDUpdateTime = 0.0;
 
         Track(Player &player_)
-            : player(player_) {
+            : player(player_), engine(player.engine) {
         };
         ~Track();
         Player& player;
+        std::shared_ptr <RhythmEngine::BaseEngine> engine = nullptr;
         std::deque<ControllerEvent> recordedInputs;
     protected:
 

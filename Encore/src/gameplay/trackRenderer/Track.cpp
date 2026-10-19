@@ -26,8 +26,8 @@
 void Encore::Track::DrawCountdown() {
     ZoneScopedN("Countdown")
     double time = currentTime;
-    auto start = player.engine->LastNoteTime();
-    auto end = player.engine->NextNoteTime();
+    auto start = engine->LastNoteTime();
+    auto end = engine->NextNoteTime();
     double timeTillNote = double(end - start);
 
     if (timeTillNote < 5)
@@ -136,7 +136,7 @@ void Encore::Track::Draw() {
         NoteSpeed = player.NoteSpeed;
         // TODO: should probably find a better way to do this
         Length = BaseLength * player.HighwayLength;
-        player.engine->UpdateCalibration(player.InputCalibration);
+        engine->UpdateCalibration(player.InputCalibration);
 
         ProcessAnimation();
         if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
@@ -242,7 +242,7 @@ void Encore::Track::Load() {
         40.0f,
     };
     AnimCamera = BaseCamera;
-    player.engine->AddSink(this);
+    engine->AddSink(this);
     particleSystem = std::unique_ptr<ParticleSystem>(new ParticleSystem);
     particleSystem->track = this;
 }
@@ -267,7 +267,7 @@ void Encore::Track::DrawSurface() {
                 ColorBrightness(accentColor, -0.25));
 
     OverdriveTimer = Lerp(OverdriveTimer,
-                          (int)player.engine->stats->overdrive.Active,
+                          (int)engine->stats->overdrive.Active,
                           GetFrameTime() * 8);
     if (OverdriveTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
@@ -280,8 +280,8 @@ void Encore::Track::DrawSurface() {
     }
 
     SpotlightTimer = Lerp(SpotlightTimer,
-                          (int)(player.engine->stats->multNoOD() >= (
-                              player.engine->stats->SixMultiplier ? 6 : 4)),
+                          (int)(engine->stats->multNoOD() >= (
+                              engine->stats->SixMultiplier ? 6 : 4)),
                           GetFrameTime() * 3);
     if (SpotlightTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(spotlightTex);
@@ -294,7 +294,7 @@ void Encore::Track::DrawSurface() {
     }
 
     Color railColor = WHITE;
-    float health = player.engine->stats->Health;
+    float health = engine->stats->Health;
     if (health < 0.33f) {
         float fac = 1 - health;
         float strength = getEasingFunction(EaseInSine)((fac * fac) - (health + 0.33));
@@ -325,14 +325,14 @@ void Encore::Track::DrawOverdriveMeter() {
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillColor", OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillPct",
-                                      1.0f - player.engine->stats->overdrive.Fill);
+                                      1.0f - engine->stats->overdrive.Fill);
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
 
-    if (AnimHealth > player.engine->stats->Health) {
+    if (AnimHealth > engine->stats->Health) {
         ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
         ASSET(healthMeterShader).SetUniform("ResidualColor", RED);
-        ASSET(healthMeterShader).SetUniform("FillPct", player.engine->stats->Health);
+        ASSET(healthMeterShader).SetUniform("FillPct", engine->stats->Health);
         ASSET(healthMeterShader).SetUniform("FillResidualPct", AnimHealth);
     } else {
         ASSET(healthMeterShader).SetUniform("MainColor", GREEN);
@@ -340,7 +340,7 @@ void Encore::Track::DrawOverdriveMeter() {
                                             ColorLerp(GREEN, WHITE, 0.95));
         ASSET(healthMeterShader).SetUniform("FillPct", AnimHealth);
         ASSET(healthMeterShader).SetUniform("FillResidualPct",
-                                            player.engine->stats->Health);
+                                            engine->stats->Health);
     }
 
     float SolidPct = Clamp(Remap(AnimHealth, 0.2, 0.5, 0.22, 0.11), 0.11, 0.22);
@@ -376,7 +376,7 @@ void Encore::Track::DrawOverdriveMeter() {
     rlRotatef(-90, -1, 0, 0);
     rlRotatef(180, 0, 0, 1);
 
-    std::string multString = TextFormat("%ix", player.engine->stats->multiplier());
+    std::string multString = TextFormat("%ix", engine->stats->multiplier());
     Vector2 size = MeasureTextEx(ASSET(JetBrainsMono), multString.c_str(), 0.8, 0);
     DrawCircleSector({ 0, 0 }, 0.5, 0, 360, 32, BLACK);
     DrawTextEx(ASSET(JetBrainsMono),
@@ -390,7 +390,7 @@ void Encore::Track::DrawOverdriveMeter() {
 }
 
 void Encore::Track::DrawSolo() {
-    for (auto solo : player.engine->chart->solos) {
+    for (auto solo : engine->chart->solos) {
         float midPos = GetNotePos3D((solo.start.sec + solo.end.sec) / 2);
         float soloLength = solo.secLen();
         DrawCube({ 2.55, 0, midPos },
@@ -407,11 +407,11 @@ void Encore::Track::DrawSolo() {
 }
 
 void Encore::Track::DrawSoloUI() {
-    if (player.engine->chart->solos.empty())
+    if (engine->chart->solos.empty())
         return;
 
-    RhythmEngine::solo *curSolo = &player.engine->chart->solos.at(
-        player.engine->chart->solos.CurrentEvent);
+    RhythmEngine::solo *curSolo = &engine->chart->solos.at(
+        engine->chart->solos.CurrentEvent);
     if (currentTime > curSolo->start.sec && currentTime
         < curSolo->end.sec) {
         Vector3 worldSpace = { 0, 2.5, BaseLength + 5 };
@@ -450,7 +450,7 @@ void Encore::Track::DrawUsername() {
     }
     Color color = WHITE;
     std::string NameText = player.Name;
-    if (player.engine->stats->Bot) {
+    if (engine->stats->Bot) {
         color = SKYBLUE;
         NameText += " " + LOCALISE("gameplay.autoplay").toString();
     }
@@ -488,7 +488,7 @@ void Encore::Track::DrawUsername() {
 
 Vector2 Encore::Track::MultiplierUVCalculation() {
     Vector2 curPos = { 0, 0 };
-    auto stats = player.engine->stats;
+    auto stats = engine->stats;
     int mult = stats->Combo / stats->ep.mult.count;
     mult = Clamp(mult, 0, stats->ep.mult.max - 1);
 
@@ -513,7 +513,7 @@ void Encore::Track::DrawOffsetWindow() {
 
     TextDisplay calib;
     try {
-        double avgOffset = player.engine->stats->TotalOffset / player.engine->stats->
+        double avgOffset = engine->stats->TotalOffset / engine->stats->
             NotesHit * 1000;
         double lastOffset = LastHitOffset * 1000;
         calib.Fnt(ASSET(JetBrainsMono)).Pos(ScreenPos.x, ScreenPos.y - FontSize)
@@ -529,7 +529,7 @@ void Encore::Track::DrawMultiplier() {
     ZoneScoped;
     Vector3 position = { 0, -0.1, -1.25 };
     Vector3 scale = { 1.1, 1.1, 1.1 };
-    Color indColor = player.engine->stats->Bot
+    Color indColor = engine->stats->Bot
         ? SKYBLUE
         : ColorBrightness(player.AccentColor, -0.3);
     ASSET(indicatorRingShader).SetUniform("BaseColor",
@@ -540,13 +540,13 @@ void Encore::Track::DrawMultiplier() {
                                            ColorBrightness(player.AccentColor, -0.85));
 
     Color fillColor;
-    if (player.engine->stats->multNoOD() == player.engine->stats->ep.mult.max) {
+    if (engine->stats->multNoOD() == engine->stats->ep.mult.max) {
         fillColor = SKYBLUE;
     } else {
         fillColor = RAYWHITE;
     }
     ASSET(multiplierFillShader).SetUniform("MultiplierColor", fillColor);
-    float fill = player.engine->stats->ComboFillCalc();
+    float fill = engine->stats->ComboFillCalc();
     if (fill <= 0.0f) {
         fill = -0.2;
     }
@@ -555,8 +555,8 @@ void Encore::Track::DrawMultiplier() {
     }
     ASSET(multiplierFillShader).SetUniform("FillPercentage", fill);
 
-    if (player.engine->stats->Misses == 0 && player.engine->stats->Overhits == 0 && !
-        player.engine->stats->Bot) {
+    if (engine->stats->Misses == 0 && engine->stats->Overhits == 0 && !
+        engine->stats->Bot) {
         ASSET(indicatorRingShader).SetUniform("isFC", 1.0f);
     } else {
         ASSET(indicatorRingShader).SetUniform("isFC", 0.0f);
@@ -655,7 +655,7 @@ void Encore::Track::DrawCombo() {
     Vector2 ScreenMultiplierPosition = GetWorldToScreen(
         WorldMultiplierPosition,
         AnimCamera);
-    std::string comboNum = std::to_string(player.engine->stats->Combo);
+    std::string comboNum = std::to_string(engine->stats->Combo);
     comboDisplay.Fnt(ASSET(rubikBold))
                 .Col(ColorAlpha(WHITE, 0.75))
                 .Size(GetRenderHeight() * 0.025f)
@@ -663,7 +663,7 @@ void Encore::Track::DrawCombo() {
                        ScreenMultiplierPosition.y - (comboDisplay.fontSize / 2) })
                 .AddX(Offset * GetRenderWidth() * 0.5);
 
-    if (player.engine->stats->Combo > 0) {
+    if (engine->stats->Combo > 0) {
         comboDisplay.DrawText(comboNum);
     }
     if (EncoreDebug::showDebug) {
@@ -795,23 +795,23 @@ unsigned char Encore::Track::BeatToCharViaTickThing(
 
 void Encore::Track::DrawNotes() {
     ZoneScoped;
-    if (player.engine->chart->at(0).empty()) {
+    if (engine->chart->at(0).empty()) {
         return;
     }
 
-    for (size_t lane = 0; lane < player.engine->chart->Lanes.size(); lane++) {
-        std::pair<int, int> NotePoolSize = player.engine->GetNotePoolSize(lane);
+    for (size_t lane = 0; lane < engine->chart->Lanes.size(); lane++) {
+        std::pair<int, int> NotePoolSize = engine->GetNotePoolSize(lane);
         for (int curNote = NotePoolSize.second - 1; curNote >= NotePoolSize.first; curNote
              --) {
-            auto *note = &player.engine->chart->at(lane).at(curNote);
+            auto *note = &engine->chart->at(lane).at(curNote);
             if (note->start.sec > GetViewEndTime()) {
                 continue;
             }
-            if (player.engine->practice) {
-                if (note->start.sec >= player.engine->pStopTime) {
+            if (engine->practice) {
+                if (note->start.sec >= engine->pStopTime) {
                     continue;
                 }
-                if (note->start.sec < player.engine->pStartTime) {
+                if (note->start.sec < engine->pStartTime) {
                     continue;
                 }
             }
@@ -826,7 +826,7 @@ void Encore::Track::DrawNotes() {
         }
     }
 
-    for (auto note : player.engine->chart->MissedNotePointers) {
+    for (auto note : engine->chart->MissedNotePointers) {
         if (note->end.sec < currentTime - 5) {
             continue;
         }
@@ -839,7 +839,7 @@ void Encore::Track::DrawNotes() {
                 break;
         }
     }
-    for (auto note : player.engine->chart->DroppedSustainPointers) {
+    for (auto note : engine->chart->DroppedSustainPointers) {
         if (note->end.sec < currentTime - 5) {
             continue;
         }
@@ -868,7 +868,7 @@ void Encore::Track::DrawSmashers() {
     for (size_t i = 0; i < slots.size(); i++) {
         auto slot = slots.at(i).get();
         slot->DrawSmasher(
-            slot->index < player.engine->stats->HeldFrets.size() && player.engine->stats->
+            slot->index < engine->stats->HeldFrets.size() && engine->stats->
             HeldFrets[slot->index]);
     }
     rlDisableDepthTest();
@@ -1005,7 +1005,7 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::NoteEvent &note
     auto lane = note.lane;
     for (int i = 0; i < 6; i++) {
         if (lane & RhythmEngine::PlasticFrets[i]) {
-            if (player.Instrument == PlasticDrums && note.type == 1 && player.engine->
+            if (player.Instrument == PlasticDrums && note.type == 1 && engine->
                 chart->size == 5) {
                 append_slot(i + 3);
             } else {
@@ -1030,7 +1030,7 @@ Encore::TrackSlot **Encore::Track::GetSlotsForLane(uint8_t lane, bool forceMask)
         slotBuffer[curIndex] = slots[index].get();
         curIndex++;
     };
-    if (player.engine->UsesNoteMasks() || forceMask) {
+    if (engine->UsesNoteMasks() || forceMask) {
         for (int i = 0; i < 5; i++) {
             if (lane & RhythmEngine::PlasticFrets[i]) {
                 append_slot(i);
@@ -1056,7 +1056,7 @@ void Encore::Track::UpdateControllerLED() {
             if (joystick && SDL_JoystickConnected(joystick)) {
                 float beatFrac = TheSongTime.GetBeatlineDelta();
                 Color baseBaseColor = player.AccentColor;
-                float health = player.engine->stats->Health;
+                float health = engine->stats->Health;
                 if (health < 0.33f) {
                     float fac = 1 - health;
                     float strength = getEasingFunction(EaseInSine)((fac * fac) - (health + 0.33));
@@ -1093,7 +1093,7 @@ void Encore::Track::HandleEvent(Event *event) {
         flashID = multiplierFlash->id;
     }
     if (auto healthChangeEvent = event->GetTyped<HealthChangeEvent>()) {
-        if (player.engine->stats->Health < 1 && player.engine->stats->Health > 0) {
+        if (engine->stats->Health < 1 && engine->stats->Health > 0) {
             HealthChangeTimer = 1;
         }
     }
@@ -1149,9 +1149,9 @@ void Encore::Track::HandleEvent(Event *event) {
         }
     }
     if (auto overhitEvent = event->GetTyped<OverhitEvent>()) {
-        if (player.engine->UsesNoteMasks()) {
+        if (engine->UsesNoteMasks()) {
             for (auto &slot : slots) {
-                if (slot->index < player.engine->stats->HeldFrets.size() && player.engine
+                if (slot->index < engine->stats->HeldFrets.size() && engine
                     ->stats->
                     HeldFrets[slot->index]) {
                     slot->AnimateOverhit();
@@ -1191,9 +1191,9 @@ void Encore::Track::ProcessAnimation() {
     if (HealthChangeTimer == 0)
         ChangeAmount = GetFrameTime() * 2;
     AnimHealth = Lerp(AnimHealth,
-                      player.engine->stats->Health,
+                      engine->stats->Health,
                       1 - expf(-10 * GetFrameTime()));
-    if (player.engine->stats->Health >= 1) {
+    if (engine->stats->Health >= 1) {
         TimeFull += GetFrameTime();
     } else {
         TimeFull = 0;
