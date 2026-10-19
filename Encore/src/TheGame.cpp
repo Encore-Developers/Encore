@@ -170,18 +170,22 @@ void SetImGuiTheme() {
 }
 
 void LocateDevAssets() {
-    auto execPath = std::filesystem::path(GetApplicationDirectory());
-    for (int i = 0; i < 5; i++) {
-        execPath /= "..";
-        execPath = std::filesystem::canonical(execPath);
-        //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
-        if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
-            execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
-            Encore::Log::Info("Found dev directory: {}", execPath.string());
-            devAssets = true;
-            TheAssets.setDirectory(execPath);
-            break;
+    try {
+        auto execPath = std::filesystem::path(GetApplicationDirectory());
+        for (int i = 0; i < 5; i++) {
+            execPath /= "..";
+            execPath = std::filesystem::canonical(execPath);
+            //Encore::EncoreLog(LOG_INFO, TextFormat("Scanning: %s", execPath.c_str()));
+            if (std::filesystem::exists(execPath / "CMakeLists.txt")) {
+                execPath = std::filesystem::canonical(execPath / "Encore/Assets/");
+                Encore::Log::Info("Found dev directory: {}", execPath.string());
+                devAssets = true;
+                TheAssets.setDirectory(execPath);
+                break;
+            }
         }
+    } catch (std::exception &e) {
+        Encore::Log::Info("Failed to find dev directory: {}", e.what());
     }
 }
 

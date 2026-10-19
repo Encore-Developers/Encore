@@ -20,7 +20,6 @@ public:
     // player stuff to
     // PlayerList
     void SavePlayerList();
-    void SaveSpecificPlayer(std::shared_ptr<Player> player, bool active);
     // BandGameplayStats *BandStats;
     std::filesystem::path PlayerListSaveFile;
     std::vector<std::shared_ptr<Player>> PlayerList;

@@ -405,6 +405,7 @@ void ReadyUpMenu::Draw() {
         }
     }
     if (SwitchMenus && ThePlayerManager.PlayersActive > 0) {
+        ThePlayerManager.SavePlayerList();
         TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
     }
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {

@@ -316,7 +316,7 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             if (!dropInDropOut) {
                 if (OvershellButton(i, curSlot++,LOCALIZE("overshell.return")) || input.backPressed) {
                     OvershellState[i] = OS_ATTRACT;
-                    ThePlayerManager.SaveSpecificPlayer(playerManager.PlayerList[i], true);
+                    ThePlayerManager.SavePlayerList();
                 }
                 if (OvershellButton(i, curSlot++,LOCALIZE("generic.restart"))) {
                     if (auto gameplayMenu = dynamic_cast<GameplayMenu*>(this)) {
@@ -439,14 +439,14 @@ float BottomBottomOvershell = GetRenderHeight() - unit.hpct(0.13f);
             );
             if (dropInDropOut) {
                 if (OvershellButton(i, curSlot++,LOCALIZE("overshell.dropOut"))) {
-                    playerManager.SaveSpecificPlayer(playerManager.ActivePlayers[i], true);;
+                    playerManager.SavePlayerList();
                     playerManager.RemoveActivePlayer(i);
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                     continue;
                 }
                 if (OvershellButton(i, curSlot++,LOCALIZE("generic.cancel")) || input.backPressed) {
-                    playerManager.SaveSpecificPlayer(playerManager.ActivePlayers[i], true);
+                    playerManager.SavePlayerList();
                     OvershellState[i] = OS_ATTRACT;
                     CancelButtonActivation = true;
                 }

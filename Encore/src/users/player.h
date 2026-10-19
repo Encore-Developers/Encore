@@ -52,15 +52,19 @@ namespace Encore::RhythmEngine {
     class BaseEngine;
 }
 
+
 #define PLAYER_JSON_SETTINGS                                                             \
     SETTING_ACTION(int, Difficulty, "diff")                                              \
+    SETTING_ACTION(std::string, Name, "name")                                              \
+    SETTING_ACTION(std::string, PlayerID, "UUID")                                              \
     SETTING_ACTION(int, Instrument, "inst")                                              \
     SETTING_ACTION(float, InputCalibration, "inputOffset")                               \
     SETTING_ACTION(float, NoteSpeed, "NoteSpeed")                                        \
     SETTING_ACTION(bool, Bot, "bot")                                                     \
     SETTING_ACTION(float, HighwayLength, "length")                                       \
     SETTING_ACTION(bool, LeftyFlip, "lefty")                                             \
-    SETTING_ACTION(bool, BrutalMode, "BrutalMode")
+    SETTING_ACTION(bool, BrutalMode, "BrutalMode")                                       \
+    SETTING_ACTION(Color, AccentColor, "accentColor")
 
 #define PLAYER_CONFIG_LIST                                                               \
     SETTING_ACTION(int, Difficulty)                                                      \
@@ -112,14 +116,13 @@ public:
             engine = nullptr;
 
 
-    void ResetGameplayStats();
-
     Encore::ColorProfile *GetColorProfile(Encore::ProfileManager::ColorProfileType type) const;
     void SetColorProfile(const std::string &profile, Encore::ProfileManager::ColorProfileType type);
     Color QueryColorProfile(Encore::ColorSlot slot, Encore::ProfileManager::ColorProfileType type);
-
-
 };
+
+void to_json(nlohmann::json& j, const Player& p);
+void from_json(const nlohmann::json& j, Player& p);
 
 /*
 class BandGameplayStats : public PlayerGameplayStats {

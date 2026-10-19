@@ -5,8 +5,26 @@
 #include <nlohmann/json.hpp>
 #include "raylib.h"
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Color, r, g, b, a);
 
+inline void to_json(nlohmann::json &nlohmann_json_j, const Color &nlohmann_json_t) {
+    nlohmann_json_j["r"] = nlohmann_json_t.r;
+    nlohmann_json_j["g"] = nlohmann_json_t.g;
+    nlohmann_json_j["b"] = nlohmann_json_t.b;
+    if (nlohmann_json_t.a != 255) {
+        nlohmann_json_j["a"] = nlohmann_json_t.a;
+    }
+}
+
+inline void from_json(const nlohmann::json &nlohmann_json_j, Color &nlohmann_json_t) {
+    nlohmann_json_j.at("r").get_to(nlohmann_json_t.r);
+    nlohmann_json_j.at("g").get_to(nlohmann_json_t.g);
+    nlohmann_json_j.at("b").get_to(nlohmann_json_t.b);
+    if (nlohmann_json_j.contains("a")) {
+        nlohmann_json_j.at("a").get_to(nlohmann_json_t.a);
+    } else {
+        nlohmann_json_t.a = 255;
+    }
+}
 namespace Encore {
     // SLOT_ prefix to prevent name conflicts
     enum ColorSlot : int {
