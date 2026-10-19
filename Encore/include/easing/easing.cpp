@@ -40,11 +40,11 @@ double easeInCubic( double t ) {
 }
 
 double easeOutCubic( double t ) {
-    return 1 + (--t) * t * t;
+    return 1 - std::pow(1 - t, 3);
 }
 
 double easeInOutCubic( double t ) {
-    return t < 0.5 ? 4 * t * t * t : 1 - pow(-2 * t + 2, 3) / 2;
+    return t < 0.5 ? 4 * t * t * t : 1 - std::pow(-2 * t + 2, 3) / 2;
 }
 
 double easeInQuart( double t ) {
@@ -53,18 +53,11 @@ double easeInQuart( double t ) {
 }
 
 double easeOutQuart( double t ) {
-    t = (--t) * t;
-    return 1 - t * t;
+    return 1 - std::pow(1 - t, 4);
 }
 
 double easeInOutQuart( double t ) {
-    if( t < 0.5 ) {
-        t *= t;
-        return 8 * t * t;
-    } else {
-        t = (--t) * t;
-        return 1 - 8 * t * t;
-    }
+    return t < 0.5 ? 8.0 * t * t * t * t : 1 - std::pow(-2.0 * t + 2.0, 4) / 2.0;
 }
 
 double easeInQuint( double t ) {
@@ -73,19 +66,11 @@ double easeInQuint( double t ) {
 }
 
 double easeOutQuint( double t ) {
-    double t2 = (--t) * t;
-    return 1 + t * t2 * t2;
+    return 1 - std::pow(1 - t, 5);
 }
 
 double easeInOutQuint( double t ) {
-    double t2;
-    if( t < 0.5 ) {
-        t2 = t * t;
-        return 16 * t * t2 * t2;
-    } else {
-        t2 = (--t) * t;
-        return 1 + 16 * t * t2 * t2;
-    }
+    return t < 0.5 ? 16.0 * t * t * t * t * t : 1 - std::pow(-2 * t + 2, 5) / 2.0;
 }
 
 double easeInExpo( double t ) {
@@ -125,15 +110,19 @@ double easeInBack( double t ) {
 }
 
 double easeOutBack( double t ) {
-    return 1 + (--t) * t * (2.70158 * t + 1.70158);
+    constexpr double c1 = 1.70158;
+    constexpr double c3 = c1 + 1;
+
+    return 1 + c3 * std::pow(t - 1, 3) + c1 * std::pow(t - 1, 2);
 }
 
 double easeInOutBack( double t ) {
-    if( t < 0.5 ) {
-        return t * t * (7 * t - 2.5) * 2;
-    } else {
-        return 1 + (--t) * t * 2 * (7 * t + 2.5);
-    }
+    constexpr double c1 = 1.70158;
+    constexpr double c2 = c1 * 1.525;
+
+    return t < 0.5
+      ? (std::pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2.0
+      : (std::pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2.0;
 }
 
 double easeInElastic( double t ) {

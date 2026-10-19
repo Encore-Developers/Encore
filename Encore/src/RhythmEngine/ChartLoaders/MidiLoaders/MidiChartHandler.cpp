@@ -164,7 +164,7 @@ void Encore::RhythmEngine::MidiChartHandler::LoadCharts() {
             continue;
         midifile[Part.TrackInt].linkEventPairs();
     }
-    for (int part = 0; part < Parts.size(); part++) {
+    for (size_t part = 0; part < Parts.size(); part++) {
         if (Parts[part].TrackInt == -1)
             continue;
         if (threshold == -1) {

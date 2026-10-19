@@ -52,7 +52,7 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
         return CheckNextInput;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
 
-    bool IsCymbal = CurrentNote->type == NoteEvent::CYMBAL;
+    //bool IsCymbal = CurrentNote->type == NoteEvent::CYMBAL;
 
 
     // auto curNoteItr = chartLane.begin();

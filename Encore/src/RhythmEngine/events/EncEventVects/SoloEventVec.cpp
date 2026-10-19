@@ -11,7 +11,7 @@ bool Encore::RhythmEngine::SoloEvents::TickDuringCurrentEvent(int tick) {
     return false;
 }
 
-void Encore::RhythmEngine::SoloEvents::CheckEvents(double time) {
+void Encore::RhythmEngine::SoloEvents::CheckEventsSeconds(double time) {
     if (this->empty())
         return;
 

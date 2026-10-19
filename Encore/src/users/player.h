@@ -1,42 +1,17 @@
 #pragma once
 
-//
-// Created by marie on 04/05/2024.
-//
-
 #include "ColorProfile.h"
 
 #include <string>
 #include <filesystem>
 
 #include "raylib.h"
-#include "../RhythmEngine/timingvalues.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
-#include "RhythmEngine/scoring.h"
 
-#include <span>
 
 #include "profiles/ProfileManager.h"
-#include "SDL3/SDL_gamepad.h"
 
-// #include "libstud-uuid/uuid/uuid.hxx"
 
-/*
-class Band {
-    /**
-     * @brief Do Not Use. Outdated.
-     * Already achieved with Band Gameplay Stats and the Band shit
-     *
-    std::filesystem::path ScoreFile;
-    bool SoloGameplay = true; // to be true until multiple players
-};
-
-enum NoteHitType {
-    STANDARD, // strums/ptaps
-    ALTERNATIVE // hopos/ctaps/lifts
-};
-*/
-// Temporary stopgap to let people do things on this old version
 enum ControllerBindingType : uint8_t {
     GUITAR = 0,
     GUITAR_GHPS3,
@@ -123,44 +98,3 @@ public:
 
 void to_json(nlohmann::json& j, const Player& p);
 void from_json(const nlohmann::json& j, Player& p);
-
-/*
-class BandGameplayStats : public PlayerGameplayStats {
-public:
-    BandGameplayStats();
-
-    void ResetBandGameplayStats();
-    bool EligibleForGoldStars = false;
-    bool Multiplayer = false;
-    std::vector<int> OverdriveMultiplier { 1, 2, 4, 6, 8 };
-    int PlayersInOverdrive = 0;
-    bool GoldStars() {
-        float starPercent = (float)Score / (float)BaseScore;
-        if (starPercent >= BAND_STAR_THRESHOLD[5])
-            return true;
-        return false;
-    };
-    void AddNotePoint(bool perfect, int playerMult);
-    int Stars() {
-        float starPercent = (float)Score / (float)BaseScore;
-        if (starPercent < BAND_STAR_THRESHOLD[0]) {
-            return 0;
-        } else if (starPercent < BAND_STAR_THRESHOLD[1]) {
-            return 1;
-        } else if (starPercent < BAND_STAR_THRESHOLD[2]) {
-            return 2;
-        } else if (starPercent < BAND_STAR_THRESHOLD[3]) {
-            return 3;
-        } else if (starPercent < BAND_STAR_THRESHOLD[4]) {
-            return 4;
-        } else if (starPercent < BAND_STAR_THRESHOLD[5]) {
-            return 5;
-        }
-
-        return 0;
-    }
-    void AddClassicNotePoint(bool perfect, int playerMult, int chordSize);
-
-    void DrumNotePoint(bool perfect, int playerMult, bool cymbal);
-};
-*/

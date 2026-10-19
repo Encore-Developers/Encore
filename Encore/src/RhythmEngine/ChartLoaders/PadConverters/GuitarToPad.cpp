@@ -8,7 +8,7 @@ using namespace Encore::RhythmEngine::PadConverters;
 void ChordPass(BaseChart &sourceChart) {
     for (auto& note : sourceChart.Lanes[0]) {
         int noteCount = std::popcount(note.lane);
-        int originalMask = note.lane;
+        //int originalMask = note.lane;
         if (noteCount > 1) {
             int lowest = 4;
             int highest = 0;
@@ -46,6 +46,7 @@ uint8_t HandFlipLane(uint8_t lane) {
     case RIGHT:
         return lane >> 2;
     }
+    return 0;
 }
 
 NoteHand PadConverters::GetLaneHand(uint8_t note) {
@@ -59,7 +60,7 @@ NoteHand PadConverters::GetNoteHand(NoteEvent &note) {
 }
 
 void SetOriginalLanePass(BaseChart &sourceChart) {
-    for (int i = 0; i < sourceChart.Lanes[0].size(); i++) {
+    for (size_t i = 0; i < sourceChart.Lanes[0].size(); i++) {
         sourceChart.Lanes[0][i].OriginalLane = sourceChart.Lanes[0][i].lane;
     }
 }
@@ -69,7 +70,7 @@ void HopoPass(BaseChart &sourceChart) {
         return;
     }
     int hopoTemperature = 0;
-    for (int i = 2; i < sourceChart.Lanes[0].size()-3; i++) {
+    for (size_t i = 2; i < sourceChart.Lanes[0].size()-3; i++) {
         NoteEvent& note = sourceChart.Lanes[0][i];
         NoteEvent* prevNote = &sourceChart.Lanes[0][i-1];
         int noteCount = std::popcount(note.lane);

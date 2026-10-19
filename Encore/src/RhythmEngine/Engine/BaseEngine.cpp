@@ -121,7 +121,7 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
         FireEvent(&gain);
     }
 
-    chart->solos.CheckEvents(CurrentTime);
+    chart->solos.CheckEventsSeconds(CurrentTime);
     bool odWasActive = stats->overdrive.Active;
     stats->overdrive.Update(CurrentTime);
     if (odWasActive == true && odWasActive != stats->overdrive.Active) {
@@ -251,7 +251,7 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     FireEvent(&hce);
 
     double earliestNoteTime = 0.0;
-    for (int i = 0; i < chart->Lanes.size(); i++) {
+    for (size_t i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
             if (earliestNoteTime == 0.0)
                 earliestNoteTime = chart->at(i).front().start.sec;

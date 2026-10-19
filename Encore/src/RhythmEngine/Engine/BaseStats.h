@@ -189,7 +189,7 @@ namespace Encore::RhythmEngine {
             //         return 6 * od;
 
             //} else {
-            int MaxMult = SixMultiplier ? 6 : 4;
+            //int MaxMult = SixMultiplier ? 6 : 4;
             double Multiplier = (Combo / ep.mult.count) + 1;
             if (Multiplier > ep.mult.max) {
                 Multiplier = ep.mult.max;
