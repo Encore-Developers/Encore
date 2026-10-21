@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include "midifile/MidiFile.h"
 
 namespace Encore::RhythmEngine {
     struct TimePoint {
@@ -15,6 +16,8 @@ namespace Encore::RhythmEngine {
         TimePoint(const double _sec, const int _tick)
             : sec(_sec), tick(_tick) {
         }
+
+        TimePoint(smf::MidiEvent* event) : sec(event->seconds), tick(event->tick) {}
 
         TimePoint operator+(const TimePoint &tp) const {
             return { sec + tp.sec, tick + tp.tick };
@@ -258,6 +261,7 @@ namespace Encore::RhythmEngine {
 
     struct Syllable {
         TimePoint time;
+        TimePoint timeEnd;
         std::string syllable;
         bool talkie = false;
     };

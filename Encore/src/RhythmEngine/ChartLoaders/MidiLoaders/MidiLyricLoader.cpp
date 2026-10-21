@@ -96,6 +96,17 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
 
         switch (syllable.back()) {
         case '+':
+            if (!currentPhrase.syllables.empty()) {
+                for (int x = 0; x < midiEventList->size(); x++) {
+                    smf::MidiEvent &ev2 = (*midiEventList)[x];
+                    if (ev2.isMeta())
+                        continue;
+                    if (ev2.isLinked() && ev2.tick == event.tick) {
+                        currentPhrase.syllables.back().timeEnd = ev2.getLinkedEvent();
+                        break;
+                    }
+                }
+            }
         case '$':
             continue;
         case '*':
@@ -120,7 +131,18 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
         } else {
             syllable.push_back(' ');
         }
-        currentPhrase.syllables.emplace_back(tp, syllable, talkie);
+        auto end = tp;
+        // Gross. Whatever!
+        for (int x = 0; x < midiEventList->size(); x++) {
+            smf::MidiEvent &ev2 = (*midiEventList)[x];
+            if (ev2.isMeta())
+                continue;
+            if (ev2.isLinked() && ev2.tick == event.tick) {
+                end = ev2.getLinkedEvent();
+                break;
+            }
+        }
+        currentPhrase.syllables.emplace_back(tp, end, syllable, talkie);
         currentPhrase.UpdateFullPhrase();
     }
 };

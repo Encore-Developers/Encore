@@ -127,14 +127,11 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::LyricPhrase *phrase,
     const Color UnplayedColor = {255, 255, 255, remapAlpha(remapAlpha(alpha, DisplayAlpha), 196)};
     for (int i = 0; i < phrase->syllables.size(); i++) {
         RhythmEngine::Syllable& syllable = phrase->syllables[i];
-        float EndSec = phrase->end.sec;
+        float EndSec = syllable.timeEnd.sec;
 
         if (syllable.talkie) lyricData.font = ASSET(rubikItalic);
         else lyricData.font = ASSET(rubik);
         if (syllable.time.sec < TheSongTime.GetElapsedTime()) {
-            if (i != phrase->syllables.size() - 1) {
-                EndSec = phrase->syllables[i+1].time.sec;
-            }
             if (EndSec < TheSongTime.GetElapsedTime()) {
                 lyricData.Col( PlayedColor ).DrawText(syllable.syllable);
             } else {
