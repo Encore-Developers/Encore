@@ -121,5 +121,6 @@ void Encore::RhythmEngine::MidiLyricLoader::GetNotes(smf::MidiEventList *midiEve
             syllable.push_back(' ');
         }
         currentPhrase.syllables.emplace_back(tp, syllable, talkie);
+        currentPhrase.UpdateFullPhrase();
     }
 };

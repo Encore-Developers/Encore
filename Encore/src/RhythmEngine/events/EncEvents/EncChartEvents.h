@@ -291,6 +291,14 @@ namespace Encore::RhythmEngine {
         }
 
         std::vector<Syllable> syllables;
+        std::string fullPhrase;
+
+        void UpdateFullPhrase() {
+            fullPhrase.clear();
+            for (auto& syl : syllables) {
+                fullPhrase += syl.syllable;
+            }
+        }
     };
 
     struct Coda : ChartEvent {
