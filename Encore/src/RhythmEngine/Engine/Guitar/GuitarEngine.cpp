@@ -15,11 +15,6 @@ bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const NoteEvent *itr, const u
     uint8_t maxMask = note << 1;
     if (std::has_single_bit(note))
         return (mask < maxMask) && (mask >= note);
-    if (itr->type == 2) {
-        if ((mask & ~note) < note) {
-            return (mask & note) > 0;
-        }
-    }
     return mask == note;
 }
 
