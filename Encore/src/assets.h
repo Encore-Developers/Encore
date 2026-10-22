@@ -356,6 +356,7 @@ public:
     }
 
     void AddRingsAndInstruments();
+    void AddInputPrompts();
 
     static Assets &getInstance();
 
@@ -370,6 +371,9 @@ public:
     Assets(const Assets &) = delete;
     void operator=(const Assets &) = delete;
 
+    std::vector<TextureAsset *> XbIcons;
+    std::vector<TextureAsset *> PSIcons;
+    std::vector<TextureAsset *> NxIcons;
     NEWFILEASSET(favicon, "encore_favicon-NEW.png");
     NEWTEXASSET(faviconTex, "encore_favicon-NEW.png");
 
@@ -587,6 +591,21 @@ public:
                         model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
                         liftMaskTex;
                         });
+
+
+    NEWTEXASSET(pacerBladeTex, "gameplay/track/pacer/blade.png");
+    NEWLEGACYMODELASSET(pacerBlade,
+                    "gameplay/track/pacer/plane.obj",
+                    [this](Model* model) {
+                    SetTextureWrap(pacerBladeTex, TEXTURE_WRAP_CLAMP);
+                    SetTextureWrap(pacerBladeTex, TEXTURE_WRAP_CLAMP);
+                    model->materials[0].maps[0].texture = pacerBladeTex;
+                    // const Texture2D mask = hopoMaskTex.Fetch();
+
+                    model->materials[0].shader = trackCurveShader;
+                    // model->materials[0].maps[MATERIAL_MAP_EMISSION].texture =
+                    // liftMaskTex;
+                    });
 
     NEWTEXASSET(smasherOffTex, "gameplay/track/smashers/normal/piston_off.png");
     NEWTEXASSET(smasherOnTex, "gameplay/track/smashers/normal/piston_on.png");

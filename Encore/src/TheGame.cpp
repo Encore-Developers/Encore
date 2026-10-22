@@ -214,6 +214,7 @@ int TheGame::Run(int argc, char *argv[]) {
     AssetSet({ASSETPTR(favicon), ASSETPTR(faviconTex)}).StartLoad();
     initialSet.StartLoad();
     TheAssets.AddRingsAndInstruments();
+    TheAssets.AddInputPrompts();
     mainMenuSet.StartLoad();
 
     std::string discordOff = ArgumentList::GetArgValue("discord");

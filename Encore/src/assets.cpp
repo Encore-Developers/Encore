@@ -443,3 +443,29 @@ void Assets::AddRingsAndInstruments() {
         mainMenuSet.AddAsset(tex);
     }
 }
+std::vector<std::string> buttonTextureNames {
+    "f_south",
+    "f_east",
+    "f_west",
+    "f_north",
+    "back",
+    "guide",
+    "start",
+    "stick_l",
+    "stick_r",
+    "l1",
+    "r1",
+    "d_up",
+    "d_down",
+    "d_left",
+    "d_right",
+};
+
+void Assets::AddInputPrompts() {
+    for (auto name : buttonTextureNames) {
+        NxIcons.push_back(new TextureAsset("ui/inputprompts/nx/" + name + ".png", true));
+        XbIcons.push_back(new TextureAsset("ui/inputprompts/xb/" + name + ".png", true));
+        PSIcons.push_back(new TextureAsset("ui/inputprompts/ps/" + name + ".png", true));
+    }
+}
+

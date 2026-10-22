@@ -13,54 +13,20 @@
 
 // these funcs below are temp before a proper binding/icon library is implemented
 
-std::string XBtempLaneToButtonLabel(Encore::InputChannel channel) {
+SDL_GamepadButton channelToButton(Encore::InputChannel channel) {
     switch (channel) {
-    case Encore::InputChannel::LANE_1: return "A";
-    case Encore::InputChannel::LANE_2: return "B";
-    case Encore::InputChannel::LANE_3: return "Y";
-    case Encore::InputChannel::LANE_4: return "X";
-    case Encore::InputChannel::LANE_5: return "LB";
-    case Encore::InputChannel::STRUM_UP: return "^";
-    case Encore::InputChannel::STRUM_DOWN: return "v";
-    case Encore::InputChannel::PAUSE: return "+";
-    case Encore::InputChannel::OVERDRIVE: return "-";
-    case Encore::InputChannel::INPUT_LEFT: return "<";
-    case Encore::InputChannel::INPUT_RIGHT: return ">";
-    default: return "";
-    }
-}
-
-std::string NStempLaneToButtonLabel(Encore::InputChannel channel) {
-    switch (channel) {
-    case Encore::InputChannel::LANE_1: return "B";
-    case Encore::InputChannel::LANE_2: return "A";
-    case Encore::InputChannel::LANE_3: return "X";
-    case Encore::InputChannel::LANE_4: return "Y";
-    case Encore::InputChannel::LANE_5: return "L";
-    case Encore::InputChannel::STRUM_UP: return "^";
-    case Encore::InputChannel::STRUM_DOWN: return "v";
-    case Encore::InputChannel::PAUSE: return "+";
-    case Encore::InputChannel::OVERDRIVE: return "-";
-    case Encore::InputChannel::INPUT_LEFT: return "<";
-    case Encore::InputChannel::INPUT_RIGHT: return ">";
-    default: return "";
-    }
-}
-
-std::string PStempLaneToButtonLabel(Encore::InputChannel channel) {
-    switch (channel) {
-    case Encore::InputChannel::LANE_1: return "X";
-    case Encore::InputChannel::LANE_2: return "O";
-    case Encore::InputChannel::LANE_3: return "Triangle";
-    case Encore::InputChannel::LANE_4: return "[]";
-    case Encore::InputChannel::LANE_5: return "L1";
-    case Encore::InputChannel::STRUM_UP: return "^";
-    case Encore::InputChannel::STRUM_DOWN: return "v";
-    case Encore::InputChannel::PAUSE: return "-";
-    case Encore::InputChannel::OVERDRIVE: return "<";
-    case Encore::InputChannel::INPUT_LEFT: return "<";
-    case Encore::InputChannel::INPUT_RIGHT: return ">";
-    default: return "";
+    case Encore::InputChannel::LANE_1: return SDL_GAMEPAD_BUTTON_SOUTH;
+    case Encore::InputChannel::LANE_2: return SDL_GAMEPAD_BUTTON_EAST;
+    case Encore::InputChannel::LANE_3: return SDL_GAMEPAD_BUTTON_NORTH;
+    case Encore::InputChannel::LANE_4: return SDL_GAMEPAD_BUTTON_WEST;
+    case Encore::InputChannel::LANE_5: return SDL_GAMEPAD_BUTTON_LEFT_SHOULDER;
+    case Encore::InputChannel::STRUM_UP: return SDL_GAMEPAD_BUTTON_DPAD_UP;
+    case Encore::InputChannel::STRUM_DOWN: return SDL_GAMEPAD_BUTTON_DPAD_DOWN;
+    case Encore::InputChannel::PAUSE: return SDL_GAMEPAD_BUTTON_START;
+    case Encore::InputChannel::OVERDRIVE: return SDL_GAMEPAD_BUTTON_BACK;
+    case Encore::InputChannel::INPUT_LEFT: return SDL_GAMEPAD_BUTTON_DPAD_LEFT;
+    case Encore::InputChannel::INPUT_RIGHT: return SDL_GAMEPAD_BUTTON_DPAD_RIGHT;
+    default: return SDL_GAMEPAD_BUTTON_INVALID;
     }
 }
 
@@ -223,45 +189,32 @@ void Encore::ButtonActionRegistry::DrawPrompts(bool OvershellOpen, float top, fl
 
         Color buttColor = tempColorToButtonLabel(butt.first);
         DrawTextureNPatch(ASSET(fretButtonPrompt), iconNP, icon, {0}, 0, buttColor);
-
-        if (types.at(cXB)) {
+        TextureAsset* iconTex = nullptr;
+        for (int i = 0; i < types.size(); i++) {
+            if (i == cGUITAR) continue;
+            if (!types.at(i)) continue;
             icon.x += (asdgasdfkjahlsdg/spacer);
-            DrawCircle(icon.x, icon.y + (icon.height/2), icon.height * 0.5, {BLACK.r, BLACK.g, BLACK.b, 196});
-
-            Text::DrawText(ASSET(rubikBold),
-                                 XBtempLaneToButtonLabel(butt.first),
-                                 { icon.x,
-                                   icon.y + ((icon.height/2) - ((fontSize * 0.65f)/2)) },
-                                 fontSize * 0.65f,
-                                 tempColorToButtonLabel(butt.first),
-                                 CENTER);
-
+            switch (i) {
+            case cXB: {
+                    iconTex = TheAssets.XbIcons.at(channelToButton(butt.first));
+                break;
+                }
+            case cPS: {
+                    iconTex = TheAssets.PSIcons.at(channelToButton(butt.first));
+                break;
+                }
+            case cNS: {
+                    iconTex = TheAssets.NxIcons.at(channelToButton(butt.first));
+                break;
+                }
+            }
+            Rectangle dest = {icon.x - (icon.height*0.75f), icon.y - (icon.height*0.25f), icon.height * 1.5f, icon.height * 1.5f};
+            DrawTexturePro(iconTex->Fetch(), {0,0,float(iconTex->Fetch().width), float(iconTex->Fetch().height)},
+                dest, {0},0, WHITE);
+            // BeginBlendMode(BLEND_ALPHA_PREMULTIPLY);
+            // DrawRectangleGradientV(dest.x, dest.y, dest.width, dest.height, buttColor, ColorBrightness(buttColor, -0.75f));
+            // EndBlendMode();
         }
-        if (types.at(cPS)) {
-            icon.x += (asdgasdfkjahlsdg/spacer);
-            DrawCircle(icon.x, icon.y + (icon.height/2), icon.height * 0.5, {BLACK.r, BLACK.g, BLACK.b, 196});
-
-            Text::DrawText(ASSET(rubikBold),
-                                 PStempLaneToButtonLabel(butt.first),
-                                 { icon.x,
-                                   icon.y + ((icon.height/2) - ((fontSize * 0.65f)/2)) },
-                                 fontSize * 0.65f,
-                                 PStempColorToButtonLabel(butt.first),
-                                 CENTER);
-        }
-        if (types.at(cNS)) {
-            icon.x += (asdgasdfkjahlsdg/spacer);
-            DrawCircle(icon.x, icon.y + (icon.height/2), icon.height * 0.5, {BLACK.r, BLACK.g, BLACK.b, 196});
-
-            Text::DrawText(ASSET(rubikBold),
-                                 NStempLaneToButtonLabel(butt.first),
-                                 { icon.x,
-                                   icon.y + ((icon.height/2) - ((fontSize * 0.65f)/2)) },
-                                 fontSize * 0.65f,
-                                 RAYWHITE,
-                                 CENTER);
-        }
-        // todo: replace this with actual controller-dependant icons
 
 
         ButtonData.lDrawText(butt.second.Name);
