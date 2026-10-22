@@ -48,14 +48,12 @@ void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
 void ReadyUpMenu::Back(int slot) {
     switch (SlotState[slot]) {
     case INSTRUMENT:
-        curSong->midiParsed = false;
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
         break;
     case DIFFICULTY:
         SlotState[slot] = INSTRUMENT;
         break;
     case READY:
-        curSong->midiParsed = false;
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
         ReadyState[slot] = false;
         break;
@@ -408,7 +406,6 @@ void ReadyUpMenu::Draw() {
         TheMenuManager.CreateAndSwitchMenu<ChartLoadingMenu>(curSong);
     }
     if (GuiButton({ 0, 0, 60, 60 }, "<")) {
-        curSong->midiParsed = false;
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
     }
 

@@ -300,11 +300,13 @@ void MainMenu::GotoSongSelect() {
     TheGameJukebox.UnloadStreams();
     // GameMenu::streamsLoaded = false;
     // streamsPaused = false;
-    for (Song &songi : TheSongList.songs) {
-        songi.titleScrollTime = GetTime();
-        songi.titleTextWidth = menuAss.MeasureTextRubik(songi.title.c_str(), 24);
-        songi.artistScrollTime = GetTime();
-        songi.artistTextWidth = menuAss.MeasureTextRubik(songi.artist.c_str(), 20);
+    for (auto &entry : TheSongList.listMenuEntries) {
+        if (entry.song) {
+            entry.titleScrollTime = GetTime();
+            entry.titleTextWidth = menuAss.MeasureTextRubik(entry.song->title.c_str(), 24);
+            entry.artistScrollTime = GetTime();
+            entry.artistTextWidth = menuAss.MeasureTextRubik(entry.song->artist.c_str(), 20);
+        }
     }
     TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
 }

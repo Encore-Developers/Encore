@@ -29,6 +29,15 @@ struct ListMenuEntry {
     Song* song;
     std::string headerChar;
     bool hiddenEntry;
+
+    float titleXOffset = 0;
+    float titleTextWidth = 0;
+    double titleScrollTime = 0.0;
+
+    float artistXOffset = 0;
+    float artistTextWidth = 0;
+    double artistScrollTime = 0.0;
+
     ListMenuEntry(EntryType _type, Song* _song, std::string _headerChar, bool _hiddenEntry) {
         type = _type;
         song = _song;

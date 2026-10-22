@@ -680,7 +680,8 @@ void SongSelectMenu::Draw() {
             Rectangle entryRec{ 0, songYPos, Units::RightSide - Units::winpct(0.25f),
                                 songEntryHeight };
             bool isCurSong = TheSongList.curSong && (listMenuPos == curSongMenuPos);
-            Song *songi = TheSongList.listMenuEntries[listMenuPos].song;
+            auto& entry = TheSongList.listMenuEntries[listMenuPos];
+            Song *songi = entry.song;
             Color background = { 128, 128, 128, 128 };
             if (listMenuPos % 2) {
                 background = { 160, 160, 160, 128 };
@@ -707,17 +708,17 @@ void SongSelectMenu::Draw() {
             // im so fucking scared
             // i dont know what this does. its framerate dependant too. im so fucking confused
             // theres gotta be a better way but im not being paid enough to figure it out
-            songi->titleTextWidth = songTitle.TextWidth(songi->title.c_str());
-            if (songi->titleTextWidth > songTitleWidth) {
-                if (curTime > songi->titleScrollTime && curTime < songi->titleScrollTime +
+            entry.titleTextWidth = songTitle.TextWidth(songi->title.c_str());
+            if (entry.titleTextWidth > songTitleWidth) {
+                if (curTime > entry.titleScrollTime && curTime < entry.titleScrollTime +
                     3.0) {
-                    songi->titleXOffset = 0;
+                    entry.titleXOffset = 0;
                 }
-                if (curTime > songi->titleScrollTime + 3.0) {
-                    songi->titleXOffset -= 1;
-                    if (songi->titleXOffset < -(songi->titleTextWidth - songTitleWidth)) {
-                        songi->titleXOffset = -(songi->titleTextWidth - songTitleWidth);
-                        songi->titleScrollTime = curTime + 3.0;
+                if (curTime > entry.titleScrollTime + 3.0) {
+                    entry.titleXOffset -= 1;
+                    if (entry.titleXOffset < -(entry.titleTextWidth - songTitleWidth)) {
+                        entry.titleXOffset = -(entry.titleTextWidth - songTitleWidth);
+                        entry.titleScrollTime = curTime + 3.0;
                     }
                 }
             }
@@ -725,19 +726,19 @@ void SongSelectMenu::Draw() {
             if (currentSortValue == SortType::Artist) {
                 artistText = songi->album;
             }
-            songi->artistTextWidth = songTitle.TextWidth(artistText);
-            if (songi->artistTextWidth > songArtistWidth) {
-                if (curTime > songi->artistScrollTime && curTime < songi->artistScrollTime
+            entry.artistTextWidth = songTitle.TextWidth(artistText);
+            if (entry.artistTextWidth > songArtistWidth) {
+                if (curTime > entry.artistScrollTime && curTime < entry.artistScrollTime
                     + 3.0) {
-                    songi->artistXOffset = 0;
+                    entry.artistXOffset = 0;
                 }
-                if (curTime > songi->artistScrollTime + 3.0) {
-                    songi->artistXOffset -= 1;
-                    if (songi->artistXOffset < -(songi->artistTextWidth -
+                if (curTime > entry.artistScrollTime + 3.0) {
+                    entry.artistXOffset -= 1;
+                    if (entry.artistXOffset < -(entry.artistTextWidth -
                         songArtistWidth)) {
-                        songi->artistXOffset = -(songi->artistTextWidth -
+                        entry.artistXOffset = -(entry.artistTextWidth -
                             songArtistWidth);
-                        songi->artistScrollTime = curTime + 3.0;
+                        entry.artistScrollTime = curTime + 3.0;
                     }
                 }
             }
@@ -748,7 +749,7 @@ void SongSelectMenu::Draw() {
                 songTitle.Col(WHITE);
                 songArtist.Col(WHITE);
             }
-            songTitle.pos.x = songXPos + songi->titleXOffset;
+            songTitle.pos.x = songXPos + entry.titleXOffset;
             BeginScissorMode(songXPos, songYPos, songTitleWidth, songEntryHeight);
             songTitle.DrawText(songi->title);
             EndScissorMode();
@@ -757,7 +758,7 @@ void SongSelectMenu::Draw() {
                              songYPos,
                              songArtistWidth,
                              songEntryHeight);
-            songArtist.pos.x = songXPos + songTitleWidth + songi->artistXOffset + 30;
+            songArtist.pos.x = songXPos + songTitleWidth + entry.artistXOffset + 30;
             songArtist.DrawText(artistText);
             EndScissorMode();
 
