@@ -303,7 +303,6 @@ public:
     std::string releaseYear = "";
     std::string loadingPhrase = "";
     std::vector<std::string> charters{};
-    std::string jsonHash = "";
     int hopoThreshold = -1;
     std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> LoadAudioINI();
     /// Returns an empty string if not found
