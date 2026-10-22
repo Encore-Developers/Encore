@@ -589,13 +589,17 @@ void SongSelectMenu::Draw() {
                                 songEntryHeight
                               },
                               ColorBrightness(AccentColor, -0.5f));
-    // Long casts so these are signed
-    topOflistMenu = std::clamp((long)topOflistMenu,
-                               (long)curSongMenuPos - 6,
-                               (long)curSongMenuPos - 3);
-    topOflistMenu = std::clamp((long)topOflistMenu,
-                               (long)1,
-                               (long)TheSongList.listMenuEntries.size() - 10);
+    if (TheSongList.listMenuEntries.size() <= 11) {
+        topOflistMenu = 1;
+    } else {
+        // Long casts so these are signed
+        topOflistMenu = std::clamp((long)topOflistMenu,
+                                   (long)curSongMenuPos - 6,
+                                   (long)curSongMenuPos - 3);
+        topOflistMenu = std::clamp((long)topOflistMenu,
+                                   (long)1,
+                                   (long)TheSongList.listMenuEntries.size() - 10);
+    }
     Encore::TextDisplay songTitle;
     Encore::TextDisplay songArtist;
     float songXPos = Units::LeftSide + Units::winpct(0.005f) - 2 + songEntryHeight;
