@@ -145,7 +145,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
                     event.channel = Encore::InputChannel::STRUM_DOWN;
                 }
             }
-            int DiffMax = (player.Difficulty == 3 || player.Instrument > PartVocals)
+            int DiffMax = (track->engine->chart->Lanes.size() >= 5 || player.Instrument > PartVocals)
                 ? 6
                 : 4;
 
@@ -750,7 +750,7 @@ void GameplayMenu::Load() {
             track->ColorProfileType = Encore::ProfileManager::DRUMS;
             break;
         default:
-            if (player.Difficulty == 3) {
+            if (player.engine->chart->Lanes.size() >= 5) {
                 track->Configure5Lane();
             } else {
                 track->Configure4Lane();

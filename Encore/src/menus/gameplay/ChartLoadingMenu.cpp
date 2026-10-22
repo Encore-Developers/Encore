@@ -81,7 +81,7 @@ void ChartLoadingMenu::LoadCharts() {
                     &player
                 );
             player.engine->stats->Type = Encore::RhythmEngine::Pad;
-            if (diff < 3)
+            if (player.engine->chart->Lanes[4].empty())
                 player.engine->chart->Lanes.
                                  resize(4);
         }
