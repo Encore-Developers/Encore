@@ -52,7 +52,7 @@ void PartOption::Draw(
     Encore::TextDisplay display, size_t index, SimpleMenu::MouseState mouseState
 ) {
     auto originalPadding = display.padding.x / 2.0f;
-    display.Padding(display.padding.x + display.fontSize + display.padding.x * 1.5f, display.padding.y);
+    display.Padding(display.padding.x + display.fontSize + display.padding.x * 2.0f, display.padding.y);
     Option::Draw(display, index, mouseState);
     int num = part > PartVocals
         ? part - PartVocals - 1
@@ -62,7 +62,7 @@ void PartOption::Draw(
                        display.pos.y + display.padding.y / 2.0f,
                        display.fontSize + display.padding.y,
                        display.fontSize + display.padding.y };
-    DrawCircle(dest.x + dest.width/2.0f, dest.y + dest.height/2.0f, dest.width/2.0f, {0, 0, 0, 200});
+    DrawRectangle(display.pos.x, display.pos.y, display.padding.x - originalPadding*2.0f, display.height, {0, 0, 0, 100});
     DrawTexturePro(
         iconA->Fetch(),
         { 0, 0, float(iconA->width), float(iconA->height) },
@@ -74,7 +74,7 @@ void PartOption::Draw(
 
     auto diff = menu->curSong->Difficulties.at(part);
     if (diff > 0) {
-        auto ringA = TheAssets.YargRings.at(diff);
+        auto ringA = TheAssets.YargRings.at(diff-1);
         DrawTexturePro(
             ringA->Fetch(),
             { 0, 0, float(iconA->width), float(iconA->height) },
