@@ -45,35 +45,70 @@ void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     }
 }
 
+PartOption::PartOption(SimpleMenu::Instance * inst, ReadyUpMenu* menu, int slot, int part) : SimpleMenu::Option(inst, LOCALISE(songPartsList[part])), menu(menu), slot(slot), part(part) {
+
+}
+void PartOption::Draw(
+    Encore::TextDisplay display, size_t index, SimpleMenu::MouseState mouseState
+) {
+    auto originalPadding = display.padding.x / 2.0f;
+    display.Padding(display.padding.x + display.fontSize + display.padding.x * 1.5f, display.padding.y);
+    Option::Draw(display, index, mouseState);
+    int num = part > PartVocals
+        ? part - PartVocals - 1
+        : part;
+    auto iconA = TheAssets.InstIcons.at(num);
+    Rectangle dest = { display.pos.x + originalPadding,
+                       display.pos.y + display.padding.y / 2.0f,
+                       display.fontSize + display.padding.y,
+                       display.fontSize + display.padding.y };
+    DrawCircle(dest.x + dest.width/2.0f, dest.y + dest.height/2.0f, dest.width/2.0f, {0, 0, 0, 200});
+    DrawTexturePro(
+        iconA->Fetch(),
+        { 0, 0, float(iconA->width), float(iconA->height) },
+        dest,
+        { 0, 0 },
+        0,
+        WHITE
+    );
+
+    auto diff = menu->curSong->Difficulties.at(part);
+    if (diff > 0) {
+        auto ringA = TheAssets.YargRings.at(diff);
+        DrawTexturePro(
+            ringA->Fetch(),
+            { 0, 0, float(iconA->width), float(iconA->height) },
+            dest,
+            { 0, 0 },
+            0,
+            WHITE
+        );
+    }
+
+
+}
+bool PartOption::Input(Encore::ControllerEvent event) {
+    if (event.action == Encore::Action::PRESS && event.channel == Encore::InputChannel::LANE_1) {
+        auto tempSlot = slot;
+        auto tempPart = part;
+        menu->defer.push_back([tempSlot, tempPart](ReadyUpMenu* menu) {
+            ThePlayerManager.GetActivePlayer(tempSlot).Instrument = tempPart;
+            menu->LoadMenuState(tempSlot, ReadyUpMenu::DIFFICULTY);
+        });
+        return true;
+    }
+    return false;
+}
 void ReadyUpMenu::Back(int slot) {
     switch (SlotState[slot]) {
     case INSTRUMENT:
         TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
         break;
     case DIFFICULTY:
-        SlotState[slot] = INSTRUMENT;
+        LoadMenuState(slot, INSTRUMENT);
         break;
     case READY:
-        TheMenuManager.CreateAndSwitchMenu<SongSelectMenu>();
-        ReadyState[slot] = false;
-        break;
-    }
-}
-
-void ReadyUpMenu::Select(int slot) {
-    switch (SlotState[slot]) {
-    case INSTRUMENT:
-        if (!PartsToDisplay.empty()) {
-            SlotState[slot] = DIFFICULTY;
-            ThePlayerManager.GetActivePlayer(slot).Instrument = PartsToDisplay[ControllerInstSlot[slot]];
-        }
-        break;
-    case DIFFICULTY:
-        SlotState[slot] = READY;
-        ThePlayerManager.GetActivePlayer(slot).Difficulty = ControllerDiffSlot[slot];
-        ReadyState[slot] = true;
-        break;
-    default:
+        LoadMenuState(slot, DIFFICULTY);
         break;
     }
 }
@@ -81,66 +116,64 @@ void ReadyUpMenu::Select(int slot) {
 void ReadyUpMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
 }
 
-void ReadyUpMenu::DrawDifficulties(float BottomOvershell,
-                                   int playerInt,
-                                   Player &player,
-                                   float xPosOfMenu) {
-    auto& Parts = chartLoader.GetSongParts();
-    float width = GetOvershellSlotWidth();
-    float left = GetOvershellSlotLeft(playerInt);
-    for (int i = 0; i < 4; i++) {
-        TrackInformation &part = Parts[player.Instrument];
-        if (part.ValidDiffs[i]) {
-            Color ButtonColor = backgroundColor;
-            if (ControllerDiffSlot[playerInt] == i) {
-                ButtonColor = ColorBrightness(AccentColor, -0.25);
+
+void ReadyUpMenu::LoadMenuState(int slot, ReadyUpMenuState state) {
+    auto& menu = Menus[slot];
+    SlotState[slot] = state;
+    menu.options.clear();
+    menu.selectedIndex = 0;
+    switch (state) {
+    case INSTRUMENT: {
+        for (auto part : PartsToDisplay) {
+            menu.CreateOption<PartOption>(this, slot, part);
+            if (ThePlayerManager.ActivePlayers[slot]) {
+                auto& player = ThePlayerManager.GetActivePlayer(slot);
+                if (player.Instrument == part) {
+                    menu.selectedIndex = menu.options.size()-1;
+                }
             }
-            Rectangle pos{
-                left,
-                BottomOvershell - Units::hinpct(0.05f)
-                - (Units::hinpct(0.05f) * (float)i),
-                width,
-                Units::hinpct(0.05f)
-            };
-
-            if (GuiButton(pos, "") && !isOSOpen()) {
-                ControllerDiffSlot[playerInt] = i;
-                SlotState[playerInt] = READY;
-                ReadyState[playerInt] = true;
-                player.Difficulty = i;
-                return;
-            }
-
-            DrawRectangleRec(pos, ButtonColor);
-
-            Encore::Text::lDrawText(
-                ASSET(rubik),
-                diffList[i],
-                { pos.x + Units::hinpct(0.01f), pos.y + Units::hinpct(0.01f) },
-                Units::hinpct(0.03f),
-                WHITE,
-                LEFT
-            );
-        } else {
-            GuiButton(
-                { left,
-                  BottomOvershell - Units::hinpct(0.05f)
-                  - (Units::hinpct(0.05f) * i),
-                  width,
-                  Units::hinpct(0.05f) },
-                ""
-            );
-            DrawRectangle(
-                left + 2,
-                BottomOvershell + 2 - Units::hinpct(0.05f)
-                - (Units::hinpct(0.05f) * i),
-                width - 4,
-                Units::hinpct(0.05f) - 4,
-                Color{ 0, 0, 0, 128 }
-            );
         }
-        GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
+        break;
     }
+    case DIFFICULTY: {
+        if (!ThePlayerManager.ActivePlayers[slot]) break;
+        auto& Parts = chartLoader.GetSongParts();
+        auto& player = ThePlayerManager.GetActivePlayer(slot);
+        TrackInformation &part = Parts[player.Instrument];
+        for (int i = 0; i < 4; i++) {
+            if (part.ValidDiffs[i]) {
+                menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE(diffList[i]), [this, &player, i, slot] {
+                    player.Difficulty = i;
+                    defer.push_back([this, slot](ReadyUpMenu*) {
+                        LoadMenuState(slot, READY);
+                    });
+                });
+                if (player.Difficulty == i) {
+                    menu.selectedIndex = menu.options.size()-1;
+                }
+            }
+        }
+        break;
+    }
+    case READY: {
+        menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("generic.back"), [this, slot] {
+            defer.push_back([this, slot](ReadyUpMenu*) {
+                LoadMenuState(slot, DIFFICULTY);
+            });
+        });
+    }
+    }
+
+    if (!menu.options.empty()) {
+        // Hack: reverse the options because that's how it was before
+        auto options = menu.options;
+        for (int i = 0; i < options.size(); i++) {
+            menu.options[options.size()-1-i] = options[i];
+        }
+
+        menu.selectedIndex = options.size()-1-menu.selectedIndex;
+    }
+
 }
 
 void ReadyUpMenu::Draw() {
@@ -254,150 +287,15 @@ void ReadyUpMenu::Draw() {
 
         float LeftOfMenu = Units::wpct(0.025);
         float xPosOfMenu = LeftOfMenu + ((playerInt) * Units::winpct(0.25f));
-        switch (SlotState[playerInt]) {
-        case INSTRUMENT: {
-            if (PartsToDisplay.empty()) {
-                break;
-            }
 
-            for (size_t i = 0; i < PartsToDisplay.size(); i++) {
-                if (ControllerInstSlot[playerInt] >= PartsToDisplay.size()) {
-                    ControllerInstSlot[playerInt] = PartsToDisplay.size() - 1;
-                }
-                Rectangle pos{ GetOvershellSlotLeft(playerInt),
-                               BottomOvershell - Units::hinpct(0.05f)
-                               - (Units::hinpct(0.05f) * (float)i),
-                               GetOvershellSlotWidth(),
-                               Units::hinpct(0.05f) };
-                std::string PartAndDiff = std::to_string(
-                        curSong->Difficulties.at(PartsToDisplay[i]) + 1) + "/7   ";
-                PartAndDiff += LOCALIZE(songPartsList[PartsToDisplay[i]]).toString();
-                if (GuiButton(pos, "") && !isOSOpen()) {
-                    ControllerInstSlot[playerInt] = i;
-                    SlotState[playerInt] = DIFFICULTY;
-                    player.Instrument = PartsToDisplay[i];
-                }
-                GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-                GuiSetStyle(BUTTON, TEXT_ALIGNMENT, TEXT_ALIGN_CENTER);
-                Color ButtonColor = backgroundColor;
-                if (ControllerInstSlot[playerInt] == i) {
-                    ButtonColor = ColorBrightness(AccentColor, 0.5);
-                }
-                DrawRectangleRec(pos, ButtonColor);
-                Encore::Text::DrawText(
-                    assets.rubik,
-                    PartAndDiff,
-                    { pos.x + Units::hinpct(0.01f), pos.y + Units::hinpct(0.01f) },
-                    Units::hinpct(0.03f),
-                    WHITE,
-                    LEFT
-                );
-            }
-            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-            break;
-        }
-        case DIFFICULTY: {
-            DrawDifficulties(BottomOvershell, playerInt, player, xPosOfMenu);
-            break;
-        }
-        case READY: {
-            if (GuiButton(
-                { xPosOfMenu,
-                  BottomOvershell - Units::hinpct(0.05f),
-                  Units::winpct(0.2f),
-                  Units::hinpct(0.05f) },
-                ""
-            ) && !isOSOpen()) {
-                SlotState[playerInt] = DIFFICULTY;
-                ReadyState[playerInt] = false;
-            }
-            Encore::Text::lDrawText(
-                assets.rubik,
-                "generic.difficulty",
-                { xPosOfMenu, BottomOvershell - Units::hinpct(0.04f) },
-                Units::hinpct(0.03f),
-                WHITE,
-                LEFT
-            );
-            auto difficultyLocalized = LOCALIZE(diffList[player.Difficulty]);
-            DrawTextEx(
-                assets.rubikBold,
-                difficultyLocalized,
-                { xPosOfMenu + Units::winpct(0.19f)
-                  - MeasureTextEx(
-                      assets.rubikBold, difficultyLocalized,
-                      Units::hinpct(0.03f),
-                      0
-                  )
-                  .x,
-                  BottomOvershell - Units::hinpct(0.04f) },
-                Units::hinpct(0.03f),
-                0,
-                WHITE
-            );
-            if (GuiButton(
-                { xPosOfMenu,
-                  BottomOvershell - Units::hinpct(0.10f),
-                  Units::winpct(0.2f),
-                  Units::hinpct(0.05f) },
-                ""
-            ) && !isOSOpen()) {
-                SlotState[playerInt] = INSTRUMENT;
-                ReadyState[playerInt] = false;
-            }
-            Encore::Text::lDrawText(
-                assets.rubik,
-                "generic.instrument",
-                { xPosOfMenu, BottomOvershell - Units::hinpct(0.09f) },
-                Units::hinpct(0.03f),
-                WHITE,
-                LEFT
-            );
-            auto text = LOCALIZE(songPartsList[player.Instrument]);
-            DrawTextEx(
-                assets.rubikBold,
-                text,
-                { xPosOfMenu + Units::winpct(0.19f)
-                  - MeasureTextEx(
-                      assets.rubikBold,
-                      text,
-                      Units::hinpct(0.03f),
-                      0
-                  )
-                  .x,
-                  BottomOvershell - Units::hinpct(0.09f) },
-                Units::hinpct(0.03f),
-                0,
-                WHITE
-            );
-            GuiSetStyle(
-                BUTTON,
-                TEXT_COLOR_NORMAL,
-                ColorToInt(Color{ 255, 255, 255, 255 })
-            );
-            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x751D4AFF);
-            GuiSetStyle(BUTTON, BASE_COLOR_FOCUSED, 0xA82A6BFF);
-            //if (GuiButton(
-            //    { xPosOfMenu,
-            //      BottomOvershell,
-            //      Units::winpct(0.2f),
-            //      Units::hinpct(0.05f) },
-            //    "Go Back"
-            //)) {
-            //    SlotState[playerInt] = INSTRUMENT;
-            //    ReadyState[playerInt] = false;
-            //}
-            GuiSetStyle(
-                BUTTON,
-                BASE_COLOR_FOCUSED,
-                ColorToInt(ColorBrightness(player.AccentColor, -0.5))
-            );
-            GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0xcbcbcbFF);
-            GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x181827FF);
-        }
-        break;
-        }
-        if (ReadyState[playerInt] == false) {
+        auto& menu = Menus[playerInt];
+        menu.bgColor = {0x18, 0x18, 0x27, 0xff};
+        menu.displayParams.Fnt(ASSET(rubik)).Size(Units::hinpct(SlotState[playerInt] == INSTRUMENT ? 0.04f : 0.03f));
+        menu.displayParams.Padding(Units::hinpct(0.01f), Units::hinpct(0.01f));
+        menu.displayParams.Pos(xPosOfMenu, BottomOvershell-menu.ItemHeight()*menu.options.size()).Bounds(GetOvershellSlotWidth(), menu.ItemHeight()*menu.options.size());
+        menu.Draw();
+
+        if (SlotState[playerInt] != READY) {
             SwitchMenus = false;
         }
     }
@@ -412,6 +310,11 @@ void ReadyUpMenu::Draw() {
 
     buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();
+
+    for (auto& func : defer) {
+        func(this);
+    }
+    defer.clear();
 }
 
 void ReadyUpMenu::Load() {
@@ -419,15 +322,18 @@ void ReadyUpMenu::Load() {
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.select", {
         if (_action != Encore::Action::PRESS) return;
+        Encore::ControllerEvent ev;
+        ev.action = Encore::Action::PRESS;
+        ev.channel = Encore::InputChannel::LANE_1;
         if (slot == -1) {
             for (int playerInt = 0; playerInt < MAX_PLAYERS; playerInt++) {
                 if (!ThePlayerManager.ActivePlayers[playerInt])
                     continue;
-                Select(playerInt);
+                Menus[playerInt].Input(ev);
             }
-            return;
+        } else {
+            Menus[slot].Input(ev);
         }
-        Select(slot);
     })
     NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
         if (_action != Encore::Action::PRESS) return;
@@ -443,43 +349,19 @@ void ReadyUpMenu::Load() {
     })
     NEWBUTTONACTION2(buttReg, STRUM_UP, "Up", {
         if (_action != Encore::Action::PRESS) return;
-        switch (SlotState[slot]) {
-                case INSTRUMENT:
-            ControllerInstSlot[slot]++;
-            if (ControllerInstSlot[slot] < 0)
-                ControllerInstSlot[slot] = 0;
-            break;
-        case DIFFICULTY:
-            ControllerDiffSlot[slot]++;
-            if (ControllerDiffSlot[slot] < 0)
-                ControllerDiffSlot[slot] = 0;
-
-            if (ControllerDiffSlot[slot] > 4)
-                ControllerDiffSlot[slot] = 4;
-            break;
-        default:
-            break;
-        }
+        Encore::ControllerEvent ev;
+        ev.action = Encore::Action::PRESS;
+        ev.channel = Encore::InputChannel::STRUM_UP;
+        Menus[slot].Input(ev);
     }, false)
     NEWBUTTONACTION2(buttReg, STRUM_DOWN, "Down", {
         if (_action != Encore::Action::PRESS) return;
-        switch (SlotState[slot]) {
-                case INSTRUMENT:
-            ControllerInstSlot[slot]--;
-            if (ControllerInstSlot[slot] < 0)
-                ControllerInstSlot[slot] = 0;
-            break;
-        case DIFFICULTY:
-            ControllerDiffSlot[slot]--;
-            if (ControllerDiffSlot[slot] < 0)
-                ControllerDiffSlot[slot] = 0;
-            break;
-        default:
-            break;
-        }
+        Encore::ControllerEvent ev;
+        ev.action = Encore::Action::PRESS;
+        ev.channel = Encore::InputChannel::STRUM_DOWN;
+        Menus[slot].Input(ev);
     }, false)
     SlotState = { INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
-    ReadyState = { false, false, false, false };
     auto& Parts = chartLoader.GetSongParts();
     for (size_t i = 0; i < Parts.size(); i++) {
         if (Parts[i].Valid) {
@@ -488,6 +370,7 @@ void ReadyUpMenu::Load() {
     }
 
     for (int i = 0; i < MAX_PLAYERS; i++) {
+        LoadMenuState(i, SlotState[i]);
         if (!ThePlayerManager.ActivePlayers[i]) continue;
         auto& player = ThePlayerManager.GetActivePlayer(i);
         for (int g = 0; g < PartsToDisplay.size(); g++) {
@@ -504,8 +387,7 @@ void ReadyUpMenu::Load() {
             ControllerDiffSlot[i] = 0;
         }
         if (player.ReplayPlayer) {
-            SlotState[i] = READY;
-            ReadyState[i] = true;
+            LoadMenuState(i, READY);
         }
     }
 
