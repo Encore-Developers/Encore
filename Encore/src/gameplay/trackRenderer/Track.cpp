@@ -218,13 +218,38 @@ void Encore::Track::Draw() {
             }
             DrawUsername();
         }
-        
         DrawCountdown();
         EndMode2D();
 
         BeginMode3D(AnimCamera);
         BeginShaderMode(ASSET(trackCurveShader));
         rlDisableDepthTest();
+
+        {
+            double pp = player.engine->stats->Accuracy / double(player.engine->noteCount);
+            double end = BaseLength - FadeSize;
+            auto easeOutQuad = getEasingFunction(EaseInCirc);
+            auto mapVal = [easeOutQuad, end](double val) {
+                return float(Remap(easeOutQuad(val), 0, 1, -2, end));
+            };
+            // double perfectpace = player.engine->stats->AttemptedNotes / double(player.engine->noteCount);
+            // DrawModel(ASSET(pacerBlade), {-3.2f, 0, float(BaseLength * perfectpace)}, 1.0, MAGENTA);
+
+            // this should be replaced by the pacer type of player's choosing
+            for (auto grade = Grades.rbegin(); grade != Grades.rend(); ++grade) {
+
+                double pace = (player.engine->stats->AttemptedNotes * grade->range.bottom) / double(player.engine->noteCount);
+                // if (pace < pp) continue;
+                DrawModel(ASSET(pacerBlade), {-3.125f, 0, mapVal(pace)}, 1.0, grade->color);
+                // break;
+            }
+
+            DrawModel(ASSET(pacerBlade), {-2.625f, 0, mapVal(pp)}, 1.0, WHITE);
+            for (auto grade : Grades) {
+                double pos = grade.range.bottom;
+                DrawCubeV({-3.125f, 0, mapVal(pos)}, {1,0.0125f, 0.0125f}, grade.color);
+            }
+        }
         DrawOverdriveMeter();
         particleSystem->Render();
         DrawMultiplier();

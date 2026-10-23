@@ -57,6 +57,7 @@ namespace Encore::RhythmEngine {
             float Gain = 0.015f;
             float Loss = 0.03f;
             float odMult = 2.0f;
+            float pass = 0.75f;
             float hurtThreshold = (1.0f / 3.0f);
         } health;
         OverdriveEP od;
