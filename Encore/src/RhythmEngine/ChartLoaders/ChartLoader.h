@@ -46,7 +46,7 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<ChartHandler> chartHandler;
 
     public:
-        explicit ChartLoader(Song* song);
+        ChartLoader(Song* song);
 
         std::array<TrackInformation, PlasticVocals> &GetSongParts() const;
         std::vector<LyricPhrase> GetLyricPhrases() const;

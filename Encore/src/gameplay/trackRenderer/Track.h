@@ -98,6 +98,7 @@ namespace Encore {
         TrackNotificationEvent* Notification = nullptr;
         Camera3D AnimCamera;
         Camera3D BaseCamera;
+        bool TrackDebugToggled = false;
 
         Particle* multiplierFlash = nullptr;
         unsigned int flashID;

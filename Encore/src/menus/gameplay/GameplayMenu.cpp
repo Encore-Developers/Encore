@@ -637,7 +637,7 @@ void GameplayMenu::Draw() {
         if (player.engine->stats->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
-        if (EncoreDebug::showEngineWindow[player.ActiveSlot]) {
+        if (track->TrackDebugToggled) {
             track->DrawTrackDebugWindow();
         }
         TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);

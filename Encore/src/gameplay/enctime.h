@@ -96,6 +96,7 @@ public:
     void UpdateBeatlines();
 
     void UpdateTick();
+    double SecondsToBeat(double seconds);
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
     double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);

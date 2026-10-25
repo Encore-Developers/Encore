@@ -26,7 +26,6 @@ bool EncoreDebug::reloadQueued = false;
 bool EncoreDebug::reloadFonts = false;
 bool EncoreDebug::showGameplayHud = true;
 
-bool EncoreDebug::showEngineWindow[MAX_PLAYERS] = { false, false, false, false };
 
 bool showDemoWindow = false;
 bool showAssets = false;
@@ -213,10 +212,10 @@ void EncoreDebug::MenuBar() {
             MenuItem("Practice", 0, &showPractice);
             MenuItem("Show Hud", 0, &showGameplayHud);
             if (BeginMenu("Active Stats/Engines")) {
-                for (int p = 0; p < ThePlayerManager.PlayersActive; p++) {
-                    MenuItem(ThePlayerManager.GetActivePlayer(p).Name.c_str(),
+                for (auto& track : gameplayMenu->tracks) {
+                    MenuItem(track->player.Name.c_str(),
                              0,
-                             &showEngineWindow[p]);
+                             &track->TrackDebugToggled);
                 }
                 EndMenu();
             }
@@ -1148,6 +1147,7 @@ void Encore::Track::DrawTrackDebugWindow() {
             if (BeginTabItem("Engine")) {
                 auto engine = player.engine;
                 BeginDisabled();
+                ImGui::Text("Beat: %f", TheSongTime.SecondsToBeat(TheSongTime.GetElapsedTime()));
                 float time = engine->LastUpdateTime;
                 InputFloat("Last Update Time", &time);
                 time = engine->stats->InputTime;

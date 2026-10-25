@@ -18,10 +18,10 @@
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
 protected:
-    std::vector<std::shared_ptr<Encore::Track>> tracks;
     Encore::ButtonActionRegistry buttReg;
     std::shared_ptr<VideoBackground> videoBackground;
 public:
+    std::vector<std::shared_ptr<Encore::Track>> tracks;
     bool streamsPaused = false;
     bool songPlaying = false;
 
