@@ -27,13 +27,11 @@ void Units::calcUnits() {
 // usable height
 float Units::hpct(float fpct) {
     // for decimal points
-    calcUnits();
     // return ((BottomSide-TopSide)*fpct)+TopSide;
     return Remap(fpct, 0, 1.0f, TopSide, BottomSide);
 }
 float Units::hinpct(float fpct) {
     // for decimal points
-    calcUnits();
     // return ((BottomSide-TopSide)*fpct)+TopSide;
     return Remap(fpct, 0, 1.0f, TopSide, BottomSide) - TopSide;
 }
@@ -41,11 +39,9 @@ float Units::hinpct(float fpct) {
 // usable width
 float Units::wpct(float ipct) {
     // for decimal points
-    calcUnits();
     return Remap(ipct, 0, 1.0f, LeftSide, RightSide);
 }
 float Units::winpct(float ipct) {
     // for decimal points
-    calcUnits();
     return Remap(ipct, 0, 1.0f, LeftSide, RightSide) - LeftSide;
 }
