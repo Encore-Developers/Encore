@@ -245,11 +245,6 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     bool cbreak = stats->multNoOD() == stats->ep.mult.max;
-
-    stats->RemoveHealth(cbreak);
-    HealthChangeEvent hce;
-    FireEvent(&hce);
-
     double earliestNoteTime = 0.0;
     for (size_t i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
@@ -262,6 +257,10 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     }
     if (stats->InputTime < earliestNoteTime)
         return;
+
+    stats->RemoveHealth(cbreak);
+    HealthChangeEvent hce;
+    FireEvent(&hce);
 
     chart->UpdateSections(TheSongTime.GetCurrentTick());
     // should be safe, right?
