@@ -400,10 +400,43 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
     return ((noteTime - songTime) * (length * 2.5)) - end;
 }
 
+// copied from debug idk where to put it
+std::string __tolowerStr(std::string &in) {
+    std::string out;
+    for (auto c : in) {
+        // ignore some characters
+        if (c == '\'') {
+            continue;
+        }
+        if (c == ' ') {
+            continue;
+        }
+        if (c == '(') {
+            continue;
+        }
+        if (c == ')') {
+            continue;
+        }
+        if (c == ',') {
+            continue;
+        }
+        if (c == '/') {
+            continue;
+        }
+        out += std::tolower(c);
+    }
+    return out;
+}
+
 void GameplayMenu::SaveReplay() {
     std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
     // TODO: date+time filename
-    replayPath /= (curSong->title + ".encrReplay");
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    auto tm = std::localtime(&t_c);
+    auto folderPath = replayPath / std::format("Replays/{}-{}/", tm->tm_year+1900, tm->tm_mon+1);
+    replayPath /= folderPath / std::format("{}_{}-{}-{}_{}-{}-{}.encrReplay", __tolowerStr(curSong->title.name), tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    std::filesystem::create_directories(folderPath);
     encore::bin_ofstream_le replayOut(replayPath, std::ios::binary);
     for (auto &track : tracks) {
         if (track->player.ReplayPlayer) {
