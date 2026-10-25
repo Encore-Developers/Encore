@@ -429,8 +429,18 @@ std::string __tolowerStr(std::string &in) {
 }
 
 void GameplayMenu::SaveReplay() {
+    bool hasRealPlayers = false;
+    for (auto& track : tracks) {
+        if (!track->player.ReplayPlayer) {
+            hasRealPlayers = true;
+            break;
+        }
+    }
+    if (!hasRealPlayers) {
+        return;
+    }
+
     std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
-    // TODO: date+time filename
     auto now = std::chrono::system_clock::now();
     auto t_c = std::chrono::system_clock::to_time_t(now);
     auto tm = std::localtime(&t_c);
