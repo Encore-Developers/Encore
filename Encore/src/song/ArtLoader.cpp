@@ -93,6 +93,7 @@ void ArtLoader::Poll() {
             loadedArtBlur = std::make_shared<OwnedTexture>(LoadTextureFromImage(result.loadedImage));
             SetTextureFilter(*loadedArtBlur, TEXTURE_FILTER_BILINEAR);
         }
+        UnloadImage(result.loadedImage);
 
     }
 }
