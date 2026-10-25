@@ -109,8 +109,10 @@ namespace Encore::RhythmEngine {
             else if (overdrive.Active)
                 mult = ep.health.odMult;
             Health -= ep.health.Loss * mult;
-            if (Health < 0)
+            if (Health <= 0) {
                 Health = 0;
+                Failed = true;
+            }
         }
 
         EngineParameters ep;
@@ -135,6 +137,7 @@ namespace Encore::RhythmEngine {
         bool Bot = false;
         bool Quit = false;
         double Health = defaultHealth;
+        bool Failed = false;
         double Accuracy = 0;
         double LastHitOffset = -1;
         int Stars = 0;
