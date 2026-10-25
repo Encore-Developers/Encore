@@ -371,18 +371,42 @@ void DebugSeek(float time, float audioTime) {
             continue;
         auto engine = player->engine.get();
         engine->chart->MissedNotePointers.clear();
-        for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
-            if (i >= engine->chart->Lanes.size()) {
-                break;
-            }
-            for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[
-                     i].end(); ++iter) {
-                if (iter->start.sec > time) {
-                    engine->chart->CurrentNoteIterators[i] = iter;
+        engine->chart->DroppedSustainPointers.clear();
+        if (player->ReplayPlayer) {
+            player->ReplayPlayer->lastEventFetched = false;
+            player->ReplayPlayer->nextInput = player->ReplayPlayer->replayParticipant->inputs.begin();
+            player->ReplayPlayer->lastUpdateTime = time;
+            engine->stats = std::make_shared<Encore::RhythmEngine::Stats>();
+            engine->stats->accuracies.reserve(engine->noteCount);
+
+            for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); ++i) {
+                if (i >= engine->chart->Lanes.size()) {
                     break;
                 }
+                engine->chart->CurrentNoteIterators[i] = engine->chart->Lanes[i].begin();
+            }
+
+            while (player->ReplayPlayer->HasNextInput()) {
+                auto input = player->ReplayPlayer->GetNextInput();
+                player->engine->UpdateOnFrame(input->timestamp);
+                player->engine->ProcessInput(*input);
+            }
+
+        } else {
+            for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+                if (i >= engine->chart->Lanes.size()) {
+                    break;
+                }
+                for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[
+                         i].end(); ++iter) {
+                    if (iter->start.sec > time) {
+                        engine->chart->CurrentNoteIterators[i] = iter;
+                        break;
+                    }
+                         }
             }
         }
+
     }
     if (auto gameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get())) {
         int i = 0;
