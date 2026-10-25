@@ -151,10 +151,13 @@ namespace Encore
     float TextDisplay::TextHeight(const std::string &text) const {
         return MeasureTextEx(font, text.c_str(), fontSize, 0).y;
     }
+    Rectangle TextDisplay::GetRect() const {
+        return {pos.x, pos.y, width, height};
+    }
     bool TextDisplay::CollidesPoint(Vector2 point) {
         return CheckCollisionPointRec(
             point,
-        {pos.x, pos.y, width, height}
+        GetRect()
         );
     }
 

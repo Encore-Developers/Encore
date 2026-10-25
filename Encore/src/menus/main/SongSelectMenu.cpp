@@ -19,6 +19,8 @@
 #include "assets.h"
 #include "imgui.h"
 #include "raymath.h"
+#include "SDL3/SDL_clipboard.h"
+#include "SDL3/SDL_misc.h"
 #include "menus/gameplay/ReadyUpMenu.h"
 #include "menus/util/TextDisplay.h"
 #include "menus/util/locale/Locale.h"
@@ -103,64 +105,88 @@ void SongSelectMenu::ScrollSongSelect(int val) {
     }
     curSongMenuPos = newPos;
 }
+void SongSelectMenu::OpenContextMenu() {
+    menu.Reset();
+    menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("songSelect.sort"), [this]() {
+        OpenSortMenu();
+    });
+
+    auto& entry = TheSongList.listMenuEntries[curSongMenuPos];
+    if (entry.type == eSong) {
+        menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("songSelect.openSongPath"), [this, entry]() {
+            SDL_OpenURL((std::string("file://") + entry.song->chartPath.parent_path().string()).c_str());
+            menuOpen = false;
+        });
+        menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("songSelect.copySongHash"), [this, entry]() {
+            std::stringstream hashStr;
+                hashStr << std::hex;
+                for (size_t x = 0; x < sizeof(SongHash::hash); x++) {
+                    hashStr << std::setw(2) << std::setfill('0') << (int)entry.song->hash.hash[
+                        x];
+                }
+            SDL_SetClipboardText(hashStr.str().c_str());
+            menuOpen = false;
+        });
+    }
+
+    menuOpen = true;
+}
+void SongSelectMenu::OpenSortMenu() {
+    menu.Reset();
+
+    for (int i = (int)SortType::EnumStart; i <= (int)SortType::EnumEnd-1; i++) {
+        if ((int)currentSortValue == i) {
+            menu.selectedIndex = i;
+        }
+        std::string sortType = LOCALIZE("songSelect.sortTypes."+sortTypes[i]);
+        menu.CreateOption<SimpleMenu::FuncOption>(sortType, [this, i]() {
+            currentSortValue = (SortType)i;
+            TheSongList.sortList(currentSortValue);
+            ScrollToCurrentSong();
+            menuOpen = false;
+        });
+    }
+
+    menuOpen = true;
+}
+void SongSelectMenu::OpenSectionMenu() {
+    menu.Reset();
+
+    for (int i = 0; i < TheSongList.listMenuEntries.size(); i++) {
+        auto& entry = TheSongList.listMenuEntries[i];
+        if (entry.type == eHeader) {
+            if (curSongMenuPos >= i) {
+                menu.selectedIndex = menu.options.size();
+            }
+            menu.CreateOption<SimpleMenu::FuncOption>(entry.headerChar, [this, i]() {
+                curSongMenuPos = i;
+                menuOpen = false;
+            });
+        }
+    }
+
+    menuOpen = true;
+}
 
 void SongSelectMenu::ControllerInputCallback(
     Encore::ControllerEvent event) {
-    int curSlot = 0;
-    if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
-        curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
-    }
-    buttReg.HandleInput(event);
-    /*
-    if (event.action == Encore::RhythmEngine::Action::PRESS) {
-        switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::STRUM_UP:
-            if (ControllerOrangeHeld.at(curSlot)) {
-                ScrollUpHeader();
-            } else {
-                ScrollSongSelect(1);
-            }
-            break;
-        case Encore::RhythmEngine::InputChannel::STRUM_DOWN:
-            if (ControllerOrangeHeld.at(curSlot)) {
-                ScrollDownHeader();
-            } else {
-                ScrollSongSelect(-1);
-            }
-            break;
-        case Encore::RhythmEngine::InputChannel::INPUT_LEFT:
-            ScrollSongSelect(5);
-            break;
-        case Encore::RhythmEngine::InputChannel::INPUT_RIGHT:
-            ScrollSongSelect(-5);
-            break;
-        case Encore::RhythmEngine::InputChannel::LANE_1:
-            if (TheSongList.curSong) {
-                Unload();
-                //TheSongList.curSong->LoadSongIni(TheSongList.curSong->songDir);
-                TheMenuManager.SwitchScreen(READY_UP);
-            }
-            break;
-        case Encore::RhythmEngine::InputChannel::LANE_2:
-            if (TheSongList.curSong) {
-                Unload();
-                TheMenuManager.SwitchScreen(MAIN_MENU);
-            }
-            break;
-        case Encore::RhythmEngine::InputChannel::LANE_5:
-            ControllerOrangeHeld.at(curSlot) = true;
-            break;
-        default:
-            break;
+    if (menuOpen) {
+        if (event.action == Encore::Action::PRESS && event.channel == Encore::InputChannel::LANE_2) {
+            menuOpen = false;
+            return;
         }
-    }
-    if (event.action == Encore::RhythmEngine::Action::RELEASE) {
-        switch (event.channel) {
-        case Encore::RhythmEngine::InputChannel::LANE_5:
-            ControllerOrangeHeld.at(curSlot) = false;
-            break;
+        if (menuReleaseConfirm) {
+            if (event.action == Encore::Action::RELEASE && event.channel == Encore::InputChannel::LANE_5) {
+                event.action = Encore::Action::PRESS;
+                event.channel = Encore::InputChannel::LANE_1;
+                menuReleaseConfirm = false;
+            }
         }
-    }*/
+        menu.Input(event);
+    } else {
+        buttReg.HandleInput(event);
+    }
+
 }
 
 void SongSelectMenu::ScrollToCurrentSong() {
@@ -214,116 +240,132 @@ void SongSelectMenu::Load() {
 
     ScrollToCurrentSong();
     buttReg.buttMap.clear();
-    NEWBUTTONACTION2(buttReg,
-                     LANE_1,
-                     "songSelect.playSong",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     if (TheSongList.PlaylistMode) {
-                     if (TheSongList.curSong) {
-                     TheSongList.playlist.push_back(TheSongList.curSong);
-                     }
-                     return;
-                     }
-                     if (!TheSongList.curSong) return;
-                     Unload();
-                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
+    NEWBUTTONACTION2(buttReg, LANE_1, "songSelect.playSong", {
+        if (_action != Encore::Action::PRESS)
+            return;
+        if (TheSongList.PlaylistMode) {
+            if (TheSongList.curSong) {
+                TheSongList.playlist.push_back(TheSongList.curSong);
+            }
+            return;
+        }
+        if (!TheSongList.curSong)
+            return;
+        Unload();
+        TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.curSong);
+    })
+    NEWBUTTONACTION2(buttReg, LANE_2, "generic.back", {
+        if (_action != Encore::Action::PRESS)
+            return;
+        if (TheSongList.PlaylistMode) {
+            if (!TheSongList.playlist.empty()) {
+                TheSongList.playlist.pop_back();
+                return;
+            }
+            return;
+        }
+        if (!TheSongList.curSong)
+            return;
+        Unload();
+        TheMenuManager.CreateAndSwitchMenu<MainMenu>();
+    })
+    NEWBUTTONACTION2(buttReg, LANE_3, "songSelect.menu", {
+        if (_action != Encore::Action::PRESS)
+            return;
+        if (menuOpen) {
+            menuOpen = false;
+        } else {
+            OpenContextMenu();
+        }
+    })
+    NEWBUTTONACTION2(buttReg, LANE_4, "songSelect.createPlaylist", {
+        if (_action != Encore::Action::PRESS)
+            return;
+        TogglePlaylistMode();
+    })
+    NEWBUTTONACTION2(buttReg, LANE_5, "songSelect.jumpHeaders", {
+        if (_action != Encore::Action::PRESS)
+            return;
+        OpenSectionMenu();
+        if (slot != -1) {
+            if (!ThePlayerManager.ActivePlayers[slot] || ThePlayerManager.ActivePlayers[slot]->bindingType != DRUMS) {
+                menuReleaseConfirm = true;
+                Encore::ControllerEvent ev;
+                ev.action = Encore::Action::PRESS;
+                ev.channel = Encore::InputChannel::STRUM_DOWN;
 
-                     })
-    NEWBUTTONACTION2(buttReg,
-                     LANE_2,
-                     "generic.back",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     if (TheSongList.PlaylistMode) {
-                     if (!TheSongList.playlist.empty()) {
-                     TheSongList.playlist.pop_back();
-                     return;
-                     }
-                     return;
-                     }
-                     if (!TheSongList.curSong) return;
-                     Unload();
-                     TheMenuManager.CreateAndSwitchMenu<MainMenu>();
-                     })
-    NEWBUTTONACTION2(buttReg,
-                     LANE_3,
-                     "songSelect.sort",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     currentSortValue = NextSortType(currentSortValue);
-                     TheSongList.sortList(currentSortValue);
-                     ScrollToCurrentSong();
-                     })
-    NEWBUTTONACTION2(buttReg,
-                     LANE_4,
-                     "songSelect.createPlaylist",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     TogglePlaylistMode();
-                     })
-    NEWBUTTONACTION2(buttReg,
-                     LANE_5,
-                     "songSelect.jumpHeaders",
-                     {
-                     if (_action == Encore::Action::REPEAT) return;
-                     if (slot == -1) return;
-                     ControllerOrangeHeld.at(slot) = _action == Encore::Action::PRESS;
-                     })
-    NEWBUTTONACTION2(buttReg,
-                     OVERDRIVE,
-                     "songSelect.playPlaylist",
-                     {
-                     if (_action == Encore::Action::REPEAT) return;
-                     if (TheSongList.playlist.empty()) return;
-                     Unload();
-                     TheSongList.PlaylistSize = TheSongList.playlist.size();
-                     TheSongList.PlaylistIndex = 1;
-                     TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.
-                         front());
-
-                     },
-                     false)
-    NEWBUTTONACTION2(buttReg,
-                     INPUT_LEFT,
-                     "PgUp",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     ScrollSongSelect(5);
-                     },
-                     false)
-    NEWBUTTONACTION2(buttReg,
-                     INPUT_RIGHT,
-                     "PgDn",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     ScrollSongSelect(-5);
-                     },
-                     false)
-    NEWBUTTONACTION2(buttReg,
-                     STRUM_UP,
-                     "Up",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     if (ControllerOrangeHeld.at(slot)) {
-                     ScrollUpHeader();
-                     } else {
-                     ScrollSongSelect(1);
-                     }
-                     },
-                     false)
-    NEWBUTTONACTION2(buttReg,
-                     STRUM_DOWN,
-                     "Down",
-                     {
-                     if (_action != Encore::Action::PRESS) return;
-                     if (ControllerOrangeHeld.at(slot)) {
-                     ScrollDownHeader();
-                     } else {
-                     ScrollSongSelect(-1);
-                     }
-                     },
-                     false)
+                menu.Input(ev);
+            }
+        }
+    })
+    NEWBUTTONACTION2(
+        buttReg,
+        OVERDRIVE,
+        "songSelect.playPlaylist",
+        {
+            if (_action == Encore::Action::REPEAT)
+                return;
+            if (TheSongList.playlist.empty())
+                return;
+            Unload();
+            TheSongList.PlaylistSize = TheSongList.playlist.size();
+            TheSongList.PlaylistIndex = 1;
+            TheMenuManager.CreateAndSwitchMenu<ReadyUpMenu>(TheSongList.playlist.front());
+        },
+        false
+    )
+    NEWBUTTONACTION2(
+        buttReg,
+        INPUT_LEFT,
+        "PgUp",
+        {
+            if (_action != Encore::Action::PRESS)
+                return;
+            ScrollSongSelect(5);
+        },
+        false
+    )
+    NEWBUTTONACTION2(
+        buttReg,
+        INPUT_RIGHT,
+        "PgDn",
+        {
+            if (_action != Encore::Action::PRESS)
+                return;
+            ScrollSongSelect(-5);
+        },
+        false
+    )
+    NEWBUTTONACTION2(
+        buttReg,
+        STRUM_UP,
+        "Up",
+        {
+            if (_action != Encore::Action::PRESS)
+                return;
+            if (ControllerOrangeHeld.at(slot)) {
+                ScrollUpHeader();
+            } else {
+                ScrollSongSelect(1);
+            }
+        },
+        false
+    )
+    NEWBUTTONACTION2(
+        buttReg,
+        STRUM_DOWN,
+        "Down",
+        {
+            if (_action != Encore::Action::PRESS)
+                return;
+            if (ControllerOrangeHeld.at(slot)) {
+                ScrollDownHeader();
+            } else {
+                ScrollSongSelect(-1);
+            }
+        },
+        false
+    )
     // TheGameRenderer.streamsLoaded = false;
     // TheGameRenderer.midiLoaded = false;
     // for (Song& song : TheSongList.sortedSongs) {
@@ -494,9 +536,12 @@ std::string SongSelectMenu::GetHeader() {
 void SongSelectMenu::Draw() {
     Assets &assets = Assets::getInstance();
 
-    Vector2 mouseWheel = GetMouseWheelMoveV();
-    // Update song select offset based on mouse wheel
-    ScrollSongSelect(mouseWheel.y);
+    if (!menuOpen && !ImGui::GetIO().WantCaptureMouse) {
+        Vector2 mouseWheel = GetMouseWheelMoveV();
+        // Update song select offset based on mouse wheel
+        ScrollSongSelect(mouseWheel.y);
+    }
+
 
     curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
@@ -797,6 +842,18 @@ void SongSelectMenu::Draw() {
     }
     buttReg.DrawPrompts(isOSOpen());
     DrawOvershell();
+
+    if (menuOpen) {
+        menu.scrollMargin = 2;
+        menu.bgColor = {0x18, 0x18, 0x27, 0xff};
+        menu.displayParams.Fnt(ASSET(rubik)).Size(Units::hinpct(0.03f)).Align(CENTER);
+        menu.displayParams.Padding(Units::hinpct(0.01f), Units::hinpct(0.01f));
+        auto width = Units::hinpct(0.4f);
+        auto height = Units::hinpct(0.3f);
+        menu.displayParams.Pos(Units::wpct(0.5)-width/2.0f, Units::hpct(0.5)-height/2.0f).Bounds(width, height);
+        DrawRectangleRec(menu.displayParams.GetRect(), {0, 0, 0, 128});
+        menu.Draw();
+    }
 }
 
 
