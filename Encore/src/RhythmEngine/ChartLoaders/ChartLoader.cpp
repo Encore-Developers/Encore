@@ -6,6 +6,9 @@
 
 #include "DotChartLoader/DotChartHandler.h"
 #include "MidiLoaders/MidiChartHandler.h"
+#include "RhythmEngine/Engine/Drums/DrumsEngine.h"
+#include "RhythmEngine/Engine/Guitar/GuitarEngine.h"
+#include "RhythmEngine/Engine/Pad/PadEngine.h"
 
 Encore::RhythmEngine::ChartLoader::ChartLoader(Song* song) {
     switch (song->chartFormat) {
@@ -59,6 +62,52 @@ void Encore::RhythmEngine::ChartLoader::PopulateSubsongs() {
 Encore::RhythmEngine::BaseChart Encore::RhythmEngine::ChartLoader::GetChart(const SongPart part,
                                                                             int difficulty) const {
     return chartHandler->GetChart(part, difficulty);
+}
+std::shared_ptr<Encore::RhythmEngine::BaseEngine>
+Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
+    int diff = player->Difficulty;
+    int inst = player->Instrument;
+    std::string trackName;
+    std::shared_ptr<BaseEngine> engine;
+    if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
+        engine =
+            std::make_shared<GuitarEngine>(
+                std::make_shared<BaseChart>(
+                    GetChart(SongPart(inst), diff)),
+                player
+            );
+        engine->stats->Type = Guitar;
+    } else if (inst == PlasticDrums) {
+        engine = std::make_shared<DrumsEngine>(
+            std::make_shared<BaseChart>(
+                GetChart(SongPart(inst), diff)),
+            player
+        );
+        engine->stats->Type = Drums;
+    } else if (inst < PlasticDrums) {
+        engine = std::make_shared<PadEngine>(
+                std::make_shared<BaseChart>(
+                    GetChart(SongPart(inst), diff)),
+                player
+            );
+        engine->stats->Type = Pad;
+        if (player->engine->chart->Lanes[4].empty())
+            player->engine->chart->Lanes.
+                             resize(4);
+    }
+    if (inst == PartVocals || inst == PartBass || inst == PlasticVocals) {
+        engine->stats->ep.mult.max = 6;
+    }
+    for (int i = 0; i < engine->chart->Lanes.size(); i++) {
+
+        engine->chart->at(i).shrink_to_fit();
+        engine->chart->CurrentNoteIterators.at(i) =
+            engine->chart->at(i).begin();
+    }
+    engine->stats->overdrive.ticks = GenerateOverdriveTicks();
+    engine->chart->sections = GetSections();
+
+    return engine;
 }
 
 void Encore::RhythmEngine::ChartLoader::LoadCharts() const {
