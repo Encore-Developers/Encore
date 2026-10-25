@@ -26,7 +26,7 @@ class resultsMenu : public OvershellMenu {
     std::array<ResultsState, MAX_PLAYERS> resultsState {GENERAL};
     std::array<int, MAX_PLAYERS> topSectList {0};
     void DrawSections(Player &player, Rectangle rect, float cardHeight, int playerslot);
-    void DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats> &stats, Grade* curGrade, Rectangle rect, float cardHeight);
+    void DrawStatistics(std::shared_ptr<Encore::RhythmEngine::Stats> &stats, Grade* curGrade, Rectangle rect, float cardHeight);
     void DrawHistogram(Player &player, Rectangle rect, float cardHeight, int playerslot);
     void drawPlayerResults(Player &player, int playerslot);
     void renderPlayerStars(

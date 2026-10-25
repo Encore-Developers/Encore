@@ -61,7 +61,6 @@ void ChartLoadingMenu::LoadCharts() {
                 std::make_shared<Encore::RhythmEngine::GuitarEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(
                         chartLoader.GetChart(SongPart(inst), diff)),
-                    std::make_shared<Encore::RhythmEngine::GuitarStats>(0),
                     &player
                 );
             player.engine->stats->Type = Encore::RhythmEngine::Guitar;
@@ -69,7 +68,6 @@ void ChartLoadingMenu::LoadCharts() {
             player.engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
                 std::make_shared<Encore::RhythmEngine::BaseChart>(
                     chartLoader.GetChart(SongPart(inst), diff)),
-                std::make_shared<Encore::RhythmEngine::DrumsStats>(0),
                 &player
             );
             player.engine->stats->Type = Encore::RhythmEngine::Drums;
@@ -77,7 +75,6 @@ void ChartLoadingMenu::LoadCharts() {
             player.engine = std::make_shared<Encore::RhythmEngine::PadEngine>(
                     std::make_shared<Encore::RhythmEngine::BaseChart>(
                         chartLoader.GetChart(SongPart(inst), diff)),
-                    std::make_shared<Encore::RhythmEngine::PadStats>(0),
                     &player
                 );
             player.engine->stats->Type = Encore::RhythmEngine::Pad;

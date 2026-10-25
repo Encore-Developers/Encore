@@ -301,7 +301,7 @@ void resultsMenu::Draw() {
 
 
 
-void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::BaseStats> &stats,
+void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::Stats> &stats,
                                  Grade* curGrade,
                                  Rectangle rect,
                                  float cardHeight) {

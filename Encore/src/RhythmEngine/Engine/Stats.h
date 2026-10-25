@@ -83,14 +83,13 @@ namespace Encore::RhythmEngine {
      * Not to be confused with handling current chart events. Those are handled
      * by their respective chart event vectors.
      */
-    class BaseStats {
+    class Stats {
     public:
-        explicit BaseStats(const int BaseScore, const size_t laneCount = 5)
+        explicit Stats(const size_t laneCount = 5)
             : overdrive(ep.od) {
-            StarCalcBaseScore = BaseScore;
             HeldFrets.resize(laneCount, false);
         };
-        virtual ~BaseStats() = default;
+        virtual ~Stats() = default;
 
         void AddHealth(const float acc) {
             float delta = acc * ep.health.Gain;
@@ -127,7 +126,6 @@ namespace Encore::RhythmEngine {
         int MaxCombo = 0;
         double TotalOffset = 0;
         bool AudioMuted = false;
-        int StarCalcBaseScore;
         double InputTime = -1;
         double LastPerfectTime = -1;
         bool SixMultiplier = false;
@@ -229,6 +227,7 @@ namespace Encore::RhythmEngine {
             return Accuracy / AttemptedNotes;
         }
         std::vector<bool> HeldFrets = {};
+        [[nodiscard]] uint8_t HeldFretsArrayToMask() const;
     };
 
 }
