@@ -290,10 +290,6 @@ void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int dif
     stats->Stars = 5;
 
 }
-void Encore::RhythmEngine::BaseEngine::UpdateCalibration(const double playerInputOffset) const {
-    // stats->InputOffset is in seconds, our settings values are in ms
-    stats->InputOffset = (playerInputOffset + TheGameSettings.VideoOffset)/1000.0; // TODO: this isn't the right way to calculate this
-}
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {
     TimePoint tp{0,0};

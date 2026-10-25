@@ -129,7 +129,6 @@ namespace Encore::RhythmEngine {
         bool AudioMuted = false;
         int StarCalcBaseScore;
         double InputTime = -1;
-        double InputOffset = 0;
         double LastPerfectTime = -1;
         bool SixMultiplier = false;
         bool CanHitHopo = true;

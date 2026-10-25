@@ -161,7 +161,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
             event.channel = Encore::InputChannel::PAUSE;
             sdlEvent->down = false; // HACK: "Consume" the event by setting it to an key up event
         }
-        event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
+        event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp) - TheGameSettings.VideoOffset/1000.0;
         if (!CheckPauseInput(event))
             if (event.channel != Encore::InputChannel::INVALID) {
                 engine->UpdateOnFrame(event.timestamp);
@@ -187,6 +187,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         if (!CheckPauseInput(event)) {
             if (player.Bot)
                 continue;
+            event.timestamp -= TheGameSettings.VideoOffset/1000.0;
             if (engine->allowTimestampedInputs) {
                 if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
                     engine->UpdateOnFrame(event.timestamp);
@@ -580,7 +581,7 @@ void GameplayMenu::Draw() {
             if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
                 player.engine->practice) {
                 }
-            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
+            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime() - TheGameSettings.VideoOffset/1000.0);
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }
 

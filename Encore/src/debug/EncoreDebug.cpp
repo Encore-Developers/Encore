@@ -793,8 +793,6 @@ void EncoreDebug::DrawEngineWindow(int slot) {
             BeginDisabled();
             float time = engine->LastUpdateTime;
             SliderFloat("Last Update Time", &time, time, time);
-            time = engine->stats->InputOffset;
-            SliderFloat("Input Offset", &time, time, time);
             time = engine->stats->InputTime;
             SliderFloat("Input Time", &time, time, time);
             EndDisabled();
@@ -1128,8 +1126,6 @@ void Encore::Track::DrawTrackDebugWindow() {
                 BeginDisabled();
                 float time = engine->LastUpdateTime;
                 InputFloat("Last Update Time", &time);
-                time = engine->stats->InputOffset;
-                InputFloat("Input Offset", &time);
                 time = engine->stats->InputTime;
                 InputFloat("Input Time", &time);
                 EndDisabled();

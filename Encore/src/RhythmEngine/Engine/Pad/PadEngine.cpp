@@ -13,7 +13,7 @@
 
 bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) {
     // todo: hit notes (THIS IS PAD)
-    stats->InputTime = event.timestamp - stats->InputOffset;
+    stats->InputTime = event.timestamp;
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         // activates overdrive
         if (stats->overdrive.Activate(stats->InputTime)) {
@@ -50,7 +50,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
 }
 
 void Encore::RhythmEngine::PadEngine::SetStatsInputState(ControllerEvent &event) {
-    stats->InputTime = event.timestamp - stats->InputOffset;
+    stats->InputTime = event.timestamp;
     if (event.action == Action::PRESS) {
         switch (event.channel) {
         case InputChannel::LANE_1:
@@ -128,7 +128,7 @@ void Encore::RhythmEngine::PadEngine::HitNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::PadEngine::UpdateOnFrame(const double CurrentTime) {
-    LastUpdateTime = CurrentTime - stats->InputOffset;
+    LastUpdateTime = CurrentTime;
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
