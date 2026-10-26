@@ -23,7 +23,7 @@ ControllerEvent &event
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
 ControllerEvent &event
 ) {
-    stats->InputTime = event.timestamp - stats->InputOffset; // todo: REPLACE WITH ACTUAL SONG
+    stats->InputTime = event.timestamp;
     // TIME (IN SECONDS)
     if (event.action == Action::INVALID) return;
     if (event.channel == InputChannel::INVALID) return;
@@ -92,7 +92,7 @@ void Encore::RhythmEngine::DrumsEngine::HitNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
-    LastUpdateTime = CurrentTime - stats->InputOffset;
+    LastUpdateTime = CurrentTime;
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "RhythmEngine/Chart/NoteVector.h"
+#include "RhythmEngine/Engine/BaseEngine.h"
 #include "RhythmEngine/Overdrive/OverdriveTicks.h"
 #include "gameplay/enctime.h"
 
@@ -45,7 +46,7 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<ChartHandler> chartHandler;
 
     public:
-        explicit ChartLoader(Song* song);
+        ChartLoader(Song* song);
 
         std::array<TrackInformation, PlasticVocals> &GetSongParts() const;
         std::vector<LyricPhrase> GetLyricPhrases() const;
@@ -58,6 +59,7 @@ namespace Encore::RhythmEngine {
         void PopulateSubsongs();
 
         BaseChart GetChart(SongPart part, int difficulty) const;
+        std::shared_ptr<BaseEngine> CreateEngine(Player* player) const;
         bool IsLoaded() {return chartHandler->IsLoaded();};
         void LoadCharts() const;
     };

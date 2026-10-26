@@ -2,7 +2,7 @@
 // Created by maria on 26/08/2025.
 //
 
-#include "RhythmEngine/Engine/BaseStats.h"
+#include "RhythmEngine/Engine/Stats.h"
 #include "assets.h"
 #include "gameplay/enctime.h"
 #include "settings/settings.h"

@@ -29,8 +29,6 @@ std::atomic_bool FinishedLoading = false;
 
 void ChartLoadingMenu::LoadCharts() {
     ZoneScoped;
-    // TheSongList.curSong->getTiming(midiFile, 0, midiFile[0]);
-    // TheSongList.curSong->parseBeatLines(midiFile, TheSongList.curSong->BeatTrackID);
     {
         ZoneScopedN("Loading Beatmap")
         TheSongTime.BPMChanges = chartLoader.GetBPMChanges();
@@ -47,55 +45,7 @@ void ChartLoadingMenu::LoadCharts() {
             continue;
         ZoneScopedN("RhythmEngine ctors")
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
-        int diff = player.Difficulty;
-        int inst = player.Instrument;
-
-        // i hate this shit i dunno why it didnt work
-
-        while (!chartLoader.IsLoaded()) {
-            if (chartLoader.IsLoaded()) break;
-        }
-        std::string trackName;
-        if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
-            player.engine =
-                std::make_shared<Encore::RhythmEngine::GuitarEngine>(
-                    std::make_shared<Encore::RhythmEngine::BaseChart>(
-                        chartLoader.GetChart(SongPart(inst), diff)),
-                    std::make_shared<Encore::RhythmEngine::GuitarStats>(0),
-                    &player
-                );
-            player.engine->stats->Type = Encore::RhythmEngine::Guitar;
-        } else if (inst == PlasticDrums) {
-            player.engine = std::make_shared<Encore::RhythmEngine::DrumsEngine>(
-                std::make_shared<Encore::RhythmEngine::BaseChart>(
-                    chartLoader.GetChart(SongPart(inst), diff)),
-                std::make_shared<Encore::RhythmEngine::DrumsStats>(0),
-                &player
-            );
-            player.engine->stats->Type = Encore::RhythmEngine::Drums;
-        } else if (inst < PlasticDrums) {
-            player.engine = std::make_shared<Encore::RhythmEngine::PadEngine>(
-                    std::make_shared<Encore::RhythmEngine::BaseChart>(
-                        chartLoader.GetChart(SongPart(inst), diff)),
-                    std::make_shared<Encore::RhythmEngine::PadStats>(0),
-                    &player
-                );
-            player.engine->stats->Type = Encore::RhythmEngine::Pad;
-            if (player.engine->chart->Lanes[4].empty())
-                player.engine->chart->Lanes.
-                                 resize(4);
-        }
-        if (inst == PartVocals || inst == PartBass || inst == PlasticVocals) {
-            player.engine->stats->ep.mult.max = 6;
-        }
-        for (int i = 0; i < player.engine->chart->Lanes.size(); i++) {
-
-            player.engine->chart->at(i).shrink_to_fit();
-            player.engine->chart->CurrentNoteIterators.at(i) =
-                player.engine->chart->at(i).begin();
-        }
-        player.engine->stats->overdrive.ticks = chartLoader.GenerateOverdriveTicks();
-        player.engine->chart->sections = chartLoader.GetSections();
+        player.engine = chartLoader.CreateEngine(&player);
     }
     TheSongTime.Lyrics = chartLoader.GetLyricPhrases();
     FinishedLoading = true;

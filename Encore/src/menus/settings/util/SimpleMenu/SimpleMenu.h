@@ -74,6 +74,8 @@ namespace SimpleMenu {
         void StartRangeSelect();
         void EndRangeSelect();
 
+        void Reset();
+
         template<typename T, typename... Args>
         T* CreateOption(Args&&... __args) {
             auto option = std::make_shared<T>(this, std::forward<Args>(__args)...);

@@ -3,7 +3,7 @@
 // Created by maria on 01/06/2025.
 //
 
-#include "BaseStats.h"
+#include "Stats.h"
 #include "RhythmTimer.h"
 #include "../Chart/NoteVector.h"
 #include "events/Event.h"
@@ -24,9 +24,10 @@ namespace Encore::RhythmEngine {
     };
     class BaseEngine : public EventSource {
     public:
-        BaseEngine(auto _chart, auto _stats, Player* _player)
-            : chart(_chart), stats(_stats), player(_player) {
+        BaseEngine(auto _chart, Player* _player)
+            : chart(_chart), player(_player) {
             for (auto& lane : chart->Lanes) noteCount += lane.size();
+            stats = std::make_shared<Stats>();
             stats->accuracies.reserve(noteCount);
         };
 
@@ -48,7 +49,7 @@ namespace Encore::RhythmEngine {
 
         int inst = 0;
         std::shared_ptr<BaseChart> chart;
-        std::shared_ptr<BaseStats> stats;
+        std::shared_ptr<Stats> stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
         double LastUpdateTime;
         bool allowTimestampedInputs = true;
@@ -74,7 +75,6 @@ namespace Encore::RhythmEngine {
         void Overhit(size_t lane);
         void UpdateStats(int instrument, int difficulty);
         virtual bool UsesNoteMasks() { return false; };
-        void UpdateCalibration(double playerInputOffset) const;
         int GhostCount;
 
     private:

@@ -245,11 +245,6 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     bool cbreak = stats->multNoOD() == stats->ep.mult.max;
-
-    stats->RemoveHealth(cbreak);
-    HealthChangeEvent hce;
-    FireEvent(&hce);
-
     double earliestNoteTime = 0.0;
     for (size_t i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
@@ -262,6 +257,10 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     }
     if (stats->InputTime < earliestNoteTime)
         return;
+
+    stats->RemoveHealth(cbreak);
+    HealthChangeEvent hce;
+    FireEvent(&hce);
 
     chart->UpdateSections(TheSongTime.GetCurrentTick());
     // should be safe, right?
@@ -290,10 +289,6 @@ void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int dif
     }
     stats->Stars = 5;
 
-}
-void Encore::RhythmEngine::BaseEngine::UpdateCalibration(const double playerInputOffset) const {
-    // stats->InputOffset is in seconds, our settings values are in ms
-    stats->InputOffset = (playerInputOffset + TheGameSettings.VideoOffset)/1000.0; // TODO: this isn't the right way to calculate this
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {

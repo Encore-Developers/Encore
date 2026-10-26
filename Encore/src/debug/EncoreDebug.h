@@ -21,7 +21,6 @@ namespace EncoreDebug {
     extern bool reloadQueued;
     extern bool reloadFonts;
     extern bool showGameplayHud;
-    extern bool showEngineWindow[MAX_PLAYERS];
     void DrawDebug();
     void MenuBar();
     void DrawAssetViewer();

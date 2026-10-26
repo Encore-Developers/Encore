@@ -55,6 +55,8 @@ namespace Encore
         float lTextHeight(const std::string &localeKey) const;
         float TextHeight(const std::string &text) const;
 
+        Rectangle GetRect() const;
+
         bool CollidesPoint(Vector2 point);
     };
 

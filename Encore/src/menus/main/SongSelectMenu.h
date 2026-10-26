@@ -1,10 +1,7 @@
-//
-// Created by marie on 16/11/2024.
-//
+#pragma once
 
-#ifndef SONGSELECTMENU_H
-#define SONGSELECTMENU_H
 #include "../overshell/OvershellMenu.h"
+#include "menus/settings/util/SimpleMenu/SimpleMenu.h"
 #include "menus/util/ButtonAction.h"
 #include "menus/util/ButtonActionRegistry.h"
 #include "song/song.h"
@@ -29,6 +26,14 @@ public:
     void UpdatePreviewVolume(double currentTime);
     void ScrollSongSelect(int val);
 private:
+    SimpleMenu::Instance menu;
+    bool menuOpen = false;
+    bool menuReleaseConfirm = false;
+
+    void OpenContextMenu();
+    void OpenSortMenu();
+    void OpenSectionMenu();
+
     Encore::ButtonActionRegistry buttReg;
     // 5 for unbound controllers
     std::array<bool, 5> ControllerOrangeHeld = { false, false, false, false, false };
@@ -44,7 +49,3 @@ private:
     double curTime = 0.0;
     double selectionTime = 0.0;
 };
-
-
-
-#endif //SONGSELECTMENU_H

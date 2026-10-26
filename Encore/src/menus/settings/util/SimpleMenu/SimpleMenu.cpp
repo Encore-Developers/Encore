@@ -57,9 +57,7 @@ void Instance::Select(int amount) {
         if (selectedIndexSigned < 0) {
             selectedIndexSigned = options.size() + selectedIndexSigned;
         }
-        if (selectedIndexSigned >= options.size()) {
-            selectedIndexSigned = selectedIndexSigned - options.size();
-        }
+        selectedIndexSigned = selectedIndexSigned % options.size();
     } else {
         if (selectedIndexSigned < 0) {
             selectedIndexSigned = 0;
@@ -230,4 +228,11 @@ void Instance::StartRangeSelect() {
 }
 void Instance::EndRangeSelect() {
     selectingRange = false;
+}
+void Instance::Reset() {
+    options.clear();
+    selectedIndex = 0;
+    scroll = 0;
+    selectingRange = false;
+    lastInteractionWasMouse = false;
 }

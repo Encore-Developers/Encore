@@ -4,7 +4,6 @@
 //
 
 #include "../BaseEngine.h"
-#include "GuitarStats.h"
 
 namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
@@ -50,11 +49,8 @@ namespace Encore::RhythmEngine {
         TimePoint LastNoteTime() override;
         // bool CanNoteBeHit() override;
         void Overhit();
-        std::shared_ptr<BaseChart> chart;
-        std::shared_ptr<GuitarStats> stats;
-        Player* player;
-        GuitarEngine(auto _chart, auto _stats, Player* _player)
-            : BaseEngine(_chart, _stats, _player), chart(_chart), stats(_stats), player(_player) {
+        GuitarEngine(auto _chart, Player* _player)
+            : BaseEngine(_chart, _player) {
             Timers = { { "FAS", RhythmTimer(0.125) }, { "SAH", RhythmTimer(goodBackend + goodFrontend) } };
         };
         ~GuitarEngine() override = default;

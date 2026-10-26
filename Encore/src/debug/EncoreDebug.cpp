@@ -26,7 +26,6 @@ bool EncoreDebug::reloadQueued = false;
 bool EncoreDebug::reloadFonts = false;
 bool EncoreDebug::showGameplayHud = true;
 
-bool EncoreDebug::showEngineWindow[MAX_PLAYERS] = { false, false, false, false };
 
 bool showDemoWindow = false;
 bool showAssets = false;
@@ -213,10 +212,10 @@ void EncoreDebug::MenuBar() {
             MenuItem("Practice", 0, &showPractice);
             MenuItem("Show Hud", 0, &showGameplayHud);
             if (BeginMenu("Active Stats/Engines")) {
-                for (int p = 0; p < ThePlayerManager.PlayersActive; p++) {
-                    MenuItem(ThePlayerManager.GetActivePlayer(p).Name.c_str(),
+                for (auto& track : gameplayMenu->tracks) {
+                    MenuItem(track->player.Name.c_str(),
                              0,
-                             &showEngineWindow[p]);
+                             &track->TrackDebugToggled);
                 }
                 EndMenu();
             }
@@ -371,18 +370,42 @@ void DebugSeek(float time, float audioTime) {
             continue;
         auto engine = player->engine.get();
         engine->chart->MissedNotePointers.clear();
-        for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
-            if (i >= engine->chart->Lanes.size()) {
-                break;
-            }
-            for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[
-                     i].end(); ++iter) {
-                if (iter->start.sec > time) {
-                    engine->chart->CurrentNoteIterators[i] = iter;
+        engine->chart->DroppedSustainPointers.clear();
+        if (player->ReplayPlayer) {
+            player->ReplayPlayer->lastEventFetched = false;
+            player->ReplayPlayer->nextInput = player->ReplayPlayer->replayParticipant->inputs.begin();
+            player->ReplayPlayer->lastUpdateTime = time;
+            engine->stats = std::make_shared<Encore::RhythmEngine::Stats>();
+            engine->stats->accuracies.reserve(engine->noteCount);
+
+            for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); ++i) {
+                if (i >= engine->chart->Lanes.size()) {
                     break;
                 }
+                engine->chart->CurrentNoteIterators[i] = engine->chart->Lanes[i].begin();
+            }
+
+            while (player->ReplayPlayer->HasNextInput()) {
+                auto input = player->ReplayPlayer->GetNextInput();
+                player->engine->UpdateOnFrame(input->timestamp);
+                player->engine->ProcessInput(*input);
+            }
+
+        } else {
+            for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
+                if (i >= engine->chart->Lanes.size()) {
+                    break;
+                }
+                for (auto iter = engine->chart->Lanes[i].begin(); iter < engine->chart->Lanes[
+                         i].end(); ++iter) {
+                    if (iter->start.sec > time) {
+                        engine->chart->CurrentNoteIterators[i] = iter;
+                        break;
+                    }
+                         }
             }
         }
+
     }
     if (auto gameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get())) {
         int i = 0;
@@ -793,8 +816,6 @@ void EncoreDebug::DrawEngineWindow(int slot) {
             BeginDisabled();
             float time = engine->LastUpdateTime;
             SliderFloat("Last Update Time", &time, time, time);
-            time = engine->stats->InputOffset;
-            SliderFloat("Input Offset", &time, time, time);
             time = engine->stats->InputTime;
             SliderFloat("Input Time", &time, time, time);
             EndDisabled();
@@ -1126,10 +1147,9 @@ void Encore::Track::DrawTrackDebugWindow() {
             if (BeginTabItem("Engine")) {
                 auto engine = player.engine;
                 BeginDisabled();
+                ImGui::Text("Beat: %f", TheSongTime.SecondsToBeat(TheSongTime.GetElapsedTime()));
                 float time = engine->LastUpdateTime;
                 InputFloat("Last Update Time", &time);
-                time = engine->stats->InputOffset;
-                InputFloat("Input Offset", &time);
                 time = engine->stats->InputTime;
                 InputFloat("Input Time", &time);
                 EndDisabled();

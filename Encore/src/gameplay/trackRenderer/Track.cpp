@@ -136,7 +136,6 @@ void Encore::Track::Draw() {
         NoteSpeed = player.NoteSpeed;
         // TODO: should probably find a better way to do this
         Length = BaseLength * player.HighwayLength;
-        engine->UpdateCalibration(player.InputCalibration);
 
         ProcessAnimation();
         if (ThePlayerManager.PlayersActive > 2 && ColumnFitting) {
@@ -366,6 +365,11 @@ void Encore::Track::DrawOverdriveMeter() {
         ASSET(healthMeterShader).SetUniform("FillPct", AnimHealth);
         ASSET(healthMeterShader).SetUniform("FillResidualPct",
                                             engine->stats->Health);
+    }
+
+    if (engine->stats->Failed) {
+        ASSET(healthMeterShader).SetUniform("MainColor", GRAY);
+        ASSET(healthMeterShader).SetUniform("ResidualColor", DARKGRAY);
     }
 
     float SolidPct = Clamp(Remap(AnimHealth, 0.2, 0.5, 0.22, 0.11), 0.11, 0.22);

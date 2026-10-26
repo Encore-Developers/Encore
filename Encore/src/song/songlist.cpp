@@ -1,6 +1,7 @@
 #include "songlist.h"
 
 #include "picosha2.h"
+#include "RhythmEngine/ChartLoaders/ChartLoader.h"
 #include "SDL3/SDL_filesystem.h"
 #include "util/enclog.h"
 

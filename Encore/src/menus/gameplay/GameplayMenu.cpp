@@ -161,7 +161,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
             event.channel = Encore::InputChannel::PAUSE;
             sdlEvent->down = false; // HACK: "Consume" the event by setting it to an key up event
         }
-        event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp);
+        event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp) - TheGameSettings.VideoOffset/1000.0;
         if (!CheckPauseInput(event))
             if (event.channel != Encore::InputChannel::INVALID) {
                 engine->UpdateOnFrame(event.timestamp);
@@ -187,6 +187,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
         if (!CheckPauseInput(event)) {
             if (player.Bot)
                 continue;
+            event.timestamp -= TheGameSettings.VideoOffset/1000.0;
             if (engine->allowTimestampedInputs) {
                 if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
                     engine->UpdateOnFrame(event.timestamp);
@@ -399,10 +400,53 @@ double GetNotePos(double noteTime, double songTime, float length, float end) {
     return ((noteTime - songTime) * (length * 2.5)) - end;
 }
 
+// copied from debug idk where to put it
+std::string __tolowerStr(std::string &in) {
+    std::string out;
+    for (auto c : in) {
+        // ignore some characters
+        if (c == '\'') {
+            continue;
+        }
+        if (c == ' ') {
+            continue;
+        }
+        if (c == '(') {
+            continue;
+        }
+        if (c == ')') {
+            continue;
+        }
+        if (c == ',') {
+            continue;
+        }
+        if (c == '/') {
+            continue;
+        }
+        out += std::tolower(c);
+    }
+    return out;
+}
+
 void GameplayMenu::SaveReplay() {
+    bool hasRealPlayers = false;
+    for (auto& track : tracks) {
+        if (!track->player.ReplayPlayer) {
+            hasRealPlayers = true;
+            break;
+        }
+    }
+    if (!hasRealPlayers) {
+        return;
+    }
+
     std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
-    // TODO: date+time filename
-    replayPath /= (curSong->title + ".encrReplay");
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    auto tm = std::localtime(&t_c);
+    auto folderPath = replayPath / std::format("Replays/{}-{}/", tm->tm_year+1900, tm->tm_mon+1);
+    replayPath /= folderPath / std::format("{}_{}-{}-{}_{}-{}-{}.encrReplay", __tolowerStr(curSong->title.name), tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    std::filesystem::create_directories(folderPath);
     encore::bin_ofstream_le replayOut(replayPath, std::ios::binary);
     for (auto &track : tracks) {
         if (track->player.ReplayPlayer) {
@@ -580,7 +624,7 @@ void GameplayMenu::Draw() {
             if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
                 player.engine->practice) {
                 }
-            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime());
+            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime() - TheGameSettings.VideoOffset/1000.0);
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }
 
@@ -593,7 +637,7 @@ void GameplayMenu::Draw() {
         if (player.engine->stats->AudioMuted) {
             volume = TheGameSettings.GetMuteVolume();
         }
-        if (EncoreDebug::showEngineWindow[player.ActiveSlot]) {
+        if (track->TrackDebugToggled) {
             track->DrawTrackDebugWindow();
         }
         TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
