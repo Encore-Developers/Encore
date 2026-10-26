@@ -91,8 +91,8 @@ Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
                 player
             );
         engine->stats->Type = Pad;
-        if (player->engine->chart->Lanes[4].empty())
-            player->engine->chart->Lanes.
+        if (engine->chart->Lanes[4].empty())
+            engine->chart->Lanes.
                              resize(4);
     }
     if (inst == PartVocals || inst == PartBass || inst == PlasticVocals) {
