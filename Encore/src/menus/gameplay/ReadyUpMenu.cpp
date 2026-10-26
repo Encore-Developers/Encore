@@ -204,7 +204,7 @@ void ReadyUpMenu::Draw() {
     GameMenu::DrawTopBarText(true);
 
     // buttReg.DrawPrompts(false, Units::hpct(0.2f), AlbumArtLeft + AlbumArtRight + 24);
-    if (TheArtLoader.loadedArt->GetTexture().id != 0) {
+    if (TheArtLoader.loadedArt && TheArtLoader.loadedArt->GetTexture().id != 0) {
         DrawTexturePro(
             *TheArtLoader.loadedArt,
             Rectangle{ 0,
