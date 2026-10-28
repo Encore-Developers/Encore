@@ -815,9 +815,7 @@ void EncoreDebug::DrawEngineWindow(int slot) {
             auto engine = player.engine;
             BeginDisabled();
             float time = engine->EngineTime;
-            SliderFloat("Last Update Time", &time, time, time);
-            time = engine->stats->InputTime;
-            SliderFloat("Input Time", &time, time, time);
+            SliderFloat("Engine Time", &time, time, time);
             EndDisabled();
 
             ProgressBar(engine->whammy, { 1.0f, 0.0f }, "Whammy");
@@ -1149,9 +1147,7 @@ void Encore::Track::DrawTrackDebugWindow() {
                 BeginDisabled();
                 ImGui::Text("Beat: %f", TheSongTime.SecondsToBeat(TheSongTime.GetElapsedTime()));
                 float time = engine->EngineTime;
-                InputFloat("Last Update Time", &time);
-                time = engine->stats->InputTime;
-                InputFloat("Input Time", &time);
+                InputFloat("Engine Time", &time);
                 EndDisabled();
                 float health = player.engine->stats->Health;
                 SliderFloat("Health", &health, 0, 1);
