@@ -11,7 +11,7 @@ bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
 ControllerEvent &event
 ) {
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
-        if (stats->overdrive.Activate(stats->InputTime)) {
+        if (stats->overdrive.Activate(EngineTime)) {
             OverdriveEvent gain;
             FireEvent(&gain);
         }; // time
@@ -23,7 +23,6 @@ ControllerEvent &event
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
 ControllerEvent &event
 ) {
-    stats->InputTime = event.timestamp;
     // TIME (IN SECONDS)
     if (event.action == Action::INVALID) return;
     if (event.channel == InputChannel::INVALID) return;
@@ -67,7 +66,7 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
     // bool lift = false; //action == Action::RELEASE && CurrentNote.NoteType == 1;
     if (event.action == Action::PRESS) {
         if (EarlyStrike(CurrentNote->start.sec)) {
-            if (Timers["debounce"].CanBeUsedUp(stats->InputTime)) {
+            if (Timers["debounce"].CanBeUsedUp(EngineTime)) {
                 Timers["debounce"].ResetTimer();
                 return CheckNextInput;
             }
@@ -75,7 +74,7 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
             return OverhitNote;
         };
         if (InHitwindow(CurrentNote->start.sec)) {
-            Timers["debounce"].ActivateTimer(stats->InputTime);
+            Timers["debounce"].ActivateTimer(EngineTime);
             HitNote(lane);
             return HitState::HitNote;
         };
@@ -92,19 +91,18 @@ void Encore::RhythmEngine::DrumsEngine::HitNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
-    LastUpdateTime = CurrentTime;
+    EngineTime = CurrentTime;
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {
                 NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
-                if (CurrentNote->start.sec <= LastUpdateTime) {
-                    stats->InputTime = LastUpdateTime;
+                if (CurrentNote->start.sec <= EngineTime) {
                     HitNote(Lane);
                 }
             }
         } else {
-            CheckMissedNotes(Lane, LastUpdateTime);
+            CheckMissedNotes(Lane, EngineTime);
         }
     }
-    BaseUpdateOnFrame(LastUpdateTime);
+    BaseUpdateOnFrame(EngineTime);
 }

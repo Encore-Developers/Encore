@@ -24,7 +24,7 @@ bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const NoteEvent *itr, const u
 }
 
 bool Encore::RhythmEngine::GuitarEngine::IsEarly() const {
-    if (chart->CurrentNoteIterators.at(0)->start - goodFrontend > stats->InputTime) {
+    if (chart->CurrentNoteIterators.at(0)->start - goodFrontend > EngineTime) {
         return true;
     }
     return false;
@@ -41,7 +41,7 @@ bool Encore::RhythmEngine::GuitarEngine::ActivateOverdrive(ControllerEvent &even
 ) {
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
-        if (stats->overdrive.Activate(stats->InputTime)) {
+        if (stats->overdrive.Activate(EngineTime)) {
             OverdriveEvent activate;
             FireEvent(&activate);
             // TheAudioManager.StartEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
@@ -60,11 +60,11 @@ bool Encore::RhythmEngine::GuitarEngine::IsInputTooEarly() const {
         NextNote += 1;
         double noteMiddlePoint = (NextNote->start - CurrentNote.start).sec / dynamicHitwindowRatio;
         if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
-        if (CurrentNote.start - noteMiddlePoint > stats->InputTime) {
+        if (CurrentNote.start - noteMiddlePoint > EngineTime) {
             return true;
         }
     }
-    if (CurrentNote.start - goodFrontend > stats->InputTime) {
+    if (CurrentNote.start - goodFrontend > EngineTime) {
         return true;
     }
     return false;
@@ -99,12 +99,12 @@ void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
 
 
 void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
-    this->LastUpdateTime = CurrentTime;
+    EngineTime = CurrentTime;
     if (stats->Bot) {
         if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
             return;
         NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(0);
-        if (CurrentNote->start.sec - goodBackend < LastUpdateTime) {
+        if (CurrentNote->start.sec - goodBackend < EngineTime) {
             for (int g = 0; g < 5; g++) {
                 if (CurrentNote->lane & PlasticFrets[g]) {
                     stats->HeldFrets.at(g) = true;
@@ -114,7 +114,6 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
             }
         }
         while (chart->CurrentNoteIterators.at(0)->start.sec <= CurrentTime) {
-            stats->InputTime = CurrentTime;
             HitNote(true);
             if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
                 break;
@@ -142,7 +141,6 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
     ControllerEvent &event
 ) {
-    stats->InputTime = event.timestamp;
     if (event.channel == InputChannel::INVALID) return;
     if (event.channel == InputChannel::LANE_6) return;
     // TIME
@@ -201,7 +199,7 @@ bool Encore::RhythmEngine::GuitarEngine::CanNoteBeHit() {
 int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     // GetCurrentNote(0);
-    CheckMissedNotes(stats->InputTime);
+    CheckMissedNotes(EngineTime);
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
         return CheckNextInput;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(0);
@@ -223,7 +221,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             held->end <= CurrentNote->start &&
 
             // is before the end of the sustain
-            held->end >= stats->InputTime
+            held->end >= EngineTime
         ) {
             chart->DropSustain(0);
         }
@@ -240,7 +238,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         && (event.channel == InputChannel::STRUM_UP || event.channel == InputChannel::STRUM_DOWN);
 
     if (StrumInput) {
-        if (Timers["SAH"].CanBeUsedUp(stats->InputTime)) {
+        if (Timers["SAH"].CanBeUsedUp(EngineTime)) {
             Timers["SAH"].ResetTimer();
             Log::Trace("SAH Disabled");
             return CheckNextInput;
@@ -253,7 +251,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         }
         // if frets match, continue and try to hit
         if (!MaskMatch(CurrentNote, pMask)) {
-            Timers["FAS"].ActivateTimer(stats->InputTime);
+            Timers["FAS"].ActivateTimer(EngineTime);
             Log::Trace("FAS Enabled");
             return CheckNextInput;
         }
@@ -262,7 +260,7 @@ int Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     if (!MaskMatch(CurrentNote, pMask)) return CheckNextInput;
     // if FAS is active, or if there was a strum
     // really couldve just put it up there LMFAO
-    bool strum = Timers["FAS"].CanBeUsedUp(stats->InputTime) || StrumInput;
+    bool strum = Timers["FAS"].CanBeUsedUp(EngineTime) || StrumInput;
     bool fret = HittableAsStrumless(CurrentNote->type, stats->CanHitHopo);
 
     if ((fret || strum || player->bindingType == PAD)) {
@@ -291,16 +289,16 @@ void Encore::RhythmEngine::GuitarEngine::HitNote(bool strumInput) {
             double nextNoteTime = (chart->CurrentNoteIterators.at(0)+1)->start.sec;
             double curNoteTime = chart->CurrentNoteIterators.at(0)->start.sec;
             double midpoint = (nextNoteTime + curNoteTime) / 2;
-            double duration = midpoint - stats->InputTime;
+            double duration = midpoint - EngineTime;
             if (duration > goodFrontend) {
                 duration = goodFrontend;
             }
             Timers["SAH"].Duration = duration;
-            Timers["SAH"].ActivateTimer(stats->InputTime);
+            Timers["SAH"].ActivateTimer(EngineTime);
             Log::Trace("SAH Enabled");
         }
     }
-    if (Timers["FAS"].CanBeUsedUp(stats->InputTime)) {
+    if (Timers["FAS"].CanBeUsedUp(EngineTime)) {
         Timers["FAS"].ResetTimer();
         Log::Trace("FAS Disabled");
     }

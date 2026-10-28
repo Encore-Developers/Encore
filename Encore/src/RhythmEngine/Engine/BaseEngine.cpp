@@ -16,7 +16,7 @@
 bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
     double noteStartTime
 ) const {
-    if (noteStartTime - goodFrontend > stats->InputTime) {
+    if (noteStartTime - goodFrontend > EngineTime) {
         return true;
     }
     return false;
@@ -24,8 +24,8 @@ bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
 bool Encore::RhythmEngine::BaseEngine::InHitwindow(
     double noteStartTime
 ) const {
-    if ((noteStartTime - goodFrontend < stats->InputTime)
-        && (noteStartTime + goodBackend > stats->InputTime)) {
+    if ((noteStartTime - goodFrontend < EngineTime)
+        && (noteStartTime + goodBackend > EngineTime)) {
         return true;
         }
     return false;
@@ -34,8 +34,8 @@ bool Encore::RhythmEngine::BaseEngine::InHitwindow(
 bool Encore::RhythmEngine::BaseEngine::PerfectHit(
     double noteStartTime
 ) const {
-    if ((noteStartTime - perfectFrontend < stats->InputTime)
-        && (noteStartTime + perfectBackend > stats->InputTime)) {
+    if ((noteStartTime - perfectFrontend < EngineTime)
+        && (noteStartTime + perfectBackend > EngineTime)) {
         return true;
         }
     return false;
@@ -148,7 +148,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     if (chordSize == 0) chordSize = 1;
     int startTick = chart->CurrentNoteIterators.at(lane)->start.tick;
     double startTime = chart->CurrentNoteIterators.at(lane)->start.sec;
-    const double offset = (stats->InputTime) - startTime;
+    const double offset = (EngineTime) - startTime;
 
     stats->accuracies.emplace_back(startTime, offset, false);
 
@@ -161,7 +161,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         chart->sections.at(chart->CurrentSection).hit++;
     auto event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
     if (PerfectHit(startTime)) {
-        stats->LastPerfectTime = stats->InputTime;
+        stats->LastPerfectTime = EngineTime;
         if (!chart->sections.empty())
             chart->sections.at(chart->CurrentSection).perfects++;
         event.judgement = PERFECT;
@@ -174,7 +174,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
-    stats->LastHitOffset = (stats->InputTime) - startTime;
+    stats->LastHitOffset = (EngineTime) - startTime;
     stats->HitNote(chordSize, event.judgement);
 
     if (PerfectHit(startTime)) {
@@ -255,7 +255,7 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
             }
         }
     }
-    if (stats->InputTime < earliestNoteTime)
+    if (EngineTime < earliestNoteTime)
         return;
 
     stats->RemoveHealth(cbreak);

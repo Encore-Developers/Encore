@@ -127,7 +127,6 @@ namespace Encore::RhythmEngine {
         int MaxCombo = 0;
         double TotalOffset = 0;
         bool AudioMuted = false;
-        double InputTime = -1;
         double LastPerfectTime = -1;
         bool SixMultiplier = false;
         bool CanHitHopo = true;

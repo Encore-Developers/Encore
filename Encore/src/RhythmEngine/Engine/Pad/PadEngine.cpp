@@ -13,10 +13,10 @@
 
 bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) {
     // todo: hit notes (THIS IS PAD)
-    stats->InputTime = event.timestamp;
+    EngineTime = event.timestamp;
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
         // activates overdrive
-        if (stats->overdrive.Activate(stats->InputTime)) {
+        if (stats->overdrive.Activate(EngineTime)) {
             OverdriveEvent gain;
             FireEvent(&gain);
             for (size_t lane = 0; lane < chart->Lanes.size(); lane++) {
@@ -37,7 +37,7 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
                     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
                     if (InHitwindow(CurrentNote->start.sec) && CurrentNote->type ==
                         NoteEvent::LIFT) {
-                        Timers["LOP"].ActivateTimer(stats->InputTime);
+                        Timers["LOP"].ActivateTimer(EngineTime);
                         this->HitNote(lane);
                         };
                 }
@@ -50,7 +50,6 @@ bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) 
 }
 
 void Encore::RhythmEngine::PadEngine::SetStatsInputState(ControllerEvent &event) {
-    stats->InputTime = event.timestamp;
     if (event.action == Action::PRESS) {
         switch (event.channel) {
         case InputChannel::LANE_1:
@@ -101,9 +100,9 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
 
     if (event.action == Action::PRESS || lift) {
         if (EarlyStrike(CurrentNote->start.sec) && !lift) {
-            if (stats->overdrive.ActivationTime + overdriveHitLeniency > stats->InputTime)
+            if (stats->overdrive.ActivationTime + overdriveHitLeniency > EngineTime)
                 return CheckNextInput;
-            if (Timers["LOP"].CanBeUsedUp(stats->InputTime)) {
+            if (Timers["LOP"].CanBeUsedUp(EngineTime)) {
                 Timers["LOP"].ResetTimer();
                 return CheckNextInput;
             }
@@ -128,13 +127,12 @@ void Encore::RhythmEngine::PadEngine::HitNote(const size_t lane) {
 }
 
 void Encore::RhythmEngine::PadEngine::UpdateOnFrame(const double CurrentTime) {
-    LastUpdateTime = CurrentTime;
+    EngineTime = CurrentTime;
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (stats->Bot) {
             if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
                 continue;
-            stats->InputTime = LastUpdateTime;
-            while (chart->CurrentNoteIterators.at(Lane)->start.sec <= LastUpdateTime) {
+            while (chart->CurrentNoteIterators.at(Lane)->start.sec <= EngineTime) {
                 HitNote(Lane);
                 if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
                     break;
@@ -142,15 +140,15 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(const double CurrentTime) {
         }
         if (chart->HeldNotePointers.at(Lane) != nullptr
             && chart->HeldNotePointers.at(Lane)->end.sec
-            >= LastUpdateTime) {
+            >= EngineTime) {
             constexpr double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
             stats->Score +=
                 (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * stats
                     ->multiplier());
         }
-        CheckMissedNotes(Lane, LastUpdateTime);
+        CheckMissedNotes(Lane, EngineTime);
     }
-    BaseUpdateOnFrame(LastUpdateTime);
+    BaseUpdateOnFrame(EngineTime);
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::PadEngine::NextNoteTime() {

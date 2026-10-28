@@ -51,7 +51,7 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<Stats> stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
-        double LastUpdateTime;
+        double EngineTime;
         bool allowTimestampedInputs = true;
         size_t noteCount = 0;
 

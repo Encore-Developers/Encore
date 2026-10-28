@@ -814,7 +814,7 @@ void EncoreDebug::DrawEngineWindow(int slot) {
         if (CollapsingHeader("Engine")) {
             auto engine = player.engine;
             BeginDisabled();
-            float time = engine->LastUpdateTime;
+            float time = engine->EngineTime;
             SliderFloat("Last Update Time", &time, time, time);
             time = engine->stats->InputTime;
             SliderFloat("Input Time", &time, time, time);
@@ -1148,7 +1148,7 @@ void Encore::Track::DrawTrackDebugWindow() {
                 auto engine = player.engine;
                 BeginDisabled();
                 ImGui::Text("Beat: %f", TheSongTime.SecondsToBeat(TheSongTime.GetElapsedTime()));
-                float time = engine->LastUpdateTime;
+                float time = engine->EngineTime;
                 InputFloat("Last Update Time", &time);
                 time = engine->stats->InputTime;
                 InputFloat("Input Time", &time);
