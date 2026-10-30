@@ -45,23 +45,19 @@ bool Encore::RhythmEngine::BaseEngine::EarlyStrike(double noteStartTime) const {
     }
     return false;
 }
-bool Encore::RhythmEngine::BaseEngine::InHitwindow(
-    double noteStartTime
-) const {
+bool Encore::RhythmEngine::BaseEngine::InHitwindow(double noteStartTime) const {
     if ((noteStartTime - goodFrontend < EngineTime)
         && (noteStartTime + goodBackend > EngineTime)) {
         return true;
-        }
+    }
     return false;
 }
 
-bool Encore::RhythmEngine::BaseEngine::PerfectHit(
-    double noteStartTime
-) const {
+bool Encore::RhythmEngine::BaseEngine::PerfectHit(double noteStartTime) const {
     if ((noteStartTime - perfectFrontend < EngineTime)
         && (noteStartTime + perfectBackend > EngineTime)) {
         return true;
-        }
+    }
     return false;
 }
 
@@ -80,7 +76,8 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     }
     SetStatsInputState(event);
     // look its really stupid but like. cmon
-    if ((event.channel == InputChannel::STRUM_DOWN || event.channel == InputChannel::STRUM_UP)
+    if ((event.channel == InputChannel::STRUM_DOWN
+         || event.channel == InputChannel::STRUM_UP)
         && event.action == Action::RELEASE) {
         return;
     }
@@ -121,13 +118,13 @@ bool Encore::RhythmEngine::BaseEngine::PauseGame(const ControllerEvent &event) {
 
 std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) const {
     size_t NotePoolStart =
-            std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
+        std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
     size_t NotePoolEnd = NOTE_POOL_SIZE
         + std::distance(chart->at(lane).begin(), chart->CurrentNoteIterators.at(lane));
     NotePoolEnd =
-                    chart->at(lane).size() > NotePoolEnd ? NotePoolEnd : chart->at(lane).size();
+        chart->at(lane).size() > NotePoolEnd ? NotePoolEnd : chart->at(lane).size();
 
-    return std::pair<int, int> {NotePoolStart, NotePoolEnd};
+    return std::pair<int, int> { NotePoolStart, NotePoolEnd };
 }
 
 bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) const {
@@ -138,7 +135,9 @@ void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
     stats->overdrive.ticks.UpdateOverdriveTick();
     if (stats->overdrive.Add(CurrentTime, chart)) {
         if (stats->overdrive.Fill >= 0.5) {
-            TrackNotificationEvent odReady(TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY);
+            TrackNotificationEvent odReady(
+                TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY
+            );
             FireEvent(&odReady);
         }
         OverdriveEvent gain;
@@ -163,22 +162,32 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, double Song
         && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
         GhostCount = 0;
         MissNote(Lane);
-        Log::Debug("Player {} missed note {} : {}", player->Name, Lane, std::distance(chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)));
+        Log::Debug(
+            "Player {} missed note {} : {}",
+            player->Name,
+            Lane,
+            std::distance(
+                chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)
+            )
+        );
     }
 }
 
 void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->lane);
-    if (chordSize == 0) chordSize = 1;
+    if (chordSize == 0)
+        chordSize = 1;
     int startTick = chart->CurrentNoteIterators.at(lane)->start.tick;
     double startTime = chart->CurrentNoteIterators.at(lane)->start.sec;
-    const double offset = (EngineTime) - startTime;
+    const double offset = (EngineTime)-startTime;
 
     stats->accuracies.emplace_back(startTime, offset, false);
 
     // you REALLY dont need to be firing every few seconds
     // Encore::EncoreLog(
-    //        LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane, std::distance(chart->Lanes.at(lane).begin(), chart->CurrentNoteIterators.at(lane)))
+    //        LOG_DEBUG, TextFormat("Hit note %01i:%01i", lane,
+    //        std::distance(chart->Lanes.at(lane).begin(),
+    //        chart->CurrentNoteIterators.at(lane)))
     //    );
     chart->UpdateSections(startTick);
     if (!chart->sections.empty())
@@ -198,7 +207,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     FireEvent(&event);
     if (!chart->UpdateCurrentNote(lane))
         return;
-    stats->LastHitOffset = (EngineTime) - startTime;
+    stats->LastHitOffset = (EngineTime)-startTime;
     stats->HitNote(chordSize, event.judgement);
 
     if (PerfectHit(startTime)) {
@@ -209,7 +218,8 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         FireEvent(&hce);
     } else {
         double acc = (goodFrontend - std::abs(offset)) / goodFrontend;
-        if (acc < 0) acc = 0;
+        if (acc < 0)
+            acc = 0;
         stats->Accuracy += acc;
 
         stats->AddHealth(acc);
@@ -218,14 +228,14 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         Log::Debug("Accuracy: {}", acc);
     }
 
-
-    TrackNotificationEvent event2 {startTime, TrackNotificationEvent::HOTSTART};
+    TrackNotificationEvent event2 { startTime, TrackNotificationEvent::HOTSTART };
     if (stats->Combo == 25 && stats->Overhits == 0 && stats->Misses == 0) {
         FireEvent(&event2);
     }
 
     int comboNotif = stats->Combo > 200 ? stats->Combo % 100 : stats->Combo % 50;
-    if (stats->Combo == stats->ep.mult.comboForMax() && (inst == PartBass || inst == PlasticBass)) {
+    if (stats->Combo == stats->ep.mult.comboForMax()
+        && (inst == PartBass || inst == PlasticBass)) {
         event2.type = TrackNotificationEvent::BASSGROOVE;
         FireEvent(&event2);
     } else if (comboNotif == 0) {
@@ -236,7 +246,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     int multiplierIncrease = stats->Combo % stats->ep.mult.count;
     // in the unplanned/planned career mode, id like this to be adjustable
     if (multiplierIncrease == 0 && stats->Combo <= stats->ep.mult.comboForMax()) {
-        MultFlashEvent e {false};
+        MultFlashEvent e { false };
         FireEvent(&e);
     }
     chart->overdrive.UpdateEventViaNote(true, startTick);
@@ -245,7 +255,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
 
 void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
     if (stats->Combo >= stats->ep.mult.count) {
-        MultFlashEvent e {true};
+        MultFlashEvent e { true };
         FireEvent(&e);
     }
     bool cbreak = stats->multNoOD() == stats->ep.mult.max;
@@ -254,7 +264,9 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
     HealthChangeEvent hce;
     FireEvent(&hce);
 
-    stats->accuracies.emplace_back(chart->CurrentNoteIterators.at(lane)->start.sec, 0, true);
+    stats->accuracies.emplace_back(
+        chart->CurrentNoteIterators.at(lane)->start.sec, 0, true
+    );
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).notes++;
     stats->MissNote();
@@ -292,7 +304,7 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
         chart->sections.at(chart->CurrentSection).overhits++;
     TextFormat("Player %s overhit", player->Name.c_str());
     if (stats->Combo > 0) {
-        MultFlashEvent e {true};
+        MultFlashEvent e { true };
         FireEvent(&e);
     }
     FireEventTemp(OverhitEvent(lane));
@@ -302,36 +314,36 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     );
 }
 void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int difficulty) {
-
     inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
     stats->StarThresholdValue = stats->Score / chart->BaseScore;
-    for (int i = 0; i < 6 ; i++) {
+    for (int i = 0; i < 6; i++) {
         if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][i]) {
             stats->Stars = i;
             return;
         }
     }
     stats->Stars = 5;
-
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {
-    TimePoint tp{0,0};
+    TimePoint tp { 0, 0 };
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
         if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
             continue;
-        if (tp == 0 && tp == 0.0) tp = chart->CurrentNoteIterators.at(Lane)->start;
-        if (chart->CurrentNoteIterators.at(Lane)->start < tp) tp = chart->CurrentNoteIterators.at(Lane)->start;
+        if (tp == 0 && tp == 0.0)
+            tp = chart->CurrentNoteIterators.at(Lane)->start;
+        if (chart->CurrentNoteIterators.at(Lane)->start < tp)
+            tp = chart->CurrentNoteIterators.at(Lane)->start;
     }
     return tp;
 }
 
-
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::LastNoteTime() {
-    TimePoint tp{1,0};
+    TimePoint tp { 1, 0 };
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
-        if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end()) continue;
-        auto lastNote = (chart->CurrentNoteIterators.at(Lane)-1);
+        if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
+            continue;
+        auto lastNote = (chart->CurrentNoteIterators.at(Lane) - 1);
         if (lastNote < chart->at(Lane).begin())
             continue;
         if (tp == 0) {
