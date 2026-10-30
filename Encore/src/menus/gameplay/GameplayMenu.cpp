@@ -23,7 +23,6 @@
 #include "debug/EncoreDebug.h"
 
 #include <raylib.h>
-
 #include <utility>
 
 #include "gameplay/LyricRenderer.h"
@@ -200,42 +199,96 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
 };
 
 void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
-    Rectangle scoreboxSrc{
-        0, 0, float(assets.Scorebox.width), float(assets.Scorebox.height)
-    };
     double score = 0;
+    double ws = 0;
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->WeightedScore;
     }
     // not optimized at all LMAO
-    float WidthOfScorebox = Units::hinpct(0.28);
+    float WidthOfScorebox = Units::hinpct(0.4);
+    float HeightOfScorebox = WidthOfScorebox / (7);
+    float starWidth = Units::hinpct(0.1);
+    float ScoreboxX = Units::RightSide - (starWidth/2);
+    float ratio = float(ASSET(scoreBlade).width) / float(ASSET(scoreBlade).height);
+    float drawWidth = HeightOfScorebox * ratio;
+    float combinedHeight = HeightOfScorebox * 1.5f;
+    float tbPadding = (starWidth - combinedHeight) / 2;
     // float scoreY = Units::hpct(0.15f);
-    float ScoreboxX = Units::RightSide;
-    float HeightOfScorebox = WidthOfScorebox / (5 + (1/3));
-    float ScoreboxY = scoreY;
-    float scoreTextPadding = (HeightOfScorebox - Units::hinpct(0.05)) / 2;
-    Rectangle scoreboxDraw{ ScoreboxX, ScoreboxY, WidthOfScorebox, HeightOfScorebox };
-    DrawTexturePro(
-        assets.Scorebox,
-        scoreboxSrc,
-        scoreboxDraw,
-        { WidthOfScorebox, 0 },
-        0,
-        WHITE
-    );
-    BeginBlendMode(BLEND_ADDITIVE);
-    Encore::Text::DrawText(
-        assets.redHatMono,
-        GameMenu::scoreCommaFormatter(
-            score
-        ),
-        { Units::RightSide - Units::winpct(0.0145f), ScoreboxY + scoreTextPadding },
-        Units::hinpct(0.05),
-        Color{ 107, 161, 222, 255 },
-        RIGHT
-    );
-    EndBlendMode();
+    // kill me
+    {
+        float scoreTextPadding = ((HeightOfScorebox - Units::hinpct(0.05)) / 2) + tbPadding;
+
+        Rectangle scoreboxDraw{ ScoreboxX - WidthOfScorebox, scoreY + tbPadding, drawWidth, HeightOfScorebox };
+        BeginScissorMode(scoreboxDraw.x - 1, scoreboxDraw.y-1, WidthOfScorebox, scoreboxDraw.height+3);
+        ASSET(scoreBlade).Draw(scoreboxDraw, MAGENTA);
+        EndScissorMode();
+
+        BeginBlendMode(BLEND_ADDITIVE);
+        Encore::Text::DrawText(
+            assets.redHatMono,
+            GameMenu::scoreCommaFormatter(
+                score
+            ),
+            { Units::RightSide - Units::winpct(0.01f) - starWidth, scoreY + scoreTextPadding },
+            Units::hinpct(0.05),
+            Color{ 107, 161, 222, 255 },
+            RIGHT
+        );
+        EndBlendMode();
+    }
+    {
+        float tbwidth = WidthOfScorebox/2;
+        Rectangle timerRec {ScoreboxX - tbwidth, scoreY + HeightOfScorebox + tbPadding, drawWidth/2, HeightOfScorebox/2};
+        float pctprog = TheSongTime.GetElapsedTime() / TheSongTime.GetSongLength();
+        float guh = Remap(pctprog, 0, 1, 0.75, 0.0);
+
+        BeginScissorMode(timerRec.x - tbwidth - 1, timerRec.y-1, WidthOfScorebox, timerRec.height+2);
+        ASSET(scoreBlade).Draw(timerRec, {32,51,32,255});
+        timerRec.x += (tbwidth * guh);
+        ASSET(scoreBlade).Draw(timerRec, { 107, 161, 222, 255 });
+        EndScissorMode();
+
+        int played = TheSongTime.GetElapsedTime();
+        int length = TheSongTime.GetSongLength();
+        double textHeight = (timerRec.height/3) * 2;
+        double textPadding = (timerRec.height/3) / 2;
+        float textRight = Units::RightSide - starWidth - Units::winpct(0.01f);
+        Encore::TextDisplay timerText;
+        timerText.Pos(textRight, timerRec.y + textPadding)
+        .Size(textHeight)
+        .Fnt(ASSET(rubik)).Align(RIGHT)
+        .DrawText(std::format("{:02d}:{:02d} / {:02d}:{:02d}", played / 60, played % 60, length / 60, length % 60));
+    }
+    {
+        Rectangle star {Units::RightSide - starWidth, scoreY, starWidth, starWidth};
+        auto *BaseStarTex = ASSETPTR(starBlank);
+        auto *TopStarTex = ASSETPTR(starRegProg);
+        float progress = 0;
+        double reg = (REG_SCORE * ThePlayerManager.PlayersActive);
+        double gold = (GOLD_SCORE * ThePlayerManager.PlayersActive);
+        unsigned char alpha = 0;
+        if (ws < reg) {
+            progress = ws / reg;
+            alpha = (1-TheSongTime.GetBeatlineDelta() * 255);
+        } else if (ws < gold) {
+            BaseStarTex = ASSETPTR(starReg);
+            TopStarTex = ASSETPTR(starGoldProg);
+            progress = (ws - reg) / (gold - reg);
+            alpha = (1-TheSongTime.GetBeatlineDelta() * 255);
+        } else if (ws >= gold) {
+            BaseStarTex = ASSETPTR(starGold);
+        }
+        BaseStarTex->Draw(star, WHITE);
+        float yMaskPos = starWidth * progress;
+        BeginScissorMode(star.x, (star.y + star.height) - yMaskPos-1, star.height, 1);
+        ASSET(starProg).Draw(star, {255,255,255,alpha});
+        EndScissorMode();
+        BeginScissorMode(star.x, (star.y + star.height) - yMaskPos, star.height, yMaskPos);
+        TopStarTex->Draw(star, {255,255,255,alpha});
+        EndScissorMode();
+    }
 }
 
 void GameplayMenu::DrawTimerbox(Assets &assets, float scoreY) {
@@ -648,10 +701,10 @@ void GameplayMenu::Draw() {
         float scoreY = Units::hpct(0.2f);
         float starY = scoreY + Units::hinpct(0.065f);
         // Draw Stars
-        DrawGameplayStars(assets, scorePos, starY);
+        // DrawGameplayStars(assets, scorePos, starY);
 
         // Draw Timerbox
-        DrawTimerbox(assets, scoreY);
+        // DrawTimerbox(assets, scoreY);
 
         // Score Drawing
         DrawScorebox(assets, scoreY);
@@ -722,6 +775,13 @@ void GameplayMenu::DrawAccuracyDisplay(float xPos, float yPos) {
 
 void GameplayMenu::Load() {
     ZoneScoped;
+    SetTextureWrap(ASSET(starBlank), TEXTURE_WRAP_CLAMP);
+    SetTextureWrap(ASSET(starGold), TEXTURE_WRAP_CLAMP);
+    SetTextureWrap(ASSET(starGoldProg), TEXTURE_WRAP_CLAMP);
+    SetTextureWrap(ASSET(starReg), TEXTURE_WRAP_CLAMP);
+    SetTextureWrap(ASSET(starRegProg), TEXTURE_WRAP_CLAMP);
+    SetTextureWrap(ASSET(scoreBlade), TEXTURE_WRAP_CLAMP);
+
     buttReg.buttMap.clear();
     NEWBUTTONACTION2(buttReg, LANE_1, "generic.confirm", {});
     NEWBUTTONACTION2(buttReg, PAUSE, "generic.unpause", {

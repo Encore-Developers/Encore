@@ -13,9 +13,33 @@
 
 #include "song/audio.h"
 
-bool Encore::RhythmEngine::BaseEngine::EarlyStrike(
-    double noteStartTime
-) const {
+void Encore::RhythmEngine::BaseEngine::CalculateWeightedScore() {
+    double weighted = 0;
+    double count = 1;
+
+
+    for (auto &lane : chart->Lanes) {
+        for (auto &note : lane) {
+            double Multiplier = (int(count) / stats->ep.mult.count) + 1;
+            if (Multiplier > stats->ep.mult.max) {
+                Multiplier = stats->ep.mult.max;
+            }
+            int chordSize = std::popcount(note.lane);
+            if (chordSize == 0)
+                chordSize = 1;
+            weighted += chordSize * Multiplier;
+            // if (note.end != 0) {
+            //     auto length = note.start - note.end;
+            //     double beats = (double(length.tick) / TheSongTime.songPPQN);
+            //     weighted += (beats * mult);
+            // }
+            count++;
+        }
+    }
+    stats->pointPerNote = BASE_SCORE / weighted;
+    stats->weightedCount = weighted;
+}
+bool Encore::RhythmEngine::BaseEngine::EarlyStrike(double noteStartTime) const {
     if (noteStartTime - goodFrontend > EngineTime) {
         return true;
     }

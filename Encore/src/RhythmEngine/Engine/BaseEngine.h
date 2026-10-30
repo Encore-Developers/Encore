@@ -32,7 +32,7 @@ namespace Encore::RhythmEngine {
         };
 
         ~BaseEngine() override = default;
-
+        void CalculateWeightedScore();
         virtual void SetStatsInputState(ControllerEvent &event) {
         };
         [[nodiscard]] bool EarlyStrike(double noteStartTime) const;

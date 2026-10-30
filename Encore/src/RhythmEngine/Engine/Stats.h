@@ -118,6 +118,9 @@ namespace Encore::RhythmEngine {
         EngineParameters ep;
         int Type = 0;
         double Score = 0;
+        double pointPerNote = 0;
+        double weightedCount = 0;
+        double WeightedScore = 0;
         int Combo = 0;
         int PerfectHits = 0;
         int NotesHit = 0;
@@ -153,6 +156,7 @@ namespace Encore::RhythmEngine {
             const double PointsPerNote =
                 BASE_NOTE_POINT * (perfect == 1 ? PERFECT_MULTIPLIER : 1.0);
             Score += (PointsPerNote * chordSize) * multiplier();
+            WeightedScore += (pointPerNote * chordSize) * multiplier();
             if (perfect == 1)
                 PerfectHits++;
             // PerfectHits = 0;

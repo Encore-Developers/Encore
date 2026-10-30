@@ -378,10 +378,19 @@ public:
     NEWTEXASSET(faviconTex, "encore_favicon-NEW.png");
 
 
+    NEWTEXASSET(starBlank, "gameplay/ui/stars/empty.png");
+    NEWTEXASSET(starReg, "gameplay/ui/stars/reg.png");
+    NEWTEXASSET(starRegProg, "gameplay/ui/stars/reg_progress.png");
+    NEWTEXASSET(starGold, "gameplay/ui/stars/gold.png");
+    NEWTEXASSET(starGoldProg, "gameplay/ui/stars/gold_progress.png");
+    NEWTEXASSET(starProg, "gameplay/ui/stars/prog.png");
+
     NEWTEXASSET(goldStarUnfilled, "ui/gold-star_unfilled.png");
     NEWTEXASSET(star, "ui/star.png");
     NEWTEXASSET(goldStar, "ui/gold-star.png");
     NEWTEXASSET(emptyStar, "ui/empty-star.png");
+
+    NEWTEXASSET(scoreBlade, "gameplay/ui/blade.png");
 
     NEWTEXASSET(Scorebox, "gameplay/ui/Scorebox.png");
     NEWTEXASSET(Timerbox, "gameplay/ui/Timerbox.png");

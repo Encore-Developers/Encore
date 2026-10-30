@@ -24,6 +24,9 @@ inline constexpr double BASE_SCORE_SUSTAIN_POINTS = (SUSTAIN_POINTS_PER_BEAT * B
 inline constexpr float CYMBAL_MULTIPLIER = 1.25f;
 inline constexpr float OVERDRIVE_QUARTER_BAR = 0.25f;
 inline constexpr double OVERDRIVE_DRAIN_PER_BEAT = 0.03125;
+inline constexpr double BASE_SCORE = 1000000;
+inline constexpr double REG_SCORE =   750000;
+inline constexpr double GOLD_SCORE = 1150000;
 
 inline constexpr float STAR_THRESHOLDS[5][6] = {
     { 0.06f, 0.12f, 0.20f, 0.45f, 0.75f, 1.09f }, // Drums

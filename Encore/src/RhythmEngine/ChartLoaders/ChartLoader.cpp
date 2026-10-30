@@ -106,7 +106,7 @@ Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
     }
     engine->stats->overdrive.ticks = GenerateOverdriveTicks();
     engine->chart->sections = GetSections();
-
+    engine->CalculateWeightedScore();
     return engine;
 }
 
