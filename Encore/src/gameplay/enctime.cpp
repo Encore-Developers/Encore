@@ -80,7 +80,7 @@ double SongTime::SecondsToBeat(double seconds) {
     double timeDelta = seconds - currentBpm->time;
     double beatDelta = timeDelta * currentBpm->bpm / 60.0;
 
-    return currentBpm->tick / songPPQN + beatDelta;
+    return currentBpm->tick / (double)songPPQN + beatDelta;
 }
 
 double SongTime::GetCurrentTick() const {
@@ -194,20 +194,20 @@ void SongTime::CreateBeatlines(TimeSig timeSig, int startTick, int endTick, int 
 
     int BeatlineCount = 0;
     int curTick = startTick;
-    auto &CurBPM = BPMChanges.at(curTempo);
+    const BPM *CurBPM = &BPMChanges.at(curTempo);
     while (curTick <= endTick) {
         while (curTempo < BPMChanges.size() - 1) {
             const auto &NextBPM = BPMChanges.at(curTempo + 1);
             if (NextBPM.tick > curTick) {
                 break;
             };
-            CurBPM = NextBPM;
+            CurBPM = &NextBPM;
             curTempo++;
         } // such a funky way to progress through this whilst checking behind
         // and forwards
 
         Beatlines.emplace_back(
-            GetTimeFromTick(CurBPM, songPPQN, curTick),
+            GetTimeFromTick(*CurBPM, songPPQN, curTick),
             // TimeSinceBPMStart(CurBPM, curTick),
             curTick,
             GetBeatlineType(timeSig, BeatlineCount)

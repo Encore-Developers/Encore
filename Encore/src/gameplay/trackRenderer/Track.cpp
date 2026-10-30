@@ -1362,6 +1362,8 @@ void Encore::Track::ConfigureDrumsGemKick() {
 }
 
 float Encore::Track::GetNotePos3D(double noteTime) {
+    // if you want bpm based scrolling :trol:
+    //return (TheSongTime.SecondsToBeat(noteTime) - TheSongTime.SecondsToBeat(currentTime)) * GetZPerSecond();
     return (noteTime - currentTime) * GetZPerSecond();
 }
 
