@@ -95,7 +95,7 @@ Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
             engine->chart->Lanes.
                              resize(4);
     }
-    if (inst == PartVocals || inst == PartBass || inst == PlasticVocals) {
+    if (inst == PartVocals || inst == PartBass || inst == PlasticBass) {
         engine->stats->ep.mult.max = 6;
     }
     for (int i = 0; i < engine->chart->Lanes.size(); i++) {
