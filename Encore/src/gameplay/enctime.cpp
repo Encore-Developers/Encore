@@ -67,7 +67,7 @@ void SongTime::UpdateTick() {
     // add the last bpm's tick to the (beat delta * resolution)
     CurrentTick = BPMChanges.at(CurrentBPM).tick + (beatDelta * double(songPPQN));
 }
-double SongTime::SecondsToBeat(double seconds) {
+TimeBeats SongTime::SecondsToBeat(TimeSeconds seconds) {
     auto currentBpm = BPMChanges.begin();
     for (auto findBpm = BPMChanges.begin(); findBpm < BPMChanges.end(); findBpm++) {
         if (findBpm->time <= seconds) {

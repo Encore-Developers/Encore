@@ -10,15 +10,20 @@
 #include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 #include "song/song.h"
 
+typedef double TimeSeconds;
+typedef double TimeBeats;
+typedef double TimeODTicks;
+typedef int TimeTicks;
+
 struct BPM {
-    BPM(double _time, double _bpm, int _tick) : time(_time), bpm(_bpm), tick(_tick) {};
-    double time;
+    BPM(TimeSeconds _time, double _bpm, TimeTicks _tick) : time(_time), bpm(_bpm), tick(_tick) {};
+    TimeSeconds time;
     double bpm;
-    int tick;
+    TimeTicks tick;
 };
 
 struct TimeSig {
-    TimeSig(double _time, int _numer, int _denom, int _pow, int _tick)
+    TimeSig(TimeSeconds _time, int _numer, int _denom, int _pow, TimeTicks _tick)
         : time(_time), numer(_numer), denom(_denom), pow(_pow), tick(_tick) {};
     double time;
     int numer;
@@ -39,17 +44,17 @@ enum BeatType {
 };
 
 struct Beatline {
-    Beatline(double _time, int _tick, int _type)
+    Beatline(TimeSeconds _time, int _tick, TimeTicks _type)
         : time(_time), tick(_tick), type(_type) {};
-    double time;
-    int tick;
+    TimeSeconds time;
+    TimeTicks tick;
     int type = Major;
 };
 
 struct Section {
     std::string name;
-    double start;
-    int tickStart;
+    TimeSeconds start;
+    TimeTicks tickStart;
     int notes = 0;
     int hit = 0;
     int perfects = 0;
@@ -59,11 +64,11 @@ struct Section {
 class SongTime {
 private:
     double aCalib = 0.0;
-    double startTime = 0.0;
-    double fakeStartTime = 0.0;
-    double endTime = 0.0;
-    double pauseTime = 0.0;
-    double lastTimeSample = 0.0;
+    TimeSeconds startTime = 0.0;
+    TimeSeconds fakeStartTime = 0.0;
+    TimeSeconds endTime = 0.0;
+    TimeSeconds pauseTime = 0.0;
+    TimeSeconds lastTimeSample = 0.0;
     bool running = false;
     bool paused = false;
 
@@ -96,7 +101,7 @@ public:
     void UpdateBeatlines();
 
     void UpdateTick();
-    double SecondsToBeat(double seconds);
+    TimeBeats SecondsToBeat(TimeSeconds seconds);
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
     double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);
@@ -115,11 +120,11 @@ public:
     void Pause();
     void Resume();
     void Stop();
-    double GetElapsedTime();
-    double GetStartTime();
-    double GetEndTime();
-    double GetSongLength();
-    double GetFakeStartTime();
+    TimeSeconds GetElapsedTime();
+    TimeSeconds GetStartTime();
+    TimeSeconds GetEndTime();
+    TimeSeconds GetSongLength();
+    TimeSeconds GetFakeStartTime();
     bool Running();
     bool SongComplete();
 };
