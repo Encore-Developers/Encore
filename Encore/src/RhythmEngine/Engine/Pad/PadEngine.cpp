@@ -138,14 +138,14 @@ void Encore::RhythmEngine::PadEngine::UpdateOnFrame(const double CurrentTime) {
                     break;
             }
         }
-        if (chart->HeldNotePointers.at(Lane) != nullptr
-            && chart->HeldNotePointers.at(Lane)->end.sec
-            >= EngineTime) {
-            constexpr double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
-            stats->Score +=
-                (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * stats
-                    ->multiplier());
-        }
+        // if (chart->HeldNotePointers.at(Lane) != nullptr
+        //     && chart->HeldNotePointers.at(Lane)->end.sec
+        //     >= EngineTime) {
+        //     constexpr double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
+        //     stats->Score +=
+        //         (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * stats
+        //             ->multiplier());
+        // }
         CheckMissedNotes(Lane, EngineTime);
     }
     BaseUpdateOnFrame(EngineTime);

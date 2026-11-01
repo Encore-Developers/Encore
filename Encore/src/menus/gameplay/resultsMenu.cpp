@@ -754,40 +754,40 @@ void resultsMenu::renderPlayerStars(
     float scale,
     bool left
 ) {
-    auto &stats = player.engine->stats;
-    auto &engine = player.engine;
-
-    int inst = engine->inst >= PlasticDrums ? engine->inst - 5 : engine->inst;
-    stats->StarThresholdValue = stats->Score / engine->chart->BaseScore;
-    for (int i = 0; i < 6; i++) {
-        if (stats->StarThresholdValue > STAR_THRESHOLDS[inst][i]) {
-            stats->Stars = i;
-        }
-    }
-
-    float starX = left ? 0 : scale * 2.5f;
-    for (int i = 0; i < 5; i++) {
-        DrawTexturePro(
-            EmptyStar,
-            { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
-            { (xPos + (i * scale) - starX), yPos, scale, scale },
-            { 0, 0 },
-            0,
-            WHITE
-        );
-    }
-    for (int i = 0; i < 5; i++) {
-        if (i > stats->Stars)
-            break;
-        DrawTexturePro(
-            stats->Stars >= 5 ? GoldStar : Star,
-            { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
-            { (xPos + ((i) * scale) - starX), yPos, scale, scale },
-            { 0, 0 },
-            0,
-            WHITE
-        );
-    }
+    // auto &stats = player.engine->stats;
+    // auto &engine = player.engine;
+    //
+    // int inst = engine->inst >= PlasticDrums ? engine->inst - 5 : engine->inst;
+    // stats->StarThresholdValue = stats->Score / engine->chart->BaseScore;
+    // for (int i = 0; i < 6; i++) {
+    //     if (stats->StarThresholdValue > STAR_THRESHOLDS[inst][i]) {
+    //         stats->Stars = i;
+    //     }
+    // }
+    //
+    // float starX = left ? 0 : scale * 2.5f;
+    // for (int i = 0; i < 5; i++) {
+    //     DrawTexturePro(
+    //         EmptyStar,
+    //         { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
+    //         { (xPos + (i * scale) - starX), yPos, scale, scale },
+    //         { 0, 0 },
+    //         0,
+    //         WHITE
+    //     );
+    // }
+    // for (int i = 0; i < 5; i++) {
+    //     if (i > stats->Stars)
+    //         break;
+    //     DrawTexturePro(
+    //         stats->Stars >= 5 ? GoldStar : Star,
+    //         { 0, 0, (float)EmptyStar.width, (float)EmptyStar.height },
+    //         { (xPos + ((i) * scale) - starX), yPos, scale, scale },
+    //         { 0, 0 },
+    //         0,
+    //         WHITE
+    //     );
+    // }
 };
 /*
 void resultsMenu::renderStars(

@@ -199,12 +199,12 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
 };
 
 void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
-    double score = 0;
+    //double score = 0;
     double ws = 0;
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
-        score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
-        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->WeightedScore;
+        //score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
     }
     // not optimized at all LMAO
     float WidthOfScorebox = Units::hinpct(0.4);
@@ -229,7 +229,7 @@ void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
         Encore::Text::DrawText(
             assets.redHatMono,
             GameMenu::scoreCommaFormatter(
-                score
+                ws
             ),
             { Units::RightSide - Units::winpct(0.01f) - starWidth, scoreY + scoreTextPadding },
             Units::hinpct(0.05),
@@ -354,81 +354,81 @@ void GameplayMenu::DrawGameplayStars(
     float scorePos,
     float starY
 ) {
-    // todo: redo for band
-    double score = 0;
-    double baseScore = 0;
-    for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
-        if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
-        score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
-        baseScore += ThePlayerManager.GetActivePlayer(playerNum).engine->chart->BaseScore;
-    }
-    // auto &player = ThePlayerManager.GetActivePlayer(playerInt);
-    // int inst = player.Instrument % 5;
-    // int diff = player.Difficulty;
-    double starPercent = score / baseScore;
-    // int starsVal = player.engine->stats->Stars;
-    for (int i = 0; i < 5; i++) {
-        bool firstStar = (i == 0);
-        float starX = scorePos - Units::hinpct(0.26) + (i * Units::hinpct(0.0525));
-        float starWH = Units::hinpct(0.05);
-        Rectangle emptyStarWH = {
-            0, 0, (float)assets.emptyStar.width, (float)assets.emptyStar.height
-        };
-        Rectangle starRect = { starX, starY, starWH, starWH };
-        DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, { 0, 0 }, 0, WHITE);
-        float yMaskPos = Remap(
-            starPercent,
-            firstStar ? 0 : STAR_THRESHOLDS[0][i - 1],
-            STAR_THRESHOLDS[0][i],
-            0,
-            Units::hinpct(0.05)
-        );
-        BeginScissorMode(starX, (starY + starWH) - yMaskPos, starWH, yMaskPos);
-        DrawTexturePro(
-            assets.star,
-            emptyStarWH,
-            starRect,
-            { 0, 0 },
-            0,
-            starPercent < STAR_THRESHOLDS[0][i] ? Color{ 192, 192, 192, 128 } : WHITE
-        );
-        EndScissorMode();
-    }
-    if (starPercent >= STAR_THRESHOLDS[0][4]) {
-        float starWH = Units::hinpct(0.05);
-        Rectangle emptyStarWH = {
-            0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
-        };
-        unsigned char alpha = starPercent >= STAR_THRESHOLDS[0][5] ? 255 : (1-TheSongTime.GetBeatlineDelta() * 255);
-        float yMaskPos = Remap(
-            starPercent,
-            STAR_THRESHOLDS[0][4],
-            STAR_THRESHOLDS[0][5],
-            0,
-            Units::hinpct(0.05)
-        );
-        BeginScissorMode(
-            scorePos - (starWH * 6),
-            (starY + starWH) - yMaskPos,
-            scorePos,
-            yMaskPos
-        );
-        for (int i = 0; i < 5; i++) {
-            float starX = scorePos - Units::hinpct(0.26) + (i * Units::hinpct(0.0525));
-            Rectangle starRect = { starX, starY, starWH, starWH };
-            DrawTexturePro(
-                starPercent >= STAR_THRESHOLDS[0][5]
-                ? assets.goldStar
-                : assets.goldStarUnfilled,
-                emptyStarWH,
-                starRect,
-                { 0, 0 },
-                0,
-                { 255, 255, 255, alpha }
-            );
-        }
-        EndScissorMode();
-    }
+    // // todo: redo for band
+    // double score = 0;
+    // double baseScore = 0;
+    // for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
+    //     if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
+    //     score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+    //     baseScore += ThePlayerManager.GetActivePlayer(playerNum).engine->chart->BaseScore;
+    // }
+    // // auto &player = ThePlayerManager.GetActivePlayer(playerInt);
+    // // int inst = player.Instrument % 5;
+    // // int diff = player.Difficulty;
+    // double starPercent = score / baseScore;
+    // // int starsVal = player.engine->stats->Stars;
+    // for (int i = 0; i < 5; i++) {
+    //     bool firstStar = (i == 0);
+    //     float starX = scorePos - Units::hinpct(0.26) + (i * Units::hinpct(0.0525));
+    //     float starWH = Units::hinpct(0.05);
+    //     Rectangle emptyStarWH = {
+    //         0, 0, (float)assets.emptyStar.width, (float)assets.emptyStar.height
+    //     };
+    //     Rectangle starRect = { starX, starY, starWH, starWH };
+    //     DrawTexturePro(assets.emptyStar, emptyStarWH, starRect, { 0, 0 }, 0, WHITE);
+    //     float yMaskPos = Remap(
+    //         starPercent,
+    //         firstStar ? 0 : STAR_THRESHOLDS[0][i - 1],
+    //         STAR_THRESHOLDS[0][i],
+    //         0,
+    //         Units::hinpct(0.05)
+    //     );
+    //     BeginScissorMode(starX, (starY + starWH) - yMaskPos, starWH, yMaskPos);
+    //     DrawTexturePro(
+    //         assets.star,
+    //         emptyStarWH,
+    //         starRect,
+    //         { 0, 0 },
+    //         0,
+    //         starPercent < STAR_THRESHOLDS[0][i] ? Color{ 192, 192, 192, 128 } : WHITE
+    //     );
+    //     EndScissorMode();
+    // }
+    // if (starPercent >= STAR_THRESHOLDS[0][4]) {
+    //     float starWH = Units::hinpct(0.05);
+    //     Rectangle emptyStarWH = {
+    //         0, 0, (float)assets.goldStar.width, (float)assets.goldStar.height
+    //     };
+    //     unsigned char alpha = starPercent >= STAR_THRESHOLDS[0][5] ? 255 : (1-TheSongTime.GetBeatlineDelta() * 255);
+    //     float yMaskPos = Remap(
+    //         starPercent,
+    //         STAR_THRESHOLDS[0][4],
+    //         STAR_THRESHOLDS[0][5],
+    //         0,
+    //         Units::hinpct(0.05)
+    //     );
+    //     BeginScissorMode(
+    //         scorePos - (starWH * 6),
+    //         (starY + starWH) - yMaskPos,
+    //         scorePos,
+    //         yMaskPos
+    //     );
+    //     for (int i = 0; i < 5; i++) {
+    //         float starX = scorePos - Units::hinpct(0.26) + (i * Units::hinpct(0.0525));
+    //         Rectangle starRect = { starX, starY, starWH, starWH };
+    //         DrawTexturePro(
+    //             starPercent >= STAR_THRESHOLDS[0][5]
+    //             ? assets.goldStar
+    //             : assets.goldStarUnfilled,
+    //             emptyStarWH,
+    //             starRect,
+    //             { 0, 0 },
+    //             0,
+    //             { 255, 255, 255, alpha }
+    //         );
+    //     }
+    //     EndScissorMode();
+    // }
 }
 
 unsigned char BeatToCharViaTickThing(

@@ -119,20 +119,20 @@ void Encore::RhythmEngine::GuitarEngine::UpdateOnFrame(double CurrentTime) {
                 break;
         }
     }
-    auto heldNote = chart->HeldNotePointers.at(0);
-    if (heldNote != nullptr
-        && heldNote->end.sec >= CurrentTime
-        && heldNote->start.sec <= CurrentTime) {
-        constexpr double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
-        int chordMult = heldNote->lane == 0 ? 25 : std::popcount(heldNote->lane);
-        stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick
-            * stats->multiplier()) * chordMult);
-        stats->Health += (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * 0.0005);
-        if (stats->Health > 1) stats->Health = 1;
-    }
-    if (heldNote && heldNote->end.sec <= CurrentTime) {
-        chart->DropSustain(0);
-    }
+    // auto heldNote = chart->HeldNotePointers.at(0);
+    // if (heldNote != nullptr
+    //     && heldNote->end.sec >= CurrentTime
+    //     && heldNote->start.sec <= CurrentTime) {
+    //     constexpr double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
+    //     int chordMult = heldNote->lane == 0 ? 25 : std::popcount(heldNote->lane);
+    //     stats->Score += (TheSongTime.CurrentTick - TheSongTime.LastTick) * ((PointsPerTick
+    //         * stats->multiplier()) * chordMult);
+    //     stats->Health += (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * 0.0005);
+    //     if (stats->Health > 1) stats->Health = 1;
+    // }
+    // if (heldNote && heldNote->end.sec <= CurrentTime) {
+    //     chart->DropSustain(0);
+    // }
     this->CheckMissedNotes(CurrentTime);
     BaseUpdateOnFrame(CurrentTime);
     // there is ONLY lane 0 for guitar

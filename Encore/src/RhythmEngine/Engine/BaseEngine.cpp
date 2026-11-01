@@ -16,27 +16,42 @@
 void Encore::RhythmEngine::BaseEngine::CalculateWeightedScore() {
     double weighted = 0;
     double count = 1;
-
+    /*
+     * Going lane-by-lane introduces some issues with the ordering on
+     * pad charts (important for the combo to be correct) so we'll do this nastiness
+     */
+    std::vector<NoteEvent*> notes;
+    size_t reserve = 0;
 
     for (auto &lane : chart->Lanes) {
+        reserve += lane.size();
+    }
+    notes.reserve(reserve);
+    for (auto &lane : chart->Lanes) {
         for (auto &note : lane) {
-            double Multiplier = (int(count) / stats->ep.mult.count) + 1;
-            if (Multiplier > stats->ep.mult.max) {
-                Multiplier = stats->ep.mult.max;
-            }
-            int chordSize = std::popcount(note.lane);
-            if (chordSize == 0)
-                chordSize = 1;
-            weighted += chordSize * Multiplier;
-            // if (note.end != 0) {
-            //     auto length = note.start - note.end;
-            //     double beats = (double(length.tick) / TheSongTime.songPPQN);
-            //     weighted += (beats * mult);
-            // }
-            count++;
+            notes.push_back(&note);
         }
     }
-    stats->pointPerNote = BASE_SCORE / weighted;
+    std::ranges::sort(notes, [](const NoteEvent* a, const NoteEvent* b){return a->start < b->start;});
+
+    for (auto note : notes) {
+        double Multiplier = (int(count) / stats->ep.mult.count) + 1;
+        if (Multiplier > stats->ep.mult.max) {
+            Multiplier = stats->ep.mult.max;
+        }
+        int chordSize = std::popcount(note->lane);
+        if (chordSize == 0)
+            chordSize = 1;
+        weighted += chordSize * Multiplier;
+        if (note->end != 0) {
+            auto length = note->end.tick - note->start.tick;
+            double beats = (double(length) / TheSongTime.songPPQN);
+            // TODO: should this be multiplied by 4? (quarter note)
+            weighted += (beats * Multiplier);
+        }
+        count++;
+    }
+    stats->PointsPerNote = BASE_SCORE / weighted;
     stats->weightedCount = weighted;
 }
 bool Encore::RhythmEngine::BaseEngine::EarlyStrike(double noteStartTime) const {
@@ -314,15 +329,15 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     );
 }
 void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int difficulty) {
-    inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
-    stats->StarThresholdValue = stats->Score / chart->BaseScore;
-    for (int i = 0; i < 6; i++) {
-        if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][i]) {
-            stats->Stars = i;
-            return;
-        }
-    }
-    stats->Stars = 5;
+    // inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
+    // stats->StarThresholdValue = stats->Score / chart->BaseScore;
+    // for (int i = 0; i < 6; i++) {
+    //     if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][i]) {
+    //         stats->Stars = i;
+    //         return;
+    //     }
+    // }
+    // stats->Stars = 5;
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {
