@@ -122,13 +122,13 @@ namespace Encore::RhythmEngine {
         TimePoint LastNoteTime();
         bool IsWithinPracticeSection(double time) const;
         virtual void Advance(double CurrentTime);
-        void BaseUpdateOnFrame(double CurrentTime);
         void CheckMissedNotes(size_t Lane, TimeSeconds time);
         virtual void HitNote(size_t lane);
         void MissNote(size_t lane, TimeSeconds time);
         void Overhit(size_t lane);
         void UpdateStats(int instrument, int difficulty);
         virtual bool UsesNoteMasks() { return false; };
+        virtual void OnOverdriveActivate(TimeSeconds time) {};
         int GhostCount;
 
         void SetSucceeding(bool succeed);
@@ -136,7 +136,7 @@ namespace Encore::RhythmEngine {
     private:
         virtual void TogglePause() = 0;
 
-        virtual int RunHitStateCheck(ControllerEvent &event) = 0;
+        virtual void RunHitStateCheck(ControllerEvent &event) = 0;
 
     };
 }

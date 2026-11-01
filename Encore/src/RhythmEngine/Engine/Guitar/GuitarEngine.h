@@ -34,7 +34,7 @@ namespace Encore::RhythmEngine {
          *
          *
          */
-        int RunHitStateCheck(ControllerEvent &event) override;
+        void RunHitStateCheck(ControllerEvent &event) override;
         void GuitarHitNote(bool strumInput);
         void TogglePause() override { stats->Paused = !stats->Paused; };
     public:

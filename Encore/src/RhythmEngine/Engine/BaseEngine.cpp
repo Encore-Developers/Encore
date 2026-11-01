@@ -27,7 +27,7 @@ double Encore::RhythmEngine::Sustain::GetValueAtTime(TimeBeats time) const {
     } else {
         progress = (time - start) / (end - start);
     }
-    return progress * multiplier;
+    return progress * multiplier * std::popcount(note->lane);
 }
 void Encore::RhythmEngine::BaseEngine::CalculateWeightedScore() {
     double weighted = 0;
@@ -121,14 +121,10 @@ bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) cons
     return practice && time < pStopTime && time >= pStartTime;
 }
 void Encore::RhythmEngine::BaseEngine::Advance(double CurrentTime) {
+    EngineTime = CurrentTime;
+    UpdateOverdrive(CurrentTime);
     chart->solos.CheckEventsSeconds(CurrentTime);
 }
-
-void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
-
-
-}
-
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, TimeSeconds time) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;
@@ -194,9 +190,12 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     stats->LastHitOffset = (EngineTime)-startTime;
     SetSucceeding(true);
     stats->Combo++;
+    stats->NotesHit++;
+    stats->AttemptedNotes++;
 
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
+        stats->PerfectHits++;
         Log::Debug("Accuracy: {}", 1);
         stats->AddHealth(1);
         HealthChangeEvent hce;
@@ -247,6 +246,8 @@ void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane, TimeSeconds t
     }
     bool cbreak = stats->ComboToMultiplier(stats->Combo) == stats->ep.mult.max;
     stats->Combo = 0;
+    stats->Misses++;
+    stats->AttemptedNotes++;
 
     stats->RemoveHealth(cbreak);
     HealthChangeEvent hce;

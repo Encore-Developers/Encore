@@ -51,11 +51,6 @@ namespace Encore::RhythmEngine {
         OverdriveEP od;
     };
 
-    enum class StrumState {
-        Default = 0,
-        UpStrum = 1,
-        DownStrum = 2
-    };
     enum StatsType {
         Pad = 1,
         Guitar = 0,
@@ -127,7 +122,6 @@ namespace Encore::RhythmEngine {
         double Accuracy = 0;
         double LastHitOffset = -1;
         double StarThresholdValue = 0.0;
-        StrumState strumState = StrumState::Default;
         std::vector<NoteAccuracy> accuracies;
         // void HitNote(int chordSize, int perfect) {
         //     if (perfect == -1) {

@@ -11,110 +11,62 @@
 #include "gameplay/enctime.h"
 #include "RhythmEngine/scoring.h"
 
-bool Encore::RhythmEngine::PadEngine::ActivateOverdrive(ControllerEvent &event) {
-    // todo: hit notes (THIS IS PAD)
-    EngineTime = event.timestamp;
-    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
-        // activates overdrive
-        if (stats->overdrive.Activate(EngineTime)) {
-            OverdriveEvent gain;
-            FireEvent(&gain);
-            for (size_t lane = 0; lane < chart->Lanes.size(); lane++) {
-                if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()){
-                    NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-                    if (InHitwindow(CurrentNote->start.sec)) {
-                        this->HitNote(lane);
-                    };
-                }
-            }
-            return true;
-        };
+void Encore::RhythmEngine::PadEngine::OnOverdriveActivate(TimeSeconds time) {
+    for (size_t lane = 0; lane < chart->Lanes.size(); lane++) {
+        if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()){
+            NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
+            if (InHitwindow(CurrentNote->start.sec)) {
+                this->HitNote(lane);
+            };
+        }
     }
-    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::RELEASE) {
-        if (stats->overdrive.UseOverdriveLift) {
-            for (size_t lane = 0; lane < chart->Lanes.size(); lane++) {
-                if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()) {
-                    NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
-                    if (InHitwindow(CurrentNote->start.sec) && CurrentNote->type ==
-                        NoteEvent::LIFT) {
-                        Timers["LOP"].ActivateTimer(EngineTime);
-                        this->HitNote(lane);
-                        };
-                }
-            }
-            stats->overdrive.UseOverdriveLift = false;
-            return true;
-        };
-    }
-    return false;
+    OverdriveLiftInput = true;
 }
 
 void Encore::RhythmEngine::PadEngine::SetStatsInputState(ControllerEvent &event) {
-    if (event.action == Action::PRESS) {
-        switch (event.channel) {
-        case InputChannel::LANE_1:
-        case InputChannel::LANE_2:
-        case InputChannel::LANE_3:
-        case InputChannel::LANE_4:
-        case InputChannel::LANE_5: {
-            stats->HeldFrets.at(ICInt(event.channel)) = true;
-            break;
-        }
-        default:
-            break;
-        }
-    }
-    if (event.action == Action::RELEASE) {
-        switch (event.channel) {
-        case InputChannel::LANE_1:
-        case InputChannel::LANE_2:
-        case InputChannel::LANE_3:
-        case InputChannel::LANE_4:
-        case InputChannel::LANE_5: {
-            if (chart->HeldNotePointers.at(ICInt(event.channel))) {
-                chart->HeldNotePointers.at(ICInt(event.channel)) = nullptr;
-            }
-            stats->HeldFrets.at(ICInt(event.channel)) = false;
-            break;
-        }
-        default:
-            break;
-        }
-    }
+
 }
 
-int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
-    if (event.channel == InputChannel::OVERDRIVE)
-        return CheckNextInput;
+void Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
     if (event.channel == InputChannel::STRUM_UP || event.channel ==
         InputChannel::STRUM_DOWN)
-        return CheckNextInput;
+        return;
+
+
+    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::RELEASE && OverdriveLiftInput) {
+        for (int i = 0; i < chart->Lanes.size(); i++) {
+            LaneHitStateCheck(i, event);
+        }
+        OverdriveLiftInput = false;
+        return;
+    }
     size_t lane = ICInt(event.channel);
     if (lane >= chart->Lanes.size())
-        return CheckNextInput;
+        return;
+    LaneHitStateCheck(lane, event);
 
+}
+void Encore::RhythmEngine::PadEngine::LaneHitStateCheck(int lane, ControllerEvent &event) {
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
-        return CheckNextInput;
+        return;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
     bool lift = event.action == Action::RELEASE && CurrentNote->type == 1;
 
     if (event.action == Action::PRESS || lift) {
         if (EarlyStrike(CurrentNote->start.sec) && !lift) {
-            if (stats->overdrive.ActivationTime + overdriveHitLeniency > EngineTime)
-                return CheckNextInput;
+            if (OverdriveActivateTime + overdriveHitLeniency > EngineTime)
+                return;
             if (Timers["LOP"].CanBeUsedUp(EngineTime)) {
                 Timers["LOP"].ResetTimer();
-                return CheckNextInput;
+                return;
             }
             Overhit(lane);
-            return OverhitNote;
+            return;
         };
         if (InHitwindow(CurrentNote->start.sec)) {
             this->HitNote(lane);
-            return HitState::HitNote;
         };
     }
-    return CheckNextInput;
 }
 
 void Encore::RhythmEngine::PadEngine::Advance(const double CurrentTime) {
