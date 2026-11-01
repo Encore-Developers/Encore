@@ -31,7 +31,7 @@ GetLyricPhrases() const {
     return chartHandler->GetLyricPhrases();
 }
 
-Encore::RhythmEngine::OverdriveTicks Encore::RhythmEngine::ChartLoader::
+std::vector<Encore::RhythmEngine::TimePoint> Encore::RhythmEngine::ChartLoader::
 GenerateOverdriveTicks() const {
     return chartHandler->GenerateOverdriveTicks();
 }
@@ -104,7 +104,6 @@ Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
         engine->chart->CurrentNoteIterators.at(i) =
             engine->chart->at(i).begin();
     }
-    engine->stats->overdrive.ticks = GenerateOverdriveTicks();
     engine->chart->sections = GetSections();
     engine->CalculateWeightedScore();
     return engine;

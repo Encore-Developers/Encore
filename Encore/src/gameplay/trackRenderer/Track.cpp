@@ -518,7 +518,7 @@ void Encore::Track::DrawUsername() {
 Vector2 Encore::Track::MultiplierUVCalculation() {
     Vector2 curPos = { 0, 0 };
     auto stats = engine->stats;
-    int mult = stats->Combo / stats->ep.mult.count;
+    int mult = stats->Combo / stats->ep.mult.notesPerMult;
     mult = Clamp(mult, 0, stats->ep.mult.max - 1);
 
     curPos.x = mult * 0.25f;
@@ -575,7 +575,7 @@ void Encore::Track::DrawMultiplier() {
         fillColor = RAYWHITE;
     }
     ASSET(multiplierFillShader).SetUniform("MultiplierColor", fillColor);
-    float fill = engine->stats->ComboFillCalc();
+    float fill = engine->stats->GetMultiplierProgress();
     if (fill <= 0.0f) {
         fill = -0.2;
     }

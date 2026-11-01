@@ -117,44 +117,6 @@ int Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
     return CheckNextInput;
 }
 
-void Encore::RhythmEngine::PadEngine::HitNote(const size_t lane) {
-    if (chart->CurrentNoteIterators.at(lane) != chart->Lanes.at(lane).end()) {
-        if (chart->CurrentNoteIterators.at(lane)->secLen() > 0) {
-            chart->SetCurrentNoteAsHeldNote(lane);
-        }
-    }
-    BaseEngine::HitNote(lane);
-}
-
-void Encore::RhythmEngine::PadEngine::UpdateOnFrame(const double CurrentTime) {
-    EngineTime = CurrentTime;
-    for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
-        if (stats->Bot) {
-            if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
-                continue;
-            while (chart->CurrentNoteIterators.at(Lane)->start.sec <= EngineTime) {
-                HitNote(Lane);
-                if (chart->CurrentNoteIterators.at(Lane) == chart->at(Lane).end())
-                    break;
-            }
-        }
-        // if (chart->HeldNotePointers.at(Lane) != nullptr
-        //     && chart->HeldNotePointers.at(Lane)->end.sec
-        //     >= EngineTime) {
-        //     constexpr double PointsPerTick = double(SUSTAIN_POINTS_PER_BEAT) / 480.0;
-        //     stats->Score +=
-        //         (TheSongTime.CurrentTick - TheSongTime.LastTick) * (PointsPerTick * stats
-        //             ->multiplier());
-        // }
-        CheckMissedNotes(Lane, EngineTime);
-    }
-    BaseUpdateOnFrame(EngineTime);
-}
-
-Encore::RhythmEngine::TimePoint Encore::RhythmEngine::PadEngine::NextNoteTime() {
-    return BaseEngine::NextNoteTime();
-}
-
-Encore::RhythmEngine::TimePoint Encore::RhythmEngine::PadEngine::LastNoteTime() {
-    return BaseEngine::LastNoteTime();
+void Encore::RhythmEngine::PadEngine::Advance(const double CurrentTime) {
+    BaseEngine::Advance(CurrentTime);
 }

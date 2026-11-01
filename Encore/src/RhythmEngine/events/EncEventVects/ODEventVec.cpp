@@ -50,7 +50,7 @@ void Encore::RhythmEngine::ODEvents::MissCurrentEvent(int eventTime) {
         this->at(CurrentEvent).state = odPhrase::Missed;
 }
 
-bool Encore::RhythmEngine::ODEvents::RenderNotesAsOD(double time) const {
+bool Encore::RhythmEngine::ODEvents::TimeIsInODPhrase(double time) const {
     if (this->empty()) {
         return false;
     }

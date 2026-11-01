@@ -3,22 +3,6 @@
 //
 
 #include "DrumsEngine.h"
-//
-// Created by maria on 01/06/2025.
-//
-
-bool Encore::RhythmEngine::DrumsEngine::ActivateOverdrive(
-ControllerEvent &event
-) {
-    if (event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
-        if (stats->overdrive.Activate(EngineTime)) {
-            OverdriveEvent gain;
-            FireEvent(&gain);
-        }; // time
-        return true;
-    }
-    return false;
-}
 
 void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
 ControllerEvent &event
@@ -33,15 +17,6 @@ ControllerEvent &event
         stats->HeldFrets.at(ICInt(event.channel)) = press;
     }
 }
-
-Encore::RhythmEngine::TimePoint Encore::RhythmEngine::DrumsEngine::NextNoteTime() {
-    return BaseEngine::NextNoteTime();
-}
-
-Encore::RhythmEngine::TimePoint Encore::RhythmEngine::DrumsEngine::LastNoteTime() {
-    return BaseEngine::LastNoteTime();
-}
-
 int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     if (event.channel > IntIC(chart->size-1))
@@ -90,19 +65,6 @@ void Encore::RhythmEngine::DrumsEngine::HitNote(const size_t lane) {
     BaseEngine::HitNote(lane);
 }
 
-void Encore::RhythmEngine::DrumsEngine::UpdateOnFrame(double CurrentTime) {
-    EngineTime = CurrentTime;
-    for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
-        if (stats->Bot) {
-            if (chart->CurrentNoteIterators.at(Lane) < chart->Lanes.at(Lane).cend()) {
-                NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(Lane);
-                if (CurrentNote->start.sec <= EngineTime) {
-                    HitNote(Lane);
-                }
-            }
-        } else {
-            CheckMissedNotes(Lane, EngineTime);
-        }
-    }
-    BaseUpdateOnFrame(EngineTime);
+void Encore::RhythmEngine::DrumsEngine::Advance(double CurrentTime) {
+    BaseEngine::Advance(CurrentTime);
 }

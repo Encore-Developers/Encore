@@ -163,7 +163,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
         event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp) - TheGameSettings.VideoOffset/1000.0;
         if (!CheckPauseInput(event))
             if (event.channel != Encore::InputChannel::INVALID) {
-                engine->UpdateOnFrame(event.timestamp);
+                engine->Advance(event.timestamp);
                 engine->ProcessInput(event);
                 event.slot = player.ActiveSlot;
                 track->recordedInputs.push_back(event);
@@ -189,7 +189,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
             event.timestamp -= TheGameSettings.VideoOffset/1000.0;
             if (engine->allowTimestampedInputs) {
                 if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
-                    engine->UpdateOnFrame(event.timestamp);
+                    engine->Advance(event.timestamp);
             }
             engine->ProcessInput(event);
             event.slot = player.ActiveSlot;
@@ -667,7 +667,7 @@ void GameplayMenu::Draw() {
             player.ReplayPlayer->Advance(TheSongTime.GetElapsedTime());
             while (player.ReplayPlayer->HasNextInput()) {
                 auto input = player.ReplayPlayer->GetNextInput();
-                player.engine->UpdateOnFrame(input->timestamp);
+                player.engine->Advance(input->timestamp);
                 player.engine->ProcessInput(*input);
             }
         }
@@ -677,7 +677,7 @@ void GameplayMenu::Draw() {
             if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
                 player.engine->practice) {
                 }
-            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime() - TheGameSettings.VideoOffset/1000.0);
+            player.engine->Advance(TheSongTime.GetElapsedTime() - TheGameSettings.VideoOffset/1000.0);
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }
 

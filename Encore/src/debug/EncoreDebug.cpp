@@ -387,7 +387,7 @@ void DebugSeek(float time, float audioTime) {
 
             while (player->ReplayPlayer->HasNextInput()) {
                 auto input = player->ReplayPlayer->GetNextInput();
-                player->engine->UpdateOnFrame(input->timestamp);
+                player->engine->Advance(input->timestamp);
                 player->engine->ProcessInput(*input);
             }
 
