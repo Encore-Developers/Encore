@@ -99,12 +99,16 @@ namespace Encore
     TextDisplay &  TextDisplay::DrawText(const char* text) {
         float textLeftPos = pos.x+padding.x;
         // bro
+        float textWidth = 0;
+        float textHeight = 0;
+        if (align != LEFT || (width != 0 && height != 0)) {
+            textWidth = TextWidth(text);
+            textHeight = TextHeight(text);
+        }
         float size = fontSize;
         float top = pos.y+padding.y;
         float left = pos.x+padding.x;
         if (width != 0 && height != 0) {
-            float textWidth = TextWidth(text);
-            float textHeight = TextHeight(text);
             if (textWidth > width-padding.x*2) {
                 size = (width - padding.x*2) / (textWidth / textHeight);
                 textWidth = MeasureTextEx(font, text, size, 0).x;
@@ -113,7 +117,6 @@ namespace Encore
         }
         switch (align) {
         case CENTER: {
-            float textWidth = TextWidth(text);
             if (width != 0) {
                 textLeftPos = pos.x + width/2 - textWidth/2;
             } else {
@@ -122,7 +125,6 @@ namespace Encore
             break;
         }
         case RIGHT: {
-            float textWidth = TextWidth(text);
             if (width != 0) {
                 textLeftPos = pos.x + width - textWidth - padding.x;
             } else {
