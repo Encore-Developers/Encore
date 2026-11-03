@@ -28,6 +28,7 @@ namespace Encore::RhythmEngine {
         TimeBeats start;
         TimeBeats end;
         double multiplier;
+        double valuePerBeat;
 
         double GetValueAtTime(TimeBeats time) const;
     };
@@ -100,6 +101,8 @@ namespace Encore::RhythmEngine {
         void AddSustain(Sustain sustain);
         /// Invalidates iterators, be careful!
         void ClearSustain(Sustain& sustain);
+
+        void UpdateSustains();
 
         double GetOverdriveFillAtTime(TimeSeconds time);
         TimeSeconds GetOverdriveEndTime();

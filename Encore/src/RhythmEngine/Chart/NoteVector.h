@@ -67,7 +67,7 @@ namespace Encore::RhythmEngine {
          * this DOES NOT CARE about timing or ANYTHING.
          * it simply just gets the next note in said lane
          */
-        bool UpdateCurrentNote(const size_t lane) {
+        bool AdvanceCurrentNote(const size_t lane) {
             // if (std::distance(Lanes.at(lane).begin(), CurrentNoteIterators.at(lane))
             //     >= Lanes.at(lane).size()) {
             //     // bounds check

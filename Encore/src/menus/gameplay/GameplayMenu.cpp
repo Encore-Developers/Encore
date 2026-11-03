@@ -200,7 +200,7 @@ void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         //score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
-        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->GetVisualScoreAtTime(TheSongTime.GetElapsedTime());
     }
     // not optimized at all LMAO
     float WidthOfScorebox = Units::hinpct(0.4);
