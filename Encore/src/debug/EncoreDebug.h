@@ -23,6 +23,7 @@ namespace EncoreDebug {
     extern bool showGameplayHud;
     void DrawDebug();
     void MenuBar();
+    void DrawScoreSaving();
     void DrawAssetViewer();
     void DrawPlayerManager();
     void DrawSongList();

@@ -32,6 +32,7 @@
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 #include "tracy/Tracy.hpp"
+#include "util/ScoreDB.h"
 
 Encore::LyricRenderer TheLyricRenderer;
 
@@ -481,7 +482,7 @@ std::string __tolowerStr(std::string &in) {
     return out;
 }
 
-void GameplayMenu::SaveReplay() {
+std::string GameplayMenu::SaveReplay() {
     bool hasRealPlayers = false;
     for (auto& track : tracks) {
         if (!track->player.ReplayPlayer) {
@@ -490,15 +491,17 @@ void GameplayMenu::SaveReplay() {
         }
     }
     if (!hasRealPlayers) {
-        return;
+        return "";
     }
 
     std::filesystem::path replayPath = SDL_GetPrefPath("Encore", "v0.2.0");
     auto now = std::chrono::system_clock::now();
     auto t_c = std::chrono::system_clock::to_time_t(now);
     auto tm = std::localtime(&t_c);
-    auto folderPath = replayPath / std::format("Replays/{}-{}/", tm->tm_year+1900, tm->tm_mon+1);
-    replayPath /= folderPath / std::format("{}_{}-{}-{}_{}-{}-{}.encrReplay", __tolowerStr(curSong->title.name), tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    auto dateFolder = std::format("{}-{}/", tm->tm_year+1900, tm->tm_mon+1);
+    auto folderPath = replayPath / "Replays" / dateFolder;
+    auto filename = std::format("{}_{}-{}-{}_{}-{}-{}.encrReplay", __tolowerStr(curSong->title.name), tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+    replayPath /= folderPath / filename;
     std::filesystem::create_directories(folderPath);
     encore::bin_ofstream_le replayOut(replayPath, std::ios::binary);
     for (auto &track : tracks) {
@@ -510,6 +513,7 @@ void GameplayMenu::SaveReplay() {
         }
     }
     recordingReplay.Save(replayOut);
+    return dateFolder + filename;
     replayOut.close();
 }
 
@@ -645,7 +649,21 @@ void GameplayMenu::Draw() {
         TheSongTime.FullReset();
         TheAudioManager.unloadStreams();
         songPlaying = false;
-        SaveReplay();
+        auto replayFilename = SaveReplay();
+        if (!replayFilename.empty()) {
+            Encore::Score results {0,0, replayFilename};
+            for (int i = 0; i < MAX_PLAYERS; i++) {
+                if (!ThePlayerManager.ActivePlayers[i]) continue;
+                Player &player = ThePlayerManager.GetActivePlayer(i);
+                results.score += player.engine->stats->Score;
+                results.count += 1;
+                results.playerids.push_back(player.PlayerID);
+                results.instrument.push_back(player.Instrument);
+                results.difficulty.push_back(player.Difficulty);
+                results.rating.push_back(player.engine->stats->Accuracy / player.engine->stats->AttemptedNotes);
+            }
+            TheScoreDatabase.SetScore(curSong->hash, results);
+        }
         TheMenuManager.CreateAndSwitchMenu<resultsMenu>(curSong);
         return;
     }

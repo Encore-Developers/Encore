@@ -33,6 +33,21 @@ if (NOT json_FOUND)
   endif()
 endif()
 
+find_package(sqlite QUIET)
+if (NOT sqlite_FOUND)
+  FetchContent_Declare(
+          sqlite
+          DOWNLOAD_EXTRACT_TIMESTAMP OFF
+          URL https://www.sqlite.org/2026/sqlite-autoconf-3540100.tar.gz)
+  FetchContent_GetProperties(sqlite)
+  if (NOT sqlite_POPULATED)
+    set(FETCHCONTENT_QUIET NO)
+    FetchContent_MakeAvailable(sqlite)
+  endif()
+endif()
+add_subdirectory(thirdparty/sqlitecpp)
+
+
 if (WIN32)
   FetchContent_Declare(ffmpeg DOWNLOAD_EXTRACT_TIMESTAMP OFF URL https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-full_build-shared.7z)
   FetchContent_GetProperties(ffmpeg)
@@ -272,5 +287,5 @@ set_property(TARGET Encore PROPERTY CXX_STANDARD 20)
 
 
 #target_include_directories(SDL3-static PUBLIC "include/gameinput")
-target_link_libraries(Encore raylib nlohmann_json::nlohmann_json ${BASS} ${BASSOPUS} ${BASSFX} ${DISCORD_GAME_SDK} ${STEAMAPI} SDL3::SDL3 Tracy::TracyClient ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
+target_link_libraries(Encore raylib nlohmann_json::nlohmann_json SQLiteCpp sqlite3 ${BASS} ${BASSOPUS} ${BASSFX} ${DISCORD_GAME_SDK} ${STEAMAPI} SDL3::SDL3 Tracy::TracyClient ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${SWSCALE_LIBRARY})
 

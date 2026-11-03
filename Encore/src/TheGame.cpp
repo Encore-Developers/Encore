@@ -31,6 +31,7 @@
 // #include "spdlog/spdlog.h"
 #include "tracy/TracyC.h"
 #include "users/profiles/ProfileManager.h"
+#include "util/ScoreDB.h"
 
 #ifdef STEAM
 #include "steam_api.h"
@@ -89,6 +90,7 @@ Encore::Keybinds TheGameKeybinds;
 Encore::Presence TheGameRPC;
 Encore::SettingsInit TheSettingsInitializer;
 Encore::FrameManager TheFrameManager;
+Encore::ScoreDB TheScoreDatabase;
 std::filesystem::path prefsPath;
 OpenSource TheSourceIcons;
 
@@ -207,6 +209,7 @@ int TheGame::Run(int argc, char *argv[]) {
 
     prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
     std::filesystem::path directory = prefsPath;
+    TheScoreDatabase.Init(prefsPath);
     LocateDevAssets();
 
 

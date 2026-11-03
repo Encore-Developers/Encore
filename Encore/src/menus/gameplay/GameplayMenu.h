@@ -37,7 +37,7 @@ public:
     void DrawGameplayStars(Assets &assets, float scorePos, float starY);
     void KeyboardInputCallback(SDL_KeyboardEvent* event);
     void ControllerInputCallback(Encore::ControllerEvent event);
-    void SaveReplay();
+    std::string SaveReplay();
     void DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFading = true);
     void Draw() override;
     void DrawAccuracyDisplay(float xPos, float yPos);

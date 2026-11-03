@@ -26,6 +26,7 @@
 #include "menus/util/locale/Locale.h"
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
+#include "util/ScoreDB.h"
 
 #include <filesystem>
 #include <string>
@@ -806,6 +807,21 @@ void SongSelectMenu::Draw() {
             songArtist.pos.x = songXPos + songTitleWidth + entry.artistXOffset + 30;
             songArtist.DrawText(artistText);
             EndScissorMode();
+
+            auto scores = TheScoreDatabase.GetScores(songi->hash);
+            if (!scores.empty()) {
+                Encore::TextDisplay bs = songTitle;
+                bs.Fnt(ASSET(redHatDisplayItalic)).Align(RIGHT).pos.x = entryRec.x + entryRec.width - (bs.fontSize/2);
+                double acc = 0;
+                for (auto g: scores.at(0).rating) {
+                    acc += g;
+                }
+                acc /= scores.at(0).rating.size();
+
+                Grade* curGrade;
+                GetGrade(acc, &curGrade);
+                bs.Col(curGrade->color).DrawText(curGrade->Letter).AddX(-(bs.fontSize)).Col(SKYBLUE).DrawText(GameMenu::scoreCommaFormatter(scores.at(0).score));
+            }
 
             songTitle.pos.y += songEntryHeight;
             songArtist.pos.y += songEntryHeight;

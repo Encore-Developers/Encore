@@ -20,6 +20,9 @@
 #include "song/song.h"
 #include "song/songlist.h"
 #include "users/profiles/ProfileManager.h"
+#include "util/ScoreDB.h"
+
+#include <random>
 
 bool EncoreDebug::showDebug = false;
 bool EncoreDebug::reloadQueued = false;
@@ -35,6 +38,7 @@ bool showSongList = false;
 bool showQuickSettings = false;
 bool showPractice = false;
 bool showEasings = false;
+bool showSaving = false;
 bool showJoystickTools = false;
 bool showLocaleDebug = false;
 bool showLog = false;
@@ -134,6 +138,9 @@ void EncoreDebug::DrawDebug() {
     if (showColorProfileManager) {
         DrawColorProfileSettings();
     }
+    if (showSaving) {
+        DrawScoreSaving();
+    }
     if (showPractice) {
         DrawPracticeSectionSelector();
     }
@@ -175,6 +182,7 @@ void EncoreDebug::MenuBar() {
         MenuItem("Assets", 0, &showAssets);
         MenuItem("Song List", 0, &showSongList, !gameplayMenu);
         MenuItem("Easings Debug", 0, &showEasings);
+        MenuItem("Score Saving Debug", 0, &showSaving);
         if (Encore::Locale::unlocalizedTokens.empty()) {
             MenuItem("Locale Debug", 0, &showLocaleDebug);
         } else {
@@ -233,6 +241,24 @@ void EncoreDebug::MenuBar() {
     ImGui::Text("%s", debugVersionHash.c_str());
 
     EndMainMenuBar();
+}
+
+void EncoreDebug::DrawScoreSaving() {
+
+    if (Begin("Score Saving", &showSaving, 0)) {
+        if (Button("Save debug score")) {
+            std::random_device seed;
+            std::minstd_rand prng(seed());
+            std::uniform_int_distribution<> dist(0, TheSongList.songs.size() - 1);
+            int selectedSong = dist(prng);
+            TheScoreDatabase.SetScore(TheSongList.songs[selectedSong].hash, {32767});
+        }
+        if (Button("Load test score")) {
+            auto scores = TheScoreDatabase.GetAllScores();
+            scores.at(0);
+        }
+        End();
+    }
 }
 
 void EncoreDebug::DrawColorProfileSettings() {

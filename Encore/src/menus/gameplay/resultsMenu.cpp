@@ -19,6 +19,7 @@
 #include "song/ArtLoader.h"
 #include "song/OpenSource.h"
 #include "song/songlist.h"
+#include "util/ScoreDB.h"
 
 void resultsMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     buttReg.HandleInput(event);
