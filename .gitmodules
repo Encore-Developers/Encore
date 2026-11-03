@@ -13,3 +13,6 @@
 [submodule "Encore/thirdparty/spdlog"]
 	path = Encore/thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "Encore/thirdparty/sqlitecpp"]
+	path = Encore/thirdparty/sqlitecpp
+	url = https://github.com/srombauts/sqlitecpp
