@@ -8,7 +8,7 @@
 namespace Encore::RhythmEngine {
     class DrumsEngine : public BaseEngine {
 
-        int RunHitStateCheck(ControllerEvent &event) override;
+        void RunHitStateCheck(ControllerEvent &event) override;
         void TogglePause() override { stats->Paused = !stats->Paused; };
 
     public:

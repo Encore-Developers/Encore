@@ -1152,10 +1152,8 @@ void Encore::Track::DrawTrackDebugWindow() {
                 float health = player.engine->stats->Health;
                 SliderFloat("Health", &health, 0, 1);
                 player.engine->stats->Health = health;
-                float od = player.engine->stats->overdrive.Fill;
-                SliderFloat("Overdrive", &od, 0, 1);
-                Checkbox("Overdrive Active", &player.engine->stats->overdrive.Active);
-                player.engine->stats->overdrive.Fill = od;
+                float od = player.engine->OverdriveValue;
+                SliderFloat("Overdrive Value (Static)", &od, 0, 1);
                 ProgressBar(engine->whammy, { -1.0f, 0.0f }, "Whammy");
                 SeparatorText("Timers");
                 for (auto Timer : engine->Timers) {
@@ -1240,10 +1238,9 @@ void Encore::Track::DrawTrackDebugWindow() {
                 ImGui::Text("%s",
                             TextFormat("Base score: %4.2f",
                                        player.engine->chart->BaseScore));
-                ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
                 ImGui::Text("%s",
                             TextFormat("Multiplier: %.2fx",
-                                       player.engine->stats->multiplier()));
+                                       player.engine->Multiplier));
                 Checkbox("Allow Timestamped Inputs",
                          &player.engine->allowTimestampedInputs);
                 EndTabItem();

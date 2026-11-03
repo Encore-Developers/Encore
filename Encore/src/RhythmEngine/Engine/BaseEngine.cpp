@@ -130,23 +130,27 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, TimeSeconds
         return;
     NoteEvent &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
     bool MissedNote = false;
-    TimeSeconds MissTime = 0.0;
-    if (chart->CurrentNoteIterators.at(Lane) + 1 != chart->Lanes.at(Lane).end()) {
-        auto NextNote = chart->CurrentNoteIterators.at(Lane);
-        NextNote += 1;
-        double noteMiddlePoint = (NextNote->start - CurrentNote.start).sec / dynamicHitwindowRatio;
-        if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
-        if (CurrentNote.start + noteMiddlePoint < time) {
-            MissedNote = true;
-            MissTime = CurrentNote.start + noteMiddlePoint;
+    do {
+        MissedNote = false;
+        TimeSeconds MissTime = 0.0;
+        if (chart->CurrentNoteIterators.at(Lane) + 1 != chart->Lanes.at(Lane).end()) {
+            auto NextNote = chart->CurrentNoteIterators.at(Lane);
+            NextNote += 1;
+            double noteMiddlePoint = (NextNote->start - CurrentNote.start).sec / dynamicHitwindowRatio;
+            if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
+            if (CurrentNote.start + noteMiddlePoint < time) {
+                MissedNote = true;
+                MissTime = CurrentNote.start + noteMiddlePoint;
+            }
         }
-    }
-    if (CurrentNote.start.sec + goodBackend < time) {
-        MissedNote = true;
-        MissTime = CurrentNote.start.sec + goodBackend;
-    }
-    if (!MissedNote) return;
-    MissNote(Lane, MissTime);
+        if (CurrentNote.start.sec + goodBackend < time) {
+            MissedNote = true;
+            MissTime = CurrentNote.start.sec + goodBackend;
+        }
+        if (MissedNote) {
+            MissNote(Lane, MissTime);
+        }
+    } while (MissedNote);
 }
 
 void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
@@ -155,11 +159,12 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     }
     whammy = 0;
 
-    int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->lane);
+    auto note = chart->CurrentNoteIterators.at(lane);
+    int chordSize = std::popcount(note->lane);
     if (chordSize == 0)
         chordSize = 1;
-    int startTick = chart->CurrentNoteIterators.at(lane)->start.tick;
-    double startTime = chart->CurrentNoteIterators.at(lane)->start.sec;
+    int startTick = note->start.tick;
+    double startTime = note->start.sec;
     const double offset = (EngineTime)-startTime;
 
     stats->accuracies.emplace_back(startTime, offset, false);
@@ -172,7 +177,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     //    );
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).hit++;
-    auto event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
+    auto event = NoteHitEvent(&*note);
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = EngineTime;
         if (!chart->sections.empty())
@@ -185,8 +190,6 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     event.offset = offset;
     stats->TotalOffset += event.offset;
     FireEvent(&event);
-    if (!chart->UpdateCurrentNote(lane))
-        return;
     stats->LastHitOffset = (EngineTime)-startTime;
     SetSucceeding(true);
     stats->Combo++;
@@ -234,8 +237,26 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         MultFlashEvent e { false };
         FireEvent(&e);
     }
-    stats->Score += stats->PointsPerNote * Multiplier;
+    stats->Score += stats->PointsPerNote * Multiplier * std::popcount(note->lane);
+
+    if (note->end != 0) {
+        Sustain sus {
+            &*note,
+            note->start.tick/(double)TheSongTime.songPPQN,
+            note->end.tick/(double)TheSongTime.songPPQN,
+            Multiplier
+        };
+        AddSustain(sus);
+    }
+
+    if (!chart->UpdateCurrentNote(lane))
+        return;
+
     chart->overdrive.UpdateEventViaNote(true, startTick);
+    auto od = chart->overdrive.CheckOverdrive(EngineTime);
+    if (od > 0) {
+        GainOverdrive(od);
+    }
     chart->solos.UpdateEventViaNote(true, startTick);
 }
 
@@ -299,6 +320,10 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
         FireEvent(&e);
     }
     FireEventTemp(OverhitEvent(lane));
+
+    stats->Combo = 0;
+    stats->Overhits++;
+    UpdateMultiplier(EngineTime);
 
     SetSucceeding(false);
     chart->overdrive.UpdateEventViaNote(
@@ -367,6 +392,16 @@ void Encore::RhythmEngine::BaseEngine::UpdateOverdrive(TimeSeconds time) {
         EndOverdrive(endTime);
     }
 }
+void Encore::RhythmEngine::BaseEngine::GainOverdrive(double amount) {
+    if (OverdriveActive) {
+        OverdriveValue = GetOverdriveFillAtTime(EngineTime)+amount;
+    } else {
+        OverdriveValue += amount;
+    }
+    if (OverdriveValue > 1) {
+        OverdriveValue = 1;
+    }
+}
 void Encore::RhythmEngine::BaseEngine::ActivateOverdrive(TimeSeconds time) {
     OverdriveActive = true;
     UpdateMultiplier(time);
@@ -402,11 +437,14 @@ double Encore::RhythmEngine::BaseEngine::GetOverdriveFillAtTime(TimeSeconds time
         if (whammyTime > WhammyMaxTime) {
             whammyTime = WhammyMaxTime;
         }
-        TimeBeats curBeat = TheSongTime.SecondsToBeat(whammyTime);
-        TimeBeats whammyBeat = TheSongTime.SecondsToBeat(WhammyODTime);
-        TimeBeats timeWhammied = curBeat - whammyBeat;
+        TimeODTicks curBeat = TheSongTime.SecondsToODTick(whammyTime);
+        TimeODTicks whammyBeat = TheSongTime.SecondsToODTick(WhammyODTime);
+        TimeODTicks timeWhammied = curBeat - whammyBeat;
         timeWhammied = std::clamp(timeWhammied, 0.0, whammyHoldTime);
-        accumulate += timeWhammied * whammyGainPerBeat; // idk what this value should be, will be adjusted
+        accumulate += timeWhammied * whammyGainPerTick; // idk what this value should be, will be adjusted
+    }
+    if (accumulate > 1) {
+        accumulate = 1;
     }
     return accumulate;
 }
@@ -416,17 +454,15 @@ TimeSeconds Encore::RhythmEngine::BaseEngine::GetOverdriveEndTime() {
 
     // First check the end time with whammy + drain
     if (HasWhammyOD && start >= WhammyODTime) {
-        TimeBeats whammyStart = TheSongTime.SecondsToBeat(WhammyODTime);
-        TimeBeats whammyEnd = whammyStart + whammyHoldTime;
-        TimeSeconds endTime = TheSongTime.BeatToSeconds(whammyEnd);
+        TimeODTicks whammyStart = TheSongTime.SecondsToODTick(WhammyODTime);
+        TimeODTicks whammyEnd = whammyStart + whammyHoldTime;
+        TimeSeconds endTime = TheSongTime.ODTickToSeconds(whammyEnd);
         if (endTime > WhammyMaxTime) {
             endTime = WhammyMaxTime;
-            whammyEnd = TheSongTime.SecondsToBeat(endTime);
+            whammyEnd = TheSongTime.SecondsToODTick(endTime);
         }
-        // i fucking hate this edge case so much HELP ME AAAAAA
-        TimeSeconds GainAmount = ((whammyEnd - whammyStart) * whammyGainPerBeat);
-        TimeSeconds DrainLength = TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + (OverdriveValue+GainAmount) / stats->ep.od.DrainPerTick());
-        // this is probably wrong. we'll see :))))))
+        TimeSeconds GainAmount = ((whammyEnd - whammyStart) * whammyGainPerTick);
+        TimeSeconds DrainLength = TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + std::min(1.0, OverdriveValue+GainAmount) / stats->ep.od.DrainPerTick());
         return DrainLength;
     } else {
         return TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + (OverdriveValue) / stats->ep.od.DrainPerTick());

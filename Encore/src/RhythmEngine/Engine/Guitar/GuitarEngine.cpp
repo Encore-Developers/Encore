@@ -57,17 +57,8 @@ bool Encore::RhythmEngine::GuitarEngine::IsInputTooEarly() const {
     return false;
 }
 
-void Encore::RhythmEngine::GuitarEngine::CheckMissedNotes(double CurrentTime) {
-
-}
-
-
 void Encore::RhythmEngine::GuitarEngine::Advance(double CurrentTime) {
-
-
-    this->CheckMissedNotes(CurrentTime);
-    BaseUpdateOnFrame(CurrentTime);
-    // there is ONLY lane 0 for guitar
+    BaseEngine::Advance(CurrentTime);
 }
 
 void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
@@ -89,8 +80,6 @@ bool Encore::RhythmEngine::GuitarEngine::CanNoteBeHit() {
 
 void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 ) {
-    // GetCurrentNote(0);
-    CheckMissedNotes(EngineTime);
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
         return;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(0);

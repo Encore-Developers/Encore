@@ -55,10 +55,6 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
             Player &player = ThePlayerManager.GetActivePlayer(i);
             if (player.joypadID == event.slot) {
                 OvershellState[i] = OS_OPTIONS;
-                for (int g = 0; g < player.engine->chart->Lanes.size(); g++) {
-                    player.engine->chart->DropSustain(g);
-                    player.engine->stats->HeldFrets.at(g) = false;
-                }
                 break;
             }
         }

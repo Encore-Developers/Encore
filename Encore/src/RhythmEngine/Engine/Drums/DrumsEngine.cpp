@@ -17,13 +17,13 @@ ControllerEvent &event
         stats->HeldFrets.at(ICInt(event.channel)) = press;
     }
 }
-int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
+void Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     if (event.channel > IntIC(chart->size-1))
-        return CheckNextInput;
+        return;
     int lane = ICInt(event.channel);
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
-        return CheckNextInput;
+        return;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
 
     //bool IsCymbal = CurrentNote->type == NoteEvent::CYMBAL;
@@ -43,18 +43,17 @@ int Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
         if (EarlyStrike(CurrentNote->start.sec)) {
             if (Timers["debounce"].CanBeUsedUp(EngineTime)) {
                 Timers["debounce"].ResetTimer();
-                return CheckNextInput;
+                return;
             }
             Overhit(lane);
-            return OverhitNote;
+            return;
         };
         if (InHitwindow(CurrentNote->start.sec)) {
             Timers["debounce"].ActivateTimer(EngineTime);
             HitNote(lane);
-            return HitState::HitNote;
+            return;
         };
     }
-    return CheckNextInput;
 }
 
 void Encore::RhythmEngine::DrumsEngine::HitNote(const size_t lane) {

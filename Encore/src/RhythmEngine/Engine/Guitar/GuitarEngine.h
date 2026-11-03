@@ -10,7 +10,6 @@ namespace Encore::RhythmEngine {
         bool MaskMatch(const NoteEvent *itr, uint8_t mask) const;
         bool IsEarly() const;
 
-        void CheckMissedNotes(double CurrentTime);
         bool IsInputTooEarly() const;
         /*
          * STRUM PATH: ___________________________________________________________________

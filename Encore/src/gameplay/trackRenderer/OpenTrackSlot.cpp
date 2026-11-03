@@ -70,9 +70,8 @@ void Encore::OpenTrackSlot::DrawSmasher(bool held) {
     } else {
         animTimer = 1;
     }
-    for (auto note : track->player.engine->chart->HeldNotePointers) {
-        if (!note)
-            continue;
+    for (auto& sustain : track->engine->ActiveSustains) {
+        auto note = sustain.note;
         if (note->end.sec < TheSongTime.GetElapsedTime()) {
             continue;
         }

@@ -291,7 +291,7 @@ void Encore::Track::DrawSurface() {
                 ColorBrightness(accentColor, -0.25));
 
     OverdriveTimer = Lerp(OverdriveTimer,
-                          (int)engine->stats->overdrive.Active,
+                          (int)engine->OverdriveActive,
                           GetFrameTime() * 8);
     if (OverdriveTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
@@ -304,7 +304,7 @@ void Encore::Track::DrawSurface() {
     }
 
     SpotlightTimer = Lerp(SpotlightTimer,
-                          (int)(engine->stats->multNoOD() >= (
+                          (int)(engine->stats->ComboToMultiplier(engine->stats->Combo) >= (
                               engine->stats->SixMultiplier ? 6 : 4)),
                           GetFrameTime() * 3);
     if (SpotlightTimer > 0.01) {
@@ -349,7 +349,7 @@ void Encore::Track::DrawOverdriveMeter() {
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillColor", OverdriveBarColor);
     ASSET(overdriveShader).SetUniform("FillPct",
-                                      1.0f - engine->stats->overdrive.Fill);
+                                      1.0f - engine->GetOverdriveFillAtTime(currentTime));
     ASSET(overdriveShader).SetUniform("BaseColor",
                                       ColorBrightness(player.AccentColor, 0.75));
 
@@ -405,7 +405,7 @@ void Encore::Track::DrawOverdriveMeter() {
     rlRotatef(-90, -1, 0, 0);
     rlRotatef(180, 0, 0, 1);
 
-    std::string multString = TextFormat("%ix", engine->stats->multiplier());
+    std::string multString = TextFormat("%ix", engine->Multiplier);
     Vector2 size = MeasureTextEx(ASSET(JetBrainsMono), multString.c_str(), 0.8, 0);
     DrawCircleSector({ 0, 0 }, 0.5, 0, 360, 32, BLACK);
     DrawTextEx(ASSET(JetBrainsMono),
@@ -526,7 +526,7 @@ Vector2 Encore::Track::MultiplierUVCalculation() {
         curPos.x -= 1;
         curPos.y += 0.25;
     }
-    if (stats->overdrive.Active) {
+    if (engine->OverdriveActive) {
         curPos.y += 0.5;
     }
     return curPos;
@@ -569,7 +569,7 @@ void Encore::Track::DrawMultiplier() {
                                            ColorBrightness(player.AccentColor, -0.85));
 
     Color fillColor;
-    if (engine->stats->multNoOD() == engine->stats->ep.mult.max) {
+    if (engine->stats->ComboToMultiplier(engine->stats->Combo) == engine->stats->ep.mult.max) {
         fillColor = SKYBLUE;
     } else {
         fillColor = RAYWHITE;

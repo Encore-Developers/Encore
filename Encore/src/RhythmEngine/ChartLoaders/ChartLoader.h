@@ -1,7 +1,6 @@
 #pragma once
 #include "RhythmEngine/Chart/NoteVector.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
-#include "RhythmEngine/Overdrive/OverdriveTicks.h"
 #include "gameplay/enctime.h"
 
 struct TrackInformation {

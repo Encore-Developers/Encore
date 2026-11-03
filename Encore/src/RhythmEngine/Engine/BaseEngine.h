@@ -91,6 +91,8 @@ namespace Encore::RhythmEngine {
         /// Should be called before anything else that affects scoring
         void UpdateOverdrive(TimeSeconds time);
 
+        void GainOverdrive(double amount);
+
         void ActivateOverdrive(TimeSeconds time);
         void EndOverdrive(TimeSeconds time);
 

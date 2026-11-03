@@ -21,8 +21,8 @@ constexpr TimeSeconds overdriveHitLeniency = 0.1; /**< Allows the player to stri
 constexpr TimeSeconds dynamicHitwindowRatio = 1.25;
 constexpr TimeSeconds minimumHitwindowSize = 0.015;
 
-constexpr TimeBeats whammyHoldTime = 0.5;
-constexpr double whammyGainPerBeat = 1 / (double)32;
+constexpr TimeODTicks whammyHoldTime = 0.5;
+constexpr double whammyGainPerTick = 1 / (double)30;
 
 constexpr float healthLossPerNote = 0.03f;
 constexpr float healthGainPerNote = 0.015f;

@@ -12,7 +12,6 @@
 #include "Guitar/MidiGuitarLoader.h"
 #include "Pad/MidiPadLoader.h"
 #include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
-#include "RhythmEngine/Overdrive/OverdriveTicks.h"
 #include "util/threadpool.h"
 std::vector<std::vector<int>> pDiffRangeNotes = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }

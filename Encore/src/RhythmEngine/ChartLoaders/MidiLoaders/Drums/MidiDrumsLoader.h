@@ -47,7 +47,6 @@ namespace Encore::RhythmEngine {
             if (chart.at(5).empty()) {
                 chart.Lanes.pop_back();
                 chart.CurrentNoteIterators.pop_back();
-                chart.HeldNotePointers.pop_back();
                 chart.size = 5;
             } else {
                 for (int i = 0; i < chart.size; i++) {

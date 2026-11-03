@@ -64,7 +64,7 @@ void Encore::RhythmEngine::PadEngine::LaneHitStateCheck(int lane, ControllerEven
             return;
         };
         if (InHitwindow(CurrentNote->start.sec)) {
-            this->HitNote(lane);
+            HitNote(lane);
         };
     }
 }
