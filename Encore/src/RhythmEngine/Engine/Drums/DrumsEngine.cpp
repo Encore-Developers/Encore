@@ -4,19 +4,6 @@
 
 #include "DrumsEngine.h"
 
-void Encore::RhythmEngine::DrumsEngine::SetStatsInputState(
-ControllerEvent &event
-) {
-    // TIME (IN SECONDS)
-    if (event.action == Action::INVALID) return;
-    if (event.channel == InputChannel::INVALID) return;
-
-    bool press = event.action == Action::PRESS;
-    if (event.channel < InputChannel::STRUM_UP) {
-        if (chart-> size != 6 && event.channel == InputChannel::LANE_6) return;
-        stats->HeldFrets.at(ICInt(event.channel)) = press;
-    }
-}
 void Encore::RhythmEngine::DrumsEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     if (event.channel > IntIC(chart->size-1))

@@ -33,7 +33,6 @@ bool showPlayerManager = false;
 bool showColorProfileManager = false;
 bool showSongList = false;
 bool showQuickSettings = false;
-bool showPractice = false;
 bool showEasings = false;
 bool showJoystickTools = false;
 bool showLocaleDebug = false;
@@ -134,9 +133,6 @@ void EncoreDebug::DrawDebug() {
     if (showColorProfileManager) {
         DrawColorProfileSettings();
     }
-    if (showPractice) {
-        DrawPracticeSectionSelector();
-    }
     DrawSongScrubber();
     if (showEasings) {
         DrawEasingsWindow();
@@ -191,11 +187,6 @@ void EncoreDebug::MenuBar() {
         if (BeginMenu("Gameplay")) {
             if (MenuItem(pauseText.c_str())) {
                 paused = !paused;
-                for (auto player : ThePlayerManager.ActivePlayers) {
-                    if (!player)
-                        continue;
-                    player->engine->stats->Paused = paused;
-                }
                 if (paused) {
                     pauseText = "Resume";
                     TheAudioManager.pauseStreams();
@@ -209,7 +200,6 @@ void EncoreDebug::MenuBar() {
                 TheSongTime.FullReset();
                 TheMenuManager.CreateAndSwitchMenu<resultsMenu>(gameplayMenu->curSong);
             }
-            MenuItem("Practice", 0, &showPractice);
             MenuItem("Show Hud", 0, &showGameplayHud);
             if (BeginMenu("Active Stats/Engines")) {
                 for (auto& track : gameplayMenu->tracks) {
@@ -441,72 +431,6 @@ void DebugSeek(float time, float audioTime) {
     TheSongTime.CurrentBeatline = 0;
     TheSongTime.UpdateBeatlines();
 }
-
-
-void EncoreDebug::DrawPracticeSectionSelector() {
-    ZoneScoped;
-    bool isGameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get()) !=
-        nullptr;
-    if (isGameplay) {
-        if (Begin("Practice Section Selector")) {
-            for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size();
-                 sectionInt++) {
-                ImGui::Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
-                SameLine();
-                float buttWidth = CalcTextSize(" whole").x;
-                SetCursorPosX(GetWindowWidth() - (buttWidth * 3));
-                PushID(sectionInt);
-                if (Button("whole")) {
-                    double startTime;
-                    for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player)
-                            continue;
-                        double endTime = 0.0;
-                        startTime = TheSongTime.Sections.at(sectionInt).start;
-                        if (sectionInt == TheSongTime.Sections.size() - 1)
-                            endTime = TheSongTime.GetSongLength();
-                        else
-                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player->engine->pStartTime = startTime - 0.1;
-                        player->engine->pStopTime = endTime;
-                        player->engine->practice = true;
-                    }
-                    DebugSeek(startTime, startTime - 2);
-                }
-                SameLine();
-                if (Button("start")) {
-                    double startTime;
-                    for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player)
-                            continue;
-                        startTime = TheSongTime.Sections.at(sectionInt).start;
-                        player->engine->pStartTime = startTime - 0.1;
-                        player->engine->pStopTime = TheSongTime.GetSongLength();
-                        player->engine->practice = true;
-                    }
-                    DebugSeek(startTime, startTime - 2);
-                }
-                SameLine();
-                if (Button("end")) {
-                    for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player)
-                            continue;
-                        double endTime = 0.0;
-                        if (sectionInt == TheSongTime.Sections.size() - 1)
-                            endTime = TheSongTime.GetSongLength();
-                        else
-                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player->engine->pStopTime = endTime;
-                        player->engine->practice = true;
-                    }
-                }
-                PopID();
-            }
-        }
-        End();
-    }
-}
-
 struct TimelineTextSpacer {
     float startPos;
     float endPos;
@@ -1258,8 +1182,6 @@ void Encore::Track::DrawTrackDebugWindow() {
                 ImGui::Text("%s",
                             TextFormat("Multiplier: %.2fx",
                                        player.engine->Multiplier));
-                Checkbox("Allow Timestamped Inputs",
-                         &player.engine->allowTimestampedInputs);
                 EndTabItem();
             }
             if (BeginTabItem("Info")) {

@@ -190,9 +190,6 @@ void PracticeMenu::DrawGameplay() {
 
         if (!IsPaused()) {
             ZoneScopedN("Engine Update")
-            if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
-                player.engine->practice) {
-            }
             player.engine->Advance(TheSongTime.GetElapsedTime());
             player.engine->UpdateStats(player.Instrument, player.Difficulty);
         }

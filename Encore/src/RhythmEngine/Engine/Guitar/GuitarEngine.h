@@ -35,13 +35,11 @@ namespace Encore::RhythmEngine {
          */
         void RunHitStateCheck(ControllerEvent &event) override;
         void GuitarHitNote(bool strumInput);
-        void TogglePause() override { stats->Paused = !stats->Paused; };
     public:
         // std::unordered_map<std::string, RhythmTimer> Timers {
         //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
         // };
         void Advance(double CurrentTime) override;
-        void SetStatsInputState(ControllerEvent &event) override;
         // bool CanNoteBeHit() override;
         void Overhit();
         GuitarEngine(auto _chart, Player* _player)

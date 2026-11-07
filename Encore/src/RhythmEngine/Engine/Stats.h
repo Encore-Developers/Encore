@@ -114,14 +114,11 @@ namespace Encore::RhythmEngine {
         double LastPerfectTime = -1;
         bool SixMultiplier = false;
         bool CanHitHopo = true;
-        bool Paused = false;
         bool Bot = false;
         bool Quit = false;
         double Health = defaultHealth;
         bool Failed = false;
         double Accuracy = 0;
-        double LastHitOffset = -1;
-        double StarThresholdValue = 0.0;
         std::vector<NoteAccuracy> accuracies;
         // void HitNote(int chordSize, int perfect) {
         //     if (perfect == -1) {

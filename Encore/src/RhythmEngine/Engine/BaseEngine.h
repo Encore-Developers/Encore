@@ -44,8 +44,6 @@ namespace Encore::RhythmEngine {
 
         ~BaseEngine() override = default;
         void CalculateWeightedScore();
-        virtual void SetStatsInputState(ControllerEvent &event) {
-        };
         [[nodiscard]] bool EarlyStrike(double noteStartTime) const;
         [[nodiscard]] bool InHitwindow(double noteStartTime) const;
         [[nodiscard]] bool PerfectHit(double noteStartTime) const;
@@ -64,13 +62,9 @@ namespace Encore::RhythmEngine {
         std::unordered_map<std::string, RhythmTimer> Timers;
         std::vector<Sustain> ActiveSustains;
         double EngineTime = 0;
-        bool allowTimestampedInputs = true;
         size_t noteCount = 0;
 
         Player* player;
-        bool practice = false;
-        double pStartTime = 0.0;
-        double pStopTime = 0.0;
         std::pair<int, int> GetNotePoolSize(int lane) const;
 
         /// Not a live updating value
@@ -133,7 +127,6 @@ namespace Encore::RhythmEngine {
         // virtual bool CanNoteBeHit();
         TimePoint NextNoteTime();
         TimePoint LastNoteTime();
-        bool IsWithinPracticeSection(double time) const;
         virtual void Advance(double CurrentTime);
         void CheckMissedNotes(size_t Lane, TimeSeconds time);
         virtual void HitNote(size_t lane);
@@ -147,10 +140,7 @@ namespace Encore::RhythmEngine {
         void SetSucceeding(bool succeed);
 
     private:
-        virtual void TogglePause() = 0;
-
         virtual void RunHitStateCheck(ControllerEvent &event) = 0;
-
     };
 }
 

@@ -23,14 +23,15 @@ void Encore::RhythmEngine::PadEngine::OnOverdriveActivate(TimeSeconds time) {
     OverdriveLiftInput = true;
 }
 
-void Encore::RhythmEngine::PadEngine::SetStatsInputState(ControllerEvent &event) {
-
-}
-
 void Encore::RhythmEngine::PadEngine::RunHitStateCheck(ControllerEvent &event) {
     if (event.channel == InputChannel::STRUM_UP || event.channel ==
         InputChannel::STRUM_DOWN)
         return;
+
+    bool press = event.action == Action::PRESS;
+    if (event.channel < InputChannel::LANE_6) {
+        stats->HeldFrets.at(ICInt(event.channel)) = press;
+    }
 
 
     if (event.channel == InputChannel::OVERDRIVE && event.action == Action::RELEASE && OverdriveLiftInput) {

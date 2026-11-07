@@ -836,14 +836,6 @@ void Encore::Track::DrawNotes() {
             if (note->start.sec > GetViewEndTime()) {
                 continue;
             }
-            if (engine->practice) {
-                if (note->start.sec >= engine->pStopTime) {
-                    continue;
-                }
-                if (note->start.sec < engine->pStartTime) {
-                    continue;
-                }
-            }
             auto slots = GetSlotsForNote(*note);
             for (int i = 0; i < 7; i++) {
                 if (slots[i]) {

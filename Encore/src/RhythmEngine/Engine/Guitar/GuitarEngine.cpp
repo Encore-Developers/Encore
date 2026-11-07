@@ -61,18 +61,6 @@ void Encore::RhythmEngine::GuitarEngine::Advance(double CurrentTime) {
     BaseEngine::Advance(CurrentTime);
 }
 
-void Encore::RhythmEngine::GuitarEngine::SetStatsInputState(
-    ControllerEvent &event
-) {
-    if (event.channel == InputChannel::INVALID) return;
-
-
-    bool press = event.action == Action::PRESS;
-    if (event.channel < InputChannel::LANE_6) {
-        stats->HeldFrets.at(ICInt(event.channel)) = press;
-    }
-}
-
 /*
 bool Encore::RhythmEngine::GuitarEngine::CanNoteBeHit() {
     return true;
@@ -80,12 +68,15 @@ bool Encore::RhythmEngine::GuitarEngine::CanNoteBeHit() {
 
 void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 ) {
+    bool press = event.action == Action::PRESS;
+    if (event.channel < InputChannel::LANE_6) {
+        stats->HeldFrets.at(ICInt(event.channel)) = press;
+    }
     if (chart->CurrentNoteIterators.at(0) == chart->Lanes.at(0).end())
         return;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(0);
 
     uint8_t pMask = stats->HeldFretsArrayToMask();
-    bool press = event.action == Action::PRESS;
 
     // if (chart->IsHeldNotePresent(0)) {
     //     auto *held = chart->HeldNotePointers.at(0);

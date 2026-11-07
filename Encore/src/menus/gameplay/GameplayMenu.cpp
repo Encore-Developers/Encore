@@ -188,10 +188,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
             if (player.Bot)
                 continue;
             event.timestamp -= TheGameSettings.VideoOffset/1000.0;
-            if (engine->allowTimestampedInputs) {
-                if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
-                    engine->Advance(event.timestamp);
-            }
+            engine->Advance(event.timestamp);
             engine->ProcessInput(event);
             event.slot = player.ActiveSlot;
             track->recordedInputs.push_back(event);
@@ -689,9 +686,6 @@ void GameplayMenu::Draw() {
              * the current time and do not rely on a recent update to show the correct value.
              */
             double updateMargin = GetFrameTime() * 10;
-            if (player.engine->IsWithinPracticeSection(time) || !
-                player.engine->practice) {
-                }
             if (time - updateMargin > player.engine->EngineTime) {
                 player.engine->Advance(time - updateMargin);
                 player.engine->UpdateStats(player.Instrument, player.Difficulty);

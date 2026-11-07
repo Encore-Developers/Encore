@@ -95,7 +95,6 @@ bool Encore::RhythmEngine::BaseEngine::PerfectHit(double noteStartTime) const {
 void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     if (event.channel == InputChannel::INVALID)
         return;
-    SetStatsInputState(event);
     if (event.channel == InputChannel::WHAMMY) {
         UpdateWhammy(EngineTime, event.axis / (float)255);
     }
@@ -108,8 +107,7 @@ void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
         && event.action == Action::RELEASE) {
         return;
     }
-    if (IsWithinPracticeSection(event.timestamp) || !practice)
-        RunHitStateCheck(event);
+    RunHitStateCheck(event);
 }
 
 std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) const {
@@ -121,10 +119,6 @@ std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) 
         chart->at(lane).size() > NotePoolEnd ? NotePoolEnd : chart->at(lane).size();
 
     return std::pair<int, int> { NotePoolStart, NotePoolEnd };
-}
-
-bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) const {
-    return practice && time < pStopTime && time >= pStartTime;
 }
 void Encore::RhythmEngine::BaseEngine::Advance(double CurrentTime) {
     if (CurrentTime < EngineTime) {
@@ -219,7 +213,6 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     event.offset = offset;
     stats->TotalOffset += event.offset;
     FireEvent(&event);
-    stats->LastHitOffset = (EngineTime)-startTime;
     SetSucceeding(true);
     stats->Combo++;
     stats->NotesHit++;
