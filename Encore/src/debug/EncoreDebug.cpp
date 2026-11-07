@@ -424,6 +424,7 @@ void DebugSeek(float time, float audioTime) {
             engine->supressEvents = false;
 
         } else {
+            engine->stats->Failed = true;
             for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
                 if (i >= engine->chart->Lanes.size()) {
                     break;
