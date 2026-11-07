@@ -148,11 +148,10 @@ void Encore::RhythmEngine::BaseEngine::Advance(double CurrentTime) {
     defferredMultiplierUpdates.clear();
 }
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, TimeSeconds time) {
-    if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
-        return;
-
     bool MissedNote = false;
     do {
+        if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
+            return;
         auto CurrentNote = chart->CurrentNoteIterators.at(Lane);
         MissedNote = false;
         TimeSeconds MissTime = 0.0;
@@ -161,12 +160,12 @@ void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, TimeSeconds
             NextNote += 1;
             double noteMiddlePoint = (NextNote->start - CurrentNote->start).sec / dynamicHitwindowRatio;
             if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
+            if (noteMiddlePoint > goodBackend) noteMiddlePoint = goodBackend;
             if (CurrentNote->start + noteMiddlePoint < time) {
                 MissedNote = true;
                 MissTime = CurrentNote->start + noteMiddlePoint;
             }
-        }
-        if (CurrentNote->start.sec + goodBackend < time) {
+        } else if (CurrentNote->start.sec + goodBackend < time) {
             MissedNote = true;
             MissTime = CurrentNote->start.sec + goodBackend;
         }

@@ -526,7 +526,7 @@ std::string GameplayMenu::SaveReplay() {
             if (engine->stats->Score == track->player.engine->stats->Score) {
                 Encore::Log::Info("Replay for {} validated successfully", track->player.Name);
             } else {
-                Encore::Log::Warn("Replay for {} is inconsistent! Replay: {}, Played: {}", track->player.Name, engine->stats->Score, track->player.engine->stats->Score);
+                Encore::Log::Warn("Replay for {} is inconsistent! Replay: {} ({}), Played: {} ({})", track->player.Name, engine->stats->Score, engine->stats->GetAccuracyScore(), track->player.engine->stats->Score, track->player.engine->stats->GetAccuracyScore());
             }
         }
     }
