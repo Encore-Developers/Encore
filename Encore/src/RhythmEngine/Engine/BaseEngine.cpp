@@ -440,6 +440,7 @@ void Encore::RhythmEngine::BaseEngine::ActivateOverdrive(TimeSeconds time) {
     OverdriveActive = true;
     OverdriveActivateTime = time;
     UpdateMultiplier(time);
+    OnOverdriveActivate(time);
     // TODO: fire all the events n shit
 }
 void Encore::RhythmEngine::BaseEngine::EndOverdrive(TimeSeconds time) {
