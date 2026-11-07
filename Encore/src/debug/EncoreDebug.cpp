@@ -232,6 +232,23 @@ void EncoreDebug::MenuBar() {
 
     EndMainMenuBar();
 }
+void EncoreDebug::DrawScoreSaving() {
+
+    if (Begin("Score Saving", &showSaving, 0)) {
+        if (Button("Save debug score")) {
+            std::random_device seed;
+            std::minstd_rand prng(seed());
+            std::uniform_int_distribution<> dist(0, TheSongList.songs.size() - 1);
+            int selectedSong = dist(prng);
+            TheScoreDatabase.SetScore(TheSongList.songs[selectedSong].hash, {32767});
+        }
+        if (Button("Load test score")) {
+            auto scores = TheScoreDatabase.GetAllScores();
+            scores.at(0);
+        }
+        End();
+    }
+}
 
 void EncoreDebug::DrawColorProfileSettings() {
     ZoneScoped;
