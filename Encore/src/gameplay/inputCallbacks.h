@@ -21,6 +21,7 @@ void SyncSDLWithAudio();
 double SDLTimeToAudioTime(uint64_t ticks);
 
 extern double syncAudioTime;
+extern double inputSafeUpdateTime;
 extern uint64_t syncSDLTicks;
 
 extern double lastTranslatedTime;

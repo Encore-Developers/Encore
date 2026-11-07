@@ -375,8 +375,24 @@ void DebugSeek(float time, float audioTime) {
             player->ReplayPlayer->lastEventFetched = false;
             player->ReplayPlayer->nextInput = player->ReplayPlayer->replayParticipant->inputs.begin();
             player->ReplayPlayer->lastUpdateTime = time;
+            engine->supressEvents = true;
             engine->stats = std::make_shared<Encore::RhythmEngine::Stats>();
             engine->stats->accuracies.reserve(engine->noteCount);
+            engine->OverdriveActive = false;
+            engine->OverdriveValue = 0;
+            engine->whammy = 0;
+            engine->WhammyMaxTime = 0;
+            engine->lastWhammyTriggerPoint = 0;
+            engine->earlyWhammyPrevention = false;
+            engine->HasWhammyOD = false;
+            engine->WhammyODTime = 0;
+            engine->ActiveSustains.clear();
+            engine->CalculateWeightedScore();
+            engine->chart->overdrive.ResetEvents();
+            engine->chart->overdrive.CurrentEvent = 0;
+            for (auto& timer : engine->Timers) {
+                timer.second.ResetTimer();
+            }
 
             for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); ++i) {
                 if (i >= engine->chart->Lanes.size()) {
@@ -390,6 +406,7 @@ void DebugSeek(float time, float audioTime) {
                 player->engine->Advance(input->timestamp);
                 player->engine->ProcessInput(*input);
             }
+            engine->supressEvents = false;
 
         } else {
             for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {

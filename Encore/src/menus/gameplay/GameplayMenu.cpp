@@ -157,6 +157,11 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
             sdlEvent->down = false; // HACK: "Consume" the event by setting it to an key up event
         }
         event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp) - TheGameSettings.VideoOffset/1000.0;
+        // I don't like doing this in GameplayMenu but in the future keyboard inputs will
+        // go through the same data path as controller inputs so w/e
+        if (inputSafeUpdateTime < event.timestamp) {
+            inputSafeUpdateTime = event.timestamp;
+        }
         if (!CheckPauseInput(event))
             if (event.channel != Encore::InputChannel::INVALID) {
                 engine->Advance(event.timestamp);
@@ -656,11 +661,13 @@ void GameplayMenu::Draw() {
         stream.volume = volume;
     }
 
+    auto time = inputSafeUpdateTime - TheGameSettings.VideoOffset/1000.0;
+
     for (auto& track : tracks) {
         Player &player = track->player;
 
         if (player.PlaybackReplay) {
-            player.ReplayPlayer->Advance(TheSongTime.GetElapsedTime());
+            player.ReplayPlayer->Advance(time);
             while (player.ReplayPlayer->HasNextInput()) {
                 auto input = player.ReplayPlayer->GetNextInput();
                 player.engine->Advance(input->timestamp);
@@ -670,11 +677,25 @@ void GameplayMenu::Draw() {
 
         if (!IsPaused()) {
             ZoneScopedN("Engine Update")
-            if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
+            /* To prevent engine backstepping because of the way inputs are polled
+             * we'll update the engine a few frames behind if there haven't been any inputs
+             * in that time.
+             * The only visible difference this'll make to the player is stuff like
+             * overdrive ending and missing notes will happen a few frames late (provided the
+             * player hasn't made any inputs), but these are not latency-critical events.
+             * The engine always will update for every input at the correct time so this
+             * is just to prevent frame updates from causing inconsistencies in scoring.
+             * Things like score (from sustains) and overdrive fill are extrapolated from
+             * the current time and do not rely on a recent update to show the correct value.
+             */
+            double updateMargin = GetFrameTime() * 10;
+            if (player.engine->IsWithinPracticeSection(time) || !
                 player.engine->practice) {
                 }
-            player.engine->Advance(TheSongTime.GetElapsedTime() - TheGameSettings.VideoOffset/1000.0);
-            player.engine->UpdateStats(player.Instrument, player.Difficulty);
+            if (time - updateMargin > player.engine->EngineTime) {
+                player.engine->Advance(time - updateMargin);
+                player.engine->UpdateStats(player.Instrument, player.Difficulty);
+            }
         }
 
         track->Draw();

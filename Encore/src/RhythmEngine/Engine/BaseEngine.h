@@ -63,7 +63,7 @@ namespace Encore::RhythmEngine {
         std::shared_ptr<Stats> stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
         std::vector<Sustain> ActiveSustains;
-        double EngineTime;
+        double EngineTime = 0;
         bool allowTimestampedInputs = true;
         size_t noteCount = 0;
 
@@ -118,7 +118,15 @@ namespace Encore::RhythmEngine {
 
         /// Call *after* updating OverdriveActive
         void UpdateMultiplier(TimeSeconds time);
+        void SegmentSustains(TimeSeconds time, double newMultiplier);
         double Multiplier = 1;
+
+        bool deferMultiplierUpdates = false;
+        struct MultUpdate {
+            TimeSeconds time;
+            double mult;
+        };
+        std::vector<MultUpdate> defferredMultiplierUpdates;
 
 
         // bool GetCurrentNote(int lane);

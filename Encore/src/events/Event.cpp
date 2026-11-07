@@ -13,6 +13,9 @@ void Encore::EventSource::RemoveSink(EventSink *sink) {
 }
 
 void Encore::EventSource::FireEvent(Event *event) {
+    if (supressEvents) {
+        return;
+    }
     for (auto sink : sinks) {
         sink->HandleEvent(event);
     }

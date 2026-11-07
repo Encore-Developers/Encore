@@ -127,13 +127,31 @@ bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) cons
     return practice && time < pStopTime && time >= pStartTime;
 }
 void Encore::RhythmEngine::BaseEngine::Advance(double CurrentTime) {
+    if (CurrentTime < EngineTime) {
+        Log::Warn("Engine backstepping by {}ms", (CurrentTime-EngineTime) * 1000);
+    }
+    if (CurrentTime == EngineTime) {
+        return;
+    }
     EngineTime = CurrentTime;
+    deferMultiplierUpdates = true;
     UpdateOverdrive(CurrentTime);
-    UpdateSustains();
     for (int i = 0; i < chart->Lanes.size(); i++) {
         CheckMissedNotes(i, EngineTime);
     }
+    UpdateSustains();
     chart->solos.CheckEventsSeconds(CurrentTime);
+    deferMultiplierUpdates = false;
+
+    // This is the ensure sustains calculate the correct values over large delta times
+    // TODO: this might cause issues with pad chord sustains
+    if (defferredMultiplierUpdates.size() > 1) {
+        std::ranges::sort(defferredMultiplierUpdates.begin(), defferredMultiplierUpdates.end(), [](MultUpdate& a, MultUpdate& b){return a.time < b.time;});
+    }
+    for (auto& upd : defferredMultiplierUpdates) {
+        SegmentSustains(upd.time, upd.mult);
+    }
+    defferredMultiplierUpdates.clear();
 }
 void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, TimeSeconds time) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
@@ -210,7 +228,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
         stats->PerfectHits++;
-        Log::Debug("Accuracy: {}", 1);
+        //Log::Debug("Accuracy: {}", 1);
         stats->AddHealth(1);
         HealthChangeEvent hce;
         FireEvent(&hce);
@@ -223,7 +241,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         stats->AddHealth(acc);
         HealthChangeEvent hce;
         FireEvent(&hce);
-        Log::Debug("Accuracy: {}", acc);
+        //Log::Debug("Accuracy: {}", acc);
     }
 
     TrackNotificationEvent event2 { startTime, TrackNotificationEvent::HOTSTART };
@@ -326,7 +344,6 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     // should be safe, right?
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).overhits++;
-    TextFormat("Player %s overhit", player->Name.c_str());
     if (stats->Combo > 0) {
         MultFlashEvent e { true };
         FireEvent(&e);
@@ -390,7 +407,8 @@ void Encore::RhythmEngine::BaseEngine::UpdateWhammy(TimeSeconds time, float newW
                 time = minWhammyTime;
             }
             if (hasODSustain) {
-                StartWhammy(time > minWhammyTime ? time : minWhammyTime, maxWhammyTime);
+                TimeSeconds whammyTime = time > minWhammyTime ? time : minWhammyTime;
+                StartWhammy(whammyTime, maxWhammyTime);
             }
         }
     }
@@ -531,12 +549,23 @@ void Encore::RhythmEngine::BaseEngine::DropSustain(TimeSeconds time, Sustain &su
 }
 void Encore::RhythmEngine::BaseEngine::UpdateMultiplier(TimeSeconds time) {
     Multiplier = stats->ComboToMultiplier(stats->Combo) * (OverdriveActive ? stats->ep.mult.odMult : 1);
-    for (auto& sustain : ActiveSustains) {
-        CompleteSustain(time, sustain);
-        sustain.start = TheSongTime.SecondsToBeat(time);
-        sustain.multiplier = Multiplier;
+    if (deferMultiplierUpdates) {
+        defferredMultiplierUpdates.push_back({time, Multiplier});
+    } else {
+        SegmentSustains(time, Multiplier);
     }
 }
+void Encore::RhythmEngine::BaseEngine::SegmentSustains(TimeSeconds time, double newMultiplier) {
+    for (auto& sustain : ActiveSustains) {
+        CompleteSustain(time, sustain);
+        TimeBeats newStart = TheSongTime.SecondsToBeat(time);
+        if (newStart > sustain.start) {
+            sustain.start = newStart;
+        }
+        sustain.multiplier = newMultiplier;
+    }
+}
+
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {
     TimePoint tp { 0, 0 };
     for (size_t Lane = 0; Lane < chart->Lanes.size(); Lane++) {
