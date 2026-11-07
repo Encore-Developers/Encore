@@ -19,6 +19,7 @@
 #include "../MenuManager.h"
 #include "../overshell/OvershellHelper.h"
 #include "../../settings/settings.h"
+#include "RhythmEngine/ChartLoaders/ChartLoader.h"
 #include "SDL3/SDL_filesystem.h"
 #include "debug/EncoreDebug.h"
 
@@ -508,6 +509,25 @@ std::string GameplayMenu::SaveReplay() {
         } else {
             auto& part = recordingReplay.participants.emplace_back(track->player);
             part.inputs = track->recordedInputs;
+
+            Encore::RhythmEngine::ChartLoader loader = curSong;
+            loader.LoadCharts();
+            auto engine = loader.CreateEngine(&track->player);
+            Encore::RhythmEngine::ReplayPlayer validate = part;
+            validate.Advance(curSong->end);
+            while (validate.HasNextInput()) {
+                auto input = validate.GetNextInput();
+                engine->Advance(input->timestamp);
+                engine->ProcessInput(*input);
+            }
+            // to catch sustains at the end the song in case the player never inputs anything after them
+            engine->Advance(curSong->end);
+
+            if (engine->stats->Score == track->player.engine->stats->Score) {
+                Encore::Log::Info("Replay for {} validated successfully", track->player.Name);
+            } else {
+                Encore::Log::Warn("Replay for {} is inconsistent! Replay: {}, Played: {}", track->player.Name, engine->stats->Score, track->player.engine->stats->Score);
+            }
         }
     }
     recordingReplay.Save(replayOut);
@@ -644,8 +664,6 @@ void GameplayMenu::Draw() {
 
     if (TheSongTime.GetElapsedTime() > curSong->end - 0.1) {
         // TODO: endgame
-        TheSongTime.FullReset();
-        TheAudioManager.unloadStreams();
         songPlaying = false;
         auto replayFilename = SaveReplay();
         if (!replayFilename.empty()) {
@@ -662,6 +680,8 @@ void GameplayMenu::Draw() {
             }
             TheScoreDatabase.SetScore(curSong->hash, results);
         }
+        TheSongTime.FullReset();
+        TheAudioManager.unloadStreams();
         TheMenuManager.CreateAndSwitchMenu<resultsMenu>(curSong);
         return;
     }
