@@ -872,10 +872,6 @@ void GameplayMenu::Load() {
             }
             track->ColorProfileType = Encore::ProfileManager::PAD;
         }
-        if (player.Instrument == PlasticBass || player.Instrument == PartVocals
-            || player.Instrument == PartBass) {
-            player.engine->stats->SixMultiplier = true;
-        }
         if (player.Bot)
             player.engine->stats->Bot = true;
 

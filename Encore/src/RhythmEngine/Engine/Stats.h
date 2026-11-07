@@ -112,10 +112,8 @@ namespace Encore::RhythmEngine {
         double TotalOffset = 0;
         bool AudioMuted = false;
         double LastPerfectTime = -1;
-        bool SixMultiplier = false;
         bool CanHitHopo = true;
         bool Bot = false;
-        bool Quit = false;
         double Health = defaultHealth;
         bool Failed = false;
         double Accuracy = 0;

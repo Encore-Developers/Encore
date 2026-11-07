@@ -305,7 +305,7 @@ void Encore::Track::DrawSurface() {
 
     SpotlightTimer = Lerp(SpotlightTimer,
                           (int)(engine->stats->ComboToMultiplier(engine->stats->Combo) >= (
-                              engine->stats->SixMultiplier ? 6 : 4)),
+                              engine->stats->ep.mult.max)),
                           GetFrameTime() * 3);
     if (SpotlightTimer > 0.01) {
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(spotlightTex);
