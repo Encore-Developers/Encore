@@ -87,6 +87,7 @@ namespace Encore {
     class EventSource {
     public:
         std::unordered_set<EventSink *> sinks;
+        bool supressEvents = false;
 
         void AddSink(EventSink *sink);
         void RemoveSink(EventSink *sink);

@@ -12,7 +12,6 @@
 #include "Guitar/MidiGuitarLoader.h"
 #include "Pad/MidiPadLoader.h"
 #include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
-#include "RhythmEngine/Overdrive/OverdriveTicks.h"
 #include "util/threadpool.h"
 std::vector<std::vector<int>> pDiffRangeNotes = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
@@ -124,31 +123,31 @@ GetValidParts() {
     return Parts;
 }
 
-Encore::RhythmEngine::OverdriveTicks
+std::vector<Encore::RhythmEngine::TimePoint>
 Encore::RhythmEngine::MidiChartHandler::GenerateOverdriveTicks() {
     ZoneScoped;
     //midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midifile[EventsTrack];
-    OverdriveTicks overdriveTicks;
+    std::vector<TimePoint> ticks;
     track.linkEventPairs();
     // 12 and 13 are the beats
     for (int i = 0; i < track.getSize(); i++) {
         if (track[i].isNoteOn() && (track[i][1] == 12 || track[i][1] == 13)) {
-            overdriveTicks.ticks.emplace_back(track[i].seconds, track[i].tick);
+            ticks.emplace_back(track[i].seconds, track[i].tick);
         }
     }
 
     // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
-    if (overdriveTicks.ticks.empty()) {
+    if (ticks.empty()) {
         int overdriveTickCount = midifile.getFileDurationInTicks() / TheSongTime.songPPQN;
         for (int i = 0; i < overdriveTickCount; i++) {
-            overdriveTicks.ticks.emplace_back(
+            ticks.emplace_back(
                 midifile.getTimeInSeconds(TheSongTime.songPPQN * i),
                 TheSongTime.songPPQN * i);
         }
     }
 
-    return overdriveTicks;
+    return ticks;
 }
 
 std::vector<Encore::RhythmEngine::LyricPhrase>

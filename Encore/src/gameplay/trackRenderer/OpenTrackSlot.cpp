@@ -14,7 +14,7 @@ void Encore::OpenTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed)
     Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
 
 
-    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
+    if (track->player.engine->chart->overdrive.TimeIsInODPhrase(note->start.sec)) {
         color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, track->ColorProfileType));
     } else {
@@ -70,9 +70,8 @@ void Encore::OpenTrackSlot::DrawSmasher(bool held) {
     } else {
         animTimer = 1;
     }
-    for (auto note : track->player.engine->chart->HeldNotePointers) {
-        if (!note)
-            continue;
+    for (auto& sustain : track->engine->ActiveSustains) {
+        auto note = sustain.note;
         if (note->end.sec < TheSongTime.GetElapsedTime()) {
             continue;
         }
@@ -81,7 +80,7 @@ void Encore::OpenTrackSlot::DrawSmasher(bool held) {
             matches = true;
         }
         Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
-        if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
+        if (track->player.engine->chart->overdrive.TimeIsInODPhrase(note->start.sec)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         }
         if (matches) {

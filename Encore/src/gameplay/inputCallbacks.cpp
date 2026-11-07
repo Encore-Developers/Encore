@@ -30,6 +30,7 @@ void keyCallback(SDL_KeyboardEvent* event) {
     // Encore::EncoreLog(LOG_DEBUG, TextFormat("Keyboard key %01i inputted on menu %s",
     // key, ToString(TheMenuManager.currentScreen)) );
 
+
     if (event->down) {
         if (event->key == SDLK_F11 || (event->key == SDLK_RETURN && event->mod & SDL_KMOD_ALT)) {
             TheGameSettings.Fullscreen = !TheGameSettings.Fullscreen;
@@ -61,6 +62,7 @@ void gamepadStateCallback(Encore::ControllerEvent event) {
 }
 
 double syncAudioTime;
+double inputSafeUpdateTime = 0;
 uint64_t syncSDLTicks;
 double lastTranslatedTime = 0;
 
@@ -73,6 +75,7 @@ void SyncSDLWithAudio() {
     }
     syncSDLTicks = SDL_GetTicksNS();
     syncAudioTime = TheSongTime.GetElapsedTime();
+    inputSafeUpdateTime = syncAudioTime;
 }
 
 double SDLTimeToAudioTime(uint64_t ticks) {
@@ -282,6 +285,7 @@ Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
 
 void ProcessControllerEvent(const Encore::ControllerEvent &event) {
     ZoneScoped;
+    inputSafeUpdateTime = event.timestamp;
     if (TheMenuManager.ActiveMenu) {
         if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
             if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
@@ -298,6 +302,8 @@ int controllerPollRate = 1000;
 void PollControllers(std::stop_token token) {
     // Mapping for Xbox One guitars under the xone linux module
     SDL_AddGamepadMapping("060074ae6f0e00004802000000010000,PDP Rock Band 4 Jaguar,a:b3,b:b4,y:b5,x:b6,leftshoulder:b7,back:b0,start:b1,guide:b2,dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,rightx:a0");
+    SDL_SetEventEnabled(SDL_EVENT_GAMEPAD_UPDATE_COMPLETE, true);
+    SDL_SetEventEnabled(SDL_EVENT_JOYSTICK_UPDATE_COMPLETE, true);
 
     while (!token.stop_requested()) {
         ZoneScopedN("Controller Poll Thread")

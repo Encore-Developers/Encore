@@ -7,19 +7,10 @@
 
 namespace Encore::RhythmEngine {
     class DrumsEngine : public BaseEngine {
-        bool ActivateOverdrive(ControllerEvent &event) override;
-
-
-        int RunHitStateCheck(ControllerEvent &event) override;
-        bool PlayerIsPaused() override { return stats->Paused; };
-        void TogglePause() override { stats->Paused = !stats->Paused; };
-
+        void RunHitStateCheck(ControllerEvent &event) override;
     public:
         void HitNote(size_t lane) override;
-        void UpdateOnFrame(double CurrentTime) override;
-        void SetStatsInputState(ControllerEvent &event) override;
-        TimePoint NextNoteTime() override;
-        TimePoint LastNoteTime() override;
+        void Advance(double CurrentTime) override;
         DrumsEngine(auto _chart, Player* _player)
             : BaseEngine(_chart, _player) {
                 Timers = {{"debounce", RhythmTimer(0.01)}};

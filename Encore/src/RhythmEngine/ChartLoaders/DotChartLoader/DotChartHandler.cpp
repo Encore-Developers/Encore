@@ -139,9 +139,9 @@ GetValidParts() {
     return Parts;
 }
 
-Encore::RhythmEngine::OverdriveTicks Encore::RhythmEngine::DotChartHandler::
+std::vector<Encore::RhythmEngine::TimePoint> Encore::RhythmEngine::DotChartHandler::
 GenerateOverdriveTicks() {
-    return OverdriveTicks{};
+    return {};
 }
 
 std::vector<Encore::RhythmEngine::LyricPhrase> Encore::RhythmEngine::DotChartHandler::

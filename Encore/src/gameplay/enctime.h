@@ -9,11 +9,7 @@
 
 #include "RhythmEngine/events/EncEvents/EncChartEvents.h"
 #include "song/song.h"
-
-typedef double TimeSeconds;
-typedef double TimeBeats;
-typedef double TimeODTicks;
-typedef int TimeTicks;
+#include "RhythmEngine/timetypes.h"
 
 struct BPM {
     BPM(TimeSeconds _time, double _bpm, TimeTicks _tick) : time(_time), bpm(_bpm), tick(_tick) {};
@@ -82,6 +78,8 @@ public:
     std::vector<Beatline> Beatlines {};
     size_t CurrentBeatline;
 
+    std::vector<Encore::RhythmEngine::TimePoint> OverdriveTicks;
+
     std::vector<Section> Sections {};
     size_t CurrentLyricPhrase = 0;
     std::vector<Encore::RhythmEngine::LyricPhrase> Lyrics {};
@@ -102,6 +100,9 @@ public:
 
     void UpdateTick();
     TimeBeats SecondsToBeat(TimeSeconds seconds);
+    TimeSeconds BeatToSeconds(TimeBeats beat);
+    TimeODTicks SecondsToODTick(TimeSeconds seconds) const;
+    TimeSeconds ODTickToSeconds(TimeODTicks odTick) const;
     [[nodiscard]] double GetCurrentTick() const;
     [[nodiscard]] double GetLastTick() const;
     double TimeRangeToTickDelta(double timeStart, double timeEnd, const BPM &bpm);

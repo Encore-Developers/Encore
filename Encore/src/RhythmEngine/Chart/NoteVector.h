@@ -45,12 +45,10 @@ namespace Encore::RhythmEngine {
         explicit BaseChart(const size_t _size) : size(_size) {
             Lanes.resize(size);
             CurrentNoteIterators.resize(size);
-            HeldNotePointers.resize(size);
         };
         BaseChart() : size(5) {
             Lanes.resize(size);
             CurrentNoteIterators.resize(size);
-            HeldNotePointers.resize(size);
         };
         uint8_t size;
         NoteVector &operator[](const size_t i) { return this->Lanes.at(i); }
@@ -59,13 +57,9 @@ namespace Encore::RhythmEngine {
             size = _size;
             Lanes.resize(_size);
             CurrentNoteIterators.resize(_size);
-            HeldNotePointers.resize(_size);
         }
         std::vector<NoteVector> Lanes;
         std::vector<NoteVector::iterator> CurrentNoteIterators;
-        // todo: please fix extended sustains, i really dont wanna do this right now
-        // idea: use array instead of singular note
-        std::vector<NoteEvent*> HeldNotePointers;
         std::vector<NoteEvent *> MissedNotePointers;
         std::vector<NoteEvent *> DroppedSustainPointers;
         double BaseScore = 0;
@@ -73,7 +67,7 @@ namespace Encore::RhythmEngine {
          * this DOES NOT CARE about timing or ANYTHING.
          * it simply just gets the next note in said lane
          */
-        bool UpdateCurrentNote(const size_t lane) {
+        bool AdvanceCurrentNote(const size_t lane) {
             // if (std::distance(Lanes.at(lane).begin(), CurrentNoteIterators.at(lane))
             //     >= Lanes.at(lane).size()) {
             //     // bounds check
@@ -86,34 +80,11 @@ namespace Encore::RhythmEngine {
         }
 
         /**
-         * sustains
-         */
-        void SetCurrentNoteAsHeldNote(const size_t lane) {
-            HeldNotePointers.at(lane) = &*CurrentNoteIterators.at(lane);
-        }
-
-        bool IsHeldNotePresent(const size_t lane) const {
-            return HeldNotePointers.at(lane);
-        }
-
-        void DropSustain(size_t lane) {
-            if (IsHeldNotePresent(lane)) {
-                if (HeldNotePointers.at(lane)->end.sec - 0.075 > TheSongTime.GetElapsedTime() ) {
-                    DroppedSustainPointers.push_back(HeldNotePointers.at(lane));
-                }
-                HeldNotePointers.at(lane) = nullptr;
-            }
-        }
-
-        /**
          * reset notes
          */
         void Reset(size_t lane) {
             for (size_t i = 0; i < CurrentNoteIterators.size(); i++) {
                 CurrentNoteIterators.at(i) = Lanes.at(i).begin();
-            }
-            for (size_t i = 0; i < HeldNotePointers.size(); i++) {
-                HeldNotePointers.at(i) = nullptr;
             }
         }
 

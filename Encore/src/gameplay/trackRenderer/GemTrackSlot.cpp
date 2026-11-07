@@ -20,7 +20,7 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) 
         ASSET(noteShader).SetUniform("frameColor", color);
         ASSET(noteShader).SetUniform("noteColor", Color{ 60, 60, 60, 255 });
     } else {
-        if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
+        if (track->player.engine->chart->overdrive.TimeIsInODPhrase(note->start.sec)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
             ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, track->ColorProfileType));
         } else {
@@ -269,9 +269,8 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
     //            shockwaveParticle->color = GOLD;
     //    }
     //}
-    for (auto note : track->player.engine->chart->HeldNotePointers) {
-        if (!note)
-            continue;
+    for (auto& sustain : track->engine->ActiveSustains) {
+        auto note = sustain.note;
         if (note->end.sec < TheSongTime.GetElapsedTime()) {
             continue;
         }
@@ -279,7 +278,7 @@ void Encore::GemTrackSlot::DrawSmasher(bool held) {
         if (note->lane & RhythmEngine::PlasticFrets[index]) {
             matches = true;
         }
-        if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
+        if (track->player.engine->chart->overdrive.TimeIsInODPhrase(note->start.sec)) {
             color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         }
         if (matches) {
@@ -302,7 +301,7 @@ void Encore::GemTrackSlot::AnimateHit(bool perfect, Color colorg) {
         parentSlot->AnimateHit(perfect, colorg);
         return;
     }
-    if (track->player.engine->chart->overdrive.RenderNotesAsOD(TheSongTime.GetElapsedTime())) {
+    if (track->player.engine->chart->overdrive.TimeIsInODPhrase(TheSongTime.GetElapsedTime())) {
         colorg = ColorBrightness(WHITE, -0.5);
     }
     float size = 2.0f;

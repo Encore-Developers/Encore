@@ -34,6 +34,7 @@ void ChartLoadingMenu::LoadCharts() {
         TheSongTime.BPMChanges = chartLoader.GetBPMChanges();
         TheSongTime.TimeSigChanges = chartLoader.GetTimeSigChanges();
         TheSongTime.songPPQN = chartLoader.GetResolution();
+        TheSongTime.OverdriveTicks = chartLoader.GenerateOverdriveTicks();
         TheSongTime.GenerateBeatmap(chartLoader.GetEndEvent().first);
     }
     chartLoader.LoadCharts();

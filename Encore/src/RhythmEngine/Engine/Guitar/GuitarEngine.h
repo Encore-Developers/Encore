@@ -10,8 +10,6 @@ namespace Encore::RhythmEngine {
         bool MaskMatch(const NoteEvent *itr, uint8_t mask) const;
         bool IsEarly() const;
 
-        bool ActivateOverdrive(ControllerEvent &event) override;
-        void CheckMissedNotes(double CurrentTime);
         bool IsInputTooEarly() const;
         /*
          * STRUM PATH: ___________________________________________________________________
@@ -35,18 +33,13 @@ namespace Encore::RhythmEngine {
          *
          *
          */
-        int RunHitStateCheck(ControllerEvent &event) override;
-        void HitNote(bool strumInput);
-        bool PlayerIsPaused() override { return stats->Paused; };
-        void TogglePause() override { stats->Paused = !stats->Paused; };
+        void RunHitStateCheck(ControllerEvent &event) override;
+        void GuitarHitNote(bool strumInput);
     public:
         // std::unordered_map<std::string, RhythmTimer> Timers {
         //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }
         // };
-        void UpdateOnFrame(double CurrentTime) override;
-        void SetStatsInputState(ControllerEvent &event) override;
-        TimePoint NextNoteTime() override;
-        TimePoint LastNoteTime() override;
+        void Advance(double CurrentTime) override;
         // bool CanNoteBeHit() override;
         void Overhit();
         GuitarEngine(auto _chart, Player* _player)

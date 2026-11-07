@@ -370,6 +370,9 @@ int TheGame::Run(int argc, char *argv[]) {
             case SDL_EVENT_GAMEPAD_AXIS_MOTION:
                 ProcessControllerEvent(TranslateSDLEvent(&event));
                 break;
+            case SDL_EVENT_GAMEPAD_UPDATE_COMPLETE:
+                inputSafeUpdateTime = SDLTimeToAudioTime(event.common.timestamp);
+                break;
             case SDL_EVENT_DROP_FILE:
                 QuickOpenSongDir(event.drop.data);
                 break;

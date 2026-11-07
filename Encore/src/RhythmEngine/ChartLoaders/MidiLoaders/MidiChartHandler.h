@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RhythmEngine/ChartLoaders/ChartLoader.h"
-#include "RhythmEngine/Overdrive/OverdriveTicks.h"
 //
 // Created by maria on 15/06/2026.
 //
@@ -22,7 +21,7 @@ namespace Encore::RhythmEngine {
         std::vector<BPM> GetBPMChanges() override;
         std::vector<TimeSig> GetTimeSigChanges() override;
         std::array<TrackInformation, PlasticVocals>& GetValidParts() override;
-        OverdriveTicks GenerateOverdriveTicks() override;
+        std::vector<TimePoint> GenerateOverdriveTicks() override;
         std::vector<LyricPhrase> GetLyricPhrases() override;
         void LoadCharts() override;
         std::pair<int, double> GetEndEvent() override;

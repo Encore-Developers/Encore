@@ -4,6 +4,7 @@
 
 #include "BaseEngine.h"
 
+#include "RhythmEngine/timetypes.h"
 #include "gameplay/enctime.h"
 #include "settings/settings.h"
 #include "song/song.h"
@@ -13,6 +14,21 @@
 
 #include "song/audio.h"
 
+double Encore::RhythmEngine::Sustain::GetValueAtTime(TimeBeats time) const {
+    if (end < start) {
+        return 0;
+    }
+    double progress = 0;
+    if (time < start) {
+        return 0;
+    }
+    if (time > end) {
+        progress = 1;
+    } else {
+        progress = (time - start) / (end - start);
+    }
+    return progress * multiplier * valuePerBeat * (end - start);
+}
 void Encore::RhythmEngine::BaseEngine::CalculateWeightedScore() {
     double weighted = 0;
     double count = 1;
@@ -35,7 +51,7 @@ void Encore::RhythmEngine::BaseEngine::CalculateWeightedScore() {
     std::ranges::sort(notes, [](const NoteEvent* a, const NoteEvent* b){return a->start < b->start;});
 
     for (auto note : notes) {
-        double Multiplier = (int(count) / stats->ep.mult.count) + 1;
+        double Multiplier = (int(count) / stats->ep.mult.notesPerMult) + 1;
         if (Multiplier > stats->ep.mult.max) {
             Multiplier = stats->ep.mult.max;
         }
@@ -79,56 +95,19 @@ bool Encore::RhythmEngine::BaseEngine::PerfectHit(double noteStartTime) const {
 void Encore::RhythmEngine::BaseEngine::ProcessInput(ControllerEvent &event) {
     if (event.channel == InputChannel::INVALID)
         return;
-
-    // if (PauseGame(event)) {
-    //     return;
-    // }
-    if (PlayerIsPaused())
-        return;
-
-    if (ActivateOverdrive(event)) {
-        return;
+    if (event.channel == InputChannel::WHAMMY) {
+        UpdateWhammy(EngineTime, event.axis / (float)255);
     }
-    SetStatsInputState(event);
+    if (!OverdriveActive && OverdriveValue > 0 && event.channel == InputChannel::OVERDRIVE && event.action == Action::PRESS) {
+        ActivateOverdrive(EngineTime);
+    }
     // look its really stupid but like. cmon
     if ((event.channel == InputChannel::STRUM_DOWN
          || event.channel == InputChannel::STRUM_UP)
         && event.action == Action::RELEASE) {
         return;
     }
-    if (IsWithinPracticeSection(event.timestamp) || !practice)
-        RunHitStateCheck(event);
-}
-// i dont think this is needed because it was technically already taken care of by
-// BaseChart
-/*bool Encore::RhythmEngine::BaseEngine::GetCurrentNote(int lane) {
-    if (chart->at(lane).empty())
-        return false;
-
-    curNoteItrs[lane] = chart->at(lane).begin();
-    while (curNoteItrs[lane]->StartSeconds + goodBackend
-           < TheSongTime.GetElapsedTime() - stats->InputOffset) {
-        if (curNoteItrs[lane] + 1 == chart->at(lane).end()) {
-            return false;
-        }
-        ++curNoteItrs[lane];
-    }
-    // EncNote& lol = *curNoteItrs[lane];
-    CurrentNoteItr = std::make_shared<NoteVector::iterator>(curNoteItrs[lane]);
-    return true;
-}*/
-
-bool Encore::RhythmEngine::BaseEngine::PauseGame(const ControllerEvent &event) {
-    if (event.channel == InputChannel::PAUSE && event.action == Action::PRESS) {
-        TogglePause();
-        // TODO: make this work depending on player count and probably not in here
-        if (stats->Paused)
-            TheAudioManager.pauseStreams();
-        else
-            TheAudioManager.unpauseStreams();
-        return true;
-    }
-    return false;
+    RunHitStateCheck(event);
 }
 
 std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) const {
@@ -141,59 +120,74 @@ std::pair<int, int> Encore::RhythmEngine::BaseEngine::GetNotePoolSize(int lane) 
 
     return std::pair<int, int> { NotePoolStart, NotePoolEnd };
 }
-
-bool Encore::RhythmEngine::BaseEngine::IsWithinPracticeSection(double time) const {
-    return practice && time < pStopTime && time >= pStartTime;
-}
-
-void Encore::RhythmEngine::BaseEngine::BaseUpdateOnFrame(double CurrentTime) {
-    stats->overdrive.ticks.UpdateOverdriveTick();
-    if (stats->overdrive.Add(CurrentTime, chart)) {
-        if (stats->overdrive.Fill >= 0.5) {
-            TrackNotificationEvent odReady(
-                TheSongTime.GetElapsedTime(), TrackNotificationEvent::OVERDRIVE_READY
-            );
-            FireEvent(&odReady);
-        }
-        OverdriveEvent gain;
-        FireEvent(&gain);
+void Encore::RhythmEngine::BaseEngine::Advance(double CurrentTime) {
+    if (CurrentTime < EngineTime) {
+        Log::Warn("Engine backstepping by {}ms", (CurrentTime-EngineTime) * 1000);
     }
-
+    if (CurrentTime == EngineTime) {
+        return;
+    }
+    EngineTime = CurrentTime;
+    deferMultiplierUpdates = true;
+    UpdateOverdrive(CurrentTime);
+    for (int i = 0; i < chart->Lanes.size(); i++) {
+        CheckMissedNotes(i, EngineTime);
+    }
+    UpdateSustains();
     chart->solos.CheckEventsSeconds(CurrentTime);
-    bool odWasActive = stats->overdrive.Active;
-    stats->overdrive.Update(CurrentTime);
-    if (odWasActive == true && odWasActive != stats->overdrive.Active) {
-        // int InstrumentNum = stats->Type == Guitar ? inst - 5 : inst;
-        // EncoreLog(LOG_DEBUG, TextFormat("Disabling effect on instrument: %i", inst));
-        // TheAudioManager.StopEffect(TheAudioManager.GetAudioStreamByInstrument(inst));
-    }
-}
+    deferMultiplierUpdates = false;
 
-void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, double SongTime) {
+    // This is the ensure sustains calculate the correct values over large delta times
+    // TODO: this might cause issues with pad chord sustains
+    if (defferredMultiplierUpdates.size() > 1) {
+        std::ranges::sort(defferredMultiplierUpdates.begin(), defferredMultiplierUpdates.end(), [](MultUpdate& a, MultUpdate& b){return a.time < b.time;});
+    }
+    for (auto& upd : defferredMultiplierUpdates) {
+        SegmentSustains(upd.time, upd.mult);
+    }
+    defferredMultiplierUpdates.clear();
+}
+void Encore::RhythmEngine::BaseEngine::CheckMissedNotes(size_t Lane, TimeSeconds time) {
     if (chart->CurrentNoteIterators.at(Lane) == chart->Lanes.at(Lane).end())
         return;
-    NoteEvent &CurrentNote = *chart->CurrentNoteIterators.at(Lane);
-    if (CurrentNote.start.sec + goodBackend < SongTime
-        && &CurrentNote != chart->HeldNotePointers.at(Lane)) {
-        GhostCount = 0;
-        MissNote(Lane);
-        Log::Debug(
-            "Player {} missed note {} : {}",
-            player->Name,
-            Lane,
-            std::distance(
-                chart->Lanes.at(Lane).begin(), chart->CurrentNoteIterators.at(Lane)
-            )
-        );
-    }
+
+    bool MissedNote = false;
+    do {
+        auto CurrentNote = chart->CurrentNoteIterators.at(Lane);
+        MissedNote = false;
+        TimeSeconds MissTime = 0.0;
+        if (chart->CurrentNoteIterators.at(Lane) + 1 != chart->Lanes.at(Lane).end()) {
+            auto NextNote = chart->CurrentNoteIterators.at(Lane);
+            NextNote += 1;
+            double noteMiddlePoint = (NextNote->start - CurrentNote->start).sec / dynamicHitwindowRatio;
+            if (noteMiddlePoint < minimumHitwindowSize) noteMiddlePoint = minimumHitwindowSize;
+            if (CurrentNote->start + noteMiddlePoint < time) {
+                MissedNote = true;
+                MissTime = CurrentNote->start + noteMiddlePoint;
+            }
+        }
+        if (CurrentNote->start.sec + goodBackend < time) {
+            MissedNote = true;
+            MissTime = CurrentNote->start.sec + goodBackend;
+        }
+        if (MissedNote) {
+            MissNote(Lane, MissTime);
+        }
+    } while (MissedNote);
 }
 
 void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
-    int chordSize = std::popcount(chart->CurrentNoteIterators.at(lane)->lane);
+    if (ActiveSustains.empty() && whammy > 0.1) {
+        earlyWhammyPrevention = true;
+    }
+    whammy = 0;
+
+    auto note = chart->CurrentNoteIterators.at(lane);
+    int chordSize = std::popcount(note->lane);
     if (chordSize == 0)
         chordSize = 1;
-    int startTick = chart->CurrentNoteIterators.at(lane)->start.tick;
-    double startTime = chart->CurrentNoteIterators.at(lane)->start.sec;
+    int startTick = note->start.tick;
+    double startTime = note->start.sec;
     const double offset = (EngineTime)-startTime;
 
     stats->accuracies.emplace_back(startTime, offset, false);
@@ -204,10 +198,9 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     //        std::distance(chart->Lanes.at(lane).begin(),
     //        chart->CurrentNoteIterators.at(lane)))
     //    );
-    chart->UpdateSections(startTick);
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).hit++;
-    auto event = NoteHitEvent(&*chart->CurrentNoteIterators.at(lane));
+    auto event = NoteHitEvent(&*note);
     if (PerfectHit(startTime)) {
         stats->LastPerfectTime = EngineTime;
         if (!chart->sections.empty())
@@ -220,14 +213,15 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     event.offset = offset;
     stats->TotalOffset += event.offset;
     FireEvent(&event);
-    if (!chart->UpdateCurrentNote(lane))
-        return;
-    stats->LastHitOffset = (EngineTime)-startTime;
-    stats->HitNote(chordSize, event.judgement);
+    SetSucceeding(true);
+    stats->Combo++;
+    stats->NotesHit++;
+    stats->AttemptedNotes++;
 
     if (PerfectHit(startTime)) {
         stats->Accuracy += 1;
-        Log::Debug("Accuracy: {}", 1);
+        stats->PerfectHits++;
+        //Log::Debug("Accuracy: {}", 1);
         stats->AddHealth(1);
         HealthChangeEvent hce;
         FireEvent(&hce);
@@ -240,7 +234,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         stats->AddHealth(acc);
         HealthChangeEvent hce;
         FireEvent(&hce);
-        Log::Debug("Accuracy: {}", acc);
+        //Log::Debug("Accuracy: {}", acc);
     }
 
     TrackNotificationEvent event2 { startTime, TrackNotificationEvent::HOTSTART };
@@ -258,44 +252,71 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
         event2.combo = stats->Combo;
         FireEvent(&event2);
     }
-    int multiplierIncrease = stats->Combo % stats->ep.mult.count;
+    int multiplierIncrease = stats->Combo % stats->ep.mult.notesPerMult;
     // in the unplanned/planned career mode, id like this to be adjustable
     if (multiplierIncrease == 0 && stats->Combo <= stats->ep.mult.comboForMax()) {
+        UpdateMultiplier(EngineTime);
         MultFlashEvent e { false };
         FireEvent(&e);
     }
+    stats->Score += stats->PointsPerNote * Multiplier * std::popcount(note->lane);
+
+    if (note->end != 0) {
+        Sustain sus {
+            &*note,
+            note->start.tick/(double)TheSongTime.songPPQN,
+            note->end.tick/(double)TheSongTime.songPPQN,
+            Multiplier,
+            stats->PointsPerNote * std::popcount(note->lane),
+        };
+        AddSustain(sus);
+    }
+
+    if (!chart->AdvanceCurrentNote(lane))
+        return;
+
     chart->overdrive.UpdateEventViaNote(true, startTick);
+    auto od = chart->overdrive.CheckOverdrive(EngineTime);
+    if (od > 0) {
+        GainOverdrive(od);
+    }
     chart->solos.UpdateEventViaNote(true, startTick);
 }
 
-void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane) {
-    if (stats->Combo >= stats->ep.mult.count) {
+void Encore::RhythmEngine::BaseEngine::MissNote(const size_t lane, TimeSeconds time) {
+    if (stats->Combo >= stats->ep.mult.notesPerMult) {
         MultFlashEvent e { true };
         FireEvent(&e);
     }
-    bool cbreak = stats->multNoOD() == stats->ep.mult.max;
+    bool cbreak = stats->ComboToMultiplier(stats->Combo) == stats->ep.mult.max;
+    stats->Combo = 0;
+    stats->Misses++;
+    stats->AttemptedNotes++;
 
     stats->RemoveHealth(cbreak);
     HealthChangeEvent hce;
     FireEvent(&hce);
+    auto currentNote = chart->CurrentNoteIterators.at(lane);
+
+    UpdateMultiplier(time);
+    SetSucceeding(false);
 
     stats->accuracies.emplace_back(
-        chart->CurrentNoteIterators.at(lane)->start.sec, 0, true
+        currentNote->start.sec, 0, true
     );
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).notes++;
-    stats->MissNote();
-    chart->overdrive.MissCurrentEvent(chart->CurrentNoteIterators.at(lane)->start.tick);
+    chart->overdrive.MissCurrentEvent(currentNote->start.tick);
     chart->overdrive.UpdateEventViaNote(
-        false, chart->CurrentNoteIterators.at(lane)->start.tick
+        false, currentNote->start.tick
     );
-    chart->MissedNotePointers.push_back(&*chart->CurrentNoteIterators.at(lane));
+    chart->MissedNotePointers.push_back(&*currentNote);
 
-    chart->UpdateCurrentNote(lane);
+    chart->AdvanceCurrentNote(lane);
 }
 
 void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
-    bool cbreak = stats->multNoOD() == stats->ep.mult.max;
+    bool cbreak = stats->ComboToMultiplier(stats->Combo) == stats->ep.mult.max;
     double earliestNoteTime = 0.0;
     for (size_t i = 0; i < chart->Lanes.size(); i++) {
         if (!chart->at(i).empty()) {
@@ -313,17 +334,20 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     HealthChangeEvent hce;
     FireEvent(&hce);
 
-    chart->UpdateSections(TheSongTime.GetCurrentTick());
     // should be safe, right?
     if (!chart->sections.empty())
         chart->sections.at(chart->CurrentSection).overhits++;
-    TextFormat("Player %s overhit", player->Name.c_str());
     if (stats->Combo > 0) {
         MultFlashEvent e { true };
         FireEvent(&e);
     }
     FireEventTemp(OverhitEvent(lane));
-    stats->Overhit();
+
+    stats->Combo = 0;
+    stats->Overhits++;
+    UpdateMultiplier(EngineTime);
+
+    SetSucceeding(false);
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->start.tick
     );
@@ -338,6 +362,201 @@ void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int dif
     //     }
     // }
     // stats->Stars = 5;
+}
+void Encore::RhythmEngine::BaseEngine::SetSucceeding(bool succeed) {
+    if (succeed) {
+        stats->CanHitHopo = true;
+        stats->AudioMuted = false;
+    } else {
+        stats->CanHitHopo = false;
+        stats->AudioMuted = true;
+    }
+}
+void Encore::RhythmEngine::BaseEngine::UpdateWhammy(TimeSeconds time, float newWhammy) {
+    if (newWhammy <= 0.1) {
+        earlyWhammyPrevention = false;
+    }
+    if (earlyWhammyPrevention) {
+        return;
+    }
+    whammy = newWhammy;
+    if (std::abs(lastWhammyTriggerPoint - whammy) > 0.1) {
+        if (!ActiveSustains.empty()) {
+            bool hasODSustain = false;
+            TimeSeconds minWhammyTime = INFINITY;
+            TimeSeconds maxWhammyTime = 0.0;
+            for (auto& sustain : ActiveSustains) {
+                if (chart->overdrive.TimeIsInODPhrase(sustain.note->start.sec)) {
+                    hasODSustain = true;
+                    if (minWhammyTime > sustain.note->start.sec) {
+                        minWhammyTime = sustain.note->start.sec;
+                    }
+                    if (maxWhammyTime < sustain.note->end.sec) {
+                        maxWhammyTime = sustain.note->end.sec;
+                    }
+                }
+            }
+            if (time < minWhammyTime + 0.2) {
+                time = minWhammyTime;
+            }
+            if (hasODSustain) {
+                TimeSeconds whammyTime = time > minWhammyTime ? time : minWhammyTime;
+                StartWhammy(whammyTime, maxWhammyTime);
+            }
+        }
+    }
+}
+void Encore::RhythmEngine::BaseEngine::StartWhammy(TimeSeconds time, TimeSeconds max) {
+    if (time > WhammyODTime) {
+        OverdriveValue = GetOverdriveFillAtTime(time);
+        OverdriveActivateTime = time;
+        HasWhammyOD = true;
+        WhammyMaxTime = max;
+        WhammyODTime = time;
+    }
+}
+void Encore::RhythmEngine::BaseEngine::UpdateOverdrive(TimeSeconds time) {
+    if (OverdriveActive) {
+        TimeSeconds endTime = GetOverdriveEndTime();
+        if (time > endTime) {
+            EndOverdrive(endTime);
+        }
+    }
+}
+void Encore::RhythmEngine::BaseEngine::GainOverdrive(double amount) {
+    if (OverdriveActive) {
+        auto oldValue = GetOverdriveFillAtTime(EngineTime);
+        OverdriveValue = oldValue+amount;
+        OverdriveActivateTime = EngineTime;
+        assert(OverdriveValue >= oldValue);
+    } else {
+        OverdriveValue += amount;
+    }
+    if (OverdriveValue > 1) {
+        OverdriveValue = 1;
+    }
+}
+void Encore::RhythmEngine::BaseEngine::ActivateOverdrive(TimeSeconds time) {
+    OverdriveActive = true;
+    OverdriveActivateTime = time;
+    UpdateMultiplier(time);
+    // TODO: fire all the events n shit
+}
+void Encore::RhythmEngine::BaseEngine::EndOverdrive(TimeSeconds time) {
+    OverdriveActive = false;
+    HasWhammyOD = false;
+    OverdriveValue = 0;
+    UpdateMultiplier(time);
+}
+void Encore::RhythmEngine::BaseEngine::AddSustain(Sustain sustain) {
+    ActiveSustains.push_back(sustain);
+}
+void Encore::RhythmEngine::BaseEngine::ClearSustain(Sustain &sustain) {
+    for (auto it = ActiveSustains.begin(); it != ActiveSustains.end(); it++) {
+        if (&*it == &sustain) {
+            ActiveSustains.erase(it);
+            break;
+        }
+    }
+}
+void Encore::RhythmEngine::BaseEngine::UpdateSustains() {
+    bool doneProcessingSustains = true;
+    TimeBeats time = TheSongTime.SecondsToBeat(EngineTime);
+    do {
+        doneProcessingSustains = true;
+        for (auto it = ActiveSustains.begin(); it != ActiveSustains.end(); it++) {
+            if (it->end <= time) {
+                CompleteSustain(EngineTime, *it);
+                ClearSustain(*it);
+                doneProcessingSustains = false;
+                break;
+            }
+        }
+    } while (!doneProcessingSustains);
+}
+double Encore::RhythmEngine::BaseEngine::GetOverdriveFillAtTime(TimeSeconds time) {
+    TimeODTicks curTick = TheSongTime.SecondsToODTick(time);
+    double accumulate = OverdriveValue;
+    if (OverdriveActive && time > OverdriveActivateTime) {
+        TimeODTicks actTime = TheSongTime.SecondsToODTick(OverdriveActivateTime);
+        TimeODTicks timeInOD = curTick - actTime;
+        accumulate -= timeInOD * stats->ep.od.DrainPerTick();
+    }
+    if (HasWhammyOD && time >= WhammyODTime) {
+        TimeSeconds whammyTime = time;
+        if (whammyTime > WhammyMaxTime) {
+            whammyTime = WhammyMaxTime;
+        }
+        TimeODTicks curBeat = TheSongTime.SecondsToODTick(whammyTime);
+        TimeODTicks whammyBeat = TheSongTime.SecondsToODTick(WhammyODTime);
+        TimeODTicks timeWhammied = curBeat - whammyBeat;
+        timeWhammied = std::clamp(timeWhammied, 0.0, whammyHoldTime);
+        accumulate += timeWhammied * whammyGainPerTick; // idk what this value should be, will be adjusted
+    }
+    if (accumulate > 1) {
+        accumulate = 1;
+    }
+    return accumulate;
+}
+TimeSeconds Encore::RhythmEngine::BaseEngine::GetOverdriveEndTime() {
+    // If called while overdrive isn't active we can just use this to predict it
+    TimeSeconds start = OverdriveActive ? OverdriveActivateTime : EngineTime;
+
+    // First check the end time with whammy + drain
+    if (HasWhammyOD && start >= WhammyODTime) {
+        TimeODTicks whammyStart = TheSongTime.SecondsToODTick(WhammyODTime);
+        TimeODTicks whammyEnd = whammyStart + whammyHoldTime;
+        TimeSeconds endTime = TheSongTime.ODTickToSeconds(whammyEnd);
+        if (endTime > WhammyMaxTime) {
+            endTime = WhammyMaxTime;
+            whammyEnd = TheSongTime.SecondsToODTick(endTime);
+        }
+        TimeSeconds GainAmount = ((whammyEnd - whammyStart) * whammyGainPerTick);
+        TimeSeconds DrainLength = TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + std::min(1.0, OverdriveValue+GainAmount) / stats->ep.od.DrainPerTick());
+        return DrainLength;
+    } else {
+        return TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + (OverdriveValue) / stats->ep.od.DrainPerTick());
+    }
+}
+double Encore::RhythmEngine::BaseEngine::GetVisualScoreAtTime(TimeSeconds time) {
+    TimeBeats beats = TheSongTime.SecondsToBeat(time);
+    double accumulate = stats->Score;
+
+    for (auto& sustain : ActiveSustains) {
+        accumulate += sustain.GetValueAtTime(beats);
+    }
+
+    return accumulate;
+}
+void Encore::RhythmEngine::BaseEngine::CompleteSustain(
+    TimeSeconds time, Sustain &sustain
+) {
+    auto beats = TheSongTime.SecondsToBeat(time);
+    stats->Score += sustain.GetValueAtTime(beats);
+}
+void Encore::RhythmEngine::BaseEngine::DropSustain(TimeSeconds time, Sustain &sustain) {
+    CompleteSustain(time, sustain);
+    stats->AudioMuted = true;
+    chart->DroppedSustainPointers.push_back(sustain.note);
+    ClearSustain(sustain);
+}
+void Encore::RhythmEngine::BaseEngine::UpdateMultiplier(TimeSeconds time) {
+    Multiplier = stats->ComboToMultiplier(stats->Combo) * (OverdriveActive ? stats->ep.mult.odMult : 1);
+    if (deferMultiplierUpdates) {
+        defferredMultiplierUpdates.push_back({time, Multiplier});
+    } else {
+        SegmentSustains(time, Multiplier);
+    }
+}
+void Encore::RhythmEngine::BaseEngine::SegmentSustains(TimeSeconds time, double newMultiplier) {
+    for (auto& sustain : ActiveSustains) {
+        CompleteSustain(time, sustain);
+        TimeBeats newStart = TheSongTime.SecondsToBeat(time);
+        if (newStart > sustain.start) {
+            sustain.start = newStart;
+        }
+        sustain.multiplier = newMultiplier;
+    }
 }
 
 Encore::RhythmEngine::TimePoint Encore::RhythmEngine::BaseEngine::NextNoteTime() {

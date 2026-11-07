@@ -56,10 +56,6 @@ bool GameplayMenu::CheckPauseInput(Encore::ControllerEvent event) {
             Player &player = ThePlayerManager.GetActivePlayer(i);
             if (player.joypadID == event.slot) {
                 OvershellState[i] = OS_OPTIONS;
-                for (int g = 0; g < player.engine->chart->Lanes.size(); g++) {
-                    player.engine->chart->DropSustain(g);
-                    player.engine->stats->HeldFrets.at(g) = false;
-                }
                 break;
             }
         }
@@ -162,9 +158,14 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
             sdlEvent->down = false; // HACK: "Consume" the event by setting it to an key up event
         }
         event.timestamp = SDLTimeToAudioTime(sdlEvent->timestamp) - TheGameSettings.VideoOffset/1000.0;
+        // I don't like doing this in GameplayMenu but in the future keyboard inputs will
+        // go through the same data path as controller inputs so w/e
+        if (inputSafeUpdateTime < event.timestamp) {
+            inputSafeUpdateTime = event.timestamp;
+        }
         if (!CheckPauseInput(event))
             if (event.channel != Encore::InputChannel::INVALID) {
-                engine->UpdateOnFrame(event.timestamp);
+                engine->Advance(event.timestamp);
                 engine->ProcessInput(event);
                 event.slot = player.ActiveSlot;
                 track->recordedInputs.push_back(event);
@@ -188,10 +189,7 @@ void GameplayMenu::ControllerInputCallback(Encore::ControllerEvent event) {
             if (player.Bot)
                 continue;
             event.timestamp -= TheGameSettings.VideoOffset/1000.0;
-            if (engine->allowTimestampedInputs) {
-                if (engine->IsWithinPracticeSection(event.timestamp) || !engine->practice)
-                    engine->UpdateOnFrame(event.timestamp);
-            }
+            engine->Advance(event.timestamp);
             engine->ProcessInput(event);
             event.slot = player.ActiveSlot;
             track->recordedInputs.push_back(event);
@@ -205,7 +203,7 @@ void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
         //score += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
-        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->stats->Score;
+        ws += ThePlayerManager.GetActivePlayer(playerNum).engine->GetVisualScoreAtTime(TheSongTime.GetElapsedTime());
     }
     // not optimized at all LMAO
     float WidthOfScorebox = Units::hinpct(0.4);
@@ -678,25 +676,38 @@ void GameplayMenu::Draw() {
         stream.volume = volume;
     }
 
+    auto time = inputSafeUpdateTime - TheGameSettings.VideoOffset/1000.0;
+
     for (auto& track : tracks) {
         Player &player = track->player;
 
         if (player.PlaybackReplay) {
-            player.ReplayPlayer->Advance(TheSongTime.GetElapsedTime());
+            player.ReplayPlayer->Advance(time);
             while (player.ReplayPlayer->HasNextInput()) {
                 auto input = player.ReplayPlayer->GetNextInput();
-                player.engine->UpdateOnFrame(input->timestamp);
+                player.engine->Advance(input->timestamp);
                 player.engine->ProcessInput(*input);
             }
         }
 
         if (!IsPaused()) {
             ZoneScopedN("Engine Update")
-            if (player.engine->IsWithinPracticeSection(TheSongTime.GetElapsedTime()) || !
-                player.engine->practice) {
-                }
-            player.engine->UpdateOnFrame(TheSongTime.GetElapsedTime() - TheGameSettings.VideoOffset/1000.0);
-            player.engine->UpdateStats(player.Instrument, player.Difficulty);
+            /* To prevent engine backstepping because of the way inputs are polled
+             * we'll update the engine a few frames behind if there haven't been any inputs
+             * in that time.
+             * The only visible difference this'll make to the player is stuff like
+             * overdrive ending and missing notes will happen a few frames late (provided the
+             * player hasn't made any inputs), but these are not latency-critical events.
+             * The engine always will update for every input at the correct time so this
+             * is just to prevent frame updates from causing inconsistencies in scoring.
+             * Things like score (from sustains) and overdrive fill are extrapolated from
+             * the current time and do not rely on a recent update to show the correct value.
+             */
+            double updateMargin = GetFrameTime() * 10;
+            if (time - updateMargin > player.engine->EngineTime) {
+                player.engine->Advance(time - updateMargin);
+                player.engine->UpdateStats(player.Instrument, player.Difficulty);
+            }
         }
 
         track->Draw();
@@ -878,10 +889,6 @@ void GameplayMenu::Load() {
                 track->Configure4Lane();
             }
             track->ColorProfileType = Encore::ProfileManager::PAD;
-        }
-        if (player.Instrument == PlasticBass || player.Instrument == PartVocals
-            || player.Instrument == PartBass) {
-            player.engine->stats->SixMultiplier = true;
         }
         if (player.Bot)
             player.engine->stats->Bot = true;

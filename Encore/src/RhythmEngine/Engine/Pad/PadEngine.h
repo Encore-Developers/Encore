@@ -7,18 +7,12 @@
 
 namespace Encore::RhythmEngine {
     class PadEngine : public BaseEngine {
-        bool ActivateOverdrive(ControllerEvent &event) override;
-
-
-        int RunHitStateCheck(ControllerEvent &event) override;
-        bool PlayerIsPaused() override { return stats->Paused; };
-        void TogglePause() override { stats->Paused = !stats->Paused; };
-        void HitNote(size_t lane) override;
+        bool OverdriveLiftInput = false;
+        void RunHitStateCheck(ControllerEvent &event) override;
+        void LaneHitStateCheck(int lane, ControllerEvent &event);
     public:
-        void UpdateOnFrame(double CurrentTime) override;
-        TimePoint NextNoteTime() override;
-        TimePoint LastNoteTime() override;
-        void SetStatsInputState(ControllerEvent &event) override;
+        void Advance(double CurrentTime) override;
+        void OnOverdriveActivate(TimeSeconds time) override;
         PadEngine(auto _chart, Player* _player)
             : BaseEngine(_chart, _player) {
             Timers = { { "LOP", RhythmTimer(liftLeniencyTime) } };

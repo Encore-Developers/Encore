@@ -69,7 +69,7 @@ void SongTime::UpdateTick() {
 }
 TimeBeats SongTime::SecondsToBeat(TimeSeconds seconds) {
     auto currentBpm = BPMChanges.begin();
-    for (auto findBpm = BPMChanges.begin(); findBpm < BPMChanges.end(); findBpm++) {
+    for (auto findBpm = BPMChanges.begin(); findBpm < BPMChanges.end(); ++findBpm) {
         if (findBpm->time <= seconds) {
             currentBpm = findBpm;
         } else {
@@ -82,7 +82,45 @@ TimeBeats SongTime::SecondsToBeat(TimeSeconds seconds) {
 
     return currentBpm->tick / (double)songPPQN + beatDelta;
 }
+TimeSeconds SongTime::BeatToSeconds(TimeBeats beat) {
+    auto currentBpm = BPMChanges.begin();
+    for (auto findBpm = BPMChanges.begin(); findBpm < BPMChanges.end(); ++findBpm) {
+        if ((findBpm->tick/(double)songPPQN) <= beat) {
+            currentBpm = findBpm;
+        } else {
+            break;
+        }
+    }
 
+    return currentBpm->time + (beat - (currentBpm->tick/(double)songPPQN)) / (currentBpm->bpm / 60.0);
+}
+TimeODTicks SongTime::SecondsToODTick(TimeSeconds seconds) const {
+    size_t currentTick = 0;
+    for (size_t i = 0; i < OverdriveTicks.size(); i++) {
+        if (OverdriveTicks[i].sec <= seconds) {
+            currentTick = i;
+        } else {
+            break;
+        }
+    }
+
+    if (currentTick >= OverdriveTicks.size() - 1) {
+        return OverdriveTicks.size() - 1;
+    }
+
+    return currentTick + ((seconds - OverdriveTicks[currentTick].sec) / (OverdriveTicks[currentTick+1].sec - OverdriveTicks[currentTick].sec));
+}
+TimeSeconds SongTime::ODTickToSeconds(TimeODTicks odTick) const {
+    if (odTick < 0) {
+        return 0;
+    }
+    // Gracefully, these can corellate directly to indices
+    if ((size_t)odTick >= OverdriveTicks.size() - 1) {
+        return OverdriveTicks[OverdriveTicks.size() - 1].sec;
+    }
+
+    return Lerp(OverdriveTicks[(size_t)odTick].sec, OverdriveTicks[(size_t)odTick+1].sec, odTick-(size_t)odTick);
+}
 double SongTime::GetCurrentTick() const {
     return CurrentTick;
 }

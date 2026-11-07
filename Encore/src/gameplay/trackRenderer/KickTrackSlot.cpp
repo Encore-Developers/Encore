@@ -17,7 +17,7 @@ void Encore::KickTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed)
 
     // this is kinda nasty, just wanted a quick Thing
     Color color = track->player.QueryColorProfile(colorSlot, track->ColorProfileType);
-    if (track->player.engine->chart->overdrive.RenderNotesAsOD(note->start.sec)) {
+    if (track->player.engine->chart->overdrive.TimeIsInODPhrase(note->start.sec)) {
         color = track->player.QueryColorProfile(SLOT_OVERDRIVE, track->ColorProfileType);
         ASSET(noteShader).SetUniform("frameColor", track->player.QueryColorProfile(SLOT_FRAME_OVERDRIVE, track->ColorProfileType));
     } else {

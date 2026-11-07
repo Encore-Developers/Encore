@@ -26,7 +26,7 @@ namespace Encore::RhythmEngine {
         void UpdateEventViaNote(bool hit, int tick) override;
         void CheckEvents(int tick) override;
         void MissCurrentEvent(int eventTime);
-        bool RenderNotesAsOD(double time) const;
+        bool TimeIsInODPhrase(double time) const;
         bool TickDuringCurrentEvent(int tick) override;
         bool Perfect() override;
 

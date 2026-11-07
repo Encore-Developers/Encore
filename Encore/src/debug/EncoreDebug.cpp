@@ -36,7 +36,6 @@ bool showPlayerManager = false;
 bool showColorProfileManager = false;
 bool showSongList = false;
 bool showQuickSettings = false;
-bool showPractice = false;
 bool showEasings = false;
 bool showSaving = false;
 bool showJoystickTools = false;
@@ -141,9 +140,6 @@ void EncoreDebug::DrawDebug() {
     if (showSaving) {
         DrawScoreSaving();
     }
-    if (showPractice) {
-        DrawPracticeSectionSelector();
-    }
     DrawSongScrubber();
     if (showEasings) {
         DrawEasingsWindow();
@@ -199,11 +195,6 @@ void EncoreDebug::MenuBar() {
         if (BeginMenu("Gameplay")) {
             if (MenuItem(pauseText.c_str())) {
                 paused = !paused;
-                for (auto player : ThePlayerManager.ActivePlayers) {
-                    if (!player)
-                        continue;
-                    player->engine->stats->Paused = paused;
-                }
                 if (paused) {
                     pauseText = "Resume";
                     TheAudioManager.pauseStreams();
@@ -217,7 +208,6 @@ void EncoreDebug::MenuBar() {
                 TheSongTime.FullReset();
                 TheMenuManager.CreateAndSwitchMenu<resultsMenu>(gameplayMenu->curSong);
             }
-            MenuItem("Practice", 0, &showPractice);
             MenuItem("Show Hud", 0, &showGameplayHud);
             if (BeginMenu("Active Stats/Engines")) {
                 for (auto& track : gameplayMenu->tracks) {
@@ -241,24 +231,6 @@ void EncoreDebug::MenuBar() {
     ImGui::Text("%s", debugVersionHash.c_str());
 
     EndMainMenuBar();
-}
-
-void EncoreDebug::DrawScoreSaving() {
-
-    if (Begin("Score Saving", &showSaving, 0)) {
-        if (Button("Save debug score")) {
-            std::random_device seed;
-            std::minstd_rand prng(seed());
-            std::uniform_int_distribution<> dist(0, TheSongList.songs.size() - 1);
-            int selectedSong = dist(prng);
-            TheScoreDatabase.SetScore(TheSongList.songs[selectedSong].hash, {32767});
-        }
-        if (Button("Load test score")) {
-            auto scores = TheScoreDatabase.GetAllScores();
-            scores.at(0);
-        }
-        End();
-    }
 }
 
 void EncoreDebug::DrawColorProfileSettings() {
@@ -401,8 +373,24 @@ void DebugSeek(float time, float audioTime) {
             player->ReplayPlayer->lastEventFetched = false;
             player->ReplayPlayer->nextInput = player->ReplayPlayer->replayParticipant->inputs.begin();
             player->ReplayPlayer->lastUpdateTime = time;
+            engine->supressEvents = true;
             engine->stats = std::make_shared<Encore::RhythmEngine::Stats>();
             engine->stats->accuracies.reserve(engine->noteCount);
+            engine->OverdriveActive = false;
+            engine->OverdriveValue = 0;
+            engine->whammy = 0;
+            engine->WhammyMaxTime = 0;
+            engine->lastWhammyTriggerPoint = 0;
+            engine->earlyWhammyPrevention = false;
+            engine->HasWhammyOD = false;
+            engine->WhammyODTime = 0;
+            engine->ActiveSustains.clear();
+            engine->CalculateWeightedScore();
+            engine->chart->overdrive.ResetEvents();
+            engine->chart->overdrive.CurrentEvent = 0;
+            for (auto& timer : engine->Timers) {
+                timer.second.ResetTimer();
+            }
 
             for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); ++i) {
                 if (i >= engine->chart->Lanes.size()) {
@@ -413,9 +401,10 @@ void DebugSeek(float time, float audioTime) {
 
             while (player->ReplayPlayer->HasNextInput()) {
                 auto input = player->ReplayPlayer->GetNextInput();
-                player->engine->UpdateOnFrame(input->timestamp);
+                player->engine->Advance(input->timestamp);
                 player->engine->ProcessInput(*input);
             }
+            engine->supressEvents = false;
 
         } else {
             for (size_t i = 0; i < engine->chart->CurrentNoteIterators.size(); i++) {
@@ -450,72 +439,6 @@ void DebugSeek(float time, float audioTime) {
     TheSongTime.CurrentBeatline = 0;
     TheSongTime.UpdateBeatlines();
 }
-
-
-void EncoreDebug::DrawPracticeSectionSelector() {
-    ZoneScoped;
-    bool isGameplay = dynamic_cast<GameplayMenu *>(TheMenuManager.ActiveMenu.get()) !=
-        nullptr;
-    if (isGameplay) {
-        if (Begin("Practice Section Selector")) {
-            for (size_t sectionInt = 0; sectionInt < TheSongTime.Sections.size();
-                 sectionInt++) {
-                ImGui::Text("%s", TheSongTime.Sections.at(sectionInt).name.c_str());
-                SameLine();
-                float buttWidth = CalcTextSize(" whole").x;
-                SetCursorPosX(GetWindowWidth() - (buttWidth * 3));
-                PushID(sectionInt);
-                if (Button("whole")) {
-                    double startTime;
-                    for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player)
-                            continue;
-                        double endTime = 0.0;
-                        startTime = TheSongTime.Sections.at(sectionInt).start;
-                        if (sectionInt == TheSongTime.Sections.size() - 1)
-                            endTime = TheSongTime.GetSongLength();
-                        else
-                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player->engine->pStartTime = startTime - 0.1;
-                        player->engine->pStopTime = endTime;
-                        player->engine->practice = true;
-                    }
-                    DebugSeek(startTime, startTime - 2);
-                }
-                SameLine();
-                if (Button("start")) {
-                    double startTime;
-                    for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player)
-                            continue;
-                        startTime = TheSongTime.Sections.at(sectionInt).start;
-                        player->engine->pStartTime = startTime - 0.1;
-                        player->engine->pStopTime = TheSongTime.GetSongLength();
-                        player->engine->practice = true;
-                    }
-                    DebugSeek(startTime, startTime - 2);
-                }
-                SameLine();
-                if (Button("end")) {
-                    for (auto player : ThePlayerManager.ActivePlayers) {
-                        if (!player)
-                            continue;
-                        double endTime = 0.0;
-                        if (sectionInt == TheSongTime.Sections.size() - 1)
-                            endTime = TheSongTime.GetSongLength();
-                        else
-                            endTime = TheSongTime.Sections.at(sectionInt + 1).start;
-                        player->engine->pStopTime = endTime;
-                        player->engine->practice = true;
-                    }
-                }
-                PopID();
-            }
-        }
-        End();
-    }
-}
-
 struct TimelineTextSpacer {
     float startPos;
     float endPos;
@@ -1178,10 +1101,8 @@ void Encore::Track::DrawTrackDebugWindow() {
                 float health = player.engine->stats->Health;
                 SliderFloat("Health", &health, 0, 1);
                 player.engine->stats->Health = health;
-                float od = player.engine->stats->overdrive.Fill;
-                SliderFloat("Overdrive", &od, 0, 1);
-                Checkbox("Overdrive Active", &player.engine->stats->overdrive.Active);
-                player.engine->stats->overdrive.Fill = od;
+                float od = player.engine->OverdriveValue;
+                SliderFloat("Overdrive Value (Static)", &od, 0, 1);
                 ProgressBar(engine->whammy, { -1.0f, 0.0f }, "Whammy");
                 SeparatorText("Timers");
                 for (auto Timer : engine->Timers) {
@@ -1266,12 +1187,9 @@ void Encore::Track::DrawTrackDebugWindow() {
                 ImGui::Text("%s",
                             TextFormat("Base score: %4.2f",
                                        player.engine->chart->BaseScore));
-                ImGui::Text("%s", TextFormat("Stars: *%i", player.engine->stats->Stars));
                 ImGui::Text("%s",
                             TextFormat("Multiplier: %.2fx",
-                                       player.engine->stats->multiplier()));
-                Checkbox("Allow Timestamped Inputs",
-                         &player.engine->allowTimestampedInputs);
+                                       player.engine->Multiplier));
                 EndTabItem();
             }
             if (BeginTabItem("Info")) {
