@@ -51,6 +51,14 @@ void Encore::RhythmEngine::PadEngine::LaneHitStateCheck(int lane, ControllerEven
     if (chart->CurrentNoteIterators.at(lane) == chart->Lanes.at(lane).end())
         return;
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(lane);
+    if (event.action == Action::RELEASE) {
+        for (auto& sustain : ActiveSustains) {
+            if (sustain.note->lane == PlasticFrets[lane]) {
+                DropSustain(EngineTime, sustain);
+                break;
+            }
+        }
+    }
     bool lift = event.action == Action::RELEASE && CurrentNote->type == 1;
 
     if (event.action == Action::PRESS || lift) {
