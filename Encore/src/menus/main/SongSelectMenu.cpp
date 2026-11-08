@@ -809,18 +809,33 @@ void SongSelectMenu::Draw() {
             EndScissorMode();
 
             auto scores = TheScoreDatabase.GetScores(songi->hash);
-            if (!scores.empty()) {
+            if (!scores.empty() && ThePlayerManager.PlayersActive > 0) {
                 Encore::TextDisplay bs = songTitle;
                 bs.Fnt(ASSET(redHatDisplayItalic)).Align(RIGHT).pos.x = entryRec.x + entryRec.width - (bs.fontSize/2);
                 double acc = 0;
-                for (auto g: scores.at(0).rating) {
-                    acc += g;
+                double score = 0;
+                int foundCount = 0;
+                for (const auto& g: scores.at(0).players) {
+                    bool found = false;
+                    for (const auto& p : ThePlayerManager.ActivePlayers) {
+                        if (p == nullptr) continue;
+                        if (g.playerid != p->PlayerID) continue;
+
+                        found = true;
+                        foundCount++;
+                        break;
+                    }
+                    if (!found) continue;
+
+                    acc += g.rating;
+                    score += g.score;
                 }
-                acc /= scores.at(0).rating.size();
+                acc /= foundCount;
 
                 Grade* curGrade;
                 GetGrade(acc, &curGrade);
-                bs.Col(curGrade->color).DrawText(curGrade->Letter).AddX(-(bs.fontSize)).Col(SKYBLUE).DrawText(GameMenu::scoreCommaFormatter(scores.at(0).score));
+                if (acc >= 0)
+                    bs.Col(curGrade->color).DrawText(curGrade->Letter).AddX(-(bs.fontSize)).Col(SKYBLUE).Fnt(ASSET(redHatMono)).DrawText(GameMenu::scoreCommaFormatter(score));
             }
 
             songTitle.pos.y += songEntryHeight;

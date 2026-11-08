@@ -6,6 +6,34 @@
 
 #include "SQLiteCpp/Transaction.h"
 
+Encore::PlayerScore::PlayerScore(std::string data) {
+    std::stringstream sRow(data);
+    std::string entry;
+    std::getline(sRow, entry, ',');
+    playerid = entry;
+    std::getline(sRow, entry, ',');
+    score = stoi(entry);
+    std::getline(sRow, entry, ',');
+    instrument = stoi(entry);
+    std::getline(sRow, entry, ',');
+    difficulty = stoi(entry);
+    std::getline(sRow, entry);
+    rating = stod(entry);
+}
+
+Encore::PlayerScore::PlayerScore(const Player *player) {
+    playerid = player->PlayerID;
+    score = player->engine->stats->Score;
+    instrument = player->Instrument;
+    difficulty = player->Difficulty;
+    rating = player->engine->stats->Accuracy / player->engine->stats->AttemptedNotes;
+}
+
+std::string Encore::PlayerScore::toString() {
+    return playerid + "," + std::to_string(score) + "," + std::to_string(instrument) + ","
+        + std::to_string(difficulty) + "," + std::to_string(rating) + "\n";
+}
+
 void Encore::ScoreDB::Init(const std::filesystem::path &prefsPath) {
     db = SQLite::Database(
         prefsPath / "score.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE
@@ -15,73 +43,55 @@ void Encore::ScoreDB::Init(const std::filesystem::path &prefsPath) {
     );
 }
 
-void GetPlayerDataFromCSV(Encore::Score& score, const std::string& data) {
-    std::stringstream sData(data);
+Encore::Score Encore::ScoreDB::CreateScoreFromStatement(SQLite::Statement &stmt) {
+    Score score;
+    score.score = stmt.getColumn(1);
+    score.count = stmt.getColumn(2);
+    score.replay = stmt.getColumn(3).getString();
+    std::stringstream sData(stmt.getColumn(4).getString());
     for (std::string row; std::getline(sData, row);) {
-        if (row.starts_with("playerID,")) continue;
-        std::stringstream sRow(row);
-        std::string entry;
-        std::getline(sRow, entry, ',');
-        score.playerids.push_back(entry);
-        std::getline(sRow, entry, ',');
-        score.instrument.push_back(stoi(entry));
-        std::getline(sRow, entry, ',');
-        score.difficulty.push_back(stoi(entry));
-        std::getline(sRow, entry);
-        score.rating.push_back(stod(entry));
+        score.players.emplace_back(row);
     }
-};
+    return score;
+}
 
-std::vector<Encore::Score> Encore::ScoreDB::GetScores(SongHash &hash) {
+std::vector<Encore::Score> Encore::ScoreDB::GetScores(SongHash &hash) const {
     SQLite::Statement get(db, "SELECT * FROM scores WHERE hash = ?");
     std::string hashString(reinterpret_cast<char *>(hash.hash), picosha2::k_digest_size);
     get.bind(1, hashString);
     std::vector<Score> scores;
-    while (get.executeStep())
-    {
-        Score score;
-        score.score = get.getColumn(1);
-        score.count = get.getColumn(2);
-        score.replay = get.getColumn(3).getString();
-        GetPlayerDataFromCSV(score, get.getColumn(4).getString());
-        scores.push_back(score);
+    while (get.executeStep()) {
+        scores.push_back(CreateScoreFromStatement(get));
     }
     return scores;
 }
-std::vector<Encore::Score> Encore::ScoreDB::GetAllScores() {
+std::vector<Encore::Score> Encore::ScoreDB::GetAllScores() const {
     SQLite::Statement get(db, "SELECT * FROM scores");
     std::vector<Score> scores;
-    while (get.executeStep())
-    {
-        Score score;
-        score.score = get.getColumn(1);
-        score.count = get.getColumn(2);
-        score.replay = get.getColumn(3).getString();
-        GetPlayerDataFromCSV(score, get.getColumn(4).getString());
-        scores.push_back(score);
+    while (get.executeStep()) {
+        scores.push_back(CreateScoreFromStatement(get));
     }
     return scores;
 }
 
-bool Encore::ScoreDB::SetScore(SongHash &hash, Score score) {
+bool Encore::ScoreDB::SetScore(SongHash &hash, const Score& score) const {
     try {
         SQLite::Statement set(
-            db, "INSERT INTO scores (hash, score, playercount, replayFilename, playerData) VALUES (?, ?, ?, ?, ?)"
+            db,
+            "INSERT INTO scores (hash, score, playercount, replayFilename, playerData) VALUES (?, ?, ?, ?, ?)"
         );
 
-        std::string hashString(
+        const std::string hashString(
             reinterpret_cast<char *>(hash.hash), picosha2::k_digest_size
         );
         set.bind(1, hashString);
         set.bind(2, score.score);
         set.bind(3, score.count);
         set.bind(4, score.replay);
-        std::string uuids = "playerID,instrument,difficulty,rating\n";
-        for (int i = 0; i < score.playerids.size(); i++) {
-            int diff = score.difficulty.at(i);
-            int inst = score.instrument.at(i);
-            double rating = score.rating.at(i);
-            uuids += score.playerids.at(i) + "," + std::to_string(inst) + "," + std::to_string(diff) + "," + std::to_string(rating) + "\n";
+        std::string uuids;
+
+        for (auto player : score.players) {
+            uuids += player.toString();
         }
         set.bind(5, uuids);
         set.exec();

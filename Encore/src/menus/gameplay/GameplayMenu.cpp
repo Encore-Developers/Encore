@@ -673,10 +673,7 @@ void GameplayMenu::Draw() {
                 Player &player = ThePlayerManager.GetActivePlayer(i);
                 results.score += player.engine->stats->Score;
                 results.count += 1;
-                results.playerids.push_back(player.PlayerID);
-                results.instrument.push_back(player.Instrument);
-                results.difficulty.push_back(player.Difficulty);
-                results.rating.push_back(player.engine->stats->Accuracy / player.engine->stats->AttemptedNotes);
+                results.players.emplace_back(&player);
             }
             TheScoreDatabase.SetScore(curSong->hash, results);
         }
