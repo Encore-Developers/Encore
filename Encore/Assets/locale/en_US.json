@@ -228,6 +228,7 @@
 			"title": "Title",
 			"artist": "Artist",
 			"source": "Source",
+			"charter": "Charter",
 			"length": "Length",
 			"year": "Year",
 			"playlist": "Playlist"

@@ -56,6 +56,7 @@ enum class SortType : int {
     Title = 0,
     Artist,
     Source,
+    Charter,
     Length,
     Year,
     Playlist,
@@ -83,7 +84,7 @@ inline std::atomic_int BadSongCount = 0;
 inline std::atomic_int SongsHashed = 0;
 inline std::atomic_bool ScanningSongs = false;
 inline std::atomic_int MaxChartsToLoad = 0;
-inline std::vector<std::string> sortTypes { "title", "artist", "source", "length", "year", "playlist" };
+inline std::vector<std::string> sortTypes { "title", "artist", "source", "charter", "length", "year", "playlist" };
 
 enum SongListLoadingStates {
     FINDING_CACHE,
@@ -101,6 +102,7 @@ class SongList {
     static bool sortTitle(Song *a, Song *b);
     static bool sortPlaylist(Song *a, Song *b);
     static bool sortSource(Song *a, Song *b);
+    static bool sortCharter(Song *a, Song *b);
     static bool sortAlbum(Song *a, Song *b);
     static bool sortLen(Song *a, Song *b);
     static bool sortYear(Song *a, Song *b);

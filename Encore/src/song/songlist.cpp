@@ -113,6 +113,14 @@ bool SongList::sortSource(Song *a, Song *b) {
     return aLower < bLower;
 }
 
+
+bool SongList::sortCharter(Song *a, Song *b) {
+    ZoneScoped;
+    std::string aLower = lower(a->charters.at(0));
+    std::string bLower = lower(b->charters.at(0));
+    return aLower < bLower;
+}
+
 bool SongList::sortAlbum(Song *a, Song *b) {
     ZoneScoped;
     return a->album.sortName < b->album.sortName;
@@ -244,6 +252,10 @@ void SongList::sortList(SortType sortType) {
     case SortType::Source:
         // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortSource);
+        break;
+    case SortType::Charter:
+        // std::sort(sortedSongs.begin(), sortedSongs.end(), sortTitle);
+        std::sort(sortedSongs.begin(), sortedSongs.end(), sortCharter);
         break;
     case SortType::Length:
         std::sort(sortedSongs.begin(), sortedSongs.end(), sortLen);
@@ -443,6 +455,11 @@ void SongList::GenerateSongEntriesWithHeaders(SortType sortType) {
         case SortType::Source: {
             std::string source = song->source;
             header = source.empty() ? "Unknown" : source;
+            break;
+        }
+        case SortType::Charter: {
+            std::string charter = song->charters[0];
+            header = charter.empty() ? "Unknown Charter" : charter;
             break;
         }
         case SortType::Length: {
