@@ -923,7 +923,7 @@ void EncoreDebug::DrawSongList() {
             TableSetupColumn("Title", ImGuiTableColumnFlags_WidthStretch);
             TableSetupColumn("Artist", ImGuiTableColumnFlags_WidthFixed);
             TableSetupColumn("Source", ImGuiTableColumnFlags_WidthFixed);
-            TableSetupColumn("Hash", ImGuiTableColumnFlags_WidthFixed);
+            TableSetupColumn("##other", ImGuiTableColumnFlags_WidthFixed);
             TableHeadersRow();
 
             for (size_t i = 0; i < songs.size(); i++) {
@@ -941,14 +941,18 @@ void EncoreDebug::DrawSongList() {
                 ImGui::Text("%s", song->source.c_str());
 
                 TableSetColumnIndex(4);
-                /// WARNING: SLOW AS FUCK!!!!!!
-                std::stringstream hashStr;
-                hashStr << std::hex;
-                for (size_t x = 0; x < sizeof(SongHash::hash); x++) {
-                    hashStr << std::setw(2) << std::setfill('0') << (int)song->hash.hash[
-                        x];
+                Text("(Hash)");
+                if (BeginItemTooltip()) {
+                    /// WARNING: SLOW AS FUCK!!!!!!
+                    std::stringstream hashStr;
+                    hashStr << std::hex;
+                    for (size_t x = 0; x < sizeof(SongHash::hash); x++) {
+                        hashStr << std::setw(2) << std::setfill('0') << (int)song->hash.hash[
+                            x];
+                    }
+                    TextUnformatted(hashStr.str().c_str());
+                    EndTooltip();
                 }
-                ImGui::Text("%s", hashStr.str().c_str());
 
                 TableSetColumnIndex(0);
                 if (SmallButton("Play")) {

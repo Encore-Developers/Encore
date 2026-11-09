@@ -36,9 +36,9 @@ void ChartLoadingMenu::LoadCharts() {
         TheSongTime.songPPQN = chartLoader.GetResolution();
         TheSongTime.OverdriveTicks = chartLoader.GenerateOverdriveTicks();
         TheSongTime.GenerateBeatmap(chartLoader.GetEndEvent().first);
+        TheSongTime.Sections = chartLoader.GetSections();
     }
     chartLoader.LoadCharts();
-    TheSongTime.Sections = chartLoader.GetSections();
     chartLoader.PopulateSubsongs();
 
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {

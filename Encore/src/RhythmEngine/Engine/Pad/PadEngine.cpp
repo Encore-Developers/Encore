@@ -1,11 +1,4 @@
-//
-// Created by maria on 13/06/2025.
-//
-
 #include "PadEngine.h"
-//
-// Created by maria on 01/06/2025.
-//
 
 #include "RhythmEngine/timingvalues.h"
 #include "gameplay/enctime.h"
