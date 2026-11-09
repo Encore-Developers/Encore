@@ -74,6 +74,9 @@ void PartOption::Draw(
 
     auto diff = menu->curSong->Difficulties.at(part);
     if (diff > 0) {
+        if (diff > 6) {
+            diff = 6;
+        }
         auto ringA = TheAssets.YargRings.at(diff-1);
         DrawTexturePro(
             ringA->Fetch(),
