@@ -156,7 +156,6 @@ Encore::RhythmEngine::MidiChartHandler::GetLyricPhrases() {
 }
 
 void Encore::RhythmEngine::MidiChartHandler::LoadCharts() {
-    ThreadPool threads = std::thread::hardware_concurrency() - 1;
 
     for (auto & Part : Parts) {
         if (Part.TrackInt == -1)

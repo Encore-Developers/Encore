@@ -106,6 +106,7 @@ Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
     }
     engine->chart->sections = GetSections();
     engine->CalculateWeightedScore();
+    engine->inst = inst;
     return engine;
 }
 
