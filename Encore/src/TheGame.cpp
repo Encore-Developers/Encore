@@ -480,6 +480,8 @@ int TheGame::Run(int argc, char *argv[]) {
     // prevents owned textures from attempting to load the texture after the opengl context has been destroyed (caused segfaults)
     OwnedTexture::allowDispose = false;
     //poller.active = false;
+    controllerPoller.request_stop();
+    controllerPoller.join();
     CloseWindow();
     return 0;
 }
