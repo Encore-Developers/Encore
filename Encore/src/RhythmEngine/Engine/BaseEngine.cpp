@@ -61,7 +61,7 @@ void Encore::RhythmEngine::BaseEngine::CalculateWeightedScore() {
         weighted += chordSize * Multiplier;
         if (note->end != 0) {
             auto length = note->end.tick - note->start.tick;
-            double beats = (double(length) / TheSongTime.songPPQN);
+            double beats = (double(length) / tempoMap->ppqn);
             // TODO: should this be multiplied by 4? (quarter note)
             weighted += (beats * Multiplier);
         }
@@ -263,8 +263,8 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     if (note->end != 0) {
         Sustain sus {
             &*note,
-            note->start.tick/(double)TheSongTime.songPPQN,
-            note->end.tick/(double)TheSongTime.songPPQN,
+            note->start.tick/(double)tempoMap->ppqn,
+            note->end.tick/(double)tempoMap->ppqn,
             Multiplier,
             stats->PointsPerNote * std::popcount(note->lane),
         };
@@ -461,7 +461,7 @@ void Encore::RhythmEngine::BaseEngine::ClearSustain(Sustain &sustain) {
 }
 void Encore::RhythmEngine::BaseEngine::UpdateSustains() {
     bool doneProcessingSustains = true;
-    TimeBeats time = TheSongTime.SecondsToBeat(EngineTime);
+    TimeBeats time = tempoMap->SecondsToBeat(EngineTime);
     do {
         doneProcessingSustains = true;
         for (auto it = ActiveSustains.begin(); it != ActiveSustains.end(); it++) {
@@ -475,10 +475,10 @@ void Encore::RhythmEngine::BaseEngine::UpdateSustains() {
     } while (!doneProcessingSustains);
 }
 double Encore::RhythmEngine::BaseEngine::GetOverdriveFillAtTime(TimeSeconds time) {
-    TimeODTicks curTick = TheSongTime.SecondsToODTick(time);
+    TimeODTicks curTick = tempoMap->SecondsToODTick(time);
     double accumulate = OverdriveValue;
     if (OverdriveActive && time > OverdriveActivateTime) {
-        TimeODTicks actTime = TheSongTime.SecondsToODTick(OverdriveActivateTime);
+        TimeODTicks actTime = tempoMap->SecondsToODTick(OverdriveActivateTime);
         TimeODTicks timeInOD = curTick - actTime;
         accumulate -= timeInOD * stats->ep.od.DrainPerTick();
     }
@@ -487,8 +487,8 @@ double Encore::RhythmEngine::BaseEngine::GetOverdriveFillAtTime(TimeSeconds time
         if (whammyTime > WhammyMaxTime) {
             whammyTime = WhammyMaxTime;
         }
-        TimeODTicks curBeat = TheSongTime.SecondsToODTick(whammyTime);
-        TimeODTicks whammyBeat = TheSongTime.SecondsToODTick(WhammyODTime);
+        TimeODTicks curBeat = tempoMap->SecondsToODTick(whammyTime);
+        TimeODTicks whammyBeat = tempoMap->SecondsToODTick(WhammyODTime);
         TimeODTicks timeWhammied = curBeat - whammyBeat;
         timeWhammied = std::clamp(timeWhammied, 0.0, whammyHoldTime);
         accumulate += timeWhammied * whammyGainPerTick; // idk what this value should be, will be adjusted
@@ -504,22 +504,22 @@ TimeSeconds Encore::RhythmEngine::BaseEngine::GetOverdriveEndTime() {
 
     // First check the end time with whammy + drain
     if (HasWhammyOD && start >= WhammyODTime) {
-        TimeODTicks whammyStart = TheSongTime.SecondsToODTick(WhammyODTime);
+        TimeODTicks whammyStart = tempoMap->SecondsToODTick(WhammyODTime);
         TimeODTicks whammyEnd = whammyStart + whammyHoldTime;
-        TimeSeconds endTime = TheSongTime.ODTickToSeconds(whammyEnd);
+        TimeSeconds endTime = tempoMap->ODTickToSeconds(whammyEnd);
         if (endTime > WhammyMaxTime) {
             endTime = WhammyMaxTime;
-            whammyEnd = TheSongTime.SecondsToODTick(endTime);
+            whammyEnd = tempoMap->SecondsToODTick(endTime);
         }
         TimeSeconds GainAmount = ((whammyEnd - whammyStart) * whammyGainPerTick);
-        TimeSeconds DrainLength = TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + std::min(1.0, OverdriveValue+GainAmount) / stats->ep.od.DrainPerTick());
+        TimeSeconds DrainLength = tempoMap->ODTickToSeconds(tempoMap->SecondsToODTick(start) + std::min(1.0, OverdriveValue+GainAmount) / stats->ep.od.DrainPerTick());
         return DrainLength;
     } else {
-        return TheSongTime.ODTickToSeconds(TheSongTime.SecondsToODTick(start) + (OverdriveValue) / stats->ep.od.DrainPerTick());
+        return tempoMap->ODTickToSeconds(tempoMap->SecondsToODTick(start) + (OverdriveValue) / stats->ep.od.DrainPerTick());
     }
 }
 double Encore::RhythmEngine::BaseEngine::GetVisualScoreAtTime(TimeSeconds time) {
-    TimeBeats beats = TheSongTime.SecondsToBeat(time);
+    TimeBeats beats = tempoMap->SecondsToBeat(time);
     double accumulate = stats->Score;
 
     for (auto& sustain : ActiveSustains) {
@@ -531,7 +531,7 @@ double Encore::RhythmEngine::BaseEngine::GetVisualScoreAtTime(TimeSeconds time) 
 void Encore::RhythmEngine::BaseEngine::CompleteSustain(
     TimeSeconds time, Sustain &sustain
 ) {
-    auto beats = TheSongTime.SecondsToBeat(time);
+    auto beats = tempoMap->SecondsToBeat(time);
     stats->Score += sustain.GetValueAtTime(beats);
 }
 void Encore::RhythmEngine::BaseEngine::DropSustain(TimeSeconds time, Sustain &sustain) {
@@ -551,7 +551,7 @@ void Encore::RhythmEngine::BaseEngine::UpdateMultiplier(TimeSeconds time) {
 void Encore::RhythmEngine::BaseEngine::SegmentSustains(TimeSeconds time, double newMultiplier) {
     for (auto& sustain : ActiveSustains) {
         CompleteSustain(time, sustain);
-        TimeBeats newStart = TheSongTime.SecondsToBeat(time);
+        TimeBeats newStart = tempoMap->SecondsToBeat(time);
         if (newStart > sustain.start) {
             sustain.start = newStart;
         }

@@ -10,7 +10,9 @@
 #include "RhythmEngine/Engine/Guitar/GuitarEngine.h"
 #include "RhythmEngine/Engine/Pad/PadEngine.h"
 
-Encore::RhythmEngine::ChartLoader::ChartLoader(Song* song) {
+using namespace Encore::RhythmEngine;
+
+ChartLoader::ChartLoader(Song* song) {
     switch (song->chartFormat) {
     case ChartFormat::Midi:
         chartHandler = std::make_shared<MidiChartHandler>(song);
@@ -21,50 +23,65 @@ Encore::RhythmEngine::ChartLoader::ChartLoader(Song* song) {
     }
 }
 
-std::array<TrackInformation, PlasticVocals> & Encore::RhythmEngine::ChartLoader::
+std::array<TrackInformation, PlasticVocals> & ChartLoader::
 GetSongParts() const {
     return chartHandler->GetValidParts();
 }
 
-std::vector<Encore::RhythmEngine::LyricPhrase> Encore::RhythmEngine::ChartLoader::
+std::vector<LyricPhrase> ChartLoader::
 GetLyricPhrases() const {
     return chartHandler->GetLyricPhrases();
 }
 
-std::vector<Encore::RhythmEngine::TimePoint> Encore::RhythmEngine::ChartLoader::
+std::vector<TimePoint> ChartLoader::
 GenerateOverdriveTicks() const {
     return chartHandler->GenerateOverdriveTicks();
 }
 
-std::pair<int, double> Encore::RhythmEngine::ChartLoader::GetEndEvent() const {
+std::pair<int, double> ChartLoader::GetEndEvent() const {
     return chartHandler->GetEndEvent();
 }
 
-std::vector<BPM> Encore::RhythmEngine::ChartLoader::GetBPMChanges() const {
+std::vector<BPM> ChartLoader::GetBPMChanges() const {
     return chartHandler->GetBPMChanges();
 }
 
-std::vector<Section> Encore::RhythmEngine::ChartLoader::GetSections() const {
+std::vector<Section> ChartLoader::GetSections() const {
     return chartHandler->GetSections();
 }
+std::shared_ptr<TempoMap>
+ChartLoader::GetTempoMap() {
+    if (auto cached = tempoMap.lock()) {
+        return cached;
+    } else {
+        auto newMap = std::make_shared<TempoMap>();
+        newMap->BPMChanges = GetBPMChanges();
+        newMap->TimeSigChanges = GetTimeSigChanges();
+        newMap->ppqn = GetResolution();
+        newMap->OverdriveTicks = GenerateOverdriveTicks();
+        newMap->GenerateBeatmap(GetEndEvent().first);
+        tempoMap = newMap;
+        return newMap;
+    }
+}
 
-int Encore::RhythmEngine::ChartLoader::GetResolution() {
+int ChartLoader::GetResolution() const {
     return chartHandler->GetResolution();
 }
 
-std::vector<TimeSig> Encore::RhythmEngine::ChartLoader::GetTimeSigChanges() const {
+std::vector<TimeSig> ChartLoader::GetTimeSigChanges() const {
     return chartHandler->GetTimeSigChanges();
 }
-void Encore::RhythmEngine::ChartLoader::PopulateSubsongs() {
+void ChartLoader::PopulateSubsongs() {
     chartHandler->PopulateSubsongs();
 }
 
-Encore::RhythmEngine::BaseChart Encore::RhythmEngine::ChartLoader::GetChart(const SongPart part,
+BaseChart ChartLoader::GetChart(const SongPart part,
                                                                             int difficulty) const {
     return chartHandler->GetChart(part, difficulty);
 }
-std::shared_ptr<Encore::RhythmEngine::BaseEngine>
-Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
+std::shared_ptr<BaseEngine>
+ChartLoader::CreateEngine(Player *player) {
     int diff = player->Difficulty;
     int inst = player->Instrument;
     std::string trackName;
@@ -104,12 +121,13 @@ Encore::RhythmEngine::ChartLoader::CreateEngine(Player *player) const {
         engine->chart->CurrentNoteIterators.at(i) =
             engine->chart->at(i).begin();
     }
+    engine->tempoMap = GetTempoMap();
     engine->chart->sections = GetSections();
     engine->CalculateWeightedScore();
     engine->inst = inst;
     return engine;
 }
 
-void Encore::RhythmEngine::ChartLoader::LoadCharts() const {
+void ChartLoader::LoadCharts() const {
     chartHandler->LoadCharts();
 }

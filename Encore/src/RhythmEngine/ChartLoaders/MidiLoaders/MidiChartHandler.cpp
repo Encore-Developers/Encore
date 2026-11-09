@@ -13,11 +13,13 @@
 #include "Pad/MidiPadLoader.h"
 #include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
 #include "util/threadpool.h"
+using namespace Encore::RhythmEngine;
+
 std::vector<std::vector<int>> pDiffRangeNotes = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
 };
 
-SongPart Encore::RhythmEngine::MidiChartHandler::GetSongPart(smf::MidiEventList &track) {
+SongPart MidiChartHandler::GetSongPart(smf::MidiEventList &track) {
     for (int events = 0; events < track.getSize(); events++) {
         if (!track[events].isMeta())
             continue;
@@ -32,7 +34,7 @@ SongPart Encore::RhythmEngine::MidiChartHandler::GetSongPart(smf::MidiEventList 
     return Invalid;
 }
 
-Encore::RhythmEngine::MidiChartHandler::MidiChartHandler(Song* song)
+MidiChartHandler::MidiChartHandler(Song* song)
     : ChartHandler(song) {
     midifile.read(*song->GetChartData());
     midifile.doTimeAnalysis();
@@ -41,7 +43,7 @@ Encore::RhythmEngine::MidiChartHandler::MidiChartHandler(Song* song)
     MidiChartHandler::GetValidParts();
 }
 
-std::vector<BPM> Encore::RhythmEngine::MidiChartHandler::GetBPMChanges() {
+std::vector<BPM> MidiChartHandler::GetBPMChanges() {
     std::vector<BPM> bpms;
     tpq = midifile.getTicksPerQuarterNote();
     smf::MidiEventList &track = midifile[0];
@@ -57,7 +59,7 @@ std::vector<BPM> Encore::RhythmEngine::MidiChartHandler::GetBPMChanges() {
     return bpms;
 }
 
-std::vector<TimeSig> Encore::RhythmEngine::MidiChartHandler::GetTimeSigChanges() {
+std::vector<TimeSig> MidiChartHandler::GetTimeSigChanges() {
     std::vector<TimeSig> ts;
     tpq = midifile.getTicksPerQuarterNote();
     smf::MidiEventList &track = midifile[0];
@@ -78,7 +80,7 @@ std::vector<TimeSig> Encore::RhythmEngine::MidiChartHandler::GetTimeSigChanges()
     return ts;
 }
 
-std::array<TrackInformation, PlasticVocals> &Encore::RhythmEngine::MidiChartHandler::
+std::array<TrackInformation, PlasticVocals> &MidiChartHandler::
 GetValidParts() {
     if (processed) {
         return Parts;
@@ -123,8 +125,8 @@ GetValidParts() {
     return Parts;
 }
 
-std::vector<Encore::RhythmEngine::TimePoint>
-Encore::RhythmEngine::MidiChartHandler::GenerateOverdriveTicks() {
+std::vector<TimePoint>
+MidiChartHandler::GenerateOverdriveTicks() {
     ZoneScoped;
     //midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midifile[EventsTrack];
@@ -139,23 +141,23 @@ Encore::RhythmEngine::MidiChartHandler::GenerateOverdriveTicks() {
 
     // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
     if (ticks.empty()) {
-        int overdriveTickCount = midifile.getFileDurationInTicks() / TheSongTime.songPPQN;
+        int overdriveTickCount = midifile.getFileDurationInTicks() / tpq;
         for (int i = 0; i < overdriveTickCount; i++) {
             ticks.emplace_back(
-                midifile.getTimeInSeconds(TheSongTime.songPPQN * i),
-                TheSongTime.songPPQN * i);
+                midifile.getTimeInSeconds(tpq * i),
+                tpq * i);
         }
     }
 
     return ticks;
 }
 
-std::vector<Encore::RhythmEngine::LyricPhrase>
-Encore::RhythmEngine::MidiChartHandler::GetLyricPhrases() {
+std::vector<LyricPhrase>
+MidiChartHandler::GetLyricPhrases() {
     return Lyrics;
 }
 
-void Encore::RhythmEngine::MidiChartHandler::LoadCharts() {
+void MidiChartHandler::LoadCharts() {
 
     for (auto & Part : Parts) {
         if (Part.TrackInt == -1)
@@ -235,7 +237,7 @@ void Encore::RhythmEngine::MidiChartHandler::LoadCharts() {
     }
 }
 
-std::pair<int, double> Encore::RhythmEngine::MidiChartHandler::GetEndEvent() {
+std::pair<int, double> MidiChartHandler::GetEndEvent() {
     auto &events = midifile[EventsTrack];
     for (int i = 0; i < events.getSize(); i++) {
         if (events[i].isMeta() && (int)events[i][1] == 1) {
@@ -252,7 +254,7 @@ std::pair<int, double> Encore::RhythmEngine::MidiChartHandler::GetEndEvent() {
     return { midifile.getFileDurationInTicks(), midifile.getFileDurationInSeconds() };
 }
 
-std::vector<Section> Encore::RhythmEngine::MidiChartHandler::GetSections() {
+std::vector<Section> MidiChartHandler::GetSections() {
     std::vector<Section> sections;
     auto &events = midifile[EventsTrack];
     for (int i = 0; i < events.getSize(); i++) {
@@ -276,15 +278,15 @@ std::vector<Section> Encore::RhythmEngine::MidiChartHandler::GetSections() {
     return sections;
 }
 
-Encore::RhythmEngine::BaseChart Encore::RhythmEngine::MidiChartHandler::GetChart(int part,
+BaseChart MidiChartHandler::GetChart(int part,
     int diff) {
     return Charts.at(part).first.at(diff);
 }
 
-bool Encore::RhythmEngine::MidiChartHandler::IsLoaded() {
+bool MidiChartHandler::IsLoaded() {
 return true;
 }
-void Encore::RhythmEngine::MidiChartHandler::PopulateSubsongs() {
+void MidiChartHandler::PopulateSubsongs() {
     if (song->subSongs.empty()) {
         return;
     }

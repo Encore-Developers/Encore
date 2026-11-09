@@ -3,6 +3,7 @@
 //
 
 #include "DotChartHandler.h"
+using namespace Encore::RhythmEngine;
 
 #include <regex>
 // what is wrong with this language

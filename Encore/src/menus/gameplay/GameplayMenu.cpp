@@ -269,14 +269,16 @@ void GameplayMenu::DrawScorebox(Assets &assets, float scoreY) {
         double reg = (REG_SCORE * ThePlayerManager.PlayersActive);
         double gold = (GOLD_SCORE * ThePlayerManager.PlayersActive);
         unsigned char alpha = 0;
+        double beatDelta =
+            TheSongTime.currentTempoMap->GetBeatDelta(TheSongTime.GetElapsedTime());
         if (ws < reg) {
             progress = ws / reg;
-            alpha = (1-TheSongTime.GetBeatlineDelta() * 255);
+            alpha = (1-beatDelta * 255);
         } else if (ws < gold) {
             BaseStarTex = ASSETPTR(starReg);
             TopStarTex = ASSETPTR(starGoldProg);
             progress = (ws - reg) / (gold - reg);
-            alpha = (1-TheSongTime.GetBeatlineDelta() * 255);
+            alpha = (1-beatDelta * 255);
         } else if (ws >= gold) {
             BaseStarTex = ASSETPTR(starGold);
         }
@@ -625,8 +627,6 @@ void GameplayMenu::Draw() {
         HideCursor();
     }
     Assets &assets = Assets::getInstance();
-    TheSongTime.UpdateTick();
-    TheSongTime.UpdateBeatlines();
     unsigned char BackgroundColor = 0;
     if (!songPlaying && tracks.back()->IntroTimer==0) {
         TheAudioManager.UpdateAudioStreamVolumes();

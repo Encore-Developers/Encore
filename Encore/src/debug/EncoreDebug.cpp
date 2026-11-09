@@ -454,8 +454,6 @@ void DebugSeek(float time, float audioTime) {
             TheSongTime.CurrentLyricPhrase = 0;
         }
     }
-    TheSongTime.CurrentBeatline = 0;
-    TheSongTime.UpdateBeatlines();
 }
 struct TimelineTextSpacer {
     float startPos;
@@ -1116,7 +1114,7 @@ void Encore::Track::DrawTrackDebugWindow() {
             if (BeginTabItem("Engine")) {
                 auto engine = player.engine;
                 BeginDisabled();
-                ImGui::Text("Beat: %f", TheSongTime.SecondsToBeat(TheSongTime.GetElapsedTime()));
+                ImGui::Text("Beat: %f", TheSongTime.currentTempoMap->SecondsToBeat(TheSongTime.GetElapsedTime()));
                 float time = engine->EngineTime;
                 InputFloat("Engine Time", &time);
                 EndDisabled();

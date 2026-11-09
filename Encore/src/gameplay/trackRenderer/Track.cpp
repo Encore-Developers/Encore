@@ -47,12 +47,12 @@ void Encore::Track::DrawCountdown() {
              .Align(CENTER)
              .Fnt(ASSET(redHatMono));
     int MeasuresRemaining = 0;
-    for (size_t i = TheSongTime.CurrentBeatline; i < TheSongTime.Beatlines.size(); i
+    for (size_t i = beatlineTracker.currentBeatline; i < beatlineTracker.GetBeatlineCount(); i
          ++) {
-        if (TheSongTime.Beatlines[i].type != Measure)
+        if (beatlineTracker.GetBeatline(i).type != RhythmEngine::Measure)
             continue;
         MeasuresRemaining++;
-        if (TheSongTime.Beatlines[i].tick >= end) { break; }
+        if (beatlineTracker.GetBeatline(i).tick >= end) { break; }
     }
     // if (MeasuresRemaining > 2) {
         unsigned char alpha = 255;
@@ -70,7 +70,8 @@ void Encore::Track::DrawCountdown() {
         }
         auto ease = getEasingFunction(EaseInQuad);
         float progress = cdSec / timeTillNote > 1.0f ? 1.0f : cdSec / timeTillNote;
-        float fac = 1 - TheSongTime.GetBeatlineDelta() > 1.0f ? 1.0f : 1 - TheSongTime.GetBeatlineDelta();
+        double beatDelta = engine->tempoMap->GetBeatDelta(currentTime);
+        float fac = 1 - beatDelta > 1.0f ? 1.0f : 1 - beatDelta;
         Color bgC = ColorBrightness(player.AccentColor, -0.75);
         float animScale = scale + ((scale * ease(fac)) / 8);
         DrawCircleV(screenPos,
@@ -126,6 +127,7 @@ void Encore::Track::Draw() {
     UpdateControllerLED();
 
     currentTime = TheSongTime.GetElapsedTime();
+    beatlineTracker.Advance(currentTime);
 
     {
         ZoneScopedN("Track Animation/Position Proc")
@@ -322,11 +324,12 @@ void Encore::Track::DrawSurface() {
     if (health < 0.33f) {
         float fac = 1 - health;
         float strength = getEasingFunction(EaseInSine)((fac * fac) - (health + 0.33));
+        double beatDelta = engine->tempoMap->GetBeatDelta(currentTime);
         railColor = ColorBrightness(RED,
-                                    (TheSongTime.GetBeatlineDelta() * -strength) + 0.33f);
+                                    (beatDelta * -strength) + 0.33f);
         Color failingColor = ColorBrightness(
-            ColorAlpha(RED, (1 - TheSongTime.GetBeatlineDelta() * 0.25) * strength),
-            -(TheSongTime.GetBeatlineDelta() * strength));
+            ColorAlpha(RED, (1 - beatDelta * 0.25) * strength),
+            -(beatDelta * strength));
         ASSET(trackSurface).Fetch().materials[0].maps[0].texture = ASSET(overdriveTex);
         DrawModelEx(ASSET(trackSurface), { 0 }, { 0 }, 0, { 1, 1, 1 }, failingColor);
     };
@@ -343,7 +346,7 @@ void Encore::Track::DrawSurface() {
 
 void Encore::Track::DrawOverdriveMeter() {
     ZoneScoped;
-    float Percentage = 1 - TheSongTime.GetBeatlineDelta();
+    float Percentage = 1 - engine->tempoMap->GetBeatDelta(currentTime);
     Color OverdriveBarColor = ColorBrightness(GOLD, Percentage);
 
     // DrawTriangleStrip3D(points.data(), points.size(), OverdriveBarColor);
@@ -897,7 +900,7 @@ void Encore::Track::DrawSmashers() {
 
 void Encore::Track::DrawBeatlines() {
     ZoneScoped;
-    if (!TheSongTime.Beatlines.empty()) {
+    if (beatlineTracker.GetBeatlineCount() > 0) {
         // if (TheSongTime.Beatlines.front().time < currentTime - 1) {
         //     TheSongTime.Beatlines.erase(TheSongTime.Beatlines.begin());
         // }
@@ -906,18 +909,18 @@ void Encore::Track::DrawBeatlines() {
         // size_t BeatlinePoolSize = TheSongTime.Beatlines.size() > beatlinePoolMaxSize
         //     ? beatlinePoolMaxSize
         //     : TheSongTime.Beatlines.size();
-        int beatlineStart = TheSongTime.CurrentBeatline - 8;
+        int beatlineStart = beatlineTracker.currentBeatline - 8;
         if (beatlineStart < 0)
             beatlineStart = 0;
         // because i have to do bounds checks myself
         // BeatlinePool = { TheSongTime.Beatlines.begin() + beatlineStart, BeatlinePoolSize };
 
         int beatlineEnd = beatlineStart + beatlinePoolMaxSize;
-        if (beatlineEnd > TheSongTime.Beatlines.size()) {
-            beatlineEnd = TheSongTime.Beatlines.size();
+        if (beatlineEnd > beatlineTracker.GetBeatlineCount()) {
+            beatlineEnd = beatlineTracker.GetBeatlineCount();
         }
         for (int i = beatlineStart; i < beatlineEnd; i++) {
-            auto &beatline = TheSongTime.Beatlines[i];
+            auto beatline = beatlineTracker.GetBeatline(i);
             float ScrollPos = GetNotePos3D(
                 beatline.time
             ) - 0.24;
@@ -926,17 +929,17 @@ void Encore::Track::DrawBeatlines() {
             float Size = 0;
             Color beatlineColor = WHITE;
             switch (beatline.type) {
-            case Major: {
+            case RhythmEngine::Major: {
                 beatlineColor = { 255, 255, 255, 220 };
                 Size = 0.5;
                 break;
             }
-            case Minor: {
+            case RhythmEngine::Minor: {
                 beatlineColor = { 255, 255, 255, 190 };
                 Size = 0.2;
                 break;
             }
-            case Measure: {
+            case RhythmEngine::Measure: {
                 beatlineColor = { 255, 255, 255, 255 };
                 Size = 0.75;
                 break;
@@ -1075,7 +1078,7 @@ void Encore::Track::UpdateControllerLED() {
         if (player.joypadID > 0) {
             auto joystick = SDL_GetJoystickFromID(player.joypadID);
             if (joystick && SDL_JoystickConnected(joystick)) {
-                float beatFrac = TheSongTime.GetBeatlineDelta();
+                float beatFrac = engine->tempoMap->GetBeatDelta(currentTime);
                 Color baseBaseColor = player.AccentColor;
                 float health = engine->stats->Health;
                 if (health < 0.33f) {

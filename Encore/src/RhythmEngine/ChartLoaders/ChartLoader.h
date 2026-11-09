@@ -43,6 +43,7 @@ namespace Encore::RhythmEngine {
 
     class ChartLoader {
         std::shared_ptr<ChartHandler> chartHandler;
+        std::weak_ptr<TempoMap> tempoMap;
 
     public:
         ChartLoader(Song* song);
@@ -53,12 +54,13 @@ namespace Encore::RhythmEngine {
         std::pair<int, double> GetEndEvent() const;
         std::vector<BPM> GetBPMChanges() const;
         std::vector<Section> GetSections() const;
-        int GetResolution();
+        std::shared_ptr<TempoMap> GetTempoMap();
+        int GetResolution() const;
         std::vector<TimeSig> GetTimeSigChanges() const;
         void PopulateSubsongs();
 
         BaseChart GetChart(SongPart part, int difficulty) const;
-        std::shared_ptr<BaseEngine> CreateEngine(Player* player) const;
+        std::shared_ptr<BaseEngine> CreateEngine(Player* player);
         bool IsLoaded() {return chartHandler->IsLoaded();};
         void LoadCharts() const;
     };

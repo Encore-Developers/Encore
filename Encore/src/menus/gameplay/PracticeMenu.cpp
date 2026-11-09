@@ -145,8 +145,6 @@ void PracticeMenu::DrawGameplay() {
     } else {
         HideCursor();
     }
-    TheSongTime.UpdateTick();
-    TheSongTime.UpdateBeatlines();
     ClearBackground(BLACK);
     unsigned char BackgroundColor = 0;
     if (!songPlaying && tracks.back()->IntroTimer==0) {

@@ -29,15 +29,8 @@ std::atomic_bool FinishedLoading = false;
 
 void ChartLoadingMenu::LoadCharts() {
     ZoneScoped;
-    {
-        ZoneScopedN("Loading Beatmap")
-        TheSongTime.BPMChanges = chartLoader.GetBPMChanges();
-        TheSongTime.TimeSigChanges = chartLoader.GetTimeSigChanges();
-        TheSongTime.songPPQN = chartLoader.GetResolution();
-        TheSongTime.OverdriveTicks = chartLoader.GenerateOverdriveTicks();
-        TheSongTime.GenerateBeatmap(chartLoader.GetEndEvent().first);
-        TheSongTime.Sections = chartLoader.GetSections();
-    }
+    TheSongTime.currentTempoMap = chartLoader.GetTempoMap();
+    TheSongTime.Sections = chartLoader.GetSections();
     chartLoader.LoadCharts();
     chartLoader.PopulateSubsongs();
 

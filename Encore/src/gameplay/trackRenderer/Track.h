@@ -111,7 +111,7 @@ namespace Encore {
         double lastLEDUpdateTime = 0.0;
 
         Track(Player &player_)
-            : player(player_), engine(player.engine) {
+            : player(player_), engine(player.engine), beatlineTracker(engine->tempoMap->GetBeatlineTracker()) {
         };
         ~Track();
         Player& player;
@@ -120,7 +120,7 @@ namespace Encore {
     protected:
 
         std::vector<std::unique_ptr<TrackSlot>> slots;
-        std::span<Beatline> BeatlinePool;
+        RhythmEngine::BeatlineTracker beatlineTracker;
     };
 }
 

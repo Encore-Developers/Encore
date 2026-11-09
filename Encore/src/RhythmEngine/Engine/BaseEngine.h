@@ -58,6 +58,7 @@ namespace Encore::RhythmEngine {
 
         int inst = 0;
         std::shared_ptr<BaseChart> chart;
+        std::shared_ptr<TempoMap> tempoMap;
         std::shared_ptr<Stats> stats;
         std::unordered_map<std::string, RhythmTimer> Timers;
         std::vector<Sustain> ActiveSustains;
