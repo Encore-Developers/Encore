@@ -7,18 +7,22 @@
 #include "SQLiteCpp/Transaction.h"
 
 Encore::PlayerScore::PlayerScore(std::string data) {
-    std::stringstream sRow(data);
-    std::string entry;
-    std::getline(sRow, entry, ',');
-    playerid = entry;
-    std::getline(sRow, entry, ',');
-    score = stoi(entry);
-    std::getline(sRow, entry, ',');
-    instrument = stoi(entry);
-    std::getline(sRow, entry, ',');
-    difficulty = stoi(entry);
-    std::getline(sRow, entry);
-    rating = stod(entry);
+    try {
+        std::stringstream sRow(data);
+        std::string entry;
+        std::getline(sRow, entry, ',');
+        playerid = entry;
+        std::getline(sRow, entry, ',');
+        score = stoi(entry);
+        std::getline(sRow, entry, ',');
+        instrument = stoi(entry);
+        std::getline(sRow, entry, ',');
+        difficulty = stoi(entry);
+        std::getline(sRow, entry);
+        rating = stod(entry);
+    } catch (std::exception &e) {
+        // TODO: this is crashing trying to read a header of some sort as a score
+    }
 }
 
 Encore::PlayerScore::PlayerScore(const Player *player) {
