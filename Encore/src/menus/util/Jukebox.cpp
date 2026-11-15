@@ -53,9 +53,12 @@ void Jukebox::AdjustVolume() {
         for (auto &stream : TheAudioManager.loadedStreams) {
             float Volume =
                 TheGameSettings.avMainVolume * TheGameSettings.avMenuMusicVolume;
-            if (stream.instrument == AudioManager::Stems::Vocals)
-                Volume = 0;
-            TheAudioManager.SetAudioStreamVolume(stream.instrument, Volume);
+            for (auto& stem : RhythmEngine::SongPart::Get("classicVocals")->assignedStems) {
+                if (stream.filename == stem) {
+                    Volume = 0;
+                }
+            }
+            stream.SetVolume(Volume);
         }
     }
 }

@@ -5,6 +5,7 @@
 #ifndef DISCORD_H
 #define DISCORD_H
 
+#include "RhythmEngine/SongPart.h"
 
 #include <memory>
 #include <string>
@@ -30,7 +31,7 @@ namespace Encore {
         void DiscordUpdatePresence(
             const std::string &title, const std::string &details, int players
         );
-        void DiscordUpdatePresenceSong(const std::string &title, const std::string &details, int instrument, int players);
+        void DiscordUpdatePresenceSong(const std::string &title, const std::string &details, RhythmEngine::SongPart* instrument, int players);
         void Update();
         void SteamUpdatePresence(const char* key, const char* value);
         std::string GetSteamNickname();

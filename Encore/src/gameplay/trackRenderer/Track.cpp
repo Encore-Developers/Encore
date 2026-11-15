@@ -499,10 +499,7 @@ void Encore::Track::DrawUsername() {
     float width = MeasureTextEx(ASSET(rubik), NameText.c_str(), FontSize, 0).x + FontSize;
     float left = screenPos.x - (width / 2);
     Rectangle icon = { left, screenPos.y, FontSize, FontSize };
-    int num = engine->inst > PartVocals
-        ? engine->inst - PartVocals - 1
-        : engine->inst;
-    auto iconA = TheAssets.InstIcons.at(num);
+    auto iconA = engine->part->GetIcon();
     DrawTexturePro(iconA->Fetch(),
                    { 0, 0, float(iconA->width), float(iconA->height) },
                    icon,
@@ -1029,7 +1026,7 @@ Encore::TrackSlot **Encore::Track::GetSlotsForNote(RhythmEngine::NoteEvent &note
     auto lane = note.lane;
     for (int i = 0; i < 6; i++) {
         if (lane & RhythmEngine::PlasticFrets[i]) {
-            if (engine->inst == PlasticDrums && note.type == 1 && engine->
+            if (engine->part->archetype == RhythmEngine::ArchetypeDrums && note.type == 1 && engine->
                 chart->size == 5) {
                 append_slot(i + 3);
             } else {

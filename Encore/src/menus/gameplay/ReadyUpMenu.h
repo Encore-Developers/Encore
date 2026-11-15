@@ -16,9 +16,9 @@ class PartOption : public SimpleMenu::Option {
 public:
     ReadyUpMenu* menu;
     int slot;
-    int part;
+    Encore::RhythmEngine::SongPart* part;
 
-    PartOption(SimpleMenu::Instance*, ReadyUpMenu* menu, int slot, int part);
+    PartOption(SimpleMenu::Instance*, ReadyUpMenu* menu, int slot, Encore::RhythmEngine::SongPart* part);
 
     void Draw(Encore::TextDisplay display, size_t index, SimpleMenu::MouseState mouseState) override;
     bool Input(Encore::ControllerEvent event) override;
@@ -34,12 +34,10 @@ public:
 
     std::array<ReadyUpMenuState, MAX_PLAYERS> SlotState{ INSTRUMENT };
     std::array<SimpleMenu::Instance, MAX_PLAYERS> Menus{};
-    std::array<uint8_t, MAX_PLAYERS> ControllerDiffSlot{ 0 };
-    std::array<uint8_t, MAX_PLAYERS> ControllerInstSlot{ 0 };
     /// Functions to be ran at the end of the Draw
     std::deque<std::function<void(ReadyUpMenu*)>> defer;
     Encore::ButtonActionRegistry buttReg;
-    std::vector<int> PartsToDisplay = {};
+    std::vector<Encore::RhythmEngine::SongPart *> PartsToDisplay = {};
     void Back(int slot);
 
     Song* curSong;

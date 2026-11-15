@@ -1,0 +1,11 @@
+{
+	"id": "classicDrums",
+	"archetype": "drums",
+	"midiTrackNames": ["PART DRUMS"],
+	"iniDifficultyKey": "diff_drums",
+	"maxMultiplier": 4,
+	"assignedStems": ["drums_1", "drums_2", "drums_3", "drums_4", "drums"],
+	"icon": "drums",
+	"presenceIconName": "classic_drums",
+	"sortOrder": 20
+}

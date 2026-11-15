@@ -1,0 +1,12 @@
+{
+	"id": "keys",
+	"archetype": "pad",
+	"midiTrackNames": ["PAD KEYS"],
+	"iniDifficultyKey": "diff_keys_pad",
+	"maxMultiplier": 4,
+	"assignedStems": ["keys"],
+	"icon": "keys",
+	"presenceIconName": "pad_keys",
+	"convertsFrom": "classicKeys",
+	"sortOrder": 130
+}

@@ -139,9 +139,6 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetChartEvents(smf::MidiEventList &
     }
 }
 
-double SustainBaseScore(double tickLen, double Resolution, double maxMult) {
-    return (tickLen / Resolution) * BASE_SCORE_SUSTAIN_POINTS * maxMult;
-};
 
 void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &event) {
     Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
@@ -150,11 +147,9 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
         pNote.end.tick = 0;
         pNote.end.sec = 0;
     } else {
-        chart.BaseScore += SustainBaseScore(pNote.tickLen(), Resolution, maxMult);
         pNote.end.tick -= 1;
     }
 
-    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
     if (!OpenMarker.empty()) {
         if (OpenMarker.front().first <= pNote.start.tick) {
             lane = 0;
@@ -240,7 +235,6 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track)
             }
             auto& note = chart[0].back();
             if (note.start.tick == event.tick) {
-                chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
                 note.lane += PlasticFrets[GetEventLane(Difficulty, event)];
                 if (note.type == 1) {
                     note.type = 0;
@@ -252,9 +246,6 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track)
                         //FIXME
                     // }
                 }
-                if (note.tickLen() > 0) {
-                    chart.BaseScore += SustainBaseScore(note.tickLen(), Resolution, maxMult);
-                }
                 if (!ForceHopoOn.empty()) {
                     if (ForceHopoOn.front().first <= event.tick) {
                         note.type = 1;
@@ -262,7 +253,6 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track)
                 }
                 continue;
             }
-            chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
             CreateNote(event);
         }
     }

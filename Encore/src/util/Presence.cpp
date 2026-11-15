@@ -4,6 +4,8 @@
 
 #include "Presence.h"
 
+#include "RhythmEngine/SongPart.h"
+
 #ifdef STEAM
 #include "isteamfriends.h"
 #include "isteamutils.h"
@@ -199,20 +201,9 @@ void Encore::Presence::DiscordUpdatePresence(const std::string &title, const std
 #endif
 }
 
-std::array<std::string, 11> AssetNames = {
-    "pad_drums",    "pad_bass",       "pad_guitar",    "pad_keys",
-    "pad_vocals",   "classic_drums",  "classic_bass",  "classic_guitar",
-    "classic_keys", "classic_vocals", "classic_vocals"
-};
-
-std::array<std::string, 11> PartNames = {
-    "Pad Drums",    "Pad Bass",       "Pad_guitar",    "Pad keys",
-    "Pad vocals",   "Classic Drums",  "Classic Bass",  "Classic Guitar",
-    "Classic Keys", "Classic Vocals", "Classic Vocals"
-};
 
 void Encore::Presence::DiscordUpdatePresenceSong(
-    const std::string &title, const std::string &details, int instrument, int length
+    const std::string &title, const std::string &details, RhythmEngine::SongPart* instrument, int length
 ) {
 #ifndef NO_DISCORD
     if (!Initialized)
@@ -221,8 +212,8 @@ void Encore::Presence::DiscordUpdatePresenceSong(
     activity.SetDetails((details).c_str());
     if (length == 1) {
         activity.SetState("Playing solo");
-        activity.GetAssets().SetSmallText(PartNames[instrument].c_str());
-        activity.GetAssets().SetSmallImage(AssetNames[instrument].c_str());
+        activity.GetAssets().SetSmallText(instrument->GetLocalizedName());
+        activity.GetAssets().SetSmallImage(instrument->presenceIconName.c_str());
     }
     else {
         activity.SetState("In a band");

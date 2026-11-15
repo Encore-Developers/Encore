@@ -169,6 +169,5 @@ PadConverters::ConvertGuitarToPad(BaseChart &sourceChart) {
     newChart.sections = sourceChart.sections;
     newChart.overdrive = sourceChart.overdrive;
     newChart.solos = sourceChart.solos;
-    newChart.BaseScore = sourceChart.BaseScore;
     return newChart;
 }

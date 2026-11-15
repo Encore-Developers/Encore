@@ -93,7 +93,6 @@ void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &eve
             }
         }
     }
-    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
     chart[lane].emplace_back(
         pNote.start, pNote.end, type, PlasticFrets[lane]
     );
@@ -159,6 +158,25 @@ void Encore::RhythmEngine::MidiDrumsLoader::GetNotes(smf::MidiEventList &track) 
         CheckModifiers(event);
         if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
             CreateNote(event);
+        }
+    }
+}
+void Encore::RhythmEngine::MidiDrumsLoader::LoadChart(smf::MidiEventList &track) {
+    // first get events, hopos, taps, lifts, the likes
+    GetChartEvents(track);
+    GetNoteModifiers(track);
+    GetNotes(track);
+    if (chart.at(5).empty()) {
+        chart.Lanes.pop_back();
+        chart.CurrentNoteIterators.pop_back();
+        chart.size = 5;
+    } else {
+        for (int i = 0; i < chart.size; i++) {
+            if (i == 0)
+                continue;
+            for (auto &note : chart.at(i)) {
+                note.type = (i + 1) % 2;
+            }
         }
     }
 }

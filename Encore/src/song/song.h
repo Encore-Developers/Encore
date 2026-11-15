@@ -17,7 +17,6 @@
 #include "assets.h"
 #include "audio.h"
 
-
 enum PartIcon {
     IconDrum,
     IconBass,
@@ -27,23 +26,6 @@ enum PartIcon {
     IconNone
 };
 
-enum SongPart : int {
-    PartDrums = 0,
-    PartBass,
-    PartGuitar,
-    PartKeys,
-    PartVocals,
-    PlasticDrums,
-    PlasticBass,
-    PlasticGuitar,
-    PlasticKeys,
-    PitchedVocals,
-    PlasticVocals,
-    Invalid,
-    BeatLines,
-    Events
-};
-
 enum Difficulty {
     Easy,
     Medium,
@@ -51,65 +33,10 @@ enum Difficulty {
     Expert
 };
 
-
-struct Beat {
-    double Time;
-    bool Major = false;
-    bool Clapped = false;
-    int Tick;
-};
-
 static std::atomic_int LoadingState = -1;
 
 inline std::array<std::string, 4> diffList = { "diff.easy", "diff.medium", "diff.hard", "diff.expert" };
-inline std::vector<std::string> songPartsList{
-    "parts.drums", "parts.bass", "parts.lead", "parts.keys",
-    "parts.vocals", "parts.classicDrums", "parts.classicBass", "parts.classicLead",
-    "parts.classicKeys", "parts.classicVocals", "parts.classicVocals",
-};
 
-
-inline std::unordered_map<std::string, SongPart> midiNameToEnumINI = {
-    { "PAD DRUMS", PartDrums }, { "PAD BASS", PartBass },
-    { "PAD GUITAR", PartGuitar }, { "PAD VOCALS", PartVocals },
-    { "PAD KEYS", PartKeys }, { "PART DRUMS", PlasticDrums },
-    { "PART BASS", PlasticBass }, { "PART GUITAR", PlasticGuitar },
-    { "PART VOCALS", PitchedVocals }, { "PART KEYS", PlasticKeys },
-    { "PLASTIC VOCALS", Invalid }, { "BEAT", BeatLines },
-    { "EVENTS", Events }
-};
-
-inline std::vector<int> PlasticToPadEnumConverter = { PartDrums, PartBass, PartGuitar,
-                                                      PartVocals, PartKeys, PartDrums,
-                                                      PartBass, PartGuitar, PartVocals,
-                                                      PartKeys, PartVocals, Invalid };
-
-inline SongPart partFromStringINI(const std::string &str) {
-    auto it = midiNameToEnumINI.find(str);
-    if (it != midiNameToEnumINI.end()) {
-        return it->second;
-    } else {
-        return SongPart::Invalid;
-    }
-}
-
-// todo: split drums into getting individual stems for proper drum mappings
-inline std::map<SongPart, Encore::AudioManager::Stems> InstrumentToStemEnum {
-        { PartDrums, AUDIOSTEM(Drums1) },
-        { PartDrums, AUDIOSTEM(Drums2) },
-        { PartDrums, AUDIOSTEM(Drums3) },
-        { PartDrums, AUDIOSTEM(Drums4) },
-        { PartBass, AUDIOSTEM(Bass) },
-        { PartGuitar, AUDIOSTEM(Guitar) },
-        { PartVocals, AUDIOSTEM(Vocals) },
-        { PartKeys, AUDIOSTEM(Keys) },
-};
-
-inline Encore::AudioManager::Stems GetStemFromInstrument(SongPart part) {
-    int fuck = part > PartVocals ? part - PlasticDrums : part;
-    // I AM A PROGRAMMER! I AM A PROGRAMMER!
-    return InstrumentToStemEnum.at(SongPart(fuck));
-}
 
 constexpr size_t songHashSize = picosha2::k_digest_size;
 
@@ -288,12 +215,7 @@ public:
     int trackListing = -1;
     int playlistListing = -1;
     SongHash hash;
-    std::vector<PartIcon> partIcons{
-        PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone, PartIcon::IconNone
-    };
-    // Parts order will always be Drums, Bass, Guitar, Vocals, Plastic Drums, Plastic
-    // Bass, Plastic Guitar
-    std::array<int, PlasticVocals> Difficulties {-1};
+    std::unordered_map<Encore::RhythmEngine::SongPart*, int> Difficulties;
 
     ChartFormat chartFormat = ChartFormat::Midi;
     std::filesystem::path chartPath = "";
@@ -304,7 +226,7 @@ public:
     std::string loadingPhrase = "";
     std::vector<std::string> charters{};
     int hopoThreshold = -1;
-    std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> LoadAudioINI();
+    std::vector<std::pair<std::filesystem::path, std::string>> LoadAudioINI();
     /// Returns an empty string if not found
     std::filesystem::path GetVideoPath();
     float previewStartTime = 0.0f;

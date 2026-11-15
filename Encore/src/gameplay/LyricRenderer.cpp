@@ -30,13 +30,14 @@ void Encore::LyricRenderer::RenderLyrics() {
             DrawPhraseBackground(0, 0, 0.06f);
             float iconWidth = Units::hinpct(0.4);
             Rectangle rect {Units::RightSide - iconWidth, Units::hpct(0) - (iconWidth/2), iconWidth*1.25f, iconWidth*1.25f};
-            Rectangle source {0,0,float(ASSET(InstIcons).at(4)->width), float(ASSET(InstIcons).at(4)->height)};
+            auto icon = ASSET(InstIcons).at("vox");
+            Rectangle source {0,0,float(icon->width), float(icon->height)};
             //
             BeginScissorMode(0,Units::hpct(0)+Units::hinpct(0.04f)+1, GetRenderWidth(), Units::hinpct(0.06f * 0.75f) + Units::hinpct(0.06f));
             BeginBlendMode(BLEND_ADDITIVE);
             unsigned char c = static_cast<unsigned char>(easeInOut(ShowHideTimer) * 48.0);
             // if (ShowHideTimer > 0.5)
-            DrawTexturePro(*ASSET(InstIcons).at(4), source, rect, {0,0}, 25, {c,c,c,c});
+            DrawTexturePro(*icon, source, rect, {0,0}, 25, {c,c,c,c});
             EndBlendMode();
             EndScissorMode();
             //

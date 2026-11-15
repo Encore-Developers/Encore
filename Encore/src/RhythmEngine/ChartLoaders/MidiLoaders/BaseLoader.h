@@ -61,7 +61,7 @@ namespace Encore::RhythmEngine {
         // run these few things:
         // midiFile.absoluteTicks();
         // midiFile.doTimeAnalysis();
-        BaseLoader(int diff_, int thresh_, smf::MidiFile* midiFile_, int maxMult_ = 4) : midiFile(midiFile_), Difficulty(diff_), Threshold(thresh_), maxMult(maxMult_){}
+        BaseLoader(int diff_, int thresh_, smf::MidiFile* midiFile_) : midiFile(midiFile_), Difficulty(diff_), Threshold(thresh_){}
 
         size_t CurrentSolo = 0;
         size_t CurrentOverdrive = 0;
@@ -74,7 +74,6 @@ namespace Encore::RhythmEngine {
         int Difficulty;
         int Threshold; // shouldnt be here but who care
         int Resolution = 480;
-        int maxMult;
         virtual void LoadChart(smf::MidiEventList &track) {
             // first get events, hopos, taps, lifts, the likes
             GetChartEvents(track);

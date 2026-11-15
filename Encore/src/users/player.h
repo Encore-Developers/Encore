@@ -32,7 +32,6 @@ namespace Encore::RhythmEngine {
     SETTING_ACTION(int, Difficulty, "diff")                                              \
     SETTING_ACTION(std::string, Name, "name")                                              \
     SETTING_ACTION(std::string, PlayerID, "UUID")                                              \
-    SETTING_ACTION(int, Instrument, "inst")                                              \
     SETTING_ACTION(float, InputCalibration, "inputOffset")                               \
     SETTING_ACTION(float, NoteSpeed, "NoteSpeed")                                        \
     SETTING_ACTION(bool, Bot, "bot")                                                     \
@@ -43,7 +42,6 @@ namespace Encore::RhythmEngine {
 
 #define PLAYER_CONFIG_LIST                                                               \
     SETTING_ACTION(int, Difficulty)                                                      \
-    SETTING_ACTION(int, Instrument)                                                      \
     SETTING_ACTION(float, InputCalibration)                                              \
     SETTING_ACTION(float, NoteSpeed)                                                     \
     SETTING_ACTION(bool, Bot)                                                            \
@@ -68,6 +66,7 @@ public:
     // std::filesystem::path SettingsFile;
     // PlayerGameplayStats *stats;
     Color AccentColor = { 255, 0, 255, 255 };
+    Encore::RhythmEngine::SongPart* Part;
 #define SETTING_ACTION(type, name) type name;
     PLAYER_CONFIG_LIST;
 #undef SETTING_ACTION

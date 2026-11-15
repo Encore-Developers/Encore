@@ -1,0 +1,12 @@
+{
+	"id": "classicBass",
+	"archetype": "guitar",
+	"midiTrackNames": ["PART BASS"],
+	"iniDifficultyKey": "diff_bass",
+	"maxMultiplier": 6,
+	"flags": ["bass"],
+	"assignedStems": ["bass", "rhythm"],
+	"icon": "bass",
+	"presenceIconName": "classic_bass",
+	"sortOrder": 10
+}

@@ -209,8 +209,9 @@ int TheGame::Run(int argc, char *argv[]) {
 
     prefsPath = SDL_GetPrefPath("Encore", "v0.2.0");
     std::filesystem::path directory = prefsPath;
-    TheScoreDatabase.Init(prefsPath);
     LocateDevAssets();
+    Encore::RhythmEngine::SongPart::LoadSongParts(TheAssets.getDirectory() / "parts");
+    TheScoreDatabase.Init(prefsPath);
 
 
     ArgumentList::InitArguments(argc, argv);

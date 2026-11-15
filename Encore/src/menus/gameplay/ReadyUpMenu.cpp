@@ -31,21 +31,10 @@ void ReadyUpMenu::ControllerInputCallback(Encore::ControllerEvent event) {
             return;
 
         buttReg.HandleInput(event);
-        if (event.action == Encore::Action::PRESS) {
-            int diffCount = 0;
-            TrackInformation& part = Parts[player->Instrument];
-            for (int d = 0; d < 4; d++) {
-                if (part.ValidDiffs[d]) {
-                    diffCount += 1;
-                }
-            }
-            if (diffCount != 0)
-                ControllerDiffSlot[i] = ControllerDiffSlot[i] % diffCount;
-        }
     }
 }
 
-PartOption::PartOption(SimpleMenu::Instance * inst, ReadyUpMenu* menu, int slot, int part) : SimpleMenu::Option(inst, LOCALISE(songPartsList[part])), menu(menu), slot(slot), part(part) {
+PartOption::PartOption(SimpleMenu::Instance * inst, ReadyUpMenu* menu, int slot, Encore::RhythmEngine::SongPart* part) : SimpleMenu::Option(inst, part->GetLocalizedName()), menu(menu), slot(slot), part(part) {
 
 }
 void PartOption::Draw(
@@ -54,10 +43,7 @@ void PartOption::Draw(
     auto originalPadding = display.padding.x / 2.0f;
     display.Padding(display.padding.x + display.fontSize + display.padding.x * 2.0f, display.padding.y);
     Option::Draw(display, index, mouseState);
-    int num = part > PartVocals
-        ? part - PartVocals - 1
-        : part;
-    auto iconA = TheAssets.InstIcons.at(num);
+    auto iconA = part->GetIcon();
     Rectangle dest = { display.pos.x + originalPadding,
                        display.pos.y + display.padding.y / 2.0f,
                        display.fontSize + display.padding.y,
@@ -72,20 +58,22 @@ void PartOption::Draw(
         WHITE
     );
 
-    auto diff = menu->curSong->Difficulties.at(part);
-    if (diff > 0) {
-        if (diff > 6) {
-            diff = 6;
+    if (menu->curSong->Difficulties.contains(part)) {
+        auto diff = menu->curSong->Difficulties.at(part);
+        if (diff > 0) {
+            if (diff > 6) {
+                diff = 6;
+            }
+            auto ringA = TheAssets.YargRings.at(diff-1);
+            DrawTexturePro(
+                ringA->Fetch(),
+                { 0, 0, float(iconA->width), float(iconA->height) },
+                dest,
+                { 0, 0 },
+                0,
+                WHITE
+            );
         }
-        auto ringA = TheAssets.YargRings.at(diff-1);
-        DrawTexturePro(
-            ringA->Fetch(),
-            { 0, 0, float(iconA->width), float(iconA->height) },
-            dest,
-            { 0, 0 },
-            0,
-            WHITE
-        );
     }
 
 
@@ -95,7 +83,7 @@ bool PartOption::Input(Encore::ControllerEvent event) {
         auto tempSlot = slot;
         auto tempPart = part;
         menu->defer.push_back([tempSlot, tempPart](ReadyUpMenu* menu) {
-            ThePlayerManager.GetActivePlayer(tempSlot).Instrument = tempPart;
+            ThePlayerManager.GetActivePlayer(tempSlot).Part = tempPart;
             menu->LoadMenuState(tempSlot, ReadyUpMenu::DIFFICULTY);
         });
         return true;
@@ -131,7 +119,7 @@ void ReadyUpMenu::LoadMenuState(int slot, ReadyUpMenuState state) {
             menu.CreateOption<PartOption>(this, slot, part);
             if (ThePlayerManager.ActivePlayers[slot]) {
                 auto& player = ThePlayerManager.GetActivePlayer(slot);
-                if (player.Instrument == part) {
+                if (player.Part == part) {
                     menu.selectedIndex = menu.options.size()-1;
                 }
             }
@@ -142,9 +130,15 @@ void ReadyUpMenu::LoadMenuState(int slot, ReadyUpMenuState state) {
         if (!ThePlayerManager.ActivePlayers[slot]) break;
         auto& Parts = chartLoader.GetSongParts();
         auto& player = ThePlayerManager.GetActivePlayer(slot);
-        TrackInformation &part = Parts[player.Instrument];
+        TrackInformation *part = nullptr;
+        for (auto& trackInfo: Parts) {
+            if (trackInfo.Part == player.Part) {
+                part = &trackInfo;
+                break;
+            }
+        }
         for (int i = 0; i < 4; i++) {
-            if (part.ValidDiffs[i]) {
+            if (part->ValidDiffs[i]) {
                 menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE(diffList[i]), [this, &player, i, slot] {
                     player.Difficulty = i;
                     defer.push_back([this, slot](ReadyUpMenu*) {
@@ -365,30 +359,15 @@ void ReadyUpMenu::Load() {
         Menus[slot].Input(ev);
     }, false)
     SlotState = { INSTRUMENT, INSTRUMENT, INSTRUMENT, INSTRUMENT };
-    auto& Parts = chartLoader.GetSongParts();
-    for (size_t i = 0; i < Parts.size(); i++) {
-        if (Parts[i].Valid) {
-            PartsToDisplay.push_back(i);
-        }
+    auto& trackInfo = chartLoader.GetSongParts();
+    for (size_t i = 0; i < trackInfo.size(); i++) {
+        PartsToDisplay.push_back(trackInfo[i].Part);
     }
 
     for (int i = 0; i < MAX_PLAYERS; i++) {
         LoadMenuState(i, SlotState[i]);
         if (!ThePlayerManager.ActivePlayers[i]) continue;
         auto& player = ThePlayerManager.GetActivePlayer(i);
-        for (int g = 0; g < PartsToDisplay.size(); g++) {
-            if (player.Instrument == PartsToDisplay[g]) {
-                ControllerInstSlot[i] = g;
-                break;
-            }
-        }
-        ControllerDiffSlot[i] = player.Difficulty;
-        if (!PartsToDisplay.empty() && !Parts[PartsToDisplay[ControllerInstSlot[i]]].Valid) {
-            ControllerInstSlot[i] = 0;
-        }
-        if (!Parts[player.Instrument].ValidDiffs[player.Difficulty]) {
-            ControllerDiffSlot[i] = 0;
-        }
         if (player.ReplayPlayer) {
             LoadMenuState(i, READY);
         }

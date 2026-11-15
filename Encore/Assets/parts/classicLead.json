@@ -1,0 +1,11 @@
+{
+	"id": "classicLead",
+	"archetype": "guitar",
+	"midiTrackNames": ["PART GUITAR", "T1 GEMS"],
+	"iniDifficultyKey": "diff_guitar",
+	"maxMultiplier": 4,
+	"assignedStems": ["guitar"],
+	"icon": "lead",
+	"presenceIconName": "classic_guitar",
+	"sortOrder": 0
+}

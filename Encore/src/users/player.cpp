@@ -14,7 +14,7 @@
 Player::Player() {
     Name = "New Player";
     Difficulty = 0;
-    Instrument = 0;
+    Part = &Encore::RhythmEngine::SongPart::LoadedParts.begin()->second;
     ReadiedUpBefore = false;
     Bot = false;
 
@@ -65,6 +65,7 @@ void to_json(nlohmann::json &j, const Player &p) {
     j = nlohmann::json{
 #define SETTING_ACTION(type, field, key) {key, p.field},
         PLAYER_JSON_SETTINGS
+        {"part", p.Part->id},
         {"colorProfiles", {
             {"plastic", p.GetColorProfile(Encore::ProfileManager::PLASTIC)->Name},
             {"pad", p.GetColorProfile(Encore::ProfileManager::PAD)->Name},
@@ -77,6 +78,16 @@ void from_json(const nlohmann::json &j, Player &p) {
 #define SETTING_ACTION(type, field, key) if (j.contains(key)) p.field = j[key];
     PLAYER_JSON_SETTINGS
 #undef SETTING_ACTION
+    if (j.contains("part")) {
+        auto found = Encore::RhythmEngine::SongPart::LoadedParts.find(
+            j["part"].get<std::string>()
+        );
+        if (found != Encore::RhythmEngine::SongPart::LoadedParts.end()) {
+            p.Part = &found->second;
+        } else {
+            p.Part = &Encore::RhythmEngine::SongPart::LoadedParts.begin()->second;
+        }
+    }
     if (j.contains("colorProfiles")) {
         auto& colorProfiles = j["colorProfiles"];
 #define COLORPROFILE(key, type) if (colorProfiles.contains(key)) p.SetColorProfile(colorProfiles[key], Encore::ProfileManager::type);

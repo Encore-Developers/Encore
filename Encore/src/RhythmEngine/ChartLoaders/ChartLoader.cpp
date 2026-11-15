@@ -12,6 +12,16 @@
 
 using namespace Encore::RhythmEngine;
 
+std::shared_ptr<BaseChart> ChartHandler::GetChart(SongPart *part, int diff) {
+    for (auto& info : Parts) {
+        if (info.Part == part) {
+            if (info.ValidDiffs.at(diff)) {
+                return info.Charts.at(diff);
+            }
+        }
+    }
+    return nullptr;
+}
 ChartLoader::ChartLoader(Song* song) {
     switch (song->chartFormat) {
     case ChartFormat::Midi:
@@ -23,7 +33,7 @@ ChartLoader::ChartLoader(Song* song) {
     }
 }
 
-std::array<TrackInformation, PlasticVocals> & ChartLoader::
+std::vector<TrackInformation>& ChartLoader::
 GetSongParts() const {
     return chartHandler->GetValidParts();
 }
@@ -76,45 +86,34 @@ void ChartLoader::PopulateSubsongs() {
     chartHandler->PopulateSubsongs();
 }
 
-BaseChart ChartLoader::GetChart(const SongPart part,
-                                                                            int difficulty) const {
+std::shared_ptr<BaseChart> ChartLoader::GetChart(SongPart* part, int difficulty) const {
     return chartHandler->GetChart(part, difficulty);
 }
 std::shared_ptr<BaseEngine>
 ChartLoader::CreateEngine(Player *player) {
     int diff = player->Difficulty;
-    int inst = player->Instrument;
+    auto part = player->Part;
     std::string trackName;
     std::shared_ptr<BaseEngine> engine;
-    if (inst < PitchedVocals && inst != PlasticDrums && inst > PartVocals) {
-        engine =
-            std::make_shared<GuitarEngine>(
-                std::make_shared<BaseChart>(
-                    GetChart(SongPart(inst), diff)),
-                player
-            );
-        engine->stats->Type = Guitar;
-    } else if (inst == PlasticDrums) {
-        engine = std::make_shared<DrumsEngine>(
-            std::make_shared<BaseChart>(
-                GetChart(SongPart(inst), diff)),
-            player
-        );
-        engine->stats->Type = Drums;
-    } else if (inst < PlasticDrums) {
-        engine = std::make_shared<PadEngine>(
-                std::make_shared<BaseChart>(
-                    GetChart(SongPart(inst), diff)),
-                player
-            );
-        engine->stats->Type = Pad;
+    auto chart = std::make_shared<BaseChart>(*GetChart(part, diff));
+    assert(chart);
+    switch (part->archetype) {
+    case ArchetypePad: {
+        engine = std::make_shared<PadEngine>(chart, player);
         if (engine->chart->Lanes[4].empty())
-            engine->chart->Lanes.
-                             resize(4);
+            engine->chart->Lanes.resize(4);
+        break;
     }
-    if (inst == PartVocals || inst == PartBass || inst == PlasticBass) {
-        engine->stats->ep.mult.max = 6;
+    case ArchetypeDrums: {
+        engine = std::make_shared<DrumsEngine>(chart, player);
+        break;
     }
+    case ArchetypeGuitar: {
+        engine = std::make_shared<GuitarEngine>(chart, player);
+        break;
+    }
+    }
+    engine->stats->ep.mult.max = part->maxMultiplier;
     for (int i = 0; i < engine->chart->Lanes.size(); i++) {
 
         engine->chart->at(i).shrink_to_fit();
@@ -124,7 +123,7 @@ ChartLoader::CreateEngine(Player *player) {
     engine->tempoMap = GetTempoMap();
     engine->chart->sections = GetSections();
     engine->CalculateWeightedScore();
-    engine->inst = inst;
+    engine->part = part;
     return engine;
 }
 

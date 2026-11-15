@@ -6,7 +6,7 @@ namespace Encore::RhythmEngine {
 
     void ReplayParticipant::Write(encore::bin_ofstream_le &stream) {
         stream << name;
-        stream << instrument;
+        stream << part->id;
         stream << difficulty;
         stream << activeSlot;
         stream << bindingType;
@@ -23,7 +23,9 @@ namespace Encore::RhythmEngine {
     }
     void ReplayParticipant::Load(encore::bin_ifstream_le &stream) {
         stream >> name;
-        stream >> instrument;
+        std::string partId;
+        stream >> partId;
+        part = SongPart::Get(partId);
         stream >> difficulty;
         stream >> activeSlot;
         uint8_t bindType;
@@ -50,10 +52,10 @@ namespace Encore::RhythmEngine {
         std::ranges::sort(inputs, [](const ControllerEvent& a, const ControllerEvent& b){return a.timestamp < b.timestamp;});
     }
     ReplayParticipant::ReplayParticipant()
-        : instrument(0), difficulty(0), activeSlot(0), bindingType(), noteSpeed(0),
+        : part(0), difficulty(0), activeSlot(0), bindingType(), noteSpeed(0),
           trackLength(0) {}
     ReplayParticipant::ReplayParticipant(Player &player)
-        : name(player.Name), instrument(player.Instrument), difficulty(player.Difficulty),
+        : name(player.Name), part(player.Part), difficulty(player.Difficulty),
           activeSlot(player.ActiveSlot), bindingType(player.bindingType), noteSpeed(player.NoteSpeed),
           trackLength(player.HighwayLength) {}
     ReplayPlayer::ReplayPlayer(ReplayParticipant &replayParticipant)

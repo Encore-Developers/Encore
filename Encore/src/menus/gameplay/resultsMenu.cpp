@@ -596,15 +596,12 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
 
     std::string percentText = std::to_string(Percent) + "%";
     std::string accText = std::to_string(accuracy * 100) + "%";
-    int inst = player.Instrument < PlasticDrums
-        ? player.Instrument
-        : player.Instrument - PlasticDrums;
-    assets.InstIcons[inst]->Draw({ cardPos + (cardWidth * 0.02f),
+    player.Part->GetIcon()->Draw({ cardPos + (cardWidth * 0.02f),
                                    cursor + (topCardHeight * 0.015f), InstIconSize,
                                    InstIconSize },
                                  WHITE);
 
-    int diffNumber = curSong->Difficulties[player.Instrument];
+    int diffNumber = curSong->Difficulties[player.Part];
 
     assets.BaseRingTexture.Draw({ cardPos + (cardWidth * 0.02f),
                                    cursor + (topCardHeight * 0.015f), InstIconSize,
@@ -624,7 +621,7 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
     float asda = InstIconSize / 4;
     Encore::TextDisplay a;
     a.Pos(left + InstIconSize, cursor + asda + (topCardHeight * 0.0175f)).
-      Fnt(ASSET(rubik)).Size(asda * 2).lDrawText(songPartsList[player.Instrument]);
+      Fnt(ASSET(rubik)).Size(asda * 2).DrawText(player.Part->GetLocalizedName());
 
     cursor += InstIconSize * 0.85;
     Encore::TextDisplay notesHitPercent;

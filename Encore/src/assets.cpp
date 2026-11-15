@@ -426,13 +426,13 @@ void Assets::AddRingsAndInstruments() {
         // Grabbing from the vec because it moved
         mainMenuSet.AddAsset(tex);
     }
-    InstIcons.push_back(new TextureAsset("ui/hugh ring/drums-inv.png", true));
-    InstIcons.push_back(new TextureAsset("ui/hugh ring/bass-inv.png", true));
-    InstIcons.push_back(new TextureAsset("ui/hugh ring/lead-inv.png", true));
-    InstIcons.push_back(new TextureAsset("ui/hugh ring/keys-inv.png", true));
-    InstIcons.push_back(new TextureAsset("ui/hugh ring/vox-inv.png", true));
-    for (auto icon : InstIcons) {
-        mainMenuSet.AddAsset(icon);
+    InstIcons.emplace("drums", new TextureAsset("ui/hugh ring/drums-inv.png", true));
+    InstIcons.emplace("bass", new TextureAsset("ui/hugh ring/bass-inv.png", true));
+    InstIcons.emplace("lead", new TextureAsset("ui/hugh ring/lead-inv.png", true));
+    InstIcons.emplace("keys", new TextureAsset("ui/hugh ring/keys-inv.png", true));
+    InstIcons.emplace("vox", new TextureAsset("ui/hugh ring/vox-inv.png", true));
+    for (auto insticon : InstIcons | std::views::values) {
+        mainMenuSet.AddAsset(insticon);
     }
 
     for (int i = 0; i <= 7; i++) {

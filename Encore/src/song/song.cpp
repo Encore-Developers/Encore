@@ -12,21 +12,9 @@
 
 using namespace Encore;
 
-std::map<std::string, AudioManager::Stems> IniStems = {
-    { "song",       AudioManager::Stems::Background },
-    { "guitar",     AudioManager::Stems::Guitar },
-    { "bass",       AudioManager::Stems::Bass },
-    { "rhythm",     AudioManager::Stems::Bass },
-    { "keys",       AudioManager::Stems::Keys },
-    { "vocals",     AudioManager::Stems::Vocals },
-    { "vocals_1",   AudioManager::Stems::BackingVocals },
-    { "vocals_2",   AudioManager::Stems::Vocals },
-    { "drums",      AudioManager::Stems::Drums1 },
-    { "drums_1",    AudioManager::Stems::Drums1 },
-    { "drums_2",    AudioManager::Stems::Drums2 },
-    { "drums_3",    AudioManager::Stems::Drums3 },
-    { "drums_4",    AudioManager::Stems::Drums4 },
-    { "crowd",      AudioManager::Stems::Crowd }
+std::vector<std::string> IniStems = {
+    "song",     "guitar", "bass",    "rhythm",  "keys",    "vocals",  "vocals_1",
+    "vocals_2", "drums",  "drums_1", "drums_2", "drums_3", "drums_4", "crowd",
 };
 
 std::pair<double, double> Song::GetMTVFadeInRange() {
@@ -86,25 +74,22 @@ void Song::PullInfoFromINI(INIReader &ini) {
 
     videoStartTime = ini.GetInteger("song", "video_start_time", 0) / 1000.0f;
 
-    Difficulties[PlasticGuitar] = ini.GetInteger("song", "diff_guitar", -1);
+    for (auto& part : RhythmEngine::SongPart::LoadedParts | std::views::values) {
+        if (ini.HasValue("song", part.iniDifficultyKey)) {
+            Difficulties[&part] = ini.GetInteger("song", part.iniDifficultyKey, -1);
+        }
+    }
 
-    Difficulties[PlasticBass] = ini.GetInteger("song", "diff_bass", -1);
-
-    Difficulties[PlasticDrums] = ini.GetInteger("song", "diff_drums", -1);
-
-    Difficulties[PlasticKeys] = ini.GetInteger("song", "diff_keys", -1);
-
-    Difficulties[PitchedVocals] = ini.GetInteger("song", "diff_vocals", -1);
-
-    Difficulties[PartGuitar] = ini.GetInteger("song", "diff_guitar_pad", -1);
-
-    Difficulties[PartBass] = ini.GetInteger("song", "diff_bass_pad", -1);
-
-    Difficulties[PartKeys] = ini.GetInteger("song", "diff_keys_pad", -1);
-
-    Difficulties[PartDrums] = ini.GetInteger("song", "diff_drums_pad", -1);
-
-    Difficulties[PartVocals] = ini.GetInteger("song", "diff_vocals_pad", -1);
+    // Difficulties[PlasticGuitar] = ini.GetInteger("song", "diff_guitar", -1);
+    // Difficulties[PlasticBass] = ini.GetInteger("song", "diff_bass", -1);
+    // Difficulties[PlasticDrums] = ini.GetInteger("song", "diff_drums", -1);
+    // Difficulties[PlasticKeys] = ini.GetInteger("song", "diff_keys", -1);
+    // Difficulties[PitchedVocals] = ini.GetInteger("song", "diff_vocals", -1);
+    // Difficulties[PartGuitar] = ini.GetInteger("song", "diff_guitar_pad", -1);
+    // Difficulties[PartBass] = ini.GetInteger("song", "diff_bass_pad", -1);
+    // Difficulties[PartKeys] = ini.GetInteger("song", "diff_keys_pad", -1);
+    // Difficulties[PartDrums] = ini.GetInteger("song", "diff_drums_pad", -1);
+    // Difficulties[PartVocals] = ini.GetInteger("song", "diff_vocals_pad", -1);
 
     subSongs.clear();
     int subsongCount = ini.GetInteger("song", "subsongs", 0);
@@ -154,15 +139,15 @@ void Song::LoadAlbumArt() {
     TheArtLoader.LoadAlbumArt(this);
 }
 
-std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> Song::LoadAudioINI() {
+std::vector<std::pair<std::filesystem::path, std::string>> Song::LoadAudioINI() {
     ZoneScoped
-    std::vector<std::pair<std::filesystem::path, Encore::AudioManager::Stems>> stemsPath;
+    std::vector<std::pair<std::filesystem::path, std::string>> stemsPath;
     for (const auto &entry : std::filesystem::directory_iterator(songDir)) {
         if (entry.is_regular_file()) {
-            for (auto filename : IniStems) {
-                if (entry.path().stem() == filename.first
+            for (const auto& filename : IniStems) {
+                if (entry.path().stem() == filename
                     && entry.path().filename() != "song.ini") {
-                    stemsPath.push_back({ entry.path(), filename.second });
+                    stemsPath.emplace_back( entry.path(), filename);
                 }
             }
         }

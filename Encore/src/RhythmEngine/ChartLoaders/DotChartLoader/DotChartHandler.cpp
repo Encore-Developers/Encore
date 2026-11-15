@@ -17,21 +17,6 @@ std::array<std::pair<std::string, int>, 4> diffs
         }
 };
 
-std::array<std::pair<std::string, int>, PitchedVocals> insts
-{
-        {
-            {"Single", PlasticGuitar},
-            {"DoubleBass", PlasticBass},
-            {"Keyboard", PlasticKeys},
-            {"Drums", PlasticDrums},
-            {"PadLead", PartGuitar},
-            {"PadBass", PartBass},
-            {"PadDrums", PartDrums},
-            {"PadVocals", PartVocals},
-            {"PadKeys", PartKeys}
-        }
-};
-
 double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double lastTime) {
     // using https://thenathannator.github.io/GuitarGame_ChartFormats/Implementation-Info/Time-Conversions/ as a reference
     double secondsPerBeat = 60.0 / bpm;
@@ -39,7 +24,7 @@ double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double l
     double secondDelta = secondsPerBeat * beatDelta;
     return secondDelta + lastTime;
 };
-Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
+DotChartHandler::DotChartHandler(Song* song)
     : ChartHandler(song) {
     static const std::regex event("  ([0-9]+) = ([A-Z]+) (.+) ?(\\d?)");
     auto chart = song->GetChartData();
@@ -103,71 +88,66 @@ Encore::RhythmEngine::DotChartHandler::DotChartHandler(Song* song)
 
 }
 
-std::vector<BPM> Encore::RhythmEngine::DotChartHandler::GetBPMChanges() {
+std::vector<BPM> DotChartHandler::GetBPMChanges() {
     return bpms;
 }
 
-std::vector<TimeSig> Encore::RhythmEngine::DotChartHandler::GetTimeSigChanges() {
+std::vector<TimeSig> DotChartHandler::GetTimeSigChanges() {
     // ts means this->🥀
     return TS;
 }
 
 
-std::array<TrackInformation, PlasticVocals> & Encore::RhythmEngine::DotChartHandler::
+std::vector<TrackInformation> & DotChartHandler::
 GetValidParts() {
     if (processed) {
         return Parts;
     }
-    auto chart = song->GetChartData();
-    for (std::string line; std::getline(*chart, line);) {
-        if (line.empty()) continue;
-        if (line.starts_with('[') && line.ends_with(']')) {
-            line.pop_back();
-            line.erase(0, 1);
-            for (auto &inst : insts) {
-                if (line.ends_with(inst.first)) {
-                    Parts[inst.second].Valid = true;
-                    for (auto &diff : diffs) {
-                        if (line.starts_with(diff.first)) {
-                            Parts[inst.second].ValidDiffs[diff.second] = true;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // auto chart = song->GetChartData();
+    // for (std::string line; std::getline(*chart, line);) {
+    //     if (line.empty()) continue;
+    //     if (line.starts_with('[') && line.ends_with(']')) {
+    //         line.pop_back();
+    //         line.erase(0, 1);
+    //         for (auto &inst : insts) {
+    //             if (line.ends_with(inst.first)) {
+    //                 Parts[inst.second].Valid = true;
+    //                 for (auto &diff : diffs) {
+    //                     if (line.starts_with(diff.first)) {
+    //                         Parts[inst.second].ValidDiffs[diff.second] = true;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     processed = true;
     return Parts;
 }
 
-std::vector<Encore::RhythmEngine::TimePoint> Encore::RhythmEngine::DotChartHandler::
+std::vector<TimePoint> DotChartHandler::
 GenerateOverdriveTicks() {
     return {};
 }
 
-std::vector<Encore::RhythmEngine::LyricPhrase> Encore::RhythmEngine::DotChartHandler::
+std::vector<LyricPhrase> DotChartHandler::
 GetLyricPhrases() {
     return std::vector<LyricPhrase>{};
 }
 
-void Encore::RhythmEngine::DotChartHandler::LoadCharts() {
+void DotChartHandler::LoadCharts() {
 }
 
-std::pair<int, double> Encore::RhythmEngine::DotChartHandler::GetEndEvent() {
+std::pair<int, double> DotChartHandler::GetEndEvent() {
     if (EndEvent.first) return {10000000000000000, 100000000000000000};
     return EndEvent;
 }
 
-std::vector<Section> Encore::RhythmEngine::DotChartHandler::GetSections() {
+std::vector<Section> DotChartHandler::GetSections() {
     return {};
 }
 
-Encore::RhythmEngine::BaseChart Encore::RhythmEngine::DotChartHandler::GetChart(int part,
-    int diff) {
-    return BaseChart{};
-}
-
-bool Encore::RhythmEngine::DotChartHandler::IsLoaded() {
+bool DotChartHandler::IsLoaded() {
     return true;
 }
-void Encore::RhythmEngine::DotChartHandler::PopulateSubsongs() {}
+void DotChartHandler::PopulateSubsongs() {}

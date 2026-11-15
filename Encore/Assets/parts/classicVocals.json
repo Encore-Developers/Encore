@@ -1,0 +1,12 @@
+{
+	"id": "classicVocals",
+	"archetype": "pad",
+	"midiTrackNames": ["PART VOCALS"],
+	"iniDifficultyKey": "diff_vocals",
+	"maxMultiplier": 4,
+	"assignedStems": ["vocals_1", "vocals_2", "vocals", "vocals_explicit", "vocals_explicit_1", "vocals_explicit_2"],
+	"icon": "vox",
+	"presenceIconName": "classic_vocals",
+	"playable": false,
+	"sortOrder": 40
+}

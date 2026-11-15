@@ -56,7 +56,7 @@ namespace Encore::RhythmEngine {
          * If not, the player overhit the note and should be penalized.
          */
 
-        int inst = 0;
+        SongPart* part;
         std::shared_ptr<BaseChart> chart;
         std::shared_ptr<TempoMap> tempoMap;
         std::shared_ptr<Stats> stats;
@@ -133,7 +133,6 @@ namespace Encore::RhythmEngine {
         virtual void HitNote(size_t lane);
         void MissNote(size_t lane, TimeSeconds time);
         void Overhit(size_t lane);
-        void UpdateStats(int instrument, int difficulty);
         virtual bool UsesNoteMasks() { return false; };
         virtual void OnOverdriveActivate(TimeSeconds time) {};
         int GhostCount;

@@ -41,7 +41,9 @@ public:
     void DrawMTVOverlay(MTVProvider* song, Vector2 pos, bool allowFading = true);
     void Draw() override;
     void DrawAccuracyDisplay(float xPos, float yPos);
+    void ConfigureTrack(std::shared_ptr<Encore::Track> track);
     void Load() override;
+    void ArrangeTracks();
     void DrawPauseMenu();
     virtual bool CheckPauseInput(Encore::ControllerEvent event);
     virtual void UpdatePauseState();

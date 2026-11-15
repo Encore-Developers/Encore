@@ -91,17 +91,17 @@ bool GameplayMenu::IsPaused() {
     return false;
 }
 void GameplayMenu::SetPresence() {
-    int inst = 0;
+    Encore::RhythmEngine::SongPart* part;
     if (ThePlayerManager.PlayersActive == 1) {
         for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
             if (!ThePlayerManager.ActivePlayers[playerNum]) continue;
-            inst = ThePlayerManager.GetActivePlayer(playerNum).Instrument;
+            part = ThePlayerManager.GetActivePlayer(playerNum).Part;
         }
     }
     TheGameRPC.DiscordUpdatePresenceSong(
         "Playing a song",
         curSong->title + " - " + curSong->artist,
-        inst,
+        part,
         ThePlayerManager.PlayersActive
     );
     TheGameRPC.SteamUpdatePresence("song", (curSong->title + " - " + curSong->artist).c_str());
@@ -142,7 +142,7 @@ void GameplayMenu::KeyboardInputCallback(SDL_KeyboardEvent* sdlEvent) {
                     event.channel = Encore::InputChannel::STRUM_DOWN;
                 }
             }
-            int DiffMax = (track->engine->chart->Lanes.size() >= 5 || player.Instrument > PartVocals)
+            int DiffMax = (track->engine->chart->Lanes.size() >= 5 || player.Part->archetype != Encore::RhythmEngine::ArchetypePad)
                 ? 6
                 : 4;
 
@@ -686,9 +686,10 @@ void GameplayMenu::Draw() {
 
     for (auto &stream : TheAudioManager.loadedStreams) {
         float volume = TheGameSettings.GetInactiveVolume();
-        if (stream.instrument == AUDIOSTEM(Vocals))
+        // TODO: generic way to handle this instead of relying on the filename
+        if (Encore::RhythmEngine::SongPart::Get("classicVocals")->IsAssignedStem(stream.filename))
             volume = TheGameSettings.GetVocalsVolume();
-        if (stream.instrument == AUDIOSTEM(Crowd))
+        if (stream.filename == "crowd")
             volume = TheGameSettings.GetCrowdVolume();
         stream.volume = volume;
     }
@@ -723,7 +724,6 @@ void GameplayMenu::Draw() {
             double updateMargin = GetFrameTime() * 10;
             if (time - updateMargin > player.engine->EngineTime) {
                 player.engine->Advance(time - updateMargin);
-                player.engine->UpdateStats(player.Instrument, player.Difficulty);
             }
         }
 
@@ -739,7 +739,11 @@ void GameplayMenu::Draw() {
         if (track->TrackDebugToggled) {
             track->DrawTrackDebugWindow();
         }
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), volume);
+        for (auto &stream : TheAudioManager.loadedStreams) {
+            if (stream.instrument == player.Part) {
+                stream.SetVolume(volume);
+            }
+        }
     }
     TheAudioManager.UpdateAudioStreamVolumes();
     if (EncoreDebug::showGameplayHud) {
@@ -819,6 +823,30 @@ void GameplayMenu::DrawAccuracyDisplay(float xPos, float yPos) {
     }
 }
 
+void GameplayMenu::ConfigureTrack(std::shared_ptr<Encore::Track> track) {
+    Player & player = track->player;
+    switch (player.Part->archetype) {
+    case Encore::RhythmEngine::ArchetypeGuitar:
+        track->Configure5Lane();
+        track->ColorProfileType = Encore::ProfileManager::PLASTIC;
+        break;
+    case Encore::RhythmEngine::ArchetypeDrums:
+        if (player.engine->chart->size == 5) {
+            track->ConfigureDrums();
+        } else {
+            track->Configure5LaneDrums();
+        }
+        track->ColorProfileType = Encore::ProfileManager::DRUMS;
+        break;
+    default:
+        if (player.engine->chart->Lanes.size() >= 5) {
+            track->Configure5Lane();
+        } else {
+            track->Configure4Lane();
+        }
+        track->ColorProfileType = Encore::ProfileManager::PAD;
+    }
+}
 void GameplayMenu::Load() {
     ZoneScoped;
     SetTextureWrap(ASSET(starBlank), TEXTURE_WRAP_CLAMP);
@@ -849,64 +877,24 @@ void GameplayMenu::Load() {
     TheSongTime.Start(songEnd);
     dropInDropOut = false;
 
-    float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
+
     double End = 0.0;
     double EndEvent = curSong->end;
     double LastNote = 0.0;
     double AudioEnd = TheAudioManager.GetMusicTimeLength();
     int playerCount = 0;
 
-    float trackMaxScale = 1;
-
-    if (ThePlayerManager.PlayersActive == 1) {
-        trackMaxScale = 1.1;
-    }
-
-    for (auto &stream : TheAudioManager.loadedStreams) {
-        float volume = TheGameSettings.GetInactiveVolume();
-        if (stream.instrument == AUDIOSTEM(Vocals))
-            volume = TheGameSettings.GetVocalsVolume();
-        if (stream.instrument == AUDIOSTEM(Crowd))
-            volume = TheGameSettings.GetCrowdVolume();
-        stream.volume = volume;
-    }
 
     for (int i = 0; i < ThePlayerManager.ActivePlayers.size(); i++) {
         if (!ThePlayerManager.ActivePlayers[i]) continue;
         ZoneScopedN("Player Init")
         Player &player = ThePlayerManager.GetActivePlayer(i);
 
-        TheAudioManager.SetAudioStreamVolume(GetStemFromInstrument(SongPart(player.Instrument)), TheGameSettings.GetActiveVolume());
-
         auto track = std::make_shared<Encore::Track>(player);
         track->Load();
-        track->ColumnLeft = -1 + widthPerPlayer * playerCount;
-        track->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
-        track->MaxScale = trackMaxScale;
+
         track->IntroTimer += (0.5 * playerCount);
-        switch (player.Instrument) {
-        case PlasticGuitar:
-        case PlasticBass:
-        case PlasticKeys:
-            track->Configure5Lane();
-            track->ColorProfileType = Encore::ProfileManager::PLASTIC;
-            break;
-        case PlasticDrums:
-            if (player.engine->chart->size == 5) {
-                track->ConfigureDrums();
-            } else {
-                track->Configure5LaneDrums();
-            }
-            track->ColorProfileType = Encore::ProfileManager::DRUMS;
-            break;
-        default:
-            if (player.engine->chart->Lanes.size() >= 5) {
-                track->Configure5Lane();
-            } else {
-                track->Configure4Lane();
-            }
-            track->ColorProfileType = Encore::ProfileManager::PAD;
-        }
+        ConfigureTrack(track);
         if (player.Bot)
             player.engine->stats->Bot = true;
 
@@ -928,6 +916,23 @@ void GameplayMenu::Load() {
     recordingReplay.song = curSong->hash;
 
     TheAudioManager.UpdateAudioStreamVolumes();
+    ArrangeTracks();
+}
+void GameplayMenu::ArrangeTracks() {
+    float widthPerPlayer = 2.0f / ThePlayerManager.PlayersActive;
+    float trackMaxScale = 1;
+    if (ThePlayerManager.PlayersActive == 1) {
+        trackMaxScale = 1.1;
+    }
+
+    int playerCount = 0;
+    for (auto track : tracks) {
+        track->ColumnLeft = -1 + widthPerPlayer * playerCount;
+        track->ColumnRight = -1 + widthPerPlayer * (playerCount + 1);
+        track->MaxScale = trackMaxScale;
+        playerCount++;
+    }
+
 }
 void GameplayMenu::DrawPauseMenu() {
     Assets &assets = Assets::getInstance();

@@ -407,7 +407,7 @@ public:
 
     NEWTEXASSET(BaseRingTexture, "ui/hugh ring/rings.png");
     std::vector<TextureAsset *> YargRings;
-    std::vector<TextureAsset *> InstIcons;
+    std::unordered_map<std::string, TextureAsset *> InstIcons;
     std::vector<TextureAsset *> GradeBackgrounds;
     NEWTEXASSET(cheese, "gameplay/ui/grade_bg/cheese.png");
     NEWTEXASSET(overshellTip, "gameplay/ui/overshellTip.png");

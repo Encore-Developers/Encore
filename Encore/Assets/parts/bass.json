@@ -1,0 +1,13 @@
+{
+	"id": "bass",
+	"archetype": "pad",
+	"midiTrackNames": ["PAD BASS"],
+	"iniDifficultyKey": "diff_bass_pad",
+	"maxMultiplier": 6,
+	"flags": ["bass"],
+	"assignedStems": ["bass", "rhythm"],
+	"icon": "bass",
+	"presenceIconName": "pad_bass",
+	"convertsFrom": "classicBass",
+	"sortOrder": 110
+}

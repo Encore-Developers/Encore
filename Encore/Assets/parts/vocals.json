@@ -1,0 +1,11 @@
+{
+	"id": "vocals",
+	"archetype": "pad",
+	"midiTrackNames": ["PAD VOCALS"],
+	"iniDifficultyKey": "diff_vocals_pad",
+	"maxMultiplier": 6,
+	"assignedStems": ["vocals_1", "vocals_2", "vocals", "vocals_explicit", "vocals_explicit_1", "vocals_explicit_2"],
+	"icon": "vox",
+	"presenceIconName": "pad_vocals",
+	"sortOrder": 140
+}

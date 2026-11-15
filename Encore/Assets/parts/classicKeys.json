@@ -1,0 +1,11 @@
+{
+	"id": "classicKeys",
+	"archetype": "guitar",
+	"midiTrackNames": ["PART KEYS"],
+	"iniDifficultyKey": "diff_keys",
+	"maxMultiplier": 4,
+	"assignedStems": ["keys"],
+	"icon": "keys",
+	"presenceIconName": "classic_keys",
+	"sortOrder": 30
+}

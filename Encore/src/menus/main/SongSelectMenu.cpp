@@ -449,7 +449,7 @@ void SongSelectMenu::UpdatePreviewVolume(double currentTime) {
 
     for (auto &stream : TheAudioManager.loadedStreams) {
         float volume = currentPreviewVolume;
-        TheAudioManager.SetAudioStreamVolume(stream.instrument, volume);
+        stream.SetVolume(volume);
     }
 
     TheAudioManager.UpdateAudioStreamVolumes();
@@ -498,8 +498,7 @@ void SongSelectMenu::LoadPreview(Song &song) {
             / 1000.0f;
         TheAudioManager.seekStreams(previewStartTimeSec);
         for (auto &stream : TheAudioManager.loadedStreams) {
-            float volume = 0.0f;
-            TheAudioManager.SetAudioStreamVolume(stream.instrument, volume);
+            stream.SetVolume(0.0f);
         }
         TheAudioManager.UpdateAudioStreamVolumes();
         TheAudioManager.BeginPlayback(TheAudioManager.loadedStreams[0].handle);
@@ -1017,6 +1016,13 @@ void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
     .lDrawText("parts.classic");
     DrawRectangleGradientH(leftPos+infoBoxPadding, InfoBoxBottom + infoBoxPadding, InfoBoxWidth, 2, WHITE, {255,255,255,32});
     DrawRectangleGradientH(leftPos+infoBoxPadding, partType.pos.y + infoBoxPadding, InfoBoxWidth, 2, WHITE, {255,255,255,32});
+    using namespace Encore::RhythmEngine;
+    static SongPart* displayParts[] = {
+        SongPart::Get("drums"), SongPart::Get("bass"), SongPart::Get("lead"),
+        SongPart::Get("keys"), SongPart::Get("vocals"),
+        SongPart::Get("classicDrums"), SongPart::Get("classicBass"), SongPart::Get("classicLead"),
+        SongPart::Get("classicKeys"), SongPart::Get("classicVocals"),
+    };
     for (int i = 0; i < 10; i++) {
         bool RowTwo = i < 5;
         int RowTwoInt = i - 5;
@@ -1028,10 +1034,14 @@ void SongSelectMenu::DrawSongInformation(float leftPos, Song* curSong) {
             ResetToLeftPos);
         Rectangle Placement = { IconLeftPos, BoxTopPos, IconWidth, IconWidth };
         Color TintColor = WHITE;
-        int diffNumber = curSong->Difficulties[i];
+        SongPart* part = displayParts[i];
+        int diffNumber = -1;
+        if (curSong->Difficulties.contains(part)) {
+            diffNumber = curSong->Difficulties[part];
+        }
         if (diffNumber == -1)
             TintColor = DARKGRAY;
-        auto instIcon = TheAssets.InstIcons[asdasd];
+        auto instIcon = part->GetIcon();
         DrawTexturePro(*instIcon,
                        { 0, 0, (float)instIcon->width, (float)instIcon->height },
                        Placement,

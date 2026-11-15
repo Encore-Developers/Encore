@@ -193,7 +193,7 @@ Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
             break;
         }
         case PAD: {
-            if (player->Instrument > PartVocals) {
+            if (player->Part->archetype != Encore::RhythmEngine::ArchetypePad) {
                 switch (event->gbutton.button) {
                 case (SDL_GAMEPAD_BUTTON_LEFT_SHOULDER):
                     outevent.channel = Encore::InputChannel::LANE_2;
@@ -250,7 +250,7 @@ Encore::ControllerEvent TranslateSDLEvent(SDL_Event *event) {
             }
             outevent.slot = event->gdevice.which;
         }
-        if (bindingType == PAD && player->Instrument > PartVocals) {
+        if (bindingType == PAD && player->Part->archetype != Encore::RhythmEngine::ArchetypePad) {
             if (ControllerTriggerState.find(event->gaxis.which) == ControllerTriggerState.end()) {
                 ControllerTriggerState.insert({event->gaxis.axis, {false, false}});
             }

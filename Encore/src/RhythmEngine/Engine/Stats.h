@@ -98,7 +98,6 @@ namespace Encore::RhythmEngine {
         }
 
         EngineParameters ep;
-        int Type = 0;
         double PointsPerNote = 0;
         double weightedCount = 0;
         double Score = 0;

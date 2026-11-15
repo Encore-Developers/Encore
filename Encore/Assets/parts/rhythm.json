@@ -1,0 +1,12 @@
+{
+	"id": "rhythm",
+	"archetype": "pad",
+	"midiTrackNames": ["PAD RHYTHM"],
+	"iniDifficultyKey": "diff_rhythm_pad",
+	"maxMultiplier": 4,
+	"assignedStems": ["rhythm"],
+	"icon": "lead",
+	"presenceIconName": "pad_guitar",
+	"convertsFrom": "classicRhythm",
+	"sortOrder": 100
+}

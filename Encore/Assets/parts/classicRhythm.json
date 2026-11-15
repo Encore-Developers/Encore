@@ -1,0 +1,11 @@
+{
+	"id": "classicRhythm",
+	"archetype": "guitar",
+	"midiTrackNames": ["PART RHYTHM"],
+	"iniDifficultyKey": "diff_rhythm",
+	"maxMultiplier": 4,
+	"assignedStems": ["rhythm"],
+	"icon": "lead",
+	"presenceIconName": "classic_guitar",
+	"sortOrder": 1
+}

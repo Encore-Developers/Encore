@@ -1,0 +1,11 @@
+{
+	"id": "drums",
+	"archetype": "pad",
+	"midiTrackNames": ["PAD DRUMS"],
+	"iniDifficultyKey": "diff_drums_pad",
+	"maxMultiplier": 4,
+	"assignedStems": ["drums_1", "drums_2", "drums_3", "drums_4", "drums"],
+	"icon": "drums",
+	"presenceIconName": "pad_drums",
+	"sortOrder": 120
+}

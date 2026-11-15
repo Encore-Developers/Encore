@@ -34,13 +34,20 @@ void ChartLoadingMenu::LoadCharts() {
     chartLoader.LoadCharts();
     chartLoader.PopulateSubsongs();
 
+    std::vector<Encore::RhythmEngine::SongPart*> activeParts;
+    // for (auto& trackInfo : chartLoader.GetSongParts()) {
+    //     activeParts.push_back(trackInfo.Part);
+    // }
+
     for (int playerNum = 0; playerNum < ThePlayerManager.ActivePlayers.size(); playerNum++) {
         if (!ThePlayerManager.ActivePlayers[playerNum])
             continue;
         ZoneScopedN("RhythmEngine ctors")
         Player &player = ThePlayerManager.GetActivePlayer(playerNum);
         player.engine = chartLoader.CreateEngine(&player);
+        activeParts.push_back(player.Part);
     }
+    TheAudioManager.AssignStreamInstruments(activeParts);
     TheSongTime.Lyrics = chartLoader.GetLyricPhrases();
     FinishedLoading = true;
 }

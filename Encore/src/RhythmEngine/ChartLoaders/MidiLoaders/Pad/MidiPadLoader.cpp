@@ -74,10 +74,7 @@ void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;
-    } else {
-        chart.BaseScore += (pNote.tickLen() / Resolution) * BASE_SCORE_SUSTAIN_POINTS * maxMult;
     }
-    chart.BaseScore += BASE_SCORE_NOTE_POINT * maxMult;
 
     chart[GetEventLane(Difficulty, event)].emplace_back(
         pNote.start,

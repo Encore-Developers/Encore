@@ -28,7 +28,7 @@ Encore::PlayerScore::PlayerScore(std::string data) {
 Encore::PlayerScore::PlayerScore(const Player *player) {
     playerid = player->PlayerID;
     score = player->engine->stats->Score;
-    instrument = player->Instrument;
+    instrument = 0;
     difficulty = player->Difficulty;
     rating = player->engine->stats->Accuracy / player->engine->stats->AttemptedNotes;
 }

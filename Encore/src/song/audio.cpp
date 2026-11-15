@@ -106,7 +106,7 @@ bool Encore::AudioManager::Init() {
     return true;
 }
 
-void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::path, Stems>> paths) {
+void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::path, std::string>> paths) {
     ZoneScoped;
     int streams = 0;
     for (auto &path : paths) {
@@ -122,7 +122,7 @@ void Encore::AudioManager::loadStreams(std::vector<std::pair<std::filesystem::pa
         if (streamHandle) {
             AudioStream audio_stream;
             audio_stream.handle = streamHandle;
-            audio_stream.instrument = path.second;
+            audio_stream.filename = path.second;
             if (songSpeed != 1) {
                 audio_stream.tempoResampling = true;
             }
@@ -237,14 +237,34 @@ void Encore::AudioManager::UpdateAudioStreamVolumes() {
 }
 
 Encore::AudioManager::AudioStream *
-Encore::AudioManager::GetAudioStreamByInstrument(Stems stem) {
+Encore::AudioManager::GetAudioStreamByInstrument(Encore::RhythmEngine::SongPart* instrument) {
     if (loadedStreams.empty())
         return nullptr;
     for (auto &stream : loadedStreams) {
-        if (stream.instrument == stem)
+        if (stream.instrument == instrument)
             return &stream;
     };
     return nullptr;
+}
+void Encore::AudioManager::AssignStreamInstruments(
+    std::vector<RhythmEngine::SongPart *> &activeInstruments
+) {
+    std::unordered_map<std::string, int> priorities;
+    for (auto& stream : loadedStreams) {
+        for (auto inst : activeInstruments) {
+            int prio = inst->stemPriorityOffset;
+            for (auto& checkStem : inst->assignedStems) {
+                if (stream.filename == checkStem) {
+                    auto existingPrio = priorities.find(checkStem);
+                    if (existingPrio == priorities.end() || existingPrio->second > prio) {
+                        priorities[checkStem] = prio;
+                        stream.instrument = inst;
+                    }
+                }
+                prio++;
+            }
+        }
+    }
 }
 
 double Encore::AudioManager::GetMusicTimePlayed() const {
@@ -269,13 +289,8 @@ double Encore::AudioManager::GetMusicTimeLength() const {
     CHECK_BASS_ERROR("Failed to music length");
 }
 
-void Encore::AudioManager::SetAudioStreamVolume(Stems stem, float volume) {
-    for (auto &stream : loadedStreams) {
-        if (stem == Stems::Drums1 && (stream.instrument == Stems::Drums1 || stream.instrument == Stems::Drums2 || stream.instrument == Stems::Drums3 || stream.instrument == Stems::Drums4))
-            stream.volume = volume;
-        if (stem == stream.instrument)
-            stream.volume = volume;
-    }
+void Encore::AudioManager::AudioStream::SetVolume(float volume) {
+    this->volume = volume;
     CHECK_BASS_ERROR("Failed to set stream volume");
 }
 

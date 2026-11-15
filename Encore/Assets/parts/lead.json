@@ -1,0 +1,12 @@
+{
+	"id": "lead",
+	"archetype": "pad",
+	"midiTrackNames": ["PAD GUITAR"],
+	"iniDifficultyKey": "diff_guitar_pad",
+	"maxMultiplier": 4,
+	"assignedStems": ["guitar"],
+	"icon": "lead",
+	"presenceIconName": "pad_guitar",
+	"convertsFrom": "classicLead",
+	"sortOrder": 100
+}

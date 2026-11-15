@@ -1162,24 +1162,14 @@ void Encore::Track::DrawTrackDebugWindow() {
                 DragFloat("Mult", &bounceMult);
                 SeparatorText("Overhit");
                 if (Button("Send Engine Event")) {
-                    if (player.engine->stats->Type == 0) {
-                        player.engine->Overhit(0);
-                    } else {
-                        for (int i = 0; i < player.engine->stats->HeldFrets.size(); i++) {
-                            if (player.engine->stats->HeldFrets.at(i))
-                                player.engine->Overhit(i);
-                        }
+                    for (int i = 0; i < player.engine->chart->Lanes.size(); i++) {
+                        player.engine->Overhit(i);
                     }
                 }
                 SameLine();
                 if (Button("Send Track Event")) {
-                    if (player.engine->stats->Type == 0) {
-                        player.engine->FireEventTemp(OverhitEvent(0));
-                    } else {
-                        for (int i = 0; i < player.engine->stats->HeldFrets.size(); i++) {
-                            if (player.engine->stats->HeldFrets.at(i))
-                                player.engine->FireEventTemp(OverhitEvent(i));
-                        }
+                    for (int i = 0; i < player.engine->chart->Lanes.size(); i++) {
+                        player.engine->FireEventTemp(OverhitEvent(i));
                     }
                 }
                 EndTabItem();
@@ -1204,9 +1194,6 @@ void Encore::Track::DrawTrackDebugWindow() {
                                        stats->AttemptedNotes * 100));
                 ImGui::Text("%s",
                             TextFormat("Score: %4.2f", player.engine->stats->Score));
-                ImGui::Text("%s",
-                            TextFormat("Base score: %4.2f",
-                                       player.engine->chart->BaseScore));
                 ImGui::Text("%s",
                             TextFormat("Multiplier: %.2fx",
                                        player.engine->Multiplier));

@@ -85,7 +85,7 @@ LocalizedString Locale::Localize(const std::string &token) {
         }
     }
     unlocalizedTokens.insert(token);
-    return token;
+    return LocalizedString::MoveStr(token);
 }
 const LocaleList *Locale::GetLocaleList(const std::string &token) {
     for (auto &layer : layers) {

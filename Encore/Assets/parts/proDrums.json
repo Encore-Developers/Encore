@@ -1,0 +1,12 @@
+{
+	"id": "proDrums",
+	"archetype": "drums",
+	"midiTrackNames": ["PART DRUMS"],
+	"iniDifficultyKey": "diff_drums",
+	"maxMultiplier": 4,
+	"flags": ["cymbals"],
+	"assignedStems": ["drums_1", "drums_2", "drums_3", "drums_4", "drums"],
+	"icon": "drums",
+	"presenceIconName": "pro_classic_drums",
+	"sortOrder": 21
+}

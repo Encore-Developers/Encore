@@ -42,7 +42,16 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) 
 
     if (note->type == RhythmEngine::NoteEvent::HOPO || note->type == RhythmEngine::NoteEvent::TAP) {
         //todo: cymbal lane
-        if (track->player.Instrument == PlasticDrums) {
+        switch (track->engine->part->archetype) {
+        case RhythmEngine::ArchetypePad:
+            DrawModelEx(ASSET(liftNote),
+                        position,
+                        { 0 },
+                        0,
+                        { width, track->NoteHeight, width },
+                        WHITE);
+            break;
+        case RhythmEngine::ArchetypeDrums:
             position.z -= 0.1f;
             DrawModelEx(ASSET(cymbalNote),
                         position,
@@ -50,20 +59,15 @@ void Encore::GemTrackSlot::DrawNote(RhythmEngine::NoteEvent *note, bool missed) 
                         10,
                         { width, track->NoteHeight, width * 0.75f },
                         WHITE);
-        } else if (track->player.Instrument < PlasticDrums) {
-            DrawModelEx(ASSET(liftNote),
-                        position,
-                        { 0 },
-                        0,
-                        { width, track->NoteHeight, width },
-                        WHITE);
-        } else {
+            break;
+        case RhythmEngine::ArchetypeGuitar:
             DrawModelEx(ASSET(hopoNote),
                         position,
                         { 0 },
                         0,
                         { width, track->NoteHeight, 0.85f },
                         WHITE);
+            break;
         }
     } else {
         DrawModelEx(ASSET(regularNote),

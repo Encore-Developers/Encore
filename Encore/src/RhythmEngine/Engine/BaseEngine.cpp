@@ -128,6 +128,23 @@ void Encore::RhythmEngine::BaseEngine::Advance(double CurrentTime) {
         return;
     }
     EngineTime = CurrentTime;
+    // TODO: make bot framerate-independent
+    if (stats->Bot) {
+        bool hit = false;
+        do {
+            hit = false;
+            for (int lane = 0; lane < chart->Lanes.size(); lane++) {
+                auto& it = chart->CurrentNoteIterators[lane];
+                if (it == chart->Lanes[lane].end()) {
+                    break;
+                }
+                if (it->start <= EngineTime) {
+                    HitNote(lane);
+                    hit = true;
+                }
+            }
+        } while (hit);
+    }
     deferMultiplierUpdates = true;
     UpdateOverdrive(CurrentTime);
     for (int i = 0; i < chart->Lanes.size(); i++) {
@@ -243,7 +260,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
 
     int comboNotif = stats->Combo > 200 ? stats->Combo % 100 : stats->Combo % 50;
     if (stats->Combo == stats->ep.mult.comboForMax()
-        && (inst == PartBass || inst == PlasticBass)) {
+        && (part->flags & FlagBass)) {
         event2.type = TrackNotificationEvent::BASSGROOVE;
         FireEvent(&event2);
     } else if (comboNotif == 0) {
@@ -350,17 +367,6 @@ void Encore::RhythmEngine::BaseEngine::Overhit(const size_t lane) {
     chart->overdrive.UpdateEventViaNote(
         false, chart->CurrentNoteIterators.at(lane)->start.tick
     );
-}
-void Encore::RhythmEngine::BaseEngine::UpdateStats(const int instrument, int difficulty) {
-    // inst = instrument >= PlasticDrums ? instrument - 5 : instrument;
-    // stats->StarThresholdValue = stats->Score / chart->BaseScore;
-    // for (int i = 0; i < 6; i++) {
-    //     if (stats->StarThresholdValue < STAR_THRESHOLDS[inst][i]) {
-    //         stats->Stars = i;
-    //         return;
-    //     }
-    // }
-    // stats->Stars = 5;
 }
 void Encore::RhythmEngine::BaseEngine::SetSucceeding(bool succeed) {
     if (succeed) {

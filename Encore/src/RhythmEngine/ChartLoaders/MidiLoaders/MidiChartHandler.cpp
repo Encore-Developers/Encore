@@ -19,7 +19,7 @@ std::vector<std::vector<int>> pDiffRangeNotes = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
 };
 
-SongPart MidiChartHandler::GetSongPart(smf::MidiEventList &track) {
+std::string MidiChartHandler::GetMidiTrackName(smf::MidiEventList &track) {
     for (int events = 0; events < track.getSize(); events++) {
         if (!track[events].isMeta())
             continue;
@@ -28,10 +28,10 @@ SongPart MidiChartHandler::GetSongPart(smf::MidiEventList &track) {
             for (int k = 3; k < track[events].getSize(); k++) {
                 trackName += track[events][k];
             }
-            return partFromStringINI(trackName);
+            return trackName;
         }
     }
-    return Invalid;
+    return "";
 }
 
 MidiChartHandler::MidiChartHandler(Song* song)
@@ -80,47 +80,75 @@ std::vector<TimeSig> MidiChartHandler::GetTimeSigChanges() {
     return ts;
 }
 
-std::array<TrackInformation, PlasticVocals> &MidiChartHandler::
+std::vector<TrackInformation> &MidiChartHandler::
 GetValidParts() {
     if (processed) {
         return Parts;
     }
 
     for (int track = 0; track < midifile.getTrackCount(); track++) {
-        SongPart songPart = GetSongPart(midifile[track]);
-        if (songPart == Invalid)
+        auto trackName = GetMidiTrackName(midifile[track]);
+        if (trackName.empty())
             continue;
-        for (int diff = 0; diff < 4; diff++) {
-            for (int i = 0; i < midifile[track].getSize(); i++) {
-                if (midifile[track][i].isNoteOn() && !midifile[track][i].isMeta()
-                    && midifile[track][i][1] >= pDiffRangeNotes[diff][0]
-                    && midifile[track][i][1] <= pDiffRangeNotes[diff][1]) {
-                    Parts[songPart].ValidDiffs.at(diff) = true;
-                    Parts[songPart].TrackInt = track;
-                    Parts[songPart].Valid = true;
-                    break;
+        if (trackName == "EVENTS") {
+            EventsTrack = track;
+            continue;
+        }
+        if (trackName == "PART VOCALS") {
+            VoxTrack = track;
+            continue;
+        }
+        auto songParts = SongPart::GetFromMidiTrackName(trackName);
+        for (auto songPart : songParts) {
+            if (!songPart->playable) continue;
+            TrackInformation info;
+            info.Part = songPart;
+            info.TrackIndex = track;
+            bool valid = false;
+            for (int diff = 0; diff < 4; diff++) {
+                for (int i = 0; i < midifile[track].getSize(); i++) {
+                    if (midifile[track][i].isNoteOn() && !midifile[track][i].isMeta()
+                        && midifile[track][i][1] >= pDiffRangeNotes[diff][0]
+                        && midifile[track][i][1] <= pDiffRangeNotes[diff][1]) {
+                        info.ValidDiffs.at(diff) = true;
+                        valid = true;
+                        break;
+                        }
                 }
             }
+            if (valid) {
+                Parts.push_back(info);
+            }
         }
-        if (songPart == Events) {
-            EventsTrack = track;
+    }
+    // Find auto-converts
+    for (auto& convertToPart : SongPart::LoadedParts | std::views::values) {
+        if (convertToPart.convertsFrom.empty()) continue;
+        // Check if we're missing this part
+        bool missing = true;
+        for (auto& checkPart : Parts) {
+            if (checkPart.Part == &convertToPart) {
+                missing = false;
+                break;
+            }
+        }
+        if (!missing) continue;
+
+        // Find the part to convert from
+        for (auto& checkPart : Parts) {
+            if (checkPart.Part->id == convertToPart.convertsFrom) {
+                TrackInformation newPart = checkPart;
+                newPart.Part = &convertToPart;
+                newPart.Converted = true;
+                Parts.push_back(newPart);
+                break;
+            }
         }
     }
-    if (!Parts[PartGuitar].Valid && Parts[PlasticGuitar].Valid) {
-        Parts[PartGuitar] = Parts[PlasticGuitar];
-        Parts[PartGuitar].AutoToPad = true;
-    }
-    if (!Parts[PartBass].Valid && Parts[PlasticBass].Valid) {
-        Parts[PartBass] = Parts[PlasticBass];
-        Parts[PartBass].AutoToPad = true;
-    }
-    if (!Parts[PartKeys].Valid && Parts[PlasticKeys].Valid) {
-        Parts[PartKeys] = Parts[PlasticKeys];
-        Parts[PartKeys].AutoToPad = true;
-    }
-    if (Parts[PitchedVocals].Valid) {
-        Parts[PitchedVocals].Valid = false;
-    }
+    std::ranges::sort(Parts.begin(), Parts.end(),
+        [](TrackInformation& a, TrackInformation& b)
+        {return a.Part->sortOrder > b.Part->sortOrder;}
+    );
     processed = true;
     return Parts;
 }
@@ -158,81 +186,50 @@ MidiChartHandler::GetLyricPhrases() {
 }
 
 void MidiChartHandler::LoadCharts() {
-
-    for (auto & Part : Parts) {
-        if (Part.TrackInt == -1)
-            continue;
-        midifile[Part.TrackInt].linkEventPairs();
+    if (threshold == -1) {
+        threshold = (tpq / 3) + 1;
     }
-    for (size_t part = 0; part < Parts.size(); part++) {
-        if (Parts[part].TrackInt == -1)
-            continue;
-        if (threshold == -1) {
-            threshold = (tpq / 3) + 1;
-        }
-        int maxMult = 4;
-        if (part == PartBass || part == PartVocals) {
-            maxMult = 6;
-        }
-        switch (part) {
-        case PartDrums:
-        case PartBass:
-        case PartGuitar:
-        case PartKeys:
-        case PartVocals: {
-            ZoneScopedN("Pad loader")
-            for (int diff = 0; diff < 4; diff++) {
-                if (!Parts[part].ValidDiffs[diff])
-                    continue;
-                if (!Parts[part].AutoToPad) {
+    for (auto & trackInfo : GetValidParts()) {
+        // A track with id -1 shouldn't be in the vector in the first place
+        assert(trackInfo.TrackIndex != -1);
+        midifile[trackInfo.TrackIndex].linkEventPairs();
+        auto& track = midifile[trackInfo.TrackIndex];
+
+        for (int diff = 0; diff < 4; diff++) {
+            if (!trackInfo.ValidDiffs.at(diff)) continue;
+            switch (trackInfo.Part->archetype) {
+            case ArchetypePad: {
+                if (!trackInfo.Converted) {
                     MidiPadLoader loader(diff, tpq, &midifile);
-                    loader.LoadChart(midifile[Parts[part].TrackInt]);
-                    Charts.at(part).first.at(diff) = loader.chart;
+                    loader.LoadChart(midifile[trackInfo.TrackIndex]);
+                    trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(loader.chart);
                 } else {
-                    MidiGuitarLoader chartLoader(diff, threshold, &midifile, maxMult);
-                    chartLoader.chart.sections = TheSongTime.Sections;
-                    chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
-                    Charts.at(part).first.at(diff) =
-                        PadConverters::ConvertGuitarToPad(chartLoader.chart);
+                    if (SongPart::LoadedParts[trackInfo.Part->convertsFrom].archetype == ArchetypeGuitar) {
+                        MidiGuitarLoader chartLoader(diff, threshold, &midifile);
+                        chartLoader.chart.sections = TheSongTime.Sections;
+                        chartLoader.LoadChart(midifile[trackInfo.TrackIndex]);
+                        trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(PadConverters::ConvertGuitarToPad(chartLoader.chart));
+                    }
                 }
+                break;
             }
-            break;
-        }
-        case PlasticDrums: {
-            ZoneScopedN("Drums loader")
-            for (int diff = 0; diff < 4; diff++) {
-                if (!Parts[part].ValidDiffs[diff])
-                    continue;
-                MidiDrumsLoader chartLoader(diff, &midifile);
-                chartLoader.chart.sections = TheSongTime.Sections;
-                chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
-                Charts.at(part).first.at(diff) = chartLoader.chart;
+            case ArchetypeDrums: {
+                MidiDrumsLoader loader(diff, &midifile);
+                loader.LoadChart(midifile[trackInfo.TrackIndex]);
+                trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(loader.chart);
+                break;
             }
-            break;
-        }
-        case PlasticBass:
-        case PlasticGuitar:
-        case PlasticKeys: {
-            ZoneScopedN("Classic loader")
-            for (int diff = 0; diff < 4; diff++) {
-                if (!Parts[part].ValidDiffs[diff])
-                    continue;
-                MidiGuitarLoader chartLoader(diff, threshold, &midifile, maxMult);
-                chartLoader.chart.sections = TheSongTime.Sections;
-                chartLoader.LoadChart(midifile[Parts[part].TrackInt]);
-                Charts.at(part).first.at(diff) = chartLoader.chart;
+            case ArchetypeGuitar:
+                MidiGuitarLoader loader(diff, threshold, &midifile);
+                loader.LoadChart(midifile[trackInfo.TrackIndex]);
+                trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(loader.chart);
+                break;
             }
-            break;
         }
-        case PitchedVocals: {
-            ZoneScopedN("Lyric loader")
-            MidiLyricLoader lyricLoader(&midifile, Parts[part].TrackInt);
+        if (VoxTrack != -1) {
+            MidiLyricLoader lyricLoader(&midifile, VoxTrack);
             lyricLoader.LoadLyrics();
             Lyrics = lyricLoader.lyrics;
-            break;
-        }
-        default:
-            break;
         }
     }
 }
@@ -278,10 +275,6 @@ std::vector<Section> MidiChartHandler::GetSections() {
     return sections;
 }
 
-BaseChart MidiChartHandler::GetChart(int part,
-    int diff) {
-    return Charts.at(part).first.at(diff);
-}
 
 bool MidiChartHandler::IsLoaded() {
 return true;

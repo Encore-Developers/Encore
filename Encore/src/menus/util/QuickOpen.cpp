@@ -3,6 +3,7 @@
 #include "../MenuManager.h"
 #include "../gameplay/ReadyUpMenu.h"
 #include "RhythmEngine/Replay.h"
+#include "menus/gameplay/GameplayMenu.h"
 #include "song/song.h"
 #include "song/songlist.h"
 void QuickOpenSongDir(std::filesystem::path dir) {
@@ -23,7 +24,7 @@ void QuickOpenSongDir(std::filesystem::path dir) {
             for (auto& part : replay->participants) {
                 std::shared_ptr<Player> fakePlayer = std::make_shared<Player>();
                 fakePlayer->Name = part.name;
-                fakePlayer->Instrument = part.instrument;
+                fakePlayer->Part = part.part;
                 fakePlayer->Difficulty = part.difficulty;
                 fakePlayer->bindingType = part.bindingType;
                 fakePlayer->NoteSpeed = part.noteSpeed;

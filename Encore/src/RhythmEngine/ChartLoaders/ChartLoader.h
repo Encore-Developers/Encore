@@ -1,21 +1,22 @@
 #pragma once
+#include "RhythmEngine/SongPart.h"
 #include "RhythmEngine/Chart/NoteVector.h"
 #include "RhythmEngine/Engine/BaseEngine.h"
 #include "gameplay/enctime.h"
 
 struct TrackInformation {
-    int TrackInt = -1;
-    bool Valid = false;
+    int TrackIndex = -1;
+    Encore::RhythmEngine::SongPart* Part;
+    bool Converted = false;
     std::array<bool, 4> ValidDiffs{ false, false, false, false };
-    bool AutoToPad = false;
+    std::array<std::shared_ptr<Encore::RhythmEngine::BaseChart>, 4> Charts{ nullptr, nullptr, nullptr, nullptr };
 };
 
 namespace Encore::RhythmEngine {
     class ChartHandler {
     protected:
         Song* song;
-        std::array<std::pair<std::array<BaseChart, 4>, bool>, PitchedVocals> Charts;
-        std::array<TrackInformation, PlasticVocals> Parts;
+        std::vector<TrackInformation> Parts;
         int threshold = -1;
         std::vector<LyricPhrase> Lyrics;
     public:
@@ -27,7 +28,7 @@ namespace Encore::RhythmEngine {
             threshold = thresh;
         };
         virtual ~ChartHandler() = default;
-        virtual std::array<TrackInformation, PlasticVocals> &GetValidParts() = 0;
+        virtual std::vector<TrackInformation> &GetValidParts() = 0;
         virtual void LoadCharts() = 0;
         virtual std::vector<LyricPhrase> GetLyricPhrases() = 0;
         virtual std::pair<int, double> GetEndEvent() = 0;
@@ -36,7 +37,7 @@ namespace Encore::RhythmEngine {
         virtual int GetResolution() = 0;
         virtual std::vector<BPM> GetBPMChanges() = 0;
         virtual std::vector<TimeSig> GetTimeSigChanges() = 0;
-        virtual BaseChart GetChart(int part, int diff) = 0;
+        std::shared_ptr<BaseChart> GetChart(SongPart* part, int diff);
         virtual bool IsLoaded() = 0;
         virtual void PopulateSubsongs() = 0;
     };
@@ -48,7 +49,7 @@ namespace Encore::RhythmEngine {
     public:
         ChartLoader(Song* song);
 
-        std::array<TrackInformation, PlasticVocals> &GetSongParts() const;
+        std::vector<TrackInformation> &GetSongParts() const;
         std::vector<LyricPhrase> GetLyricPhrases() const;
         std::vector<TimePoint> GenerateOverdriveTicks() const;
         std::pair<int, double> GetEndEvent() const;
@@ -59,7 +60,7 @@ namespace Encore::RhythmEngine {
         std::vector<TimeSig> GetTimeSigChanges() const;
         void PopulateSubsongs();
 
-        BaseChart GetChart(SongPart part, int difficulty) const;
+        std::shared_ptr<BaseChart> GetChart(SongPart* part, int difficulty) const;
         std::shared_ptr<BaseEngine> CreateEngine(Player* player);
         bool IsLoaded() {return chartHandler->IsLoaded();};
         void LoadCharts() const;

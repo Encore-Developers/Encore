@@ -39,24 +39,7 @@ namespace Encore::RhythmEngine {
         void GetNotes(smf::MidiEventList &track) override;
 
     public:
-        void LoadChart(smf::MidiEventList &track) override {
-            // first get events, hopos, taps, lifts, the likes
-            GetChartEvents(track);
-            GetNoteModifiers(track);
-            GetNotes(track);
-            if (chart.at(5).empty()) {
-                chart.Lanes.pop_back();
-                chart.CurrentNoteIterators.pop_back();
-                chart.size = 5;
-            } else {
-                for (int i = 0; i < chart.size; i++) {
-                    if (i == 0) continue;
-                    for (auto& note : chart.at(i)) {
-                        note.type = (i + 1) % 2;
-                    }
-                }
-            }
-        };
+        void LoadChart(smf::MidiEventList &track) override;
 
         MidiDrumsLoader(int diff_, smf::MidiFile* midiFile_) : BaseLoader(diff_, 0, midiFile_) {
             Resolution = midiFile_->getTPQ();

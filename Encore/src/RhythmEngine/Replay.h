@@ -11,13 +11,13 @@
 // - MM: Current month
 // - DD: Current day
 // - RR: Number of times the replay format was revised that day, starting from 1
-#define REPLAY_VERSION 26092801
+#define REPLAY_VERSION 26111501
 #define REPLAY_HEADER 0x52434E45 // "ENCR"
 
 namespace Encore::RhythmEngine {
     struct ReplayParticipant {
         std::string name;
-        int instrument;
+        SongPart* part;
         int difficulty;
         /// Overshell slot this player was in at time of recording. This is what the
         /// slot parameter on events is set to.
