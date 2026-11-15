@@ -25,28 +25,28 @@ void Encore::RhythmEngine::MidiDrumsLoader::CheckToms(const smf::MidiEvent &even
 
 [[nodiscard]] Encore::RhythmEngine::NoteEvent::NoteType
 Encore::RhythmEngine::MidiDrumsLoader::GetNoteType(const smf::MidiEvent &event) {
-    if (GetEventLane(Difficulty, event) == 4) {
+    if (GetEventLane(ctx.diff, event) == 4) {
         if (!GreenTom.empty()) {
             if (GreenTom.front().first <= event.tick) {
                 return NoteEvent::NORMAL;
             }
         }
     }
-    if (GetEventLane(Difficulty, event) == 3) {
+    if (GetEventLane(ctx.diff, event) == 3) {
         if (!BlueTom.empty()) {
             if (BlueTom.front().first <= event.tick) {
                 return NoteEvent::NORMAL;
             }
         }
     }
-    if (GetEventLane(Difficulty, event) == 2) {
+    if (GetEventLane(ctx.diff, event) == 2) {
         if (!YellowTom.empty()) {
             if (YellowTom.front().first <= event.tick) {
                 return NoteEvent::NORMAL;
             }
         }
     }
-    if (GetEventLane(Difficulty, event) <= 1) {
+    if (GetEventLane(ctx.diff, event) <= 1) {
         return NoteEvent::NORMAL;
     }
     return NoteEvent::CYMBAL;
@@ -76,13 +76,13 @@ void Encore::RhythmEngine::MidiDrumsLoader::GetChartEvents(smf::MidiEventList &t
 }
 void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &event) {
     Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
-    int lane = GetEventLane(Difficulty, event);
+    int lane = GetEventLane(ctx.diff, event);
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;
     }
     int type = GetNoteType(event);
-    if (!DiscoFlip.empty()) {
+    if (!DiscoFlip.empty() && ctx.cymbals[0]) {
         if (DiscoFlip.front().first <= event.tick) {
             if (lane == 1) {
                 lane = 2;
@@ -92,6 +92,19 @@ void Encore::RhythmEngine::MidiDrumsLoader::CreateNote(const smf::MidiEvent &eve
                 type = NoteEvent::NORMAL;
             }
         }
+    }
+    if (lane == 2 && !ctx.cymbals[0]) {
+        type = NoteEvent::NORMAL;
+    }
+    if (lane == 3 && !ctx.cymbals[1]) {
+        type = NoteEvent::NORMAL;
+    }
+    if (lane == 4 && !ctx.cymbals[2]) {
+        type = NoteEvent::NORMAL;
+    }
+    // TODO: 5 lane lefty flip drums will not work right. sorgy
+    if (ctx.leftyFlip && lane != 0) {
+        lane = 5 - lane;
     }
     chart[lane].emplace_back(
         pNote.start, pNote.end, type, PlasticFrets[lane]
@@ -156,7 +169,7 @@ void Encore::RhythmEngine::MidiDrumsLoader::GetNotes(smf::MidiEventList &track) 
             continue;
         CheckEvents(event);
         CheckModifiers(event);
-        if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
+        if (IsInPitchRange(ctx.diff, event) && event.isNoteOn()) {
             CreateNote(event);
         }
     }

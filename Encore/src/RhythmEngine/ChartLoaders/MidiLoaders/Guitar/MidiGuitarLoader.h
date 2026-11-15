@@ -6,6 +6,7 @@
 #define GUITARLOADER_H
 
 #include "../BaseLoader.h"
+
 #include <queue>
 
 namespace Encore::RhythmEngine {
@@ -32,8 +33,8 @@ namespace Encore::RhythmEngine {
         void GetNoteModifiers(smf::MidiEventList &track) override;
         void GetNotes(smf::MidiEventList &track) override;
     public:
-        MidiGuitarLoader(int diff_, int thresh_, smf::MidiFile* midiFile_)
-            : BaseLoader(diff_, thresh_, midiFile_)  {
+        MidiGuitarLoader(ChartLoadContext ctx, int thresh_, smf::MidiFile* midiFile_)
+            : BaseLoader(ctx, thresh_, midiFile_)  {
             chart.Lanes.resize(1);
             Resolution = midiFile_->getTPQ();
         }

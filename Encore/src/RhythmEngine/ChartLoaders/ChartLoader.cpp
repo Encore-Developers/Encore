@@ -12,15 +12,21 @@
 
 using namespace Encore::RhythmEngine;
 
-std::shared_ptr<BaseChart> ChartHandler::GetChart(SongPart *part, int diff) {
-    for (auto& info : Parts) {
-        if (info.Part == part) {
-            if (info.ValidDiffs.at(diff)) {
-                return info.Charts.at(diff);
-            }
-        }
+ChartLoadContext::ChartLoadContext(Player *player) {
+    part = player->Part;
+    diff = player->Difficulty;
+    leftyFlip = player->LeftyFlip;
+
+    if (part->flags & FlagCymbals) {
+        // TODO: player configurable cymbals
+        cymbals[0] = true;
+        cymbals[1] = true;
+        cymbals[2] = true;
+    } else {
+        cymbals[0] = false;
+        cymbals[1] = false;
+        cymbals[2] = false;
     }
-    return nullptr;
 }
 ChartLoader::ChartLoader(Song* song) {
     switch (song->chartFormat) {
@@ -86,8 +92,8 @@ void ChartLoader::PopulateSubsongs() {
     chartHandler->PopulateSubsongs();
 }
 
-std::shared_ptr<BaseChart> ChartLoader::GetChart(SongPart* part, int difficulty) const {
-    return chartHandler->GetChart(part, difficulty);
+std::shared_ptr<BaseChart> ChartLoader::GetChart(ChartLoadContext ctx) const {
+    return chartHandler->GetChart(ctx);
 }
 std::shared_ptr<BaseEngine>
 ChartLoader::CreateEngine(Player *player) {
@@ -95,7 +101,7 @@ ChartLoader::CreateEngine(Player *player) {
     auto part = player->Part;
     std::string trackName;
     std::shared_ptr<BaseEngine> engine;
-    auto chart = std::make_shared<BaseChart>(*GetChart(part, diff));
+    auto chart = std::make_shared<BaseChart>(*GetChart(player));
     assert(chart);
     switch (part->archetype) {
     case ArchetypePad: {
@@ -127,6 +133,6 @@ ChartLoader::CreateEngine(Player *player) {
     return engine;
 }
 
-void ChartLoader::LoadCharts() const {
-    chartHandler->LoadCharts();
+void ChartLoader::PreloadCharts() const {
+    chartHandler->PreloadCharts();
 }

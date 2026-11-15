@@ -9,10 +9,22 @@ struct TrackInformation {
     Encore::RhythmEngine::SongPart* Part;
     bool Converted = false;
     std::array<bool, 4> ValidDiffs{ false, false, false, false };
-    std::array<std::shared_ptr<Encore::RhythmEngine::BaseChart>, 4> Charts{ nullptr, nullptr, nullptr, nullptr };
 };
 
 namespace Encore::RhythmEngine {
+    struct ChartLoadContext {
+        SongPart* part;
+        int diff;
+        bool leftyFlip;
+        bool cymbals[3];
+
+        // chart-altering modifiers would also go here
+
+        ChartLoadContext() = default;
+        ChartLoadContext(Player* player);
+    };
+
+
     class ChartHandler {
     protected:
         Song* song;
@@ -29,7 +41,7 @@ namespace Encore::RhythmEngine {
         };
         virtual ~ChartHandler() = default;
         virtual std::vector<TrackInformation> &GetValidParts() = 0;
-        virtual void LoadCharts() = 0;
+        virtual void PreloadCharts() = 0;
         virtual std::vector<LyricPhrase> GetLyricPhrases() = 0;
         virtual std::pair<int, double> GetEndEvent() = 0;
         virtual std::vector<Section> GetSections() = 0;
@@ -37,7 +49,7 @@ namespace Encore::RhythmEngine {
         virtual int GetResolution() = 0;
         virtual std::vector<BPM> GetBPMChanges() = 0;
         virtual std::vector<TimeSig> GetTimeSigChanges() = 0;
-        std::shared_ptr<BaseChart> GetChart(SongPart* part, int diff);
+        virtual std::shared_ptr<BaseChart> GetChart(ChartLoadContext ctx) = 0;
         virtual bool IsLoaded() = 0;
         virtual void PopulateSubsongs() = 0;
     };
@@ -60,9 +72,9 @@ namespace Encore::RhythmEngine {
         std::vector<TimeSig> GetTimeSigChanges() const;
         void PopulateSubsongs();
 
-        std::shared_ptr<BaseChart> GetChart(SongPart* part, int difficulty) const;
+        std::shared_ptr<BaseChart> GetChart(ChartLoadContext ctx) const;
         std::shared_ptr<BaseEngine> CreateEngine(Player* player);
         bool IsLoaded() {return chartHandler->IsLoaded();};
-        void LoadCharts() const;
+        void PreloadCharts() const;
     };
 }

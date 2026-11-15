@@ -513,7 +513,7 @@ std::string GameplayMenu::SaveReplay() {
             part.inputs = track->recordedInputs;
 
             Encore::RhythmEngine::ChartLoader loader = curSong;
-            loader.LoadCharts();
+            loader.PreloadCharts();
             auto engine = loader.CreateEngine(&track->player);
             Encore::RhythmEngine::ReplayPlayer validate = part;
             validate.Advance(curSong->end);

@@ -41,7 +41,7 @@ namespace Encore::RhythmEngine {
     public:
         void LoadChart(smf::MidiEventList &track) override;
 
-        MidiDrumsLoader(int diff_, smf::MidiFile* midiFile_) : BaseLoader(diff_, 0, midiFile_) {
+        MidiDrumsLoader(ChartLoadContext ctx, smf::MidiFile* midiFile_) : BaseLoader(ctx, 0, midiFile_) {
             Resolution = midiFile_->getTPQ();
             chart.resize(6);
         }

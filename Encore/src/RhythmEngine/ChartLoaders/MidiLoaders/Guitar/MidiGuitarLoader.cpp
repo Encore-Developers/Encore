@@ -53,7 +53,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::SysExOpen(const smf::MidiEvent &eve
     }
 }
 void Encore::RhythmEngine::MidiGuitarLoader::CheckSysEx(const smf::MidiEvent &event) {
-    if (IsSysEx(Difficulty, event)) {
+    if (IsSysEx(ctx.diff, event)) {
         SysExTap(event);
         SysExOpen(event);
     }
@@ -61,14 +61,14 @@ void Encore::RhythmEngine::MidiGuitarLoader::CheckSysEx(const smf::MidiEvent &ev
 
 void Encore::RhythmEngine::MidiGuitarLoader::CheckHopos(const smf::MidiEvent &event) {
     if (!event.isNoteOn()) return;
-    assert("Difficulty is too high for hopo check" && Difficulty < 4 && Difficulty > -1);
-    if (event[1] == HopoFlags[Difficulty].second) {
+    assert("Difficulty is too high for hopo check" && ctx.diff < 4 && ctx.diff > -1);
+    if (event[1] == HopoFlags[ctx.diff].second) {
         int endTick = event.tick;
         if (event.getLinkedEvent()) endTick = event.getLinkedEvent()->tick;
         ForceHopoOn.emplace(event.tick, endTick);
         return;
     }
-    if (event[1] == HopoFlags[Difficulty].first) {
+    if (event[1] == HopoFlags[ctx.diff].first) {
         int endTick = event.tick;
         if (event.getLinkedEvent()) endTick = event.getLinkedEvent()->tick;
         ForceHopoOff.emplace(event.tick, endTick);
@@ -105,8 +105,8 @@ Encore::RhythmEngine::MidiGuitarLoader::GetNoteType(const smf::MidiEvent &event)
         // GOD FUCKING DAMN
         // ALSO THAT IF STATEMENT IS FUCKING UTTERLY USELESS
         // oh my god i might DIE what the FUCK
-        if (note.lane != PlasticFrets[GetEventLane(Difficulty, event)]) {
-            if (note.start.tick + Threshold >= event.tick && !(PlasticFrets[GetEventLane(Difficulty, event)] & note.lane)) {
+        if (note.lane != PlasticFrets[GetEventLane(ctx.diff, event)]) {
+            if (note.start.tick + Threshold >= event.tick && !(PlasticFrets[GetEventLane(ctx.diff, event)] & note.lane)) {
                 return NoteEvent::HOPO;
             }
         }
@@ -142,7 +142,7 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetChartEvents(smf::MidiEventList &
 
 void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &event) {
     Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
-    uint8_t lane = PlasticFrets[GetEventLane(Difficulty, event)];
+    uint8_t lane = PlasticFrets[GetEventLane(ctx.diff, event)];
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;
@@ -188,10 +188,10 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
         if (event.tick >= chart.trills[CurrentTrill].start.tick) {
             if (chart.trills[CurrentTrill].lane1 == 255) {
                 chart.trills[CurrentTrill].lane1 =
-                    PlasticFrets[GetEventLane(Difficulty, event)];
+                    PlasticFrets[GetEventLane(ctx.diff, event)];
             } else if (chart.trills[CurrentTrill].lane2 == 255) {
                 chart.trills[CurrentTrill].lane2 =
-                    PlasticFrets[GetEventLane(Difficulty, event)];
+                    PlasticFrets[GetEventLane(ctx.diff, event)];
             }
         }
     }
@@ -228,21 +228,21 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track)
         // im tired boss
         CheckEvents(event);
         CheckModifiers(event);
-        if (IsInPitchRangeGB(Difficulty, event) && event.isNoteOn()) {
+        if (IsInPitchRangeGB(ctx.diff, event) && event.isNoteOn()) {
             if (chart[0].empty()) {
                 CreateNote(event);
                 continue;
             }
             auto& note = chart[0].back();
             if (note.start.tick == event.tick) {
-                note.lane += PlasticFrets[GetEventLane(Difficulty, event)];
+                note.lane += PlasticFrets[GetEventLane(ctx.diff, event)];
                 if (note.type == 1) {
                     note.type = 0;
                 }
                 if (!chart.trills.empty()) {
                     // if (event.tick >= chart.trills[CurrentTrill].StartTick) {
                         //chart.rolls[CurrentRoll].lane +=
-                         //   PlasticFrets[GetEventLane(Difficulty, event)];
+                         //   PlasticFrets[GetEventLane(ctx.diff, event)];
                         //FIXME
                     // }
                 }

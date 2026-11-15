@@ -135,7 +135,7 @@ GetLyricPhrases() {
     return std::vector<LyricPhrase>{};
 }
 
-void DotChartHandler::LoadCharts() {
+void DotChartHandler::PreloadCharts() {
 }
 
 std::pair<int, double> DotChartHandler::GetEndEvent() {
@@ -145,6 +145,9 @@ std::pair<int, double> DotChartHandler::GetEndEvent() {
 
 std::vector<Section> DotChartHandler::GetSections() {
     return {};
+}
+std::shared_ptr<BaseChart> DotChartHandler::GetChart(ChartLoadContext ctx) {
+    return nullptr;
 }
 
 bool DotChartHandler::IsLoaded() {

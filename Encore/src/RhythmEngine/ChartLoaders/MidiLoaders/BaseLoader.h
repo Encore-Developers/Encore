@@ -6,6 +6,7 @@
 #define BASELOADER_H
 
 #include "../../Chart/NoteVector.h"
+#include "RhythmEngine/ChartLoaders/ChartLoader.h"
 #include "midifile/MidiFile.h"
 
 #define ATTEMPT_TO_ADD_CHART_EVENT(lane, type, event)                                    \
@@ -61,7 +62,7 @@ namespace Encore::RhythmEngine {
         // run these few things:
         // midiFile.absoluteTicks();
         // midiFile.doTimeAnalysis();
-        BaseLoader(int diff_, int thresh_, smf::MidiFile* midiFile_) : midiFile(midiFile_), Difficulty(diff_), Threshold(thresh_){}
+        BaseLoader(ChartLoadContext ctx, int thresh_, smf::MidiFile* midiFile_) : midiFile(midiFile_), ctx(ctx), Threshold(thresh_){}
 
         size_t CurrentSolo = 0;
         size_t CurrentOverdrive = 0;
@@ -71,7 +72,7 @@ namespace Encore::RhythmEngine {
 
         smf::MidiFile* midiFile;
         BaseChart chart;
-        int Difficulty;
+        ChartLoadContext ctx;
         int Threshold; // shouldnt be here but who care
         int Resolution = 480;
         virtual void LoadChart(smf::MidiEventList &track) {

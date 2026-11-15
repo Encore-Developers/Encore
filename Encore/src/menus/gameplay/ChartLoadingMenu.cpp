@@ -31,7 +31,7 @@ void ChartLoadingMenu::LoadCharts() {
     ZoneScoped;
     TheSongTime.currentTempoMap = chartLoader.GetTempoMap();
     TheSongTime.Sections = chartLoader.GetSections();
-    chartLoader.LoadCharts();
+    chartLoader.PreloadCharts();
     chartLoader.PopulateSubsongs();
 
     std::vector<Encore::RhythmEngine::SongPart*> activeParts;

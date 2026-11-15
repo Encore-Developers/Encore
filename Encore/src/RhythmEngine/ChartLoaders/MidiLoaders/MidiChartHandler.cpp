@@ -185,52 +185,14 @@ MidiChartHandler::GetLyricPhrases() {
     return Lyrics;
 }
 
-void MidiChartHandler::LoadCharts() {
+void MidiChartHandler::PreloadCharts() {
     if (threshold == -1) {
         threshold = (tpq / 3) + 1;
     }
-    for (auto & trackInfo : GetValidParts()) {
-        // A track with id -1 shouldn't be in the vector in the first place
-        assert(trackInfo.TrackIndex != -1);
-        midifile[trackInfo.TrackIndex].linkEventPairs();
-        auto& track = midifile[trackInfo.TrackIndex];
-
-        for (int diff = 0; diff < 4; diff++) {
-            if (!trackInfo.ValidDiffs.at(diff)) continue;
-            switch (trackInfo.Part->archetype) {
-            case ArchetypePad: {
-                if (!trackInfo.Converted) {
-                    MidiPadLoader loader(diff, tpq, &midifile);
-                    loader.LoadChart(midifile[trackInfo.TrackIndex]);
-                    trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(loader.chart);
-                } else {
-                    if (SongPart::LoadedParts[trackInfo.Part->convertsFrom].archetype == ArchetypeGuitar) {
-                        MidiGuitarLoader chartLoader(diff, threshold, &midifile);
-                        chartLoader.chart.sections = TheSongTime.Sections;
-                        chartLoader.LoadChart(midifile[trackInfo.TrackIndex]);
-                        trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(PadConverters::ConvertGuitarToPad(chartLoader.chart));
-                    }
-                }
-                break;
-            }
-            case ArchetypeDrums: {
-                MidiDrumsLoader loader(diff, &midifile);
-                loader.LoadChart(midifile[trackInfo.TrackIndex]);
-                trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(loader.chart);
-                break;
-            }
-            case ArchetypeGuitar:
-                MidiGuitarLoader loader(diff, threshold, &midifile);
-                loader.LoadChart(midifile[trackInfo.TrackIndex]);
-                trackInfo.Charts.at(diff) = std::make_shared<BaseChart>(loader.chart);
-                break;
-            }
-        }
-        if (VoxTrack != -1) {
-            MidiLyricLoader lyricLoader(&midifile, VoxTrack);
-            lyricLoader.LoadLyrics();
-            Lyrics = lyricLoader.lyrics;
-        }
+    if (VoxTrack != -1) {
+        MidiLyricLoader lyricLoader(&midifile, VoxTrack);
+        lyricLoader.LoadLyrics();
+        Lyrics = lyricLoader.lyrics;
     }
 }
 
@@ -274,7 +236,41 @@ std::vector<Section> MidiChartHandler::GetSections() {
     }
     return sections;
 }
-
+std::shared_ptr<BaseChart> MidiChartHandler::GetChart(ChartLoadContext ctx) {
+    for (auto& trackInfo : GetValidParts()) {
+        if (trackInfo.Part != ctx.part) continue;
+        if (!trackInfo.ValidDiffs.at(ctx.diff)) continue;
+        switch (trackInfo.Part->archetype) {
+        case ArchetypePad: {
+            if (!trackInfo.Converted) {
+                MidiPadLoader loader(ctx, tpq, &midifile);
+                loader.LoadChart(midifile[trackInfo.TrackIndex]);
+                return std::make_shared<BaseChart>(loader.chart);
+            } else {
+                if (SongPart::LoadedParts[trackInfo.Part->convertsFrom].archetype == ArchetypeGuitar) {
+                    MidiGuitarLoader chartLoader(ctx, threshold, &midifile);
+                    chartLoader.chart.sections = TheSongTime.Sections;
+                    chartLoader.LoadChart(midifile[trackInfo.TrackIndex]);
+                    return std::make_shared<BaseChart>(PadConverters::ConvertGuitarToPad(chartLoader.chart));
+                }
+            }
+            break;
+        }
+        case ArchetypeDrums: {
+            MidiDrumsLoader loader(ctx, &midifile);
+            loader.LoadChart(midifile[trackInfo.TrackIndex]);
+            return std::make_shared<BaseChart>(loader.chart);
+            break;
+        }
+        case ArchetypeGuitar:
+            MidiGuitarLoader loader(ctx, threshold, &midifile);
+            loader.LoadChart(midifile[trackInfo.TrackIndex]);
+            return std::make_shared<BaseChart>(loader.chart);
+            break;
+        }
+    }
+    return nullptr;
+}
 
 bool MidiChartHandler::IsLoaded() {
 return true;

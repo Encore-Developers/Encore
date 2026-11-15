@@ -15,21 +15,21 @@
     return event[1] - LiftMinMaxDiff[diff].first;
 }
 void Encore::RhythmEngine::MidiPadLoader::CreateLiftMarker(const smf::MidiEvent &event) {
-    LiftMarkers[GetLiftLane(Difficulty, event)].emplace(event.tick);
+    LiftMarkers[GetLiftLane(ctx.diff, event)].emplace(event.tick);
 }
 void Encore::RhythmEngine::MidiPadLoader::GetNoteModifiers(smf::MidiEventList &track) {
     for (int eventInt = 0; eventInt < track.size(); eventInt++) {
         smf::MidiEvent &event = track[eventInt];
-        if (IsInLiftMarkerRange(Difficulty, event) && event.isNoteOn()) {
+        if (IsInLiftMarkerRange(ctx.diff, event) && event.isNoteOn()) {
             CreateLiftMarker(event);
         }
     }
 };
 
 void Encore::RhythmEngine::MidiPadLoader::CheckModifiers(const smf::MidiEvent &event) {
-    if (!LiftMarkers[GetEventLane(Difficulty, event)].empty()) {
-        if (LiftMarkers[GetEventLane(Difficulty, event)].front() < event.tick)
-            LiftMarkers[GetEventLane(Difficulty, event)].pop();
+    if (!LiftMarkers[GetEventLane(ctx.diff, event)].empty()) {
+        if (LiftMarkers[GetEventLane(ctx.diff, event)].front() < event.tick)
+            LiftMarkers[GetEventLane(ctx.diff, event)].pop();
     }
 }
 
@@ -50,8 +50,8 @@ void Encore::RhythmEngine::MidiPadLoader::CheckEvents(const smf::MidiEvent &even
 
 [[nodiscard]] Encore::RhythmEngine::NoteEvent::NoteType
 Encore::RhythmEngine::MidiPadLoader::GetNoteType(const smf::MidiEvent &event) {
-    if (!LiftMarkers[GetEventLane(Difficulty, event)].empty()) {
-        if (LiftMarkers[GetEventLane(Difficulty, event)].front() == event.tick) {
+    if (!LiftMarkers[GetEventLane(ctx.diff, event)].empty()) {
+        if (LiftMarkers[GetEventLane(ctx.diff, event)].front() == event.tick) {
             return NoteEvent::LIFT;
         }
     }
@@ -70,13 +70,13 @@ void Encore::RhythmEngine::MidiPadLoader::GetChartEvents(smf::MidiEventList &tra
 
 void Encore::RhythmEngine::MidiPadLoader::CreateNote(const smf::MidiEvent &event) {
     Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
-    uint8_t lane = PlasticFrets[GetEventLane(Difficulty, event)];
+    uint8_t lane = PlasticFrets[GetEventLane(ctx.diff, event)];
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;
     }
 
-    chart[GetEventLane(Difficulty, event)].emplace_back(
+    chart[GetEventLane(ctx.diff, event)].emplace_back(
         pNote.start,
         pNote.end,
         GetNoteType(event),
@@ -105,7 +105,7 @@ void Encore::RhythmEngine::MidiPadLoader::GetNotes(smf::MidiEventList &track) {
         if (event[0] == 255)
             continue;
         CheckEvents(event);
-        if (IsInPitchRange(Difficulty, event) && event.isNoteOn()) {
+        if (IsInPitchRange(ctx.diff, event) && event.isNoteOn()) {
             CheckModifiers(event);
             CreateNote(event);
         }
