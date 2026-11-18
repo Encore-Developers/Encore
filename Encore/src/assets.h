@@ -374,6 +374,8 @@ public:
     std::vector<TextureAsset *> XbIcons;
     std::vector<TextureAsset *> PSIcons;
     std::vector<TextureAsset *> NxIcons;
+    NEWTEXASSET(cursor, "cursor.png");
+
     NEWFILEASSET(favicon, "encore_favicon-NEW.png");
     NEWTEXASSET(faviconTex, "encore_favicon-NEW.png");
 

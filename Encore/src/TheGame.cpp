@@ -297,6 +297,8 @@ int TheGame::Run(int argc, char *argv[]) {
         SetConfigFlags(FLAG_VSYNC_HINT);
     }
     Encore::Log::Info("Vertical sync: {}", vsyncArg);
+    // forgive me
+    SDL_Cursor* cursor = nullptr;
     {
         ZoneScopedN("Window Init")
         SDL_Init(SDL_INIT_VIDEO);
@@ -305,6 +307,11 @@ int TheGame::Run(int argc, char *argv[]) {
         rect.w /= 1.5;
         rect.h /= 1.5;
         InitWindow(rect.w, rect.h, "Encore");
+        SDL_Surface* surface = SDL_LoadPNG((TheAssets.getDirectory()/"cursor.png").c_str());
+        cursor = SDL_CreateColorCursor(surface, 32,32);
+        if (!SDL_SetCursor(cursor))
+            Encore::Log::Error(SDL_GetError());
+        SDL_DestroySurface(surface);
     }
     std::jthread controllerPoller(PollControllers);
     TheGameSettings.UpdateFullscreen();
@@ -351,6 +358,8 @@ int TheGame::Run(int argc, char *argv[]) {
         SDL_GL_SetSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         Units::calcUnits();
 
+        if (!SDL_SetCursor(cursor))
+            Encore::Log::Error(SDL_GetError());
         //PollQueuedInputs(poller);
         SyncSDLWithAudio();
         SDL_Event event;
@@ -474,6 +483,13 @@ int TheGame::Run(int argc, char *argv[]) {
             EncoreDebug::StartReloadAssets();
             showLoading = true;
             loadingScreenFade = 1.0f;
+        }
+
+        if (TheMenuManager.ActiveMenu->UIInput) {
+            Vector2 pos = GetMousePosition();
+
+            Rectangle cursorRect {pos.x, pos.y, 20, 20 };
+            ASSET(cursor).Draw(cursorRect, WHITE);
         }
         TheFrameManager.WaitForFrame();
         FrameMark;

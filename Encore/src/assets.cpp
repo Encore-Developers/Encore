@@ -318,6 +318,7 @@ void FontAsset::Unload() {
 // Assets that need to be loaded in order to display the cache loading screen and the
 // title screen. Adding assets to this set will affect boot times (especially fonts)
 AssetSet initialSet = {
+    ASSETPTR(cursor),
     ASSETPTR(encoreWhiteLogo),
     ASSETPTR(encoreTransLogo),
     ASSETPTR(encorePrideLogo),
