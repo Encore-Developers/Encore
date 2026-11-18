@@ -307,7 +307,7 @@ int TheGame::Run(int argc, char *argv[]) {
         rect.w /= 1.5;
         rect.h /= 1.5;
         InitWindow(rect.w, rect.h, "Encore");
-        SDL_Surface* surface = SDL_LoadPNG((TheAssets.getDirectory()/"cursor.png").c_str());
+        SDL_Surface* surface = SDL_LoadPNG((TheAssets.getDirectory()/"cursor.png").string().c_str());
         cursor = SDL_CreateColorCursor(surface, 32,32);
         if (!SDL_SetCursor(cursor))
             Encore::Log::Error(SDL_GetError());
