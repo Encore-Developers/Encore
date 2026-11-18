@@ -95,13 +95,6 @@ void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             DropSustain(EngineTime, sustain);
         }
 
-        // release regular sustain if conditions are met
-        // if (!MaskMatch(sustain.note, pMask & ~sustain.note->lane)
-        //     && !sustain.extSus) {
-        //     DropSustain(EngineTime, sustain);
-        //     break;
-        // }
-
         // extra mask bullshit
         if (sustain.extSus) {
             pMask &= ~sustain.note->lane;
@@ -114,30 +107,6 @@ void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
             break;
         }
     }
-    // if (chart->IsHeldNotePresent(0)) {
-    //     auto *held = chart->HeldNotePointers.at(0);
-    //
-    //     // second note:
-    //     // what the fuck is this. i cannot read this
-    //     if (press &&
-    //
-    //         // if the frets dont match
-    //         !MaskMatch(held, pMask) &&
-    //
-    //         // is not an extended sustain
-    //         held->end <= CurrentNote->start &&
-    //
-    //         // is before the end of the sustain
-    //         held->end >= EngineTime
-    //     ) {
-    //         chart->DropSustain(0);
-    //     }
-    //
-    //
-    //     if (held->end > CurrentNote->start) {
-    //         pMask &= ~held->lane;
-    //     };
-    // }
 
     bool early = IsEarly();
     // STRUM PATH

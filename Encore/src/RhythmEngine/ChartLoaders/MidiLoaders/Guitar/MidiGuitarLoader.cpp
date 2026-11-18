@@ -142,7 +142,10 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetChartEvents(smf::MidiEventList &
 
 void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &event) {
     Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
+
     uint8_t lane = PlasticFrets[GetEventLane(ctx.diff, event)];
+    if (event[1] == GuitarMinMaxDiff[ctx.diff].first) lane = 0;
+
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;
