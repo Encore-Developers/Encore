@@ -182,6 +182,7 @@ void Encore::Track::Draw() {
         rlDisableDepthTest();
         DrawSurface();
         BeginBlendMode(BLEND_ADDITIVE);
+        DrawUnisons();
         DrawSolo();
         EndBlendMode();
         DrawBeatlines();
@@ -435,6 +436,66 @@ void Encore::Track::DrawSolo() {
                  0.1,
                  soloLength * GetZPerSecond(),
                  { BLUE.r, BLUE.g, BLUE.b, 128 });
+    }
+}
+void Encore::Track::DrawUnisons() {
+    for (auto &od : engine->chart->overdrive) {
+        if (!od.unison) continue;
+
+        double startPos = GetNotePos3D(od.start.sec);
+        double endPos = GetNotePos3D(od.end.sec);
+        double w = 0.5;
+        double right = 2.5;
+        double left = -2.5;
+        rlSetBlendMode(RL_BLEND_ADDITIVE);
+        rlDisableDepthTest();
+        rlBegin(RL_QUADS);
+
+        // middle
+        rlColor4ub(GOLD.r, GOLD.g, GOLD.b, 0); // sets vertex color
+        rlVertex3f(right - w, 0.03, startPos); // places vertex
+        rlVertex3f(right - w, 0.03, endPos);
+        rlColor4ub(GOLD.r, GOLD.g, GOLD.b, 128);
+        rlVertex3f(right, 0.03, endPos);
+        rlVertex3f(right, 0.03, startPos);
+        // since thats all four it stops???? i guess because rlBegin(RL_QUADS) is being used
+        // i fucking hate implicit behaviours FUCK implicit behaviours
+
+        rlVertex3f(left, 0.03, startPos);
+        rlVertex3f(left, 0.03, endPos);
+        rlColor4ub(GOLD.r, GOLD.g, GOLD.b, 0);
+        rlVertex3f(left + w , 0.03, endPos);
+        rlVertex3f(left + w, 0.03, startPos);
+
+        // end
+        rlVertex3f(right - w, 0.03, endPos);
+        rlVertex3f(right - w, 0.03, endPos + (w * 5));
+        rlVertex3f(right, 0.03, endPos + (w * 5));
+        rlColor4ub(GOLD.r, GOLD.g, GOLD.b, 128);
+        rlVertex3f(right, 0.03, endPos);
+
+        rlVertex3f(left, 0.03, endPos);
+        rlColor4ub(GOLD.r, GOLD.g, GOLD.b, 0);
+        rlVertex3f(left, 0.03, endPos + (w * 5));
+        rlVertex3f(left, 0.03, endPos + (w * 5));
+        rlVertex3f(left + w, 0.03, endPos);
+
+        rlEnd();
+        rlSetBlendMode(RL_BLEND_ALPHA);
+        rlEnableDepthTest();
+        //
+        // float midPos = GetNotePos3D((od.start.sec + od.end.sec) / 2);
+        // float soloLength = od.secLen();
+        // DrawCube({ 2.55, 0, midPos },
+        //          0.1,
+        //          0.1,
+        //          soloLength * GetZPerSecond(),
+        //          { GOLD.r, GOLD.g, GOLD.b, 128 });
+        // DrawCube({ -2.55, 0, midPos },
+        //          0.1,
+        //          0.1,
+        //          soloLength * GetZPerSecond(),
+        //          { GOLD.r, GOLD.g, GOLD.b, 128 });
     }
 }
 

@@ -94,6 +94,8 @@ float Encore::RhythmEngine::ODEvents::CheckOverdrive(double sec) {
     if (this->Perfect() && !this->at(CurrentEvent).added()) {
         // add overdrive
         valueToReturn = 0.25f;
+
+        if (this->at(CurrentEvent).unison) valueToReturn = 0.5f;
         Log::Trace("Perfect Overdrive phrase");
         Log::Trace("Removing Overdrive phrase");
         // increment if possible, make sure that the last overdrive gets added

@@ -31,6 +31,7 @@ namespace Encore::RhythmEngine {
         std::vector<TrackInformation> Parts;
         int threshold = -1;
         std::vector<LyricPhrase> Lyrics;
+        std::vector<std::vector<odPhrase>> overdrive;
     public:
         explicit ChartHandler(Song* song)
             : song(song), threshold(song->hopoThreshold) {
@@ -52,6 +53,7 @@ namespace Encore::RhythmEngine {
         virtual std::shared_ptr<BaseChart> GetChart(ChartLoadContext ctx) = 0;
         virtual bool IsLoaded() = 0;
         virtual void PopulateSubsongs() = 0;
+        std::vector<std::vector<odPhrase>>& GetOverdrive();
     };
 
     class ChartLoader {

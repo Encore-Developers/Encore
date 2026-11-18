@@ -146,7 +146,7 @@ void Encore::GemTrackSlot::DrawSustainTail(double startTime, double endTime, Col
     rlBegin(RL_QUADS);
     float regWidthMult = 0.25;
     float w = width * 1.5f;
-    float whammyOffset = whammy * (w*regWidthMult);
+    float whammyOffset = whammy * (w * regWidthMult);
     rlColor4ub(color.r, color.g, color.b, 0); // sets vertex color
     rlVertex3f(xPos -  w*regWidthMult - whammyOffset, 0.03, startPos); // places vertex
     rlVertex3f(xPos -  w*regWidthMult - whammyOffset, 0.03, endPos);

@@ -28,6 +28,7 @@ namespace Encore {
         void DrawSurface();
         void DrawOverdriveMeter();
         void DrawSolo();
+        void DrawUnisons();
         void DrawSoloUI();
         void DrawUsername();
         void DrawOffsetWindow();

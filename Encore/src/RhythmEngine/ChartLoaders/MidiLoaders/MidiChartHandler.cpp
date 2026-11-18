@@ -15,7 +15,7 @@
 #include "util/threadpool.h"
 using namespace Encore::RhythmEngine;
 
-std::vector<std::vector<int>> pDiffRangeNotes = {
+std::vector<std::vector<int> > pDiffRangeNotes = {
     { 60, 64 }, { 72, 76 }, { 84, 88 }, { 96, 100 }
 };
 
@@ -34,8 +34,7 @@ std::string MidiChartHandler::GetMidiTrackName(smf::MidiEventList &track) {
     return "";
 }
 
-MidiChartHandler::MidiChartHandler(Song* song)
-    : ChartHandler(song) {
+MidiChartHandler::MidiChartHandler(Song *song) : ChartHandler(song) {
     midifile.read(*song->GetChartData());
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
@@ -50,10 +49,11 @@ std::vector<BPM> MidiChartHandler::GetBPMChanges() {
     for (int i = 0; i < track.getSize(); i++) {
         if (track[i].isTempo()) {
             bpms.emplace_back(
-                track[i].seconds, track[i].getTempoBPM()*TheAudioManager.songSpeed, track[i].tick
+                track[i].seconds,
+                track[i].getTempoBPM() * TheAudioManager.songSpeed,
+                track[i].tick
             );
         }
-
     }
 
     return bpms;
@@ -67,9 +67,7 @@ std::vector<TimeSig> MidiChartHandler::GetTimeSigChanges() {
         if (track[i].isMeta() && track[i][1] == 0x58) {
             int numer = (int)track[i][3];
             int denom = pow(2, track[i][4]);
-            ts.emplace_back(
-                track[i].seconds, numer, denom, track[i][4], track[i].tick
-            );
+            ts.emplace_back(track[i].seconds, numer, denom, track[i][4], track[i].tick);
         }
     }
     if (ts.empty()) {
@@ -80,8 +78,7 @@ std::vector<TimeSig> MidiChartHandler::GetTimeSigChanges() {
     return ts;
 }
 
-std::vector<TrackInformation> &MidiChartHandler::
-GetValidParts() {
+std::vector<TrackInformation> &MidiChartHandler::GetValidParts() {
     if (processed) {
         return Parts;
     }
@@ -100,7 +97,8 @@ GetValidParts() {
         }
         auto songParts = SongPart::GetFromMidiTrackName(trackName);
         for (auto songPart : songParts) {
-            if (!songPart->playable) continue;
+            if (!songPart->playable)
+                continue;
             TrackInformation info;
             info.Part = songPart;
             info.TrackIndex = track;
@@ -113,7 +111,7 @@ GetValidParts() {
                         info.ValidDiffs.at(diff) = true;
                         valid = true;
                         break;
-                        }
+                    }
                 }
             }
             if (valid) {
@@ -122,20 +120,22 @@ GetValidParts() {
         }
     }
     // Find auto-converts
-    for (auto& convertToPart : SongPart::LoadedParts | std::views::values) {
-        if (convertToPart.convertsFrom.empty()) continue;
+    for (auto &convertToPart : SongPart::LoadedParts | std::views::values) {
+        if (convertToPart.convertsFrom.empty())
+            continue;
         // Check if we're missing this part
         bool missing = true;
-        for (auto& checkPart : Parts) {
+        for (auto &checkPart : Parts) {
             if (checkPart.Part == &convertToPart) {
                 missing = false;
                 break;
             }
         }
-        if (!missing) continue;
+        if (!missing)
+            continue;
 
         // Find the part to convert from
-        for (auto& checkPart : Parts) {
+        for (auto &checkPart : Parts) {
             if (checkPart.Part->id == convertToPart.convertsFrom) {
                 TrackInformation newPart = checkPart;
                 newPart.Part = &convertToPart;
@@ -145,18 +145,18 @@ GetValidParts() {
             }
         }
     }
-    std::ranges::sort(Parts.begin(), Parts.end(),
-        [](TrackInformation& a, TrackInformation& b)
-        {return a.Part->sortOrder > b.Part->sortOrder;}
+    std::ranges::sort(
+        Parts.begin(), Parts.end(), [](TrackInformation &a, TrackInformation &b) {
+            return a.Part->sortOrder > b.Part->sortOrder;
+        }
     );
     processed = true;
     return Parts;
 }
 
-std::vector<TimePoint>
-MidiChartHandler::GenerateOverdriveTicks() {
+std::vector<TimePoint> MidiChartHandler::GenerateOverdriveTicks() {
     ZoneScoped;
-    //midiFile.doTimeAnalysis();
+    // midiFile.doTimeAnalysis();
     smf::MidiEventList &track = midifile[EventsTrack];
     std::vector<TimePoint> ticks;
     track.linkEventPairs();
@@ -167,21 +167,19 @@ MidiChartHandler::GenerateOverdriveTicks() {
         }
     }
 
-    // todo: make this actually measure based potentially. this fucks over gh songs with non x/4 time sigs.
+    // todo: make this actually measure based potentially. this fucks over gh songs with
+    // non x/4 time sigs.
     if (ticks.empty()) {
         int overdriveTickCount = midifile.getFileDurationInTicks() / tpq;
         for (int i = 0; i < overdriveTickCount; i++) {
-            ticks.emplace_back(
-                midifile.getTimeInSeconds(tpq * i),
-                tpq * i);
+            ticks.emplace_back(midifile.getTimeInSeconds(tpq * i), tpq * i);
         }
     }
 
     return ticks;
 }
 
-std::vector<LyricPhrase>
-MidiChartHandler::GetLyricPhrases() {
+std::vector<LyricPhrase> MidiChartHandler::GetLyricPhrases() {
     return Lyrics;
 }
 
@@ -193,6 +191,23 @@ void MidiChartHandler::PreloadCharts() {
         MidiLyricLoader lyricLoader(&midifile, VoxTrack);
         lyricLoader.LoadLyrics();
         Lyrics = lyricLoader.lyrics;
+    }
+    overdrive.resize(midifile.getTrackCount());
+    for (auto &trackInfo : GetValidParts()) {
+        auto &track = midifile[trackInfo.TrackIndex];
+        for (int i = 0; i < track.size(); i++) {
+            auto &event = track[i];
+            if (event[1] == 116 && event.isNoteOn()) {
+                overdrive.at(trackInfo.TrackIndex)
+                    .emplace_back(
+                        event.seconds,
+                        event.tick,
+                        event.getLinkedEvent()->seconds,
+                        event.getLinkedEvent()->tick
+                    );
+                continue;
+            }
+        }
     }
 }
 
@@ -237,9 +252,11 @@ std::vector<Section> MidiChartHandler::GetSections() {
     return sections;
 }
 std::shared_ptr<BaseChart> MidiChartHandler::GetChart(ChartLoadContext ctx) {
-    for (auto& trackInfo : GetValidParts()) {
-        if (trackInfo.Part != ctx.part) continue;
-        if (!trackInfo.ValidDiffs.at(ctx.diff)) continue;
+    for (auto &trackInfo : GetValidParts()) {
+        if (trackInfo.Part != ctx.part)
+            continue;
+        if (!trackInfo.ValidDiffs.at(ctx.diff))
+            continue;
         switch (trackInfo.Part->archetype) {
         case ArchetypePad: {
             if (!trackInfo.Converted) {
@@ -247,11 +264,14 @@ std::shared_ptr<BaseChart> MidiChartHandler::GetChart(ChartLoadContext ctx) {
                 loader.LoadChart(midifile[trackInfo.TrackIndex]);
                 return std::make_shared<BaseChart>(loader.chart);
             } else {
-                if (SongPart::LoadedParts[trackInfo.Part->convertsFrom].archetype == ArchetypeGuitar) {
+                if (SongPart::LoadedParts[trackInfo.Part->convertsFrom].archetype
+                    == ArchetypeGuitar) {
                     MidiGuitarLoader chartLoader(ctx, threshold, &midifile);
                     chartLoader.chart.sections = TheSongTime.Sections;
                     chartLoader.LoadChart(midifile[trackInfo.TrackIndex]);
-                    return std::make_shared<BaseChart>(PadConverters::ConvertGuitarToPad(chartLoader.chart));
+                    return std::make_shared<BaseChart>(
+                        PadConverters::ConvertGuitarToPad(chartLoader.chart)
+                    );
                 }
             }
             break;
@@ -273,7 +293,7 @@ std::shared_ptr<BaseChart> MidiChartHandler::GetChart(ChartLoadContext ctx) {
 }
 
 bool MidiChartHandler::IsLoaded() {
-return true;
+    return true;
 }
 void MidiChartHandler::PopulateSubsongs() {
     if (song->subSongs.empty()) {
@@ -282,7 +302,7 @@ void MidiChartHandler::PopulateSubsongs() {
     auto &events = midifile[EventsTrack];
     int currentSubsong = -1;
     for (int i = 0; i < events.getSize(); i++) {
-        auto& event = events[i];
+        auto &event = events[i];
         std::string evt_string;
         evt_string.reserve(event.getSize());
         for (int k = 3; k < event.getSize(); k++) {
@@ -292,30 +312,37 @@ void MidiChartHandler::PopulateSubsongs() {
         if (evt_string == "[subsong]") {
             currentSubsong++;
             if (currentSubsong >= song->subSongs.size()) {
-                Log::Error("Song has more [subsong] events than subsongs defined in metadata. Something is wrong!");
+                Log::Error(
+                    "Song has more [subsong] events than subsongs defined in metadata. Something is wrong!"
+                );
                 return;
             }
-            auto& subsong = song->subSongs[currentSubsong];
+            auto &subsong = song->subSongs[currentSubsong];
             subsong.startTime = event.seconds;
             subsong.enterTime = event.seconds;
         }
 
         if (evt_string == "[subsong_enter]") {
             if (currentSubsong < 0) {
-                // "supported yet" I'll probably allow these to be placed before a subsong in order to control the base song's MTV overlay
-                Log::Error("Song has a [subsong_enter] event before any [subsong] events. This isn't supported yet.");
+                // "supported yet" I'll probably allow these to be placed before a subsong
+                // in order to control the base song's MTV overlay
+                Log::Error(
+                    "Song has a [subsong_enter] event before any [subsong] events. This isn't supported yet."
+                );
                 return;
             }
-            auto& subsong = song->subSongs[currentSubsong];
+            auto &subsong = song->subSongs[currentSubsong];
             subsong.enterTime = event.seconds;
         }
 
         if (evt_string == "[subsong_exit]") {
             if (currentSubsong < 0) {
-                Log::Error("Song has a [subsong_exit] event before any [subsong] events. This isn't supported yet.");
+                Log::Error(
+                    "Song has a [subsong_exit] event before any [subsong] events. This isn't supported yet."
+                );
                 return;
             }
-            auto& subsong = song->subSongs[currentSubsong];
+            auto &subsong = song->subSongs[currentSubsong];
             subsong.exitTime = event.seconds;
         }
     }

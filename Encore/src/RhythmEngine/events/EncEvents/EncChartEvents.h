@@ -401,7 +401,7 @@ namespace Encore::RhythmEngine {
         PhraseState state = Default;
         bool added() const { return state == Added; }
         bool missed() const { return state == Missed; }
-
+        bool unison = false;
         void CountNote(const int tick) {
             if (tick >= start.tick && tick < end.tick) {
                 NoteCount++;

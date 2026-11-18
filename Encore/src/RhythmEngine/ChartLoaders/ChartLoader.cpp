@@ -28,6 +28,9 @@ ChartLoadContext::ChartLoadContext(Player *player) {
         cymbals[2] = false;
     }
 }
+std::vector<std::vector<odPhrase> > &ChartHandler::GetOverdrive() {
+    return overdrive;
+}
 ChartLoader::ChartLoader(Song* song) {
     switch (song->chartFormat) {
     case ChartFormat::Midi:
@@ -125,6 +128,23 @@ ChartLoader::CreateEngine(Player *player) {
         engine->chart->at(i).shrink_to_fit();
         engine->chart->CurrentNoteIterators.at(i) =
             engine->chart->at(i).begin();
+    }
+    for (auto &od : engine->chart->overdrive) {
+        auto startsAt = [od](const odPhrase &phrase) {
+            return od.start == phrase.start;
+        };
+        int count = 0;
+        int max = 0;
+        for (auto track : chartHandler->GetOverdrive()) {
+            if (track.empty()) continue;
+            max++;
+
+            auto it = std::find_if(track.begin(), track.end(), startsAt);
+            if (it != track.end()) {
+                count++;
+            };
+        }
+        if (count > max - 1) od.unison = true;
     }
     engine->tempoMap = GetTempoMap();
     engine->chart->sections = GetSections();
