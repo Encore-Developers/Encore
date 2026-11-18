@@ -146,8 +146,6 @@ void Encore::RhythmEngine::MidiGuitarLoader::CreateNote(const smf::MidiEvent &ev
     if (pNote.tickLen() < Resolution * 0.3541) {
         pNote.end.tick = 0;
         pNote.end.sec = 0;
-    } else {
-        pNote.end.tick -= 1;
     }
 
     if (!OpenMarker.empty()) {
@@ -236,6 +234,14 @@ void Encore::RhythmEngine::MidiGuitarLoader::GetNotes(smf::MidiEventList &track)
             auto& note = chart[0].back();
             if (note.start.tick == event.tick) {
                 note.lane += PlasticFrets[GetEventLane(ctx.diff, event)];
+                Event pNote {event.seconds, event.tick, event.getLinkedEvent()->seconds, event.getLinkedEvent()->tick};
+
+                if (pNote.tickLen() < Resolution * 0.3541) {
+                    pNote.end.tick = 0;
+                    pNote.end.sec = 0;
+                }
+
+                if (pNote.end.tick < note.end.tick) note.end = pNote.end;
                 if (note.type == 1) {
                     note.type = 0;
                 }

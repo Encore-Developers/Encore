@@ -8,6 +8,7 @@
 namespace Encore::RhythmEngine {
     class GuitarEngine : public BaseEngine {
         bool MaskMatch(const NoteEvent *itr, uint8_t mask) const;
+        bool MaskMatch(uint8_t mask1, uint8_t mask2) const;
         bool IsEarly() const;
 
         bool IsInputTooEarly() const;
@@ -35,6 +36,7 @@ namespace Encore::RhythmEngine {
          */
         void RunHitStateCheck(ControllerEvent &event) override;
         void GuitarHitNote(bool strumInput);
+        bool ExtendedSustainActive = false;
     public:
         // std::unordered_map<std::string, RhythmTimer> Timers {
         //     { "FAS", RhythmTimer(0.025) }, { "SAH", RhythmTimer(0.125) }

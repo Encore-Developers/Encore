@@ -23,6 +23,13 @@ bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const NoteEvent *itr, const u
     return mask == note;
 }
 
+bool Encore::RhythmEngine::GuitarEngine::MaskMatch(const uint8_t mask1, const uint8_t mask2) const {
+    uint8_t maxMask = mask1 << 1;
+    if (std::has_single_bit(mask1))
+        return (mask2 < maxMask) && (mask2 >= mask1);
+    return mask2 == mask1;
+}
+
 bool Encore::RhythmEngine::GuitarEngine::IsEarly() const {
     if (chart->CurrentNoteIterators.at(0)->start - goodFrontend > EngineTime) {
         return true;
@@ -69,6 +76,7 @@ bool Encore::RhythmEngine::GuitarEngine::CanNoteBeHit() {
 void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
 ) {
     bool press = event.action == Action::PRESS;
+    bool release = event.action == Action::RELEASE;
     if (event.channel < InputChannel::LANE_6) {
         stats->HeldFrets.at(ICInt(event.channel)) = press;
     }
@@ -77,7 +85,35 @@ void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     NoteEvent *CurrentNote = &*chart->CurrentNoteIterators.at(0);
 
     uint8_t pMask = stats->HeldFretsArrayToMask();
+    for (auto &sustain : ActiveSustains) {
+        if (sustain.note->end > CurrentNote->start) {
+            sustain.extSus = true;
+        }
 
+        // if extsus and specific lane released, release sustain
+        if (((pMask & sustain.note->lane) != sustain.note->lane) && sustain.extSus) {
+            DropSustain(EngineTime, sustain);
+        }
+
+        // release regular sustain if conditions are met
+        // if (!MaskMatch(sustain.note, pMask & ~sustain.note->lane)
+        //     && !sustain.extSus) {
+        //     DropSustain(EngineTime, sustain);
+        //     break;
+        // }
+
+        // extra mask bullshit
+        if (sustain.extSus) {
+            pMask &= ~sustain.note->lane;
+        }
+    }
+
+    for (auto &sustain : ActiveSustains) {
+        if (!MaskMatch(sustain.note, pMask) && !sustain.extSus) {
+            DropSustain(EngineTime, sustain);
+            break;
+        }
+    }
     // if (chart->IsHeldNotePresent(0)) {
     //     auto *held = chart->HeldNotePointers.at(0);
     //
@@ -165,5 +201,6 @@ void Encore::RhythmEngine::GuitarEngine::GuitarHitNote(bool strumInput) {
 
 void Encore::RhythmEngine::GuitarEngine::Overhit() {
     // TODO: drop all sustains
+    ExtendedSustainActive = false;
     BaseEngine::Overhit(0);
 }

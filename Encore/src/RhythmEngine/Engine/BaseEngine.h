@@ -29,6 +29,7 @@ namespace Encore::RhythmEngine {
         TimeBeats end;
         double multiplier;
         double valuePerBeat;
+        bool extSus = false;
 
         double GetValueAtTime(TimeBeats time) const;
     };
