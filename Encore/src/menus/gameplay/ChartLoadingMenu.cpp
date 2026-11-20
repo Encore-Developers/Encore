@@ -72,7 +72,7 @@ void ChartLoadingMenu::Load() {
 #ifndef NO_VIDEO
         auto videoPath = curSong->GetVideoPath();
         if (!videoPath.empty()) {
-            videoBackground = std::make_shared<VideoBackground>(videoPath, curSong->videoStartTime);
+            videoBackground = std::make_shared<VideoPlayer>(videoPath, curSong->videoStartTime);
             videoBackground->selfPtr = videoBackground;
         }
 #endif

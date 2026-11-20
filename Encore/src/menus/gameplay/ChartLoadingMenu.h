@@ -6,7 +6,7 @@
 #define CHARTLOADINGMENU_H
 #include "../overshell/OvershellMenu.h"
 #include "RhythmEngine/ChartLoaders/ChartLoader.h"
-#include "song/video/VideoBackground.h"
+#include "song/video/VideoPlayer.h"
 
 class ChartLoadingMenu : public OvershellMenu {
 public:
@@ -19,7 +19,7 @@ public:
     Gamemode gamemode;
     Encore::RhythmEngine::ChartLoader chartLoader;
 
-    std::shared_ptr<VideoBackground> videoBackground;
+    std::shared_ptr<VideoPlayer> videoBackground;
 
     ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode), chartLoader(song)  {};
     ~ChartLoadingMenu() {};

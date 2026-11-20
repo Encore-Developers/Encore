@@ -11,6 +11,8 @@
 #include "raymath.h"
 #include "raygui.h"
 #include "resultsMenu.h"
+#include "rlgl.h"
+#include "external/glad.h"
 #include "gameplay/enctime.h"
 #include "../util/styles.h"
 #include "easing/easing.h"
@@ -37,7 +39,7 @@
 
 Encore::LyricRenderer TheLyricRenderer;
 
-GameplayMenu::GameplayMenu(Song* song, std::shared_ptr<VideoBackground> videoBackground) : curSong(song), currentMTVProvider(song), videoBackground(std::move(videoBackground)) {
+GameplayMenu::GameplayMenu(Song* song, std::shared_ptr<VideoPlayer> videoBackground) : curSong(song), currentMTVProvider(song), videoBackground(std::move(videoBackground)) {
     hasOvershell = false;
 }
 
@@ -638,7 +640,7 @@ void GameplayMenu::Draw() {
         }
     }
     if (!TheGameSettings.StreamerTransparency) {
-        Texture2D* video = nullptr;
+        std::shared_ptr<AsyncTexture> video = nullptr;
         if (videoBackground) {
             video = videoBackground->GetTexture((TheSongTime.GetElapsedTime()*TheAudioManager.songSpeed) + curSong->videoStartTime);
         }
@@ -647,7 +649,12 @@ void GameplayMenu::Draw() {
             Vector2 fitSize = AspectFitRect({(float)video->width, (float)video->height}, screenSize);
             Vector2 videoOffset = Vector2Subtract(Vector2Scale(screenSize, 0.5), Vector2Scale(fitSize, 0.5));
 
-            DrawTexturePro(*video, {0, 0, (float)video->width, (float)video->height}, {videoOffset.x, videoOffset.y, fitSize.x, fitSize.y}, Vector2(0, 0), 0, WHITE);
+            {
+                ZoneScopedN("Draw Video Background Texture")
+                DrawTexturePro(video->GetRaylibTexture(), {0, 0, (float)video->width, (float)video->height}, {videoOffset.x, videoOffset.y, fitSize.x, fitSize.y}, Vector2(0, 0), 0, WHITE);
+                rlDrawRenderBatchActive();
+            }
+
         } else {
             GameMenu::DrawAlbumArtBackground();
         }

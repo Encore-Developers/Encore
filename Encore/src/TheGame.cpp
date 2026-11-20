@@ -14,6 +14,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "tracy/Tracy.hpp"
+#include "external/glad.h"
 
 #include <cassert>
 
@@ -29,9 +30,14 @@
 #include "song/OpenSource.h"
 #include "song/cacheload.h"
 // #include "spdlog/spdlog.h"
+#include "song/video/VideoPlayer.h"
 #include "tracy/TracyC.h"
+#include "tracy/TracyOpenGL.hpp"
 #include "users/profiles/ProfileManager.h"
 #include "util/ScoreDB.h"
+
+#include <dlfcn.h>
+#include <renderdoc_app.h>
 
 #ifdef STEAM
 #include "steam_api.h"
@@ -353,15 +359,17 @@ int TheGame::Run(int argc, char *argv[]) {
         Encore::Log::Info("Framerate: unlimited");
         TheFrameManager.removeFPSLimit = true;
     }
+    if (!SDL_SetCursor(cursor))
+        Encore::Log::Error(SDL_GetError());
     // audioManager.loadSample("Assets/highway/clap.mp3", "clap");
+    TracyGpuContext
     while (!WindowShouldClose() && !shouldQuit) {
         ZoneScopedN("Main Loop")
+        TracyGpuZone("Draw")
         // glfwSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         SDL_GL_SetSwapInterval(TheGameSettings.VerticalSync ? 1 : 0);
         Units::calcUnits();
 
-        if (!SDL_SetCursor(cursor))
-            Encore::Log::Error(SDL_GetError());
         //PollQueuedInputs(poller);
         SyncSDLWithAudio();
         SDL_Event event;
@@ -480,6 +488,7 @@ int TheGame::Run(int argc, char *argv[]) {
             rlImGuiEnd();
             EndDrawing();
         }
+        TracyGpuCollect;
 
         if (EncoreDebug::reloadQueued) {
             EncoreDebug::StartReloadAssets();
@@ -493,6 +502,7 @@ int TheGame::Run(int argc, char *argv[]) {
             Rectangle cursorRect {pos.x, pos.y, 20, 20 };
             ASSET(cursor).Draw(cursorRect, WHITE);
         }
+        VideoPlayer::PollCleanup();
         TheFrameManager.WaitForFrame();
         FrameMark;
     }

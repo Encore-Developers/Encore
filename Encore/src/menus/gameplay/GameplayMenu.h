@@ -13,13 +13,13 @@
 
 #include "gameplay/trackRenderer/Track.h"
 #include "menus/util/ButtonActionRegistry.h"
-#include "song/video/VideoBackground.h"
+#include "song/video/VideoPlayer.h"
 
 // technically this IS a menu, but realistically, is it?
 class GameplayMenu : public OvershellMenu {
 protected:
     Encore::ButtonActionRegistry buttReg;
-    std::shared_ptr<VideoBackground> videoBackground;
+    std::shared_ptr<VideoPlayer> videoBackground;
 public:
     std::vector<std::shared_ptr<Encore::Track>> tracks;
     bool streamsPaused = false;
@@ -30,7 +30,7 @@ public:
     Song* curSong;
     Encore::RhythmEngine::Replay recordingReplay;
 
-    GameplayMenu(Song* song, std::shared_ptr<VideoBackground> videoBackground = nullptr);
+    GameplayMenu(Song* song, std::shared_ptr<VideoPlayer> videoBackground = nullptr);
     virtual ~GameplayMenu();
     void DrawScorebox(Assets &assets, float scoreY);
     void DrawTimerbox(Assets &assets, float scoreY);
