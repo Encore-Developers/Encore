@@ -4,7 +4,7 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 #include "util/enclog.h"
-
+#include <cassert>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
