@@ -3,7 +3,6 @@
 #include "util/threadpool.h"
 
 #include <filesystem>
-#include <renderdoc_app.h>
 #include <utility>
 extern "C" {
 #include <libavformat/avformat.h>

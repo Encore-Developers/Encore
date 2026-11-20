@@ -37,7 +37,6 @@
 #include "util/ScoreDB.h"
 
 #include <dlfcn.h>
-#include <renderdoc_app.h>
 
 #ifdef STEAM
 #include "steam_api.h"
