@@ -49,7 +49,7 @@ add_subdirectory(thirdparty/sqlitecpp)
 
 
 if (WIN32)
-  FetchContent_Declare(ffmpeg DOWNLOAD_EXTRACT_TIMESTAMP OFF URL https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-8.1.2-full_build-shared.7z)
+  FetchContent_Declare(ffmpeg DOWNLOAD_EXTRACT_TIMESTAMP OFF URL https://www.gyan.dev/ffmpeg/builds/packages/ffmpeg-9.0.2-full_build-shared.7z)
   FetchContent_GetProperties(ffmpeg)
   if (NOT ffmpeg_POPULATED)
     set(FETCHCONTENT_QUIET NO)
