@@ -36,8 +36,6 @@
 #include "users/profiles/ProfileManager.h"
 #include "util/ScoreDB.h"
 
-#include <dlfcn.h>
-
 #ifdef STEAM
 #include "steam_api.h"
 #endif
@@ -71,11 +69,6 @@
 #include "menus/util/uiUnits.h"
 
 #include "settings/settings.h"
-#include "menus/settings/SettingsAudioVideo.h"
-#include "menus/settings/SettingsController.h"
-#include "menus/settings/SettingsCredits.h"
-#include "menus/settings/SettingsGameplay.h"
-#include "menus/settings/SettingsKeyboard.h"
 
 #include "menus/util/styles.h"
 #include "util/frame-manager.h"
