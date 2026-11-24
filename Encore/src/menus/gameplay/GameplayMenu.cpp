@@ -659,13 +659,6 @@ void GameplayMenu::Draw() {
             GameMenu::DrawAlbumArtBackground();
         }
         DrawRectangle(0, 0, GetRenderWidth(), GetRenderHeight(), Color{ 0, 0, 0, 128 });
-        DrawRectangle(
-            0,
-            0,
-            GetRenderWidth(),
-            GetRenderHeight(),
-            Color{ 255, 255, 255, BackgroundColor }
-        );
     }
 
 

@@ -9,6 +9,7 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyC.h"
 #include "util/enclog.h"
+#include "external/glad.h"
 
 #include <fstream>
 #include <iostream>
@@ -186,6 +187,13 @@ void ShaderAsset::Finalize() {
     shader = LoadShaderFromMemory(vertString, fragString);
     for (auto &uniform : uniformPositions) {
         uniform.second = GetShaderLocation(shader, uniform.first.c_str());
+        if (uniform.second == -1) {
+            Encore::Log::Warn("Shader {} has uniform {} defined in assets.h but is not present in shader source code", id, uniform.first);
+        }
+    }
+    auto trackGlobals = glGetUniformBlockIndex(shader.id, "TrackGlobals");
+    if (trackGlobals != -1) {
+        glUniformBlockBinding(shader.id, trackGlobals, 2);
     }
     if (postFinalizeFunc)
         postFinalizeFunc(&shader);
@@ -217,7 +225,12 @@ void ShaderAsset::SetUniform(const std::string &uniformName, Vector3 value) {
 
 void ShaderAsset::SetUniform(const std::string &uniformName, Texture2D value) {
     CheckForFetch();
-    SetShaderValueTexture(shader, GetUniformLoc(uniformName), value);
+    int uniformLoc = GetUniformLoc(uniformName);
+    if (uniformLoc == -1) {
+        Encore::Log::Warn("Attempted to set invalid uniform texture {} on shader {}", uniformName, id);
+        return;
+    }
+    SetShaderValueTexture(shader, uniformLoc, value);
 }
 
 void ShaderAsset::SetUniform(
@@ -226,7 +239,12 @@ void ShaderAsset::SetUniform(
     ShaderUniformDataType type
 ) {
     CheckForFetch();
-    SetShaderValue(shader, GetUniformLoc(uniformName), value, type);
+    int uniformLoc = GetUniformLoc(uniformName);
+    if (uniformLoc == -1) {
+        Encore::Log::Warn("Attempted to set invalid uniform {} on shader {}", uniformName, id);
+        return;
+    }
+    SetShaderValue(shader, uniformLoc, value, type);
 }
 
 void ShaderAsset::Unload() {

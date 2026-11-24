@@ -452,23 +452,14 @@ public:
     NEWSHADERASSET(trackCurveShader,
                    "gameplay/track/fade.fsh",
                    "gameplay/track/trackCurve.vsh",
-                   {"trackLength",
-                   "fadeSize",
-                   "curveFac",
-                   "offset",
-                   "scale"});
+                   {});
 
     NEWSHADERASSET_POSTFINALIZE(noteShader,
                                 "gameplay/track/notes/noteShader.fsh",
                                 "gameplay/track/trackCurve.vsh",
-                                {"trackLength",
-                                "fadeSize",
-                                "maskTexture",
+                                {"maskTexture",
                                 "noteColor",
-                                "frameColor",
-                                "curveFac",
-                                "offset",
-                                "scale"},
+                                "frameColor",},
                                 [this](Shader* asset) {
                                 asset->locs[SHADER_LOC_MAP_EMISSION] = noteShader.
                                 GetUniformLoc("maskTexture");
@@ -477,12 +468,7 @@ public:
     NEWSHADERASSET(highwayScrollShader,
                    "gameplay/track/surface/trackScroll.fsh",
                    "gameplay/track/trackCurve.vsh",
-                   {"trackLength",
-                   "fadeSize",
-                   "time",
-                   "curveFac",
-                   "offset",
-                   "scale"});
+                   {"time"});
 
     NEWTEXASSET(overdriveSideTex, "gameplay/track/particles/overdrive_side.png");
     NEWLEGACYMODELASSET(overdriveSide,
@@ -694,12 +680,7 @@ public:
                                 {"FillColor",
                                 "BaseColor",
                                 "FillTexture",
-                                "FillPct",
-                                "curveFac",
-                                "trackLength",
-                                "fadeSize",
-                                "offset",
-                                "scale"},
+                                "FillPct"},
 
                                 [this](Shader* asset) {
                                 asset->locs[SHADER_LOC_MAP_EMISSION] =
@@ -713,11 +694,6 @@ public:
                                 "ResidualColor",
                                 "FillTexture",
                                 "FillPct",
-                                "curveFac",
-                                "trackLength",
-                                "fadeSize",
-                                "offset",
-                                "scale",
                                 "FillResidualPct",
                                 "SolidPct",
                                 "GlowBottomPct",
@@ -750,12 +726,7 @@ public:
                                 {
                                     "BaseColor",
                                     "MultiplierColor",
-                                    "FillPercentage",
-                                    "curveFac",
-                                    "trackLength",
-                                    "fadeSize",
-                                    "offset",
-                                    "scale"
+                                    "FillPercentage"
                                 });
     NEWLEGACYMODELASSET(multiplierFill,
                         "gameplay/track/multiplier/multiplier_fill.obj",
@@ -771,20 +742,13 @@ public:
                                 "gameplay/track/multiplier/fc_ind.fsh",
                                 "gameplay/track/trackCurve.vsh",
                                 {
-                                    // fs
                                     "BaseColor",
                                     "tex1",
                                     "tex2",
                                     "baseTex",
                                     "time",
                                     "FCColor",
-                                    "isFC",
-                                    // vs
-                                    "curveFac",
-                                    "trackLength",
-                                    "fadeSize",
-                                    "offset",
-                                    "scale"
+                                    "isFC"
                                 },
                                 [](Shader* shader) {
                                 });
@@ -807,7 +771,7 @@ public:
         multiplierFrameShader,
         "",
         "gameplay/track/trackCurve.vsh",
-        { "curveFac", "trackLength", "fadeSize", "offset", "scale" }
+        {}
     );
 
     NEWLEGACYMODELASSET(multiplierFrame, "gameplay/track/multiplier/multiplier_frame.obj",
@@ -819,14 +783,7 @@ public:
                                 "gameplay/track/multiplier/multnumber.fsh",
                                 "gameplay/track/trackCurve.vsh",
                                 {
-                                    // fs
                                     "uvOffset",
-                                    // vs
-                                    "curveFac",
-                                    "trackLength",
-                                    "fadeSize",
-                                    "offset",
-                                    "scale"
                                 },
                                 [](Shader* shader) {
                                 });

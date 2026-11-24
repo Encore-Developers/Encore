@@ -15,6 +15,14 @@ namespace Encore {
     class TrackSlot;
     class ParticleSystem;
 
+    struct TrackUniformBuffer {
+        float trackLength;
+        float fadeSize;
+        float curveFac;
+        float offset;
+        float scale;
+    };
+
     class Track : public EventSink {
     public:
         void DrawTrackDebugWindow();
@@ -110,6 +118,8 @@ namespace Encore {
 
         ThreadPool joystickLEDThread = {1};
         double lastLEDUpdateTime = 0.0;
+
+        unsigned int trackUBO = -1;
 
         Track(Player &player_)
             : player(player_), engine(player.engine), beatlineTracker(engine->tempoMap->GetBeatlineTracker()) {

@@ -7,8 +7,13 @@ in vec3 fragPosition;
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
 uniform float time;
-uniform float trackLength = 20;
-uniform float fadeSize = 3;
+layout(std140) uniform TrackGlobals {
+    float trackLength;
+    float fadeSize;
+    float curveFac;
+    float offset;
+    float scale;
+};
 
 out vec4 finalColor;
 

@@ -10,10 +10,13 @@ uniform vec4 colDiffuse;
 uniform vec4 noteColor;
 uniform vec4 frameColor;
 uniform float time;
-uniform float fadeStart;
-uniform float fadeEnd;
-uniform float trackLength = 20;
-uniform float fadeSize = 3;
+layout(std140) uniform TrackGlobals {
+    float trackLength;
+    float fadeSize;
+    float curveFac;
+    float offset;
+    float scale;
+};
 
 out vec4 finalColor;
 

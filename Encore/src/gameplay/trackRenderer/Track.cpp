@@ -23,7 +23,7 @@
 #include "tracy/Tracy.hpp"
 #include "users/playerManager.h"
 
-void Encore::Track::DrawCountdown() {
+void Encore::Track::DrawCountdown() { 
     ZoneScopedN("Countdown")
     double time = currentTime;
     auto start = engine->LastNoteTime();
@@ -154,26 +154,17 @@ void Encore::Track::Draw() {
     }
     {
         ZoneScopedN("Track Shader Uniforms")
-        for (auto shader : { ASSETPTR(trackCurveShader), ASSETPTR(noteShader),
-                             ASSETPTR(highwayScrollShader), ASSETPTR(overdriveShader),
-                             ASSETPTR(healthMeterShader),
-                             ASSETPTR(multiplierFillShader),
-                             ASSETPTR(indicatorRingShader),
-                             ASSETPTR(multNumShader), ASSETPTR(multiplierFrameShader) }) {
-            shader->SetUniform("trackLength", Length);
-            shader->SetUniform("fadeSize", FadeSize);
-            shader->SetUniform("curveFac", CurveFac);
-            shader->SetUniform("offset", Offset);
-            shader->SetUniform("scale", Scale);
-        }
-        ASSET(multiplierFillShader).SetUniform("curveFac", 10000000000.0f);
-        ASSET(indicatorRingShader).SetUniform("curveFac", 10000000000.0f);
-        ASSET(multNumShader).SetUniform("curveFac", 10000000000.0f);
-        ASSET(multiplierFrameShader).SetUniform("curveFac", 10000000000.0f);
-
-        ASSET(indicatorRingShader).SetUniform("tex1", ASSET(fcindtex1));
-        ASSET(indicatorRingShader).SetUniform("tex2", ASSET(fcindtex2));
-        ASSET(indicatorRingShader).SetUniform("baseTex", ASSET(fcindtex3));
+        TrackUniformBuffer buf {
+            Length,
+            FadeSize,
+            CurveFac,
+            Offset,
+            Scale
+        };
+        glBindBuffer(GL_UNIFORM_BUFFER, trackUBO);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(TrackUniformBuffer), &buf);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        glBindBufferBase(GL_UNIFORM_BUFFER, 2, trackUBO);
     }
 
     {
@@ -258,6 +249,8 @@ void Encore::Track::Draw() {
         EndShaderMode();
         EndMode3D();
     }
+    // Makes sure all of the track is drawn with the correct bindings
+    rlDrawRenderBatchActive();
 }
 
 
@@ -272,6 +265,10 @@ void Encore::Track::Load() {
     engine->AddSink(this);
     particleSystem = std::unique_ptr<ParticleSystem>(new ParticleSystem);
     particleSystem->track = this;
+    glGenBuffers(1, &trackUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, trackUBO);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(TrackUniformBuffer), nullptr, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void Encore::Track::DrawSurface() {
@@ -1455,4 +1452,5 @@ void Encore::Track::FitToColumn(float left, float right, Camera &camera) {
 }
 
 Encore::Track::~Track() {
+    glDeleteBuffers(1, &trackUBO);
 }

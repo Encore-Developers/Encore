@@ -11,11 +11,18 @@ uniform mat4 mvp;
 uniform mat4 matModel;
 uniform mat4 matView;
 uniform mat4 matNormal;
-uniform float trackLength = 20;
-uniform float fadeSize = 3;
-uniform float curveFac = 50;
-uniform float offset = 0;
-uniform float scale = 1;
+layout(std140) uniform TrackGlobals {
+    float trackLength;
+    float fadeSize;
+    float curveFac;
+    float offset;
+    float scale;
+};
+// uniform float trackLength = 20;
+// uniform float fadeSize = 3;
+// uniform float curveFac = 50;
+// uniform float offset = 0;
+// uniform float scale = 1;
 
 // Output vertex attributes (to fragment shader)
 out vec3 fragPosition;
