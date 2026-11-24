@@ -47,7 +47,9 @@ void Encore::RhythmEngine::PadEngine::LaneHitStateCheck(int lane, ControllerEven
     if (event.action == Action::RELEASE) {
         for (auto& sustain : ActiveSustains) {
             if (sustain.note->lane == PlasticFrets[lane]) {
-                DropSustain(EngineTime, sustain);
+                if (!InSustainEndLeniency(EngineTime, sustain)) {
+                    DropSustain(EngineTime, sustain);
+                }
                 break;
             }
         }

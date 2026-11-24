@@ -91,7 +91,7 @@ void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
         }
 
         // if extsus and specific lane released, release sustain
-        if (((pMask & sustain.note->lane) != sustain.note->lane) && sustain.extSus) {
+        if (((pMask & sustain.note->lane) != sustain.note->lane) && sustain.extSus && !InSustainEndLeniency(EngineTime, sustain)) {
             DropSustain(EngineTime, sustain);
         }
 
@@ -102,7 +102,7 @@ void Encore::RhythmEngine::GuitarEngine::RunHitStateCheck(ControllerEvent &event
     }
 
     for (auto &sustain : ActiveSustains) {
-        if (!MaskMatch(sustain.note, pMask) && !sustain.extSus) {
+        if (!MaskMatch(sustain.note, pMask) && !sustain.extSus && !InSustainEndLeniency(EngineTime, sustain)) {
             DropSustain(EngineTime, sustain);
             break;
         }

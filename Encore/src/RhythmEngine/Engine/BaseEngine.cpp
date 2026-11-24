@@ -546,6 +546,13 @@ void Encore::RhythmEngine::BaseEngine::DropSustain(TimeSeconds time, Sustain &su
     chart->DroppedSustainPointers.push_back(sustain.note);
     ClearSustain(sustain);
 }
+bool Encore::RhythmEngine::BaseEngine::InSustainEndLeniency(
+    TimeSeconds time, Sustain &sustain
+) {
+    TimeSeconds susEnd = tempoMap->BeatToSeconds(sustain.end);
+    return time > susEnd - 0.050;
+
+}
 void Encore::RhythmEngine::BaseEngine::UpdateMultiplier(TimeSeconds time) {
     Multiplier = stats->ComboToMultiplier(stats->Combo) * (OverdriveActive ? stats->ep.mult.odMult : 1);
     if (deferMultiplierUpdates) {

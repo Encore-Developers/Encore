@@ -112,6 +112,8 @@ namespace Encore::RhythmEngine {
         /// Invalidates iterators, be careful!
         void DropSustain(TimeSeconds time, Sustain& sustain);
 
+        bool InSustainEndLeniency(TimeSeconds time, Sustain& sustain);
+
         /// Call *after* updating OverdriveActive
         void UpdateMultiplier(TimeSeconds time);
         void SegmentSustains(TimeSeconds time, double newMultiplier);
