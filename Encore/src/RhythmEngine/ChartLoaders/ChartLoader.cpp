@@ -144,7 +144,7 @@ ChartLoader::CreateEngine(Player *player) {
                 count++;
             };
         }
-        if (count > max - 1) od.unison = true;
+        if (count > max - 1 && count > 1) od.unison = true;
     }
     engine->tempoMap = GetTempoMap();
     engine->chart->sections = GetSections();
