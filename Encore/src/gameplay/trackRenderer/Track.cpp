@@ -1184,7 +1184,7 @@ void Encore::Track::HandleEvent(Event *event) {
              .size(1.0f);
         odSides = particleSystem->SpawnParticle(flash);
         odSidesID = odSides->id;
-        KickTimer = 1;
+        KickTimer = 0.8;
         KickSpeedMult = 3;
     }
     if (auto notifEvent = event->GetTyped<TrackNotificationEvent>()) {

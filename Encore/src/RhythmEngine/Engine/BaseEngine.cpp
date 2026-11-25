@@ -295,6 +295,7 @@ void Encore::RhythmEngine::BaseEngine::HitNote(const size_t lane) {
     auto od = chart->overdrive.CheckOverdrive(EngineTime);
     if (od > 0) {
         GainOverdrive(od);
+        FireEventTemp(OverdriveEvent{});
     }
     chart->solos.UpdateEventViaNote(true, startTick);
 }
@@ -446,7 +447,7 @@ void Encore::RhythmEngine::BaseEngine::ActivateOverdrive(TimeSeconds time) {
     OverdriveActivateTime = time;
     UpdateMultiplier(time);
     OnOverdriveActivate(time);
-    // TODO: fire all the events n shit
+    FireEventTemp(OverdriveEvent{});
 }
 void Encore::RhythmEngine::BaseEngine::EndOverdrive(TimeSeconds time) {
     OverdriveActive = false;
