@@ -33,6 +33,18 @@ namespace Encore {
         TrackSlot(Track *track, float xPos, float width, float length, ColorSlot colorSlot, TrackSlot* parent = nullptr) : xPos(xPos), width(width), length(length), colorSlot(colorSlot), track(track), parentSlot(parent) {};
     };
 
+    struct Segment {
+        struct {
+            Vector3 l;
+            Vector3 r;
+        } front;
+        struct {
+            Vector3 l;
+            Vector3 r;
+        } back;
+    };
+
+    void DrawSegment(Segment segment, Color color, float frontAlpha = 1, float backAlpha = 1);
 } // Encore
 
 #endif // ENCORE_TRACKSLOT_H
