@@ -120,8 +120,7 @@ void Encore::LyricRenderer::DrawPhrase(RhythmEngine::LyricPhrase *phrase,
     // god forbid i have a proper ui library
     float LyricLeft = 0;
 
-    TextDisplay lyricData;
-    lyricData.Size(FontSize);
+    TextDisplay lyricData(ASSET(rubik), FontSize);
     LyricLeft += int(GetRenderWidth() / 2) - (lyricData.TextWidth(phrase->fullPhrase)/2);
     lyricData.Pos(LyricLeft,baselineVox + padding);
     const Color PlayedColor = { 119, 183, 255, remapAlpha(alpha, DisplayAlpha) };

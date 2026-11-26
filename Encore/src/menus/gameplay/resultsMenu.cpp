@@ -325,15 +325,14 @@ void resultsMenu::DrawStatistics(std::shared_ptr<Encore::RhythmEngine::Stats> &s
     Encore::TextDisplay Header;
     Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
            Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(cardHeight * 0.05f);
+    float fontSize = Units::hinpct(0.025f);
+    Encore::TextDisplay LeftStatData(ASSET(rubik), fontSize);
+    Encore::TextDisplay RightStatData(ASSET(rubik), fontSize);
 
-    Encore::TextDisplay LeftStatData;
-    Encore::TextDisplay RightStatData;
-
-    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight);
+    RightStatData.Pos(statsRight, statsHeight).Align(RIGHT);
 
     Header.lDrawText("resultsMenu.statisticsHeader");
-    RightStatData.Fnt(ASSET(rubik));
     LeftStatData.lDrawText("resultsMenu.statline.perfect");
     LeftStatData.pos.y += ActualStatsHeight;
     LeftStatData.lDrawText("resultsMenu.statline.good");
@@ -401,14 +400,13 @@ void resultsMenu::DrawSections(Player &player, Rectangle rect, float cardHeight,
     Encore::TextDisplay Header;
     Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
            Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(cardHeight * 0.05f);
+    float fontSize = Units::hinpct(0.025f);
+    Encore::TextDisplay LeftStatData(ASSET(rubik), fontSize);
+    Encore::TextDisplay RightStatData(ASSET(JetBrainsMono), fontSize);
 
-    Encore::TextDisplay LeftStatData;
-    Encore::TextDisplay RightStatData;
-
-    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight);
+    RightStatData.Pos(statsRight, statsHeight).Align(RIGHT);
     Header.lDrawText("resultsMenu.sectionHeader");
-    RightStatData.Fnt(ASSET(JetBrainsMono));
     int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->
         sections.size()
         ? player.engine->chart->sections.size()
@@ -462,14 +460,13 @@ void resultsMenu::DrawHistogram(Player &player, Rectangle rect, float cardHeight
     Encore::TextDisplay Header;
     Header.Pos(rect.x + (rect.width / 2), rect.y - (cardHeight * 0.07f)).Align(CENTER).
            Fnt(ASSET(josefinSansBold)).Col(LIGHTGRAY).Size(cardHeight * 0.05f);
+    float fontSize = Units::hinpct(0.025f);
+    Encore::TextDisplay LeftStatData(ASSET(rubik), fontSize);
+    Encore::TextDisplay RightStatData(ASSET(JetBrainsMono), fontSize);
 
-    Encore::TextDisplay LeftStatData;
-    Encore::TextDisplay RightStatData;
-
-    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
+    LeftStatData.Pos(statsLeft, statsHeight);
+    RightStatData.Pos(statsRight, statsHeight).Align(RIGHT);
     Header.lDrawText("resultsMenu.histogramHeader");
-    RightStatData.Fnt(ASSET(JetBrainsMono));
     int bottom = topSectList.at(playerslot) + MAX_LIST_LENGTH > player.engine->chart->
         sections.size()
         ? player.engine->chart->sections.size()
@@ -721,14 +718,6 @@ void resultsMenu::drawPlayerResults(Player &player, int playerslot) {
                lowerCardBottom * 0.05);
 
     float statsHeight = scoreBoxY + (scoreBoxHeight * 1.25) + (lowerCardBottom * 0.05);
-    float ActualStatsHeight = Units::hinpct(0.03f);
-    float statsLeft = cardPos + Units::winpct(0.01f);
-    float statsRight = cardPos + cardWidth - Units::winpct(0.01f);
-    Encore::TextDisplay LeftStatData;
-    Encore::TextDisplay RightStatData;
-
-    LeftStatData.Pos(statsLeft, statsHeight).Size(Units::hinpct(0.025f));
-    RightStatData.Pos(statsRight, statsHeight).Size(Units::hinpct(0.025f)).Align(RIGHT);
 
     Rectangle infoRect = { cardPos, statsHeight, cardWidth, lowerCardBottom - (scoreBoxHeight * 1.25f) };
     switch (resultsState.at(playerslot)) {
