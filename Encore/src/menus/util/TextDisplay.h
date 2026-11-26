@@ -7,6 +7,9 @@
 #include "assets.h"
 #include "locale/Locale.h"
 
+inline constexpr double REPEAT_THRESHOLD = 0.3;
+inline constexpr double REPEAT_WAIT = 0.05;
+
 enum TextAlign {
     LEFT,
     CENTER,
@@ -16,7 +19,9 @@ enum TextAlign {
 namespace Encore
 {
     struct TextDisplay {
-        Font font = ASSET(rubik);
+        TextDisplay() = default;
+        TextDisplay(const Font &_font, const float _size = 16) : font(_font), fontSize(_size) {};
+        Font font;
         Vector2 pos {0,0};
         float fontSize = 0;
         Color color{255, 255, 255, 255};
