@@ -40,6 +40,9 @@ float EaseInOutQuad(float t) {
 
 SortType currentSortValue = SortType::Title;
 Color AccentColor = { 255, 0, 255, 255 };
+//  2 is jump up, 1 is up, 0 is neutral, -1 is down, -2 is jump down
+std::pair<int, double> DPadHeld { 0 , 0 };
+double LastRepeatTime = 0;
 
 SongSelectMenu::~SongSelectMenu() {
     Unload();
@@ -108,6 +111,8 @@ void SongSelectMenu::ScrollSongSelect(int val) {
 }
 void SongSelectMenu::OpenContextMenu() {
     menu.Reset();
+    DPadHeld = { 0 , 0 };
+
     menu.CreateOption<SimpleMenu::FuncOption>(LOCALIZE("songSelect.sort"), [this]() {
         OpenSortMenu();
     });
@@ -134,6 +139,7 @@ void SongSelectMenu::OpenContextMenu() {
 }
 void SongSelectMenu::OpenSortMenu() {
     menu.Reset();
+    DPadHeld = { 0 , 0 };
 
     for (int i = (int)SortType::EnumStart; i <= (int)SortType::EnumEnd-1; i++) {
         if ((int)currentSortValue == i) {
@@ -152,7 +158,7 @@ void SongSelectMenu::OpenSortMenu() {
 }
 void SongSelectMenu::OpenSectionMenu() {
     menu.Reset();
-
+    DPadHeld = { 0 , 0 };
     for (int i = 0; i < TheSongList.listMenuEntries.size(); i++) {
         auto& entry = TheSongList.listMenuEntries[i];
         if (entry.type == eHeader) {
@@ -168,6 +174,7 @@ void SongSelectMenu::OpenSectionMenu() {
 
     menuOpen = true;
 }
+
 
 void SongSelectMenu::ControllerInputCallback(
     Encore::ControllerEvent event) {
@@ -291,10 +298,11 @@ void SongSelectMenu::Load() {
         if (slot != -1) {
             if (!ThePlayerManager.ActivePlayers[slot] || ThePlayerManager.ActivePlayers[slot]->bindingType != DRUMS) {
                 menuReleaseConfirm = true;
+                DPadHeld = {0,0};
                 Encore::ControllerEvent ev;
                 ev.action = Encore::Action::PRESS;
                 ev.channel = Encore::InputChannel::STRUM_DOWN;
-
+                ev.timestamp = DBL_MAX;
                 menu.Input(ev);
             }
         }
@@ -320,8 +328,11 @@ void SongSelectMenu::Load() {
         INPUT_LEFT,
         "PgUp",
         {
-            if (_action != Encore::Action::PRESS)
+            if (_action != Encore::Action::PRESS){
+                DPadHeld = {0,0};
                 return;
+            }
+            DPadHeld = {2,GetTime()};
             ScrollSongSelect(5);
         },
         false
@@ -331,8 +342,11 @@ void SongSelectMenu::Load() {
         INPUT_RIGHT,
         "PgDn",
         {
-            if (_action != Encore::Action::PRESS)
+            if (_action != Encore::Action::PRESS) {
+                DPadHeld = {0,0};
                 return;
+            }
+            DPadHeld = {-2,GetTime()};
             ScrollSongSelect(-5);
         },
         false
@@ -342,11 +356,14 @@ void SongSelectMenu::Load() {
         STRUM_UP,
         "Up",
         {
-            if (_action != Encore::Action::PRESS)
+            if (_action != Encore::Action::PRESS) {
+                DPadHeld = {0,0};
                 return;
+            }
             if (ControllerOrangeHeld.at(slot)) {
                 ScrollUpHeader();
             } else {
+                DPadHeld = {1,GetTime()};
                 ScrollSongSelect(1);
             }
         },
@@ -357,11 +374,14 @@ void SongSelectMenu::Load() {
         STRUM_DOWN,
         "Down",
         {
-            if (_action != Encore::Action::PRESS)
+            if (_action != Encore::Action::PRESS) {
+                DPadHeld = {0,0};
                 return;
+            }
             if (ControllerOrangeHeld.at(slot)) {
                 ScrollDownHeader();
             } else {
+                DPadHeld = {-1,GetTime()};
                 ScrollSongSelect(-1);
             }
         },
@@ -541,7 +561,18 @@ void SongSelectMenu::Draw() {
         // Update song select offset based on mouse wheel
         ScrollSongSelect(mouseWheel.y);
     }
-
+    if (DPadHeld.first != 0 && DPadHeld.second + REPEAT_THRESHOLD < GetTime()) {
+        if (LastRepeatTime + REPEAT_WAIT < GetTime()) {
+            switch (DPadHeld.first) {
+            case (2): ScrollSongSelect(5); break;
+            case (1): ScrollSongSelect(1); break;
+            case (0):
+            case (-1): ScrollSongSelect(-1); break;
+            case (-2): ScrollSongSelect(-5); break;
+            }
+            LastRepeatTime = GetTime();
+        }
+    }
 
     curTime = GetTime();
     // -5 -4 -3 -2 -1 0 1 2 3 4 5 6
