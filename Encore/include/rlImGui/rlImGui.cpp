@@ -456,7 +456,7 @@ void rlImGuiBeginInitImGui(void)
 
     ImFontConfig defaultConfig;
 
-    static constexpr int DefaultFonSize = 13;
+    static constexpr int DefaultFonSize = 20;
 
     defaultConfig.SizePixels = DefaultFonSize;
 #if !defined(__APPLE__)
@@ -467,7 +467,7 @@ void rlImGuiBeginInitImGui(void)
 #endif
 
     defaultConfig.PixelSnapH = true;
-    io.Fonts->AddFontDefault(&defaultConfig);
+    io.Fonts->AddFontDefaultVector(&defaultConfig);
 }
 
 void rlImGuiSetup(bool dark)
