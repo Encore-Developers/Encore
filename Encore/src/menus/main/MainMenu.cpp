@@ -87,6 +87,16 @@ int ChooseRandomLogo() {
 void MainMenu::Load() {
     std::filesystem::path directory = GetPrevDirectoryPath(GetApplicationDirectory());
     ChooseSplashText(directory);
+    {
+        quitMenu.CreateOption<SimpleMenu::FuncOption>(Encore::Locale::Localize("mainMenu.quit"), []() {
+            game.shouldQuit = true;
+            Encore::Log::Info("Quitting...");
+        });
+        quitMenu.CreateOption<SimpleMenu::FuncOption>(Encore::Locale::Localize("generic.cancel"), [this]() {
+            QuitPrompt = false;
+            quitMenuOpen = false;
+        });
+    }
     if (GameMenu::FirstMainMenuBoot) {
         TheGameJukebox.FirstLoad();
         GameMenu::FirstMainMenuBoot = false;
@@ -137,16 +147,26 @@ void MainMenu::KeyboardInputCallback(SDL_KeyboardEvent* event) {
         if (event->key == SDLK_RETURN) {
             OvershellState[0] = OS_PLAYER_SELECTION;
         }
-        if (event->key == SDLK_ESCAPE) {
-            game.shouldQuit = true;
-            Encore::Log::Info("Quitting...");
-        }
+    }
+    if (event->key == SDLK_ESCAPE) {
+        quitMenuOpen = true;
+        QuitPrompt = true;
     }
 }
 void MainMenu::ControllerInputCallback(Encore::ControllerEvent event) {
     int curSlot = 0;
     if (ThePlayerManager.GetPlayerForJoystick(event.slot)) {
         curSlot = ThePlayerManager.GetPlayerForJoystick(event.slot)->ActiveSlot;
+    }
+    if (ThePlayerManager.PlayersActive == 0) {
+        if (quitMenuOpen) {
+            quitMenu.Input(event); return;
+        }
+        if (event.channel == Encore::InputChannel::LANE_2 && event.action == Encore::Action::PRESS) {
+            quitMenuOpen = true;
+            QuitPrompt = true;
+            return;
+        }
     }
     buttReg.HandleInput(event);
 }
@@ -566,6 +586,27 @@ void MainMenu::Draw() {
         AttractScreen();
     } else {
         MainMenuScreen();
+    }
+    if (quitMenuOpen) {
+        Color light = {0x25, 0x25, 0x40, 0xff};
+        Color bg = {0x18, 0x18, 0x27, 0xff};
+        Color warn = {0x99, 0x00, 0x00, 0xAA};
+        quitMenu.bgColor = light;
+        quitMenu.displayParams.Fnt(ASSET(rubik)).Size(Units::hinpct(0.03f)).Align(CENTER);
+        quitMenu.displayParams.Padding(Units::hinpct(0.01f), Units::hinpct(0.01f));
+        auto width = Units::hinpct(0.5f);
+        auto height = Units::hinpct(0.2f);
+        auto x = Units::wpct(0.5)-width/2.0f;
+        auto y = Units::hpct(0.5)-height/2.0f;
+        DrawRectangleRounded({x-2, y-2, width+4, height + Units::hinpct(0.01) + 4}, 0.1, 4, light);
+        DrawRectangleRounded({x, y, width, height + Units::hinpct(0.01)}, 0.1, 4, bg);
+        Encore::TextDisplay exit(ASSET(rubik), Units::hinpct(0.035));
+        exit.Pos(x, y + Units::hinpct(0.025)).Bounds(width, height - Units::hinpct(0.1)).Align(CENTER).Padding({Units::hinpct(0.01f), Units::hinpct(0.01f)}).lDrawText("mainMenu.quitGame");
+        quitMenu.displayParams.Pos(x, y + Units::hinpct(0.1)).Bounds(width, height);
+        quitMenu.Draw();
+        BeginBlendMode(BLEND_MULTIPLIED);
+        DrawRectangleRec({x, y + Units::hinpct(0.1), width, height - Units::hinpct(0.15)}, warn);
+        EndBlendMode();
     }
 }
 bool AlbumArtLoadingStuff = false;

@@ -67,6 +67,7 @@
 		"hint": "Press START to select a profile",
 		"noSongLoaded": "No song loaded",
 		"invalidCache": "Invalid song cache!",
+		"quitGame": "Are you sure you want to exit the game?",
 		"warning" : {
 			"warning" : "WARNING!",
 			"info1": "This is an in-development build of Encore.",

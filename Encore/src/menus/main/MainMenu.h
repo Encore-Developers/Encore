@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../overshell/OvershellMenu.h"
+#include "menus/settings/util/SimpleMenu/SimpleMenu.h"
 #include "menus/util/ButtonActionRegistry.h"
 
 
@@ -15,7 +16,8 @@ public:
     static int logoInt;
     // MainMenu() {};
     // drawing helper functions for other menus
-
+    SimpleMenu::Instance quitMenu;
+    bool quitMenuOpen = false;
     bool hehe = false;
     bool shouldBreak = false;
     Encore::ButtonActionRegistry buttReg;
