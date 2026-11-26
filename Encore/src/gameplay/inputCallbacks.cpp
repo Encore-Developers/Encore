@@ -288,7 +288,7 @@ void ProcessControllerEvent(const Encore::ControllerEvent &event) {
     inputSafeUpdateTime = event.timestamp;
     if (TheMenuManager.ActiveMenu) {
         if (OvershellMenu* menu = dynamic_cast<OvershellMenu *>(TheMenuManager.ActiveMenu.get())) {
-            if (menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
+            if (!QuitPrompt && menu->hasOvershell && OvershellControllerInputCallback(menu, event)) {
                 return;
             }
         }

@@ -83,6 +83,7 @@ inline std::atomic_int SongCount = 0;
 inline std::atomic_int BadSongCount = 0;
 inline std::atomic_int SongsHashed = 0;
 inline std::atomic_bool ScanningSongs = false;
+inline std::atomic_bool QuitPrompt = false;
 inline std::atomic_int MaxChartsToLoad = 0;
 inline std::vector<std::string> sortTypes { "title", "artist", "source", "charter", "length", "year", "playlist" };
 
