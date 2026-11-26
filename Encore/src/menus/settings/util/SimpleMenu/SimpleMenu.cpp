@@ -5,14 +5,15 @@
 using namespace SimpleMenu;
 using namespace Encore;
 
-Option::Option(Instance* instance, const std::string &text) : instance(instance), text(text) {}
+Option::Option(Instance *instance, const std::string &text)
+    : instance(instance), text(text) {}
 bool Option::Input(ControllerEvent event) {
     return false;
 }
 void Option::Draw(TextDisplay display, size_t index, MouseState mouseState) {
     auto bgColor = instance->bgColor;
     if (index >= instance->rangeStart && index <= instance->rangeEnd) {
-        bgColor = {80, 0, 80, 255};
+        bgColor = { 80, 0, 80, 255 };
     }
     if (mouseState == HOVERED) {
         bgColor = ColorLerp(bgColor, display.color, 0.1);
@@ -28,7 +29,8 @@ void Option::Draw(TextDisplay display, size_t index, MouseState mouseState) {
             Input(fakeEvent);
         }
     }
-    if ((!instance->lastInteractionWasMouse && instance->selectedIndex == index) || mouseState == ACTIVE) {
+    if ((!instance->lastInteractionWasMouse && instance->selectedIndex == index)
+        || mouseState == ACTIVE) {
         auto swap = display.color;
         display.color = bgColor;
         bgColor = swap;
@@ -37,7 +39,9 @@ void Option::Draw(TextDisplay display, size_t index, MouseState mouseState) {
     DrawRectangle(display.pos.x, display.pos.y, display.width, display.height, bgColor);
     display.DrawText(text);
 }
-FuncOption::FuncOption(Instance* instance, const std::string &text, std::function<void()> func)
+FuncOption::FuncOption(
+    Instance *instance, const std::string &text, std::function<void()> func
+)
     : Option(instance, text), func(func) {}
 bool FuncOption::Input(ControllerEvent event) {
     if (event.IsAccept()) {
@@ -82,34 +86,58 @@ void Instance::Input(ControllerEvent event) {
         return;
     }
     if (event.action == Action::RELEASE) {
+        if (event.channel == InputChannel::STRUM_DOWN
+            || event.channel == InputChannel::STRUM_UP
+            || event.channel == InputChannel::INPUT_LEFT
+            || event.channel == InputChannel::INPUT_RIGHT) {
+            DPadHeld = { 0, 0 };
+        }
         return;
     }
+    double time = event.timestamp != DBL_MAX ? GetTime() : DBL_MAX;
     switch (event.channel) {
     case InputChannel::STRUM_DOWN:
+        DPadHeld = { 1, time };
         Select(1);
         break;
     case InputChannel::STRUM_UP:
+        DPadHeld = { -1, time };
         Select(-1);
         break;
     case InputChannel::INPUT_LEFT:
+        DPadHeld = { -2, time };
         Select(-4);
         break;
     case InputChannel::INPUT_RIGHT:
+        DPadHeld = { 2, time };
         Select(4);
         break;
     case InputChannel::LANE_2:
-        for (auto& option : options) {
+        for (auto &option : options) {
             if (option->isBackOption) {
                 event.channel = InputChannel::LANE_1;
                 option->Input(event);
             }
         }
+        DPadHeld = { 0, 0 };
     default:
         return;
     }
     lastInteractionWasMouse = false;
 }
 void Instance::Draw() {
+    if (DPadHeld.first != 0 && DPadHeld.second + REPEAT_THRESHOLD < GetTime()) {
+        if (LastRepeatTime + REPEAT_WAIT < GetTime()) {
+            switch (DPadHeld.first) {
+            case (2): Select(4); break;
+            case (1): Select(1); break;
+            case (0):
+            case (-1): Select(-1); break;
+            case (-2): Select(-4); break;
+            }
+            LastRepeatTime = GetTime();
+        }
+    }
     int itemHeight = ItemHeight();
     int itemEffectiveHeight = itemHeight + itemSpacing;
 
@@ -133,10 +161,10 @@ void Instance::Draw() {
         if (scroll < 0) {
             scroll = 0;
         }
-
     }
 
-    bool isInstanceHovered = displayParams.CollidesPoint(GetMousePosition()) && !ImGui::GetIO().WantCaptureMouse;
+    bool isInstanceHovered = displayParams.CollidesPoint(GetMousePosition())
+        && !ImGui::GetIO().WantCaptureMouse;
     if (isInstanceHovered) {
         if (GetMouseWheelMove() != 0) {
             lastInteractionWasMouse = true;
@@ -152,7 +180,9 @@ void Instance::Draw() {
     }
 
     float cursor = -scroll;
-    BeginScissorMode(displayParams.pos.x, displayParams.pos.y, displayParams.width, displayParams.height);
+    BeginScissorMode(
+        displayParams.pos.x, displayParams.pos.y, displayParams.width, displayParams.height
+    );
     for (size_t i = 0; i < options.size(); ++i) {
         if (cursor > -itemHeight && cursor <= options.size() * itemHeight) {
             auto option = options[i];
@@ -164,8 +194,8 @@ void Instance::Draw() {
                 if (lastInteractionWasMouse) {
                     if (selectedIndex != i) {
                         Select(i - selectedIndex);
-                        // Known issue: range selection will act odd because of the mouse hover
-                        // Hovering items will expand the range but never shrink it
+                        // Known issue: range selection will act odd because of the mouse
+                        // hover Hovering items will expand the range but never shrink it
                     }
                 }
                 if (IsMouseButtonDown(0)) {
@@ -182,13 +212,13 @@ void Instance::Draw() {
     EndScissorMode();
 }
 float Instance::ItemHeight() const {
-    return displayParams.fontSize + displayParams.padding.y*2;
+    return displayParams.fontSize + displayParams.padding.y * 2;
 }
 float Instance::TotalSpacingHeight() const {
     return (static_cast<float>(options.size()) - 1) * itemSpacing;
 }
 float Instance::InternalMaxHeight() const {
-     return (int)ItemHeight()*static_cast<float>(options.size()) + TotalSpacingHeight();
+    return (int)ItemHeight() * static_cast<float>(options.size()) + TotalSpacingHeight();
 }
 void Instance::SetRangeStart(int start) {
     if (rangeEnd == -1) {
@@ -233,6 +263,7 @@ void Instance::Reset() {
     options.clear();
     selectedIndex = 0;
     scroll = 0;
+    DPadHeld = { 0, 0 };
     selectingRange = false;
     lastInteractionWasMouse = false;
 }

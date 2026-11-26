@@ -55,6 +55,8 @@ namespace SimpleMenu {
         bool inputWrapping = true;
         bool mouseInput = true;
         bool lastInteractionWasMouse = false;
+        std::pair<int, double> DPadHeld { 0 , 0 };
+        double LastRepeatTime = 0;
 
         int rangeStart = -1;
         int rangeEnd = -1;
