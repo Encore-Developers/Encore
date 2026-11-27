@@ -2,6 +2,7 @@
 	"id": "proDrums",
 	"archetype": "drums",
 	"midiTrackNames": ["PART DRUMS"],
+	"dotChartSectionNames": ["Drums"],
 	"iniDifficultyKey": "diff_drums",
 	"maxMultiplier": 4,
 	"flags": ["cymbals"],

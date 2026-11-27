@@ -2,6 +2,7 @@
 	"id": "classicRhythm",
 	"archetype": "guitar",
 	"midiTrackNames": ["PART RHYTHM"],
+	"dotChartSectionNames": ["DoubleRhythm"],
 	"iniDifficultyKey": "diff_rhythm",
 	"maxMultiplier": 4,
 	"assignedStems": ["rhythm"],

@@ -4,7 +4,7 @@
 
 #include "ChartLoader.h"
 
-#include "DotChartLoader/DotChartHandler.h"
+#include "DotChartLoaders/DotChartHandler.h"
 #include "MidiLoaders/MidiChartHandler.h"
 #include "RhythmEngine/Engine/Drums/DrumsEngine.h"
 #include "RhythmEngine/Engine/Guitar/GuitarEngine.h"
@@ -30,6 +30,33 @@ ChartLoadContext::ChartLoadContext(Player *player) {
 }
 std::vector<std::vector<odPhrase> > &ChartHandler::GetOverdrive() {
     return overdrive;
+}
+void ChartHandler::PopulateAutoConverts() {
+    for (auto &convertToPart : SongPart::LoadedParts | std::views::values) {
+        if (convertToPart.convertsFrom.empty())
+            continue;
+        // Check if we're missing this part
+        bool missing = true;
+        for (auto &checkPart : Parts) {
+            if (checkPart.Part == &convertToPart) {
+                missing = false;
+                break;
+            }
+        }
+        if (!missing)
+            continue;
+
+        // Find the part to convert from
+        for (auto &checkPart : Parts) {
+            if (checkPart.Part->id == convertToPart.convertsFrom) {
+                TrackInformation newPart = checkPart;
+                newPart.Part = &convertToPart;
+                newPart.Converted = true;
+                Parts.push_back(newPart);
+                break;
+            }
+        }
+    }
 }
 ChartLoader::ChartLoader(Song* song) {
     switch (song->chartFormat) {

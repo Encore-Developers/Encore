@@ -5,7 +5,12 @@
 #include "gameplay/enctime.h"
 
 struct TrackInformation {
+    /// MIDI only
     int TrackIndex = -1;
+
+    /// .chart only
+    std::string SectionName;
+
     Encore::RhythmEngine::SongPart* Part;
     bool Converted = false;
     std::array<bool, 4> ValidDiffs{ false, false, false, false };
@@ -54,6 +59,7 @@ namespace Encore::RhythmEngine {
         virtual bool IsLoaded() = 0;
         virtual void PopulateSubsongs() = 0;
         std::vector<std::vector<odPhrase>>& GetOverdrive();
+        void PopulateAutoConverts();
     };
 
     class ChartLoader {

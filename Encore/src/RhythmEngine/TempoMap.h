@@ -71,6 +71,8 @@ namespace Encore::RhythmEngine {
         TimeODTicks SecondsToODTick(TimeSeconds seconds) const;
         TimeSeconds ODTickToSeconds(TimeODTicks odTick) const;
 
+        static TimeSeconds TickToSeconds(const std::vector<BPM>& bpms, int ppqn, TimeTicks tick);
+
         BeatlineTracker GetBeatlineTracker();
 
         double GetBeatDelta(TimeSeconds time, int step = 1);

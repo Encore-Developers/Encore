@@ -794,6 +794,9 @@ void GameplayMenu::Draw() {
 void GameplayMenu::DrawAccuracyDisplay(float xPos, float yPos) {
     if (tracks.size() == 1) {
         auto& player = tracks[0]->player;
+        if (player.engine->noteCount <= 0) {
+            return;
+        }
         // predicted: current accuracy if the player perfects every note from now (maximum possible accuracy)
         double predictedAccuracy = (player.engine->stats->Accuracy - player.engine->stats->AttemptedNotes + player.engine->noteCount) / player.engine->noteCount;
 

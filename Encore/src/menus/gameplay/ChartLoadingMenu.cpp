@@ -29,6 +29,8 @@ std::atomic_bool FinishedLoading = false;
 
 void ChartLoadingMenu::LoadCharts() {
     ZoneScoped;
+    auto start = std::chrono::high_resolution_clock::now();
+    Encore::RhythmEngine::ChartLoader chartLoader = curSong;
     TheSongTime.currentTempoMap = chartLoader.GetTempoMap();
     TheSongTime.Sections = chartLoader.GetSections();
     chartLoader.PreloadCharts();
@@ -50,6 +52,8 @@ void ChartLoadingMenu::LoadCharts() {
     TheAudioManager.AssignStreamInstruments(activeParts);
     TheSongTime.Lyrics = chartLoader.GetLyricPhrases();
     FinishedLoading = true;
+    auto end = std::chrono::high_resolution_clock::now();
+    Encore::Log::Trace("Loaded charts in {}ms", std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()/(double)1000);
 }
 
 /**

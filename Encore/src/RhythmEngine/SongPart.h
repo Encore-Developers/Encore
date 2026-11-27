@@ -32,6 +32,7 @@ namespace Encore::RhythmEngine {
         EngineArchetype archetype;
         // GH1 midis use "T1 GEMS" as the midi track name for Lead Guitar. As far as I know, this is the only time where 1 part has multiple track names.
         std::vector<std::string> midiTrackNames;
+        std::vector<std::string> dotChartSectionNames;
         /// diff_* key this part uses in the ini
         std::string iniDifficultyKey;
         int maxMultiplier;

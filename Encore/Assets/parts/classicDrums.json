@@ -2,6 +2,7 @@
 	"id": "classicDrums",
 	"archetype": "drums",
 	"midiTrackNames": ["PART DRUMS"],
+	"dotChartSectionNames": ["Drums"],
 	"iniDifficultyKey": "diff_drums",
 	"maxMultiplier": 4,
 	"assignedStems": ["drums_1", "drums_2", "drums_3", "drums_4", "drums"],

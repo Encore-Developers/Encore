@@ -56,6 +56,13 @@ void from_json(const nlohmann::json &j, Encore::RhythmEngine::SongPart &p) {
     p.id = j["id"];
     from_json(j["archetype"], p.archetype);
     p.midiTrackNames = j["midiTrackNames"];
+    if (j.contains("dotChartSectionNames")) {
+        p.dotChartSectionNames = j["dotChartSectionNames"];
+    } else {
+        if (p.archetype != ArchetypePad) {
+            Encore::Log::Warn("Non-pad song part {} does not have .chart section names defined", p.id);
+        }
+    }
     p.iniDifficultyKey = j["iniDifficultyKey"];
     p.maxMultiplier = j["maxMultiplier"];
     if (j.contains("convertsFrom")) {

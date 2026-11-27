@@ -2,6 +2,7 @@
 	"id": "classicBass",
 	"archetype": "guitar",
 	"midiTrackNames": ["PART BASS"],
+	"dotChartSectionNames": ["DoubleBass", "SingleBass"],
 	"iniDifficultyKey": "diff_bass",
 	"maxMultiplier": 6,
 	"flags": ["bass"],

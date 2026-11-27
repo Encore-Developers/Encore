@@ -2,6 +2,7 @@
 	"id": "classicKeys",
 	"archetype": "guitar",
 	"midiTrackNames": ["PART KEYS"],
+	"dotChartSectionNames": ["Keyboard"],
 	"iniDifficultyKey": "diff_keys",
 	"maxMultiplier": 4,
 	"assignedStems": ["keys"],

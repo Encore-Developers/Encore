@@ -120,31 +120,7 @@ std::vector<TrackInformation> &MidiChartHandler::GetValidParts() {
         }
     }
     // Find auto-converts
-    for (auto &convertToPart : SongPart::LoadedParts | std::views::values) {
-        if (convertToPart.convertsFrom.empty())
-            continue;
-        // Check if we're missing this part
-        bool missing = true;
-        for (auto &checkPart : Parts) {
-            if (checkPart.Part == &convertToPart) {
-                missing = false;
-                break;
-            }
-        }
-        if (!missing)
-            continue;
-
-        // Find the part to convert from
-        for (auto &checkPart : Parts) {
-            if (checkPart.Part->id == convertToPart.convertsFrom) {
-                TrackInformation newPart = checkPart;
-                newPart.Part = &convertToPart;
-                newPart.Converted = true;
-                Parts.push_back(newPart);
-                break;
-            }
-        }
-    }
+    PopulateAutoConverts();
     std::ranges::sort(
         Parts.begin(), Parts.end(), [](TrackInformation &a, TrackInformation &b) {
             return a.Part->sortOrder > b.Part->sortOrder;
@@ -211,7 +187,7 @@ void MidiChartHandler::PreloadCharts() {
     }
 }
 
-std::pair<int, double> MidiChartHandler::GetEndEvent() {
+std::pair<TimeTicks, TimeSeconds> MidiChartHandler::GetEndEvent() {
     auto &events = midifile[EventsTrack];
     for (int i = 0; i < events.getSize(); i++) {
         if (events[i].isMeta() && (int)events[i][1] == 1) {

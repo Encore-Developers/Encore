@@ -78,6 +78,21 @@ TimeSeconds TempoMap::ODTickToSeconds(TimeODTicks odTick) const {
 
     return Lerp(OverdriveTicks[(size_t)odTick].sec, OverdriveTicks[(size_t)odTick+1].sec, odTick-(size_t)odTick);
 }
+TimeSeconds TempoMap::TickToSeconds(const std::vector<BPM> &bpms, int ppqn, TimeTicks tick) {
+    if (bpms.empty()) {
+        return 0;
+    }
+    auto currentBpm = bpms.begin();
+    for (auto findBpm = bpms.begin(); findBpm < bpms.end(); ++findBpm) {
+        if ((findBpm->tick) <= tick) {
+            currentBpm = findBpm;
+        } else {
+            break;
+        }
+    }
+
+    return currentBpm->time + ((tick - currentBpm->tick)/(double)ppqn) / (currentBpm->bpm / 60.0);
+}
 BeatlineTracker TempoMap::GetBeatlineTracker() {
     return {this, 0};
 }

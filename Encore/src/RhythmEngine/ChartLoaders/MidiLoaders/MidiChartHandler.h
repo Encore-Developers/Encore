@@ -25,7 +25,7 @@ namespace Encore::RhythmEngine {
         std::vector<TimePoint> GenerateOverdriveTicks() override;
         std::vector<LyricPhrase> GetLyricPhrases() override;
         void PreloadCharts() override;
-        std::pair<int, double> GetEndEvent() override;
+        std::pair<TimeTicks, TimeSeconds> GetEndEvent() override;
         std::vector<Section> GetSections() override;
         std::shared_ptr<BaseChart> GetChart(ChartLoadContext ctx) override;
         bool IsLoaded() override;

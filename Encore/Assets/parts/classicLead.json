@@ -2,6 +2,7 @@
 	"id": "classicLead",
 	"archetype": "guitar",
 	"midiTrackNames": ["PART GUITAR", "T1 GEMS"],
+	"dotChartSectionNames": ["Single"],
 	"iniDifficultyKey": "diff_guitar",
 	"maxMultiplier": 4,
 	"assignedStems": ["guitar"],

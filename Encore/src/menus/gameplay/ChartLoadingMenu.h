@@ -17,11 +17,10 @@ public:
 
     Song* curSong;
     Gamemode gamemode;
-    Encore::RhythmEngine::ChartLoader chartLoader;
 
     std::shared_ptr<VideoPlayer> videoBackground;
 
-    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode), chartLoader(song)  {};
+    ChartLoadingMenu(Song* song, Gamemode gamemode = GAMEPLAY) : curSong(song), gamemode(gamemode)  {};
     ~ChartLoadingMenu() {};
     void KeyboardInputCallback(SDL_KeyboardEvent* event) override {};
     void ControllerInputCallback(Encore::ControllerEvent event) override {};
