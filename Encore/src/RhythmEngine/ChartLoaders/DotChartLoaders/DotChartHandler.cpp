@@ -1,4 +1,5 @@
-    int latestTick = 0;//
+#include "Guitar/DotChartGuitarLoader.h"
+int latestTick = 0;//
 // Created by maria on 18/06/2026.
 //
 
@@ -7,9 +8,17 @@ using namespace Encore::RhythmEngine;
 
 #include <regex>
 // what is wrong with this language
-std::array<std::pair<std::string, int>, 4> diffs {
+std::array<std::pair<std::string, int>, 4> DotChartHandler::diffs {
     { { "Expert", 3 }, { "Hard", 2 }, { "Medium", 1 }, { "Easy", 0 } }
 };
+const std::string &DotChartHandler::GetDiffName(int diff) {
+    for (auto& diffPair : diffs) {
+        if (diffPair.second == diff) {
+            return diffPair.first;
+        }
+    }
+    return "Expert";
+}
 
 double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double lastTime) {
     // using
@@ -20,7 +29,7 @@ double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double l
     double secondDelta = secondsPerBeat * beatDelta;
     return secondDelta + lastTime;
 };
-DotChartHandler::DotChartEvent DotChartHandler::ParseEvent(const std::string &line) {
+DotChartEvent DotChartHandler::ParseEvent(const std::string &line) {
     static const std::regex matcher(R"((\w+)\s*=\s*(.+))");
     std::smatch match;
     std::regex_match(line, match, matcher);
@@ -247,6 +256,15 @@ std::vector<Section> DotChartHandler::GetSections() {
     return {};
 }
 std::shared_ptr<BaseChart> DotChartHandler::GetChart(ChartLoadContext ctx) {
+    switch (ctx.part->archetype) {
+    case ArchetypePad:
+        break;
+    case ArchetypeDrums:
+        break;
+    case ArchetypeGuitar:
+        return DotChartGuitarLoader(this, ctx).GetChart();
+        break;
+    }
     return std::make_shared<BaseChart>();
 }
 

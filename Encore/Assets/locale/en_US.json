@@ -107,6 +107,7 @@
 			"Powered by Unity!",
 			"Powered by Scratch!",
 			"Powered by Assets assets;!",
+			"(Reluctantly) Powered by OpenGL!",
 			"We do NOT support piracy!",
 			"The band's back together again. And again. And again. And again!",
 			"Gyatt!",
@@ -175,7 +176,8 @@
 			"[Encore] build-macos failure on main… but it’s not like i care or anything~! hmmph!",
 			"Isn't she lovely?",
 			"Isn't she wonderful?",
-			"Isn't she precious?"
+			"Isn't she precious?",
+			"Hot [ExpertSingle]s in your area!"
 		],
 		"steamOnlySplashes": [
 			"Hello ",

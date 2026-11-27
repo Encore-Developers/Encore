@@ -46,10 +46,7 @@ namespace Encore::RhythmEngine {
             Lanes.resize(size);
             CurrentNoteIterators.resize(size);
         };
-        BaseChart() : size(5) {
-            Lanes.resize(size);
-            CurrentNoteIterators.resize(size);
-        };
+        BaseChart() : BaseChart(5) {};
         uint8_t size;
         NoteVector &operator[](const size_t i) { return this->Lanes.at(i); }
         NoteVector &at(const size_t i) { return this->Lanes.at(i); }

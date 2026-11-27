@@ -6,10 +6,13 @@
 
 
 namespace Encore::RhythmEngine {
+    struct DotChartEvent {
+        std::string key;
+        std::vector<std::string> values;
+    };
+
     class DotChartHandler final : public ChartHandler
     {
-        int EventsTrack = -1;
-        int tpq = 192;
         bool processed = false;
         bool FinishedLoading = false;
         std::vector<TimeSig> TS;
@@ -17,17 +20,21 @@ namespace Encore::RhythmEngine {
 
         std::unordered_map<std::string, std::vector<std::string>> sections;
 
-        struct DotChartEvent {
-            std::string key;
-            std::vector<std::string> values;
-        };
+
 
         DotChartEvent ParseEvent(const std::string& line);
 
         /// Make sure GetBPMChanges() has been run before calling
         TimeSeconds TickToSeconds(TimeTicks tick);
 
+        friend class DotChartBaseLoader;
+
     public:
+
+        int tpq = 192;
+        static std::array<std::pair<std::string, int>, 4> diffs;
+        static const std::string& GetDiffName(int diff);
+
         explicit DotChartHandler(Song* song);
         int GetResolution() override { return tpq; };
         std::vector<BPM> GetBPMChanges() override;
