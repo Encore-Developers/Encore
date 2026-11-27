@@ -35,6 +35,8 @@ namespace Encore::RhythmEngine {
         static std::array<std::pair<std::string, int>, 4> diffs;
         static const std::string& GetDiffName(int diff);
 
+        
+
         explicit DotChartHandler(Song* song);
         int GetResolution() override { return tpq; };
         std::vector<BPM> GetBPMChanges() override;

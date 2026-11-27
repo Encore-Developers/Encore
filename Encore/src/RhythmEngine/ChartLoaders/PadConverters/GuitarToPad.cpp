@@ -132,11 +132,30 @@ void HopoPass(BaseChart &sourceChart) {
     }
 }
 
+void OpenPass(BaseChart &sourceChart) {
+    // Handle opens
+    for (auto it = sourceChart.Lanes[0].begin(); it != sourceChart.Lanes[0].end(); ++it) {
+        auto &note = *it;
+        if (note.lane == 0) {
+            if (note.type == 0 || it == sourceChart.Lanes[0].begin()) {
+                // send strummed opens to green
+                note.lane = 1;
+            } else {
+                // send open pulloffs to the previous note's lane
+                note.lane = (it - 1)->lane;
+                note.end = {0, 0};
+                note.type = 0;
+            }
+        }
+    }
+}
+
 BaseChart
 PadConverters::ConvertGuitarToPad(BaseChart &sourceChart) {
     BaseChart newChart;
     NoteEvent* prevNote = nullptr;
 
+    OpenPass(sourceChart);
     ChordPass(sourceChart);
     SetOriginalLanePass(sourceChart);
     HopoPass(sourceChart);

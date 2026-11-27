@@ -1,4 +1,5 @@
 #include "Guitar/DotChartGuitarLoader.h"
+#include "RhythmEngine/ChartLoaders/PadConverters/PadConverters.h"
 int latestTick = 0;//
 // Created by maria on 18/06/2026.
 //
@@ -256,16 +257,25 @@ std::vector<Section> DotChartHandler::GetSections() {
     return {};
 }
 std::shared_ptr<BaseChart> DotChartHandler::GetChart(ChartLoadContext ctx) {
-    switch (ctx.part->archetype) {
-    case ArchetypePad:
-        break;
-    case ArchetypeDrums:
-        break;
-    case ArchetypeGuitar:
-        return DotChartGuitarLoader(this, ctx).GetChart();
-        break;
+    for (auto& trackInfo : GetValidParts()) {
+        if (ctx.part != trackInfo.Part) continue;
+        if (!trackInfo.ValidDiffs.at(ctx.diff)) continue;
+        switch (ctx.part->archetype) {
+        case ArchetypePad:
+            if (!trackInfo.Converted) {
+                break;
+            } else {
+                auto chart = DotChartGuitarLoader(this, ctx).GetChart();
+                return std::make_shared<BaseChart>(PadConverters::ConvertGuitarToPad(*chart));
+            }
+        case ArchetypeDrums:
+            break;
+        case ArchetypeGuitar:
+            return DotChartGuitarLoader(this, ctx);
+        }
     }
     return std::make_shared<BaseChart>();
+
 }
 
 bool DotChartHandler::IsLoaded() {
