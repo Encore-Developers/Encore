@@ -60,7 +60,7 @@ void BaseChart::RecountPhrases() {
         for (auto& lane : Lanes) {
             auto curPhrase = solos.begin();
             for (auto& note : lane) {
-                if (note.start.tick >= curPhrase->end.tick) {
+                if (note.start.tick > curPhrase->end.tick) {
                     ++curPhrase;
                 }
                 if (curPhrase == solos.end()) {

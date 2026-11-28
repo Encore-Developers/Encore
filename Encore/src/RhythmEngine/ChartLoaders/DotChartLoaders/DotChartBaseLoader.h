@@ -11,6 +11,8 @@ namespace Encore::RhythmEngine {
     protected:
         DotChartHandler* parent;
         std::shared_ptr<BaseChart> chart;
+
+        TimeTicks curSolo = -1;
     public:
         virtual ~DotChartBaseLoader() = default;
         DotChartBaseLoader(DotChartHandler* parent, ChartLoadContext ctx, int laneCount) : parent(parent), ctx(ctx), chart(std::make_shared<BaseChart>(laneCount)) {};

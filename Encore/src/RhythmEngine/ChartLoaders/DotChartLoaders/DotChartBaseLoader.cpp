@@ -25,4 +25,13 @@ void DotChartBaseLoader::ReceiveEvent(const DotChartEvent &event) {
         odPhrase newPhrase = {TickToSeconds(tick), tick, TickToSeconds(tick+length), tick+length};
         chart->overdrive.push_back(newPhrase);
     }
+    if (event.values.at(0) == "E") {
+        auto tick = std::stoi(event.key);
+        if (event.values.at(1) == "solo") {
+            curSolo = tick;
+        }
+        if (event.values.at(1) == "soloend") {
+            chart->solos.emplace_back(TickToSeconds(curSolo), curSolo, TickToSeconds(tick), tick);
+        }
+    }
 }
