@@ -17,7 +17,7 @@ namespace Encore::RhythmEngine {
 
         TimeSeconds TickToSeconds(TimeTicks tick);
 
-        const std::vector<std::string>& GetChartSection() {
+        const std::vector<DotChartEvent>& GetChartSection() {
             for (auto& info : parent->GetValidParts()) {
                 if (info.Part == ctx.part) {
                     return parent->sections[DotChartHandler::GetDiffName(ctx.diff) + info.SectionName];

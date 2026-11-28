@@ -21,21 +21,16 @@ const std::string &DotChartHandler::GetDiffName(int diff) {
     return "Expert";
 }
 
-double GetTimeFromTick(double bpm, int resolution, int tickDelta, const double lastTime) {
-    // using
-    // https://thenathannator.github.io/GuitarGame_ChartFormats/Implementation-Info/Time-Conversions/
-    // as a reference
-    double secondsPerBeat = 60.0 / bpm;
-    double beatDelta = tickDelta / resolution;
-    double secondDelta = secondsPerBeat * beatDelta;
-    return secondDelta + lastTime;
-};
+std::string stripWhitespace(const std::string& str) {
+    auto start = str.find_first_not_of(' ');
+    auto end = str.find_last_not_of(' ');
+    return str.substr(start, end - start + 1);
+}
+
 DotChartEvent DotChartHandler::ParseEvent(const std::string &line) {
-    static const std::regex matcher(R"((\w+)\s*=\s*(.+))");
-    std::smatch match;
-    std::regex_match(line, match, matcher);
-    std::string key = match[1];
-    std::string valuelist = match[2];
+    auto equals = line.find_first_of('=');
+    std::string key = stripWhitespace(line.substr(0, equals));
+    std::string valuelist = stripWhitespace(line.substr(equals + 1, std::string::npos));
     std::string currentValue;
     std::vector<std::string> values;
     bool quote = false;
@@ -74,8 +69,7 @@ std::vector<BPM> DotChartHandler::GetBPMChanges() {
     if (bpms.empty()) {
         // 120bpm can be assumed if there isn't one at tick 0
         BPM curBPM = { 0, 120, 0 };
-        for (auto &line : sections["SyncTrack"]) {
-            auto ev = ParseEvent(line);
+        for (auto &ev : sections["SyncTrack"]) {
             if (ev.values.at(0) == "B") {
                 double bpm = std::stoi(ev.values.at(1)) / 1000.0;
                 int tick = std::stoi(ev.key);
@@ -97,8 +91,7 @@ std::vector<TimeSig> DotChartHandler::GetTimeSigChanges() {
     if (TS.empty()) {
         // Ensure the bpm changes are loaded
         GetBPMChanges();
-        for (auto &line : sections["SyncTrack"]) {
-            auto ev = ParseEvent(line);
+        for (auto &ev : sections["SyncTrack"]) {
             if (ev.values.at(0) == "TS") {
                 int tick = std::stoi(ev.key);
                 int denomExp = ev.values.size() > 2 ? std::stoi(ev.values.at(2)) : 2;
@@ -170,12 +163,13 @@ std::vector<LyricPhrase> DotChartHandler::GetLyricPhrases() {
 }
 
 void DotChartHandler::PreloadCharts() {
+    ZoneScoped
     if (!sections.empty()) {
         return;
     }
     auto chart = song->GetChartData();
     std::string sectionName;
-    std::vector<std::string> sectionLines;
+    std::vector<DotChartEvent> sectionLines;
     for (std::string line; std::getline(*chart, line);) {
         if (line.empty())
             continue;
@@ -204,15 +198,14 @@ void DotChartHandler::PreloadCharts() {
             sectionName = line.substr(1, line.find_last_of(']') - 1);
             continue;
         }
-        sectionLines.emplace_back(line);
+        sectionLines.emplace_back(ParseEvent(line));
     }
     if (!sectionName.empty()) {
         sections.emplace(sectionName, sectionLines);
     }
 
     if (sections.contains("Song")) {
-        for (auto &line : sections["Song"]) {
-            auto ev = ParseEvent(line);
+        for (auto &ev : sections["Song"]) {
             if (ev.key == "Resolution") {
                 tpq = std::stoi(ev.values.at(0));
             }
@@ -225,8 +218,7 @@ void DotChartHandler::PreloadCharts() {
 std::pair<TimeTicks, TimeSeconds> DotChartHandler::GetEndEvent() {
     GetBPMChanges();
     // First search the events section for an end event
-    for (auto &line : sections["Events"]) {
-        auto ev = ParseEvent(line);
+    for (auto &ev : sections["Events"]) {
         if (ev.values.at(0) == "E" && ev.values.at(1) == "end") {
             TimeTicks tick = std::stoi(ev.key);
             return { tick, TickToSeconds(tick) };
@@ -236,8 +228,7 @@ std::pair<TimeTicks, TimeSeconds> DotChartHandler::GetEndEvent() {
     int latestTick = 0;
     for (auto &section : sections) {
         if (section.first != "Song") {
-            for (auto &line : section.second) {
-                auto ev = ParseEvent(line);
+            for (auto &ev : section.second) {
                 // In case any other sections have non-tick keys
                 try {
                     TimeTicks tick = std::stoi(ev.key);
@@ -257,6 +248,7 @@ std::vector<Section> DotChartHandler::GetSections() {
     return {};
 }
 std::shared_ptr<BaseChart> DotChartHandler::GetChart(ChartLoadContext ctx) {
+    ZoneScoped
     for (auto& trackInfo : GetValidParts()) {
         if (ctx.part != trackInfo.Part) continue;
         if (!trackInfo.ValidDiffs.at(ctx.diff)) continue;

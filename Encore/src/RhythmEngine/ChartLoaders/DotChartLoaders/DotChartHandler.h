@@ -18,7 +18,7 @@ namespace Encore::RhythmEngine {
         std::vector<TimeSig> TS;
         std::vector<BPM> bpms;
 
-        std::unordered_map<std::string, std::vector<std::string>> sections;
+        std::unordered_map<std::string, std::vector<DotChartEvent>> sections;
 
 
 

@@ -8,8 +8,7 @@ TimeSeconds DotChartBaseLoader::TickToSeconds(TimeTicks tick) {
 std::shared_ptr<BaseChart> DotChartBaseLoader::GetChart() {
     if (!loaded) {
         auto& lines = GetChartSection();
-        for (auto& line : lines) {
-            auto ev = parent->ParseEvent(line);
+        for (auto& ev : lines) {
             ReceiveEvent(ev);
         }
 
@@ -18,4 +17,6 @@ std::shared_ptr<BaseChart> DotChartBaseLoader::GetChart() {
     }
     return chart;
 }
-void DotChartBaseLoader::ReceiveEvent(const DotChartEvent &event) {}
+void DotChartBaseLoader::ReceiveEvent(const DotChartEvent &event) {
+
+}
