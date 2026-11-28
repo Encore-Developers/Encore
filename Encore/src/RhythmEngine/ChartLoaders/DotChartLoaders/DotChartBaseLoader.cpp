@@ -13,10 +13,16 @@ std::shared_ptr<BaseChart> DotChartBaseLoader::GetChart() {
         }
 
         EventsDone();
+        chart->RecountPhrases();
         loaded = true;
     }
     return chart;
 }
 void DotChartBaseLoader::ReceiveEvent(const DotChartEvent &event) {
-
+    if (event.values.at(0) == "S" && event.values.at(1) == "2") {
+        auto tick = std::stoi(event.key);
+        auto length = std::stoi(event.values.at(2));
+        odPhrase newPhrase = {TickToSeconds(tick), tick, TickToSeconds(tick+length), tick+length};
+        chart->overdrive.push_back(newPhrase);
+    }
 }

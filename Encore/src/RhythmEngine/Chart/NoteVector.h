@@ -50,11 +50,7 @@ namespace Encore::RhythmEngine {
         uint8_t size;
         NoteVector &operator[](const size_t i) { return this->Lanes.at(i); }
         NoteVector &at(const size_t i) { return this->Lanes.at(i); }
-        void resize(const size_t _size) {
-            size = _size;
-            Lanes.resize(_size);
-            CurrentNoteIterators.resize(_size);
-        }
+        void resize(size_t _size);
         std::vector<NoteVector> Lanes;
         std::vector<NoteVector::iterator> CurrentNoteIterators;
         std::vector<NoteEvent *> MissedNotePointers;
@@ -63,37 +59,17 @@ namespace Encore::RhythmEngine {
          * this DOES NOT CARE about timing or ANYTHING.
          * it simply just gets the next note in said lane
          */
-        bool AdvanceCurrentNote(const size_t lane) {
-            // if (std::distance(Lanes.at(lane).begin(), CurrentNoteIterators.at(lane))
-            //     >= Lanes.at(lane).size()) {
-            //     // bounds check
-            //     return false;
-            // }
-            if (CurrentNoteIterators.at(lane) == Lanes.at(lane).end())
-                return false;
-            ++CurrentNoteIterators.at(lane);
-            return true;
-        }
+        bool AdvanceCurrentNote(size_t lane);
 
         /**
          * reset notes
          */
-        void Reset(size_t lane) {
-            for (size_t i = 0; i < CurrentNoteIterators.size(); i++) {
-                CurrentNoteIterators.at(i) = Lanes.at(i).begin();
-            }
-        }
+        void Reset();
 
-        void UpdateSections(const int tick) {
-            if (!sections.empty()) {
-                while (CurrentSection < sections.size() - 1) {
-                    if (tick < sections[CurrentSection+1].tickStart) {
-                        break;
-                    }
-                    CurrentSection++;
-                }
-            }
-        }
+        void UpdateSections(int tick);
+
+        void RecountPhrases();
+
         size_t CurrentSection = 0;
         std::vector<Section> sections;
         SoloEvents solos;

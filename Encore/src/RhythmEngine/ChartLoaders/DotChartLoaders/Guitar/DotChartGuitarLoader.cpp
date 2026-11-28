@@ -14,6 +14,9 @@ namespace Encore {
             if (!hasPreviousNote) {
                 return false;
             }
+            if (note.lane == previousNote.lane) {
+                return false;
+            }
             int threshold = ((65*parent->tpq)/192);
             if (note.start.tick < previousNote.start.tick+threshold) {
                 return (note.lane & previousNote.lane) == 0;
