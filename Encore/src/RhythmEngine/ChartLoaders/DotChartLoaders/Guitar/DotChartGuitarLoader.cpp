@@ -63,7 +63,7 @@ namespace Encore {
                         accumulatedNote.lane |= NoteTypeToLane(type);
                         accumulatedNote.type = 0;
                         if (length > 0) {
-                            if (accumulatedNote.end.tick == 0 || accumulatedNote.end.tick < tick+length) {
+                            if (accumulatedNote.end.tick < tick+length) {
                                 accumulatedNote.end = {TickToSeconds(tick+length), tick+length};
                             }
                         }
