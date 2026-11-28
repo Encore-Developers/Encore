@@ -75,3 +75,8 @@ As Encore uses BASS and BASSOPUS, you can use WAV/AIFF/MP3/MP2/MP1/OGG/OPUS file
 
 ## Album art
 Album art must be .png or .jpg, with a size of 512x512.
+
+# .chart
+**There is no spec for pad charts in .chart.**
+Encore supports loading .chart files for compatibility with the overwhelming amount of existing charts made with it. Charters
+looking to make content specifically for Encore should use MIDI.

@@ -1,36 +1,37 @@
-# Encore
+
+![Encore logo](Encore/Assets/encore-white.png)
 
 [![Chat with us on Discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg)](https://discord.gg/GhkgVUAC9v)
 
 Up-and-coming 4/5 key rhythm game.
-
-Encore supports controllers and keyboard.
 
 ## Installation
 
 ### Nightly releases (recommended)
 
 Current nightly build:    
-- [Windows 64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x64-Indev.zip)
-- [Linux x64 bit](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64-Indev.zip)
-- [macOS](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_macOS-Indev.zip)
-
-### "Stable" releases (not recommended)
-
-Download from [GitHub Releases](https://github.com/Encore-Developers/Encore-Raylib/releases).
+- [Windows x86_64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Win_x64-Indev.zip)
+- [Linux x86_64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_Linux_x64-Indev.zip)
+- [macOS arm64](https://nightly.link/Encore-Developers/Encore/workflows/build/main/Encore_macOS-Indev.zip)
 
 ### Running Encore
-
-Extract the .zip file that you downloaded, either Nightly or Stable, and extract it into a folder that you will be able to remember. If Windows Defender SmartScreen appears, click Read More, and Run. Encore is not a malicious program, and removing the SmartScreen popup would cost us (the developers) more than we're willing to pay.
+Extract the .zip file that you downloaded into a folder that you will be able to remember. If Windows Defender SmartScreen appears, click Read More, and Run. Encore is not a malicious program, and removing the SmartScreen popup would cost us (the developers) more than we're willing to pay.
 
 ## Songs
 ### WE DO NOT ENDORSE PIRACY OF OFFICIAL CONTENT. IT IS UP TO YOU TO LEGALLY OBTAIN YOUR SONGS.
 
-Extract songs into the `/Songs` folder in your Encore folder.
+Either extract songs into the `/Songs` folder in your Encore folder, or add your existing song folders in the Gameplay Settings.
+
+
 Please check [CHARTS.md](https://github.com/Encore-Developers/Encore/blob/main/CHARTS.md) for more song information.
 
-Encore supports all songs with a song.ini and notes.mid. (no .chart!!!!!)  
-.chart should be abolished. Convert using Onyx.
+Encore supports all songs in the standard CH/PS folder format with a `song.ini` and either `notes.mid` or `notes.chart`.
+
+## Controllers
+Encore supports most 5-fret guitar controllers available with little setup.
+Standard gamepads and keyboard are also supported, albeit with **no remapping support** yet.
+
+Remapping and MIDI input support is being worked on.
 
 ### Contributing
 
